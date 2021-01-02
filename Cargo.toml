@@ -1,9 +1,39 @@
 [package]
 name = "aleo"
 version = "0.1.0"
-authors = ["howardwu <howardwu@berkeley.edu>"]
+authors = ["The Aleo Team <hello@aleo.org>"]
+description = "Aleo"
+homepage = "https://aleo.org"
+repository = "https://github.com/AleoHQ/aleo"
+keywords = ["aleo", "cryptography", "blockchain", "decentralized", "zero-knowledge"]
+categories = ["cryptography::cryptocurrencies", "operating-systems"]
+include = ["Cargo.toml", "src", "README.md", "LICENSE.md"]
+license = "GPL-3.0"
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+#[lib]
+#crate-type = ["cdylib", "rlib"]
+
+[[bench]]
+name = "account"
+path = "benches/account.rs"
+harness = false
 
 [dependencies]
+snarkvm-dpc = { git = "https://github.com/AleoHQ/snarkVM.git", rev = "14d1f50", version = "0.0.1", default-features = false }
+snarkvm-errors = { git = "https://github.com/AleoHQ/snarkVM.git", rev = "14d1f50", version = "0.0.1", default-features = false }
+snarkvm-models = { git = "https://github.com/AleoHQ/snarkVM.git", rev = "14d1f50", version = "0.0.1", default-features = false }
+snarkvm-objects = { git = "https://github.com/AleoHQ/snarkVM.git", rev = "14d1f50", version = "0.0.1", default-features = false }
+snarkvm-storage = { git = "https://github.com/AleoHQ/snarkVM.git", rev = "14d1f50", version = "0.0.1", default-features = false }
+snarkvm-utilities = { git = "https://github.com/AleoHQ/snarkVM.git", rev = "14d1f50", version = "0.0.1" }
+
+anyhow = { version = "1.0.37" }
+hex = { version = "0.4.2" }
+rand = { version = "0.7", default-features = false, features = ["wasm-bindgen"] }
+thiserror = { version = "1.0" }
+wasm-bindgen = { version = "0.2.68" }
+
+[dev-dependencies]
+criterion = { version = "0.3.1" }
+rand_chacha = { version = "0.2", default-features = false }
+wasm-bindgen-test = { version = "0.3.18" }
