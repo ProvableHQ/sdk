@@ -5,7 +5,6 @@ use snarkvm_dpc::base_dpc::{
     record::DPCRecord,
     record_payload::RecordPayload,
 };
-use snarkvm_errors::dpc::DPCError;
 use snarkvm_models::{
     algorithms::CRH,
     dpc::{DPCComponents, DPCScheme},

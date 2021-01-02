@@ -6,7 +6,6 @@ use snarkvm_dpc::base_dpc::{
     BaseDPCComponents,
     ExecuteContext,
 };
-use snarkvm_errors::dpc::DPCError;
 use snarkvm_models::{
     algorithms::CRH,
     dpc::{DPCComponents, DPCScheme, Program, Record},
