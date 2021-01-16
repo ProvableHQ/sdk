@@ -44,3 +44,26 @@ wasm-bindgen = { version = "0.2.68" }
 criterion = { version = "0.3.1" }
 rand_chacha = { version = "0.2", default-features = false }
 wasm-bindgen-test = { version = "0.3.18" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+incremental = true
+
+[profile.bench]
+opt-level = 3
+lto = "thin"
+incremental = true
+debug = false
+debug-assertions = false
+rpath = false
+
+[profile.dev]
+opt-level = 0
+
+[profile.test]
+opt-level = 3
+lto = "thin"
+incremental = true
+debug = true
+debug-assertions = true
