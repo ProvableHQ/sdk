@@ -1,3 +1,8 @@
+use aleo::cli::CLI;
+
+use structopt::StructOpt;
+
 fn main() {
-    println!("Hello, world!");
+    let cli = CLI::from_args();
+    println!("{:#?}", cli);
 }
