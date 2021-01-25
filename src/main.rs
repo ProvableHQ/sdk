@@ -1,10 +1,9 @@
 use aleo::{
-    address::Address,
+    account::{Address, PrivateKey, ViewKey},
     cli::{Command, CLI},
-    private_key::PrivateKey,
-    view_key::ViewKey,
 };
 
+use colored::*;
 use structopt::StructOpt;
 
 fn main() -> anyhow::Result<()> {
@@ -22,11 +21,9 @@ fn main() -> anyhow::Result<()> {
             let view_key = ViewKey::from(&private_key)?;
             let address = Address::from(&private_key)?;
 
-            println!("\n  Generated a new Aleo account\n");
-            println!("\tPrivate Key - {}", private_key);
-            println!("\tView Key - {}", view_key);
-            println!("\tAddress - {}", address);
-            println!("");
+            println!("\n {:>12}  {}", "Private Key".cyan().bold(), private_key);
+            println!(" {:>12}  {}", "View Key".cyan().bold(), view_key);
+            println!(" {:>12}  {}\n", "Address".cyan().bold(), address);
         }
     }
 

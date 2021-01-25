@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the snarkOS library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{errors::AddressError, private_key::PrivateKey};
+use crate::{account::PrivateKey, errors::AddressError};
 
 use snarkvm_dpc::base_dpc::{instantiated::Components, parameters::SystemParameters};
 use snarkvm_objects::AccountAddress;
