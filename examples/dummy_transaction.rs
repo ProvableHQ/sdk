@@ -19,13 +19,17 @@ use snarkvm_utilities::{to_bytes, ToBytes};
 
 use rand::thread_rng;
 
-pub fn main() {
+/// Creates a new dummy transaction.
+pub fn main() -> anyhow::Result<()> {
+    // Initialize the parameters.
+    let network_id = 1;
     let rng = &mut thread_rng();
 
-    let network_id = 1;
+    // Create the dummy transaction.
+    let (transaction, _records) = create_dummy_transaction(network_id, rng)?;
 
-    let (transaction, _records) = create_dummy_transaction(network_id, rng).unwrap();
+    // Hexify and print it out.
+    println!("{}", hex::encode(to_bytes![transaction]?));
 
-    let encoded_transaction = hex::encode(to_bytes![transaction].unwrap());
-    println!("{}", encoded_transaction);
+    Ok(())
 }
