@@ -63,12 +63,12 @@ debug-assertions = false
 rpath = false
 
 [profile.dev]
-opt-level = 3
+opt-level = 2
 lto = "thin"
 incremental = true
 
 [profile.test]
-opt-level = 3
+opt-level = 2
 lto = "thin"
 incremental = true
 debug = true
