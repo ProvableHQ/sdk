@@ -49,9 +49,6 @@ criterion = { version = "0.3.1" }
 rusty-hook = { version = "0.11.2" }
 wasm-bindgen-test = { version = "0.3.18" }
 
-[features]
-uncolored = ["colored/no-color"]
-
 [profile.release]
 opt-level = 3
 lto = "thin"
@@ -66,11 +63,13 @@ debug-assertions = false
 rpath = false
 
 [profile.dev]
-opt-level = 0
+opt-level = 3
+lto = "thin"
+incremental = true
 
 [profile.test]
 opt-level = 3
 lto = "thin"
 incremental = true
 debug = true
-debug-assertions = true
+debug-assertions = false

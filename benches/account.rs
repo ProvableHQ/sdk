@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the snarkOS library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_toolkit::account::{Address, PrivateKey};
+use aleo::account::{Address, PrivateKey};
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use rand::SeedableRng;
