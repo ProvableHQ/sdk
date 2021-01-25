@@ -38,7 +38,10 @@ pub struct CLI {
 #[derive(StructOpt, Debug)]
 pub enum Command {
     /// Generates a new Aleo account
-    New,
+    New {
+        #[structopt(short = "s", long)]
+        seed: Option<u64>,
+    },
     // /// Add magical sparkles -- the secret ingredient!
     // Sparkle {
     //     #[structopt(short, parse(from_occurrences))]
