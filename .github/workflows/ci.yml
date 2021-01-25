@@ -28,8 +28,6 @@ jobs:
 
       - name: cargo fmt --check
         uses: actions-rs/cargo@v1
-        env:
-          CARGO_NET_GIT_FETCH_WITH_CLI: true
         with:
           command: fmt
           args: --all -- --check
@@ -123,34 +121,6 @@ jobs:
         with:
           command: test
           args: --all --no-fail-fast
-
-  test-package:
-    name: Test Package
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust:
-          - stable
-          - nightly
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Install Rust (${{ matrix.rust }})
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          override: true
-
-      - name: Install cargo-all-features
-        run: |
-          cargo install cargo-all-features
-
-      - name: Test
-        run: |
-          cd package
-          cargo test-all-features
 
   codecov:
     name: Code Coverage
