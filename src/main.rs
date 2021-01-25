@@ -1,6 +1,6 @@
 use aleo::{
     address::Address,
-    cli::{CLI, Command},
+    cli::{Command, CLI},
     private_key::PrivateKey,
     view_key::ViewKey,
 };
