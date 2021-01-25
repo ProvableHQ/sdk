@@ -23,7 +23,7 @@ pub struct CLI {
     #[structopt(short, long)]
     pub debug: bool,
 
-    /// Verbose mode (-v, -vv, -vvv, etc.)
+    /// Enable verbose mode
     #[structopt(short, long, parse(from_occurrences))]
     pub verbose: u8,
 
@@ -55,6 +55,7 @@ pub struct CLI {
 pub enum Command {
     /// Generates a new Aleo account
     New {
+        /// Seed the RNG with a numeric value
         #[structopt(short = "s", long)]
         seed: Option<u64>,
     },
