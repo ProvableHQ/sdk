@@ -44,6 +44,7 @@ thiserror = { version = "1.0" }
 wasm-bindgen = { version = "0.2.68" }
 
 [dev-dependencies]
+colored = { version = "2", features = ["no-color"] }
 criterion = { version = "0.3.1" }
 rusty-hook = { version = "0.11.2" }
 wasm-bindgen-test = { version = "0.3.18" }
