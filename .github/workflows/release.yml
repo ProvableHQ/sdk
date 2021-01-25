@@ -1,4 +1,4 @@
-name: Leo Release
+name: Aleo Release
 on:
   push:
     tags:
@@ -23,11 +23,9 @@ jobs:
           override: true
           components: rustfmt
 
-      - name: Build Leo
+      - name: Build Aleo
         run: |
-          cargo build --all --release && strip target/release/leo
-        env:
-          CARGO_NET_GIT_FETCH_WITH_CLI: true
+          cargo build --all --release && strip target/release/aleo
 
       - id: get_version
         uses: battila7/get-version-action@v2
@@ -35,18 +33,18 @@ jobs:
       - name: Zip
         run: |
           mkdir tempdir
-          mv target/release/leo tempdir
+          mv target/release/aleo tempdir
           cd tempdir
-          zip -r leo-${{ steps.get_version.outputs.version }}-x86_64-unknown-linux-gnu.zip leo
+          zip -r aleo-${{ steps.get_version.outputs.version }}-x86_64-unknown-linux-gnu.zip aleo
           cd ..
-          mv tempdir/leo-${{ steps.get_version.outputs.version }}-x86_64-unknown-linux-gnu.zip .
+          mv tempdir/aleo-${{ steps.get_version.outputs.version }}-x86_64-unknown-linux-gnu.zip .
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            leo-${{ steps.get_version.outputs.version }}-x86_64-unknown-linux-gnu.zip
+            aleo-${{ steps.get_version.outputs.version }}-x86_64-unknown-linux-gnu.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -65,9 +63,9 @@ jobs:
           override: true
           components: rustfmt
 
-      - name: Build Leo
+      - name: Build Aleo
         run: |
-          cargo build --all --release && strip target/release/leo
+          cargo build --all --release && strip target/release/aleo
         env:
           CARGO_NET_GIT_FETCH_WITH_CLI: true
 
@@ -77,18 +75,18 @@ jobs:
       - name: Zip
         run: |
           mkdir tempdir
-          mv target/release/leo tempdir
+          mv target/release/aleo tempdir
           cd tempdir
-          zip -r leo-${{ steps.get_version.outputs.version }}-x86_64-apple-darwin.zip leo
+          zip -r aleo-${{ steps.get_version.outputs.version }}-x86_64-apple-darwin.zip aleo
           cd ..
-          mv tempdir/leo-${{ steps.get_version.outputs.version }}-x86_64-apple-darwin.zip .
+          mv tempdir/aleo-${{ steps.get_version.outputs.version }}-x86_64-apple-darwin.zip .
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            leo-${{ steps.get_version.outputs.version }}-x86_64-apple-darwin.zip
+            aleo-${{ steps.get_version.outputs.version }}-x86_64-apple-darwin.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -114,7 +112,7 @@ jobs:
           version: "10.0"
           directory: ~ / .clang
 
-      - name: Build Leo
+      - name: Build Aleo
         run: |
           cargo build --all --release
         env:
@@ -126,17 +124,17 @@ jobs:
       - name: Zip
         run: |
           mkdir tempdir
-          mv target/release/leo tempdir
+          mv target/release/aleo tempdir
           cd tempdir
-          Compress-Archive leo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu leo
+          Compress-Archive aleo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu aleo
           cd ..
-          mv leo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu .
+          mv aleo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu .
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            leo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu.zip
+            aleo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
