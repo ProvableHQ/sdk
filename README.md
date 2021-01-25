@@ -11,6 +11,27 @@
 
 Visit [Welcome to Aleo](https://github.com/AleoHQ/welcome) to get started.
 
+## Table of Contents
+
+## 1. Usage Guide
+
+### 1.1 Generate a new Aleo account.
+
+To generate a new Aleo account, run:
+```bash
+aleo new [OPTIONS]
+```
+
+The command can be run with the following optional parameters:
+```
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -s, --seed <seed> 
+```
+
 ## Development
 
 ```
