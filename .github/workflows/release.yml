@@ -1,0 +1,142 @@
+name: Leo Release
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  ubuntu:
+    name: Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: Build Leo
+        run: |
+          cargo build --all --release && strip target/release/leo
+        env:
+          CARGO_NET_GIT_FETCH_WITH_CLI: true
+
+      - id: get_version
+        uses: battila7/get-version-action@v2
+
+      - name: Zip
+        run: |
+          mkdir tempdir
+          mv target/release/leo tempdir
+          cd tempdir
+          zip -r leo-${{ steps.get_version.outputs.version }}-x86_64-unknown-linux-gnu.zip leo
+          cd ..
+          mv tempdir/leo-${{ steps.get_version.outputs.version }}-x86_64-unknown-linux-gnu.zip .
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            leo-${{ steps.get_version.outputs.version }}-x86_64-unknown-linux-gnu.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: Build Leo
+        run: |
+          cargo build --all --release && strip target/release/leo
+        env:
+          CARGO_NET_GIT_FETCH_WITH_CLI: true
+
+      - id: get_version
+        uses: battila7/get-version-action@v2
+
+      - name: Zip
+        run: |
+          mkdir tempdir
+          mv target/release/leo tempdir
+          cd tempdir
+          zip -r leo-${{ steps.get_version.outputs.version }}-x86_64-apple-darwin.zip leo
+          cd ..
+          mv tempdir/leo-${{ steps.get_version.outputs.version }}-x86_64-apple-darwin.zip .
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            leo-${{ steps.get_version.outputs.version }}-x86_64-apple-darwin.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "10.0"
+          directory: ~ / .clang
+
+      - name: Build Leo
+        run: |
+          cargo build --all --release
+        env:
+          CARGO_NET_GIT_FETCH_WITH_CLI: true
+
+      - id: get_version
+        uses: battila7/get-version-action@v2
+
+      - name: Zip
+        run: |
+          mkdir tempdir
+          mv target/release/leo tempdir
+          cd tempdir
+          Compress-Archive leo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu leo
+          cd ..
+          mv leo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu .
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            leo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
