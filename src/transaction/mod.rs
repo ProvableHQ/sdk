@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod dummy_transaction;
-pub use dummy_transaction::*;
+pub mod dummy;
+pub use dummy::*;
 
-pub mod transaction;
-pub use transaction::*;
+pub mod delegate;
+pub use delegate::*;
