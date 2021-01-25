@@ -19,7 +19,6 @@ use crate::{
     cli::Command,
 };
 
-use anyhow::anyhow;
 use colored::*;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
