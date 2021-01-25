@@ -1,10 +1,13 @@
-<h1 align="center">Aleo</h1>
+<h1 align="center">Aleo SDK</h1>
 
 <p align="center">
     <a href="https://github.com/AleoHQ/aleo/actions"><img src="https://github.com/AleoHQ/aleo/workflows/CI/badge.svg"></a>
     <a href="https://codecov.io/gh/AleoHQ/aleo"><img src="https://codecov.io/gh/AleoHQ/aleo/branch/master/graph/badge.svg?token=HIVCMHYMTZ"/></a>
     <a href="https://discord.gg/WYQNdbHzZR"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
 </p>
+
+The Aleo SDK is a developer framework to make it simple to create a new account, craft a transaction,
+and broadcast it to the network.
 
 ## Table of Contents
 
@@ -15,9 +18,6 @@
 ## 1. Overview
 
 ** ATTENTION: This codebase is in active development. **
-
-The Aleo SDK is a developer framework to make it simple to create a new account, craft a transaction,
-and broadcast it to the network.
 
 For more information, visit [Welcome to Aleo](https://github.com/AleoHQ/welcome) to get started.
 
