@@ -38,7 +38,7 @@ anyhow = { version = "1.0.37" }
 colored = { version = "2" }
 hex = { version = "0.4.2" }
 rand = { version = "0.7", default-features = false, features = ["wasm-bindgen"] }
-rand_chacha = { version = "0.2", default-features = false }
+rand_chacha = { version = "0.3", default-features = false }
 structopt = { version = "0.3" }
 thiserror = { version = "1.0" }
 wasm-bindgen = { version = "0.2.68" }
