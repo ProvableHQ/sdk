@@ -6,7 +6,7 @@ on:
 
 jobs:
   benchmark:
-    name: Check performance regression.
+    name: Check Performance Regression
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,9 +19,17 @@ jobs:
           toolchain: nightly
           override: true
 
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Benchmark
         run: |
-          cd benches && cargo +nightly bench | tee output.txt
+          cargo +nightly bench | tee ../output.txt
           ls -la
           pwd
           cat output.txt
@@ -31,7 +39,7 @@ jobs:
         with:
           name: Aleo SDK Benchmarks
           tool: 'cargo'
-          output-file-path: benches/output.txt
+          output-file-path: output.txt
           gh-pages-branch: 'benches'
           github-token: ${{ secrets.PAT_TOKEN }}
           auto-push: true
