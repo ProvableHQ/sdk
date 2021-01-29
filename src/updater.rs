@@ -78,14 +78,14 @@ impl Updater {
     }
 
     /// Display the CLI message.
-    pub fn print_cli() -> Result<String, UpdaterError> {
+    pub fn print_cli() -> String {
         if let Ok(latest_version) = Self::update_available() {
             let mut output = "🟢 A new version is available! Run".bold().green().to_string();
             output += &" `aleo update` ".bold().white();
             output += &format!("to update to v{}.", latest_version).bold().green();
-            Ok(output)
+            output
         } else {
-            Ok(format!(""))
+            format!("")
         }
     }
 }

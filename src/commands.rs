@@ -53,14 +53,14 @@ pub fn parse(command: Command) -> anyhow::Result<String> {
                     match result {
                         Ok(status) => {
                             if status.uptodate() {
-                                Ok(format!("Aleo is already on the latest version {}", status.version()))
+                                Ok(format!("\nAleo is already on the latest version"))
                             } else if status.updated() {
-                                Ok(format!("Aleo has successfully updated to version {}", status.version()))
+                                Ok(format!("\nAleo has updated to version {}", status.version()))
                             } else {
                                 Ok(format!(""))
                             }
                         }
-                        Err(e) => Ok(format!("Failed to update Aleo to the latest version\n{}\n", e)),
+                        Err(e) => Ok(format!("\nFailed to update Aleo to the latest version\n{}\n", e)),
                     }
                 } else {
                     Ok(format!(""))
