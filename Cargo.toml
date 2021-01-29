@@ -52,6 +52,8 @@ colored = { version = "2", features = ["no-color"] }
 criterion = { version = "0.3.1" }
 rusty-hook = { version = "0.11.2" }
 wasm-bindgen-test = { version = "0.3.20" }
+futures = "0.3"
+tokio = { version = "1.1.0", features = ["rt-multi-thread"] }
 
 [profile.release]
 opt-level = 3

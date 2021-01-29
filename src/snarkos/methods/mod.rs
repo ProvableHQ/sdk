@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod errors;
-pub mod methods;
-pub mod objects;
-pub mod rpc;
+pub mod getblockcount;
 
-#[cfg(test)]
-pub mod tests;
+pub enum snarkOSRpcMethods {}
