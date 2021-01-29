@@ -19,7 +19,7 @@ jobs:
           toolchain: nightly
           override: true
 
-      - name: Run benchmark
+      - name: Benchmark
         run: cargo +nightly bench | tee output.txt
 
       - name: Store benchmark result
