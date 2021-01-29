@@ -21,7 +21,7 @@ jobs:
 
       - name: Benchmark
         run: |
-          cargo +nightly bench | tee output.txt
+          cd benches && cargo +nightly bench | tee output.txt
           ls -la
           pwd
           cat output.txt
@@ -31,7 +31,7 @@ jobs:
         with:
           name: Aleo SDK Benchmarks
           tool: 'cargo'
-          output-file-path: output.txt
+          output-file-path: benches/output.txt
           gh-pages-branch: 'benches'
           github-token: ${{ secrets.PAT_TOKEN }}
           auto-push: true
