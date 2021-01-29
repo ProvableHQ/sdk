@@ -67,3 +67,18 @@ impl From<std::io::Error> for AddressError {
         AddressError::Crate("std::io", format!("{:?}", error))
     }
 }
+
+#[derive(Debug, Error)]
+pub enum UpdaterError {
+    #[error("{}: {}", _0, _1)]
+    Crate(&'static str, String),
+
+    #[error("The current version {} is more recent than the release version {}", _0, _1)]
+    OldReleaseVersion(String, String),
+}
+
+impl From<self_update::errors::Error> for UpdaterError {
+    fn from(error: self_update::errors::Error) -> Self {
+        UpdaterError::Crate("self_update", error.to_string())
+    }
+}
