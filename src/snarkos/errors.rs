@@ -14,12 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[macro_use]
-extern crate thiserror;
+#[derive(Debug, Error)]
+pub enum RpcRequestError {
+    #[error("Deserialization error: {}", _0)]
+    DeserializationError(serde_json::error::Error),
 
-pub mod account;
-pub mod cli;
-pub mod commands;
-pub mod errors;
-pub mod snarkos;
-pub mod transaction;
+    #[error("{}", _0)]
+    JsonRPC(String),
+
+    #[error("{}", _0)]
+    Message(String),
+
+    #[error("{}", _0)]
+    Reqwest(reqwest::Error),
+
+    #[error(transparent)]
+    Std(std::io::Error),
+}
+
+impl From<reqwest::Error> for RpcRequestError {
+    fn from(error: reqwest::Error) -> Self {
+        RpcRequestError::Reqwest(error)
+    }
+}
