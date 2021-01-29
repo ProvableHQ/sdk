@@ -27,12 +27,17 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
 
+      # Run benchmark and stores the output to a file
       - name: Benchmark
         run: |
-          cargo +nightly bench | tee ../output.txt
-          ls -la
-          pwd
-          cat ../output.txt
+          cargo +nightly bench | tee output.txt
+
+      # Download previous benchmark result from cache (if exists)
+      - name: Download previous benchmark data
+        uses: actions/cache@v1
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
 
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
