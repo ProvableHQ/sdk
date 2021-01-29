@@ -20,7 +20,10 @@ jobs:
           override: true
 
       - name: Benchmark
-        run: cargo +nightly bench | tee output.txt
+        run: |
+          cargo +nightly bench | tee output.txt
+          ls -la
+          pwd
 
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
