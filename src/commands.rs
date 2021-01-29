@@ -17,6 +17,7 @@
 use crate::{
     account::{Address, PrivateKey, ViewKey},
     cli::Command,
+    updater::Updater,
 };
 
 use colored::*;
@@ -40,6 +41,31 @@ pub fn parse(command: Command) -> anyhow::Result<String> {
             output += &format!(" {:>12}  {}\n", "Address".cyan().bold(), address);
 
             Ok(output)
-        } // _ => Err(anyhow!("\nUnknown command\n")),
+        }
+        Command::Update { list, quiet } => match list {
+            true => match Updater::show_available_releases() {
+                Ok(output) => Ok(output),
+                Err(error) => Ok(format!("Failed to list the available versions of Aleo\n{}\n", error)),
+            },
+            false => {
+                let result = Updater::update_to_latest_release(!quiet);
+                if !quiet {
+                    match result {
+                        Ok(status) => {
+                            if status.uptodate() {
+                                Ok(format!("\nAleo is already on the latest version"))
+                            } else if status.updated() {
+                                Ok(format!("\nAleo has updated to version {}", status.version()))
+                            } else {
+                                Ok(format!(""))
+                            }
+                        }
+                        Err(e) => Ok(format!("\nFailed to update Aleo to the latest version\n{}\n", e)),
+                    }
+                } else {
+                    Ok(format!(""))
+                }
+            }
+        }, // _ => Err(anyhow!("\nUnknown command\n")),
     }
 }
