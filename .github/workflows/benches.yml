@@ -45,7 +45,6 @@ jobs:
           name: Aleo SDK Benchmarks
           tool: 'cargo'
           output-file-path: output.txt
-          gh-pages-branch: 'benches'
           github-token: ${{ secrets.PAT_TOKEN }}
           auto-push: true
           alert-threshold: '150%'
