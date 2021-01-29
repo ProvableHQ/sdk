@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo::account::{Address, PrivateKey};
+use aleo::account::{Address, PrivateKey, ViewKey};
 
 #[macro_use]
 extern crate bencher;
@@ -30,6 +30,16 @@ fn account_private_key(bench: &mut Bencher) {
 
     bench.iter(|| {
         let _private_key = PrivateKey::new(rng).unwrap();
+    });
+}
+
+fn account_view_key(bench: &mut Bencher) {
+    let rng = &mut ChaChaRng::seed_from_u64(SEED);
+
+    let private_key = PrivateKey::new(rng).unwrap();
+
+    bench.iter(|| {
+        let _view_key = ViewKey::from(&private_key).unwrap();
     });
 }
 
