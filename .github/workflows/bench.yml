@@ -6,7 +6,7 @@ on:
 
 jobs:
   benchmark:
-    name: Check performance regeression.
+    name: Check performance regression.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
