@@ -32,7 +32,7 @@ jobs:
           cargo +nightly bench | tee ../output.txt
           ls -la
           pwd
-          cat output.txt
+          cat ../output.txt
 
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
