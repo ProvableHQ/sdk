@@ -148,8 +148,8 @@ jobs:
         env:
           CARGO_INCREMENTAL: "0"
 #          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=unwind -Zpanic_abort_tests"
-          RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
-          RUSTDOCFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+          RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+          RUSTDOCFLAGS: -Zprofile -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
 
       - name: Code Coverage
         uses: actions-rs/grcov@v0.1
