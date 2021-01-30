@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use uuid::Uuid;
+
 #[derive(Debug, Error)]
 pub enum RpcRequestError {
     #[error("Deserialization error: {}", _0)]
@@ -24,6 +26,9 @@ pub enum RpcRequestError {
 
     #[error("{}", _0)]
     Message(String),
+
+    #[error("Request id {} does not match response id {}", _0, _1)]
+    RequestIdMismatch(Uuid, Uuid),
 
     #[error("{}", _0)]
     Reqwest(reqwest::Error),

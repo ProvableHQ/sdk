@@ -27,12 +27,17 @@ pub struct RpcEndpoint {
 }
 
 impl RpcEndpoint {
-    /// Perform a single request expecting a single response.
+    /// Send an RPC request with the given request body and authorization header.
+    /// Returns the response body for the request.
     pub async fn request(&self, request: &RequestBody, auth: &RpcAuth) -> Result<ResponseBody, RpcRequestError> {
         let mut req = self.client.post(&self.uri).json(request);
 
-        // TODO (raychu86): Add auth to the request.
+        // Add the authorization header to the request.
+        if let RpcAuth::Basic { username, password } = auth {
+            req = req.basic_auth(username, Some(password));
+        }
 
+        // Send the request to the RPC endpoint.
         match req.send().await {
             Ok(response) => Ok(response.json::<ResponseBody>().await.unwrap()),
             Err(error) => Err(RpcRequestError::from(error)),
@@ -43,7 +48,7 @@ impl RpcEndpoint {
 #[derive(Debug, Clone)]
 pub enum RpcAuth {
     Basic {
-        // TODO (raychu86): Use a module like `SecretString`.
+        // TODO (raychu86): Protect these values with `secrecy`.
         username: String,
         password: String,
     },
@@ -68,12 +73,19 @@ impl RpcClient {
         }
     }
 
-    /// Make a single request to the RPC endpoint.
+    /// Make a request to the RPC endpoint.
     pub async fn request<R: RpcRequest>(&self, request: &R) -> Result<R::Output, RpcRequestError> {
         let request_body = request.body();
-        let response_body = self.endpoint.request(&request_body, &self.auth).await?;
 
-        // TODO (raychu86): Check if the response and request ids match.
+        // Send the rpc request to the endpoint.
+        let response_body: ResponseBody = self.endpoint.request(&request_body, &self.auth).await?;
+
+        // Check if the request and response ids are the same.
+        if let Some(response_id) = response_body.id {
+            if request_body.id != response_id {
+                return Err(RpcRequestError::RequestIdMismatch(request_body.id.clone(), response_id));
+            }
+        }
 
         request.parse_response(response_body)
     }

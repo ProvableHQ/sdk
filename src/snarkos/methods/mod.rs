@@ -16,4 +16,6 @@
 
 pub mod getblockcount;
 
-pub enum snarkOSRpcMethods {}
+pub enum snarkOSRpcMethods {
+    GetBlockCount,
+}
