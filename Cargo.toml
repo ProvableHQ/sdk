@@ -15,13 +15,6 @@ edition = "2018"
 members = ["account", "wasm"]
 
 [dependencies]
-#snarkvm-dpc = { path = "../snarkVM/dpc", default-features = false }
-#snarkvm-errors = { path = "../snarkVM/errors", default-features = false }
-#snarkvm-models = { path = "../snarkVM/models", default-features = false }
-#snarkvm-objects = { path = "../snarkVM/objects", default-features = false }
-#snarkvm-storage = { path = "../snarkVM/storage", default-features = false, optional = true }
-#snarkvm-utilities = { path = "../snarkVM/utilities", default-features = false }
-
 #snarkvm-dpc = { version = "0.0.2", default-features = false }
 #snarkvm-errors = { version = "0.0.2", default-features = false }
 #snarkvm-models = { version = "0.0.2", default-features = false }
