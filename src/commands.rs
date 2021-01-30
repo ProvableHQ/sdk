@@ -50,7 +50,7 @@ pub fn parse(command: Command) -> anyhow::Result<String> {
                     match result {
                         Ok(status) => {
                             if status.uptodate() {
-                                Ok(format!("\nAleo is already on the latest version"))
+                                Ok("\nAleo is already on the latest version".to_string())
                             } else if status.updated() {
                                 Ok(format!("\nAleo has updated to version {}", status.version()))
                             } else {
