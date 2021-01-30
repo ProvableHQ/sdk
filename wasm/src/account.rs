@@ -58,8 +58,8 @@ impl Account {
     #[wasm_bindgen]
     pub fn to_string(&self) -> String {
         format!(
-            "Account {{ private_key: {}, address: {} }}",
-            self.private_key, self.address
+            "Account {{ private_key: {}, view_key: {}, address: {} }}",
+            self.private_key, self.view_key, self.address
         )
     }
 }
@@ -73,12 +73,16 @@ mod tests {
     #[wasm_bindgen_test]
     pub fn account_from_private_key_test() {
         let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
+        let given_view_key = "AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF";
         let given_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
 
         let account = Account::from_private_key(given_private_key);
 
         println!("{} == {}", given_private_key, account.private_key.to_string());
         assert_eq!(given_private_key, account.private_key.to_string());
+
+        println!("{} == {}", given_view_key, account.view_key.to_string());
+        assert_eq!(given_view_key, account.view_key.to_string());
 
         println!("{} == {}", given_address, account.address.to_string());
         assert_eq!(given_address, account.address.to_string());
