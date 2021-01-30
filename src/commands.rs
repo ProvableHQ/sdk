@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    account::{Address, PrivateKey, ViewKey},
-    cli::Command,
-    updater::Updater,
-};
+use crate::{cli::Command, updater::Updater};
+use aleo_account::{Address, PrivateKey, ViewKey};
 
 use colored::*;
 use rand::SeedableRng;

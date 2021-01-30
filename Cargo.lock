@@ -13,8 +13,8 @@ dependencies = [
 name = "aleo"
 version = "0.2.0"
 dependencies = [
+ "aleo-account",
  "anyhow",
- "bencher",
  "colored",
  "hex",
  "rand 0.7.3",
@@ -29,6 +29,30 @@ dependencies = [
  "snarkvm-utilities",
  "structopt",
  "thiserror",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+]
+
+[[package]]
+name = "aleo-account"
+version = "0.2.0"
+dependencies = [
+ "bencher",
+ "rand 0.7.3",
+ "rand_chacha 0.2.2",
+ "snarkvm-dpc",
+ "snarkvm-errors",
+ "snarkvm-objects",
+ "snarkvm-utilities",
+ "thiserror",
+]
+
+[[package]]
+name = "aleo-wasm"
+version = "0.2.0"
+dependencies = [
+ "aleo-account",
+ "rand 0.7.3",
  "wasm-bindgen",
  "wasm-bindgen-test",
 ]
@@ -1629,18 +1653,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.118"
+version = "1.0.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06c64263859d87aa2eb554587e2d23183398d617427327cf2b3d0ed8c69e4800"
+checksum = "92d5161132722baa40d802cc70b15262b98258453e85e5d1d365c757c73869ae"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.118"
+version = "1.0.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c84d3526699cd55261af4b941e4e725444df67aa4f9e6a3564f18030d12672df"
+checksum = "9391c295d64fc0abb2c556bad848f33cb8296276b1ad2677d1ae1ace4f258f31"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1950,9 +1974,9 @@ checksum = "2d67a5a62ba6e01cb2192ff309324cb4875d0c451d55fe2319433abe7a05a8ee"
 
 [[package]]
 name = "syn"
-version = "1.0.57"
+version = "1.0.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4211ce9909eb971f111059df92c45640aad50a619cf55cd76476be803c4c68e6"
+checksum = "c700597eca8a5a762beb35753ef6b94df201c81cca676604f547495a0d7f0081"
 dependencies = [
  "proc-macro2",
  "quote",

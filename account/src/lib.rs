@@ -14,8 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+#[macro_use]
+extern crate thiserror;
+
 pub mod address;
 pub use address::*;
+
+pub mod errors;
+pub use errors::*;
 
 pub mod private_key;
 pub use private_key::*;
