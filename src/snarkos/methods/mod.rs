@@ -14,8 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod getblockcount;
+pub mod get_block;
+pub mod get_block_count;
+pub mod get_block_hash;
+pub mod get_transaction_info;
 
-pub enum snarkOSRpcMethods {
+pub enum SnarkOSRpcMethod {
+    /// The `getblock` method returns information about a block from a block hash.
+    /// https://developer.aleo.org/autogen/testnet/public_endpoints/getblock
+    GetBlock,
+
+    /// The `getblockcount` method returns the number of blocks in the best valid chain.
+    /// https://developer.aleo.org/autogen/testnet/public_endpoints/getblockcount
     GetBlockCount,
+
+    /// The `getblockhash` method returns the block hash of a block at the given block height in the best valid chain.
+    /// https://developer.aleo.org/autogen/testnet/public_endpoints/getblockhash
+    GetBlockHash,
+
+    /// The `gettransactioninfo` returns information about a transaction from a transaction id.
+    /// https://developer.aleo.org/autogen/testnet/public_endpoints/gettransactioninfo
+    GetTransactionInfo,
+    // TODO (raychu86): Implement the remaining RPC methods.
+}
+
+impl std::fmt::Display for SnarkOSRpcMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::GetBlock => write!(f, "getblock"),
+            Self::GetBlockCount => write!(f, "getblockcount"),
+            Self::GetBlockHash => write!(f, "getblockhash"),
+            Self::GetTransactionInfo => write!(f, "gettransactioninfo"),
+        }
+    }
 }

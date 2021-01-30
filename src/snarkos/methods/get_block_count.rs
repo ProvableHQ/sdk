@@ -16,8 +16,9 @@
 
 use crate::snarkos::{
     errors::RpcRequestError,
+    methods::SnarkOSRpcMethod,
     objects::{RequestBody, RpcRequest},
-    rpc::{RpcAuth, RpcClient, RpcEndpoint},
+    rpc::RpcClient,
 };
 
 use uuid::Uuid;
@@ -28,7 +29,7 @@ pub struct GetBlockCountRequest {
 
 impl GetBlockCountRequest {
     pub fn new(id: Option<Uuid>) -> Self {
-        let body = RequestBody::new(id, "getblockcount".to_string(), Vec::new());
+        let body = RequestBody::new(id, SnarkOSRpcMethod::GetBlockCount.to_string(), Vec::new());
 
         GetBlockCountRequest { body }
     }
@@ -57,15 +58,15 @@ pub async fn get_block_count(connection: &RpcClient) -> Result<u32, RpcRequestEr
 #[cfg(test)]
 mod tests {
     pub use super::*;
+    use crate::snarkos::rpc::RpcAuth;
+
+    use tokio::runtime::Runtime;
+
+    // Example test.
 
     #[test]
     fn test_get_block_count() {
         let conn = RpcClient::new("http://0.0.0.0:3030".to_string(), RpcAuth::None);
-
-        // TODO (raychu86): Create a mock server for testing.
-
-        // TODO (raychu86): Clean this up
-        use tokio::runtime::Runtime;
 
         // Create the runtime
         let rt = Runtime::new().unwrap();

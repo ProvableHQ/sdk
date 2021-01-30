@@ -13,3 +13,5 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+
+// TODO (raychu86): Create a mock server for testing.
