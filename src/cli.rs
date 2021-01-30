@@ -17,7 +17,7 @@
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "aleo", author = "The Aleo Team <hello@aleo.org>")]
+#[structopt(name = "aleo", author = "The Aleo Team <hello@aleo.org>", setting = structopt::clap::AppSettings::ColoredHelp)]
 pub struct CLI {
     /// Enable debug mode
     #[structopt(short, long)]
@@ -59,12 +59,14 @@ pub enum Command {
         #[structopt(short = "s", long)]
         seed: Option<u64>,
     },
-    // /// Add magical sparkles -- the secret ingredient!
-    // Sparkle {
-    //     #[structopt(short, parse(from_occurrences))]
-    //     magicality: u64,
-    //     #[structopt(short)]
-    //     color: String
-    // },
-    // Finish(Finish),
+    /// Update Aleo to the latest version
+    Update {
+        /// Lists all available versions of Aleo
+        #[structopt(short = "l", long)]
+        list: bool,
+
+        /// Suppress outputs to terminal
+        #[structopt(short = "q", long)]
+        quiet: bool,
+    },
 }

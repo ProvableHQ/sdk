@@ -23,3 +23,4 @@ pub mod commands;
 pub mod errors;
 pub mod snarkos;
 pub mod transaction;
+pub mod updater;
