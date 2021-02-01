@@ -166,6 +166,52 @@ jobs:
           wasm-pack test --node
   #          cargo test --target wasm32-unknown-unknown --features wasm
 
+#  codecov:
+#    name: Code Coverage
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v1
+#
+#      - name: Install Rust
+#        uses: actions-rs/toolchain@v1
+#        with:
+#          profile: minimal
+#          toolchain: nightly
+#          override: true
+#          components: rustfmt
+#
+#      - uses: actions/cache@v2
+#        with:
+#          path: |
+#            ~/.cargo/registry
+#            ~/.cargo/git
+#            target
+#          key: ${{ runner.os }}-cargo-codecov-${{ hashFiles('**/Cargo.lock') }}
+#
+#      - name: Test
+#        uses: actions-rs/cargo@v1
+#        with:
+#          command: test
+#          args: --workspace --all-features
+#        env:
+##          CARGO_INCREMENTAL: "0"
+##          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=unwind -Zpanic_abort_tests"
+#          RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+#          RUSTDOCFLAGS: -Zprofile -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+#
+#      - name: Code Coverage
+#        uses: actions-rs/grcov@v0.1
+#
+#      - name: Upload coverage to Codecov
+#        uses: codecov/codecov-action@v1
+##        with:
+##          github-token: ${{ secrets.GITHUB_TOKEN }}
+##          token: ${{ secrets.CODECOV_TOKEN }}
+##          file: ${{ steps.coverage.outputs.report }}
+##          yml: ./codecov.yml
+##          fail_ci_if_error: true
+
   codecov:
     name: Code Coverage
     runs-on: ubuntu-latest
@@ -181,33 +227,34 @@ jobs:
           override: true
           components: rustfmt
 
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-codecov-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --all-features
+          args: --all
         env:
-#          CARGO_INCREMENTAL: "0"
-#          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=unwind -Zpanic_abort_tests"
-          RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
-          RUSTDOCFLAGS: -Zprofile -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+          CARGO_NET_GIT_FETCH_WITH_CLI: true
+          CARGO_INCREMENTAL: "0"
 
-      - name: Code Coverage
-        uses: actions-rs/grcov@v0.1
+      - name: Install dependencies for code coverage
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev
+
+      - name: Generate coverage report
+        run: |
+          wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz
+          tar xzf master.tar.gz
+          cd kcov-master
+          mkdir build && cd build
+          cmake .. && make
+          make install DESTDIR=../../kcov-build
+          cd ../..
+          rm -rf kcov-master
+          for file in target/debug/deps/*-*; do if [[ "$file" != *\.* ]]; then mkdir -p "target/cov/$(basename $file)"; ./kcov-build/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib --exclude-region='@kcov_skip(start):@kcov_skip(end)' --verify "target/cov/$(basename $file)" "$file"; fi done
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-#        with:
-#          github-token: ${{ secrets.GITHUB_TOKEN }}
-#          token: ${{ secrets.CODECOV_TOKEN }}
-#          file: ${{ steps.coverage.outputs.report }}
-#          yml: ./codecov.yml
-#          fail_ci_if_error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
