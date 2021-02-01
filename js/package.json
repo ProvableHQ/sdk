@@ -1,0 +1,14 @@
+{
+  "name": "aleo",
+  "version": "1.0.0",
+  "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
+  "main": "src/core.js",
+  "license": "GPL-3.0",
+  "scripts": {
+    "preinstall": "cd ../wasm && wasm-pack build --out-dir ../js/aleo-wasm",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "aleo-wasm": "file:./aleo-wasm"
+  }
+}
