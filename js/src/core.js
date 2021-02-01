@@ -2,15 +2,22 @@ const aleo = require('aleo-wasm');
 
 class Account {
     constructor() {
-        const account = new aleo.Account();
-        this.privateKey = account.to_string();
+        this.account = new aleo.Account();
     }
 
-    to_string() {
-        return this.privateKey;
+    privateKey() {
+        return this.account.to_private_key();
+    }
+
+    viewKey() {
+        return this.account.to_view_key();
+    }
+
+    address() {
+        return this.account.to_address();
     }
 }
 
 module.exports.Account = Account;
 
-console.log(new Account().to_string());
+console.log(new Account().address());
