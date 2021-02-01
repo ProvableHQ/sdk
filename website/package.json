@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@ant-design/icons": "^4.4.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "aleo-wasm": "file:./aleo-wasm",
+    "aleo-wasm": "file:../wasm/pkg",
+    "antd": "^4.11.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.1",
@@ -17,7 +19,7 @@
     "react-app-rewired": "^2.1.8"
   },
   "scripts": {
-    "preinstall": "cd ../wasm && wasm-pack build --out-dir ../website/aleo-wasm",
+    "preinstall": "cd ../wasm && wasm-pack build",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",

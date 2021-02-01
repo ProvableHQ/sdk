@@ -15,9 +15,9 @@ module.exports = function override(config, env) {
 
     config.plugins = (config.plugins || []).concat([
         new WasmPackPlugin({
-            crateDirectory: path.resolve(__dirname, "./aleo-wasm"),
+            crateDirectory: path.resolve(__dirname, "../wasm/pkg"),
             extraArgs: "--no-typescript",
-            outDir: path.resolve(__dirname, "./aleo-wasm")
+            outDir: path.resolve(__dirname, "../wasm/pkg")
         }),
     ]);
 
