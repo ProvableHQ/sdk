@@ -61,25 +61,50 @@ mod tests {
     use crate::snarkos::rpc::RpcAuth;
 
     use tokio::runtime::Runtime;
-
-    // Example test.
+    use wiremock::{
+        matchers::{method, path},
+        Mock,
+        MockServer,
+        ResponseTemplate,
+    };
 
     #[test]
     fn test_get_block_count() {
-        let conn = RpcClient::new("http://0.0.0.0:3030".to_string(), RpcAuth::None);
-
         // Create the runtime
         let rt = Runtime::new().unwrap();
 
         rt.block_on(async {
-            let blockcount = conn
+            // Setup mock server
+            let mock_server = MockServer::start().await;
+
+            // Create mock request
+            let response_body: serde_json::Value = serde_json::from_str(
+                r#"{
+                "jsonrpc": "2.0",
+                "result": 123456,
+                "id": "655c462d-717b-4f08-8b07-23fcb2d3ed8a"
+            }"#,
+            )
+            .unwrap();
+
+            Mock::given(method("POST"))
+                .and(path(format!("/")))
+                .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
+                .mount(&mock_server)
+                .await;
+
+            // Set up connection to mock server
+            let snarkos_connection = RpcClient::new(mock_server.uri(), RpcAuth::None);
+
+            // Make a request to the mock server
+            let block_count = snarkos_connection
                 .request(&GetBlockCountRequest::new(Some(
-                    Uuid::parse_str("936898af-68ba-4bc4-89f6-017b5c193094").unwrap(),
+                    Uuid::parse_str("655c462d-717b-4f08-8b07-23fcb2d3ed8a").unwrap(),
                 )))
                 .await
                 .unwrap();
 
-            assert_eq!(100, blockcount);
+            assert_eq!(123456, block_count);
         });
     }
 }

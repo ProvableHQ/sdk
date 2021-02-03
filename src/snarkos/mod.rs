@@ -18,6 +18,3 @@ pub mod errors;
 pub mod methods;
 pub mod objects;
 pub mod rpc;
-
-#[cfg(test)]
-pub mod tests;

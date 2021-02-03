@@ -52,9 +52,9 @@ wasm-bindgen = { version = "0.2.70" }
 [dev-dependencies]
 bencher = { version = "0.1.5" }
 colored = { version = "2", features = ["no-color"] }
+wiremock = { version = "0.4" }
 rusty-hook = { version = "0.11.2" }
 wasm-bindgen-test = { version = "0.3.20" }
-futures = "0.3"
 tokio = { version = "1.1.0", features = ["rt-multi-thread"] }
 
 [profile.release]
