@@ -1,4 +1,4 @@
-name: Benchmark
+name: SDK + Benchmark
 on:
   push:
     branches:
@@ -6,25 +6,34 @@ on:
 
 jobs:
   deploy:
+    name: SDK Website
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout
         uses: actions/checkout@v2
 #        with:
 #          persist-credentials: false
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
 
       - uses: jetli/wasm-pack-action@v0.3.0
         with:
           # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
           version: 'latest'
 
-      - name: Install and Build 🔧
+      - name: Install and Build
         run: |
           cd website
           yarn install
           yarn deploy
 
-      - name: Deploy 🚀
+      - name: Deploy
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -32,7 +41,7 @@ jobs:
           FOLDER: build
 
   benchmark:
-    name: Check Performance Regression
+    name: Performance Benchmarks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
