@@ -29,7 +29,7 @@ snarkvm-errors = { version = "0.0.2" }
 snarkvm-models = { version = "0.0.2" }
 snarkvm-objects = { version = "0.0.2" }
 snarkvm-storage = { version = "0.0.2" }
-snarkvm-utilities = { version = "0.0.2" }
+snarkvm-utilities = { version = "0.0.3" }
 
 anyhow = { version = "1.0.38" }
 base64 = { version = "0.13" }
