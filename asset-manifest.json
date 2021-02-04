@@ -4,8 +4,8 @@
     "b28e12fc1888d99feb56.module.wasm": "/aleo/b28e12fc1888d99feb56.module.wasm",
     "static/js/0.160d39e6.chunk.js.map": "/aleo/static/js/0.160d39e6.chunk.js.map",
     "main.css": "/aleo/static/css/main.ced5f8e1.chunk.css",
-    "main.js": "/aleo/static/js/main.5677d5cf.chunk.js",
-    "main.js.map": "/aleo/static/js/main.5677d5cf.chunk.js.map",
+    "main.js": "/aleo/static/js/main.26f1d844.chunk.js",
+    "main.js.map": "/aleo/static/js/main.26f1d844.chunk.js.map",
     "runtime-main.js": "/aleo/static/js/runtime-main.91a876bf.js",
     "runtime-main.js.map": "/aleo/static/js/runtime-main.91a876bf.js.map",
     "static/css/3.79c08235.chunk.css": "/aleo/static/css/3.79c08235.chunk.css",
@@ -23,6 +23,6 @@
     "static/css/3.79c08235.chunk.css",
     "static/js/3.58a069ea.chunk.js",
     "static/css/main.ced5f8e1.chunk.css",
-    "static/js/main.5677d5cf.chunk.js"
+    "static/js/main.26f1d844.chunk.js"
   ]
 }
