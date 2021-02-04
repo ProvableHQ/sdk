@@ -1,13 +1,33 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
+import copyToClipboard from 'copy-to-clipboard';
 
-import { Breadcrumb, Button, Card, Col, Divider, Form, Input, Layout, Menu, Row } from 'antd';
+import { Button, Card, Col, Divider, Form, Input, Layout, Menu, Row } from 'antd';
+import { CopyOutlined, CheckCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 
 const { Header, Content, Footer } = Layout;
+
+const Spinner = () => <LoadingOutlined style={{ fontSize: 24 }} spin />;
+
+const CopyButton = (props) => {
+    const [copySuccess, setCopySuccess] = useState(false);
+
+    const copy = () => {
+        copyToClipboard(props.data);
+        setCopySuccess(true);
+    }
+
+    if (copySuccess) {
+        return <Button icon={<CheckCircleOutlined />} onClick={copy} />
+    } else {
+        return <Button icon={<CopyOutlined />} onClick={copy} />
+    }
+}
 
 const NewAccount = () => {
     const [aleo, setAleo] = useState(null);
     const [account, setAccount] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (aleo === null) {
@@ -15,40 +35,46 @@ const NewAccount = () => {
         }
     }, []);
 
-    const generate = async () => setAccount(await new aleo.Account());
+    const generateAccount = async () => {
+        setLoading(true);
+        setTimeout(() => {
+            setAccount(new aleo.Account());
+            setLoading(false);
+        }, 50);
+    }
     const clear = () => setAccount(null);
 
+    const privateKey = () => account !== null ? account.to_private_key() : "";
+    const viewKey = () => account !== null ? account.to_view_key() : "";
+    const address = () => account !== null ? account.to_address() : "";
+
+    const layout = {
+        labelCol: { span: 3 },
+        wrapperCol: { span: 21 },
+    };
+
     if (aleo !== null) {
-        const privateKey = () => account !== null ? account.to_private_key() : "";
-        const viewKey = () => account !== null ? account.to_view_key() : "";
-        const address = () => account !== null ? account.to_address() : "";
-
-        return <Card title="Generate a New Account" style={{ width: "100%" }}>
-            <Form layout="vertical">
-                <Form.Item>
-                    <Row justify="center">
-                        <Col><Button type="primary" shape="round" onClick={generate}>Generate</Button></Col>
-                        <Col offset="1"><Button shape="round" onClick={clear}>Clear</Button></Col>
-                    </Row>
-                </Form.Item>
-                {
-                    (account !== null) ?
-                        <>
-                            <Divider />
-
-                            <Form.Item>
-                                <Input size="large" placeholder="Private Key" value={privateKey()} disabled />
-                            </Form.Item>
-                            <Form.Item>
-                                <Input size="large" placeholder="View Key" value={viewKey()} disabled />
-                            </Form.Item>
-                            <Form.Item>
-                                <Input size="large" placeholder="Address" value={address()} disabled />
-                            </Form.Item>
-                        </>
-                        : null
-                }
-            </Form>
+        return <Card title="Create a New Account" style={{ width: "100%" }}>
+            <Row justify="center">
+                <Col><Button type="primary" shape="round" size="large" onClick={generateAccount}>{ loading ? <Spinner/> : "Generate" }</Button></Col>
+                <Col offset="1"><Button shape="round" size="large" onClick={clear}>Clear</Button></Col>
+            </Row>
+            {
+                (account !== null) ?
+                    <Form {...layout}>
+                        <Divider />
+                        <Form.Item label="Private Key">
+                            <Input size="large" placeholder="Private Key" value={privateKey()} addonAfter={<CopyButton data={privateKey()} />} disabled />
+                        </Form.Item>
+                        <Form.Item label="View Key">
+                            <Input size="large" placeholder="View Key" value={viewKey()} addonAfter={<CopyButton data={viewKey()} />} disabled />
+                        </Form.Item>
+                        <Form.Item label="Address">
+                            <Input size="large" placeholder="Address" value={address()} addonAfter={<CopyButton data={address()} />} disabled />
+                        </Form.Item>
+                    </Form>
+                    : null
+            }
         </Card>
     } else {
         return <h3>Loading...</h3>
