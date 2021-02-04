@@ -1,0 +1,30 @@
+[package]
+name = "aleo-account"
+version = "0.2.0"
+authors = ["The Aleo Team <hello@aleo.org>"]
+description = "Aleo"
+homepage = "https://aleo.org"
+repository = "https://github.com/AleoHQ/aleo"
+keywords = ["aleo", "cryptography", "blockchain", "decentralized", "zero-knowledge"]
+categories = ["cryptography::cryptocurrencies", "operating-systems"]
+include = ["Cargo.toml", "src", "README.md", "LICENSE.md"]
+license = "GPL-3.0"
+edition = "2018"
+
+[[bench]]
+name = "account"
+path = "benches/account.rs"
+harness = false
+
+[dependencies]
+snarkvm-dpc = { version = "0.0.2", default-features = false }
+snarkvm-errors = { version = "0.0.2", default-features = false }
+snarkvm-objects = { version = "0.0.2", default-features = false }
+snarkvm-utilities = { version = "0.0.2", default-features = false }
+
+rand = { version = "0.7" }
+rand_chacha = { version = "0.2", default-features = false }
+thiserror = { version = "1.0" }
+
+[dev-dependencies]
+bencher = { version = "0.1.5" }

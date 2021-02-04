@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    account::{Address, PrivateKey, ViewKey},
-    cli::Command,
-    updater::Updater,
-};
+use crate::{cli::Command, updater::Updater};
+use aleo_account::{Address, PrivateKey, ViewKey};
 
 use colored::*;
 use rand::SeedableRng;
@@ -53,7 +50,7 @@ pub fn parse(command: Command) -> anyhow::Result<String> {
                     match result {
                         Ok(status) => {
                             if status.uptodate() {
-                                Ok(format!("\nAleo is already on the latest version"))
+                                Ok("\nAleo is already on the latest version".to_string())
                             } else if status.updated() {
                                 Ok(format!("\nAleo has updated to version {}", status.version()))
                             } else {

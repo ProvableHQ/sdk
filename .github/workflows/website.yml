@@ -1,12 +1,57 @@
-name: Benchmark
+name: Website
 on:
   push:
     branches:
       - main
 
 jobs:
+  deploy:
+    name: SDK Website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+#        with:
+#          persist-credentials: false
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
+          version: 'latest'
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-website-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install and Build
+        run: |
+          cd website
+          yarn install
+          yarn build
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: website/build
+          CLEAN_EXCLUDE: '["dev"]'
+
   benchmark:
-    name: Check Performance Regression
+    name: Benchmark
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,7 +75,7 @@ jobs:
       # Run benchmark and stores the output to a file
       - name: Benchmark
         run: |
-          cargo +nightly bench | tee output.txt
+          cargo +nightly bench --all | tee output.txt
 
       # Download previous benchmark result from cache (if exists)
       - name: Download previous benchmark data

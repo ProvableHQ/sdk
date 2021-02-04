@@ -14,40 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::errors::PrivateKeyError;
+use crate::{PrivateKey, ViewKeyError};
 
 use snarkvm_dpc::base_dpc::{instantiated::Components, parameters::SystemParameters};
-use snarkvm_objects::AccountPrivateKey;
+use snarkvm_objects::AccountViewKey;
 
-use rand::{CryptoRng, Rng};
 use std::{fmt, str::FromStr};
 
 #[derive(Debug)]
-pub struct PrivateKey {
-    pub(crate) private_key: AccountPrivateKey<Components>,
+pub struct ViewKey {
+    pub(crate) view_key: AccountViewKey<Components>,
 }
 
-impl PrivateKey {
-    pub fn new<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, PrivateKeyError> {
+impl ViewKey {
+    pub fn from(private_key: &PrivateKey) -> Result<Self, ViewKeyError> {
         let parameters = SystemParameters::<Components>::load()?;
-        let private_key =
-            AccountPrivateKey::<Components>::new(&parameters.account_signature, &parameters.account_commitment, rng)?;
-        Ok(Self { private_key })
+        let view_key = AccountViewKey::<Components>::from_private_key(
+            &parameters.account_signature,
+            &parameters.account_commitment,
+            &private_key.private_key,
+        )?;
+        Ok(Self { view_key })
     }
 }
 
-impl FromStr for PrivateKey {
-    type Err = PrivateKeyError;
+impl FromStr for ViewKey {
+    type Err = ViewKeyError;
 
-    fn from_str(private_key: &str) -> Result<Self, Self::Err> {
+    fn from_str(view_key: &str) -> Result<Self, Self::Err> {
         Ok(Self {
-            private_key: AccountPrivateKey::<Components>::from_str(private_key)?,
+            view_key: AccountViewKey::<Components>::from_str(view_key)?,
         })
     }
 }
 
-impl fmt::Display for PrivateKey {
+impl fmt::Display for ViewKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.private_key.to_string())
+        write!(f, "{}", self.view_key.to_string())
     }
 }
