@@ -50,9 +50,21 @@ jobs:
       - setup_environment:
           cache_key: aleo-stable-cache
       - run:
-          name: Build and run tests
+          name: Check examples
           no_output_timeout: 30m
-          command: RUST_MIN_STACK=8388608 cargo test --all
+          command: cargo check --examples --all
+      - run:
+          name: Check examples with all features on stable
+          no_output_timeout: 30m
+          command: cargo check --examples --all-features --all
+      - run:
+          name: Check benchmarks
+          no_output_timeout: 30m
+          command: cargo check --all-features --examples --all --benches
+      - run:
+          name: Build and test
+          no_output_timeout: 30m
+          command: cargo test --all --no-fail-fast
       - persist_to_workspace:
           root: ~/
           paths: project/
@@ -82,9 +94,21 @@ jobs:
       - setup_environment:
           cache_key: aleo-nightly-cache
       - run:
+          name: Check examples
+          no_output_timeout: 30m
+          command: cargo check --examples --all
+      - run:
+          name: Check examples with all features on stable
+          no_output_timeout: 30m
+          command: cargo check --examples --all-features --all
+      - run:
+          name: Check benchmarks
+          no_output_timeout: 30m
+          command: cargo check --all-features --examples --all --benches
+      - run:
           name: Build and test
           no_output_timeout: 30m
-          command: RUST_MIN_STACK=8388608 cargo test --all
+          command: cargo test --all --no-fail-fast
       - clear_environment:
           cache_key: aleo-nightly-cache
 workflows:

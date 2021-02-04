@@ -13,8 +13,8 @@ dependencies = [
 name = "aleo"
 version = "0.2.0"
 dependencies = [
+ "aleo-account",
  "anyhow",
- "bencher",
  "colored",
  "hex",
  "rand 0.7.3",
@@ -29,6 +29,30 @@ dependencies = [
  "snarkvm-utilities",
  "structopt",
  "thiserror",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+]
+
+[[package]]
+name = "aleo-account"
+version = "0.2.0"
+dependencies = [
+ "bencher",
+ "rand 0.7.3",
+ "rand_chacha 0.2.2",
+ "snarkvm-dpc",
+ "snarkvm-errors",
+ "snarkvm-objects",
+ "snarkvm-utilities",
+ "thiserror",
+]
+
+[[package]]
+name = "aleo-wasm"
+version = "0.2.0"
+dependencies = [
+ "aleo-account",
+ "rand 0.7.3",
  "wasm-bindgen",
  "wasm-bindgen-test",
 ]

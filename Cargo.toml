@@ -11,21 +11,18 @@ include = ["Cargo.toml", "src", "README.md", "LICENSE.md"]
 license = "GPL-3.0"
 edition = "2018"
 
-#[lib]
-#crate-type = ["cdylib", "rlib"]
-
-[[bench]]
-name = "account"
-path = "benches/account.rs"
-harness = false
+[workspace]
+members = ["account", "wasm"]
 
 [dependencies]
 #snarkvm-dpc = { version = "0.0.2", default-features = false }
 #snarkvm-errors = { version = "0.0.2", default-features = false }
 #snarkvm-models = { version = "0.0.2", default-features = false }
 #snarkvm-objects = { version = "0.0.2", default-features = false }
-#snarkvm-storage = { version = "0.0.2", default-features = false }
-#snarkvm-utilities = { version = "0.0.2" }
+#snarkvm-storage = { version = "0.0.2", default-features = false, optional = true }
+#snarkvm-utilities = { version = "0.0.2", default-features = false }
+
+aleo-account = { path = "./account", version = "0.2.0" }
 
 snarkvm-dpc = { version = "0.0.2" }
 snarkvm-errors = { version = "0.0.2" }
@@ -45,7 +42,6 @@ thiserror = { version = "1.0" }
 wasm-bindgen = { version = "0.2.70" }
 
 [dev-dependencies]
-bencher = { version = "0.1.5" }
 colored = { version = "2", features = ["no-color"] }
 rusty-hook = { version = "0.11.2" }
 wasm-bindgen-test = { version = "0.3.20" }
@@ -73,4 +69,4 @@ opt-level = 2
 lto = "thin"
 incremental = true
 debug = true
-debug-assertions = false
+debug-assertions = true
