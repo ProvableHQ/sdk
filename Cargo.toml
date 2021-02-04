@@ -24,7 +24,7 @@ members = ["account", "wasm"]
 
 aleo-account = { path = "./account", version = "0.2.0" }
 
-snarkvm-dpc = { version = "0.0.2" }
+snarkvm-dpc = { version = "0.0.3" }
 snarkvm-errors = { version = "0.0.2" }
 snarkvm-models = { version = "0.0.2" }
 snarkvm-objects = { version = "0.0.2" }
