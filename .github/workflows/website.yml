@@ -35,16 +35,10 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-website-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install
+      - name: Install and Build
         run: |
           cd website
           yarn install
-
-      - name: Build
-        run: |
-          ls -la
-          cd website
-          ls -la
           yarn deploy
 
       - name: Deploy
