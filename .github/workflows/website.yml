@@ -1,4 +1,4 @@
-name: SDK + Benchmark
+name: Website
 on:
   push:
     branches:
@@ -27,10 +27,16 @@ jobs:
           # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
           version: 'latest'
 
-      - name: Install and Build
+      - name: Install
         run: |
           cd website
           yarn install
+
+      - name: Build
+        run: |
+          ls -la
+          cd website
+          ls -la
           yarn deploy
 
       - name: Deploy
