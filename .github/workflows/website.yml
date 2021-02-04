@@ -49,7 +49,8 @@ jobs:
           FOLDER: website/build
 
   benchmark:
-    name: Performance Benchmarks
+    name: Benchmark
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
