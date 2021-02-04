@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612418645430,
+  "lastUpdate": 1612418733781,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -251,6 +251,42 @@ window.BENCHMARK_DATA = {
             "name": "account_private_key",
             "value": 734545155,
             "range": "± 43647366",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "howardwu@berkeley.edu",
+            "name": "howardwu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "howardwu@berkeley.edu",
+            "name": "howardwu",
+            "username": "howardwu"
+          },
+          "distinct": true,
+          "id": "26d6be61b37f09e863e181f0bab01fac360a750e",
+          "message": "Add wasm-pack",
+          "timestamp": "2021-02-03T21:58:50-08:00",
+          "tree_id": "4972f9fb5ef9cea0304fbda11ef3772c74a278dd",
+          "url": "https://github.com/AleoHQ/aleo/commit/26d6be61b37f09e863e181f0bab01fac360a750e"
+        },
+        "date": 1612418732602,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 59424831,
+            "range": "± 362999",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 669454832,
+            "range": "± 4038036",
             "unit": "ns/iter"
           }
         ]
