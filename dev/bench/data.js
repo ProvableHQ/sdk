@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612416543767,
+  "lastUpdate": 1612417704640,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -71,6 +71,42 @@ window.BENCHMARK_DATA = {
             "name": "account_private_key",
             "value": 788957924,
             "range": "± 19598009",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a0ba63dc0faa565973cfaefef73099e001c2d9dc",
+          "message": "Merge pull request #16 from AleoHQ/feat/wasm\n\nImplements Aleo accounts in WASM",
+          "timestamp": "2021-02-03T21:27:55-08:00",
+          "tree_id": "b3f91f96af1c2d81e2cc3c9a820afb51d564b6ba",
+          "url": "https://github.com/AleoHQ/aleo/commit/a0ba63dc0faa565973cfaefef73099e001c2d9dc"
+        },
+        "date": 1612417703418,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 82421556,
+            "range": "± 4867116",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 812320520,
+            "range": "± 33128257",
             "unit": "ns/iter"
           }
         ]
