@@ -1,1 +1,1 @@
-web: cd website && yarn start
+web: cd .. && git clone https://github.com/AleoHQ/aleo && cd aleo/website && yarn start
