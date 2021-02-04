@@ -137,7 +137,7 @@ function App() {
                 <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']}>
                     <Menu.Item key="1">Account</Menu.Item>
                     <Menu.Item key="2">
-                        <a href="https://aleo.dev/dev/bench" target="_blank" rel="noopener noreferrer">
+                        <a href="./dev/bench" target="_blank" rel="noopener noreferrer">
                             Benchmarks
                         </a>
                     </Menu.Item>
