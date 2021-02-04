@@ -40,21 +40,15 @@ jobs:
     runs-on: ubuntu-latest
 #    env:
 #      RUSTFLAGS: -Dwarnings
-    strategy:
-      matrix:
-        rust:
-          - stable
-          - nightly
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install Rust (${{ matrix.rust }})
+      - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ matrix.rust }}
+          toolchain: stable
           override: true
           components: clippy
 
@@ -69,14 +63,12 @@ jobs:
         with:
           command: clippy
           args: --examples --all-features --all
-        if: matrix.rust == 'stable'
 
       - name: Check benchmarks on nightly
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-features --examples --all --benches
-        if: matrix.rust == 'nightly'
 
   test:
     name: Test
@@ -132,49 +124,3 @@ jobs:
         with:
           command: test
           args: --all --no-fail-fast
-
-  codecov:
-    name: Code Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-          components: rustfmt
-
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-codecov-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --all-features
-        env:
-#          CARGO_INCREMENTAL: "0"
-#          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=unwind -Zpanic_abort_tests"
-          RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
-          RUSTDOCFLAGS: -Zprofile -Ccodegen-units=1 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
-
-      - name: Code Coverage
-        uses: actions-rs/grcov@v0.1
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
-#        with:
-#          github-token: ${{ secrets.GITHUB_TOKEN }}
-#          token: ${{ secrets.CODECOV_TOKEN }}
-#          file: ${{ steps.coverage.outputs.report }}
-#          yml: ./codecov.yml
-#          fail_ci_if_error: true
