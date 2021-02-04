@@ -34,7 +34,7 @@ const NewAccount = () => {
         if (aleo === null) {
             import('aleo-wasm').then(module => setAleo(module));
         }
-    }, []);
+    }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
     const generateAccount = async () => {
         setLoading(true);
@@ -87,7 +87,7 @@ const AccountFromPrivateKey = () => {
         if (aleo === null) {
             import('aleo-wasm').then(module => setAleo(module));
         }
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const onChange = (event) => {
         setAccount(null);
