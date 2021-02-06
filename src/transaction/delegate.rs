@@ -20,7 +20,7 @@ use snarkvm_dpc::base_dpc::{
     program::NoopProgram,
     record::DPCRecord,
     BaseDPCComponents,
-    ExecuteContext,
+    TransactionKernel,
 };
 use snarkvm_models::{
     algorithms::CRH,
@@ -35,13 +35,13 @@ pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters>;
 
 /// Delegated execution of program proof generation and transaction online phase.
 pub fn delegate_transaction<R: Rng>(
-    execute_context: ExecuteContext<Components>,
+    transaction_kernel: TransactionKernel<Components>,
     ledger: &MerkleTreeLedger,
     rng: &mut R,
 ) -> anyhow::Result<(Tx, Vec<DPCRecord<Components>>)> {
     let parameters = PublicParameters::<Components>::load(false)?;
 
-    let local_data = execute_context.into_local_data();
+    let local_data = transaction_kernel.into_local_data();
 
     // Enforce that the record programs are the noop program
     // TODO (add support for arbitrary programs)
@@ -95,7 +95,7 @@ pub fn delegate_transaction<R: Rng>(
 
     let (new_records, transaction) = <InstantiatedDPC as DPCScheme<MerkleTreeLedger>>::execute_online(
         &parameters,
-        execute_context,
+        transaction_kernel,
         old_death_program_proofs,
         new_birth_program_proofs,
         &ledger,

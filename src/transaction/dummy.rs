@@ -80,7 +80,7 @@ pub fn create_dummy_transaction<R: Rng>(
         )?;
 
         let dummy_record = InstantiatedDPC::generate_record(
-            parameters.system_parameters.clone(),
+            &parameters.system_parameters,
             old_sn_nonce,
             address,
             true, // The input record is dummy

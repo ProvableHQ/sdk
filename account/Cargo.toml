@@ -17,10 +17,10 @@ path = "benches/account.rs"
 harness = false
 
 [dependencies]
-snarkvm-dpc = { version = "0.0.2", default-features = false }
-snarkvm-errors = { version = "0.0.2", default-features = false }
-snarkvm-objects = { version = "0.0.2", default-features = false }
-snarkvm-utilities = { version = "0.0.2", default-features = false }
+snarkvm-dpc = { version = "0.0.3", default-features = false }
+snarkvm-errors = { version = "0.0.3", default-features = false }
+snarkvm-objects = { version = "0.0.3", default-features = false }
+snarkvm-utilities = { version = "0.0.3", default-features = false }
 
 rand = { version = "0.7" }
 rand_chacha = { version = "0.2", default-features = false }
