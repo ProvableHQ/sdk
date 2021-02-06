@@ -53,5 +53,5 @@ fn account_address(bench: &mut Bencher) {
     });
 }
 
-benchmark_group!(account, account_private_key, account_address);
+benchmark_group!(account, account_private_key, account_view_key, account_address);
 benchmark_main!(account);
