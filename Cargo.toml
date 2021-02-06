@@ -12,7 +12,14 @@ license = "GPL-3.0"
 edition = "2018"
 
 [workspace]
-members = ["account", "wasm"]
+members = ["rust/account", "wasm"]
+
+[lib]
+path = "rust/aleo/lib.rs"
+
+[[bin]]
+name = "aleo"
+path = "rust/aleo/main.rs"
 
 [dependencies]
 #snarkvm-dpc = { version = "0.0.2", default-features = false }
@@ -22,7 +29,7 @@ members = ["account", "wasm"]
 #snarkvm-storage = { version = "0.0.2", default-features = false, optional = true }
 #snarkvm-utilities = { version = "0.0.2", default-features = false }
 
-aleo-account = { path = "./account", version = "0.2.0" }
+aleo-account = { path = "./rust/account", version = "0.2.0" }
 
 snarkvm-dpc = { version = "0.0.3" }
 snarkvm-errors = { version = "0.0.3" }
