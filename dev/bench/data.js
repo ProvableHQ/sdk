@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612640989639,
+  "lastUpdate": 1612676655568,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -113,6 +113,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 57185256,
             "range": "± 8379304",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1be7b051580862602fb22673aa55b6b755d39900",
+          "message": "Merge pull request #28 from AleoHQ/refactor\n\nRefactors code into 'rust' directory",
+          "timestamp": "2021-02-06T21:20:42-08:00",
+          "tree_id": "86e17a1a24167e981b4cd8b11e6ef23efa723723",
+          "url": "https://github.com/AleoHQ/aleo/commit/1be7b051580862602fb22673aa55b6b755d39900"
+        },
+        "date": 1612676654179,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 66607979,
+            "range": "± 4822887",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 752501905,
+            "range": "± 19775769",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 66640507,
+            "range": "± 5140752",
             "unit": "ns/iter"
           }
         ]
