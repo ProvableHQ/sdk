@@ -88,6 +88,7 @@ OPTIONS:
 
 ## Development
 
+To be deprecated:
 ```
 cargo run --release --example dummy_transaction
 ```
