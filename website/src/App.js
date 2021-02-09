@@ -3,11 +3,9 @@ import React, { useState, useEffect } from 'react';
 import copyToClipboard from 'copy-to-clipboard';
 
 import { Button, Card, Col, Divider, Form, Input, Layout, Menu, Row } from 'antd';
-import { CopyOutlined, CheckCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import { CopyOutlined, CheckCircleOutlined } from '@ant-design/icons';
 
 const { Header, Content, Footer } = Layout;
-
-const Spinner = () => <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 const CopyButton = (props) => {
     const [copySuccess, setCopySuccess] = useState(false);
@@ -41,7 +39,7 @@ const NewAccount = () => {
         setTimeout(() => {
             setAccount(new aleo.Account());
             setLoading(false);
-        }, 50);
+        }, 1000);
     }
     const clear = () => setAccount(null);
 
@@ -54,7 +52,7 @@ const NewAccount = () => {
     if (aleo !== null) {
         return <Card title="Create a New Account" style={{ width: "100%", borderRadius: "20px" }} bordered={false}>
             <Row justify="center">
-                <Col><Button type="primary" shape="round" size="large" onClick={generateAccount}>{ loading ? <Spinner/> : "Generate" }</Button></Col>
+                <Col><Button type="primary" shape="round" size="large" onClick={generateAccount} loading={!!loading}>Generate</Button></Col>
                 <Col offset="1"><Button shape="round" size="large" onClick={clear}>Clear</Button></Col>
             </Row>
             {
@@ -131,10 +129,10 @@ const AccountFromPrivateKey = () => {
 
 function App() {
     return (
-        <Layout className="layout">
+        <Layout className="layout" style={{ minHeight: '100vh' }}>
             <Header className="header">
                 <div className="logo" />
-                <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']}>
+                <Menu mode="horizontal" defaultSelectedKeys={['1']}>
                     <Menu.Item key="1">Account</Menu.Item>
                     <Menu.Item key="2">
                         <a href="./dev/bench" target="_blank" rel="noopener noreferrer">
