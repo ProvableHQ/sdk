@@ -30,14 +30,10 @@ pub trait RpcRequest {
 
     /// Parse a response into the specified [Self::Output] type.
     fn parse_response(&self, body: ResponseBody) -> Result<Self::Output, RpcRequestError> {
-        let result = match body.result {
-            ResponseResult::Ok(value) => {
-                serde_json::from_value(value).map_err(|error| RpcRequestError::DeserializationError(error))
-            }
+        match body.result {
+            ResponseResult::Ok(value) => serde_json::from_value(value).map_err(RpcRequestError::DeserializationError),
             ResponseResult::Err(error) => Err(RpcRequestError::JsonRPC(error.message)),
-        };
-
-        result
+        }
     }
 }
 
