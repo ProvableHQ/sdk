@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@aleohq/ui": "^0.0.7",
+    "@aleohq/ui": "^0.0.8",
     "@ant-design/icons": "^4.4.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
