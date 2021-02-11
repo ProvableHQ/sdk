@@ -96,11 +96,11 @@ pub fn create_dummy_transaction<R: Rng>(
 
     assert_eq!(old_records.len(), Components::NUM_INPUT_RECORDS);
 
-    let new_record_owners = vec![new_recipient.clone(); Components::NUM_OUTPUT_RECORDS];
+    let new_record_owners = vec![new_recipient; Components::NUM_OUTPUT_RECORDS];
     let new_is_dummy_flags = vec![true; Components::NUM_OUTPUT_RECORDS];
     let new_values = vec![0; Components::NUM_OUTPUT_RECORDS];
     let new_birth_program_ids = vec![noop_program_id.clone(); Components::NUM_OUTPUT_RECORDS];
-    let new_death_program_ids = vec![noop_program_id.clone(); Components::NUM_OUTPUT_RECORDS];
+    let new_death_program_ids = vec![noop_program_id; Components::NUM_OUTPUT_RECORDS];
     let new_payloads = vec![RecordPayload::default(); Components::NUM_OUTPUT_RECORDS];
 
     // Generate a random memo
@@ -110,7 +110,7 @@ pub fn create_dummy_transaction<R: Rng>(
 
     // Offline execution to generate a DPC transaction
     let execute_context = <InstantiatedDPC as DPCScheme<MerkleTreeLedger>>::execute_offline(
-        parameters.system_parameters.clone(),
+        parameters.system_parameters,
         old_records,
         old_account_private_keys,
         new_record_owners,
