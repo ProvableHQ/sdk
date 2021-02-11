@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612983481040,
+  "lastUpdate": 1613018565470,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -281,6 +281,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 73023389,
             "range": "± 3633569",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "howardwu@berkeley.edu",
+            "name": "howardwu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "howardwu@berkeley.edu",
+            "name": "howardwu",
+            "username": "howardwu"
+          },
+          "distinct": true,
+          "id": "63a826833e6def786f2db0945d44ee73a6e51fc0",
+          "message": "Update package.json",
+          "timestamp": "2021-02-10T20:16:11-08:00",
+          "tree_id": "9270116623edb7c2da4f3da02e86c84bbe473885",
+          "url": "https://github.com/AleoHQ/aleo/commit/63a826833e6def786f2db0945d44ee73a6e51fc0"
+        },
+        "date": 1613018563493,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 77677570,
+            "range": "± 6706659",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 798083245,
+            "range": "± 22199339",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 76659146,
+            "range": "± 7924531",
             "unit": "ns/iter"
           }
         ]
