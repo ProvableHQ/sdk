@@ -17,8 +17,14 @@
 use crate::{PrivateKey, ViewKeyError};
 
 use snarkvm_dpc::base_dpc::{instantiated::Components, parameters::SystemParameters};
+use snarkvm_models::{algorithms::SignatureScheme, dpc::DPCComponents};
 use snarkvm_objects::AccountViewKey;
+use snarkvm_utilities::{
+    bytes::{FromBytes, ToBytes},
+    to_bytes,
+};
 
+use rand::{CryptoRng, Rng};
 use std::{fmt, str::FromStr};
 
 #[derive(Debug)]
@@ -36,6 +42,17 @@ impl ViewKey {
         )?;
         Ok(Self { view_key })
     }
+
+    /// Sign message with the view key.
+    pub fn sign<R: Rng + CryptoRng>(&self, message: &[u8], rng: &mut R) -> Result<Signature, ViewKeyError> {
+        let parameters = SystemParameters::<Components>::load()?;
+
+        let signature = parameters
+            .account_encryption
+            .sign(&self.view_key.decryption_key, message, rng)?;
+
+        Ok(Signature(signature))
+    }
 }
 
 impl FromStr for ViewKey {
@@ -51,5 +68,30 @@ impl FromStr for ViewKey {
 impl fmt::Display for ViewKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.view_key.to_string())
+    }
+}
+
+/// An account view key signature.
+pub struct Signature(pub <<Components as DPCComponents>::AccountEncryption as SignatureScheme>::Output);
+
+impl FromStr for Signature {
+    type Err = ViewKeyError;
+
+    fn from_str(signature: &str) -> Result<Self, Self::Err> {
+        let signature_bytes = hex::decode(signature)?;
+        let signature: <<Components as DPCComponents>::AccountEncryption as SignatureScheme>::Output =
+            FromBytes::read(&signature_bytes[..])?;
+
+        Ok(Self(signature))
+    }
+}
+
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            hex::encode(to_bytes![self.0].expect("failed to convert to bytes"))
+        )
     }
 }

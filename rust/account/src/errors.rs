@@ -44,6 +44,18 @@ impl From<snarkvm_errors::objects::account::AccountError> for ViewKeyError {
     }
 }
 
+impl From<snarkvm_errors::algorithms::SignatureError> for ViewKeyError {
+    fn from(error: snarkvm_errors::algorithms::SignatureError) -> Self {
+        ViewKeyError::Crate("snarkvm_errors::algorithms::signature", format!("{:?}", error))
+    }
+}
+
+impl From<hex::FromHexError> for ViewKeyError {
+    fn from(error: hex::FromHexError) -> Self {
+        ViewKeyError::Crate("hex", format!("{:?}", error))
+    }
+}
+
 impl From<std::io::Error> for ViewKeyError {
     fn from(error: std::io::Error) -> Self {
         ViewKeyError::Crate("std::io", format!("{:?}", error))
@@ -59,6 +71,12 @@ pub enum AddressError {
 impl From<snarkvm_errors::objects::account::AccountError> for AddressError {
     fn from(error: snarkvm_errors::objects::account::AccountError) -> Self {
         AddressError::Crate("snarkvm_errors::objects::account", format!("{:?}", error))
+    }
+}
+
+impl From<snarkvm_errors::algorithms::SignatureError> for AddressError {
+    fn from(error: snarkvm_errors::algorithms::SignatureError) -> Self {
+        AddressError::Crate("snarkvm_errors::algorithms::signature", format!("{:?}", error))
     }
 }
 

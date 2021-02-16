@@ -15,3 +15,5 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod account;
+pub mod address;
+pub mod view_key;
