@@ -30,7 +30,7 @@ dependencies = [
  "snarkvm-models 0.0.3",
  "snarkvm-objects 0.0.3",
  "snarkvm-storage",
- "snarkvm-utilities 0.0.3",
+ "snarkvm-utilities 0.0.4",
  "structopt",
  "thiserror",
  "tokio",
