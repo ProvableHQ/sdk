@@ -83,7 +83,7 @@ impl RpcClient {
         // Check if the request and response ids are the same.
         if let Some(response_id) = response_body.id {
             if request_body.id != response_id {
-                return Err(RpcRequestError::RequestIdMismatch(request_body.id.clone(), response_id));
+                return Err(RpcRequestError::RequestIdMismatch(request_body.id, response_id));
             }
         }
 
