@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613018565470,
+  "lastUpdate": 1613455921116,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -323,6 +323,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 76659146,
             "range": "± 7924531",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0a42443854296618c7ebebb744b51b1b18db5bec",
+          "message": "Merge pull request #38 from AleoHQ/feature/view-key-signatures\n\nImplement View Key Signatures",
+          "timestamp": "2021-02-15T21:46:01-08:00",
+          "tree_id": "10238209dfc99f5548a7c6adaf06094b9c390c71",
+          "url": "https://github.com/AleoHQ/aleo/commit/0a42443854296618c7ebebb744b51b1b18db5bec"
+        },
+        "date": 1613455919987,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 71503445,
+            "range": "± 4785619",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 729727948,
+            "range": "± 17307973",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 72072031,
+            "range": "± 6228015",
             "unit": "ns/iter"
           }
         ]
