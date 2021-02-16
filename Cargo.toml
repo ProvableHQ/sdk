@@ -33,7 +33,7 @@ aleo-account = { path = "./rust/account", version = "0.2.0" }
 
 snarkvm-dpc = { version = "0.0.3" }
 snarkvm-errors = { version = "0.0.3" }
-snarkvm-models = { version = "0.0.3" }
+snarkvm-models = { version = "0.0.4" }
 snarkvm-objects = { version = "0.0.3" }
 snarkvm-storage = { version = "0.0.3" }
 snarkvm-utilities = { version = "0.0.3" }
