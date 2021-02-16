@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613455921116,
+  "lastUpdate": 1613456021261,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -365,6 +365,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 72072031,
             "range": "± 6228015",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "45630d32f708b1bb1e53e30d49352b9ee074c313",
+          "message": "Merge pull request #39 from AleoHQ/chore/clippy-cleanup\n\nFix clippy warnings",
+          "timestamp": "2021-02-15T21:46:32-08:00",
+          "tree_id": "d508ab2141c23cbf59486f8264322baea046442a",
+          "url": "https://github.com/AleoHQ/aleo/commit/45630d32f708b1bb1e53e30d49352b9ee074c313"
+        },
+        "date": 1613456020197,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 71455346,
+            "range": "± 1252778",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 793691418,
+            "range": "± 5998889",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 70955265,
+            "range": "± 778308",
             "unit": "ns/iter"
           }
         ]
