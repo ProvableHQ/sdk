@@ -2108,8 +2108,10 @@ dependencies = [
  "base58",
  "bech32",
  "bincode",
+ "curl",
  "hex",
  "jsonrpc-core",
+ "rocksdb",
  "thiserror",
  "toml",
 ]
@@ -2250,6 +2252,7 @@ version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74d920ae9aff766409ff4222da7121bc7edf44a76460ea07b8ca070c3aa73efd"
 dependencies = [
+ "curl",
  "hex",
  "snarkvm-algorithms 0.0.4",
  "snarkvm-errors 0.0.4",
@@ -2271,9 +2274,9 @@ checksum = "acd1cc18cc2c34eb1229481218862fddc5e03df217ab23e6494459f7c483c0a1"
 
 [[package]]
 name = "snarkvm-storage"
-version = "0.0.3"
+version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cb4f7e299b888749224eada35624347e4c99d2e5972c1c416d2d18e005fe23b"
+checksum = "1768bcc70e02813149b3b1d3e7215d9c45b3fb4245fb478ea6496081df49a3ff"
 dependencies = [
  "anyhow",
  "bincode",
@@ -2282,12 +2285,12 @@ dependencies = [
  "rand 0.7.3",
  "rocksdb",
  "serde",
- "snarkvm-algorithms 0.0.3",
- "snarkvm-errors 0.0.3",
- "snarkvm-models 0.0.3",
- "snarkvm-objects 0.0.3",
- "snarkvm-parameters 0.0.3",
- "snarkvm-utilities 0.0.3",
+ "snarkvm-algorithms 0.0.4",
+ "snarkvm-errors 0.0.4",
+ "snarkvm-models 0.0.4",
+ "snarkvm-objects 0.0.4",
+ "snarkvm-parameters 0.0.4",
+ "snarkvm-utilities 0.0.4",
  "thiserror",
 ]
 
