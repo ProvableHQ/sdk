@@ -25,7 +25,7 @@ dependencies = [
  "self_update",
  "serde",
  "serde_json",
- "snarkvm-dpc 0.0.3",
+ "snarkvm-dpc",
  "snarkvm-errors 0.0.3",
  "snarkvm-models 0.0.3",
  "snarkvm-objects 0.0.3",
@@ -48,7 +48,7 @@ dependencies = [
  "hex",
  "rand 0.7.3",
  "rand_chacha 0.2.2",
- "snarkvm-dpc 0.0.4",
+ "snarkvm-dpc",
  "snarkvm-errors 0.0.4",
  "snarkvm-models 0.0.4",
  "snarkvm-objects 0.0.4",
@@ -2038,29 +2038,6 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-dpc"
-version = "0.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea20c9a289304d22755ddfc644e164e1232f41ebe016edc8bf7f0007b828b92d"
-dependencies = [
- "anyhow",
- "blake2",
- "derivative",
- "hex",
- "itertools",
- "rand 0.7.3",
- "snarkvm-algorithms 0.0.3",
- "snarkvm-curves 0.0.3",
- "snarkvm-errors 0.0.3",
- "snarkvm-gadgets 0.0.3",
- "snarkvm-models 0.0.3",
- "snarkvm-objects 0.0.3",
- "snarkvm-parameters 0.0.3",
- "snarkvm-profiler 0.0.3",
- "snarkvm-utilities 0.0.3",
-]
-
-[[package]]
-name = "snarkvm-dpc"
 version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff878d1c7de705cf0fe63abca97661830b57bc68b067fe4ae44c4d6acd8edd8f"
@@ -2074,7 +2051,7 @@ dependencies = [
  "snarkvm-algorithms 0.0.4",
  "snarkvm-curves 0.0.4",
  "snarkvm-errors 0.0.4",
- "snarkvm-gadgets 0.0.4",
+ "snarkvm-gadgets",
  "snarkvm-models 0.0.4",
  "snarkvm-objects 0.0.4",
  "snarkvm-parameters 0.0.4",
@@ -2108,26 +2085,12 @@ dependencies = [
  "base58",
  "bech32",
  "bincode",
+ "curl",
  "hex",
  "jsonrpc-core",
+ "rocksdb",
  "thiserror",
  "toml",
-]
-
-[[package]]
-name = "snarkvm-gadgets"
-version = "0.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5692f39b5b9351b6584e1f9a2739b13d82e5a4a74a074eb0b743e9d7583fdb5"
-dependencies = [
- "derivative",
- "digest 0.8.1",
- "itertools",
- "snarkvm-algorithms 0.0.3",
- "snarkvm-curves 0.0.3",
- "snarkvm-errors 0.0.3",
- "snarkvm-models 0.0.3",
- "snarkvm-utilities 0.0.3",
 ]
 
 [[package]]
@@ -2250,6 +2213,7 @@ version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74d920ae9aff766409ff4222da7121bc7edf44a76460ea07b8ca070c3aa73efd"
 dependencies = [
+ "curl",
  "hex",
  "snarkvm-algorithms 0.0.4",
  "snarkvm-errors 0.0.4",
