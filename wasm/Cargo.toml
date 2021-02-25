@@ -17,8 +17,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 aleo-account = { path = "../rust/account" }
 
-rand = { version = "0.8", default-features = false }
-#getrandom = { version = "0.2", features = ["js", "wasm-bindgen"] }
+rand = { version = "0.8" }
+getrandom = { version = "0.2.2", features = ["js", "wasm-bindgen"] }
 wasm-bindgen = { version = "0.2.70" }
 
 [dev-dependencies]
