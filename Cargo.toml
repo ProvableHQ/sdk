@@ -31,19 +31,19 @@ path = "rust/aleo/main.rs"
 
 aleo-account = { path = "./rust/account", version = "0.2.0" }
 
-snarkvm-dpc = { version = "0.0.3" }
-snarkvm-errors = { version = "0.0.3" }
-snarkvm-models = { version = "0.0.3" }
-snarkvm-objects = { version = "0.0.3" }
-snarkvm-storage = { version = "0.0.3" }
-snarkvm-utilities = { version = "0.0.3" }
+snarkvm-dpc = { version = "0.0.5" }
+snarkvm-errors = { version = "0.0.5" }
+snarkvm-models = { version = "0.0.5" }
+snarkvm-objects = { version = "0.0.5" }
+snarkvm-storage = { version = "0.0.5" }
+snarkvm-utilities = { version = "0.0.5" }
 
 anyhow = { version = "1.0.38" }
 base64 = { version = "0.13" }
 colored = { version = "2" }
 hex = { version = "0.4.2" }
-rand = { version = "0.7", default-features = false, features = ["wasm-bindgen"] }
-rand_chacha = { version = "0.2", default-features = false }
+rand = { version = "0.8", default-features = false}
+rand_chacha = { version = "0.3.0", default-features = false }
 reqwest = { version = "0.11", features = ["json"] }
 self_update = { version = "0.23" }
 serde = { version = "1.0", features = ["derive"] }
