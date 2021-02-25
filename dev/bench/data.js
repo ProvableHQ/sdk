@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614232996437,
+  "lastUpdate": 1614233044700,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -533,6 +533,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 65268335,
             "range": "± 10476597",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5a0f918ec028ba510fc6a600f777081c6c31aa54",
+          "message": "Merge pull request #46 from AleoHQ/bump/snarkVM\n\nBump snarkvm version to 0.0.5",
+          "timestamp": "2021-02-24T21:36:51-08:00",
+          "tree_id": "336ed105ba9e5658a011425747e8d379c167f750",
+          "url": "https://github.com/AleoHQ/aleo/commit/5a0f918ec028ba510fc6a600f777081c6c31aa54"
+        },
+        "date": 1614233043136,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 74330793,
+            "range": "± 7048762",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 797654545,
+            "range": "± 30780640",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 76943636,
+            "range": "± 5406586",
             "unit": "ns/iter"
           }
         ]
