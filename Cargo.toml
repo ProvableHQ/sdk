@@ -51,7 +51,7 @@ serde_json = { version = "1.0" }
 structopt = { version = "0.3" }
 thiserror = { version = "1.0" }
 uuid = { version = "0.8.1", features = ["v4", "serde"] }
-wasm-bindgen = { version = "0.2.70" }
+wasm-bindgen = { version = "0.2.71" }
 
 [dev-dependencies]
 colored = { version = "2", features = ["no-color"] }
