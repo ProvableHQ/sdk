@@ -31,7 +31,7 @@ path = "rust/aleo/main.rs"
 
 aleo-account = { path = "./rust/account", version = "0.2.0" }
 
-snarkvm-dpc = { version = "0.0.5" }
+snarkvm-dpc = { version = "0.0.6" }
 snarkvm-errors = { version = "0.0.5" }
 snarkvm-models = { version = "0.0.5" }
 snarkvm-objects = { version = "0.0.5" }
