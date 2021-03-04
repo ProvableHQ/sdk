@@ -23,7 +23,7 @@ snarkvm-models = { version = "0.0.5", default-features = false }
 snarkvm-objects = { version = "0.0.5", default-features = false }
 snarkvm-utilities = { version = "0.0.5", default-features = false }
 
-hex = { version = "0.4.2" }
+hex = { version = "0.4.3" }
 rand = { version = "0.8.0" }
 rand_chacha = { version = "0.3.0", default-features = false }
 thiserror = { version = "1.0" }
