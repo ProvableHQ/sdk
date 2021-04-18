@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614268335377,
+  "lastUpdate": 1618728566542,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -659,6 +659,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 70776637,
             "range": "± 3716351",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "84cac6c617b99c945c243cb07b1cb3443585db4c",
+          "message": "Merge pull request #62 from AleoHQ/dependabot/cargo/wasm-bindgen-0.2.73\n\nBump wasm-bindgen from 0.2.70 to 0.2.73",
+          "timestamp": "2021-04-17T23:25:34-07:00",
+          "tree_id": "d2f425aae1155ddbf7a443383c5e34aadb0d64e1",
+          "url": "https://github.com/AleoHQ/aleo/commit/84cac6c617b99c945c243cb07b1cb3443585db4c"
+        },
+        "date": 1618728562400,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 58538341,
+            "range": "± 7215616",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 596314091,
+            "range": "± 51327681",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 62721013,
+            "range": "± 7076271",
             "unit": "ns/iter"
           }
         ]
