@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1618728759494,
+  "lastUpdate": 1618728901607,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -785,6 +785,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 70703598,
             "range": "± 5012335",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b9187d88c679d08c05153498fe63859e26d15349",
+          "message": "Merge pull request #57 from AleoHQ/dependabot/cargo/hex-0.4.3\n\nBump hex from 0.4.2 to 0.4.3",
+          "timestamp": "2021-04-17T23:25:14-07:00",
+          "tree_id": "ba4cc7d1742f16e56d1ff2b9e3390926f4d67c22",
+          "url": "https://github.com/AleoHQ/aleo/commit/b9187d88c679d08c05153498fe63859e26d15349"
+        },
+        "date": 1618728899290,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 76848638,
+            "range": "± 5110035",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 735820812,
+            "range": "± 77795569",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 70900898,
+            "range": "± 5003398",
             "unit": "ns/iter"
           }
         ]
