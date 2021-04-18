@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1618728690234,
+  "lastUpdate": 1618728759494,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -743,6 +743,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 67122239,
             "range": "± 2000671",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "11f62e1b2c95a3a6ed319327eb04bc4788e229b3",
+          "message": "Merge pull request #59 from AleoHQ/dependabot/cargo/self_update-0.26.0\n\nBump self_update from 0.25.0 to 0.26.0",
+          "timestamp": "2021-04-17T23:25:07-07:00",
+          "tree_id": "a21fe8c93441e3ae5435e6eb8e47b0d7c4a69441",
+          "url": "https://github.com/AleoHQ/aleo/commit/11f62e1b2c95a3a6ed319327eb04bc4788e229b3"
+        },
+        "date": 1618728757151,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 69959033,
+            "range": "± 7096058",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 786184325,
+            "range": "± 46109973",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 70703598,
+            "range": "± 5012335",
             "unit": "ns/iter"
           }
         ]
