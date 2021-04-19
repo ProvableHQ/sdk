@@ -38,7 +38,7 @@ snarkvm-objects = { version = "0.0.5" }
 snarkvm-storage = { version = "0.0.5" }
 snarkvm-utilities = { version = "0.0.5" }
 
-anyhow = { version = "1.0.38" }
+anyhow = { version = "1.0.40" }
 base64 = { version = "0.13" }
 colored = { version = "2" }
 hex = { version = "0.4.3" }
