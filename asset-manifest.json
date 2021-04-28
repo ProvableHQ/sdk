@@ -1,28 +1,28 @@
 {
   "files": {
-    "static/js/0.15136f56.chunk.js": "/aleo/static/js/0.15136f56.chunk.js",
+    "static/js/0.71ba2012.chunk.js": "/aleo/static/js/0.71ba2012.chunk.js",
     "b125a49d9161035585dd.module.wasm": "/aleo/b125a49d9161035585dd.module.wasm",
-    "static/js/0.15136f56.chunk.js.map": "/aleo/static/js/0.15136f56.chunk.js.map",
+    "static/js/0.71ba2012.chunk.js.map": "/aleo/static/js/0.71ba2012.chunk.js.map",
     "main.css": "/aleo/static/css/main.1093a323.chunk.css",
-    "main.js": "/aleo/static/js/main.f60abd56.chunk.js",
-    "main.js.map": "/aleo/static/js/main.f60abd56.chunk.js.map",
-    "runtime-main.js": "/aleo/static/js/runtime-main.70ea297e.js",
-    "runtime-main.js.map": "/aleo/static/js/runtime-main.70ea297e.js.map",
+    "main.js": "/aleo/static/js/main.1a6d92e6.chunk.js",
+    "main.js.map": "/aleo/static/js/main.1a6d92e6.chunk.js.map",
+    "runtime-main.js": "/aleo/static/js/runtime-main.d17514b9.js",
+    "runtime-main.js.map": "/aleo/static/js/runtime-main.d17514b9.js.map",
     "static/css/3.f86808fa.chunk.css": "/aleo/static/css/3.f86808fa.chunk.css",
-    "static/js/3.bd50dc43.chunk.js": "/aleo/static/js/3.bd50dc43.chunk.js",
-    "static/js/3.bd50dc43.chunk.js.map": "/aleo/static/js/3.bd50dc43.chunk.js.map",
-    "static/js/4.c05ca75a.chunk.js": "/aleo/static/js/4.c05ca75a.chunk.js",
-    "static/js/4.c05ca75a.chunk.js.map": "/aleo/static/js/4.c05ca75a.chunk.js.map",
+    "static/js/3.6a37c29e.chunk.js": "/aleo/static/js/3.6a37c29e.chunk.js",
+    "static/js/3.6a37c29e.chunk.js.map": "/aleo/static/js/3.6a37c29e.chunk.js.map",
+    "static/js/4.4fe6dd85.chunk.js": "/aleo/static/js/4.4fe6dd85.chunk.js",
+    "static/js/4.4fe6dd85.chunk.js.map": "/aleo/static/js/4.4fe6dd85.chunk.js.map",
     "index.html": "/aleo/index.html",
     "static/css/3.f86808fa.chunk.css.map": "/aleo/static/css/3.f86808fa.chunk.css.map",
     "static/css/main.1093a323.chunk.css.map": "/aleo/static/css/main.1093a323.chunk.css.map",
-    "static/js/3.bd50dc43.chunk.js.LICENSE.txt": "/aleo/static/js/3.bd50dc43.chunk.js.LICENSE.txt"
+    "static/js/3.6a37c29e.chunk.js.LICENSE.txt": "/aleo/static/js/3.6a37c29e.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.70ea297e.js",
+    "static/js/runtime-main.d17514b9.js",
     "static/css/3.f86808fa.chunk.css",
-    "static/js/3.bd50dc43.chunk.js",
+    "static/js/3.6a37c29e.chunk.js",
     "static/css/main.1093a323.chunk.css",
-    "static/js/main.f60abd56.chunk.js"
+    "static/js/main.1a6d92e6.chunk.js"
   ]
 }
