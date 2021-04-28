@@ -14,24 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_dpc::base_dpc::{
-    instantiated::{CommitmentMerkleParameters, Components, InstantiatedDPC, Tx},
-    parameters::PublicParameters,
-    program::NoopProgram,
-    record::DPCRecord,
-    BaseDPCComponents,
-    TransactionKernel,
+use snarkos_storage::{
+    Ledger,
+    mem::MemDb,
 };
-use snarkvm_models::{
-    algorithms::CRH,
-    dpc::{DPCComponents, DPCScheme, Program, Record},
+use snarkvm_algorithms::{
+    traits::CRH,
 };
-use snarkvm_storage::Ledger;
+use snarkvm_dpc::{
+    base_dpc::{
+        instantiated::{CommitmentMerkleParameters, Components, InstantiatedDPC, Tx},
+        parameters::PublicParameters,
+        program::NoopProgram,
+        record::DPCRecord,
+        BaseDPCComponents,
+        TransactionKernel,
+    },
+    traits::{
+        DPCComponents,
+        DPCScheme,
+        Program,
+        Record,
+    },
+};
 use snarkvm_utilities::{to_bytes, ToBytes};
 
 use rand::Rng;
 
-pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters>;
+pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters, MemDb>;
 
 /// Delegated execution of program proof generation and transaction online phase.
 pub fn delegate_transaction<R: Rng>(

@@ -20,8 +20,8 @@ pub enum PrivateKeyError {
     Crate(&'static str, String),
 }
 
-impl From<snarkvm_errors::objects::account::AccountError> for PrivateKeyError {
-    fn from(error: snarkvm_errors::objects::account::AccountError) -> Self {
+impl From<snarkvm_dpc::errors::AccountError> for PrivateKeyError {
+    fn from(error: snarkvm_dpc::errors::AccountError) -> Self {
         PrivateKeyError::Crate("snarkvm_errors::objects::account", format!("{:?}", error))
     }
 }
@@ -38,14 +38,14 @@ pub enum ViewKeyError {
     Crate(&'static str, String),
 }
 
-impl From<snarkvm_errors::objects::account::AccountError> for ViewKeyError {
-    fn from(error: snarkvm_errors::objects::account::AccountError) -> Self {
+impl From<snarkvm_dpc::errors::AccountError> for ViewKeyError {
+    fn from(error: snarkvm_dpc::errors::AccountError) -> Self {
         ViewKeyError::Crate("snarkvm_errors::objects::account", format!("{:?}", error))
     }
 }
 
-impl From<snarkvm_errors::algorithms::SignatureError> for ViewKeyError {
-    fn from(error: snarkvm_errors::algorithms::SignatureError) -> Self {
+impl From<snarkvm_algorithms::errors::SignatureError> for ViewKeyError {
+    fn from(error: snarkvm_algorithms::errors::SignatureError) -> Self {
         ViewKeyError::Crate("snarkvm_errors::algorithms::signature", format!("{:?}", error))
     }
 }
@@ -68,14 +68,14 @@ pub enum AddressError {
     Crate(&'static str, String),
 }
 
-impl From<snarkvm_errors::objects::account::AccountError> for AddressError {
-    fn from(error: snarkvm_errors::objects::account::AccountError) -> Self {
+impl From<snarkvm_dpc::errors::AccountError> for AddressError {
+    fn from(error: snarkvm_dpc::errors::AccountError) -> Self {
         AddressError::Crate("snarkvm_errors::objects::account", format!("{:?}", error))
     }
 }
 
-impl From<snarkvm_errors::algorithms::SignatureError> for AddressError {
-    fn from(error: snarkvm_errors::algorithms::SignatureError) -> Self {
+impl From<snarkvm_algorithms::errors::SignatureError> for AddressError {
+    fn from(error: snarkvm_algorithms::errors::SignatureError) -> Self {
         AddressError::Crate("snarkvm_errors::algorithms::signature", format!("{:?}", error))
     }
 }

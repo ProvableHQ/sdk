@@ -15,21 +15,29 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::transaction::delegate_transaction;
-use snarkvm_dpc::base_dpc::{
-    instantiated::{CommitmentMerkleParameters, Components, InstantiatedDPC, Tx},
-    parameters::PublicParameters,
-    record::DPCRecord,
-    record_payload::RecordPayload,
+use snarkos_storage::{
+    Ledger,
+    mem::MemDb,
 };
-use snarkvm_models::{
-    algorithms::CRH,
-    dpc::{DPCComponents, DPCScheme},
+use snarkvm_algorithms::{
+    traits::CRH,
 };
-use snarkvm_objects::account::*;
-use snarkvm_storage::Ledger;
+use snarkvm_dpc::{
+    account::{
+        AccountAddress,
+        AccountPrivateKey,
+    },
+    base_dpc::{
+        instantiated::{CommitmentMerkleParameters, Components, InstantiatedDPC, Tx},
+        parameters::PublicParameters,
+        record::DPCRecord,
+        record_payload::RecordPayload,
+    },
+    traits::{DPCComponents, DPCScheme}
+};
 use snarkvm_utilities::{to_bytes, ToBytes};
 
-pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters>;
+pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters, MemDb>;
 
 use rand::Rng;
 
@@ -136,7 +144,7 @@ pub fn create_dummy_transaction<R: Rng>(
     let (transaction, new_records) = delegate_transaction(execute_context, &ledger, rng)?;
 
     drop(ledger);
-    MerkleTreeLedger::destroy_storage(path).unwrap();
+    // MerkleTreeLedger::destroy_storage(path).unwrap();
 
     Ok((transaction, new_records))
 }
