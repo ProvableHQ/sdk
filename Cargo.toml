@@ -57,7 +57,7 @@ wasm-bindgen = { version = "0.2.73" }
 colored = { version = "2", features = ["no-color"] }
 wiremock = { version = "0.5" }
 rusty-hook = { version = "0.11.2" }
-wasm-bindgen-test = { version = "0.3.20" }
+wasm-bindgen-test = { version = "0.3.23" }
 tokio = { version = "1.2.0", features = ["rt-multi-thread"] }
 
 [profile.release]
