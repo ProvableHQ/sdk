@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1619671930198,
+  "lastUpdate": 1619672118634,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -953,6 +953,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 72095691,
             "range": "± 6534731",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9ad826aec60b4d4001a4562a9e2cac59ee062a19",
+          "message": "Merge pull request #64 from AleoHQ/dependabot/cargo/serde-1.0.125\n\nBump serde from 1.0.123 to 1.0.125",
+          "timestamp": "2021-04-28T21:27:58-07:00",
+          "tree_id": "8db0c9ea54f9f907bf3d1df15fbabbb30d9d9ca9",
+          "url": "https://github.com/AleoHQ/aleo/commit/9ad826aec60b4d4001a4562a9e2cac59ee062a19"
+        },
+        "date": 1619672112349,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 73657152,
+            "range": "± 7326375",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 700736698,
+            "range": "± 22385817",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 76673777,
+            "range": "± 14806709",
             "unit": "ns/iter"
           }
         ]
