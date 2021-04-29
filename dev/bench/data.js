@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1619579252631,
+  "lastUpdate": 1619671866111,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -869,6 +869,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 76354769,
             "range": "± 6439611",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "65cc207f1f32f37a9c5d61d0d5f5451ea563294b",
+          "message": "Merge pull request #66 from AleoHQ/dependabot/cargo/wiremock-0.5.2\n\nBump wiremock from 0.5.1 to 0.5.2",
+          "timestamp": "2021-04-28T21:27:49-07:00",
+          "tree_id": "b4adb57b4b647dd77c17c804f14293841be00790",
+          "url": "https://github.com/AleoHQ/aleo/commit/65cc207f1f32f37a9c5d61d0d5f5451ea563294b"
+        },
+        "date": 1619671863291,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 55661403,
+            "range": "± 411369",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 656300748,
+            "range": "± 3227124",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 55579065,
+            "range": "± 409064",
             "unit": "ns/iter"
           }
         ]
