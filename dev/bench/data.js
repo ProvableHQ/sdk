@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1619672118634,
+  "lastUpdate": 1619672201226,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -995,6 +995,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 76673777,
             "range": "± 14806709",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "09c3acff78e1048cf3a4f72baeae1eba0192c406",
+          "message": "Merge pull request #65 from AleoHQ/dependabot/cargo/reqwest-0.11.3\n\nBump reqwest from 0.11.1 to 0.11.3",
+          "timestamp": "2021-04-28T21:28:07-07:00",
+          "tree_id": "d54226be816600dc07c02fca302744d03d9383e3",
+          "url": "https://github.com/AleoHQ/aleo/commit/09c3acff78e1048cf3a4f72baeae1eba0192c406"
+        },
+        "date": 1619672198379,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 79986814,
+            "range": "± 9196989",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 770109536,
+            "range": "± 37554354",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 81031045,
+            "range": "± 8516241",
             "unit": "ns/iter"
           }
         ]
