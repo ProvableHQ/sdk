@@ -90,7 +90,7 @@ jobs:
           command: RUST_MIN_STACK=8388608 cargo test --all --no-fail-fast
       - clear_environment:
           cache_key: aleo-nightly-cache
-          
+
 workflows:
   version: 2
   main-workflow:
