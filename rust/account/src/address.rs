@@ -20,11 +20,11 @@ use crate::{
     PrivateKey,
 };
 
+use snarkvm_algorithms::traits::SignatureScheme;
 use snarkvm_dpc::{
     account::AccountAddress,
-    base_dpc::{instantiated::Components, parameters::SystemParameters}
+    base_dpc::{instantiated::Components, parameters::SystemParameters},
 };
-use snarkvm_algorithms::traits::SignatureScheme;
 use snarkvm_utilities::bytes::ToBytes;
 
 use std::{fmt, str::FromStr};

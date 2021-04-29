@@ -14,13 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkos_storage::{
-    Ledger,
-    mem::MemDb,
-};
-use snarkvm_algorithms::{
-    traits::CRH,
-};
+use snarkos_storage::{mem::MemDb, Ledger};
+use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
     base_dpc::{
         instantiated::{CommitmentMerkleParameters, Components, InstantiatedDPC, Tx},
@@ -30,12 +25,7 @@ use snarkvm_dpc::{
         BaseDPCComponents,
         TransactionKernel,
     },
-    traits::{
-        DPCComponents,
-        DPCScheme,
-        Program,
-        Record,
-    },
+    traits::{DPCComponents, DPCScheme, Program, Record},
 };
 use snarkvm_utilities::{to_bytes, ToBytes};
 
