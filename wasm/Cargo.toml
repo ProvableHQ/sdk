@@ -14,12 +14,19 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[dependencies]
-aleo-account = { path = "../rust/account" }
+[dependencies.aleo-account]
+path = "../rust/account"
 
-rand = { version = "0.8" }
-getrandom = { version = "0.2.2", features = ["js"] }
-wasm-bindgen = { version = "0.2.73" }
+[dependencies.rand]
+version = "0.8"
 
-[dev-dependencies]
-wasm-bindgen-test = { version = "0.3.20" }
+[dependencies.getrandom]
+version = "0.2.2"
+features = ["js"]
+
+[dependencies.wasm-bindgen]
+version = "0.2.73"
+
+[dev-dependencies.wasm-bindgen-test]
+version = "0.3.20"
+
