@@ -16,4 +16,5 @@
 
 pub mod account;
 pub mod address;
+pub mod record;
 pub mod view_key;

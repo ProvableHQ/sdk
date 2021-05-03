@@ -14,8 +14,15 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[dependencies.aleo]
+path = "../"
+
 [dependencies.aleo-account]
 path = "../rust/account"
+
+[dependencies.snarkvm-dpc]
+version = "0.2.2"
+default-features = false
 
 [dependencies.rand]
 version = "0.8"

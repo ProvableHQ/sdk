@@ -60,9 +60,11 @@ dependencies = [
 name = "aleo-wasm"
 version = "0.2.0"
 dependencies = [
+ "aleo",
  "aleo-account",
  "getrandom 0.2.2",
  "rand 0.8.3",
+ "snarkvm-dpc",
  "wasm-bindgen",
  "wasm-bindgen-test",
 ]
