@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo::record::create_dummy_record;
+use aleo_record::create_dummy_record;
 use snarkvm_dpc::{
     base_dpc::{instantiated::Components, record::DPCRecord},
     Record as RecordNative,
@@ -53,7 +53,5 @@ mod tests {
     #[wasm_bindgen_test]
     pub fn new_dummy_test() {
         let _dummy_record = Record::new_dummy();
-
-        println!("done");
     }
 }
