@@ -22,7 +22,6 @@ dependencies = [
  "hex",
  "rand 0.8.3",
  "rand_chacha 0.3.0",
- "rand_xorshift",
  "reqwest",
  "rusty-hook",
  "self_update",

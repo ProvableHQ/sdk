@@ -26,7 +26,7 @@ use snarkvm_dpc::{
 };
 use snarkvm_utilities::{to_bytes, ToBytes};
 
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 
 /// Returns a dummy record
 pub fn create_dummy_record<R: Rng>(rng: &mut R) -> anyhow::Result<DPCRecord<Components>> {
@@ -68,15 +68,4 @@ pub fn create_dummy_record<R: Rng>(rng: &mut R) -> anyhow::Result<DPCRecord<Comp
     )?;
 
     Ok(dummy_record)
-}
-
-#[test]
-fn test_create_dummy_record() {
-    use rand_xorshift::XorShiftRng;
-
-    let mut rng = XorShiftRng::seed_from_u64(1231275789u64);
-
-    let record = create_dummy_record(&mut rng).unwrap();
-
-    println!("done");
 }
