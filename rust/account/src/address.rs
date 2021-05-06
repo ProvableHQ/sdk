@@ -31,7 +31,7 @@ use std::{fmt, str::FromStr};
 
 #[derive(Debug)]
 pub struct Address {
-    pub(crate) address: AccountAddress<Components>,
+    pub address: AccountAddress<Components>,
 }
 
 impl Address {

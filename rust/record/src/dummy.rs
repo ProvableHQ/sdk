@@ -18,7 +18,6 @@ use crate::RecordError;
 use aleo_account::{Address, PrivateKey};
 use snarkvm_algorithms::CRH;
 use snarkvm_dpc::{
-    account::{AccountAddress, AccountPrivateKey},
     base_dpc::{
         instantiated::{Components, InstantiatedDPC},
         record::DPCRecord,
@@ -28,11 +27,11 @@ use snarkvm_dpc::{
 };
 use snarkvm_utilities::{to_bytes, ToBytes};
 
-use rand::Rng;
+use rand::{CryptoRng, Rng};
 
 /// Returns a dummy record
-pub fn create_dummy_record<R: Rng>(rng: &mut R) -> Result<DPCRecord<Components>, RecordError> {
-    let parameters = PublicParameters::<Components>::load(false)?;
+pub fn create_dummy_record<R: Rng + CryptoRng>(rng: &mut R) -> Result<DPCRecord<Components>, RecordError> {
+    let parameters = PublicParameters::<Components>::load(true)?;
 
     let spender = PrivateKey::new(rng)?;
 
