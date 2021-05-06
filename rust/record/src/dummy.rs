@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::RecordError;
+use aleo_account::{Address, PrivateKey};
 use snarkvm_algorithms::CRH;
 use snarkvm_dpc::{
     account::{AccountAddress, AccountPrivateKey},
@@ -29,36 +31,33 @@ use snarkvm_utilities::{to_bytes, ToBytes};
 use rand::Rng;
 
 /// Returns a dummy record
-pub fn create_dummy_record<R: Rng>(rng: &mut R) -> anyhow::Result<DPCRecord<Components>> {
-    let parameters = PublicParameters::<Components>::load(false).unwrap();
+pub fn create_dummy_record<R: Rng>(rng: &mut R) -> Result<DPCRecord<Components>, RecordError> {
+    let parameters = PublicParameters::<Components>::load(false)?;
 
-    let spender = AccountPrivateKey::<Components>::new(
-        &parameters.system_parameters.account_signature,
-        &parameters.system_parameters.account_commitment,
-        rng,
-    )?;
+    let spender = PrivateKey::new(rng)?;
 
     let sn_randomness: [u8; 32] = rng.gen();
-    let old_sn_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
+    let old_sn_nonce = parameters
+        .system_parameters
+        .serial_number_nonce
+        .hash(&sn_randomness)
+        .unwrap();
 
     let noop_program_id = to_bytes![
         parameters
             .system_parameters
             .program_verification_key_crh
-            .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)?
-    ]?;
+            .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)
+            .unwrap()
+    ]
+    .unwrap();
 
-    let address = AccountAddress::<Components>::from_private_key(
-        parameters.account_signature_parameters(),
-        parameters.account_commitment_parameters(),
-        parameters.account_encryption_parameters(),
-        &spender,
-    )?;
+    let address = Address::from(&spender)?;
 
     let dummy_record = InstantiatedDPC::generate_record(
         &parameters.system_parameters,
         old_sn_nonce,
-        address,
+        address.address,
         true,
         0,
         RecordPayload::default(),

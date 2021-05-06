@@ -13,15 +13,19 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+use aleo_account::{AddressError, PrivateKeyError, ViewKeyError};
 
-#[macro_use]
-extern crate thiserror;
+#[derive(Debug, Error)]
+pub enum RecordError {
+    #[error("{}: {}", _0, _1)]
+    Crate(&'static str, String),
 
-pub mod dummy;
-pub use self::dummy::*;
+    #[error("{}", _0)]
+    AddressError(#[from] AddressError),
 
-pub mod errors;
-pub use errors::*;
+    #[error("{}", _0)]
+    PrivateKeyError(#[from] PrivateKeyError),
 
-#[cfg(test)]
-pub mod tests;
+    #[error("{}", _0)]
+    ViewKeyError(#[from] ViewKeyError),
+}
