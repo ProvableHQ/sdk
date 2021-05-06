@@ -20,7 +20,6 @@ extern crate thiserror;
 pub mod cli;
 pub mod commands;
 pub mod errors;
-// pub mod record;
 pub mod snarkos;
 pub mod transaction;
 pub mod updater;
