@@ -20,10 +20,6 @@ path = "../rust/account"
 [dependencies.aleo-record]
 path = "../rust/record"
 
-[dependencies.snarkvm-dpc]
-version = "0.2.2"
-default-features = false
-
 [dependencies.getrandom]
 version = "0.2.2"
 features = ["js"]

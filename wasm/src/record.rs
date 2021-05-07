@@ -14,18 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_record::create_dummy_record;
-use snarkvm_dpc::{
-    base_dpc::{instantiated::Components, record::DPCRecord},
-    Record as RecordNative,
-};
+use aleo_record::Record as RecordNative;
 
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Record {
-    pub(crate) record: DPCRecord<Components>,
+    pub(crate) record: RecordNative,
 }
 
 #[wasm_bindgen]
@@ -33,9 +29,9 @@ impl Record {
     #[wasm_bindgen(constructor)]
     pub fn new_dummy() -> Self {
         let rng = &mut StdRng::from_entropy();
-        let dummy = create_dummy_record(rng).unwrap();
+        let record = RecordNative::new_dummy(rng).unwrap();
 
-        Self { record: dummy }
+        Self { record }
     }
 
     #[wasm_bindgen]

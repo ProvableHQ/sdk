@@ -77,7 +77,6 @@ dependencies = [
  "aleo-record",
  "getrandom 0.2.2",
  "rand 0.8.3",
- "snarkvm-dpc",
  "wasm-bindgen",
  "wasm-bindgen-test",
 ]
