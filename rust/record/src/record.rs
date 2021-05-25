@@ -293,25 +293,33 @@ impl RecordBuilder {
 
         // Build record.
         Ok(Record {
-            owner: self.owner.ok_or(RecordError::MissingField("owner".to_string()))?,
-            is_dummy: self.is_dummy.ok_or(RecordError::MissingField("is_dummy".to_string()))?,
-            value: self.value.ok_or(RecordError::MissingField("value".to_string()))?,
-            payload: self.payload.ok_or(RecordError::MissingField("payload".to_string()))?,
+            owner: self
+                .owner
+                .ok_or_else(|| RecordError::MissingField("owner".to_string()))?,
+            is_dummy: self
+                .is_dummy
+                .ok_or_else(|| RecordError::MissingField("is_dummy".to_string()))?,
+            value: self
+                .value
+                .ok_or_else(|| RecordError::MissingField("value".to_string()))?,
+            payload: self
+                .payload
+                .ok_or_else(|| RecordError::MissingField("payload".to_string()))?,
             birth_program_id: self
                 .birth_program_id
-                .ok_or(RecordError::MissingField("birth_program_id".to_string()))?,
+                .ok_or_else(|| RecordError::MissingField("birth_program_id".to_string()))?,
             death_program_id: self
                 .death_program_id
-                .ok_or(RecordError::MissingField("death_program_id".to_string()))?,
+                .ok_or_else(|| RecordError::MissingField("death_program_id".to_string()))?,
             serial_number_nonce: self
                 .serial_number_nonce
-                .ok_or(RecordError::MissingField("serial_number_nonce".to_string()))?,
+                .ok_or_else(|| RecordError::MissingField("serial_number_nonce".to_string()))?,
             commitment: self
                 .commitment
-                .ok_or(RecordError::MissingField("commitment".to_string()))?,
+                .ok_or_else(|| RecordError::MissingField("commitment".to_string()))?,
             commitment_randomness: self
                 .commitment_randomness
-                .ok_or(RecordError::MissingField("commitment_randomness".to_string()))?,
+                .ok_or_else(|| RecordError::MissingField("commitment_randomness".to_string()))?,
         })
     }
 }

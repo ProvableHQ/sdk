@@ -17,14 +17,8 @@
 #[macro_use]
 extern crate thiserror;
 
-pub mod dummy;
-pub use self::dummy::*;
-
 pub mod errors;
 pub use errors::*;
 
 pub mod record;
 pub use record::*;
-
-#[cfg(test)]
-pub mod tests;
