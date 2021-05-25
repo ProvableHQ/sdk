@@ -40,8 +40,12 @@ pub fn parse(command: Command) -> anyhow::Result<String> {
 
             Ok(output)
         }
-        Command::NewRecord {} => {
-            let record = Record::new();
+        Command::NewRecord { seed } => {
+            // Sample a new Aleo dummy record.
+            let record = match seed {
+                Some(seed) => Record::new(&mut ChaChaRng::seed_from_u64(seed)),
+                None => Record::new(&mut rand::thread_rng()),
+            };
 
             // Print the new Aleo record.
             let output = format!("\n {:>12}  \n", record);

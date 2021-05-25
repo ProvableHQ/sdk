@@ -17,7 +17,7 @@
 use crate::RecordError;
 use aleo_account::{Address, PrivateKey};
 
-use rand::{rngs::StdRng, Rng, SeedableRng};
+use rand::{CryptoRng, Rng};
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_dpc::{
     base_dpc::{instantiated::Components, record_payload::RecordPayload},
@@ -71,9 +71,8 @@ impl Record {
     ///
     /// Returns a new dummy record using the record builder. (this method should not fail)
     ///
-    pub fn new() -> Record {
+    pub fn new<R: Rng + CryptoRng>(rng: &mut R) -> Record {
         // Set address
-        let rng = &mut StdRng::from_entropy();
         let private_key = PrivateKey::new(rng).unwrap();
         let owner = Address::from(&private_key).unwrap();
 
@@ -344,92 +343,100 @@ impl RecordBuilder {
 //     }
 // }
 
-#[test]
-fn test_build_record() {
-    let r = Record::new();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    println!("{}", r);
-}
+    use rand::{rngs::StdRng, SeedableRng};
 
-#[test]
-fn test_owner_string() {
-    let rng = &mut StdRng::from_entropy();
-    let private_key = PrivateKey::new(rng).unwrap();
-    let owner = Address::from(&private_key).unwrap();
+    #[test]
+    fn test_build_record() {
+        let rng = &mut StdRng::from_entropy();
+        let r = Record::new(rng);
 
-    // Set is_dummy.
-    let is_dummy = true;
+        println!("{}", r);
+    }
 
-    // Set value.
-    let value = 0u64;
+    #[test]
+    fn test_owner_string() {
+        let rng = &mut StdRng::from_entropy();
+        let private_key = PrivateKey::new(rng).unwrap();
+        let owner = Address::from(&private_key).unwrap();
 
-    // Set payload.
-    let payload = RecordPayload::default();
+        // Set is_dummy.
+        let is_dummy = true;
 
-    let parameters = PublicParameters::<Components>::load(true).unwrap();
+        // Set value.
+        let value = 0u64;
 
-    // Set birth_program_id and death_program_id.
-    let noop_program_id = to_bytes![
-        parameters
-            .system_parameters
-            .program_verification_key_crh
-            .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key].unwrap())
-            .unwrap()
-    ]
-    .unwrap();
+        // Set payload.
+        let payload = RecordPayload::default();
 
-    let birth_program_id = noop_program_id.clone();
-    let death_program_id = noop_program_id;
+        let parameters = PublicParameters::<Components>::load(true).unwrap();
 
-    // Set serial_number_nonce.
-    let sn_randomness: [u8; 32] = rng.gen();
-    let old_sn_nonce = parameters
-        .system_parameters
-        .serial_number_nonce
-        .hash(&sn_randomness)
+        // Set birth_program_id and death_program_id.
+        let noop_program_id = to_bytes![
+            parameters
+                .system_parameters
+                .program_verification_key_crh
+                .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key].unwrap())
+                .unwrap()
+        ]
         .unwrap();
 
-    let serial_number_nonce = to_bytes![old_sn_nonce].unwrap();
+        let birth_program_id = noop_program_id.clone();
+        let death_program_id = noop_program_id;
 
-    // Sample new commitment randomness.
-    let commitment_randomness =
-        <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
+        // Set serial_number_nonce.
+        let sn_randomness: [u8; 32] = rng.gen();
+        let old_sn_nonce = parameters
+            .system_parameters
+            .serial_number_nonce
+            .hash(&sn_randomness)
+            .unwrap();
 
-    // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
-    let commitment_input = to_bytes![
-        owner.to_bytes(),    // 256 bits = 32 bytes
-        is_dummy,            // 1 bit = 1 byte
-        value,               // 64 bits = 8 bytes
-        payload,             // 256 bits = 32 bytes
-        birth_program_id,    // 384 bits = 48 bytes
-        death_program_id,    // 384 bits = 48 bytes
-        serial_number_nonce  // 256 bits = 32 bytes
-    ]
-    .unwrap();
+        let serial_number_nonce = to_bytes![old_sn_nonce].unwrap();
 
-    let commitment = to_bytes![
-        <Components as DPCComponents>::RecordCommitment::commit(
-            &parameters.system_parameters.record_commitment,
-            &commitment_input,
-            &commitment_randomness,
-        )
-        .unwrap()
-    ]
-    .unwrap();
+        // Sample new commitment randomness.
+        let commitment_randomness =
+            <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
 
-    let r = RecordBuilder::new()
-        .owner_string(&owner.to_string())
-        .is_dummy(is_dummy) // Return dummy record by default
-        .value(value)
-        .payload(payload)
-        .birth_program_id(birth_program_id)
-        .death_program_id(death_program_id)
-        .serial_number_nonce(serial_number_nonce)
-        .commitment(commitment)
-        .commitment_randomness(to_bytes![commitment_randomness].unwrap())
-        .build().expect("Default record should not fail");
+        // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
+        let commitment_input = to_bytes![
+            owner.to_bytes(),    // 256 bits = 32 bytes
+            is_dummy,            // 1 bit = 1 byte
+            value,               // 64 bits = 8 bytes
+            payload,             // 256 bits = 32 bytes
+            birth_program_id,    // 384 bits = 48 bytes
+            death_program_id,    // 384 bits = 48 bytes
+            serial_number_nonce  // 256 bits = 32 bytes
+        ]
+        .unwrap();
 
-    println!("{}", r);
+        let commitment = to_bytes![
+            <Components as DPCComponents>::RecordCommitment::commit(
+                &parameters.system_parameters.record_commitment,
+                &commitment_input,
+                &commitment_randomness,
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        let r = RecordBuilder::new()
+            .owner_string(&owner.to_string())
+            .is_dummy(is_dummy) // Return dummy record by default
+            .value(value)
+            .payload(payload)
+            .birth_program_id(birth_program_id)
+            .death_program_id(death_program_id)
+            .serial_number_nonce(serial_number_nonce)
+            .commitment(commitment)
+            .commitment_randomness(to_bytes![commitment_randomness].unwrap())
+            .build().expect("Default record should not fail");
+
+        println!("{}", r);
+    }
 }
 
 //

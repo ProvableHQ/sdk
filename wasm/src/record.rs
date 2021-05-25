@@ -16,7 +16,7 @@
 
 use aleo_record::Record as RecordNative;
 
-// use rand::{rngs::StdRng, SeedableRng};
+use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -28,8 +28,8 @@ pub struct Record {
 impl Record {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        // let rng = &mut StdRng::from_entropy();
-        let record = RecordNative::new();
+        let rng = &mut StdRng::from_entropy();
+        let record = RecordNative::new(rng);
 
         Self { record }
     }
