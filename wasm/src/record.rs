@@ -34,10 +34,10 @@ impl Record {
         Self { record }
     }
 
-    // #[wasm_bindgen]
-    // pub fn is_dummy(&self) -> bool {
-    //     self.record.is_dummy()
-    // }
+    #[wasm_bindgen]
+    pub fn to_string(&self) -> String {
+        self.record.to_string()
+    }
 }
 
 #[cfg(test)]
