@@ -30,11 +30,11 @@ use snarkvm_utilities::{to_bytes, ToBytes};
 
 use rand::{CryptoRng, Rng};
 
-pub struct Record {
+pub struct DummyRecord {
     pub(crate) record: DPCRecord<Components>,
 }
 
-impl Record {
+impl DummyRecord {
     pub fn new_dummy<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, RecordError> {
         let parameters = PublicParameters::<Components>::load(true)?;
 

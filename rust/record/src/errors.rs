@@ -21,11 +21,17 @@ pub enum RecordError {
     #[error("{}", _0)]
     AddressError(#[from] AddressError),
 
+    #[error("Failed to build Record data type. See console logs for errors")]
+    BuilderError,
+
     #[error("{}: {}", _0, _1)]
     Crate(&'static str, String),
 
     #[error("{}", _0)]
     DPCError(#[from] DPCError),
+
+    #[error("Missing Record field: {0}")]
+    MissingField(String),
 
     #[error("{}", _0)]
     PrivateKeyError(#[from] PrivateKeyError),

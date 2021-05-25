@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_record::Record as RecordNative;
+use aleo_record::DummyRecord as RecordNative;
 
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;

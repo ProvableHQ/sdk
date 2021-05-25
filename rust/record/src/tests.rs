@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::dummy::create_dummy_record;
+use crate::dummy::DummyRecord;
 
-use rand::{Rng, SeedableRng};
+use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 
 #[test]
 fn test_create_dummy_record() {
     let mut rng = ChaChaRng::seed_from_u64(1231275789u64);
 
-    let record = create_dummy_record(&mut rng).unwrap();
+    let _record = DummyRecord::new_dummy(&mut rng).unwrap();
 
     println!("done");
 }

@@ -29,7 +29,7 @@ use snarkvm_utilities::bytes::ToBytes;
 
 use std::{fmt, str::FromStr};
 
-#[derive(Debug)]
+#[derive(Default, Clone, Debug, PartialEq, Eq)]
 pub struct Address {
     pub address: AccountAddress<Components>,
 }
