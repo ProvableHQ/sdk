@@ -59,6 +59,8 @@ pub enum Command {
         #[structopt(short = "s", long)]
         seed: Option<u64>,
     },
+    /// Generates a new Aleo record
+    NewRecord {},
     /// Update Aleo to the latest version
     Update {
         /// Lists all available versions of Aleo

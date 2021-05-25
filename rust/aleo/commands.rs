@@ -16,6 +16,7 @@
 
 use crate::{cli::Command, updater::Updater};
 use aleo_account::{Address, PrivateKey, ViewKey};
+use aleo_record::Record;
 
 use colored::*;
 use rand::SeedableRng;
@@ -36,6 +37,14 @@ pub fn parse(command: Command) -> anyhow::Result<String> {
             let mut output = format!("\n {:>12}  {}\n", "Private Key".cyan().bold(), private_key);
             output += &format!(" {:>12}  {}\n", "View Key".cyan().bold(), view_key);
             output += &format!(" {:>12}  {}\n", "Address".cyan().bold(), address);
+
+            Ok(output)
+        }
+        Command::NewRecord {} => {
+            let record = Record::new();
+
+            // Print the new Aleo record.
+            let output = format!("\n {:>12}  \n", record);
 
             Ok(output)
         }
@@ -88,5 +97,12 @@ mod tests {
 ";
         let actual = parse(Command::New { seed }).unwrap();
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_new_record() {
+        for _ in 0..3 {
+            assert!(parse(Command::NewRecord {}).is_ok());
+        }
     }
 }
