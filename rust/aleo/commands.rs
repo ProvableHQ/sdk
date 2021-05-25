@@ -106,7 +106,7 @@ mod tests {
     #[test]
     fn test_new_record() {
         for _ in 0..3 {
-            assert!(parse(Command::NewRecord {}).is_ok());
+            assert!(parse(Command::NewRecord { seed: None }).is_ok());
         }
     }
 }
