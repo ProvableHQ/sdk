@@ -14,17 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::RecordError;
+use crate::{RecordError, RecordPayload};
 use aleo_account::{Address, PrivateKey};
 
 use rand::{CryptoRng, Rng};
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
-use snarkvm_dpc::{
-    base_dpc::{instantiated::Components, record_payload::RecordPayload},
-    DPCComponents,
-    PublicParameters,
-    SystemParameters,
-};
+use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, PublicParameters, SystemParameters};
 use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
 use std::{fmt, str::FromStr};
 

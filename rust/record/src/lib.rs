@@ -23,5 +23,8 @@ pub use errors::*;
 pub mod record;
 pub use record::*;
 
+pub mod record_payload;
+pub use record_payload::*;
+
 pub mod record_serializer;
 pub use record_serializer::*;
