@@ -30,8 +30,14 @@ pub enum RecordError {
     #[error("{}", _0)]
     DPCError(#[from] DPCError),
 
+    #[error("Attempted to set `value: {}` on a dummy record", _0)]
+    DummyMustBeZero(u64),
+
     #[error("Missing Record field: {0}")]
     MissingField(String),
+
+    #[error("Attempted to set `is_dummy: true` on a record with a non-zero value")]
+    NonZeroValue,
 
     #[error("{}", _0)]
     PrivateKeyError(#[from] PrivateKeyError),

@@ -23,6 +23,7 @@ use snarkvm_dpc::{
     base_dpc::{instantiated::Components, record_payload::RecordPayload},
     DPCComponents,
     PublicParameters,
+    SystemParameters,
 };
 use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
 use std::{fmt, str::FromStr};
@@ -68,10 +69,95 @@ pub struct RecordBuilder {
 }
 
 impl Record {
+    pub(crate) const ZERO_VALUE: u64 = 0;
+
+    ///
+    /// Returns a new record using the record builder.
+    ///
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        owner: Address,
+        is_dummy: bool,
+        value: u64,
+        payload: RecordPayload,
+        birth_program_id: Vec<u8>,
+        death_program_id: Vec<u8>,
+        serial_number_nonce: SerialNumberNonce,
+        commitment: RecordCommitment,
+        commitment_randomness: CommitmentRandomness,
+    ) -> Result<Record, RecordError> {
+        RecordBuilder::new()
+            .owner(owner)
+            .is_dummy(is_dummy) // Return dummy record by default
+            .value(value)
+            .payload(payload)
+            .birth_program_id(birth_program_id)
+            .death_program_id(death_program_id)
+            .serial_number_nonce(serial_number_nonce)
+            .commitment(commitment)
+            .commitment_randomness(to_bytes![commitment_randomness].unwrap())
+            .build()
+    }
+
+    ///
+    /// Returns a new record using the record builder.
+    /// Uses randomness to compute record commitment.
+    ///
+    #[allow(clippy::too_many_arguments)]
+    pub fn generate_record<R: Rng + CryptoRng>(
+        system_parameters: &SystemParameters<Components>,
+        owner: Address,
+        is_dummy: bool,
+        value: u64,
+        payload: RecordPayload,
+        birth_program_id: Vec<u8>,
+        death_program_id: Vec<u8>,
+        serial_number_nonce: SerialNumberNonce,
+        rng: &mut R,
+    ) -> Result<Record, RecordError> {
+        // Sample new commitment randomness.
+        let commitment_randomness =
+            <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
+
+        // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
+        let commitment_input = to_bytes![
+            owner.to_bytes(),    // 256 bits = 32 bytes
+            is_dummy,            // 1 bit = 1 byte
+            value,               // 64 bits = 8 bytes
+            payload,             // 256 bits = 32 bytes
+            birth_program_id,    // 384 bits = 48 bytes
+            death_program_id,    // 384 bits = 48 bytes
+            serial_number_nonce  // 256 bits = 32 bytes
+        ]
+        .unwrap();
+
+        let commitment = to_bytes![
+            <Components as DPCComponents>::RecordCommitment::commit(
+                &system_parameters.record_commitment,
+                &commitment_input,
+                &commitment_randomness,
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        Self::new(
+            owner,
+            is_dummy,
+            value,
+            payload,
+            birth_program_id,
+            death_program_id,
+            serial_number_nonce,
+            commitment,
+            to_bytes![commitment_randomness].unwrap(),
+        )
+    }
+
     ///
     /// Returns a new dummy record using the record builder. (this method should not fail)
     ///
-    pub fn new<R: Rng + CryptoRng>(rng: &mut R) -> Record {
+    pub fn dummy<R: Rng + CryptoRng>(rng: &mut R) -> Record {
         // Set address
         let private_key = PrivateKey::new(rng).unwrap();
         let owner = Address::from(&private_key).unwrap();
@@ -110,43 +196,18 @@ impl Record {
 
         let serial_number_nonce = to_bytes![old_sn_nonce].unwrap();
 
-        // Sample new commitment randomness.
-        let commitment_randomness =
-            <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
-
-        // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
-        let commitment_input = to_bytes![
-            owner.to_bytes(),    // 256 bits = 32 bytes
-            is_dummy,            // 1 bit = 1 byte
-            value,               // 64 bits = 8 bytes
-            payload,             // 256 bits = 32 bytes
-            birth_program_id,    // 384 bits = 48 bytes
-            death_program_id,    // 384 bits = 48 bytes
-            serial_number_nonce  // 256 bits = 32 bytes
-        ]
-        .unwrap();
-
-        let commitment = to_bytes![
-            <Components as DPCComponents>::RecordCommitment::commit(
-                &parameters.system_parameters.record_commitment,
-                &commitment_input,
-                &commitment_randomness,
-            )
-            .unwrap()
-        ]
-        .unwrap();
-
-        RecordBuilder::new()
-            .owner(owner)
-            .is_dummy(is_dummy) // Return dummy record by default
-            .value(value)
-            .payload(payload)
-            .birth_program_id(birth_program_id)
-            .death_program_id(death_program_id)
-            .serial_number_nonce(serial_number_nonce)
-            .commitment(commitment)
-            .commitment_randomness(to_bytes![commitment_randomness].unwrap())
-            .build().expect("Default record should not fail")
+        Record::generate_record(
+            &parameters.system_parameters,
+            owner,
+            is_dummy,
+            value,
+            payload,
+            birth_program_id,
+            death_program_id,
+            serial_number_nonce,
+            rng,
+        )
+        .expect("Default record should not fail")
     }
 }
 
@@ -207,6 +268,21 @@ impl RecordBuilder {
     pub fn is_dummy(mut self, is_dummy: bool) -> Self {
         self.is_dummy = Some(is_dummy);
 
+        // Set record value to 0 for dummy records.
+        if is_dummy {
+            match self.value {
+                Some(value) => {
+                    if value == 0 {
+                        // Value is already 0, do nothing
+                    } else {
+                        // Value is non-zero, return an error
+                        self.errors.push(RecordError::NonZeroValue);
+                    }
+                }
+                None => return self.value_zero(),
+            }
+        }
+
         self
     }
 
@@ -216,7 +292,27 @@ impl RecordBuilder {
     pub fn value(mut self, value: u64) -> Self {
         self.value = Some(value);
 
+        // Set is_dummy to false for records with non-zero value.
+        if value != Record::ZERO_VALUE {
+            match self.is_dummy {
+                Some(is_dummy) => {
+                    if is_dummy {
+                        // Dummy records must have a zero value, return an error
+                        self.errors.push(RecordError::DummyMustBeZero(value));
+                    }
+                }
+                None => return self.is_dummy(false),
+            }
+        }
+
         self
+    }
+
+    ///
+    /// Returns a new record builder and sets field `value: 0u64`.
+    ///
+    pub fn value_zero(self) -> Self {
+        self.value(Record::ZERO_VALUE)
     }
 
     ///
@@ -352,7 +448,7 @@ mod tests {
     #[test]
     fn test_build_record() {
         let rng = &mut StdRng::from_entropy();
-        let r = Record::new(rng);
+        let r = Record::dummy(rng);
 
         println!("{}", r);
     }
