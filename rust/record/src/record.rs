@@ -26,7 +26,14 @@ use snarkvm_dpc::{
     Record as RecordInterface,
     SystemParameters,
 };
-use snarkvm_utilities::{to_bytes, variable_length_integer, FromBytes, ToBytes, UniformRand};
+use snarkvm_utilities::{
+    read_variable_length_integer,
+    to_bytes,
+    variable_length_integer,
+    FromBytes,
+    ToBytes,
+    UniformRand,
+};
 use std::{
     fmt,
     io::{Read, Result as IoResult, Write},
@@ -187,10 +194,12 @@ impl Record {
 
 impl RecordInterface for Record {
     type Commitment = ();
+    // todo: change to `RecordCommitment` - currently cannot impl FromBytes on Vec<u8>
     type CommitmentRandomness = CommitmentRandomness;
     type Owner = Address;
     type Payload = RecordPayload;
     type SerialNumber = ();
+    // todo: change to `SerialNumber` - currently cannot impl FromBytes on Vec<u8>
     type SerialNumberNonce = SerialNumberNonce;
     type Value = u64;
 
@@ -253,44 +262,46 @@ impl ToBytes for Record {
 impl FromBytes for Record {
     #[inline]
     fn read<R: Read>(mut reader: R) -> IoResult<Self> {
-        unimplemented!()
-        // let owner: Address = FromBytes::read(&mut reader)?;
-        // let is_dummy: bool = FromBytes::read(&mut reader)?;
-        // let value: u64 = FromBytes::read(&mut reader)?;
-        // let payload: RecordPayload = FromBytes::read(&mut reader)?;
-        //
-        // let birth_program_id_size: usize = read_variable_length_integer(&mut reader)?;
-        //
-        // let mut birth_program_id = Vec::with_capacity(birth_program_id_size);
-        // for _ in 0..birth_program_id_size {
-        //     let byte: u8 = FromBytes::read(&mut reader)?;
-        //     birth_program_id.push(byte);
-        // }
-        //
-        // let death_program_id_size: usize = read_variable_length_integer(&mut reader)?;
-        //
-        // let mut death_program_id = Vec::with_capacity(death_program_id_size);
-        // for _ in 0..death_program_id_size {
-        //     let byte: u8 = FromBytes::read(&mut reader)?;
-        //     death_program_id.push(byte);
-        // }
-        //
-        // let serial_number_nonce: SerialNumberNonce = FromBytes::read(&mut reader)?;
-        //
-        // let commitment: RecordCommitment = FromBytes::read(&mut reader)?;
-        // let commitment_randomness: CommitmentRandomness = FromBytes::read(&mut reader)?;
-        //
-        // Ok(Self {
-        //     owner,
-        //     is_dummy,
-        //     value,
-        //     payload,
-        //     birth_program_id,
-        //     death_program_id,
-        //     serial_number_nonce,
-        //     commitment,
-        //     commitment_randomness,
-        // })
+        let owner: Address = FromBytes::read(&mut reader)?;
+        let is_dummy: bool = FromBytes::read(&mut reader)?;
+        let value: u64 = FromBytes::read(&mut reader)?;
+        let payload: RecordPayload = FromBytes::read(&mut reader)?;
+
+        let birth_program_id_size: usize = read_variable_length_integer(&mut reader)?;
+
+        let mut birth_program_id = Vec::with_capacity(birth_program_id_size);
+        for _ in 0..birth_program_id_size {
+            let byte: u8 = FromBytes::read(&mut reader)?;
+            birth_program_id.push(byte);
+        }
+
+        let death_program_id_size: usize = read_variable_length_integer(&mut reader)?;
+
+        let mut death_program_id = Vec::with_capacity(death_program_id_size);
+        for _ in 0..death_program_id_size {
+            let byte: u8 = FromBytes::read(&mut reader)?;
+            death_program_id.push(byte);
+        }
+
+        let serial_number_nonce: <<Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output =
+            FromBytes::read(&mut reader)?;
+
+        let commitment: <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output =
+            FromBytes::read(&mut reader)?;
+        let commitment_randomness: <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness =
+            FromBytes::read(&mut reader)?;
+
+        Ok(Self {
+            owner,
+            is_dummy,
+            value,
+            payload,
+            birth_program_id,
+            death_program_id,
+            serial_number_nonce: to_bytes![serial_number_nonce]?,
+            commitment: to_bytes![commitment]?,
+            commitment_randomness: to_bytes![commitment_randomness]?,
+        })
     }
 }
 

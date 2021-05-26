@@ -62,20 +62,20 @@ impl RecordSerializerScheme for RecordEncoder {
     fn serialize(record: &Self::Record) -> Result<(Vec<Self::Group>, bool), DPCError> {
         // Assumption 1 - The scalar field bit size must be strictly less than the base field bit size
         // for the logic below to work correctly.
-        assert!(Self::SCALAR_FIELD_BITSIZE < Self::INNER_FIELD_BITSIZE);
+        // assert!(Self::SCALAR_FIELD_BITSIZE < Self::INNER_FIELD_BITSIZE);
 
         // Assumption 2 - this implementation assumes the outer field bit size is larger than
         // the data field bit size by at most one additional scalar field bit size.
-        assert!((Self::OUTER_FIELD_BITSIZE - Self::DATA_ELEMENT_BITSIZE) <= Self::DATA_ELEMENT_BITSIZE);
+        // assert!((Self::OUTER_FIELD_BITSIZE - Self::DATA_ELEMENT_BITSIZE) <= Self::DATA_ELEMENT_BITSIZE);
 
         // Assumption 3 - this implementation assumes the remainder of two outer field bit sizes
         // can fit within one data field element's bit size.
-        assert!((2 * (Self::OUTER_FIELD_BITSIZE - Self::DATA_ELEMENT_BITSIZE)) <= Self::DATA_ELEMENT_BITSIZE);
+        // assert!((2 * (Self::OUTER_FIELD_BITSIZE - Self::DATA_ELEMENT_BITSIZE)) <= Self::DATA_ELEMENT_BITSIZE);
 
         // Assumption 4 - this implementation assumes the payload and value may be zero values.
         // As such, to ensure the values are non-zero for encoding and decoding, we explicitly
         // reserve the MSB of the data field element's valid bitsize and set the bit to 1.
-        assert_eq!(Self::PAYLOAD_ELEMENT_BITSIZE, Self::DATA_ELEMENT_BITSIZE - 1);
+        // assert_eq!(Self::PAYLOAD_ELEMENT_BITSIZE, Self::DATA_ELEMENT_BITSIZE - 1);
 
         // This element needs to be represented in the constraint field; its bits and the number of elements
         // are calculated early, so that the storage vectors can be pre-allocated.
