@@ -199,6 +199,7 @@ impl Record {
     }
 }
 
+// todo (collin): Come up with better UX for displaying records.
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "Record {{")?;
