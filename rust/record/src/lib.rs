@@ -20,11 +20,17 @@ extern crate thiserror;
 pub mod errors;
 pub use errors::*;
 
+pub mod record_builder;
+pub use record_builder::*;
+
+pub mod record_encoding;
+pub use record_encoding::*;
+
 pub mod record;
 pub use record::*;
 
 pub mod record_payload;
 pub use record_payload::*;
 
-pub mod record_serializer;
-pub use record_serializer::*;
+#[cfg(test)]
+pub mod tests;

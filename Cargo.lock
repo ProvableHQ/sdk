@@ -62,10 +62,13 @@ name = "aleo-record"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
+ "itertools",
  "rand 0.8.3",
  "rand_chacha 0.3.0",
  "snarkvm-algorithms",
+ "snarkvm-curves",
  "snarkvm-dpc",
+ "snarkvm-fields",
  "snarkvm-utilities",
  "thiserror",
 ]
