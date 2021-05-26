@@ -43,8 +43,8 @@ pub fn parse(command: Command) -> anyhow::Result<String> {
         Command::NewRecord { seed } => {
             // Sample a new Aleo dummy record.
             let record = match seed {
-                Some(seed) => Record::dummy(&mut ChaChaRng::seed_from_u64(seed)),
-                None => Record::dummy(&mut rand::thread_rng()),
+                Some(seed) => Record::dummy(&mut ChaChaRng::seed_from_u64(seed))?,
+                None => Record::dummy(&mut rand::thread_rng())?,
             };
 
             // Print the new Aleo record.

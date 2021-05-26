@@ -95,7 +95,7 @@ impl Record {
             .death_program_id(death_program_id)
             .serial_number_nonce(serial_number_nonce)
             .commitment(commitment)
-            .commitment_randomness(to_bytes![commitment_randomness].unwrap())
+            .commitment_randomness(to_bytes![commitment_randomness]?)
             .build()
     }
 
@@ -128,18 +128,13 @@ impl Record {
             birth_program_id,    // 384 bits = 48 bytes
             death_program_id,    // 384 bits = 48 bytes
             serial_number_nonce  // 256 bits = 32 bytes
-        ]
-        .unwrap();
+        ]?;
 
-        let commitment = to_bytes![
-            <Components as DPCComponents>::RecordCommitment::commit(
-                &system_parameters.record_commitment,
-                &commitment_input,
-                &commitment_randomness,
-            )
-            .unwrap()
-        ]
-        .unwrap();
+        let commitment = to_bytes![<Components as DPCComponents>::RecordCommitment::commit(
+            &system_parameters.record_commitment,
+            &commitment_input,
+            &commitment_randomness,
+        )?]?;
 
         Self::new(
             owner,
@@ -150,17 +145,17 @@ impl Record {
             death_program_id,
             serial_number_nonce,
             commitment,
-            to_bytes![commitment_randomness].unwrap(),
+            to_bytes![commitment_randomness]?,
         )
     }
 
     ///
     /// Returns a new dummy record using the record builder. (this method should not fail)
     ///
-    pub fn dummy<R: Rng + CryptoRng>(rng: &mut R) -> Record {
+    pub fn dummy<R: Rng + CryptoRng>(rng: &mut R) -> Result<Record, RecordError> {
         // Set address
-        let private_key = PrivateKey::new(rng).unwrap();
-        let owner = Address::from(&private_key).unwrap();
+        let private_key = PrivateKey::new(rng)?;
+        let owner = Address::from(&private_key)?;
 
         // Set is_dummy.
         let is_dummy = true;
@@ -171,30 +166,24 @@ impl Record {
         // Set payload.
         let payload = RecordPayload::default();
 
-        let parameters = PublicParameters::<Components>::load(true).unwrap();
+        let parameters = PublicParameters::<Components>::load(true)?;
 
         // Set birth_program_id and death_program_id.
         let noop_program_id = to_bytes![
             parameters
                 .system_parameters
                 .program_verification_key_crh
-                .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key].unwrap())
-                .unwrap()
-        ]
-        .unwrap();
+                .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)?
+        ]?;
 
         let birth_program_id = noop_program_id.clone();
         let death_program_id = noop_program_id;
 
         // Set serial_number_nonce.
         let sn_randomness: [u8; 32] = rng.gen();
-        let old_sn_nonce = parameters
-            .system_parameters
-            .serial_number_nonce
-            .hash(&sn_randomness)
-            .unwrap();
+        let old_sn_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
 
-        let serial_number_nonce = to_bytes![old_sn_nonce].unwrap();
+        let serial_number_nonce = to_bytes![old_sn_nonce]?;
 
         Record::generate_record(
             &parameters.system_parameters,
@@ -207,7 +196,6 @@ impl Record {
             serial_number_nonce,
             rng,
         )
-        .expect("Default record should not fail")
     }
 }
 
@@ -252,9 +240,9 @@ impl RecordBuilder {
         let owner = Address::from_str(owner);
 
         if owner.is_ok() {
-            self.owner = Some(owner.expect("checked unwrap owner"));
+            self.owner = Some(owner.expect("expected owner address"));
         } else {
-            let err = owner.err().expect("checked unwrap owner error");
+            let err = owner.err().expect("expected owner address error");
 
             self.errors.push(RecordError::AddressError(err));
         }
@@ -379,7 +367,7 @@ impl RecordBuilder {
             // Print out all errors
 
             for err in self.errors {
-                println!("Builder Error: {:?}", err);
+                println!("BuilderError: {:?}", err);
             }
 
             // Return builder fail.
@@ -448,7 +436,7 @@ mod tests {
     #[test]
     fn test_build_record() {
         let rng = &mut StdRng::from_entropy();
-        let r = Record::dummy(rng);
+        let r = Record::dummy(rng).unwrap();
 
         println!("{}", r);
     }
@@ -529,125 +517,23 @@ mod tests {
             .serial_number_nonce(serial_number_nonce)
             .commitment(commitment)
             .commitment_randomness(to_bytes![commitment_randomness].unwrap())
-            .build().expect("Default record should not fail");
+            .build()
+            .expect("Default record should not fail");
 
         println!("{}", r);
     }
-}
 
-//
-// fn default_program_id<C: CRH>() -> Vec<u8> {
-//     to_bytes![C::Output::default()].unwrap()
-// }
-//
-// impl<C: BaseDPCComponents> Record for AleoRecord<C> {
-//     type Commitment = <C::RecordCommitment as CommitmentScheme>::Output;
-//     type CommitmentRandomness = <C::RecordCommitment as CommitmentScheme>::Randomness;
-//     type Owner = AccountAddress<C>;
-//     type Payload = RecordPayload;
-//     type SerialNumber = <C::AccountSignature as SignatureScheme>::PublicKey;
-//     type SerialNumberNonce = <C::SerialNumberNonceCRH as CRH>::Output;
-//     type Value = u64;
-//
-//     fn owner(&self) -> &Self::Owner {
-//         &self.owner
-//     }
-//
-//     fn is_dummy(&self) -> bool {
-//         self.is_dummy
-//     }
-//
-//     fn payload(&self) -> &Self::Payload {
-//         &self.payload
-//     }
-//
-//     fn birth_program_id(&self) -> &[u8] {
-//         &self.birth_program_id
-//     }
-//
-//     fn death_program_id(&self) -> &[u8] {
-//         &self.death_program_id
-//     }
-//
-//     fn serial_number_nonce(&self) -> &Self::SerialNumberNonce {
-//         &self.serial_number_nonce
-//     }
-//
-//     fn commitment(&self) -> Self::Commitment {
-//         self.commitment.clone()
-//     }
-//
-//     fn commitment_randomness(&self) -> Self::CommitmentRandomness {
-//         self.commitment_randomness.clone()
-//     }
-//
-//     fn value(&self) -> Self::Value {
-//         self.value
-//     }
-// }
-//
-// impl<C: BaseDPCComponents> ToBytes for AleoRecord<C> {
-//     #[inline]
-//     fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
-//         self.owner.write(&mut writer)?;
-//
-//         self.is_dummy.write(&mut writer)?;
-//         self.value.write(&mut writer)?;
-//         self.payload.write(&mut writer)?;
-//
-//         variable_length_integer(self.birth_program_id.len() as u64).write(&mut writer)?;
-//         self.birth_program_id.write(&mut writer)?;
-//
-//         variable_length_integer(self.death_program_id.len() as u64).write(&mut writer)?;
-//         self.death_program_id.write(&mut writer)?;
-//
-//         self.serial_number_nonce.write(&mut writer)?;
-//         self.commitment.write(&mut writer)?;
-//         self.commitment_randomness.write(&mut writer)
-//     }
-// }
-//
-// impl<C: BaseDPCComponents> FromBytes for AleoRecord<C> {
-//     #[inline]
-//     fn read<R: Read>(mut reader: R) -> IoResult<Self> {
-//         let owner: AccountAddress<C> = FromBytes::read(&mut reader)?;
-//         let is_dummy: bool = FromBytes::read(&mut reader)?;
-//         let value: u64 = FromBytes::read(&mut reader)?;
-//         let payload: RecordPayload = FromBytes::read(&mut reader)?;
-//
-//         let birth_program_id_size: usize = read_variable_length_integer(&mut reader)?;
-//
-//         let mut birth_program_id = Vec::with_capacity(birth_program_id_size);
-//         for _ in 0..birth_program_id_size {
-//             let byte: u8 = FromBytes::read(&mut reader)?;
-//             birth_program_id.push(byte);
-//         }
-//
-//         let death_program_id_size: usize = read_variable_length_integer(&mut reader)?;
-//
-//         let mut death_program_id = Vec::with_capacity(death_program_id_size);
-//         for _ in 0..death_program_id_size {
-//             let byte: u8 = FromBytes::read(&mut reader)?;
-//             death_program_id.push(byte);
-//         }
-//
-//         let serial_number_nonce: <C::SerialNumberNonceCRH as CRH>::Output = FromBytes::read(&mut reader)?;
-//
-//         let commitment: <C::RecordCommitment as CommitmentScheme>::Output = FromBytes::read(&mut reader)?;
-//         let commitment_randomness: <C::RecordCommitment as CommitmentScheme>::Randomness =
-//             FromBytes::read(&mut reader)?;
-//
-//         Ok(Self {
-//             owner,
-//             is_dummy,
-//             value,
-//             payload,
-//             birth_program_id,
-//             death_program_id,
-//             serial_number_nonce,
-//             commitment,
-//             commitment_randomness,
-//             _components: PhantomData,
-//         })
-//     }
-// }
+    #[test]
+    fn test_dummy_non_zero_value() {
+        let r = RecordBuilder::new().value(1u64).is_dummy(true).build();
+
+        assert!(r.is_err());
+    }
+
+    #[test]
+    fn test_dummy_must_be_zero() {
+        let r = RecordBuilder::new().is_dummy(true).value(1u64).build();
+
+        assert!(r.is_err());
+    }
+}
