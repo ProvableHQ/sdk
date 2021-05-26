@@ -16,6 +16,3 @@
 
 pub mod record;
 pub use record::*;
-
-pub mod record_serializer;
-pub use record_serializer::*;
