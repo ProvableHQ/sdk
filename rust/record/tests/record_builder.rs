@@ -14,21 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::*;
 use aleo_account::*;
+use aleo_record::*;
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use snarkvm_algorithms::{CommitmentScheme, CRH};
 use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, PublicParameters};
 use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
-
-#[test]
-fn test_build_record() {
-    let rng = &mut StdRng::from_entropy();
-    let r = Record::dummy(rng).unwrap();
-
-    println!("{}", r);
-}
 
 #[test]
 fn test_owner_string() {
@@ -68,7 +60,7 @@ fn test_owner_string() {
         .hash(&sn_randomness)
         .unwrap();
 
-    let serial_number_nonce = to_bytes![old_sn_nonce].unwrap();
+    let serial_number_nonce = old_sn_nonce;
 
     // Sample new commitment randomness.
     let commitment_randomness =
@@ -86,14 +78,11 @@ fn test_owner_string() {
     ]
     .unwrap();
 
-    let commitment = to_bytes![
-        <Components as DPCComponents>::RecordCommitment::commit(
-            &parameters.system_parameters.record_commitment,
-            &commitment_input,
-            &commitment_randomness,
-        )
-        .unwrap()
-    ]
+    let commitment = <Components as DPCComponents>::RecordCommitment::commit(
+        &parameters.system_parameters.record_commitment,
+        &commitment_input,
+        &commitment_randomness,
+    )
     .unwrap();
 
     let r = RecordBuilder::new()
@@ -105,7 +94,7 @@ fn test_owner_string() {
         .death_program_id(death_program_id)
         .serial_number_nonce(serial_number_nonce)
         .commitment(commitment)
-        .commitment_randomness(to_bytes![commitment_randomness].unwrap())
+        .commitment_randomness(commitment_randomness)
         .build()
         .expect("Default record should not fail");
 

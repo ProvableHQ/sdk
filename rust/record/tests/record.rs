@@ -14,20 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[macro_use]
-extern crate thiserror;
+use aleo_record::*;
+use rand::{rngs::StdRng, SeedableRng};
 
-pub mod errors;
-pub use errors::*;
+#[test]
+fn test_build_record() {
+    let rng = &mut StdRng::from_entropy();
+    let r = Record::dummy(rng).unwrap();
 
-pub mod record_builder;
-pub use record_builder::*;
-
-pub mod record_encoder;
-pub use record_encoder::*;
-
-pub mod record;
-pub use record::*;
-
-pub mod record_payload;
-pub use record_payload::*;
+    println!("{}", r);
+}

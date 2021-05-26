@@ -230,11 +230,11 @@ impl RecordInterface for Record {
     }
 
     fn commitment(&self) -> Self::Commitment {
-        self.commitment.clone()
+        self.commitment
     }
 
     fn commitment_randomness(&self) -> Self::CommitmentRandomness {
-        self.commitment_randomness.clone()
+        self.commitment_randomness
     }
 
     fn value(&self) -> Self::Value {

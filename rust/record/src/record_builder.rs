@@ -80,6 +80,7 @@ impl RecordBuilder {
     ///
     /// Returns a new record builder and sets field `is_dummy: bool`.
     ///
+    #[allow(clippy::wrong_self_convention)]
     pub fn is_dummy(mut self, is_dummy: bool) -> Self {
         self.is_dummy = Some(is_dummy);
 

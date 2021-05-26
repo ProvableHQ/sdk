@@ -14,20 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[macro_use]
-extern crate thiserror;
-
-pub mod errors;
-pub use errors::*;
-
-pub mod record_builder;
-pub use record_builder::*;
-
-pub mod record_encoder;
-pub use record_encoder::*;
-
 pub mod record;
-pub use record::*;
-
-pub mod record_payload;
-pub use record_payload::*;
+pub mod record_builder;
+pub mod record_encoder;
