@@ -77,53 +77,6 @@ const NewAccount = () => {
     }
 }
 
-const NewRecord = () => {
-    const [aleo, setAleo] = useState(null);
-    const [record, setRecord] = useState(null);
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        if (aleo === null) {
-            import('aleo-wasm').then(module => setAleo(module));
-        }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-    const generateRecord = async () => {
-        setLoading(true);
-        setTimeout(() => {
-            setRecord(new aleo.Record());
-            setLoading(false);
-        }, 1000);
-    }
-
-    const clear = () => setRecord(null);
-
-    const record_string = () => record !== null ? record.to_string() : "";
-
-    const layout = {labelCol: {span: 3 }, wrapperCol: { span: 21 } };
-
-    if (aleo !== null) {
-        return <Card title="Create a New Record" style={{ width: "100%", borderRadius: "20px" }} bordered={false}>
-            <Row justify="center">
-                <Col><Button type="primary" shape="round" size="large" onClick={generateRecord} loading={!!loading}>Generate</Button></Col>
-                <Col offset="1"><Button shape="round" size="large" onClick={clear}>Clear</Button></Col>
-            </Row>
-            {
-                (record !== null) ?
-                    <Form {...layout}>
-                        <Divider />
-                        <Form.Item label="Record" colon={false}>
-                            <Input size="large" placeholder="Private Key" value={record_string()} addonAfter={<CopyButton data={record_string()} />} disabled />
-                        </Form.Item>
-                    </Form>
-                    : null
-            }
-        </Card>
-    } else {
-        return <h3><center>Loading...</center></h3>
-    }
-}
-
 const AccountFromPrivateKey = () => {
     const [aleo, setAleo] = useState(null);
     const [account, setAccount] = useState(null);
@@ -193,8 +146,6 @@ function App() {
                 <NewAccount />
                 <br/>
                 <AccountFromPrivateKey />
-                <br/>
-                <NewRecord />
             </Content>
             <Footer style={{ textAlign: 'center' }}>Visit the <a href="https://github.com/AleoHQ/aleo">Aleo Github repo</a>.</Footer>
         </Layout>
