@@ -332,12 +332,12 @@ impl RecordSerializerScheme for RecordEncoder {
         let payload = RecordPayload::read(&bits_to_bytes(&payload_bits)[..])?;
 
         Ok(DecodedRecord {
-            serial_number_nonce: to_bytes![serial_number_nonce]?,
-            commitment_randomness: to_bytes![commitment_randomness]?,
-            birth_program_id,
-            death_program_id,
             payload,
             value,
+            birth_program_id,
+            death_program_id,
+            serial_number_nonce,
+            commitment_randomness,
         })
     }
 }

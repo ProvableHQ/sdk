@@ -185,7 +185,7 @@ impl RecordBuilder {
             <Components as DPCComponents>::SerialNumberNonceCRH::hash(&parameters.serial_number_nonce, &crh_input)
                 .unwrap();
 
-        self.serial_number_nonce = Some(to_bytes![sn_nonce].unwrap());
+        self.serial_number_nonce = Some(sn_nonce);
 
         self
     }
@@ -234,17 +234,14 @@ impl RecordBuilder {
             ]
             .unwrap();
 
-            let commitment = to_bytes![
-                <Components as DPCComponents>::RecordCommitment::commit(
-                    &system_parameters.record_commitment,
-                    &commitment_input,
-                    &commitment_randomness,
-                )
-                .unwrap()
-            ]
+            let commitment = <Components as DPCComponents>::RecordCommitment::commit(
+                &system_parameters.record_commitment,
+                &commitment_input,
+                &commitment_randomness,
+            )
             .unwrap();
 
-            self.commitment_randomness = Some(to_bytes![commitment_randomness].unwrap());
+            self.commitment_randomness = Some(commitment_randomness);
             self.commitment = Some(commitment);
         }
 

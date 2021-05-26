@@ -18,7 +18,10 @@ use crate::{RecordBuilder, RecordError, RecordPayload};
 use aleo_account::{Address, PrivateKey};
 
 use rand::{CryptoRng, Rng};
-use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
+use snarkvm_algorithms::{
+    traits::{CommitmentScheme, CRH},
+    SignatureScheme,
+};
 use snarkvm_dpc::{
     base_dpc::instantiated::Components,
     DPCComponents,
@@ -39,10 +42,10 @@ use std::{
     io::{Read, Result as IoResult, Write},
 };
 
-pub type SerialNumber = Vec<u8>;
-pub type SerialNumberNonce = Vec<u8>;
-pub type RecordCommitment = Vec<u8>;
-pub type CommitmentRandomness = Vec<u8>;
+pub type SerialNumber = <<Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
+pub type SerialNumberNonce = <<Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output;
+pub type RecordCommitment = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
+pub type CommitmentRandomness = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
 
 /// The Aleo record data type.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
@@ -88,7 +91,7 @@ impl Record {
             .death_program_id(death_program_id)
             .serial_number_nonce(serial_number_nonce)
             .commitment(commitment)
-            .commitment_randomness(to_bytes![commitment_randomness]?)
+            .commitment_randomness(commitment_randomness)
             .build()
     }
 
@@ -123,11 +126,11 @@ impl Record {
             serial_number_nonce  // 256 bits = 32 bytes
         ]?;
 
-        let commitment = to_bytes![<Components as DPCComponents>::RecordCommitment::commit(
+        let commitment = <Components as DPCComponents>::RecordCommitment::commit(
             &system_parameters.record_commitment,
             &commitment_input,
             &commitment_randomness,
-        )?]?;
+        )?;
 
         Self::new(
             owner,
@@ -138,7 +141,7 @@ impl Record {
             death_program_id,
             serial_number_nonce,
             commitment,
-            to_bytes![commitment_randomness]?,
+            commitment_randomness,
         )
     }
 
@@ -176,7 +179,7 @@ impl Record {
         let sn_randomness: [u8; 32] = rng.gen();
         let old_sn_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
 
-        let serial_number_nonce = to_bytes![old_sn_nonce]?;
+        let serial_number_nonce = old_sn_nonce;
 
         Record::generate_record(
             &parameters.system_parameters,
@@ -193,13 +196,12 @@ impl Record {
 }
 
 impl RecordInterface for Record {
-    type Commitment = ();
-    // todo: change to `RecordCommitment` - currently cannot impl FromBytes on Vec<u8>
+    type Commitment = RecordCommitment;
     type CommitmentRandomness = CommitmentRandomness;
     type Owner = Address;
     type Payload = RecordPayload;
-    type SerialNumber = ();
     // todo: change to `SerialNumber` - currently cannot impl FromBytes on Vec<u8>
+    type SerialNumber = ();
     type SerialNumberNonce = SerialNumberNonce;
     type Value = u64;
 
@@ -227,7 +229,9 @@ impl RecordInterface for Record {
         &self.serial_number_nonce
     }
 
-    fn commitment(&self) -> Self::Commitment {}
+    fn commitment(&self) -> Self::Commitment {
+        self.commitment.clone()
+    }
 
     fn commitment_randomness(&self) -> Self::CommitmentRandomness {
         self.commitment_randomness.clone()
@@ -283,13 +287,10 @@ impl FromBytes for Record {
             death_program_id.push(byte);
         }
 
-        let serial_number_nonce: <<Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output =
-            FromBytes::read(&mut reader)?;
+        let serial_number_nonce: SerialNumberNonce = FromBytes::read(&mut reader)?;
 
-        let commitment: <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output =
-            FromBytes::read(&mut reader)?;
-        let commitment_randomness: <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness =
-            FromBytes::read(&mut reader)?;
+        let commitment: RecordCommitment = FromBytes::read(&mut reader)?;
+        let commitment_randomness: CommitmentRandomness = FromBytes::read(&mut reader)?;
 
         Ok(Self {
             owner,
@@ -298,9 +299,9 @@ impl FromBytes for Record {
             payload,
             birth_program_id,
             death_program_id,
-            serial_number_nonce: to_bytes![serial_number_nonce]?,
-            commitment: to_bytes![commitment]?,
-            commitment_randomness: to_bytes![commitment_randomness]?,
+            serial_number_nonce,
+            commitment,
+            commitment_randomness,
         })
     }
 }
@@ -321,23 +322,3 @@ impl fmt::Display for Record {
         write!(f, "}}")
     }
 }
-
-// impl Default for RecordBuilder {
-//     ///
-//     /// Returns an empty RecordBuilder.
-//     ///
-//     fn default() -> Self {
-//         RecordBuilder {
-//             owner: None,
-//             is_dummy: None,
-//             value: None,
-//             payload: None,
-//             birth_program_id: None,
-//             death_program_id: None,
-//             serial_number_nonce: None,
-//             commitment: None,
-//             commitment_randomness: None,
-//             errors: Vec::new(),
-//         }
-//     }
-// }
