@@ -340,6 +340,30 @@ impl RecordBuilder {
     }
 
     ///
+    /// Returns a new record builder and computes the field `serial_number_nonce: SerialNumberNonce`
+    /// from the given inputs.
+    ///
+    pub fn calculate_serial_number_nonce<R: Rng>(
+        mut self,
+        parameters: SystemParameters<Components>,
+        index: u8,
+        joint_serial_numbers: Vec<u8>,
+        rng: &mut R,
+    ) -> Self {
+        // Sample randomness sn_randomness for the CRH input.
+        let sn_randomness: [u8; 32] = rng.gen();
+
+        let crh_input = to_bytes![index, sn_randomness, joint_serial_numbers].unwrap();
+        let sn_nonce =
+            <Components as DPCComponents>::SerialNumberNonceCRH::hash(&parameters.serial_number_nonce, &crh_input)
+                .unwrap();
+
+        self.serial_number_nonce = Some(to_bytes![sn_nonce].unwrap());
+
+        self
+    }
+
+    ///
     /// Returns a new record builder and sets field `commitment: RecordCommitment`.
     ///
     pub fn commitment(mut self, commitment: RecordCommitment) -> Self {
@@ -355,6 +379,62 @@ impl RecordBuilder {
         self.commitment_randomness = Some(commitment_randomness);
 
         self
+    }
+
+    ///
+    /// Returns a new record builder and calculates the field `commitment: RecordCommitment` from
+    /// the given `SystemParameters`.
+    ///
+    pub fn calculate_commitment<R: Rng + CryptoRng>(
+        mut self,
+        system_parameters: &SystemParameters<Components>,
+        rng: &mut R,
+    ) -> Self {
+        let commitment_randomness =
+            <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
+
+        // Try to compute record commitment.
+        if self.can_calculate_commitment() {
+            // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
+            let commitment_input = to_bytes![
+                self.owner.as_ref().unwrap().to_bytes(),    // 256 bits = 32 bytes
+                self.is_dummy.as_ref().unwrap(),            // 1 bit = 1 byte
+                self.value.as_ref().unwrap(),               // 64 bits = 8 bytes
+                self.payload.as_ref().unwrap(),             // 256 bits = 32 bytes
+                self.birth_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
+                self.death_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
+                self.serial_number_nonce.as_ref().unwrap()  // 256 bits = 32 bytes
+            ]
+            .unwrap();
+
+            let commitment = to_bytes![
+                <Components as DPCComponents>::RecordCommitment::commit(
+                    &system_parameters.record_commitment,
+                    &commitment_input,
+                    &commitment_randomness,
+                )
+                .unwrap()
+            ]
+            .unwrap();
+
+            self.commitment_randomness = Some(to_bytes![commitment_randomness].unwrap());
+            self.commitment = Some(commitment);
+        }
+
+        self
+    }
+
+    ///
+    /// Returns `true` if the record builder has enough information to compute the record commitment.
+    ///
+    pub fn can_calculate_commitment(&self) -> bool {
+        self.owner.is_some()
+            && self.is_dummy.is_some()
+            && self.value.is_some()
+            && self.payload.is_some()
+            && self.birth_program_id.is_some()
+            && self.death_program_id.is_some()
+            && self.serial_number_nonce.is_some()
     }
 
     ///
