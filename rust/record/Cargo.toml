@@ -35,6 +35,9 @@ default-features = false
 version = "0.3.1"
 default-features = false
 
+[dependencies.hex]
+version = "0.4.3"
+
 [dependencies.itertools]
 version = "0.10.0"
 

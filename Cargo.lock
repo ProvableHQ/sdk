@@ -62,6 +62,7 @@ name = "aleo-record"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
+ "hex",
  "itertools",
  "rand 0.8.3",
  "rand_chacha 0.3.0",

@@ -228,9 +228,9 @@ impl fmt::Display for Record {
         writeln!(f, "\t owner: {}", self.owner.to_string())?;
         writeln!(f, "\t is_dummy: {:?}", self.is_dummy)?;
         writeln!(f, "\t value: {:?}", self.value)?;
-        writeln!(f, "\t payload: {:?}", self.payload)?;
-        writeln!(f, "\t birth_program_id: {:?}", self.birth_program_id)?;
-        writeln!(f, "\t death_program_id: {:?}", self.death_program_id)?;
+        writeln!(f, "\t payload: {:?}", hex::encode(self.payload.to_bytes()))?;
+        writeln!(f, "\t birth_program_id: {:?}", hex::encode(&self.birth_program_id))?;
+        writeln!(f, "\t death_program_id: {:?}", hex::encode(&self.death_program_id))?;
         writeln!(f, "\t serial_number_nonce: {:?}", self.serial_number_nonce)?;
         writeln!(f, "\t commitment: {:?}", self.commitment)?;
         writeln!(f, "\t commitment_randomness: {:?}", self.commitment_randomness)?;
