@@ -28,6 +28,9 @@ pub enum RecordError {
     #[error("Failed to build Record data type. See console logs for errors")]
     BuilderError,
 
+    #[error("Cannot verify the provided record commitment")]
+    CannotVerifyCommitment,
+
     #[error("{}", _0)]
     CommitmentError(#[from] CommitmentError),
 
@@ -42,6 +45,9 @@ pub enum RecordError {
 
     #[error("Attempted to set `value: {}` on a dummy record", _0)]
     DummyMustBeZero(u64),
+
+    #[error("Attempted to build a record with an invalid commitment. Try `calculate_commitment()`")]
+    InvalidCommitment,
 
     #[error("Missing Record field: {0}")]
     MissingField(String),

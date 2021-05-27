@@ -101,8 +101,8 @@ fn test_owner_string() {
         .birth_program_id(birth_program_id)
         .death_program_id(death_program_id)
         .serial_number_nonce(serial_number_nonce)
-        .commitment(commitment)
         .commitment_randomness(commitment_randomness)
+        .commitment(commitment)
         .build()
         .expect("Default record should not fail");
 

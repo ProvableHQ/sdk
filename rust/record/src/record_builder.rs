@@ -195,9 +195,19 @@ impl RecordBuilder {
     /// Returns a new record builder and sets field `commitment: RecordCommitment`.
     ///
     pub fn commitment(mut self, commitment: RecordCommitment) -> Self {
-        self.commitment = Some(commitment);
+        // Try to check record commitment.
+        // Log an error if we cannot check the commitment.
+        if self.can_check_commitment() {
+            let expected = self.calculate_commitment_helper();
 
-        // todo (collin): add check to verify commitment
+            if expected == commitment {
+                self.commitment = Some(commitment);
+            } else {
+                self.errors.push(RecordError::InvalidCommitment);
+            }
+        } else {
+            self.errors.push(RecordError::CannotVerifyCommitment);
+        }
 
         self
     }
@@ -224,8 +234,6 @@ impl RecordBuilder {
     /// the given `SystemParameters`.
     ///
     pub fn calculate_commitment<R: Rng + CryptoRng>(mut self, rng: Option<&mut R>) -> Self {
-        let system_parameters = SystemParameters::<Components>::load().unwrap();
-
         // Try to compute record commitment.
         if self.can_calculate_commitment() {
             // Check for commitment randomness or derive it.
@@ -245,30 +253,36 @@ impl RecordBuilder {
                 }
             };
 
-            // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
-            let commitment_input = to_bytes![
-                self.owner.as_ref().unwrap().to_bytes(),    // 256 bits = 32 bytes
-                self.is_dummy.as_ref().unwrap(),            // 1 bit = 1 byte
-                self.value.as_ref().unwrap(),               // 64 bits = 8 bytes
-                self.payload.as_ref().unwrap(),             // 256 bits = 32 bytes
-                self.birth_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
-                self.death_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
-                self.serial_number_nonce.as_ref().unwrap()  // 256 bits = 32 bytes
-            ]
-            .unwrap();
-
-            let commitment = <Components as DPCComponents>::RecordCommitment::commit(
-                &system_parameters.record_commitment,
-                &commitment_input,
-                &commitment_randomness,
-            )
-            .unwrap();
-
             self.commitment_randomness = Some(commitment_randomness);
+
+            let commitment = self.calculate_commitment_helper();
             self.commitment = Some(commitment);
         }
 
         self
+    }
+
+    fn calculate_commitment_helper(&self) -> RecordCommitment {
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+
+        // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
+        let commitment_input = to_bytes![
+            self.owner.as_ref().unwrap().to_bytes(),    // 256 bits = 32 bytes
+            self.is_dummy.as_ref().unwrap(),            // 1 bit = 1 byte
+            self.value.as_ref().unwrap(),               // 64 bits = 8 bytes
+            self.payload.as_ref().unwrap(),             // 256 bits = 32 bytes
+            self.birth_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
+            self.death_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
+            self.serial_number_nonce.as_ref().unwrap()  // 256 bits = 32 bytes
+        ]
+        .unwrap();
+
+        <Components as DPCComponents>::RecordCommitment::commit(
+            &system_parameters.record_commitment,
+            &commitment_input,
+            &self.commitment_randomness.as_ref().unwrap(),
+        )
+        .unwrap()
     }
 
     ///
@@ -282,6 +296,13 @@ impl RecordBuilder {
             && self.birth_program_id.is_some()
             && self.death_program_id.is_some()
             && self.serial_number_nonce.is_some()
+    }
+
+    ///
+    /// Returns `true` if the record builder can check that a commitment is correct.
+    ///
+    pub fn can_check_commitment(&self) -> bool {
+        self.can_calculate_commitment() && self.commitment_randomness.is_some()
     }
 
     ///
