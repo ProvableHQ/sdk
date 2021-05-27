@@ -46,6 +46,9 @@ pub enum RecordError {
     #[error("Missing Record field: {0}")]
     MissingField(String),
 
+    #[error("Missing commitment randomness")]
+    MissingRandomness,
+
     #[error("Attempted to set `is_dummy: true` on a record with a non-zero value")]
     NonZeroValue,
 

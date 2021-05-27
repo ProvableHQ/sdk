@@ -19,8 +19,16 @@ use aleo_record::*;
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use snarkvm_algorithms::{CommitmentScheme, CRH};
-use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, PublicParameters};
+use snarkvm_dpc::{
+    base_dpc::instantiated::{Components, ProgramVerificationKeyCRH, SerialNumberNonce as SerialNumberNonceCRH},
+    DPCComponents,
+    NoopProgramSNARKParameters,
+    PublicParameters,
+    SystemParameters,
+};
 use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
+
+pub(crate) const ITERATIONS: usize = 5;
 
 #[test]
 fn test_owner_string() {
@@ -113,4 +121,375 @@ fn test_dummy_must_be_zero() {
     let r = RecordBuilder::new().is_dummy(true).value(1u64).build();
 
     assert!(r.is_err());
+}
+
+#[test]
+fn test_derive_value() {
+    let rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the
+        // "always-accept" program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let dummy_private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&dummy_private_key).unwrap();
+
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            // Build record with `is_dummy: true`
+            // This should automatically derive `value: 0`
+            let given_record = Record::new()
+                .owner(owner)
+                .is_dummy(true)
+                .payload(RecordPayload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .calculate_commitment(Some(rng))
+                .build();
+
+            assert!(given_record.is_ok());
+        }
+    }
+}
+
+#[test]
+fn test_derive_value_fail() {
+    let rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the
+        // "always-accept" program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let dummy_private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&dummy_private_key).unwrap();
+
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            // Build record with `is_dummy: false`
+            // This record should fail because we do not know the record value.
+            let given_record = Record::new()
+                .owner(owner)
+                .is_dummy(false)
+                .payload(RecordPayload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .calculate_commitment(Some(rng))
+                .build();
+
+            assert!(given_record.is_err());
+        }
+    }
+}
+
+#[test]
+fn test_derive_is_dummy() {
+    let rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the
+        // "always-accept" program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let dummy_private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&dummy_private_key).unwrap();
+
+            let value = rng.gen();
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            // Build record with non-zero `value`
+            // This should automatically derive `is_dummy: false`
+            let given_record = Record::new()
+                .owner(owner)
+                .value(value)
+                .payload(RecordPayload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .calculate_commitment(Some(rng))
+                .build();
+
+            assert!(given_record.is_ok());
+        }
+    }
+}
+
+#[test]
+fn test_derive_is_dummy_fail() {
+    let rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the
+        // "always-accept" program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let dummy_private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&dummy_private_key).unwrap();
+
+            let value = 0u64;
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            // Build record with zero `value: 0u64`
+            // This record should fail because we do not know if the the record is a dummy.
+            let given_record = Record::new()
+                .owner(owner)
+                .value(value)
+                .payload(RecordPayload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .calculate_commitment(Some(rng))
+                .build();
+
+            assert!(given_record.is_err());
+        }
+    }
+}
+
+#[test]
+fn test_calculate_commitment() {
+    let rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the
+        // "always-accept" program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let dummy_private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&dummy_private_key).unwrap();
+
+            let value = rng.gen();
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            let given_record = Record::new()
+                .owner(owner)
+                .value(value)
+                .payload(RecordPayload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .calculate_commitment(Some(rng))
+                .build();
+
+            assert!(given_record.is_ok());
+        }
+    }
+}
+
+#[test]
+fn test_calculate_commitment_fail() {
+    let rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the
+        // "always-accept" program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let dummy_private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&dummy_private_key).unwrap();
+
+            let value = rng.gen();
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            // Try to calculate commitment before serial number nonce is known.
+            let given_record = Record::new()
+                .owner(owner)
+                .value(value)
+                .payload(RecordPayload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .calculate_commitment(Some(rng))
+                .serial_number_nonce(serial_number_nonce)
+                .build();
+
+            assert!(given_record.is_err());
+        }
+    }
+}
+
+#[test]
+fn test_calculate_commitment_randomness() {
+    let rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the
+        // "always-accept" program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let dummy_private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&dummy_private_key).unwrap();
+
+            let value = rng.gen();
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            let commitment_randomness = RecordBuilder::calculate_commitment_randomness(rng);
+
+            let given_record = Record::new()
+                .owner(owner)
+                .value(value)
+                .payload(RecordPayload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .commitment_randomness(commitment_randomness)
+                .calculate_commitment::<StdRng>(None)
+                .build();
+
+            assert!(given_record.is_ok());
+        }
+    }
+}
+
+#[test]
+fn test_calculate_commitment_randomness_fail() {
+    let rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the
+        // "always-accept" program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let dummy_private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&dummy_private_key).unwrap();
+
+            let value = rng.gen();
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            // Try to calculate record commitment randomness without rng.
+            let given_record = Record::new()
+                .owner(owner)
+                .value(value)
+                .payload(RecordPayload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .calculate_commitment::<StdRng>(None)
+                .build();
+
+            assert!(given_record.is_err());
+        }
+    }
 }

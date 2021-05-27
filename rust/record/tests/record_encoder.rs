@@ -32,7 +32,7 @@ pub(crate) const ITERATIONS: usize = 5;
 
 #[test]
 fn test_record_encoding() {
-    let mut rng = &mut StdRng::from_entropy();
+    let rng = &mut StdRng::from_entropy();
 
     for _ in 0..ITERATIONS {
         // Load system parameters for the ledger, commitment schemes, CRH, and the
@@ -60,18 +60,16 @@ fn test_record_encoding() {
             let serial_number_nonce =
                 SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
 
-            let given_record = Record::generate_record(
-                &system_parameters,
-                owner,
-                false,
-                value,
-                RecordPayload::from_bytes(&payload),
-                program_snark_vk_bytes.clone(),
-                program_snark_vk_bytes.clone(),
-                serial_number_nonce,
-                &mut rng,
-            )
-            .unwrap();
+            let given_record = Record::new()
+                .owner(owner)
+                .value(value)
+                .payload(RecordPayload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .calculate_commitment(Some(rng))
+                .build()
+                .unwrap();
 
             let (encoded_record, final_sign_high) = RecordEncoder::serialize(&given_record).unwrap();
             let decoded_record = RecordEncoder::deserialize(encoded_record, final_sign_high).unwrap();

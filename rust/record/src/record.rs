@@ -22,21 +22,8 @@ use snarkvm_algorithms::{
     traits::{CommitmentScheme, CRH},
     SignatureScheme,
 };
-use snarkvm_dpc::{
-    base_dpc::instantiated::Components,
-    DPCComponents,
-    PublicParameters,
-    Record as RecordInterface,
-    SystemParameters,
-};
-use snarkvm_utilities::{
-    read_variable_length_integer,
-    to_bytes,
-    variable_length_integer,
-    FromBytes,
-    ToBytes,
-    UniformRand,
-};
+use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, PublicParameters, Record as RecordInterface};
+use snarkvm_utilities::{read_variable_length_integer, to_bytes, variable_length_integer, FromBytes, ToBytes};
 use std::{
     fmt,
     io::{Read, Result as IoResult, Write},
@@ -70,79 +57,9 @@ impl Record {
     ///
     /// Returns a new record using the record builder.
     ///
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        owner: Address,
-        is_dummy: bool,
-        value: u64,
-        payload: RecordPayload,
-        birth_program_id: Vec<u8>,
-        death_program_id: Vec<u8>,
-        serial_number_nonce: SerialNumberNonce,
-        commitment: RecordCommitment,
-        commitment_randomness: CommitmentRandomness,
-    ) -> Result<Self, RecordError> {
-        RecordBuilder::new()
-            .owner(owner)
-            .is_dummy(is_dummy) // Return dummy record by default
-            .value(value)
-            .payload(payload)
-            .birth_program_id(birth_program_id)
-            .death_program_id(death_program_id)
-            .serial_number_nonce(serial_number_nonce)
-            .commitment(commitment)
-            .commitment_randomness(commitment_randomness)
-            .build()
-    }
-
-    ///
-    /// Returns a new record using the record builder.
-    /// Uses randomness to compute record commitment.
-    ///
-    #[allow(clippy::too_many_arguments)]
-    pub fn generate_record<R: Rng + CryptoRng>(
-        system_parameters: &SystemParameters<Components>,
-        owner: Address,
-        is_dummy: bool,
-        value: u64,
-        payload: RecordPayload,
-        birth_program_id: Vec<u8>,
-        death_program_id: Vec<u8>,
-        serial_number_nonce: SerialNumberNonce,
-        rng: &mut R,
-    ) -> Result<Self, RecordError> {
-        // Sample new commitment randomness.
-        let commitment_randomness =
-            <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
-
-        // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
-        let commitment_input = to_bytes![
-            owner.to_bytes(),    // 256 bits = 32 bytes
-            is_dummy,            // 1 bit = 1 byte
-            value,               // 64 bits = 8 bytes
-            payload,             // 256 bits = 32 bytes
-            birth_program_id,    // 384 bits = 48 bytes
-            death_program_id,    // 384 bits = 48 bytes
-            serial_number_nonce  // 256 bits = 32 bytes
-        ]?;
-
-        let commitment = <Components as DPCComponents>::RecordCommitment::commit(
-            &system_parameters.record_commitment,
-            &commitment_input,
-            &commitment_randomness,
-        )?;
-
-        Self::new(
-            owner,
-            is_dummy,
-            value,
-            payload,
-            birth_program_id,
-            death_program_id,
-            serial_number_nonce,
-            commitment,
-            commitment_randomness,
-        )
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new() -> RecordBuilder {
+        RecordBuilder { ..Default::default() }
     }
 
     ///
@@ -181,17 +98,16 @@ impl Record {
 
         let serial_number_nonce = old_sn_nonce;
 
-        Record::generate_record(
-            &parameters.system_parameters,
-            owner,
-            is_dummy,
-            value,
-            payload,
-            birth_program_id,
-            death_program_id,
-            serial_number_nonce,
-            rng,
-        )
+        Record::new()
+            .owner(owner)
+            .is_dummy(is_dummy)
+            .value(value)
+            .payload(payload)
+            .birth_program_id(birth_program_id)
+            .death_program_id(death_program_id)
+            .serial_number_nonce(serial_number_nonce)
+            .calculate_commitment(Some(rng))
+            .build()
     }
 }
 

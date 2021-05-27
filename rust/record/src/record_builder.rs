@@ -197,11 +197,13 @@ impl RecordBuilder {
     pub fn commitment(mut self, commitment: RecordCommitment) -> Self {
         self.commitment = Some(commitment);
 
+        // todo (collin): add check to verify commitment
+
         self
     }
 
     ///
-    /// Returns a new record builder and sets field `commitment_randomness: SerialNumberNonce`.
+    /// Returns a new record builder and sets field `commitment_randomness: CommitmentRandomness`.
     ///
     pub fn commitment_randomness(mut self, commitment_randomness: CommitmentRandomness) -> Self {
         self.commitment_randomness = Some(commitment_randomness);
@@ -210,19 +212,39 @@ impl RecordBuilder {
     }
 
     ///
+    /// Returns a new record builder and calculates a new `commitment_randomness: CommitmentRandomness`.
+    ///
+    pub fn calculate_commitment_randomness<R: Rng + CryptoRng>(rng: &mut R) -> CommitmentRandomness {
+        // Sample new commitment randomness.
+        <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng)
+    }
+
+    ///
     /// Returns a new record builder and calculates the field `commitment: RecordCommitment` from
     /// the given `SystemParameters`.
     ///
-    pub fn calculate_commitment<R: Rng + CryptoRng>(
-        mut self,
-        system_parameters: &SystemParameters<Components>,
-        rng: &mut R,
-    ) -> Self {
-        let commitment_randomness =
-            <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
+    pub fn calculate_commitment<R: Rng + CryptoRng>(mut self, rng: Option<&mut R>) -> Self {
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
 
         // Try to compute record commitment.
         if self.can_calculate_commitment() {
+            // Check for commitment randomness or derive it.
+            let commitment_randomness = match self.commitment_randomness {
+                Some(randomness) => randomness,
+                None => {
+                    // Check for randomness
+                    match rng {
+                        Some(rng) => Self::calculate_commitment_randomness(rng),
+                        None => {
+                            // Attempted to calculate commitment without commitment randomness.
+                            self.errors.push(RecordError::MissingRandomness);
+
+                            return self;
+                        }
+                    }
+                }
+            };
+
             // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
             let commitment_input = to_bytes![
                 self.owner.as_ref().unwrap().to_bytes(),    // 256 bits = 32 bytes
