@@ -13,7 +13,10 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+
+use crate::RecordEncryptionError;
 use aleo_account::{AddressError, PrivateKeyError, ViewKeyError};
+
 use snarkvm_algorithms::{CRHError, CommitmentError};
 use snarkvm_dpc::DPCError;
 
@@ -48,6 +51,9 @@ pub enum RecordError {
 
     #[error("{}", _0)]
     PrivateKeyError(#[from] PrivateKeyError),
+
+    #[error("{}", _0)]
+    RecordEncryptionError(#[from] RecordEncryptionError),
 
     #[error("{}", _0)]
     ViewKeyError(#[from] ViewKeyError),

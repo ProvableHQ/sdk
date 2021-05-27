@@ -16,3 +16,6 @@
 
 pub mod record;
 pub use record::*;
+
+pub mod record_encryption;
+pub use record_encryption::*;

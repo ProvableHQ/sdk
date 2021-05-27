@@ -81,7 +81,7 @@ impl Record {
         serial_number_nonce: SerialNumberNonce,
         commitment: RecordCommitment,
         commitment_randomness: CommitmentRandomness,
-    ) -> Result<Record, RecordError> {
+    ) -> Result<Self, RecordError> {
         RecordBuilder::new()
             .owner(owner)
             .is_dummy(is_dummy) // Return dummy record by default
@@ -110,7 +110,7 @@ impl Record {
         death_program_id: Vec<u8>,
         serial_number_nonce: SerialNumberNonce,
         rng: &mut R,
-    ) -> Result<Record, RecordError> {
+    ) -> Result<Self, RecordError> {
         // Sample new commitment randomness.
         let commitment_randomness =
             <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
@@ -148,7 +148,7 @@ impl Record {
     ///
     /// Returns a new dummy record using the record builder. (this method should not fail)
     ///
-    pub fn dummy<R: Rng + CryptoRng>(rng: &mut R) -> Result<Record, RecordError> {
+    pub fn dummy<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, RecordError> {
         // Set address
         let private_key = PrivateKey::new(rng)?;
         let owner = Address::from(&private_key)?;
@@ -200,8 +200,7 @@ impl RecordInterface for Record {
     type CommitmentRandomness = CommitmentRandomness;
     type Owner = Address;
     type Payload = RecordPayload;
-    // todo: change to `SerialNumber` - currently cannot impl FromBytes on Vec<u8>
-    type SerialNumber = ();
+    type SerialNumber = SerialNumber;
     type SerialNumberNonce = SerialNumberNonce;
     type Value = u64;
 

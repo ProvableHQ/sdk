@@ -13,7 +13,6 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
-
 use aleo_account::*;
 use aleo_record::*;
 
@@ -22,8 +21,6 @@ use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
     base_dpc::instantiated::{Components, ProgramVerificationKeyCRH, SerialNumberNonce as SerialNumberNonceCRH},
     NoopProgramSNARKParameters,
-    Record as RecordInterface,
-    RecordSerializerScheme,
     SystemParameters,
 };
 use snarkvm_utilities::{bytes::ToBytes, to_bytes};
@@ -31,7 +28,7 @@ use snarkvm_utilities::{bytes::ToBytes, to_bytes};
 pub(crate) const ITERATIONS: usize = 5;
 
 #[test]
-fn test_record_encoding() {
+fn test_record_encryption() {
     let mut rng = &mut StdRng::from_entropy();
 
     for _ in 0..ITERATIONS {
@@ -73,18 +70,14 @@ fn test_record_encoding() {
             )
             .unwrap();
 
-            let (encoded_record, final_sign_high) = RecordEncoder::serialize(&given_record).unwrap();
-            let decoded_record = RecordEncoder::deserialize(encoded_record, final_sign_high).unwrap();
+            // Encrypt the record
+            let (_, encryped_record) = given_record.encrypt(&mut rng).unwrap();
+            let view_key = ViewKey::from(&dummy_private_key).unwrap();
 
-            assert_eq!(given_record.serial_number_nonce(), &decoded_record.serial_number_nonce);
-            assert_eq!(
-                given_record.commitment_randomness(),
-                decoded_record.commitment_randomness
-            );
-            assert_eq!(given_record.birth_program_id(), decoded_record.birth_program_id);
-            assert_eq!(given_record.death_program_id(), decoded_record.death_program_id);
-            assert_eq!(given_record.value(), decoded_record.value);
-            assert_eq!(given_record.payload(), &decoded_record.payload);
+            // Decrypt the record
+            let decrypted_record = Record::decrypt(&view_key, &encryped_record).unwrap();
+
+            assert_eq!(given_record, decrypted_record);
         }
     }
 }

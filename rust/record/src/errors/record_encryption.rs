@@ -14,23 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[macro_use]
-extern crate thiserror;
+use aleo_account::AddressError;
 
-pub mod errors;
-pub use errors::*;
+use snarkvm_algorithms::{CommitmentError, EncryptionError};
+use snarkvm_dpc::DPCError;
 
-pub mod record_builder;
-pub use record_builder::*;
+#[derive(Debug, Error)]
+pub enum RecordEncryptionError {
+    #[error("{}", _0)]
+    AddressError(#[from] AddressError),
 
-pub mod record_encoder;
-pub use record_encoder::*;
+    #[error("{}", _0)]
+    CommitmentError(#[from] CommitmentError),
 
-pub mod record_encryption;
-pub use record_encryption::*;
+    #[error("{}: {}", _0, _1)]
+    Crate(&'static str, String),
 
-pub mod record;
-pub use record::*;
+    #[error("{}", _0)]
+    DPCError(#[from] DPCError),
 
-pub mod record_payload;
-pub use record_payload::*;
+    #[error("{}", _0)]
+    EncryptionError(#[from] EncryptionError),
+}
+
+impl From<std::io::Error> for RecordEncryptionError {
+    fn from(error: std::io::Error) -> Self {
+        RecordEncryptionError::Crate("std::io", format!("{:?}", error))
+    }
+}

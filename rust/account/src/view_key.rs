@@ -32,7 +32,7 @@ use std::{fmt, str::FromStr};
 
 #[derive(Debug)]
 pub struct ViewKey {
-    pub(crate) view_key: AccountViewKey<Components>,
+    pub view_key: AccountViewKey<Components>,
 }
 
 impl ViewKey {
