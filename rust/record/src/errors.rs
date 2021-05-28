@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::RecordEncryptionError;
 use aleo_account::{AddressError, PrivateKeyError, ViewKeyError};
 
-use snarkvm_algorithms::{CRHError, CommitmentError};
+use snarkvm_algorithms::{CRHError, CommitmentError, EncryptionError};
 use snarkvm_dpc::DPCError;
 
 #[derive(Debug, Error)]
@@ -25,7 +24,7 @@ pub enum RecordError {
     #[error("{}", _0)]
     AddressError(#[from] AddressError),
 
-    #[error("Failed to build Record data type. See console logs for errors")]
+    #[error("Failed to build Record data type. See console logs for error")]
     BuilderError,
 
     #[error("Cannot verify the provided record commitment")]
@@ -46,6 +45,9 @@ pub enum RecordError {
     #[error("Attempted to set `value: {}` on a dummy record", _0)]
     DummyMustBeZero(u64),
 
+    #[error("{}", _0)]
+    EncryptionError(#[from] EncryptionError),
+
     #[error("Attempted to build a record with an invalid commitment. Try `calculate_commitment()`")]
     InvalidCommitment,
 
@@ -60,9 +62,6 @@ pub enum RecordError {
 
     #[error("{}", _0)]
     PrivateKeyError(#[from] PrivateKeyError),
-
-    #[error("{}", _0)]
-    RecordEncryptionError(#[from] RecordEncryptionError),
 
     #[error("{}", _0)]
     ViewKeyError(#[from] ViewKeyError),

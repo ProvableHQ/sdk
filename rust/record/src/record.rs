@@ -40,7 +40,6 @@ pub struct Record {
     pub(crate) owner: Address,
     pub(crate) is_dummy: bool,
     pub(crate) value: u64,
-
     pub(crate) payload: Payload,
 
     pub(crate) birth_program_id: Vec<u8>,
@@ -55,7 +54,7 @@ impl Record {
     pub(crate) const ZERO_VALUE: u64 = 0;
 
     ///
-    /// Returns a new record using the record builder.
+    /// Returns a new record builder.
     ///
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> RecordBuilder {
@@ -63,7 +62,7 @@ impl Record {
     }
 
     ///
-    /// Returns a new dummy record using the record builder. (this method should not fail)
+    /// Returns a new dummy record using a given RNG.
     ///
     pub fn dummy<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, RecordError> {
         // Set the address.
@@ -125,6 +124,10 @@ impl RecordInterface for Record {
         self.is_dummy
     }
 
+    fn value(&self) -> Self::Value {
+        self.value
+    }
+
     fn payload(&self) -> &Self::Payload {
         &self.payload
     }
@@ -147,10 +150,6 @@ impl RecordInterface for Record {
 
     fn commitment_randomness(&self) -> Self::CommitmentRandomness {
         self.commitment_randomness
-    }
-
-    fn value(&self) -> Self::Value {
-        self.value
     }
 }
 

@@ -17,20 +17,16 @@
 #[macro_use]
 extern crate thiserror;
 
-pub mod errors;
+use encoder::*;
 pub use errors::*;
-
-pub mod payload;
 pub use payload::*;
-
-pub mod record;
 pub use record::*;
-
-pub mod record_builder;
 pub use record_builder::*;
-
-pub mod encoder;
-pub use encoder::*;
-
-pub mod record_encryption;
 pub use record_encryption::*;
+
+mod encoder;
+pub mod errors;
+pub mod payload;
+pub mod record;
+pub mod record_builder;
+pub mod record_encryption;

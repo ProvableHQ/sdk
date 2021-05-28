@@ -39,8 +39,8 @@ use itertools::Itertools;
 /// The decoded format of the Aleo record datatype.
 /// Excludes the owner, commitment, and commitment_randomness from encoding.
 pub(super) struct DecodedRecord {
-    pub(super) payload: Payload,
     pub(super) value: u64,
+    pub(super) payload: Payload,
 
     pub(super) birth_program_id: Vec<u8>,
     pub(super) death_program_id: Vec<u8>,
@@ -52,8 +52,8 @@ pub(super) struct DecodedRecord {
 impl From<Record> for DecodedRecord {
     fn from(record: Record) -> Self {
         Self {
-            payload: record.payload,
             value: record.value,
+            payload: record.payload,
             birth_program_id: record.birth_program_id,
             death_program_id: record.death_program_id,
             serial_number_nonce: record.serial_number_nonce,
@@ -259,7 +259,7 @@ impl RecordSerializerScheme for Encoder {
     ) -> Result<Self::DeserializedRecord, DPCError> {
         let remainder_size = Self::OUTER_FIELD_BITSIZE - Self::DATA_ELEMENT_BITSIZE;
 
-        // Extract the fq_bits
+        // Extract the fq_bits.
         let final_element = &serialized_record[serialized_record.len() - 1];
         let final_element_bytes =
             decode_from_group::<Self::Parameters, Self::Group>(final_element.into_affine(), final_sign_high)?;
@@ -267,14 +267,14 @@ impl RecordSerializerScheme for Encoder {
 
         let fq_high_bits = &final_element_bits[1..serialized_record.len()];
 
-        // Deserialize serial number nonce
+        // Deserialize the serial number nonce.
 
         let (serial_number_nonce, _) = &(serialized_record[0], fq_high_bits[0]);
         let serial_number_nonce_bytes = to_bytes![serial_number_nonce.into_affine().to_x_coordinate()]?;
         let serial_number_nonce =
             <<Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output::read(&serial_number_nonce_bytes[..])?;
 
-        // Deserialize commitment randomness
+        // Deserialize the commitment randomness.
 
         let (commitment_randomness, commitment_randomness_fq_high) = &(serialized_record[1], fq_high_bits[1]);
         let commitment_randomness_bytes = decode_from_group::<Self::Parameters, Self::Group>(
@@ -289,7 +289,7 @@ impl RecordSerializerScheme for Encoder {
                 &bits_to_bytes(commitment_randomness_bits)[..],
             )?;
 
-        // Deserialize birth and death programs
+        // Deserialize birth and death programs.
 
         let (birth_program_id, birth_program_id_sign_high) = &(serialized_record[2], fq_high_bits[2]);
         let birth_program_id_bytes = decode_from_group::<Self::Parameters, Self::Group>(
@@ -323,14 +323,14 @@ impl RecordSerializerScheme for Encoder {
         let birth_program_id = bits_to_bytes(&birth_program_id_bits);
         let death_program_id = bits_to_bytes(&death_program_id_bits);
 
-        // Deserialize the value
+        // Deserialize the value.
 
         let value_start = serialized_record.len();
         let value_end = value_start + (std::mem::size_of_val(&<Self::Record as RecordInterface>::Value::default()) * 8);
         let value: <Self::Record as RecordInterface>::Value =
             FromBytes::read(&bits_to_bytes(&final_element_bits[value_start..value_end])[..])?;
 
-        // Deserialize payload
+        // Deserialize the payload.
 
         let mut payload_bits = vec![];
         for (element, fq_high) in serialized_record[5..serialized_record.len() - 1]
@@ -345,12 +345,89 @@ impl RecordSerializerScheme for Encoder {
         let payload = Payload::read(&bits_to_bytes(&payload_bits)[..])?;
 
         Ok(DecodedRecord {
-            payload,
             value,
+            payload,
             birth_program_id,
             death_program_id,
             serial_number_nonce,
             commitment_randomness,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+    use aleo_account::*;
+
+    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use snarkvm_algorithms::traits::CRH;
+    use snarkvm_dpc::{
+        base_dpc::instantiated::{Components, ProgramVerificationKeyCRH, SerialNumberNonce as SerialNumberNonceCRH},
+        NoopProgramSNARKParameters,
+        Record as RecordInterface,
+        RecordSerializerScheme,
+        SystemParameters,
+    };
+    use snarkvm_utilities::{bytes::ToBytes, to_bytes};
+
+    pub(crate) const ITERATIONS: usize = 5;
+
+    #[test]
+    fn test_encoder() {
+        let rng = &mut StdRng::from_entropy();
+
+        for _ in 0..ITERATIONS {
+            // Load system parameters for the ledger, commitment schemes, CRH, and the
+            // "always-accept" program.
+            let system_parameters = SystemParameters::<Components>::load().unwrap();
+            let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+            let program_snark_vk_bytes = to_bytes![
+                ProgramVerificationKeyCRH::hash(
+                    &system_parameters.program_verification_key_crh,
+                    &to_bytes![program_snark_pp.verification_key].unwrap()
+                )
+                .unwrap()
+            ]
+            .unwrap();
+
+            for _ in 0..ITERATIONS {
+                let dummy_private_key = PrivateKey::new(rng).unwrap();
+                let owner = Address::from(&dummy_private_key).unwrap();
+
+                let value = rng.gen();
+                let payload: [u8; 32] = rng.gen();
+
+                let serial_number_nonce_input: [u8; 32] = rng.gen();
+                let serial_number_nonce =
+                    SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input)
+                        .unwrap();
+
+                let given_record = Record::new()
+                    .owner(owner)
+                    .value(value)
+                    .payload(Payload::from_bytes(&payload))
+                    .birth_program_id(program_snark_vk_bytes.clone())
+                    .death_program_id(program_snark_vk_bytes.clone())
+                    .serial_number_nonce(serial_number_nonce)
+                    .calculate_commitment(Some(rng))
+                    .build()
+                    .unwrap();
+
+                let (encoded_record, final_sign_high) = Encoder::serialize(&given_record).unwrap();
+                let decoded_record = Encoder::deserialize(encoded_record, final_sign_high).unwrap();
+
+                assert_eq!(given_record.serial_number_nonce(), &decoded_record.serial_number_nonce);
+                assert_eq!(
+                    given_record.commitment_randomness(),
+                    decoded_record.commitment_randomness
+                );
+                assert_eq!(given_record.birth_program_id(), decoded_record.birth_program_id);
+                assert_eq!(given_record.death_program_id(), decoded_record.death_program_id);
+                assert_eq!(given_record.value(), decoded_record.value);
+                assert_eq!(given_record.payload(), &decoded_record.payload);
+            }
+        }
     }
 }

@@ -16,5 +16,4 @@
 
 pub mod record;
 pub mod record_builder;
-pub mod record_encoder;
 pub mod record_encryption;

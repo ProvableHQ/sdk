@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{DecodedRecord, Encoder, Payload, Record, RecordEncryptionError};
+use crate::{DecodedRecord, Encoder, Payload, Record, RecordError};
 
 use aleo_account::{Address, ViewKey};
 use rand::Rng;
@@ -37,13 +37,11 @@ impl EncryptedRecord {
         EncryptedRecord(data)
     }
 
-    pub fn from_native(
-        encrypted_record_native: EncryptedRecordNative<Components>,
-    ) -> Result<Self, RecordEncryptionError> {
+    pub fn from_native(encrypted_record_native: EncryptedRecordNative<Components>) -> Result<Self, RecordError> {
         Ok(Self(to_bytes![encrypted_record_native]?))
     }
 
-    pub fn to_native(&self) -> Result<EncryptedRecordNative<Components>, RecordEncryptionError> {
+    pub fn to_native(&self) -> Result<EncryptedRecordNative<Components>, RecordError> {
         let encrypted_record_native: EncryptedRecordNative<Components> = FromBytes::read(&self.0[..])?;
         Ok(encrypted_record_native)
     }
@@ -56,10 +54,7 @@ impl Record {
     /// Encrypt the given vector of records and returns
     /// 1. Encryption randomness.
     /// 2. Encrypted record
-    pub fn encrypt<R: Rng>(
-        &self,
-        rng: &mut R,
-    ) -> Result<(EncryptionRandomness, EncryptedRecord), RecordEncryptionError> {
+    pub fn encrypt<R: Rng>(&self, rng: &mut R) -> Result<(EncryptionRandomness, EncryptedRecord), RecordError> {
         let system_parameters = SystemParameters::<Components>::load()?;
 
         // Serialize the record into group elements and fq_high bits
@@ -75,12 +70,11 @@ impl Record {
             record_plaintexts.push(plaintext_element);
         }
 
-        // Encrypt the record plaintext
+        // Encrypt the record plaintext.
         let record_public_key = self.owner().address.into_repr();
         let encryption_randomness = system_parameters
             .account_encryption
             .generate_randomness(record_public_key, rng)?;
-
         let encrypted_record = <Components as DPCComponents>::AccountEncryption::encrypt(
             &system_parameters.account_encryption,
             record_public_key,
@@ -88,22 +82,20 @@ impl Record {
             &record_plaintexts,
         )?;
 
-        let encrypted_record_native = EncryptedRecordNative {
+        let encrypted_record = EncryptedRecord::from_native(EncryptedRecordNative {
             encrypted_record,
             final_fq_high_selector,
-        };
-
-        let encrypted_record = EncryptedRecord::from_native(encrypted_record_native)?;
+        })?;
 
         Ok((encryption_randomness, encrypted_record))
     }
 
     /// Decrypt and reconstruct the encrypted record
-    pub fn decrypt(view_key: &ViewKey, encrypted_record: &EncryptedRecord) -> Result<Record, RecordEncryptionError> {
+    pub fn decrypt(view_key: &ViewKey, encrypted_record: &EncryptedRecord) -> Result<Record, RecordError> {
         let system_parameters = SystemParameters::<Components>::load()?;
         let encrypted_record = encrypted_record.to_native()?;
 
-        // Decrypt the encrypted record
+        // Decrypt the encrypted record.
         let plaintext_elements = <Components as DPCComponents>::AccountEncryption::decrypt(
             &system_parameters.account_encryption,
             &view_key.view_key.decryption_key,
@@ -113,38 +105,32 @@ impl Record {
         let mut plaintext = Vec::with_capacity(plaintext_elements.len());
         for element in plaintext_elements {
             let plaintext_element = <Components as BaseDPCComponents>::EncryptionGroup::read(&to_bytes![element]?[..])?;
-
             plaintext.push(plaintext_element);
         }
 
-        // Decode the plaintext record
+        // Decode the plaintext record.
         let record_components = Encoder::deserialize(plaintext, encrypted_record.final_fq_high_selector)?;
-
         let DecodedRecord {
-            serial_number_nonce,
-            commitment_randomness,
+            value,
+            payload,
             birth_program_id,
             death_program_id,
-            payload,
-            value,
+            serial_number_nonce,
+            commitment_randomness,
         } = record_components;
 
-        // Construct the record account address
-
+        // Construct the record account address.
         let owner = Address::from_view_key(&view_key)?;
 
-        // Determine if the record is dummy record
-
+        // Determine if the record is a dummy record.
         // TODO (raychu86) Establish `is_dummy` flag properly by checking that the value is 0 and the programs are equivalent to a global dummy
         let dummy_program = birth_program_id.clone();
-
         let is_dummy = (value == 0)
             && (payload == Payload::default())
             && (death_program_id == dummy_program)
             && (birth_program_id == dummy_program);
 
-        // Calculate record commitment
-
+        // Calculate record commitment.
         let commitment_input = to_bytes![
             owner.to_bytes(),
             is_dummy,
@@ -154,7 +140,6 @@ impl Record {
             death_program_id,
             serial_number_nonce
         ]?;
-
         let commitment = <Components as DPCComponents>::RecordCommitment::commit(
             &system_parameters.record_commitment,
             &commitment_input,
