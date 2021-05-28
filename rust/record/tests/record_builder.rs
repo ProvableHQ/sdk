@@ -43,7 +43,7 @@ fn test_owner_string() {
     let value = 0u64;
 
     // Set payload.
-    let payload = RecordPayload::default();
+    let payload = Payload::default();
 
     let parameters = PublicParameters::<Components>::load(true).unwrap();
 
@@ -157,7 +157,7 @@ fn test_derive_value() {
             let given_record = Record::new()
                 .owner(owner)
                 .is_dummy(true)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)
@@ -203,7 +203,7 @@ fn test_derive_value_fail() {
             let given_record = Record::new()
                 .owner(owner)
                 .is_dummy(false)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)
@@ -250,7 +250,7 @@ fn test_derive_is_dummy() {
             let given_record = Record::new()
                 .owner(owner)
                 .value(value)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)
@@ -297,7 +297,7 @@ fn test_derive_is_dummy_fail() {
             let given_record = Record::new()
                 .owner(owner)
                 .value(value)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)
@@ -342,7 +342,7 @@ fn test_calculate_commitment() {
             let given_record = Record::new()
                 .owner(owner)
                 .value(value)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)
@@ -388,7 +388,7 @@ fn test_calculate_commitment_fail() {
             let given_record = Record::new()
                 .owner(owner)
                 .value(value)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .calculate_commitment(Some(rng))
@@ -435,7 +435,7 @@ fn test_calculate_commitment_randomness() {
             let given_record = Record::new()
                 .owner(owner)
                 .value(value)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)
@@ -482,7 +482,7 @@ fn test_calculate_commitment_randomness_fail() {
             let given_record = Record::new()
                 .owner(owner)
                 .value(value)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)

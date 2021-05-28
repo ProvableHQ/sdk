@@ -63,7 +63,7 @@ fn test_record_encoding() {
             let given_record = Record::new()
                 .owner(owner)
                 .value(value)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)

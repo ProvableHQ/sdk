@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{CommitmentRandomness, Record, RecordCommitment, RecordError, RecordPayload, SerialNumberNonce};
+use crate::{CommitmentRandomness, Record, RecordCommitment, RecordError, Payload, SerialNumberNonce};
 use aleo_account::Address;
 
 use rand::{CryptoRng, Rng};
@@ -30,7 +30,7 @@ pub struct RecordBuilder {
     pub(crate) is_dummy: Option<bool>,
     pub(crate) value: Option<u64>,
 
-    pub(crate) payload: Option<RecordPayload>,
+    pub(crate) payload: Option<Payload>,
 
     pub(crate) birth_program_id: Option<Vec<u8>>,
     pub(crate) death_program_id: Option<Vec<u8>>,
@@ -134,7 +134,7 @@ impl RecordBuilder {
     ///
     /// Returns a new record builder and sets field `payload: RecordPayload`.
     ///
-    pub fn payload(mut self, payload: RecordPayload) -> Self {
+    pub fn payload(mut self, payload: Payload) -> Self {
         self.payload = Some(payload);
 
         self

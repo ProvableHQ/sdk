@@ -20,6 +20,12 @@ extern crate thiserror;
 pub mod errors;
 pub use errors::*;
 
+pub mod payload;
+pub use payload::*;
+
+pub mod record;
+pub use record::*;
+
 pub mod record_builder;
 pub use record_builder::*;
 
@@ -29,8 +35,3 @@ pub use record_encoder::*;
 pub mod record_encryption;
 pub use record_encryption::*;
 
-pub mod record;
-pub use record::*;
-
-pub mod record_payload;
-pub use record_payload::*;

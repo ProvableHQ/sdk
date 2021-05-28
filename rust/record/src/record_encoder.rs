@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{CommitmentRandomness, Record, RecordPayload, SerialNumberNonce};
+use crate::{CommitmentRandomness, Record, Payload, SerialNumberNonce};
 
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_curves::{
@@ -39,7 +39,7 @@ use itertools::Itertools;
 /// The decoded format of the Aleo record datatype.
 /// Excludes the owner, commitment, and commitment_randomness from encoding.
 pub struct DecodedRecord {
-    pub payload: RecordPayload,
+    pub payload: Payload,
     pub value: u64,
 
     pub birth_program_id: Vec<u8>,
@@ -329,7 +329,7 @@ impl RecordSerializerScheme for RecordEncoder {
         }
         payload_bits.extend_from_slice(&final_element_bits[value_end..]);
 
-        let payload = RecordPayload::read(&bits_to_bytes(&payload_bits)[..])?;
+        let payload = Payload::read(&bits_to_bytes(&payload_bits)[..])?;
 
         Ok(DecodedRecord {
             payload,

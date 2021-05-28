@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{RecordBuilder, RecordError, RecordPayload};
+use crate::{RecordBuilder, RecordError, Payload};
 use aleo_account::{Address, PrivateKey};
 
 use rand::{CryptoRng, Rng};
@@ -41,7 +41,7 @@ pub struct Record {
     pub(crate) is_dummy: bool,
     pub(crate) value: u64,
 
-    pub(crate) payload: RecordPayload,
+    pub(crate) payload: Payload,
 
     pub(crate) birth_program_id: Vec<u8>,
     pub(crate) death_program_id: Vec<u8>,
@@ -77,7 +77,7 @@ impl Record {
         let value = 0u64;
 
         // Set payload.
-        let payload = RecordPayload::default();
+        let payload = Payload::default();
 
         let parameters = PublicParameters::<Components>::load(true)?;
 
@@ -115,7 +115,7 @@ impl RecordInterface for Record {
     type Commitment = RecordCommitment;
     type CommitmentRandomness = CommitmentRandomness;
     type Owner = Address;
-    type Payload = RecordPayload;
+    type Payload = Payload;
     type SerialNumber = SerialNumber;
     type SerialNumberNonce = SerialNumberNonce;
     type Value = u64;
@@ -184,7 +184,7 @@ impl FromBytes for Record {
         let owner: Address = FromBytes::read(&mut reader)?;
         let is_dummy: bool = FromBytes::read(&mut reader)?;
         let value: u64 = FromBytes::read(&mut reader)?;
-        let payload: RecordPayload = FromBytes::read(&mut reader)?;
+        let payload: Payload = FromBytes::read(&mut reader)?;
 
         let birth_program_id_size: usize = read_variable_length_integer(&mut reader)?;
 
