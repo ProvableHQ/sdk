@@ -1,28 +1,28 @@
 {
   "files": {
-    "static/js/0.950b6420.chunk.js": "/aleo/static/js/0.950b6420.chunk.js",
-    "3df746c0adf320cd3e69.module.wasm": "/aleo/3df746c0adf320cd3e69.module.wasm",
-    "static/js/0.950b6420.chunk.js.map": "/aleo/static/js/0.950b6420.chunk.js.map",
+    "static/js/0.97713f3a.chunk.js": "/aleo/static/js/0.97713f3a.chunk.js",
+    "6b0289681a156f0e511e.module.wasm": "/aleo/6b0289681a156f0e511e.module.wasm",
+    "static/js/0.97713f3a.chunk.js.map": "/aleo/static/js/0.97713f3a.chunk.js.map",
     "main.css": "/aleo/static/css/main.1093a323.chunk.css",
-    "main.js": "/aleo/static/js/main.1a6d92e6.chunk.js",
-    "main.js.map": "/aleo/static/js/main.1a6d92e6.chunk.js.map",
-    "runtime-main.js": "/aleo/static/js/runtime-main.9f8f0013.js",
-    "runtime-main.js.map": "/aleo/static/js/runtime-main.9f8f0013.js.map",
-    "static/css/3.f86808fa.chunk.css": "/aleo/static/css/3.f86808fa.chunk.css",
-    "static/js/3.a608735e.chunk.js": "/aleo/static/js/3.a608735e.chunk.js",
-    "static/js/3.a608735e.chunk.js.map": "/aleo/static/js/3.a608735e.chunk.js.map",
-    "static/js/4.4fe6dd85.chunk.js": "/aleo/static/js/4.4fe6dd85.chunk.js",
-    "static/js/4.4fe6dd85.chunk.js.map": "/aleo/static/js/4.4fe6dd85.chunk.js.map",
+    "main.js": "/aleo/static/js/main.0817814f.chunk.js",
+    "main.js.map": "/aleo/static/js/main.0817814f.chunk.js.map",
+    "runtime-main.js": "/aleo/static/js/runtime-main.65bbca0d.js",
+    "runtime-main.js.map": "/aleo/static/js/runtime-main.65bbca0d.js.map",
+    "static/css/3.c15435a6.chunk.css": "/aleo/static/css/3.c15435a6.chunk.css",
+    "static/js/3.cf27ef85.chunk.js": "/aleo/static/js/3.cf27ef85.chunk.js",
+    "static/js/3.cf27ef85.chunk.js.map": "/aleo/static/js/3.cf27ef85.chunk.js.map",
+    "static/js/4.b1b96b94.chunk.js": "/aleo/static/js/4.b1b96b94.chunk.js",
+    "static/js/4.b1b96b94.chunk.js.map": "/aleo/static/js/4.b1b96b94.chunk.js.map",
     "index.html": "/aleo/index.html",
-    "static/css/3.f86808fa.chunk.css.map": "/aleo/static/css/3.f86808fa.chunk.css.map",
+    "static/css/3.c15435a6.chunk.css.map": "/aleo/static/css/3.c15435a6.chunk.css.map",
     "static/css/main.1093a323.chunk.css.map": "/aleo/static/css/main.1093a323.chunk.css.map",
-    "static/js/3.a608735e.chunk.js.LICENSE.txt": "/aleo/static/js/3.a608735e.chunk.js.LICENSE.txt"
+    "static/js/3.cf27ef85.chunk.js.LICENSE.txt": "/aleo/static/js/3.cf27ef85.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.9f8f0013.js",
-    "static/css/3.f86808fa.chunk.css",
-    "static/js/3.a608735e.chunk.js",
+    "static/js/runtime-main.65bbca0d.js",
+    "static/css/3.c15435a6.chunk.css",
+    "static/js/3.cf27ef85.chunk.js",
     "static/css/main.1093a323.chunk.css",
-    "static/js/main.1a6d92e6.chunk.js"
+    "static/js/main.0817814f.chunk.js"
   ]
 }
