@@ -30,25 +30,21 @@ use snarkvm_dpc::{
 };
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
-pub struct EncryptedRecord {
-    data: Vec<u8>,
-}
+pub struct EncryptedRecord(Vec<u8>);
 
 impl EncryptedRecord {
     pub fn new(data: Vec<u8>) -> EncryptedRecord {
-        EncryptedRecord { data }
+        EncryptedRecord(data)
     }
 
     pub fn from_native(
         encrypted_record_native: EncryptedRecordNative<Components>,
     ) -> Result<Self, RecordEncryptionError> {
-        Ok(Self {
-            data: to_bytes![encrypted_record_native]?,
-        })
+        Ok(Self(to_bytes![encrypted_record_native]?))
     }
 
     pub fn to_native(&self) -> Result<EncryptedRecordNative<Components>, RecordEncryptionError> {
-        let encrypted_record_native: EncryptedRecordNative<Components> = FromBytes::read(&self.data[..])?;
+        let encrypted_record_native: EncryptedRecordNative<Components> = FromBytes::read(&self.0[..])?;
         Ok(encrypted_record_native)
     }
 }
@@ -58,7 +54,7 @@ pub(crate) type EncryptionRandomness =
 
 impl Record {
     /// Encrypt the given vector of records and returns
-    /// 1. Encryption Randomness.
+    /// 1. Encryption randomness.
     /// 2. Encrypted record
     pub fn encrypt<R: Rng>(
         &self,
