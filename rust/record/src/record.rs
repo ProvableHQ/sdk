@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{RecordBuilder, RecordError, Payload};
+use crate::{Payload, RecordBuilder, RecordError};
 use aleo_account::{Address, PrivateKey};
 
 use rand::{CryptoRng, Rng};
@@ -66,22 +66,21 @@ impl Record {
     /// Returns a new dummy record using the record builder. (this method should not fail)
     ///
     pub fn dummy<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, RecordError> {
-        // Set address
+        // Set the address.
         let private_key = PrivateKey::new(rng)?;
         let owner = Address::from(&private_key)?;
 
-        // Set is_dummy.
+        // Set the dummy flag.
         let is_dummy = true;
 
-        // Set value.
+        // Set the value.
         let value = 0u64;
 
-        // Set payload.
+        // Set the payload.
         let payload = Payload::default();
 
+        // Set birth program ID and death program ID.
         let parameters = PublicParameters::<Components>::load(true)?;
-
-        // Set birth_program_id and death_program_id.
         let noop_program_id = to_bytes![
             parameters
                 .system_parameters
@@ -92,11 +91,9 @@ impl Record {
         let birth_program_id = noop_program_id.clone();
         let death_program_id = noop_program_id;
 
-        // Set serial_number_nonce.
+        // Set the serial number nonce.
         let sn_randomness: [u8; 32] = rng.gen();
-        let old_sn_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
-
-        let serial_number_nonce = old_sn_nonce;
+        let serial_number_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
 
         Record::new()
             .owner(owner)
@@ -161,7 +158,6 @@ impl ToBytes for Record {
     #[inline]
     fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
         self.owner.write(&mut writer)?;
-
         self.is_dummy.write(&mut writer)?;
         self.value.write(&mut writer)?;
         self.payload.write(&mut writer)?;
