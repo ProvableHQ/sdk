@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{DecodedRecord, Encoder, Payload, Record, RecordError};
+use crate::{Encoder, Payload, Record, RecordError};
 
+use crate::encode::DecodedRecord;
 use aleo_account::{Address, ViewKey};
 use rand::Rng;
 use snarkvm_algorithms::{CommitmentScheme, EncryptionScheme};

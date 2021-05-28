@@ -19,11 +19,13 @@ extern crate thiserror;
 
 pub use deprecated::payload::*;
 pub use errors::*;
+pub use helpers::*;
 pub use record::*;
 pub use record_builder::*;
 
 mod deprecated;
 
 pub mod errors;
+pub mod helpers;
 pub mod record;
 pub mod record_builder;
