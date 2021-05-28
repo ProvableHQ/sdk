@@ -29,9 +29,8 @@ pub use record::*;
 pub mod record_builder;
 pub use record_builder::*;
 
-pub mod record_encoder;
-pub use record_encoder::*;
+pub mod encoder;
+pub use encoder::*;
 
 pub mod record_encryption;
 pub use record_encryption::*;
-

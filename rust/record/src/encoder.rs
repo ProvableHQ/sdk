@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{CommitmentRandomness, Record, Payload, SerialNumberNonce};
+use crate::{CommitmentRandomness, Payload, Record, SerialNumberNonce};
 
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_curves::{
@@ -38,20 +38,33 @@ use itertools::Itertools;
 
 /// The decoded format of the Aleo record datatype.
 /// Excludes the owner, commitment, and commitment_randomness from encoding.
-pub struct DecodedRecord {
-    pub payload: Payload,
-    pub value: u64,
+pub(super) struct DecodedRecord {
+    pub(super) payload: Payload,
+    pub(super) value: u64,
 
-    pub birth_program_id: Vec<u8>,
-    pub death_program_id: Vec<u8>,
+    pub(super) birth_program_id: Vec<u8>,
+    pub(super) death_program_id: Vec<u8>,
 
-    pub serial_number_nonce: SerialNumberNonce,
-    pub commitment_randomness: CommitmentRandomness,
+    pub(super) serial_number_nonce: SerialNumberNonce,
+    pub(super) commitment_randomness: CommitmentRandomness,
 }
 
-pub struct RecordEncoder;
+impl From<Record> for DecodedRecord {
+    fn from(record: Record) -> Self {
+        Self {
+            payload: record.payload,
+            value: record.value,
+            birth_program_id: record.birth_program_id,
+            death_program_id: record.death_program_id,
+            serial_number_nonce: record.serial_number_nonce,
+            commitment_randomness: record.commitment_randomness,
+        }
+    }
+}
 
-impl RecordSerializerScheme for RecordEncoder {
+pub(super) struct Encoder;
+
+impl RecordSerializerScheme for Encoder {
     type DeserializedRecord = DecodedRecord;
     type Group = EdwardsBls;
     type InnerField = <Components as DPCComponents>::InnerField;
@@ -339,18 +352,5 @@ impl RecordSerializerScheme for RecordEncoder {
             serial_number_nonce,
             commitment_randomness,
         })
-    }
-}
-
-impl From<Record> for DecodedRecord {
-    fn from(record: Record) -> Self {
-        Self {
-            payload: record.payload,
-            value: record.value,
-            birth_program_id: record.birth_program_id,
-            death_program_id: record.death_program_id,
-            serial_number_nonce: record.serial_number_nonce,
-            commitment_randomness: record.commitment_randomness,
-        }
     }
 }

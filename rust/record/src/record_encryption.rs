@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{DecodedRecord, Record, RecordEncoder, RecordEncryptionError, Payload};
+use crate::{DecodedRecord, Encoder, Payload, Record, RecordEncryptionError};
 
 use aleo_account::{Address, ViewKey};
 use rand::Rng;
@@ -63,7 +63,7 @@ impl Record {
         let system_parameters = SystemParameters::<Components>::load()?;
 
         // Serialize the record into group elements and fq_high bits
-        let (serialized_record, final_fq_high_selector) = RecordEncoder::serialize(&self)?;
+        let (serialized_record, final_fq_high_selector) = Encoder::serialize(&self)?;
 
         let mut record_plaintexts = Vec::with_capacity(serialized_record.len());
         for element in serialized_record.iter() {
@@ -118,7 +118,7 @@ impl Record {
         }
 
         // Decode the plaintext record
-        let record_components = RecordEncoder::deserialize(plaintext, encrypted_record.final_fq_high_selector)?;
+        let record_components = Encoder::deserialize(plaintext, encrypted_record.final_fq_high_selector)?;
 
         let DecodedRecord {
             serial_number_nonce,

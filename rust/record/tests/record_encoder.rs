@@ -71,8 +71,8 @@ fn test_record_encoding() {
                 .build()
                 .unwrap();
 
-            let (encoded_record, final_sign_high) = RecordEncoder::serialize(&given_record).unwrap();
-            let decoded_record = RecordEncoder::deserialize(encoded_record, final_sign_high).unwrap();
+            let (encoded_record, final_sign_high) = Encoder::serialize(&given_record).unwrap();
+            let decoded_record = Encoder::deserialize(encoded_record, final_sign_high).unwrap();
 
             assert_eq!(given_record.serial_number_nonce(), &decoded_record.serial_number_nonce);
             assert_eq!(

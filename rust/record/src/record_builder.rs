@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{CommitmentRandomness, Record, RecordCommitment, RecordError, Payload, SerialNumberNonce};
+use crate::{CommitmentRandomness, Payload, Record, RecordCommitment, RecordError, SerialNumberNonce};
 use aleo_account::Address;
 
 use rand::{CryptoRng, Rng};
