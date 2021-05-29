@@ -107,16 +107,6 @@ impl Record {
             .calculate_commitment(Some(rng))
             .build()
     }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut output = vec![];
-        self.write(&mut output).expect("serialization to bytes failed");
-        output
-    }
-
-    pub fn to_native(&self) -> Result<DPCRecord<Components>, RecordError> {
-        Ok(FromBytes::read(&self.to_bytes()[..])?)
-    }
 }
 
 impl RecordInterface for Record {

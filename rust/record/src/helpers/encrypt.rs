@@ -22,6 +22,7 @@ use snarkvm_algorithms::EncryptionScheme;
 use snarkvm_dpc::{
     base_dpc::instantiated::Components,
     DPCComponents,
+    DPCRecord,
     EncryptedRecord as EncryptedRecordNative,
     RecordEncryption,
     SystemParameters,
@@ -48,31 +49,31 @@ impl EncryptedRecord {
 pub(crate) type EncryptionRandomness =
     <<Components as DPCComponents>::AccountEncryption as EncryptionScheme>::Randomness;
 
-impl Record {
-    /// Encrypt the given vector of records and returns
-    /// 1. Encryption randomness.
-    /// 2. Encrypted record
-    pub fn encrypt<R: Rng>(&self, rng: &mut R) -> Result<(EncryptionRandomness, EncryptedRecord), RecordError> {
+pub(crate) struct Encrypt;
+
+impl Encrypt {
+    /// Encrypt the given vector of records and returns tuple (encryption randomness, encrypted record).
+    pub fn encrypt<R: Rng>(record: &Record, rng: &mut R) -> Result<(EncryptionRandomness, Vec<u8>), RecordError> {
         let system_parameters = SystemParameters::<Components>::load()?;
 
-        let record_native = self.to_native()?;
+        let record: DPCRecord<Components> = FromBytes::read(&to_bytes![record]?[..])?;
 
-        let (encryption_randomness, encrypted_record_native) =
-            RecordEncryption::<Components>::encrypt_record(&system_parameters, &record_native, rng)?;
+        let (encryption_randomness, encrypted_record) =
+            RecordEncryption::<Components>::encrypt_record(&system_parameters, &record, rng)?;
 
-        let encrypted_record = EncryptedRecord::from_native(encrypted_record_native)?;
-
-        Ok((encryption_randomness, encrypted_record))
+        Ok((encryption_randomness, to_bytes![encrypted_record]?))
     }
+}
 
+impl Record {
     /// Decrypt and reconstruct the encrypted record
-    pub fn decrypt(view_key: &ViewKey, encrypted_record: &EncryptedRecord) -> Result<Record, RecordError> {
+    pub fn decrypt(view_key: &ViewKey, encrypted_record: &[u8]) -> Result<Record, RecordError> {
         let system_parameters = SystemParameters::<Components>::load()?;
 
         let record_native = RecordEncryption::<Components>::decrypt_record(
             &system_parameters,
             &view_key.view_key,
-            &encrypted_record.to_native()?,
+            &FromBytes::read(&encrypted_record[..])?,
         )?;
 
         let mut record_bytes = vec![];
@@ -142,7 +143,7 @@ mod tests {
                     .unwrap();
 
                 // Encrypt the record
-                let (_, encryped_record) = given_record.encrypt(&mut rng).unwrap();
+                let (_, encryped_record) = Encrypt::encrypt(&given_record, &mut rng).unwrap();
                 let view_key = ViewKey::from(&dummy_private_key).unwrap();
 
                 // Decrypt the record
