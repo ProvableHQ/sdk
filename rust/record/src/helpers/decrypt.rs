@@ -24,7 +24,7 @@ pub(crate) struct Decrypt;
 
 impl Decrypt {
     /// Decrypt and reconstruct the encrypted record
-    pub fn decrypt(view_key: &ViewKey, encrypted_record: &[u8]) -> Result<Record, RecordError> {
+    pub(crate) fn decrypt(view_key: &ViewKey, encrypted_record: &[u8]) -> Result<Record, RecordError> {
         let system_parameters = SystemParameters::<Components>::load()?;
 
         let record = RecordEncryption::<Components>::decrypt_record(

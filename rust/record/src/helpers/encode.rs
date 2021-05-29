@@ -20,10 +20,10 @@ use snarkvm_curves::edwards_bls12::{EdwardsParameters, EdwardsProjective as Edwa
 use snarkvm_dpc::{base_dpc::instantiated::Components, DPCError, DPCRecord, RecordSerializer, RecordSerializerScheme};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
-pub(super) struct Encode;
+pub(crate) struct Encode;
 
 impl Encode {
-    pub(super) fn encode(record: &Record) -> Result<(Vec<EdwardsBls>, bool), DPCError> {
+    pub(crate) fn encode(record: &Record) -> Result<(Vec<EdwardsBls>, bool), DPCError> {
         let record_bytes = to_bytes![record]?;
         let given_record: DPCRecord<Components> = FromBytes::read(&record_bytes[..])?;
         RecordSerializer::<Components, EdwardsParameters, EdwardsBls>::serialize(&given_record)
