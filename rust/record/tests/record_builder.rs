@@ -15,12 +15,15 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use aleo_account::*;
-use aleo_record::{deprecated::Payload, *};
+use aleo_record::*;
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use snarkvm_algorithms::{CommitmentScheme, CRH};
 use snarkvm_dpc::{
-    base_dpc::instantiated::{Components, ProgramVerificationKeyCRH, SerialNumberNonce as SerialNumberNonceCRH},
+    base_dpc::{
+        instantiated::{Components, ProgramVerificationKeyCRH, SerialNumberNonce as SerialNumberNonceCRH},
+        record::record_payload::RecordPayload,
+    },
     DPCComponents,
     NoopProgramSNARKParameters,
     PublicParameters,
@@ -50,7 +53,7 @@ fn test_derive_dummy_record() {
     let owner = Address::from(&dummy_private_key).unwrap();
 
     let value = 0u64;
-    let payload = Payload::default();
+    let payload = RecordPayload::default();
 
     let serial_number_nonce_input: [u8; 32] = rng.gen();
     let serial_number_nonce =
