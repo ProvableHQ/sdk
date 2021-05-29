@@ -16,7 +16,6 @@
 
 use aleo_account::*;
 use aleo_record::*;
-use aleo_record::
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use snarkvm_algorithms::{CommitmentScheme, CRH};
@@ -59,7 +58,16 @@ fn test_derive_is_dummy() {
     let serial_number_nonce =
         SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
 
-    // Build record with non-zero `value`, payload == 0,
+    // Build a dummy record:
+    //
+    // Record {
+    //      value: 0,
+    //      payload: 0,
+    //      birth_program_id: noop_program_id,
+    //      death_program_id: noop_program_id,
+    //      ...
+    // }
+    //
     // This should automatically derive `is_dummy: false`
     let given_record = Record::new()
         .owner(owner)
@@ -71,7 +79,7 @@ fn test_derive_is_dummy() {
         .build()
         .unwrap();
 
-    // assert!(given_record.is_ok());
+    assert!(given_record.is_ok());
 }
 
 #[test]
