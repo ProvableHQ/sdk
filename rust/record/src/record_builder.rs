@@ -21,7 +21,6 @@ use rand::{CryptoRng, Rng};
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, SystemParameters};
 use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
-use std::str::FromStr;
 
 /// A builder struct for the Aleo record data type.
 #[derive(Default, Debug)]

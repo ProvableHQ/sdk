@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    helpers::{Decode, Encode, Encrypt},
+    helpers::{Decode, Decrypt, Encode, Encrypt},
     Payload,
     Record,
 };
@@ -138,7 +138,7 @@ fn test_encrypt_and_decrypt() {
             let view_key = ViewKey::from(&dummy_private_key).unwrap();
 
             // Decrypt the record
-            let decrypted_record = Record::decrypt(&view_key, &encryped_record).unwrap();
+            let decrypted_record = Decrypt::decrypt(&view_key, &encryped_record).unwrap();
 
             assert_eq!(given_record, decrypted_record);
         }
