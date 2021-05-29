@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Commitment, CommitmentRandomness, Payload, Record, RecordError, SerialNumberNonce};
+use crate::{Commitment, CommitmentRandomness, Record, RecordError, SerialNumberNonce};
 use aleo_account::Address;
 
 use rand::{CryptoRng, Rng};
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_dpc::{
-    base_dpc::instantiated::{Components, ProgramVerificationKeyCRH},
+    base_dpc::{
+        instantiated::{Components, ProgramVerificationKeyCRH},
+        record::record_payload::RecordPayload,
+    },
     DPCComponents,
     NoopProgramSNARKParameters,
     SystemParameters,
@@ -34,7 +37,7 @@ pub struct RecordBuilder {
     pub(crate) is_dummy: Option<bool>,
     pub(crate) value: Option<u64>,
 
-    pub(crate) payload: Option<Payload>,
+    pub(crate) payload: Option<RecordPayload>,
 
     pub(crate) birth_program_id: Option<Vec<u8>>,
     pub(crate) death_program_id: Option<Vec<u8>>,
@@ -74,7 +77,7 @@ impl RecordBuilder {
     ///
     /// Returns a new record builder and sets field `payload: RecordPayload`.
     ///
-    pub fn payload(mut self, payload: Payload) -> Self {
+    pub fn payload(mut self, payload: RecordPayload) -> Self {
         self.payload = Some(payload);
         self
     }
@@ -221,7 +224,7 @@ impl RecordBuilder {
 
         // Derive is_dummy
         let is_dummy = (value == 0)
-            && (payload == Payload::default())
+            && (payload == RecordPayload::default())
             && (birth_program_id == noop_program_id)
             && (death_program_id == noop_program_id);
 

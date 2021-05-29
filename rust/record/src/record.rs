@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{deprecated::Payload, RecordBuilder, RecordError};
+use crate::{RecordBuilder, RecordError};
 use aleo_account::{Address, PrivateKey};
 
 use rand::{CryptoRng, Rng};
@@ -22,7 +22,12 @@ use snarkvm_algorithms::{
     traits::{CommitmentScheme, CRH},
     SignatureScheme,
 };
-use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, PublicParameters, Record as RecordInterface};
+use snarkvm_dpc::{
+    base_dpc::{instantiated::Components, record::record_payload::RecordPayload},
+    DPCComponents,
+    PublicParameters,
+    Record as RecordInterface,
+};
 use snarkvm_utilities::{read_variable_length_integer, to_bytes, variable_length_integer, FromBytes, ToBytes};
 use std::{
     fmt,
@@ -40,7 +45,7 @@ pub struct Record {
     pub(crate) owner: Address,
     pub(crate) is_dummy: bool,
     pub(crate) value: u64,
-    pub(crate) payload: Payload,
+    pub(crate) payload: RecordPayload,
 
     pub(crate) birth_program_id: Vec<u8>,
     pub(crate) death_program_id: Vec<u8>,
@@ -71,7 +76,7 @@ impl Record {
         let value = 0u64;
 
         // Set the payload to the default payload.
-        let payload = Payload::default();
+        let payload = RecordPayload::default();
 
         // Set birth program ID and death program ID to the noop program ID.
         let parameters = PublicParameters::<Components>::load(true)?;
@@ -105,7 +110,7 @@ impl RecordInterface for Record {
     type Commitment = Commitment;
     type CommitmentRandomness = CommitmentRandomness;
     type Owner = Address;
-    type Payload = Payload;
+    type Payload = RecordPayload;
     type SerialNumber = SerialNumber;
     type SerialNumberNonce = SerialNumberNonce;
     type Value = u64;
@@ -173,7 +178,7 @@ impl FromBytes for Record {
         let owner: Address = FromBytes::read(&mut reader)?;
         let is_dummy: bool = FromBytes::read(&mut reader)?;
         let value: u64 = FromBytes::read(&mut reader)?;
-        let payload: Payload = FromBytes::read(&mut reader)?;
+        let payload: RecordPayload = FromBytes::read(&mut reader)?;
 
         let birth_program_id_size: usize = read_variable_length_integer(&mut reader)?;
 

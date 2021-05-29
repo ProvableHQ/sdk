@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Payload, Record};
+use crate::Record;
 use aleo_account::Address;
 
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
@@ -88,7 +88,7 @@ impl Decode {
             owner,
             is_dummy,
             value: record.value,
-            payload: Payload::from_bytes(record.payload.to_bytes()),
+            payload: record.payload,
             birth_program_id: record.birth_program_id,
             death_program_id: record.death_program_id,
             serial_number_nonce: record.serial_number_nonce,

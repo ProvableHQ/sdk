@@ -17,9 +17,6 @@
 #[macro_use]
 extern crate thiserror;
 
-mod deprecated;
-use deprecated::payload::*;
-
 pub mod errors;
 pub use errors::*;
 
