@@ -31,7 +31,7 @@ use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
 pub(crate) const ITERATIONS: usize = 5;
 
 #[test]
-fn test_owner_string() {
+fn test_owner() {
     let rng = &mut StdRng::from_entropy();
     let private_key = PrivateKey::new(rng).unwrap();
     let owner = Address::from(&private_key).unwrap();
@@ -94,7 +94,7 @@ fn test_owner_string() {
     .unwrap();
 
     let r = RecordBuilder::new()
-        .owner_string(&owner.to_string())
+        .owner(owner)
         .is_dummy(is_dummy) // Return dummy record by default
         .value(value)
         .payload(payload)

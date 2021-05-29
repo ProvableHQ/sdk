@@ -54,26 +54,8 @@ impl RecordBuilder {
     ///
     /// Returns a new record builder and sets field `owner: Address`.
     ///
-    pub fn owner(mut self, owner: Address) -> Self {
-        self.owner = Some(owner);
-
-        self
-    }
-
-    ///
-    /// Returns a new record builder and sets field `owner: Address` from the given string.
-    ///
-    pub fn owner_string(mut self, owner: &str) -> Self {
-        let owner = Address::from_str(owner);
-
-        if owner.is_ok() {
-            self.owner = Some(owner.expect("expected owner address"));
-        } else {
-            let err = owner.err().expect("expected owner address error");
-
-            self.errors.push(RecordError::AddressError(err));
-        }
-
+    pub fn owner<A: Into<Address>>(mut self, owner: A) -> Self {
+        self.owner = Some(owner.into());
         self
     }
 
@@ -95,7 +77,7 @@ impl RecordBuilder {
                         self.errors.push(RecordError::NonZeroValue);
                     }
                 }
-                None => return self.value_zero(),
+                None => return self.value(Record::ZERO_VALUE),
             }
         }
 
@@ -122,13 +104,6 @@ impl RecordBuilder {
         }
 
         self
-    }
-
-    ///
-    /// Returns a new record builder and sets field `value: 0u64`.
-    ///
-    pub fn value_zero(self) -> Self {
-        self.value(Record::ZERO_VALUE)
     }
 
     ///
