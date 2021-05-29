@@ -17,15 +17,17 @@
 #[macro_use]
 extern crate thiserror;
 
-pub use deprecated::payload::*;
-pub use errors::*;
-pub use helpers::*;
-pub use record::*;
-pub use record_builder::*;
-
 mod deprecated;
+use deprecated::payload::*;
 
 pub mod errors;
-pub mod helpers;
+pub use errors::*;
+
+mod helpers;
+use helpers::*;
+
 pub mod record;
+pub use record::*;
+
 pub mod record_builder;
+pub use record_builder::*;

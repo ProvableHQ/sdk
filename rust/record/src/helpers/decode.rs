@@ -30,10 +30,10 @@ use snarkvm_dpc::{
 };
 use snarkvm_utilities::{to_bytes, ToBytes};
 
-pub(super) struct Decode;
+pub(crate) struct Decode;
 
 impl Decode {
-    pub(super) fn decode(
+    pub(crate) fn decode(
         owner: Address,
         serialized_record: Vec<EdwardsBls>,
         final_sign_high: bool,

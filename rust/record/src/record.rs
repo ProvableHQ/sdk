@@ -22,13 +22,7 @@ use snarkvm_algorithms::{
     traits::{CommitmentScheme, CRH},
     SignatureScheme,
 };
-use snarkvm_dpc::{
-    base_dpc::instantiated::Components,
-    DPCComponents,
-    DPCRecord,
-    PublicParameters,
-    Record as RecordInterface,
-};
+use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, PublicParameters, Record as RecordInterface};
 use snarkvm_utilities::{read_variable_length_integer, to_bytes, variable_length_integer, FromBytes, ToBytes};
 use std::{
     fmt,
@@ -106,16 +100,6 @@ impl Record {
             .serial_number_nonce(serial_number_nonce)
             .calculate_commitment(Some(rng))
             .build()
-    }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut output = vec![];
-        self.write(&mut output).expect("serialization to bytes failed");
-        output
-    }
-
-    pub fn to_native(&self) -> Result<DPCRecord<Components>, RecordError> {
-        Ok(FromBytes::read(&self.to_bytes()[..])?)
     }
 }
 
