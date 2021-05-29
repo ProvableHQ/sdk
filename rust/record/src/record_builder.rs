@@ -172,7 +172,29 @@ impl RecordBuilder {
 
             self.commitment_randomness = Some(commitment_randomness);
 
-            let commitment = self.calculate_commitment_helper();
+            // Compute the commitment.
+            let commitment = {
+                let system_parameters = SystemParameters::<Components>::load().unwrap();
+
+                // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
+                let commitment_input = to_bytes![
+                    self.owner.as_ref().unwrap().to_bytes(),    // 256 bits = 32 bytes
+                    self.is_dummy.as_ref().unwrap(),            // 1 bit = 1 byte
+                    self.value.as_ref().unwrap(),               // 64 bits = 8 bytes
+                    self.payload.as_ref().unwrap(),             // 256 bits = 32 bytes
+                    self.birth_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
+                    self.death_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
+                    self.serial_number_nonce.as_ref().unwrap()  // 256 bits = 32 bytes
+                ]
+                .unwrap();
+
+                <Components as DPCComponents>::RecordCommitment::commit(
+                    &system_parameters.record_commitment,
+                    &commitment_input,
+                    &self.commitment_randomness.as_ref().unwrap(),
+                )
+                .unwrap()
+            };
             self.commitment = Some(commitment);
         }
 
@@ -276,28 +298,5 @@ impl RecordBuilder {
                 .commitment_randomness
                 .ok_or_else(|| RecordError::MissingField("commitment_randomness".to_string()))?,
         })
-    }
-
-    fn calculate_commitment_helper(&self) -> Commitment {
-        let system_parameters = SystemParameters::<Components>::load().unwrap();
-
-        // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
-        let commitment_input = to_bytes![
-            self.owner.as_ref().unwrap().to_bytes(),    // 256 bits = 32 bytes
-            self.is_dummy.as_ref().unwrap(),            // 1 bit = 1 byte
-            self.value.as_ref().unwrap(),               // 64 bits = 8 bytes
-            self.payload.as_ref().unwrap(),             // 256 bits = 32 bytes
-            self.birth_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
-            self.death_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
-            self.serial_number_nonce.as_ref().unwrap()  // 256 bits = 32 bytes
-        ]
-        .unwrap();
-
-        <Components as DPCComponents>::RecordCommitment::commit(
-            &system_parameters.record_commitment,
-            &commitment_input,
-            &self.commitment_randomness.as_ref().unwrap(),
-        )
-        .unwrap()
     }
 }
