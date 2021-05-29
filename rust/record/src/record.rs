@@ -75,16 +75,13 @@ impl Record {
         let private_key = PrivateKey::new(rng)?;
         let owner = Address::from(&private_key)?;
 
-        // Set the dummy flag.
-        let is_dummy = true;
-
-        // Set the value.
+        // Set the value to 0.
         let value = 0u64;
 
-        // Set the payload.
+        // Set the payload to the default payload.
         let payload = Payload::default();
 
-        // Set birth program ID and death program ID.
+        // Set birth program ID and death program ID to the noop program ID.
         let parameters = PublicParameters::<Components>::load(true)?;
         let noop_program_id = to_bytes![
             parameters
@@ -96,13 +93,12 @@ impl Record {
         let birth_program_id = noop_program_id.clone();
         let death_program_id = noop_program_id;
 
-        // Set the serial number nonce.
+        // Set the serial number nonce for a dummy record.
         let sn_randomness: [u8; 32] = rng.gen();
         let serial_number_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
 
         Record::new()
             .owner(owner)
-            .is_dummy(is_dummy)
             .value(value)
             .payload(payload)
             .birth_program_id(birth_program_id)

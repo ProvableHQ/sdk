@@ -60,49 +60,10 @@ impl RecordBuilder {
     }
 
     ///
-    /// Returns a new record builder and sets field `is_dummy: bool`.
-    ///
-    #[allow(clippy::wrong_self_convention)]
-    pub fn is_dummy(mut self, is_dummy: bool) -> Self {
-        self.is_dummy = Some(is_dummy);
-
-        // Set record value to 0 for dummy records.
-        if is_dummy {
-            match self.value {
-                Some(value) => {
-                    if value == 0 {
-                        // Value is already 0, do nothing
-                    } else {
-                        // Value is non-zero, return an error
-                        self.errors.push(RecordError::NonZeroValue);
-                    }
-                }
-                None => return self.value(Record::ZERO_VALUE),
-            }
-        }
-
-        self
-    }
-
-    ///
     /// Returns a new record builder and sets field `value: u64`.
     ///
     pub fn value(mut self, value: u64) -> Self {
         self.value = Some(value);
-
-        // Set is_dummy to false for records with non-zero value.
-        if value != Record::ZERO_VALUE {
-            match self.is_dummy {
-                Some(is_dummy) => {
-                    if is_dummy {
-                        // Dummy records must have a zero value, return an error
-                        self.errors.push(RecordError::DummyMustBeZero(value));
-                    }
-                }
-                None => return self.is_dummy(false),
-            }
-        }
-
         self
     }
 
@@ -111,7 +72,6 @@ impl RecordBuilder {
     ///
     pub fn payload(mut self, payload: Payload) -> Self {
         self.payload = Some(payload);
-
         self
     }
 
@@ -120,7 +80,6 @@ impl RecordBuilder {
     ///
     pub fn birth_program_id(mut self, birth_program_id: Vec<u8>) -> Self {
         self.birth_program_id = Some(birth_program_id);
-
         self
     }
 
@@ -129,7 +88,6 @@ impl RecordBuilder {
     ///
     pub fn death_program_id(mut self, death_program_id: Vec<u8>) -> Self {
         self.death_program_id = Some(death_program_id);
-
         self
     }
 
@@ -138,7 +96,6 @@ impl RecordBuilder {
     ///
     pub fn serial_number_nonce(mut self, serial_number_nonce: SerialNumberNonce) -> Self {
         self.serial_number_nonce = Some(serial_number_nonce);
-
         self
     }
 
@@ -162,7 +119,6 @@ impl RecordBuilder {
                 .unwrap();
 
         self.serial_number_nonce = Some(sn_nonce);
-
         self
     }
 
@@ -170,20 +126,7 @@ impl RecordBuilder {
     /// Returns a new record builder and sets field `commitment: RecordCommitment`.
     ///
     pub fn commitment(mut self, commitment: Commitment) -> Self {
-        // Try to check record commitment.
-        // Log an error if we cannot check the commitment.
-        if self.can_check_commitment() {
-            let expected = self.calculate_commitment_helper();
-
-            if expected == commitment {
-                self.commitment = Some(commitment);
-            } else {
-                self.errors.push(RecordError::InvalidCommitment);
-            }
-        } else {
-            self.errors.push(RecordError::CannotVerifyCommitment);
-        }
-
+        self.commitment = Some(commitment);
         self
     }
 
@@ -192,7 +135,6 @@ impl RecordBuilder {
     ///
     pub fn commitment_randomness(mut self, commitment_randomness: CommitmentRandomness) -> Self {
         self.commitment_randomness = Some(commitment_randomness);
-
         self
     }
 
@@ -273,6 +215,36 @@ impl RecordBuilder {
             // Return builder fail.
             return Err(RecordError::BuilderError);
         }
+
+        // TODO: 1. Derive is_dummy. 2. Check that the commitment is valid.
+        // // Set record value to 0 for dummy records.
+        // if is_dummy {
+        //     match self.value {
+        //         Some(value) => {
+        //             if value == 0 {
+        //                 // Value is already 0, do nothing
+        //             } else {
+        //                 // Value is non-zero, return an error
+        //                 self.errors.push(RecordError::NonZeroValue);
+        //             }
+        //         }
+        //         None => return self.value(Record::ZERO_VALUE),
+        //     }
+        // }
+        //
+        // // Try to check record commitment.
+        // // Log an error if we cannot check the commitment.
+        // if self.can_check_commitment() {
+        //     let expected = self.calculate_commitment_helper();
+        //
+        //     if expected == commitment {
+        //         self.commitment = Some(commitment);
+        //     } else {
+        //         self.errors.push(RecordError::InvalidCommitment);
+        //     }
+        // } else {
+        //     self.errors.push(RecordError::CannotVerifyCommitment);
+        // }
 
         // Build record.
         Ok(Record {
