@@ -29,23 +29,6 @@ use snarkvm_dpc::{
 };
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
-pub struct EncryptedRecord(Vec<u8>);
-
-impl EncryptedRecord {
-    pub fn new(data: Vec<u8>) -> EncryptedRecord {
-        EncryptedRecord(data)
-    }
-
-    pub fn from_native(encrypted_record_native: EncryptedRecordNative<Components>) -> Result<Self, RecordError> {
-        Ok(Self(to_bytes![encrypted_record_native]?))
-    }
-
-    pub fn to_native(&self) -> Result<EncryptedRecordNative<Components>, RecordError> {
-        let encrypted_record_native: EncryptedRecordNative<Components> = FromBytes::read(&self.0[..])?;
-        Ok(encrypted_record_native)
-    }
-}
-
 pub(crate) type EncryptionRandomness =
     <<Components as DPCComponents>::AccountEncryption as EncryptionScheme>::Randomness;
 
