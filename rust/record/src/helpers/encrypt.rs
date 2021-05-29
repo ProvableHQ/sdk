@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Payload, Record, RecordError};
+use crate::{Record, RecordError};
 
 use aleo_account::ViewKey;
 use rand::Rng;
@@ -85,6 +85,7 @@ impl Record {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Payload;
     use aleo_account::*;
 
     use rand::{rngs::StdRng, Rng, SeedableRng};

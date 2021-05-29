@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{CommitmentRandomness, Payload, Record, RecordCommitment, RecordError, SerialNumberNonce};
+use crate::{Commitment, CommitmentRandomness, Payload, Record, RecordError, SerialNumberNonce};
 use aleo_account::Address;
 
 use rand::{CryptoRng, Rng};
@@ -37,7 +37,7 @@ pub struct RecordBuilder {
 
     pub(crate) serial_number_nonce: Option<SerialNumberNonce>,
 
-    pub(crate) commitment: Option<RecordCommitment>,
+    pub(crate) commitment: Option<Commitment>,
     pub(crate) commitment_randomness: Option<CommitmentRandomness>,
     pub(crate) errors: Vec<RecordError>,
 }
@@ -194,7 +194,7 @@ impl RecordBuilder {
     ///
     /// Returns a new record builder and sets field `commitment: RecordCommitment`.
     ///
-    pub fn commitment(mut self, commitment: RecordCommitment) -> Self {
+    pub fn commitment(mut self, commitment: Commitment) -> Self {
         // Try to check record commitment.
         // Log an error if we cannot check the commitment.
         if self.can_check_commitment() {
@@ -331,7 +331,7 @@ impl RecordBuilder {
         })
     }
 
-    fn calculate_commitment_helper(&self) -> RecordCommitment {
+    fn calculate_commitment_helper(&self) -> Commitment {
         let system_parameters = SystemParameters::<Components>::load().unwrap();
 
         // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes

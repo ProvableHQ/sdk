@@ -13,3 +13,81 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+
+use crate::{
+    helpers::{Decode, Encode},
+    Payload,
+    Record,
+};
+use aleo_account::*;
+
+use rand::{rngs::StdRng, Rng, SeedableRng};
+use snarkvm_algorithms::traits::CRH;
+use snarkvm_dpc::{
+    base_dpc::instantiated::{Components, ProgramVerificationKeyCRH, SerialNumberNonce as SerialNumberNonceCRH},
+    NoopProgramSNARKParameters,
+    Record as RecordInterface,
+    SystemParameters,
+};
+use snarkvm_utilities::{bytes::ToBytes, to_bytes};
+
+pub(crate) const ITERATIONS: usize = 5;
+
+#[test]
+fn test_encode_and_decode() {
+    let rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the noop program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&private_key).unwrap();
+
+            let value = rng.gen();
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            let given_record = Record::new()
+                .owner(owner.clone())
+                .value(value)
+                .payload(Payload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .calculate_commitment(Some(rng))
+                .build()
+                .unwrap();
+
+            let (encoded_record, final_sign_high) = Encode::encode(&given_record).unwrap();
+            let decoded_record = Decode::decode(owner, encoded_record, final_sign_high).unwrap();
+
+            assert_eq!(given_record.owner(), &decoded_record.owner);
+            assert_eq!(given_record.is_dummy(), decoded_record.is_dummy);
+            assert_eq!(given_record.value(), decoded_record.value);
+            assert_eq!(given_record.payload(), &decoded_record.payload);
+            assert_eq!(given_record.birth_program_id(), decoded_record.birth_program_id);
+            assert_eq!(given_record.death_program_id(), decoded_record.death_program_id);
+            assert_eq!(given_record.serial_number_nonce(), &decoded_record.serial_number_nonce);
+            assert_eq!(given_record.commitment(), decoded_record.commitment);
+            assert_eq!(
+                given_record.commitment_randomness(),
+                decoded_record.commitment_randomness
+            );
+        }
+    }
+}

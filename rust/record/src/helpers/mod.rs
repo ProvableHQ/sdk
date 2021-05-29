@@ -15,9 +15,16 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod decode;
+pub use decode::*;
+
 pub mod decrypt;
+pub use decrypt::*;
+
 pub mod encode;
+pub use encode::*;
+
 pub mod encrypt;
+pub use encrypt::*;
 
 #[cfg(test)]
 mod tests;

@@ -37,7 +37,7 @@ use std::{
 
 pub type SerialNumber = <<Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
 pub type SerialNumberNonce = <<Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output;
-pub type RecordCommitment = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
+pub type Commitment = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
 pub type CommitmentRandomness = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
 
 /// The Aleo record data type.
@@ -52,7 +52,7 @@ pub struct Record {
     pub(crate) death_program_id: Vec<u8>,
 
     pub(crate) serial_number_nonce: SerialNumberNonce,
-    pub(crate) commitment: RecordCommitment,
+    pub(crate) commitment: Commitment,
     pub(crate) commitment_randomness: CommitmentRandomness,
 }
 
@@ -124,7 +124,7 @@ impl Record {
 }
 
 impl RecordInterface for Record {
-    type Commitment = RecordCommitment;
+    type Commitment = Commitment;
     type CommitmentRandomness = CommitmentRandomness;
     type Owner = Address;
     type Payload = Payload;
@@ -215,7 +215,7 @@ impl FromBytes for Record {
 
         let serial_number_nonce: SerialNumberNonce = FromBytes::read(&mut reader)?;
 
-        let commitment: RecordCommitment = FromBytes::read(&mut reader)?;
+        let commitment: Commitment = FromBytes::read(&mut reader)?;
         let commitment_randomness: CommitmentRandomness = FromBytes::read(&mut reader)?;
 
         Ok(Self {
