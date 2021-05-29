@@ -14,11 +14,5 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-// mod encoder;
-// use encoder::*;
-//
-// mod record_encryption;
-// use record_encryption::*;
-
 pub mod payload;
 pub use payload::*;
