@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    helpers::{Decode, Encode},
+    helpers::{Decode, Encode, Encrypt},
     Payload,
     Record,
 };
@@ -29,7 +29,7 @@ use snarkvm_dpc::{
     Record as RecordInterface,
     SystemParameters,
 };
-use snarkvm_utilities::{bytes::ToBytes, to_bytes};
+use snarkvm_utilities::{to_bytes, ToBytes};
 
 pub(crate) const ITERATIONS: usize = 5;
 
@@ -88,6 +88,59 @@ fn test_encode_and_decode() {
                 given_record.commitment_randomness(),
                 decoded_record.commitment_randomness
             );
+        }
+    }
+}
+
+#[test]
+fn test_encrypt_and_decrypt() {
+    let mut rng = &mut StdRng::from_entropy();
+
+    for _ in 0..ITERATIONS {
+        // Load system parameters for the ledger, commitment schemes, CRH, and the
+        // "always-accept" program.
+        let system_parameters = SystemParameters::<Components>::load().unwrap();
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+
+        let program_snark_vk_bytes = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        for _ in 0..ITERATIONS {
+            let dummy_private_key = PrivateKey::new(rng).unwrap();
+            let owner = Address::from(&dummy_private_key).unwrap();
+
+            let value = rng.gen();
+            let payload: [u8; 32] = rng.gen();
+
+            let serial_number_nonce_input: [u8; 32] = rng.gen();
+            let serial_number_nonce =
+                SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
+
+            let given_record = Record::new()
+                .owner(owner)
+                .value(value)
+                .payload(Payload::from_bytes(&payload))
+                .birth_program_id(program_snark_vk_bytes.clone())
+                .death_program_id(program_snark_vk_bytes.clone())
+                .serial_number_nonce(serial_number_nonce)
+                .calculate_commitment(Some(rng))
+                .build()
+                .unwrap();
+
+            // Encrypt the record
+            let (_, encryped_record) = Encrypt::encrypt(&given_record, &mut rng).unwrap();
+            let view_key = ViewKey::from(&dummy_private_key).unwrap();
+
+            // Decrypt the record
+            let decrypted_record = Record::decrypt(&view_key, &encryped_record).unwrap();
+
+            assert_eq!(given_record, decrypted_record);
         }
     }
 }
