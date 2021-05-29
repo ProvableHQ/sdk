@@ -36,16 +36,15 @@ pub struct RecordBuilder {
     pub(crate) owner: Option<Address>,
     pub(crate) is_dummy: Option<bool>,
     pub(crate) value: Option<u64>,
-
     pub(crate) payload: Option<RecordPayload>,
 
     pub(crate) birth_program_id: Option<Vec<u8>>,
     pub(crate) death_program_id: Option<Vec<u8>>,
 
     pub(crate) serial_number_nonce: Option<SerialNumberNonce>,
-
     pub(crate) commitment: Option<Commitment>,
     pub(crate) commitment_randomness: Option<CommitmentRandomness>,
+
     pub(crate) errors: Vec<RecordError>,
 }
 
