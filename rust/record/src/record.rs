@@ -67,7 +67,7 @@ impl Record {
     ///
     /// Returns a new dummy record using a given RNG.
     ///
-    pub fn dummy<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, RecordError> {
+    pub fn new_dummy<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, RecordError> {
         // Set the address.
         let private_key = PrivateKey::new(rng)?;
         let owner = Address::from(&private_key)?;

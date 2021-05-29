@@ -20,7 +20,7 @@ use rand::{rngs::StdRng, SeedableRng};
 #[test]
 fn test_build_dummy_record() {
     let rng = &mut StdRng::from_entropy();
-    let r = Record::dummy(rng).unwrap();
+    let r = Record::new_dummy(rng).unwrap();
 
     println!("{}", r);
 }

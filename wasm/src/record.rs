@@ -29,7 +29,7 @@ impl Record {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         let rng = &mut StdRng::from_entropy();
-        let record = RecordNative::dummy(rng).unwrap();
+        let record = RecordNative::new_dummy(rng).unwrap();
 
         Self { record }
     }
