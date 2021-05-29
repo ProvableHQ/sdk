@@ -51,8 +51,6 @@ pub struct Record {
 }
 
 impl Record {
-    pub(crate) const ZERO_VALUE: u64 = 0;
-
     ///
     /// Returns a new record builder.
     ///
@@ -98,7 +96,7 @@ impl Record {
             .birth_program_id(birth_program_id)
             .death_program_id(death_program_id)
             .serial_number_nonce(serial_number_nonce)
-            .calculate_commitment(Some(rng))
+            .calculate_commitment_randomness(rng)
             .build()
     }
 }

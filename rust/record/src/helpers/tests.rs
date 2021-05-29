@@ -69,7 +69,7 @@ fn test_encode_and_decode() {
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)
-                .calculate_commitment(Some(rng))
+                .calculate_commitment_randomness(rng)
                 .build()
                 .unwrap();
 
@@ -129,7 +129,7 @@ fn test_encrypt_and_decrypt() {
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)
-                .calculate_commitment(Some(rng))
+                .calculate_commitment_randomness(rng)
                 .build()
                 .unwrap();
 

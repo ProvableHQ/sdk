@@ -16,6 +16,7 @@
 
 use aleo_account::*;
 use aleo_record::*;
+use aleo_record::
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use snarkvm_algorithms::{CommitmentScheme, CRH};

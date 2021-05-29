@@ -145,84 +145,12 @@ impl RecordBuilder {
     ///
     /// Returns a new record builder and calculates a new `commitment_randomness: CommitmentRandomness`.
     ///
-    pub fn calculate_commitment_randomness<R: Rng + CryptoRng>(rng: &mut R) -> CommitmentRandomness {
+    pub fn calculate_commitment_randomness<R: Rng + CryptoRng>(self, rng: &mut R) -> Self {
         // Sample new commitment randomness.
-        <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng)
-    }
+        let commitment_randomness =
+            <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
 
-    ///
-    /// Returns a new record builder and calculates the field `commitment: RecordCommitment` from
-    /// the given `SystemParameters`.
-    ///
-    pub fn calculate_commitment<R: Rng + CryptoRng>(mut self, rng: Option<&mut R>) -> Self {
-        // Try to compute record commitment.
-        if self.can_calculate_commitment() {
-            // Check for commitment randomness or derive it.
-            let commitment_randomness = match self.commitment_randomness {
-                Some(randomness) => randomness,
-                None => {
-                    // Check for randomness
-                    match rng {
-                        Some(rng) => Self::calculate_commitment_randomness(rng),
-                        None => {
-                            // Attempted to calculate commitment without commitment randomness.
-                            self.errors.push(RecordError::MissingRandomness);
-
-                            return self;
-                        }
-                    }
-                }
-            };
-
-            self.commitment_randomness = Some(commitment_randomness);
-
-            // Compute the commitment.
-            let commitment = {
-                let system_parameters = SystemParameters::<Components>::load().unwrap();
-
-                // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
-                let commitment_input = to_bytes![
-                    self.owner.as_ref().unwrap().to_bytes(),    // 256 bits = 32 bytes
-                    self.is_dummy.as_ref().unwrap(),            // 1 bit = 1 byte
-                    self.value.as_ref().unwrap(),               // 64 bits = 8 bytes
-                    self.payload.as_ref().unwrap(),             // 256 bits = 32 bytes
-                    self.birth_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
-                    self.death_program_id.as_ref().unwrap(),    // 384 bits = 48 bytes
-                    self.serial_number_nonce.as_ref().unwrap()  // 256 bits = 32 bytes
-                ]
-                .unwrap();
-
-                <Components as DPCComponents>::RecordCommitment::commit(
-                    &system_parameters.record_commitment,
-                    &commitment_input,
-                    &self.commitment_randomness.as_ref().unwrap(),
-                )
-                .unwrap()
-            };
-            self.commitment = Some(commitment);
-        }
-
-        self
-    }
-
-    ///
-    /// Returns `true` if the record builder has enough information to compute the record commitment.
-    ///
-    pub fn can_calculate_commitment(&self) -> bool {
-        self.owner.is_some()
-            && self.is_dummy.is_some()
-            && self.value.is_some()
-            && self.payload.is_some()
-            && self.birth_program_id.is_some()
-            && self.death_program_id.is_some()
-            && self.serial_number_nonce.is_some()
-    }
-
-    ///
-    /// Returns `true` if the record builder can check that a commitment is correct.
-    ///
-    pub fn can_check_commitment(&self) -> bool {
-        self.can_calculate_commitment() && self.commitment_randomness.is_some()
+        self.commitment_randomness(commitment_randomness)
     }
 
     ///
@@ -232,7 +160,7 @@ impl RecordBuilder {
     pub fn build(self) -> Result<Record, RecordError> {
         // Return error.
         if !self.errors.is_empty() {
-            // Print out all error
+            // Print out all errors
 
             for err in self.errors {
                 println!("BuilderError: {:?}", err);
@@ -242,27 +170,43 @@ impl RecordBuilder {
             return Err(RecordError::BuilderError);
         }
 
+        // Get owner
+        let owner = match self.owner {
+            Some(value) => value,
+            None => return Err(RecordError::MissingField("owner".to_string())),
+        };
+
+        // Get value
         let value = match self.value {
             Some(value) => value,
             None => return Err(RecordError::MissingField("value".to_string())),
         };
 
+        // Get payload
         let payload = match self.payload {
             Some(payload) => payload,
             None => return Err(RecordError::MissingField("payload".to_string())),
         };
 
+        // Get birth_program_id
         let birth_program_id = match self.birth_program_id {
             Some(birth_program_id) => birth_program_id,
             None => return Err(RecordError::MissingField("birth_program_id".to_string())),
         };
 
+        // Get death_program_id
         let death_program_id = match self.death_program_id {
             Some(death_program_id) => death_program_id,
             None => return Err(RecordError::MissingField("death_program_id".to_string())),
         };
 
-        // Canonically derive noop_program_id.
+        // Get serial_number_nonce
+        let serial_number_nonce = match self.serial_number_nonce {
+            Some(serial_number_nonce) => serial_number_nonce,
+            None => return Err(RecordError::MissingField("serial_number_nonce".to_string())),
+        };
+
+        // Get noop_program_id.
         let system_parameters = SystemParameters::<Components>::load()?;
         let program_snark_pp = NoopProgramSNARKParameters::<Components>::load()?;
 
@@ -275,84 +219,53 @@ impl RecordBuilder {
         ]
         .unwrap();
 
-        // Derive is_dummy.
+        // Derive is_dummy
         let is_dummy = (value == 0)
             && (payload == Payload::default())
             && (birth_program_id == noop_program_id)
             && (death_program_id == noop_program_id);
 
+        // Get commitment_randomness
         let commitment_randomness = match self.commitment_randomness {
             Some(commitment_randomness) => commitment_randomness,
             None => return Err(RecordError::MissingRandomness),
         };
 
+        // Total = 32 + 1 + 8 + 32 + 48 + 48 + 32 = 201 bytes
+        let commitment_input = to_bytes![
+            owner.to_bytes(),    // 256 bits = 32 bytes
+            is_dummy,            // 1 bit = 1 byte
+            value,               // 64 bits = 8 bytes
+            payload,             // 256 bits = 32 bytes
+            birth_program_id,    // 384 bits = 48 bytes
+            death_program_id,    // 384 bits = 48 bytes
+            serial_number_nonce  // 256 bits = 32 bytes
+        ]
+        .unwrap();
+
         // Derive commitment
-        let can_check_commitment = self.can_check_commitment();
-        let commitment: Commitment = match self.commitment {
-            Some(commitment) => {
-                // Check record commitment
-                // Log an error if the commitment is invalid
-                if can_check_commitment {
-                    let expected = self.calculate_commitment_helper();
+        let commitment = <Components as DPCComponents>::RecordCommitment::commit(
+            &system_parameters.record_commitment,
+            &commitment_input,
+            &commitment_randomness,
+        )?;
 
-                    if expected == commitment {
-                        commitment
-                    } else {
-                        return Err(RecordError::InvalidCommitment);
-                    }
-                } else {
-                    return Err(RecordError::CannotVerifyCommitment);
-                }
+        // Check the given record commitment is valid if the user provided it.
+        if let Some(given_commitment) = self.commitment {
+            if given_commitment != commitment {
+                return Err(RecordError::InvalidCommitment);
             }
-            None => {
-                // Compute record commitment
-                self.calculate_commitment_helper()
-            }
-        };
-
-        // TODO: 1. Derive is_dummy. 2. Check that the commitment is valid.
-        // // Set record value to 0 for dummy records.
-        // if is_dummy {
-        //     match self.value {
-        //         Some(value) => {
-        //             if value == 0 {
-        //                 // Value is already 0, do nothing
-        //             } else {
-        //                 // Value is non-zero, return an error
-        //                 self.errors.push(RecordError::NonZeroValue);
-        //             }
-        //         }
-        //         None => return self.value(Record::ZERO_VALUE),
-        //     }
-        // }
-        //
-        // // Try to check record commitment.
-        // // Log an error if we cannot check the commitment.
-        // if self.can_check_commitment() {
-        //     let expected = self.calculate_commitment_helper();
-        //
-        //     if expected == commitment {
-        //         self.commitment = Some(commitment);
-        //     } else {
-        //         self.errors.push(RecordError::InvalidCommitment);
-        //     }
-        // } else {
-        //     self.errors.push(RecordError::CannotVerifyCommitment);
-        // }
+        }
 
         // Build record.
         Ok(Record {
-            owner: self
-                .owner
-                .ok_or_else(|| RecordError::MissingField("owner".to_string()))?,
+            owner,
             is_dummy,
             value,
             payload,
             birth_program_id,
             death_program_id,
-            serial_number_nonce: self
-                .serial_number_nonce
-                .ok_or_else(|| RecordError::MissingField("serial_number_nonce".to_string()))?,
+            serial_number_nonce,
             commitment,
             commitment_randomness,
         })
