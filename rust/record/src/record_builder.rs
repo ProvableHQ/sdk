@@ -19,7 +19,12 @@ use aleo_account::Address;
 
 use rand::{CryptoRng, Rng};
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
-use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, SystemParameters};
+use snarkvm_dpc::{
+    base_dpc::instantiated::{Components, ProgramVerificationKeyCRH},
+    DPCComponents,
+    NoopProgramSNARKParameters,
+    SystemParameters,
+};
 use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
 use std::str::FromStr;
 
@@ -216,6 +221,74 @@ impl RecordBuilder {
             return Err(RecordError::BuilderError);
         }
 
+        let value = match self.value {
+            Some(value) => value,
+            None => return Err(RecordError::MissingField("value".to_string())),
+        };
+
+        let payload = match self.payload {
+            Some(payload) => payload,
+            None => return Err(RecordError::MissingField("payload".to_string())),
+        };
+
+        let birth_program_id = match self.birth_program_id {
+            Some(birth_program_id) => birth_program_id,
+            None => return Err(RecordError::MissingField("birth_program_id".to_string())),
+        };
+
+        let death_program_id = match self.death_program_id {
+            Some(death_program_id) => death_program_id,
+            None => return Err(RecordError::MissingField("death_program_id".to_string())),
+        };
+
+        // Canonically derive noop_program_id.
+        let system_parameters = SystemParameters::<Components>::load()?;
+        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load()?;
+
+        let noop_program_id = to_bytes![
+            ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
+        ]
+        .unwrap();
+
+        // Derive is_dummy.
+        let is_dummy = (value == 0)
+            && (payload == Payload::default())
+            && (birth_program_id == noop_program_id)
+            && (death_program_id == noop_program_id);
+
+        let commitment_randomness = match self.commitment_randomness {
+            Some(commitment_randomness) => commitment_randomness,
+            None => return Err(RecordError::MissingRandomness),
+        };
+
+        // Derive commitment
+        let can_check_commitment = self.can_check_commitment();
+        let commitment: Commitment = match self.commitment {
+            Some(commitment) => {
+                // Check record commitment
+                // Log an error if the commitment is invalid
+                if can_check_commitment {
+                    let expected = self.calculate_commitment_helper();
+
+                    if expected == commitment {
+                        commitment
+                    } else {
+                        return Err(RecordError::InvalidCommitment);
+                    }
+                } else {
+                    return Err(RecordError::CannotVerifyCommitment);
+                }
+            }
+            None => {
+                // Compute record commitment
+                self.calculate_commitment_helper()
+            }
+        };
+
         // TODO: 1. Derive is_dummy. 2. Check that the commitment is valid.
         // // Set record value to 0 for dummy records.
         // if is_dummy {
@@ -251,30 +324,16 @@ impl RecordBuilder {
             owner: self
                 .owner
                 .ok_or_else(|| RecordError::MissingField("owner".to_string()))?,
-            is_dummy: self
-                .is_dummy
-                .ok_or_else(|| RecordError::MissingField("is_dummy".to_string()))?,
-            value: self
-                .value
-                .ok_or_else(|| RecordError::MissingField("value".to_string()))?,
-            payload: self
-                .payload
-                .ok_or_else(|| RecordError::MissingField("payload".to_string()))?,
-            birth_program_id: self
-                .birth_program_id
-                .ok_or_else(|| RecordError::MissingField("birth_program_id".to_string()))?,
-            death_program_id: self
-                .death_program_id
-                .ok_or_else(|| RecordError::MissingField("death_program_id".to_string()))?,
+            is_dummy,
+            value,
+            payload,
+            birth_program_id,
+            death_program_id,
             serial_number_nonce: self
                 .serial_number_nonce
                 .ok_or_else(|| RecordError::MissingField("serial_number_nonce".to_string()))?,
-            commitment: self
-                .commitment
-                .ok_or_else(|| RecordError::MissingField("commitment".to_string()))?,
-            commitment_randomness: self
-                .commitment_randomness
-                .ok_or_else(|| RecordError::MissingField("commitment_randomness".to_string()))?,
+            commitment,
+            commitment_randomness,
         })
     }
 
