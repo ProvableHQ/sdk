@@ -15,8 +15,8 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{Record, RecordError};
-
 use aleo_account::ViewKey;
+
 use rand::Rng;
 use snarkvm_algorithms::EncryptionScheme;
 use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, DPCRecord, RecordEncryption, SystemParameters};
@@ -32,10 +32,11 @@ impl Encrypt {
     pub fn encrypt<R: Rng>(record: &Record, rng: &mut R) -> Result<(EncryptionRandomness, Vec<u8>), RecordError> {
         let system_parameters = SystemParameters::<Components>::load()?;
 
-        let record: DPCRecord<Components> = FromBytes::read(&to_bytes![record]?[..])?;
-
-        let (encryption_randomness, encrypted_record) =
-            RecordEncryption::<Components>::encrypt_record(&system_parameters, &record, rng)?;
+        let (encryption_randomness, encrypted_record) = RecordEncryption::<Components>::encrypt_record(
+            &system_parameters,
+            &FromBytes::read(&to_bytes![record]?[..])?,
+            rng,
+        )?;
 
         Ok((encryption_randomness, to_bytes![encrypted_record]?))
     }
