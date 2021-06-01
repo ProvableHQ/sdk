@@ -19,6 +19,8 @@ use aleo_account::{AddressError, PrivateKeyError, ViewKeyError};
 use snarkvm_algorithms::{CRHError, CommitmentError, EncryptionError};
 use snarkvm_dpc::DPCError;
 
+use hex::FromHexError;
+
 #[derive(Debug, Error)]
 pub enum RecordError {
     #[error("{}", _0)]
@@ -70,5 +72,32 @@ pub enum RecordError {
 impl From<std::io::Error> for RecordError {
     fn from(error: std::io::Error) -> Self {
         RecordError::Crate("std::io", format!("{:?}", error))
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum EncodedRecordError {
+    #[error("{}: {}", _0, _1)]
+    Crate(&'static str, String),
+
+    #[error("{}", _0)]
+    DPCError(#[from] DPCError),
+}
+
+#[derive(Debug, Error)]
+pub enum EncryptedRecordError {
+    #[error("{}: {}", _0, _1)]
+    Crate(&'static str, String),
+
+    #[error("{}", _0)]
+    DPCError(#[from] DPCError),
+
+    #[error("{}", _0)]
+    FromHexError(#[from] FromHexError),
+}
+
+impl From<std::io::Error> for EncryptedRecordError {
+    fn from(error: std::io::Error) -> Self {
+        EncryptedRecordError::Crate("std::io", format!("{:?}", error))
     }
 }

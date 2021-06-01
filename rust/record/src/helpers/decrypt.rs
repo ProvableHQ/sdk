@@ -17,10 +17,9 @@
 use crate::{Record, RecordError};
 
 use aleo_account::ViewKey;
-use snarkvm_dpc::testnet1::{
-    instantiated::Components,
-    parameters::SystemParameters,
-    record_encryption::RecordEncryption,
+use snarkvm_dpc::{
+    testnet1::{instantiated::Components, parameters::SystemParameters, record_encryption::RecordEncryption},
+    DPCError,
 };
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
@@ -28,7 +27,7 @@ pub(crate) struct Decrypt;
 
 impl Decrypt {
     /// Decrypt and reconstruct the encrypted record
-    pub(crate) fn decrypt(view_key: &ViewKey, encrypted_record: &[u8]) -> Result<Record, RecordError> {
+    pub(crate) fn decrypt(view_key: &ViewKey, encrypted_record: &[u8]) -> Result<Record, DPCError> {
         let system_parameters = SystemParameters::<Components>::load()?;
 
         let record = RecordEncryption::<Components>::decrypt_record(

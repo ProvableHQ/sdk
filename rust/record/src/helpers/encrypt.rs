@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Record, RecordError};
+use crate::Record;
 
-use rand::Rng;
 use snarkvm_algorithms::EncryptionScheme;
 use snarkvm_dpc::{
     testnet1::{instantiated::Components, parameters::SystemParameters, record_encryption::RecordEncryption},
     DPCComponents,
+    DPCError,
 };
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
+
+use rand::Rng;
 
 pub(crate) type EncryptionRandomness =
     <<Components as DPCComponents>::AccountEncryption as EncryptionScheme>::Randomness;
@@ -30,11 +32,8 @@ pub(crate) type EncryptionRandomness =
 pub(crate) struct Encrypt;
 
 impl Encrypt {
-    /// Encrypt the given vector of records and returns tuple (encryption randomness, encrypted record).
-    pub(crate) fn encrypt<R: Rng>(
-        record: &Record,
-        rng: &mut R,
-    ) -> Result<(EncryptionRandomness, Vec<u8>), RecordError> {
+    /// Encrypt the given record and returns tuple (encryption randomness, encrypted record).
+    pub(crate) fn encrypt<R: Rng>(record: &Record, rng: &mut R) -> Result<(EncryptionRandomness, Vec<u8>), DPCError> {
         let system_parameters = SystemParameters::<Components>::load()?;
 
         let (encryption_randomness, encrypted_record) = RecordEncryption::<Components>::encrypt_record(

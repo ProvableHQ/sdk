@@ -13,5 +13,70 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+use crate::{helpers::Decrypt, Encrypt, EncryptedRecordError, EncryptionRandomness, Record};
+use aleo_account::ViewKey;
 
-pub struct EncryptedRecord;
+use snarkvm_dpc::testnet1::{instantiated::Components, record::EncryptedRecord as EncryptedRecordInner};
+use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
+
+use rand::Rng;
+use std::{
+    fmt,
+    io::{Result as IoResult, Write},
+    str::FromStr,
+};
+
+#[derive(Debug)]
+pub struct EncryptedRecord {
+    pub encrypted_record: Vec<u8>,
+}
+
+impl EncryptedRecord {
+    /// Encrypt the given record and returns tuple (encryption randomness, encrypted record).
+    pub fn from<R: Rng>(record: &Record, rng: &mut R) -> Result<(EncryptionRandomness, Self), EncryptedRecordError> {
+        let (encryption_randomness, encrypted_record) = Encrypt::encrypt(record, rng)?;
+
+        Ok((encryption_randomness, Self { encrypted_record }))
+    }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut output = vec![];
+        self.encrypted_record
+            .write(&mut output)
+            .expect("serialization to bytes failed");
+        output
+    }
+
+    pub fn decrypt(&self, view_key: &ViewKey) -> Result<Record, EncryptedRecordError> {
+        Ok(Decrypt::decrypt(view_key, &*to_bytes![self]?)?)
+    }
+
+    // /// Encrypt the given record using the given public key and encryption_randomness. Returns the encrypted record.
+    // pub fn from_public_key_and_randomness(
+    //     record_public_key: <Components as DPCComponents>::AccountEncryption as EncryptionScheme>::PublicKey,
+    //     encryption_randomness: EncryptionRandomness,
+    //     record_plaintexts: Vec<EdwardsBls>,
+    // ) -> Result<Self, EncryptedRecordError> {}
+}
+
+impl FromStr for EncryptedRecord {
+    type Err = EncryptedRecordError;
+
+    fn from_str(encrypted_record: &str) -> Result<Self, Self::Err> {
+        Ok(Self {
+            encrypted_record: hex::decode(encrypted_record)?,
+        })
+    }
+}
+
+impl fmt::Display for EncryptedRecord {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", hex::encode(&self.encrypted_record[..]))
+    }
+}
+
+impl ToBytes for EncryptedRecord {
+    fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
+        self.encrypted_record.write(&mut writer)
+    }
+}

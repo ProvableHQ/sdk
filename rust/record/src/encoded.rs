@@ -13,5 +13,21 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+use crate::{Encode, EncodedRecordError, Record};
 
-pub struct EncodedRecord;
+use snarkvm_curves::edwards_bls12::{EdwardsParameters, EdwardsProjective as EdwardsBls};
+
+use std::str::FromStr;
+
+// todo: does this struct need to exist?
+pub struct EncodedRecord {
+    elements: Vec<EdwardsBls>,
+    final_sign_high: bool,
+}
+
+impl EncodedRecord {
+    /// Encodes the record.
+    pub fn from(record: &Record) -> Result<(Vec<EdwardsBls>, bool), EncodedRecordError> {
+        Ok(Encode::encode(record)?)
+    }
+}
