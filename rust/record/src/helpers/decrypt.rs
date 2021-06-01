@@ -17,7 +17,11 @@
 use crate::{Record, RecordError};
 
 use aleo_account::ViewKey;
-use snarkvm_dpc::{base_dpc::instantiated::Components, RecordEncryption, SystemParameters};
+use snarkvm_dpc::testnet1::{
+    instantiated::Components,
+    parameters::SystemParameters,
+    record_encryption::RecordEncryption,
+};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 pub(crate) struct Decrypt;

@@ -23,13 +23,12 @@ use aleo_account::*;
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
-    base_dpc::{
+    testnet1::{
         instantiated::{Components, ProgramVerificationKeyCRH, SerialNumberNonce as SerialNumberNonceCRH},
-        record::record_payload::RecordPayload,
+        parameters::{NoopProgramSNARKParameters, SystemParameters},
+        record::payload::Payload,
     },
-    NoopProgramSNARKParameters,
-    Record as RecordInterface,
-    SystemParameters,
+    RecordScheme,
 };
 use snarkvm_utilities::{to_bytes, ToBytes};
 
@@ -67,7 +66,7 @@ fn test_encode_and_decode() {
             let given_record = Record::new()
                 .owner(owner.clone())
                 .value(value)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)
@@ -127,7 +126,7 @@ fn test_encrypt_and_decrypt() {
             let given_record = Record::new()
                 .owner(owner)
                 .value(value)
-                .payload(RecordPayload::from_bytes(&payload))
+                .payload(Payload::from_bytes(&payload))
                 .birth_program_id(program_snark_vk_bytes.clone())
                 .death_program_id(program_snark_vk_bytes.clone())
                 .serial_number_nonce(serial_number_nonce)

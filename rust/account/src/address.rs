@@ -23,7 +23,7 @@ use crate::{
 use snarkvm_algorithms::traits::SignatureScheme;
 use snarkvm_dpc::{
     account::AccountAddress,
-    base_dpc::{instantiated::Components, parameters::SystemParameters},
+    testnet1::{instantiated::Components, parameters::SystemParameters},
 };
 use snarkvm_utilities::bytes::{FromBytes, ToBytes};
 

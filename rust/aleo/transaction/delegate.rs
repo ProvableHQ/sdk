@@ -17,15 +17,15 @@
 use snarkos_storage::{mem::MemDb, Ledger};
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
-    base_dpc::{
+    testnet1::{
         instantiated::{CommitmentMerkleParameters, Components, InstantiatedDPC, Tx},
         parameters::PublicParameters,
         program::NoopProgram,
-        record::DPCRecord,
+        record::Record,
         BaseDPCComponents,
         TransactionKernel,
     },
-    traits::{DPCComponents, DPCScheme, Program, Record},
+    traits::{DPCComponents, DPCScheme, ProgramScheme, RecordScheme},
 };
 use snarkvm_utilities::{to_bytes, ToBytes};
 
@@ -38,7 +38,7 @@ pub fn delegate_transaction<R: Rng>(
     transaction_kernel: TransactionKernel<Components>,
     ledger: &MerkleTreeLedger,
     rng: &mut R,
-) -> anyhow::Result<(Tx, Vec<DPCRecord<Components>>)> {
+) -> anyhow::Result<(Tx, Vec<Record<Components>>)> {
     let parameters = PublicParameters::<Components>::load(false)?;
 
     let local_data = transaction_kernel.into_local_data();
@@ -93,7 +93,7 @@ pub fn delegate_transaction<R: Rng>(
 
     // Online execution to generate a DPC transaction
 
-    let (new_records, transaction) = <InstantiatedDPC as DPCScheme<MerkleTreeLedger>>::execute_online(
+    let (new_records, transaction) = InstantiatedDPC::execute_online(
         &parameters,
         transaction_kernel,
         old_death_program_proofs,

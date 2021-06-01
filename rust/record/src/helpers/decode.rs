@@ -20,13 +20,15 @@ use aleo_account::Address;
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_curves::edwards_bls12::{EdwardsParameters, EdwardsProjective as EdwardsBls};
 use snarkvm_dpc::{
-    base_dpc::{instantiated::Components, record::record_payload::RecordPayload},
+    testnet1::{
+        instantiated::Components,
+        parameters::{PublicParameters, SystemParameters},
+        record::payload::Payload,
+        record_encoding::RecordEncoding,
+    },
     DPCComponents,
     DPCError,
-    PublicParameters,
-    RecordSerializer,
-    RecordSerializerScheme,
-    SystemParameters,
+    RecordEncodingScheme,
 };
 use snarkvm_utilities::{to_bytes, ToBytes};
 
@@ -38,10 +40,8 @@ impl Decode {
         serialized_record: Vec<EdwardsBls>,
         final_sign_high: bool,
     ) -> Result<Record, DPCError> {
-        let record = RecordSerializer::<Components, EdwardsParameters, EdwardsBls>::deserialize(
-            serialized_record,
-            final_sign_high,
-        )?;
+        let record =
+            RecordEncoding::<Components, EdwardsParameters, EdwardsBls>::decode(serialized_record, final_sign_high)?;
 
         // Determine if the record is a dummy record.
         let is_dummy = {
@@ -55,7 +55,7 @@ impl Decode {
             ]?;
 
             record.value == 0
-                && record.payload == RecordPayload::default()
+                && record.payload == Payload::default()
                 && record.birth_program_id == noop_program_id
                 && record.death_program_id == noop_program_id
         };

@@ -18,7 +18,10 @@ use crate::{Record, RecordError};
 
 use rand::Rng;
 use snarkvm_algorithms::EncryptionScheme;
-use snarkvm_dpc::{base_dpc::instantiated::Components, DPCComponents, RecordEncryption, SystemParameters};
+use snarkvm_dpc::{
+    testnet1::{instantiated::Components, parameters::SystemParameters, record_encryption::RecordEncryption},
+    DPCComponents,
+};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 pub(crate) type EncryptionRandomness =

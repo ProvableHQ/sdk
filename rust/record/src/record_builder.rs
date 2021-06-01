@@ -20,13 +20,12 @@ use aleo_account::Address;
 use rand::{CryptoRng, Rng};
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_dpc::{
-    base_dpc::{
+    testnet1::{
         instantiated::{Components, ProgramVerificationKeyCRH},
-        record::record_payload::RecordPayload,
+        parameters::{NoopProgramSNARKParameters, SystemParameters},
+        record::payload::Payload,
     },
     DPCComponents,
-    NoopProgramSNARKParameters,
-    SystemParameters,
 };
 use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
 
@@ -36,7 +35,7 @@ pub struct RecordBuilder {
     pub(crate) owner: Option<Address>,
     pub(crate) is_dummy: Option<bool>,
     pub(crate) value: Option<u64>,
-    pub(crate) payload: Option<RecordPayload>,
+    pub(crate) payload: Option<Payload>,
 
     pub(crate) birth_program_id: Option<Vec<u8>>,
     pub(crate) death_program_id: Option<Vec<u8>>,
@@ -74,9 +73,9 @@ impl RecordBuilder {
     }
 
     ///
-    /// Returns a new record builder and sets field `payload: RecordPayload`.
+    /// Returns a new record builder and sets field `payload: Payload`.
     ///
-    pub fn payload(mut self, payload: RecordPayload) -> Self {
+    pub fn payload(mut self, payload: Payload) -> Self {
         self.payload = Some(payload);
         self
     }
@@ -223,7 +222,7 @@ impl RecordBuilder {
 
         // Derive is_dummy
         let is_dummy = (value == 0)
-            && (payload == RecordPayload::default())
+            && (payload == Payload::default())
             && (birth_program_id == noop_program_id)
             && (death_program_id == noop_program_id);
 

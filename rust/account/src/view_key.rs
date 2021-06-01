@@ -19,7 +19,7 @@ use crate::{PrivateKey, ViewKeyError};
 use snarkvm_algorithms::traits::SignatureScheme;
 use snarkvm_dpc::{
     account::AccountViewKey,
-    base_dpc::{instantiated::Components, parameters::SystemParameters},
+    testnet1::{instantiated::Components, parameters::SystemParameters},
     traits::DPCComponents,
 };
 use snarkvm_utilities::{
