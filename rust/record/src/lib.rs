@@ -34,3 +34,6 @@ pub use record::*;
 
 pub mod record_builder;
 pub use record_builder::*;
+
+#[cfg(test)]
+pub mod tests;

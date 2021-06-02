@@ -20,7 +20,6 @@ use crate::{
 };
 use aleo_account::*;
 
-use rand::{rngs::StdRng, Rng, SeedableRng};
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
     testnet1::{
@@ -31,6 +30,8 @@ use snarkvm_dpc::{
     RecordScheme,
 };
 use snarkvm_utilities::{to_bytes, ToBytes};
+
+use rand::{rngs::StdRng, Rng, SeedableRng};
 
 pub(crate) const ITERATIONS: usize = 5;
 

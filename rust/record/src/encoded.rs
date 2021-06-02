@@ -15,9 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 use crate::{Encode, EncodedRecordError, Record};
 
-use snarkvm_curves::edwards_bls12::{EdwardsParameters, EdwardsProjective as EdwardsBls};
-
-use std::str::FromStr;
+use snarkvm_curves::edwards_bls12::EdwardsProjective as EdwardsBls;
 
 // todo: does this struct need to exist?
 pub struct EncodedRecord {

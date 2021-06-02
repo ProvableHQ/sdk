@@ -16,8 +16,7 @@
 use crate::{helpers::Decrypt, Encrypt, EncryptedRecordError, EncryptionRandomness, Record};
 use aleo_account::ViewKey;
 
-use snarkvm_dpc::testnet1::{instantiated::Components, record::EncryptedRecord as EncryptedRecordInner};
-use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
+use snarkvm_utilities::{to_bytes, ToBytes};
 
 use rand::Rng;
 use std::{
