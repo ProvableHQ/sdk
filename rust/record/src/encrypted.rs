@@ -49,13 +49,6 @@ impl EncryptedRecord {
     pub fn decrypt(&self, view_key: &ViewKey) -> Result<Record, EncryptedRecordError> {
         Ok(Decrypt::decrypt(view_key, &*to_bytes![self]?)?)
     }
-
-    // /// Encrypt the given record using the given public key and encryption_randomness. Returns the encrypted record.
-    // pub fn from_public_key_and_randomness(
-    //     record_public_key: <Components as DPCComponents>::AccountEncryption as EncryptionScheme>::PublicKey,
-    //     encryption_randomness: EncryptionRandomness,
-    //     record_plaintexts: Vec<EdwardsBls>,
-    // ) -> Result<Self, EncryptedRecordError> {}
 }
 
 impl FromStr for EncryptedRecord {

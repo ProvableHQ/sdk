@@ -17,7 +17,6 @@
 use crate::{Commitment, CommitmentRandomness, Record, RecordError, SerialNumberNonce};
 use aleo_account::Address;
 
-use rand::{CryptoRng, Rng};
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_dpc::{
     testnet1::{
@@ -28,6 +27,8 @@ use snarkvm_dpc::{
     DPCComponents,
 };
 use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
+
+use rand::{CryptoRng, Rng};
 
 /// A builder struct for the Aleo record data type.
 #[derive(Default, Debug)]

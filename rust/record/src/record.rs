@@ -17,7 +17,6 @@
 use crate::{RecordBuilder, RecordError};
 use aleo_account::{Address, PrivateKey};
 
-use rand::{CryptoRng, Rng};
 use snarkvm_algorithms::{
     traits::{CommitmentScheme, CRH},
     SignatureScheme,
@@ -28,9 +27,12 @@ use snarkvm_dpc::{
     DPCComponents,
 };
 use snarkvm_utilities::{read_variable_length_integer, to_bytes, variable_length_integer, FromBytes, ToBytes};
+
+use rand::{CryptoRng, Rng};
 use std::{
     fmt,
     io::{Read, Result as IoResult, Write},
+    str::FromStr,
 };
 
 pub type SerialNumber = <<Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
@@ -214,19 +216,39 @@ impl FromBytes for Record {
     }
 }
 
-// todo (collin): Come up with better UX for displaying records.
-impl fmt::Display for Record {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "Record {{")?;
-        writeln!(f, "\t owner: {}", self.owner.to_string())?;
-        writeln!(f, "\t is_dummy: {:?}", self.is_dummy)?;
-        writeln!(f, "\t value: {:?}", self.value)?;
-        writeln!(f, "\t payload: {:?}", hex::encode(self.payload.to_bytes()))?;
-        writeln!(f, "\t birth_program_id: {:?}", hex::encode(&self.birth_program_id))?;
-        writeln!(f, "\t death_program_id: {:?}", hex::encode(&self.death_program_id))?;
-        writeln!(f, "\t serial_number_nonce: {:?}", self.serial_number_nonce)?;
-        writeln!(f, "\t commitment: {:?}", self.commitment)?;
-        writeln!(f, "\t commitment_randomness: {:?}", self.commitment_randomness)?;
-        write!(f, "}}")
+impl FromStr for Record {
+    type Err = RecordError;
+
+    fn from_str(record: &str) -> Result<Self, Self::Err> {
+        let record = hex::decode(record)?;
+
+        Ok(Self::read(&record[..])?)
     }
 }
+
+impl fmt::Display for Record {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            hex::encode(to_bytes![self].expect("serialization to bytes failed"))
+        )
+    }
+}
+
+// // todo (collin): Come up with better UX for displaying records.
+// impl fmt::Display for Record {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         writeln!(f, "Record {{")?;
+//         writeln!(f, "\t owner: {}", self.owner.to_string())?;
+//         writeln!(f, "\t is_dummy: {:?}", self.is_dummy)?;
+//         writeln!(f, "\t value: {:?}", self.value)?;
+//         writeln!(f, "\t payload: {:?}", hex::encode(self.payload.to_bytes()))?;
+//         writeln!(f, "\t birth_program_id: {:?}", hex::encode(&self.birth_program_id))?;
+//         writeln!(f, "\t death_program_id: {:?}", hex::encode(&self.death_program_id))?;
+//         writeln!(f, "\t serial_number_nonce: {:?}", self.serial_number_nonce)?;
+//         writeln!(f, "\t commitment: {:?}", self.commitment)?;
+//         writeln!(f, "\t commitment_randomness: {:?}", self.commitment_randomness)?;
+//         write!(f, "}}")
+//     }
+// }

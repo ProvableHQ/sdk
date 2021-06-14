@@ -15,8 +15,8 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::Record;
-
 use aleo_account::ViewKey;
+
 use snarkvm_dpc::{
     testnet1::{instantiated::Components, parameters::SystemParameters, record_encryption::RecordEncryption},
     DPCError,

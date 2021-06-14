@@ -29,12 +29,12 @@ use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 use std::str::FromStr;
 
-const TEST_RECORD_OWNER: &str = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
-const TEST_RECORD_VALUE: u64 = 100;
-const TEST_RECORD_PAYLOAD: &str = "e456ab4252bd295128ee51efeb4835a9f6f29f818d13021802df91079599ab3a";
-const TEST_RECORD_SERIAL_NUMBER_NONCE: &str = "89357d5fedcb36fa5662bd902689739eafc10e30e84c86648d6a5ec0be52cc00";
-const TEST_RECORD_COMMITMENT_RANDOMNESS: &str = "aa83a5428e0827c262d2ccad4be75fc1d01ebd0f9a5c0cc2d7a6557cb8664101";
-const TEST_RECORD_COMMITMENT: &str = "9cb6e5813f7008058906868de82c27764cb058aa361d0224f76877898127a304";
+pub const TEST_RECORD_OWNER: &str = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
+pub const TEST_RECORD_VALUE: u64 = 100;
+pub const TEST_RECORD_PAYLOAD: &str = "e456ab4252bd295128ee51efeb4835a9f6f29f818d13021802df91079599ab3a";
+pub const TEST_RECORD_SERIAL_NUMBER_NONCE: &str = "89357d5fedcb36fa5662bd902689739eafc10e30e84c86648d6a5ec0be52cc00";
+pub const TEST_RECORD_COMMITMENT_RANDOMNESS: &str = "aa83a5428e0827c262d2ccad4be75fc1d01ebd0f9a5c0cc2d7a6557cb8664101";
+pub const TEST_RECORD_COMMITMENT: &str = "9cb6e5813f7008058906868de82c27764cb058aa361d0224f76877898127a304";
 
 #[test]
 fn test_build_dummy_record() {

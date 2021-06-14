@@ -50,6 +50,9 @@ pub enum RecordError {
     #[error("{}", _0)]
     EncryptionError(#[from] EncryptionError),
 
+    #[error("{}", _0)]
+    FromHexError(#[from] FromHexError),
+
     #[error("Attempted to build a record with an invalid commitment. Try `calculate_commitment()`")]
     InvalidCommitment,
 
