@@ -14,13 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[macro_use]
-extern crate thiserror;
+use snarkvm_dpc::testnet1::{instantiated::Components as Testnet1Components, payload::Payload as Testnet1Payload};
 
-pub mod cli;
-pub mod commands;
-pub mod environment;
-pub mod errors;
-pub mod snarkos;
-pub mod transaction;
-pub mod updater;
+/// The target environment for building accounts, records, and transactions.
+pub enum Environment {
+    Testnet1(Testnet1),
+    //Testnet2(Testnet2),
+}
+
+/// The configuration for an Environment.
+pub trait Configuration {
+    /// Dpc components
+    type Components;
+
+    /// Record payload
+    type Payload;
+
+    // type PublicParameters;
+}
+
+/// The testnet1 environment
+pub struct Testnet1;
+
+impl Configuration for Testnet1 {
+    type Components = Testnet1Components;
+    type Payload = Testnet1Payload;
+    // type PublicParameters = PublicParameters<Testnet1Components>;
+}
