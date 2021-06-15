@@ -40,6 +40,12 @@ pub type SerialNumberNonce = <<Components as DPCComponents>::SerialNumberNonceCR
 pub type Commitment = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
 pub type CommitmentRandomness = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
 
+// todo (collin): change record struct to this
+// pub struct Record {
+//     record: Box<dyn RecordScheme>, // trait object
+//     environment: Environment,      // Enum
+// }
+
 /// The Aleo record data type.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct Record {

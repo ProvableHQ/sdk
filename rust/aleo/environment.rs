@@ -14,30 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_dpc::testnet1::{instantiated::Components as Testnet1Components, payload::Payload as Testnet1Payload};
+use snarkvm_dpc::{
+    testnet1::{instantiated::Components as Testnet1Components, payload::Payload as Testnet1Payload},
+    DPCComponents,
+};
+use snarkvm_utilities::{FromBytes, ToBytes};
 
-/// The target environment for building accounts, records, and transactions.
+/// The testnet1 environment
+pub struct Testnet1 {
+    pub components: Testnet1Components,
+    pub payload: Testnet1Payload,
+}
+
+/// The target environment for building records, and transactions.
 pub enum Environment {
     Testnet1(Testnet1),
     //Testnet2(Testnet2),
 }
 
-/// The configuration for an Environment.
-pub trait Configuration {
-    /// Dpc components
-    type Components;
+impl Environment {
+    pub fn components(self) -> impl DPCComponents {
+        match self {
+            Environment::Testnet1(testnet1) => testnet1.components,
+        }
+    }
 
-    /// Record payload
-    type Payload;
-
-    // type PublicParameters;
-}
-
-/// The testnet1 environment
-pub struct Testnet1;
-
-impl Configuration for Testnet1 {
-    type Components = Testnet1Components;
-    type Payload = Testnet1Payload;
-    // type PublicParameters = PublicParameters<Testnet1Components>;
+    pub fn payload(self) -> impl ToBytes + FromBytes {
+        match self {
+            Environment::Testnet1(testnet1) => testnet1.payload,
+        }
+    }
 }
