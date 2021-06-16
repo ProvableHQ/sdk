@@ -43,10 +43,12 @@ impl<E: Environment> TransactionScheme for Transaction<E> {
     type EncryptedRecord = EncryptedRecord<E::Components>;
     type InnerCircuitID = <<E::Components as DPCComponents>::InnerCircuitIDCRH as CRH>::Output;
     type LocalDataRoot = <<E::Components as DPCComponents>::LocalDataCRH as CRH>::Output;
+    // todo: make this type part of components in snarkvm_dpc
     type Memorandum = [u8; 32];
     type ProgramCommitment =
         <<E::Components as DPCComponents>::ProgramVerificationKeyCommitment as CommitmentScheme>::Output;
     type SerialNumber = <<E::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
+    // todo: make this type part of components in snarkvm_dpc
     type ValueBalance = AleoAmount;
 
     fn transaction_id(&self) -> Result<[u8; 32], TransactionError> {

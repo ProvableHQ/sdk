@@ -28,7 +28,7 @@ use snarkvm_utilities::{to_bytes, variable_length_integer::variable_length_integ
 
 use rand::{CryptoRng, Rng};
 
-/// A builder struct for the Aleo record data type.
+/// A builder struct for the Record data type.
 #[derive(Debug)]
 pub struct RecordBuilder<E: Environment> {
     pub(crate) owner: Option<Address>,

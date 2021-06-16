@@ -18,11 +18,14 @@ use snarkvm_dpc::{
     testnet1::{
         instantiated::Components as Testnet1Components,
         payload::Payload as Testnet1Payload,
+        transaction::amount::AleoAmount,
         BaseDPCComponents,
     },
     DPCComponents,
 };
 use snarkvm_utilities::{FromBytes, ToBytes};
+
+use std::{fmt::Debug, hash::Hash};
 
 /// The target environment for building records, and transactions.
 pub trait Environment {
@@ -30,12 +33,18 @@ pub trait Environment {
 
     /// Record interface
     type Payload: FromBytes + ToBytes + Default + PartialEq;
+
+    /// Transaction interface
+    type Amount: Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash;
+    type Memorandum: FromBytes + ToBytes;
 }
 
 /// The testnet1 environment
 pub struct Testnet1;
 
 impl Environment for Testnet1 {
+    type Amount = AleoAmount;
     type Components = Testnet1Components;
+    type Memorandum = [u8; 32];
     type Payload = Testnet1Payload;
 }
