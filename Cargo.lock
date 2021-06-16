@@ -56,10 +56,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "aleo-environment"
+version = "0.2.0"
+dependencies = [
+ "aleo-account",
+ "snarkvm-algorithms",
+ "snarkvm-dpc",
+ "snarkvm-utilities",
+]
+
+[[package]]
 name = "aleo-record"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
+ "aleo-environment",
  "hex",
  "itertools",
  "rand 0.8.3",
@@ -77,6 +88,7 @@ name = "aleo-wasm"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
+ "aleo-environment",
  "aleo-record",
  "getrandom 0.2.2",
  "hex",

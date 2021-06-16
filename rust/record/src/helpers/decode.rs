@@ -16,6 +16,7 @@
 
 use crate::Record;
 use aleo_account::Address;
+use aleo_environment::Environment;
 
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_curves::edwards_bls12::{EdwardsParameters, EdwardsProjective as EdwardsBls};
@@ -30,16 +31,16 @@ use snarkvm_dpc::{
     DPCError,
     RecordEncodingScheme,
 };
-use snarkvm_utilities::{to_bytes, ToBytes};
+use snarkvm_utilities::{to_bytes, variable_length_integer::variable_length_integer, FromBytes, ToBytes};
 
 pub(crate) struct Decode;
 
 impl Decode {
-    pub(crate) fn decode(
+    pub(crate) fn decode<E: Environment>(
         owner: Address,
         serialized_record: Vec<EdwardsBls>,
         final_sign_high: bool,
-    ) -> Result<Record, DPCError> {
+    ) -> Result<Record<E>, DPCError> {
         let record =
             RecordEncoding::<Components, EdwardsParameters, EdwardsBls>::decode(serialized_record, final_sign_high)?;
 
@@ -84,16 +85,27 @@ impl Decode {
             .unwrap()
         };
 
+        // Serialize record
+        let mut record_bytes = Vec::new();
+        owner.write(&mut record_bytes)?;
+
+        is_dummy.write(&mut record_bytes)?;
+        record.value.write(&mut record_bytes)?;
+        record.payload.write(&mut record_bytes)?;
+
+        variable_length_integer(record.birth_program_id.len() as u64).write(&mut record_bytes)?;
+        record.birth_program_id.write(&mut record_bytes)?;
+
+        variable_length_integer(record.death_program_id.len() as u64).write(&mut record_bytes)?;
+        record.death_program_id.write(&mut record_bytes)?;
+
+        record.serial_number_nonce.write(&mut record_bytes)?;
+        commitment.write(&mut record_bytes)?;
+        record.commitment_randomness.write(&mut record_bytes)?;
+
+        // Build record.
         Ok(Record {
-            owner,
-            is_dummy,
-            value: record.value,
-            payload: record.payload,
-            birth_program_id: record.birth_program_id,
-            death_program_id: record.death_program_id,
-            serial_number_nonce: record.serial_number_nonce,
-            commitment,
-            commitment_randomness: record.commitment_randomness,
+            record: FromBytes::read(&to_bytes![record_bytes]?[..])?,
         })
     }
 }

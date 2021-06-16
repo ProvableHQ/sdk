@@ -16,27 +16,27 @@
 
 use crate::{Commitment, CommitmentRandomness, Record, RecordError, SerialNumberNonce};
 use aleo_account::Address;
+use aleo_environment::Environment;
 
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_dpc::{
     testnet1::{
         instantiated::{Components, ProgramVerificationKeyCRH},
         parameters::{NoopProgramSNARKParameters, SystemParameters},
-        record::payload::Payload,
     },
     DPCComponents,
 };
-use snarkvm_utilities::{to_bytes, ToBytes, UniformRand};
+use snarkvm_utilities::{to_bytes, variable_length_integer::variable_length_integer, FromBytes, ToBytes, UniformRand};
 
 use rand::{CryptoRng, Rng};
 
 /// A builder struct for the Aleo record data type.
-#[derive(Default, Debug)]
-pub struct RecordBuilder {
+#[derive(Debug)]
+pub struct RecordBuilder<E: Environment> {
     pub(crate) owner: Option<Address>,
     pub(crate) is_dummy: Option<bool>,
     pub(crate) value: Option<u64>,
-    pub(crate) payload: Option<Payload>,
+    pub(crate) payload: Option<E::Payload>,
 
     pub(crate) birth_program_id: Option<Vec<u8>>,
     pub(crate) death_program_id: Option<Vec<u8>>,
@@ -48,7 +48,7 @@ pub struct RecordBuilder {
     pub(crate) errors: Vec<RecordError>,
 }
 
-impl RecordBuilder {
+impl<E: Environment> RecordBuilder<E> {
     ///
     /// Returns a new record builder.
     /// To return a record and consume the record builder, call the `.build()` method.
@@ -76,7 +76,7 @@ impl RecordBuilder {
     ///
     /// Returns a new record builder and sets field `payload: Payload`.
     ///
-    pub fn payload(mut self, payload: Payload) -> Self {
+    pub fn payload(mut self, payload: E::Payload) -> Self {
         self.payload = Some(payload);
         self
     }
@@ -159,7 +159,7 @@ impl RecordBuilder {
     /// Returns a `Record` and consumes the record builder.
     /// Returns an error if fields are missing or error are encountered while building.
     ///
-    pub fn build(self) -> Result<Record, RecordError> {
+    pub fn build(self) -> Result<Record<E>, RecordError> {
         // Return error.
         if !self.errors.is_empty() {
             // Print out all errors
@@ -223,7 +223,7 @@ impl RecordBuilder {
 
         // Derive is_dummy
         let is_dummy = (value == 0)
-            && (payload == Payload::default())
+            && (payload == E::Payload::default())
             && (birth_program_id == noop_program_id)
             && (death_program_id == noop_program_id);
 
@@ -259,17 +259,44 @@ impl RecordBuilder {
             }
         }
 
+        // Serialize record
+        let mut record_bytes = Vec::new();
+        owner.write(&mut record_bytes)?;
+
+        is_dummy.write(&mut record_bytes)?;
+        value.write(&mut record_bytes)?;
+        payload.write(&mut record_bytes)?;
+
+        variable_length_integer(birth_program_id.len() as u64).write(&mut record_bytes)?;
+        birth_program_id.write(&mut record_bytes)?;
+
+        variable_length_integer(death_program_id.len() as u64).write(&mut record_bytes)?;
+        death_program_id.write(&mut record_bytes)?;
+
+        serial_number_nonce.write(&mut record_bytes)?;
+        commitment.write(&mut record_bytes)?;
+        commitment_randomness.write(&mut record_bytes)?;
+
         // Build record.
         Ok(Record {
-            owner,
-            is_dummy,
-            value,
-            payload,
-            birth_program_id,
-            death_program_id,
-            serial_number_nonce,
-            commitment,
-            commitment_randomness,
+            record: FromBytes::read(&to_bytes![record_bytes]?[..])?,
         })
+    }
+}
+
+impl<E: Environment> Default for RecordBuilder<E> {
+    fn default() -> Self {
+        Self {
+            owner: None,
+            is_dummy: None,
+            value: None,
+            payload: None,
+            birth_program_id: None,
+            death_program_id: None,
+            serial_number_nonce: None,
+            commitment: None,
+            commitment_randomness: None,
+            errors: vec![],
+        }
     }
 }

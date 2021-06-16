@@ -19,6 +19,7 @@ use crate::{
     Record,
 };
 use aleo_account::*;
+use aleo_environment::Testnet1;
 
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
@@ -64,7 +65,7 @@ fn test_encode_and_decode() {
             let serial_number_nonce =
                 SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
 
-            let given_record = Record::new()
+            let given_record = Record::<Testnet1>::new()
                 .owner(owner.clone())
                 .value(value)
                 .payload(Payload::from_bytes(&payload))
@@ -76,19 +77,19 @@ fn test_encode_and_decode() {
                 .unwrap();
 
             let (encoded_record, final_sign_high) = Encode::encode(&given_record).unwrap();
-            let decoded_record = Decode::decode(owner, encoded_record, final_sign_high).unwrap();
+            let decoded_record = Decode::decode::<Testnet1>(owner, encoded_record, final_sign_high).unwrap();
 
-            assert_eq!(given_record.owner(), &decoded_record.owner);
-            assert_eq!(given_record.is_dummy(), decoded_record.is_dummy);
-            assert_eq!(given_record.value(), decoded_record.value);
-            assert_eq!(given_record.payload(), &decoded_record.payload);
-            assert_eq!(given_record.birth_program_id(), decoded_record.birth_program_id);
-            assert_eq!(given_record.death_program_id(), decoded_record.death_program_id);
-            assert_eq!(given_record.serial_number_nonce(), &decoded_record.serial_number_nonce);
-            assert_eq!(given_record.commitment(), decoded_record.commitment);
+            assert_eq!(given_record.owner(), decoded_record.owner());
+            assert_eq!(given_record.is_dummy(), decoded_record.is_dummy());
+            assert_eq!(given_record.value(), decoded_record.value());
+            assert_eq!(given_record.payload(), decoded_record.payload());
+            assert_eq!(given_record.birth_program_id(), decoded_record.birth_program_id());
+            assert_eq!(given_record.death_program_id(), decoded_record.death_program_id());
+            assert_eq!(given_record.serial_number_nonce(), decoded_record.serial_number_nonce());
+            assert_eq!(given_record.commitment(), decoded_record.commitment());
             assert_eq!(
                 given_record.commitment_randomness(),
-                decoded_record.commitment_randomness
+                decoded_record.commitment_randomness()
             );
         }
     }
@@ -124,7 +125,7 @@ fn test_encrypt_and_decrypt() {
             let serial_number_nonce =
                 SerialNumberNonceCRH::hash(&system_parameters.serial_number_nonce, &serial_number_nonce_input).unwrap();
 
-            let given_record = Record::new()
+            let given_record = Record::<Testnet1>::new()
                 .owner(owner)
                 .value(value)
                 .payload(Payload::from_bytes(&payload))
@@ -140,9 +141,9 @@ fn test_encrypt_and_decrypt() {
             let view_key = ViewKey::from(&dummy_private_key).unwrap();
 
             // Decrypt the record
-            let decrypted_record = Decrypt::decrypt(&view_key, &encryped_record).unwrap();
+            let decrypted_record = Decrypt::decrypt::<Testnet1>(&view_key, &encryped_record).unwrap();
 
-            assert_eq!(given_record, decrypted_record);
+            assert_eq!(given_record.to_string(), decrypted_record.to_string());
         }
     }
 }
