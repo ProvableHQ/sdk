@@ -20,23 +20,8 @@ extern crate derivative;
 #[macro_use]
 extern crate thiserror;
 
-pub mod encoded;
-pub use encoded::*;
+pub mod transaction;
+pub use transaction::*;
 
-pub mod encrypted;
-pub use encrypted::*;
-
-pub mod errors;
-pub use errors::*;
-
-mod helpers;
-use helpers::*;
-
-pub mod record;
-pub use record::*;
-
-pub mod record_builder;
-pub use record_builder::*;
-
-#[cfg(test)]
-pub mod tests;
+pub mod transaction_builder;
+pub use transaction_builder::*;

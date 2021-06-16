@@ -25,7 +25,7 @@ use snarkvm_algorithms::{
 use snarkvm_dpc::{
     testnet1::{
         parameters::PublicParameters,
-        record::{payload::Payload, Record as InnerRecord},
+        record::{payload::Payload, Record as DPCRecord},
     },
     traits::RecordScheme,
     AccountAddress,
@@ -33,16 +33,23 @@ use snarkvm_dpc::{
 };
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
-use rand::{rngs::StdRng, CryptoRng, Rng, SeedableRng};
+use rand::{CryptoRng, Rng};
 use std::{
     fmt,
     io::{Read, Result as IoResult, Write},
     str::FromStr,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Derivative)]
+#[derivative(
+    Default(bound = "E: Environment"),
+    Debug(bound = "E: Environment"),
+    Clone(bound = "E: Environment"),
+    PartialEq(bound = "E: Environment"),
+    Eq(bound = "E: Environment")
+)]
 pub struct Record<E: Environment> {
-    pub(crate) record: InnerRecord<E::Components>,
+    pub(crate) record: DPCRecord<E::Components>,
 }
 
 impl<E: Environment> Record<E> {
@@ -145,14 +152,6 @@ impl<E: Environment> RecordScheme for Record<E> {
     }
 }
 
-impl<E: Environment> Default for Record<E> {
-    fn default() -> Self {
-        let rng = &mut StdRng::from_entropy();
-
-        Self::new_dummy(rng).unwrap()
-    }
-}
-
 impl<E: Environment> ToBytes for Record<E> {
     #[inline]
     fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
@@ -163,9 +162,9 @@ impl<E: Environment> ToBytes for Record<E> {
 impl<E: Environment> FromBytes for Record<E> {
     #[inline]
     fn read<R: Read>(mut reader: R) -> IoResult<Self> {
-        let record = FromBytes::read(&mut reader)?;
-
-        Ok(Self { record })
+        Ok(Self {
+            record: FromBytes::read(&mut reader)?,
+        })
     }
 }
 

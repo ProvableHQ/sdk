@@ -60,7 +60,6 @@ name = "aleo-environment"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
- "snarkvm-algorithms",
  "snarkvm-dpc",
  "snarkvm-utilities",
 ]
@@ -71,6 +70,7 @@ version = "0.2.0"
 dependencies = [
  "aleo-account",
  "aleo-environment",
+ "derivative",
  "hex",
  "itertools",
  "rand 0.8.3",
@@ -79,6 +79,19 @@ dependencies = [
  "snarkvm-curves",
  "snarkvm-dpc",
  "snarkvm-fields",
+ "snarkvm-utilities",
+ "thiserror",
+]
+
+[[package]]
+name = "aleo-transaction"
+version = "0.2.0"
+dependencies = [
+ "aleo-account",
+ "aleo-environment",
+ "derivative",
+ "snarkvm-algorithms",
+ "snarkvm-dpc",
  "snarkvm-utilities",
  "thiserror",
 ]

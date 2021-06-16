@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::Address;
-
-use snarkvm_algorithms::{
-    traits::{CommitmentScheme, CRH},
-    SignatureScheme,
-};
 use snarkvm_dpc::{
     testnet1::{
         instantiated::Components as Testnet1Components,
@@ -29,8 +23,6 @@ use snarkvm_dpc::{
     DPCComponents,
 };
 use snarkvm_utilities::{FromBytes, ToBytes};
-
-use std::hash::Hash;
 
 /// The target environment for building records, and transactions.
 pub trait Environment {
