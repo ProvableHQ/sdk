@@ -19,12 +19,8 @@ use aleo_environment::{Environment, Testnet1};
 
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
-    testnet1::{
-        instantiated::{Components, ProgramVerificationKeyCRH},
-        payload::Payload,
-        NoopProgramSNARKParameters,
-        SystemParameters,
-    },
+    testnet1::{payload::Payload, NoopProgramSNARKParameters, SystemParameters},
+    DPCComponents,
     RecordScheme,
 };
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
@@ -51,11 +47,11 @@ fn test_build_dummy_record() {
     let program_snark_pp = NoopProgramSNARKParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
 
     let noop_program_id = to_bytes![
-        <<<Testnet1 as Environment>::Components as DPCComponents>::ProgramVerificationKeyCRH::hash(
-                &system_parameters.program_verification_key_crh,
-                &to_bytes![program_snark_pp.verification_key].unwrap()
-            )
-            .unwrap()
+        <<Testnet1 as Environment>::Components as DPCComponents>::ProgramVerificationKeyCRH::hash(
+            &system_parameters.program_verification_key_crh,
+            &to_bytes![program_snark_pp.verification_key].unwrap()
+        )
+        .unwrap()
     ]
     .unwrap();
 
@@ -86,7 +82,7 @@ fn test_build_record() {
     let program_snark_pp = NoopProgramSNARKParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
 
     let program_snark_vk_bytes = to_bytes![
-        ProgramVerificationKeyCRH::hash(
+        <<Testnet1 as Environment>::Components as DPCComponents>::ProgramVerificationKeyCRH::hash(
             &system_parameters.program_verification_key_crh,
             &to_bytes![program_snark_pp.verification_key].unwrap()
         )
