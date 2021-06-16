@@ -14,17 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Commitment, CommitmentRandomness, Record, RecordError, SerialNumberNonce};
+use crate::{Record, RecordError};
 use aleo_account::Address;
 use aleo_environment::Environment;
 
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_dpc::{
-    testnet1::{
-        instantiated::{Components, ProgramVerificationKeyCRH},
-        parameters::{NoopProgramSNARKParameters, SystemParameters},
-    },
+    testnet1::parameters::{NoopProgramSNARKParameters, SystemParameters},
     DPCComponents,
+    RecordScheme,
 };
 use snarkvm_utilities::{to_bytes, variable_length_integer::variable_length_integer, FromBytes, ToBytes, UniformRand};
 
@@ -36,14 +34,14 @@ pub struct RecordBuilder<E: Environment> {
     pub(crate) owner: Option<Address>,
     pub(crate) is_dummy: Option<bool>,
     pub(crate) value: Option<u64>,
-    pub(crate) payload: Option<E::Payload>,
+    pub(crate) payload: Option<<Record<E> as RecordScheme>::Payload>,
 
     pub(crate) birth_program_id: Option<Vec<u8>>,
     pub(crate) death_program_id: Option<Vec<u8>>,
 
-    pub(crate) serial_number_nonce: Option<SerialNumberNonce>,
-    pub(crate) commitment: Option<Commitment>,
-    pub(crate) commitment_randomness: Option<CommitmentRandomness>,
+    pub(crate) serial_number_nonce: Option<<Record<E> as RecordScheme>::SerialNumberNonce>,
+    pub(crate) commitment: Option<<Record<E> as RecordScheme>::Commitment>,
+    pub(crate) commitment_randomness: Option<<Record<E> as RecordScheme>::CommitmentRandomness>,
 
     pub(crate) errors: Vec<RecordError>,
 }
@@ -76,7 +74,7 @@ impl<E: Environment> RecordBuilder<E> {
     ///
     /// Returns a new record builder and sets field `payload: Payload`.
     ///
-    pub fn payload(mut self, payload: E::Payload) -> Self {
+    pub fn payload(mut self, payload: <Record<E> as RecordScheme>::Payload) -> Self {
         self.payload = Some(payload);
         self
     }
@@ -100,7 +98,7 @@ impl<E: Environment> RecordBuilder<E> {
     ///
     /// Returns a new record builder and sets field `serial_number_nonce: SerialNumberNonce`.
     ///
-    pub fn serial_number_nonce(mut self, serial_number_nonce: SerialNumberNonce) -> Self {
+    pub fn serial_number_nonce(mut self, serial_number_nonce: <Record<E> as RecordScheme>::SerialNumberNonce) -> Self {
         self.serial_number_nonce = Some(serial_number_nonce);
         self
     }
@@ -111,7 +109,7 @@ impl<E: Environment> RecordBuilder<E> {
     ///
     pub fn calculate_serial_number_nonce<R: Rng>(
         mut self,
-        parameters: SystemParameters<Components>,
+        parameters: SystemParameters<E::Components>,
         index: u8,
         joint_serial_numbers: Vec<u8>,
         rng: &mut R,
@@ -121,7 +119,7 @@ impl<E: Environment> RecordBuilder<E> {
 
         let crh_input = to_bytes![index, sn_randomness, joint_serial_numbers].unwrap();
         let sn_nonce =
-            <Components as DPCComponents>::SerialNumberNonceCRH::hash(&parameters.serial_number_nonce, &crh_input)
+            <E::Components as DPCComponents>::SerialNumberNonceCRH::hash(&parameters.serial_number_nonce, &crh_input)
                 .unwrap();
 
         self.serial_number_nonce = Some(sn_nonce);
@@ -131,7 +129,7 @@ impl<E: Environment> RecordBuilder<E> {
     ///
     /// Returns a new record builder and sets field `commitment: RecordCommitment`.
     ///
-    pub fn commitment(mut self, commitment: Commitment) -> Self {
+    pub fn commitment(mut self, commitment: <Record<E> as RecordScheme>::Commitment) -> Self {
         self.commitment = Some(commitment);
         self
     }
@@ -139,7 +137,10 @@ impl<E: Environment> RecordBuilder<E> {
     ///
     /// Returns a new record builder and sets field `commitment_randomness: CommitmentRandomness`.
     ///
-    pub fn commitment_randomness(mut self, commitment_randomness: CommitmentRandomness) -> Self {
+    pub fn commitment_randomness(
+        mut self,
+        commitment_randomness: <Record<E> as RecordScheme>::CommitmentRandomness,
+    ) -> Self {
         self.commitment_randomness = Some(commitment_randomness);
         self
     }
@@ -150,7 +151,7 @@ impl<E: Environment> RecordBuilder<E> {
     pub fn calculate_commitment_randomness<R: Rng + CryptoRng>(self, rng: &mut R) -> Self {
         // Sample new commitment randomness.
         let commitment_randomness =
-            <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
+            <<E::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness::rand(rng);
 
         self.commitment_randomness(commitment_randomness)
     }
@@ -209,11 +210,11 @@ impl<E: Environment> RecordBuilder<E> {
         };
 
         // Get noop_program_id.
-        let system_parameters = SystemParameters::<Components>::load()?;
-        let program_snark_pp = NoopProgramSNARKParameters::<Components>::load()?;
+        let system_parameters = SystemParameters::<E::Components>::load()?;
+        let program_snark_pp = NoopProgramSNARKParameters::<E::Components>::load()?;
 
         let noop_program_id = to_bytes![
-            ProgramVerificationKeyCRH::hash(
+            <E::Components as DPCComponents>::ProgramVerificationKeyCRH::hash(
                 &system_parameters.program_verification_key_crh,
                 &to_bytes![program_snark_pp.verification_key].unwrap()
             )
@@ -223,7 +224,7 @@ impl<E: Environment> RecordBuilder<E> {
 
         // Derive is_dummy
         let is_dummy = (value == 0)
-            && (payload == E::Payload::default())
+            && (payload == <Record<E> as RecordScheme>::Payload::default())
             && (birth_program_id == noop_program_id)
             && (death_program_id == noop_program_id);
 
@@ -246,7 +247,7 @@ impl<E: Environment> RecordBuilder<E> {
         .unwrap();
 
         // Derive commitment
-        let commitment = <Components as DPCComponents>::RecordCommitment::commit(
+        let commitment = <E::Components as DPCComponents>::RecordCommitment::commit(
             &system_parameters.record_commitment,
             &commitment_input,
             &commitment_randomness,

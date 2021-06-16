@@ -24,7 +24,6 @@ use snarkvm_algorithms::{
 };
 use snarkvm_dpc::{
     testnet1::{
-        instantiated::Components,
         parameters::PublicParameters,
         record::{payload::Payload, Record as InnerRecord},
     },
@@ -40,27 +39,6 @@ use std::{
     io::{Read, Result as IoResult, Write},
     str::FromStr,
 };
-
-pub type SerialNumber = <<Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
-pub type SerialNumberNonce = <<Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output;
-pub type Commitment = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
-pub type CommitmentRandomness = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
-
-// todo (collin): change record struct to this
-// pub struct Record {
-//     pub(crate) record: Box<
-//         dyn RecordScheme<
-//             Owner = Address,
-//             Commitment = Commitment,
-//             CommitmentRandomness = CommitmentRandomness,
-//             Payload = Payload,
-//             SerialNumber = SerialNumber,
-//             SerialNumberNonce = SerialNumberNonce,
-//             Value = u64,
-//         >,
-//     >, //    = note: the trait cannot be made into an object because it requires `Self: Sized`
-//     pub(crate) environment: Environment, // Enum
-// }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Record<E: Environment> {
@@ -88,10 +66,10 @@ impl<E: Environment> Record<E> {
         let value = 0u64;
 
         // Set the payload to the default payload.
-        let payload = E::Payload::default();
+        let payload = <Self as RecordScheme>::Payload::default();
 
         // Set birth program ID and death program ID to the noop program ID.
-        let parameters = PublicParameters::<Components>::load(true)?;
+        let parameters = PublicParameters::<E::Components>::load(true)?;
         let noop_program_id = to_bytes![
             parameters
                 .system_parameters
@@ -123,8 +101,10 @@ impl<E: Environment> RecordScheme for Record<E> {
     type CommitmentRandomness =
         <<<E as Environment>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
     type Owner = AccountAddress<E::Components>;
+    // todo: make this type part of components in snarkvm_dpc
     type Payload = Payload;
-    type SerialNumber = E::SerialNumber;
+    type SerialNumber =
+        <<<E as Environment>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
     type SerialNumberNonce = <<<E as Environment>::Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output;
     type Value = u64;
 

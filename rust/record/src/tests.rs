@@ -13,9 +13,9 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
-use crate::{Commitment, CommitmentRandomness, Record, SerialNumberNonce};
+use crate::Record;
 use aleo_account::Address;
-use aleo_environment::Testnet1;
+use aleo_environment::{Environment, Testnet1};
 
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
@@ -47,15 +47,15 @@ fn test_build_dummy_record() {
 
     // Load system parameters for the ledger, commitment schemes, CRH, and the
     // "always-accept" program.
-    let system_parameters = SystemParameters::<Components>::load().unwrap();
-    let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+    let system_parameters = SystemParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
+    let program_snark_pp = NoopProgramSNARKParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
 
     let noop_program_id = to_bytes![
-        ProgramVerificationKeyCRH::hash(
-            &system_parameters.program_verification_key_crh,
-            &to_bytes![program_snark_pp.verification_key].unwrap()
-        )
-        .unwrap()
+        <<<Testnet1 as Environment>::Components as DPCComponents>::ProgramVerificationKeyCRH::hash(
+                &system_parameters.program_verification_key_crh,
+                &to_bytes![program_snark_pp.verification_key].unwrap()
+            )
+            .unwrap()
     ]
     .unwrap();
 
@@ -82,8 +82,8 @@ fn test_build_dummy_record() {
 fn test_build_record() {
     // Load system parameters for the ledger, commitment schemes, CRH, and the
     // "always-accept" program.
-    let system_parameters = SystemParameters::<Components>::load().unwrap();
-    let program_snark_pp = NoopProgramSNARKParameters::<Components>::load().unwrap();
+    let system_parameters = SystemParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
+    let program_snark_pp = NoopProgramSNARKParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
 
     let program_snark_vk_bytes = to_bytes![
         ProgramVerificationKeyCRH::hash(
@@ -102,13 +102,15 @@ fn test_build_record() {
     let payload = Payload::read(&payload_bytes[..]).unwrap();
 
     let serial_number_nonce_bytes = hex::decode(TEST_RECORD_SERIAL_NUMBER_NONCE).unwrap();
-    let serial_number_nonce = SerialNumberNonce::read(&serial_number_nonce_bytes[..]).unwrap();
+    let serial_number_nonce =
+        <Record<Testnet1> as RecordScheme>::SerialNumberNonce::read(&serial_number_nonce_bytes[..]).unwrap();
 
     let commitment_randomness_bytes = hex::decode(TEST_RECORD_COMMITMENT_RANDOMNESS).unwrap();
-    let commitment_randomness = CommitmentRandomness::read(&commitment_randomness_bytes[..]).unwrap();
+    let commitment_randomness =
+        <Record<Testnet1> as RecordScheme>::CommitmentRandomness::read(&commitment_randomness_bytes[..]).unwrap();
 
     let commitment_bytes = hex::decode(TEST_RECORD_COMMITMENT).unwrap();
-    let commitment = Commitment::read(&commitment_bytes[..]).unwrap();
+    let commitment = <Record<Testnet1> as RecordScheme>::Commitment::read(&commitment_bytes[..]).unwrap();
 
     // Generate new record from randomness
     let given_record = Record::<Testnet1>::new()

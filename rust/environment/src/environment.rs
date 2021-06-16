@@ -37,49 +37,13 @@ pub trait Environment {
     type Components: DPCComponents + BaseDPCComponents;
 
     /// Record interface
-    type Commitment: FromBytes + ToBytes;
-    type CommitmentRandomness;
-    type Owner;
     type Payload: FromBytes + ToBytes + Default + PartialEq;
-    type SerialNumberNonce;
-    type SerialNumber: Clone + Eq + Hash + FromBytes + ToBytes;
-    type Value: FromBytes + ToBytes;
 }
 
 /// The testnet1 environment
 pub struct Testnet1;
 
 impl Environment for Testnet1 {
-    type Commitment =
-        <<<Self as Environment>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
-    type CommitmentRandomness =
-        <<<Self as Environment>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
     type Components = Testnet1Components;
-    type Owner = Address;
     type Payload = Testnet1Payload;
-    type SerialNumber =
-        <<<Self as Environment>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
-    type SerialNumberNonce =
-        <<<Self as Environment>::Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output;
-    type Value = u64;
 }
-
-// /// The target environment for building records, and transactions.
-// pub enum Environment {
-//     Testnet1(Testnet1),
-//     //Testnet2(Testnet2),
-// }
-//
-// impl Environment {
-//     pub fn components(self) -> impl DPCComponents {
-//         match self {
-//             Environment::Testnet1(testnet1) => testnet1.components,
-//         }
-//     }
-//
-//     pub fn payload(self) -> impl ToBytes + FromBytes {
-//         match self {
-//             Environment::Testnet1(testnet1) => testnet1.payload,
-//         }
-//     }
-// }
