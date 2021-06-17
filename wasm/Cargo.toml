@@ -33,7 +33,7 @@ version = "0.5.4"
 default-features = false
 
 [dependencies.getrandom]
-version = "0.2.2"
+version = "0.2.3"
 features = ["js"]
 
 [dependencies.hex]
