@@ -34,7 +34,7 @@ impl Decrypt {
         let record = RecordEncryption::<Components>::decrypt_record(
             &system_parameters,
             &view_key.view_key,
-            &FromBytes::read(&encrypted_record[..])?,
+            &FromBytes::read(encrypted_record)?,
         )?;
 
         Ok(Record::read(&to_bytes![record]?[..])?)

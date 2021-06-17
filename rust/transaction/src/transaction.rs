@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::TransactionBuilder;
 use aleo_environment::Environment;
 
 use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme, SignatureScheme, CRH};
@@ -35,6 +36,16 @@ use std::io::{Read, Result as IoResult, Write};
 )]
 pub struct Transaction<E: Environment> {
     pub(crate) transaction: DPCTransaction<E::Components>,
+}
+
+impl<E: Environment> Transaction<E> {
+    ///
+    /// Returns a new transaction builder.
+    ///
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new() -> TransactionBuilder<E> {
+        TransactionBuilder { ..Default::default() }
+    }
 }
 
 impl<E: Environment> TransactionScheme for Transaction<E> {
