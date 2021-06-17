@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::transaction::delegate_transaction;
+use crate::helpers::transaction::delegate_transaction;
 use snarkos_storage::{mem::MemDb, Ledger};
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
@@ -31,10 +31,13 @@ use snarkvm_utilities::{to_bytes, ToBytes};
 
 pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters, MemDb>;
 
-use rand::Rng;
+use rand::{CryptoRng, Rng};
 
 /// Returns a transaction constructed with dummy records.
-pub fn create_dummy_transaction<R: Rng>(network_id: u8, rng: &mut R) -> anyhow::Result<(Tx, Vec<Record<Components>>)> {
+pub fn new_dummy_transaction<R: Rng + CryptoRng>(
+    network_id: u8,
+    rng: &mut R,
+) -> anyhow::Result<(Tx, Vec<Record<Components>>)> {
     let parameters = PublicParameters::<Components>::load(false).unwrap();
 
     let spender = AccountPrivateKey::<Components>::new(

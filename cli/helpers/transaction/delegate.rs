@@ -29,12 +29,12 @@ use snarkvm_dpc::{
 };
 use snarkvm_utilities::{to_bytes, ToBytes};
 
-use rand::Rng;
+use rand::{CryptoRng, Rng};
 
 pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters, MemDb>;
 
 /// Delegated execution of program proof generation and transaction online phase.
-pub fn delegate_transaction<R: Rng>(
+pub fn delegate_transaction<R: Rng + CryptoRng>(
     transaction_kernel: TransactionKernel<Components>,
     ledger: &MerkleTreeLedger,
     rng: &mut R,
@@ -98,7 +98,7 @@ pub fn delegate_transaction<R: Rng>(
         transaction_kernel,
         old_death_program_proofs,
         new_birth_program_proofs,
-        &ledger,
+        ledger,
         rng,
     )?;
 

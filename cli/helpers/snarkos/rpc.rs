@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::snarkos::{
+use crate::helpers::snarkos::{
     errors::RpcRequestError,
     objects::{RequestBody, ResponseBody, RpcRequest},
 };
