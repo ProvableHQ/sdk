@@ -15,7 +15,8 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use aleo_account::{Address, ViewKey};
-use aleo_record::{EncryptedRecord, Record as RecordInner, SerialNumberNonce};
+use aleo_environment::Testnet1;
+use aleo_record::{EncryptedRecord, Record as RecordInner};
 
 use snarkvm_dpc::{testnet1::payload::Payload, traits::record::RecordScheme};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
@@ -26,7 +27,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Record {
-    pub(crate) record: RecordInner,
+    pub(crate) record: RecordInner<Testnet1>,
 }
 
 #[wasm_bindgen]
@@ -55,7 +56,12 @@ impl Record {
             .payload(Payload::read(&hex::decode(payload).unwrap()[..]).unwrap())
             .birth_program_id(hex::decode(birth_program_id).unwrap())
             .death_program_id(hex::decode(death_program_id).unwrap())
-            .serial_number_nonce(SerialNumberNonce::read(&hex::decode(serial_number_nonce).unwrap()[..]).unwrap())
+            .serial_number_nonce(
+                <RecordInner<Testnet1> as RecordScheme>::SerialNumberNonce::read(
+                    &hex::decode(serial_number_nonce).unwrap()[..],
+                )
+                .unwrap(),
+            )
             .calculate_commitment_randomness(rng)
             .build()
             .unwrap();

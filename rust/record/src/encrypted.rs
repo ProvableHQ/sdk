@@ -18,6 +18,7 @@ use aleo_account::ViewKey;
 
 use snarkvm_utilities::{to_bytes, ToBytes};
 
+use aleo_environment::Environment;
 use rand::Rng;
 use std::{
     fmt,
@@ -32,7 +33,10 @@ pub struct EncryptedRecord {
 
 impl EncryptedRecord {
     /// Encrypt the given record and returns tuple (encryption randomness, encrypted record).
-    pub fn from<R: Rng>(record: &Record, rng: &mut R) -> Result<(EncryptionRandomness, Self), EncryptedRecordError> {
+    pub fn from<R: Rng, E: Environment>(
+        record: &Record<E>,
+        rng: &mut R,
+    ) -> Result<(EncryptionRandomness, Self), EncryptedRecordError> {
         let (encryption_randomness, encrypted_record) = Encrypt::encrypt(record, rng)?;
 
         Ok((encryption_randomness, Self { encrypted_record }))
@@ -46,7 +50,7 @@ impl EncryptedRecord {
         output
     }
 
-    pub fn decrypt(&self, view_key: &ViewKey) -> Result<Record, EncryptedRecordError> {
+    pub fn decrypt<E: Environment>(&self, view_key: &ViewKey) -> Result<Record<E>, EncryptedRecordError> {
         Ok(Decrypt::decrypt(view_key, &*to_bytes![self]?)?)
     }
 }

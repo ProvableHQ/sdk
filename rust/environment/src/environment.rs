@@ -14,26 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Record;
-use aleo_environment::Environment;
+use aleo_account::Address;
 
-use snarkvm_curves::edwards_bls12::{EdwardsParameters, EdwardsProjective as EdwardsBls};
+use snarkvm_algorithms::{
+    traits::{CommitmentScheme, CRH},
+    SignatureScheme,
+};
 use snarkvm_dpc::{
     testnet1::{
-        instantiated::Components,
-        record::{record_encoding::RecordEncoding, Record as RecordInner},
+        instantiated::Components as Testnet1Components,
+        payload::Payload as Testnet1Payload,
+        BaseDPCComponents,
     },
-    DPCError,
-    RecordEncodingScheme,
+    DPCComponents,
 };
-use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
+use snarkvm_utilities::{FromBytes, ToBytes};
 
-pub(crate) struct Encode;
+use std::hash::Hash;
 
-impl Encode {
-    pub(crate) fn encode<E: Environment>(record: &Record<E>) -> Result<(Vec<EdwardsBls>, bool), DPCError> {
-        let record_bytes = to_bytes![record]?;
-        let given_record: RecordInner<Components> = FromBytes::read(&record_bytes[..])?;
-        RecordEncoding::<Components, EdwardsParameters, EdwardsBls>::encode(&given_record)
-    }
+/// The target environment for building records, and transactions.
+pub trait Environment {
+    type Components: DPCComponents + BaseDPCComponents;
+
+    /// Record interface
+    type Payload: FromBytes + ToBytes + Default + PartialEq;
+}
+
+/// The testnet1 environment
+pub struct Testnet1;
+
+impl Environment for Testnet1 {
+    type Components = Testnet1Components;
+    type Payload = Testnet1Payload;
 }

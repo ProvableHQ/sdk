@@ -15,6 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::Record;
+use aleo_environment::Environment;
 
 use snarkvm_algorithms::EncryptionScheme;
 use snarkvm_dpc::{
@@ -33,7 +34,10 @@ pub(crate) struct Encrypt;
 
 impl Encrypt {
     /// Encrypt the given record and returns tuple (encryption randomness, encrypted record).
-    pub(crate) fn encrypt<R: Rng>(record: &Record, rng: &mut R) -> Result<(EncryptionRandomness, Vec<u8>), DPCError> {
+    pub(crate) fn encrypt<R: Rng, E: Environment>(
+        record: &Record<E>,
+        rng: &mut R,
+    ) -> Result<(EncryptionRandomness, Vec<u8>), DPCError> {
         let system_parameters = SystemParameters::<Components>::load()?;
 
         let (encryption_randomness, encrypted_record) = RecordEncryption::<Components>::encrypt_record(

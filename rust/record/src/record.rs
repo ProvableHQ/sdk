@@ -16,52 +16,41 @@
 
 use crate::{RecordBuilder, RecordError};
 use aleo_account::{Address, PrivateKey};
+use aleo_environment::Environment;
 
 use snarkvm_algorithms::{
     traits::{CommitmentScheme, CRH},
     SignatureScheme,
 };
 use snarkvm_dpc::{
-    testnet1::{instantiated::Components, parameters::PublicParameters, record::payload::Payload},
+    testnet1::{
+        parameters::PublicParameters,
+        record::{payload::Payload, Record as InnerRecord},
+    },
     traits::RecordScheme,
+    AccountAddress,
     DPCComponents,
 };
-use snarkvm_utilities::{read_variable_length_integer, to_bytes, variable_length_integer, FromBytes, ToBytes};
+use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
-use rand::{CryptoRng, Rng};
+use rand::{rngs::StdRng, CryptoRng, Rng, SeedableRng};
 use std::{
     fmt,
     io::{Read, Result as IoResult, Write},
     str::FromStr,
 };
 
-pub type SerialNumber = <<Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
-pub type SerialNumberNonce = <<Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output;
-pub type Commitment = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
-pub type CommitmentRandomness = <<Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
-
-/// The Aleo record data type.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct Record {
-    pub(crate) owner: Address,
-    pub(crate) is_dummy: bool,
-    pub(crate) value: u64,
-    pub(crate) payload: Payload,
-
-    pub(crate) birth_program_id: Vec<u8>,
-    pub(crate) death_program_id: Vec<u8>,
-
-    pub(crate) serial_number_nonce: SerialNumberNonce,
-    pub(crate) commitment: Commitment,
-    pub(crate) commitment_randomness: CommitmentRandomness,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Record<E: Environment> {
+    pub(crate) record: InnerRecord<E::Components>,
 }
 
-impl Record {
+impl<E: Environment> Record<E> {
     ///
     /// Returns a new record builder.
     ///
     #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> RecordBuilder {
+    pub fn new() -> RecordBuilder<E> {
         RecordBuilder { ..Default::default() }
     }
 
@@ -77,10 +66,10 @@ impl Record {
         let value = 0u64;
 
         // Set the payload to the default payload.
-        let payload = Payload::default();
+        let payload = <Self as RecordScheme>::Payload::default();
 
         // Set birth program ID and death program ID to the noop program ID.
-        let parameters = PublicParameters::<Components>::load(true)?;
+        let parameters = PublicParameters::<E::Components>::load(true)?;
         let noop_program_id = to_bytes![
             parameters
                 .system_parameters
@@ -107,116 +96,80 @@ impl Record {
     }
 }
 
-impl RecordScheme for Record {
-    type Commitment = Commitment;
-    type CommitmentRandomness = CommitmentRandomness;
-    type Owner = Address;
+impl<E: Environment> RecordScheme for Record<E> {
+    type Commitment = <<<E as Environment>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
+    type CommitmentRandomness =
+        <<<E as Environment>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
+    type Owner = AccountAddress<E::Components>;
+    // todo: make this type part of components in snarkvm_dpc
     type Payload = Payload;
-    type SerialNumber = SerialNumber;
-    type SerialNumberNonce = SerialNumberNonce;
+    type SerialNumber =
+        <<<E as Environment>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
+    type SerialNumberNonce = <<<E as Environment>::Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output;
     type Value = u64;
 
     fn owner(&self) -> &Self::Owner {
-        &self.owner
+        self.record.owner()
     }
 
     fn is_dummy(&self) -> bool {
-        self.is_dummy
+        self.record.is_dummy()
     }
 
     fn value(&self) -> Self::Value {
-        self.value
+        self.record.value()
     }
 
     fn payload(&self) -> &Self::Payload {
-        &self.payload
+        self.record.payload()
     }
 
     fn birth_program_id(&self) -> &[u8] {
-        &self.birth_program_id
+        self.record.birth_program_id()
     }
 
     fn death_program_id(&self) -> &[u8] {
-        &self.death_program_id
+        self.record.death_program_id()
     }
 
     fn serial_number_nonce(&self) -> &Self::SerialNumberNonce {
-        &self.serial_number_nonce
+        self.record.serial_number_nonce()
     }
 
     fn commitment(&self) -> Self::Commitment {
-        self.commitment
+        self.record.commitment()
     }
 
     fn commitment_randomness(&self) -> Self::CommitmentRandomness {
-        self.commitment_randomness
+        self.record.commitment_randomness()
     }
 }
 
-impl ToBytes for Record {
+impl<E: Environment> Default for Record<E> {
+    fn default() -> Self {
+        let rng = &mut StdRng::from_entropy();
+
+        Self::new_dummy(rng).unwrap()
+    }
+}
+
+impl<E: Environment> ToBytes for Record<E> {
     #[inline]
     fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
-        self.owner.write(&mut writer)?;
-        self.is_dummy.write(&mut writer)?;
-        self.value.write(&mut writer)?;
-        self.payload.write(&mut writer)?;
-
-        variable_length_integer(self.birth_program_id.len() as u64).write(&mut writer)?;
-        self.birth_program_id.write(&mut writer)?;
-
-        variable_length_integer(self.death_program_id.len() as u64).write(&mut writer)?;
-        self.death_program_id.write(&mut writer)?;
-
-        self.serial_number_nonce.write(&mut writer)?;
-        self.commitment.write(&mut writer)?;
-        self.commitment_randomness.write(&mut writer)
+        self.record.write(&mut writer)
     }
 }
 
-impl FromBytes for Record {
+impl<E: Environment> FromBytes for Record<E> {
     #[inline]
     fn read<R: Read>(mut reader: R) -> IoResult<Self> {
-        let owner: Address = FromBytes::read(&mut reader)?;
-        let is_dummy: bool = FromBytes::read(&mut reader)?;
-        let value: u64 = FromBytes::read(&mut reader)?;
-        let payload: Payload = FromBytes::read(&mut reader)?;
+        let record = FromBytes::read(&mut reader)?;
 
-        let birth_program_id_size: usize = read_variable_length_integer(&mut reader)?;
-
-        let mut birth_program_id = Vec::with_capacity(birth_program_id_size);
-        for _ in 0..birth_program_id_size {
-            let byte: u8 = FromBytes::read(&mut reader)?;
-            birth_program_id.push(byte);
-        }
-
-        let death_program_id_size: usize = read_variable_length_integer(&mut reader)?;
-
-        let mut death_program_id = Vec::with_capacity(death_program_id_size);
-        for _ in 0..death_program_id_size {
-            let byte: u8 = FromBytes::read(&mut reader)?;
-            death_program_id.push(byte);
-        }
-
-        let serial_number_nonce: SerialNumberNonce = FromBytes::read(&mut reader)?;
-
-        let commitment: Commitment = FromBytes::read(&mut reader)?;
-        let commitment_randomness: CommitmentRandomness = FromBytes::read(&mut reader)?;
-
-        Ok(Self {
-            owner,
-            is_dummy,
-            value,
-            payload,
-            birth_program_id,
-            death_program_id,
-            serial_number_nonce,
-            commitment,
-            commitment_randomness,
-        })
+        Ok(Self { record })
     }
 }
 
-impl FromStr for Record {
+impl<E: Environment> FromStr for Record<E> {
     type Err = RecordError;
 
     fn from_str(record: &str) -> Result<Self, Self::Err> {
@@ -226,7 +179,7 @@ impl FromStr for Record {
     }
 }
 
-impl fmt::Display for Record {
+impl<E: Environment> fmt::Display for Record<E> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -235,20 +188,3 @@ impl fmt::Display for Record {
         )
     }
 }
-
-// // todo (collin): Come up with better UX for displaying records.
-// impl fmt::Display for Record {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         writeln!(f, "Record {{")?;
-//         writeln!(f, "\t owner: {}", self.owner.to_string())?;
-//         writeln!(f, "\t is_dummy: {:?}", self.is_dummy)?;
-//         writeln!(f, "\t value: {:?}", self.value)?;
-//         writeln!(f, "\t payload: {:?}", hex::encode(self.payload.to_bytes()))?;
-//         writeln!(f, "\t birth_program_id: {:?}", hex::encode(&self.birth_program_id))?;
-//         writeln!(f, "\t death_program_id: {:?}", hex::encode(&self.death_program_id))?;
-//         writeln!(f, "\t serial_number_nonce: {:?}", self.serial_number_nonce)?;
-//         writeln!(f, "\t commitment: {:?}", self.commitment)?;
-//         writeln!(f, "\t commitment_randomness: {:?}", self.commitment_randomness)?;
-//         write!(f, "}}")
-//     }
-// }
