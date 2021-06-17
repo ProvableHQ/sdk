@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1623910012637,
+  "lastUpdate": 1623910220353,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1289,6 +1289,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 388409912,
             "range": "± 15920514",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1b9c558e84e38749c1d66b0c252133fadcb6150c",
+          "message": "Merge pull request #84 from AleoHQ/dependabot/cargo/tokio-1.7.0\n\nBump tokio from 1.2.0 to 1.7.0",
+          "timestamp": "2021-06-16T22:47:07-07:00",
+          "tree_id": "eaad1c01f2d067d61b40ae810aadc7ec8eeefa75",
+          "url": "https://github.com/AleoHQ/aleo/commit/1b9c558e84e38749c1d66b0c252133fadcb6150c"
+        },
+        "date": 1623910218396,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 330863899,
+            "range": "± 832140",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 905457145,
+            "range": "± 1093625",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 332187231,
+            "range": "± 1435230",
             "unit": "ns/iter"
           }
         ]
