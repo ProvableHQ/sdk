@@ -1,0 +1,56 @@
+version: 2
+updates:
+- package-ecosystem: cargo
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "10:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: wiremock
+    versions:
+    - 0.5.2
+  - dependency-name: wasm-bindgen
+    versions:
+    - 0.2.71
+    - 0.2.72
+  - dependency-name: snarkvm-utilities
+    versions:
+    - 0.0.3
+    - 0.0.4
+    - 0.0.6
+    - 0.2.0
+    - 0.2.1
+  - dependency-name: serde_json
+    versions:
+    - 1.0.63
+    - 1.0.64
+  - dependency-name: self_update
+    versions:
+    - 0.24.0
+  - dependency-name: thiserror
+    versions:
+    - 1.0.24
+  - dependency-name: snarkvm-storage
+    versions:
+    - 0.0.3
+    - 0.0.4
+  - dependency-name: snarkvm-dpc
+    versions:
+    - 0.0.3
+    - 0.0.4
+  - dependency-name: snarkvm-errors
+    versions:
+    - 0.0.3
+    - 0.0.4
+  - dependency-name: rand_chacha
+    versions:
+    - 0.3.0
+  - dependency-name: snarkvm-objects
+    versions:
+    - 0.0.3
+    - 0.0.4
+  - dependency-name: snarkvm-models
+    versions:
+    - 0.0.3
+    - 0.0.4
