@@ -17,8 +17,6 @@
 #[macro_use]
 extern crate thiserror;
 
-pub mod cli;
 pub mod commands;
 pub mod errors;
 pub mod helpers;
-pub mod updater;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo::{cli::CLI, commands::parse, updater::Updater};
+use aleo::{commands::CLI, helpers::Updater};
 
 use structopt::StructOpt;
 
@@ -26,39 +26,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     println!("{}", Updater::print_cli());
-
-    println!("{}", parse(cli.command)?);
+    println!("{}", cli.command.parse()?);
 
     Ok(())
 }
-
-// use structopt::StructOpt;
-//
-// #[derive(Debug, StructOpt)]
-// pub struct Bar {
-//     pub bar: Option<String>,
-// }
-//
-// #[derive(Debug, StructOpt)]
-// pub enum Foo {
-//     #[structopt(name = "bar")]
-//     Bar(Bar),
-// }
-//
-// #[derive(Debug, StructOpt)]
-// pub enum Command {
-//     #[structopt(name = "foo")]
-//     Foo(Foo),
-// }
-//
-// #[derive(Debug, StructOpt)]
-// #[structopt(name = "classify")]
-// pub struct ApplicationArguments {
-//     #[structopt(subcommand)]
-//     pub command: Command,
-// }
-//
-// fn main() {
-//     let opt = ApplicationArguments::from_args();
-//     println!("{:?}", opt);
-// }
