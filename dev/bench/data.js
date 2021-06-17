@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1623910220353,
+  "lastUpdate": 1623910304403,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1331,6 +1331,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 332187231,
             "range": "± 1435230",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3b4aa4ca91b17714521304f189464cf871159be0",
+          "message": "Merge pull request #82 from AleoHQ/dependabot/cargo/anyhow-1.0.41\n\nBump anyhow from 1.0.40 to 1.0.41",
+          "timestamp": "2021-06-16T22:46:59-07:00",
+          "tree_id": "fa9675e9a38fc54fb224818d8ca22e96a2ded031",
+          "url": "https://github.com/AleoHQ/aleo/commit/3b4aa4ca91b17714521304f189464cf871159be0"
+        },
+        "date": 1623910300830,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 363473904,
+            "range": "± 37112369",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 994308939,
+            "range": "± 91387246",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 364112376,
+            "range": "± 39533126",
             "unit": "ns/iter"
           }
         ]
