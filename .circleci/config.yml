@@ -41,35 +41,25 @@ commands:
             - .cache/sccache
             - .cargo
 jobs:
+
   rust_stable:
     docker:
-      - image: cimg/rust:1.49.0
+      - image: cimg/rust:1.51.0
     resource_class: xlarge
     steps:
       - checkout
       - setup_environment:
           cache_key: aleo-stable-cache
       - run:
-          name: Check examples
-          no_output_timeout: 30m
-          command: cargo check --examples --all
-      - run:
-          name: Check examples with all features on stable
-          no_output_timeout: 30m
-          command: cargo check --examples --all-features --all
-      - run:
-          name: Check benchmarks
-          no_output_timeout: 30m
-          command: cargo check --all-features --examples --all --benches
-      - run:
           name: Build and test
           no_output_timeout: 30m
-          command: cargo test --all --no-fail-fast
+          command: RUST_MIN_STACK=8388608 cargo test --all --no-fail-fast
       - persist_to_workspace:
           root: ~/
           paths: project/
       - clear_environment:
           cache_key: aleo-stable-cache
+
   codecov:
     machine:
       image: ubuntu-1604:202004-01
@@ -85,32 +75,22 @@ jobs:
             docker run --security-opt seccomp=unconfined -v ~/project/project/:/home/circleci/project/
             howardwu/snarkos-codecov:2021-01-31 bash /home/circleci/project/.resources/kcov.sh
       - run: cd ./project/ && bash <(curl -s https://codecov.io/bash)
+
   rust_nightly:
     docker:
-      - image: howardwu/snarkos-ci:2021-01-31
+      - image: howardwu/snarkos-ci:2021-03-25
     resource_class: xlarge
     steps:
       - checkout
       - setup_environment:
           cache_key: aleo-nightly-cache
       - run:
-          name: Check examples
-          no_output_timeout: 30m
-          command: cargo check --examples --all
-      - run:
-          name: Check examples with all features on stable
-          no_output_timeout: 30m
-          command: cargo check --examples --all-features --all
-      - run:
-          name: Check benchmarks
-          no_output_timeout: 30m
-          command: cargo check --all-features --examples --all --benches
-      - run:
           name: Build and test
           no_output_timeout: 30m
-          command: cargo test --all --no-fail-fast
+          command: RUST_MIN_STACK=8388608 cargo test --all --no-fail-fast
       - clear_environment:
           cache_key: aleo-nightly-cache
+
 workflows:
   version: 2
   main-workflow:

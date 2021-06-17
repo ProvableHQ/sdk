@@ -20,16 +20,22 @@ use crate::{
     PrivateKey,
 };
 
-use snarkvm_dpc::base_dpc::{instantiated::Components, parameters::SystemParameters};
-use snarkvm_models::algorithms::SignatureScheme;
-use snarkvm_objects::AccountAddress;
-use snarkvm_utilities::bytes::ToBytes;
+use snarkvm_algorithms::traits::SignatureScheme;
+use snarkvm_dpc::{
+    account::AccountAddress,
+    testnet1::{instantiated::Components, parameters::SystemParameters},
+};
+use snarkvm_utilities::bytes::{FromBytes, ToBytes};
 
-use std::{fmt, str::FromStr};
+use std::{
+    fmt,
+    io::{Read, Result as IoResult, Write},
+    str::FromStr,
+};
 
-#[derive(Debug)]
+#[derive(Default, Clone, Debug, PartialEq, Eq)]
 pub struct Address {
-    pub(crate) address: AccountAddress<Components>,
+    pub address: AccountAddress<Components>,
 }
 
 impl Address {
@@ -80,5 +86,21 @@ impl FromStr for Address {
 impl fmt::Display for Address {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.address.to_string())
+    }
+}
+
+impl ToBytes for Address {
+    fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
+        self.address.write(&mut writer)
+    }
+}
+
+impl FromBytes for Address {
+    /// Reads in an account address buffer.
+    #[inline]
+    fn read<R: Read>(mut reader: R) -> IoResult<Self> {
+        Ok(Self {
+            address: AccountAddress::<Components>::read(&mut reader)?,
+        })
     }
 }

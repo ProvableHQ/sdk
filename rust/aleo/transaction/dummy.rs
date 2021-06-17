@@ -15,29 +15,26 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::transaction::delegate_transaction;
-use snarkvm_dpc::base_dpc::{
-    instantiated::{CommitmentMerkleParameters, Components, InstantiatedDPC, Tx},
-    parameters::PublicParameters,
-    record::DPCRecord,
-    record_payload::RecordPayload,
+use snarkos_storage::{mem::MemDb, Ledger};
+use snarkvm_algorithms::traits::CRH;
+use snarkvm_dpc::{
+    account::{AccountAddress, AccountPrivateKey},
+    testnet1::{
+        instantiated::{CommitmentMerkleParameters, Components, InstantiatedDPC, Tx},
+        parameters::PublicParameters,
+        payload::Payload,
+        record::Record,
+    },
+    traits::{DPCComponents, DPCScheme},
 };
-use snarkvm_models::{
-    algorithms::CRH,
-    dpc::{DPCComponents, DPCScheme},
-};
-use snarkvm_objects::account::*;
-use snarkvm_storage::Ledger;
 use snarkvm_utilities::{to_bytes, ToBytes};
 
-pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters>;
+pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters, MemDb>;
 
 use rand::Rng;
 
 /// Returns a transaction constructed with dummy records.
-pub fn create_dummy_transaction<R: Rng>(
-    network_id: u8,
-    rng: &mut R,
-) -> anyhow::Result<(Tx, Vec<DPCRecord<Components>>)> {
+pub fn create_dummy_transaction<R: Rng>(network_id: u8, rng: &mut R) -> anyhow::Result<(Tx, Vec<Record<Components>>)> {
     let parameters = PublicParameters::<Components>::load(false).unwrap();
 
     let spender = AccountPrivateKey::<Components>::new(
@@ -85,7 +82,7 @@ pub fn create_dummy_transaction<R: Rng>(
             address,
             true, // The input record is dummy
             0,
-            RecordPayload::default(),
+            Payload::default(),
             noop_program_id.clone(),
             noop_program_id.clone(),
             rng,
@@ -101,7 +98,7 @@ pub fn create_dummy_transaction<R: Rng>(
     let new_values = vec![0; Components::NUM_OUTPUT_RECORDS];
     let new_birth_program_ids = vec![noop_program_id.clone(); Components::NUM_OUTPUT_RECORDS];
     let new_death_program_ids = vec![noop_program_id; Components::NUM_OUTPUT_RECORDS];
-    let new_payloads = vec![RecordPayload::default(); Components::NUM_OUTPUT_RECORDS];
+    let new_payloads = vec![Payload::default(); Components::NUM_OUTPUT_RECORDS];
 
     // Generate a random memo
     let memo = rng.gen();
@@ -136,7 +133,6 @@ pub fn create_dummy_transaction<R: Rng>(
     let (transaction, new_records) = delegate_transaction(execute_context, &ledger, rng)?;
 
     drop(ledger);
-    MerkleTreeLedger::destroy_storage(path).unwrap();
 
     Ok((transaction, new_records))
 }

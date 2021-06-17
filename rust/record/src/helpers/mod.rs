@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-// pub mod dummy;
-// pub use dummy::*;
-//
-// pub mod delegate;
-// pub use delegate::*;
+pub mod decode;
+pub use decode::*;
+
+pub mod decrypt;
+pub use decrypt::*;
+
+pub mod encode;
+pub use encode::*;
+
+pub mod encrypt;
+pub use encrypt::*;
+
+#[cfg(test)]
+mod tests;

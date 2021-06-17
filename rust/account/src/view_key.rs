@@ -16,9 +16,12 @@
 
 use crate::{PrivateKey, ViewKeyError};
 
-use snarkvm_dpc::base_dpc::{instantiated::Components, parameters::SystemParameters};
-use snarkvm_models::{algorithms::SignatureScheme, dpc::DPCComponents};
-use snarkvm_objects::AccountViewKey;
+use snarkvm_algorithms::traits::SignatureScheme;
+use snarkvm_dpc::{
+    account::AccountViewKey,
+    testnet1::{instantiated::Components, parameters::SystemParameters},
+    traits::DPCComponents,
+};
 use snarkvm_utilities::{
     bytes::{FromBytes, ToBytes},
     to_bytes,
@@ -29,7 +32,7 @@ use std::{fmt, str::FromStr};
 
 #[derive(Debug)]
 pub struct ViewKey {
-    pub(crate) view_key: AccountViewKey<Components>,
+    pub view_key: AccountViewKey<Components>,
 }
 
 impl ViewKey {

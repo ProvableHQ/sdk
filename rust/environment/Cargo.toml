@@ -1,5 +1,5 @@
 [package]
-name = "aleo-account"
+name = "aleo-environment"
 version = "0.2.0"
 authors = ["The Aleo Team <hello@aleo.org>"]
 description = "Aleo"
@@ -11,10 +11,8 @@ include = ["Cargo.toml", "src", "README.md", "LICENSE.md"]
 license = "GPL-3.0"
 edition = "2018"
 
-[[bench]]
-name = "account"
-path = "benches/account.rs"
-harness = false
+[dependencies.aleo-account]
+path = "../account"
 
 [dependencies.snarkvm-algorithms]
 version = "0.5.4"
@@ -24,24 +22,8 @@ features = ["wasm"]
 [dependencies.snarkvm-dpc]
 version = "0.5.4"
 default-features = false
-features = ["wasm"]
+features = [ "wasm" ]
 
 [dependencies.snarkvm-utilities]
 version = "0.5.4"
 default-features = false
-
-[dependencies.hex]
-version = "0.4.3"
-
-[dependencies.rand]
-version = "0.8.0"
-
-[dependencies.rand_chacha]
-version = "0.3.0"
-default-features = false
-
-[dependencies.thiserror]
-version = "1.0"
-
-[dev-dependencies.bencher]
-version = "0.1.5"
