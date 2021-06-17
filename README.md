@@ -86,8 +86,22 @@ OPTIONS:
     -s, --seed <seed> 
 ```
 
-## Development
+### 3.2 Generate a new Aleo transaction.
 
+To generate a new Aleo transaction, run:
+```bash
+aleo tx new [FLAGS] [OPTIONS]
 ```
-cargo run --release --example dummy_transaction
+
+The command can be run with the following optional parameters:
 ```
+FLAGS:
+    -d, --dummy      Craft a dummy transaction
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -s, --seed <seed> 
+```
+
+Note: Only dummy transactions are currently supported.

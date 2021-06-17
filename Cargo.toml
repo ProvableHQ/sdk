@@ -31,6 +31,8 @@ version = "0.2.0"
 
 [dependencies.snarkos-storage]
 version = "1.3.8"
+default-features = false
+features = ["mem_storage"]
 
 [dependencies.snarkvm-algorithms]
 version = "0.5.4"

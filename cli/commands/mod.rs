@@ -17,6 +17,9 @@
 pub mod account;
 pub use account::*;
 
+pub mod transaction;
+pub use transaction::*;
+
 pub mod update;
 pub use update::*;
 
@@ -41,7 +44,8 @@ pub struct CLI {
 pub enum Command {
     #[structopt(name = "account")]
     Account(Account),
-
+    #[structopt(name = "tx")]
+    Transaction(Transaction),
     #[structopt(name = "update")]
     Update(Update),
 }
@@ -50,6 +54,7 @@ impl Command {
     pub fn parse(self) -> anyhow::Result<String> {
         match self {
             Self::Account(command) => command.parse(),
+            Self::Transaction(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }
     }

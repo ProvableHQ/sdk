@@ -31,10 +31,13 @@ use snarkvm_utilities::{to_bytes, ToBytes};
 
 pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters, MemDb>;
 
-use rand::Rng;
+use rand::{CryptoRng, Rng};
 
 /// Returns a transaction constructed with dummy records.
-pub fn create_dummy_transaction<R: Rng>(network_id: u8, rng: &mut R) -> anyhow::Result<(Tx, Vec<Record<Components>>)> {
+pub fn new_dummy_transaction<R: Rng + CryptoRng>(
+    network_id: u8,
+    rng: &mut R,
+) -> anyhow::Result<(Tx, Vec<Record<Components>>)> {
     let parameters = PublicParameters::<Components>::load(false).unwrap();
 
     let spender = AccountPrivateKey::<Components>::new(
