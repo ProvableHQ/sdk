@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1623719725646,
+  "lastUpdate": 1623896270264,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1205,6 +1205,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 56293855,
             "range": "± 507828",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9fe1c5b168766c7ef9421f62f6c82bc7d959170c",
+          "message": "Merge pull request #86 from AleoHQ/feat/environment\n\nRecord builder and Aleo environment",
+          "timestamp": "2021-06-16T18:48:04-07:00",
+          "tree_id": "3c4dfda4faaea9fdc838a0401ca296a1e6fa0854",
+          "url": "https://github.com/AleoHQ/aleo/commit/9fe1c5b168766c7ef9421f62f6c82bc7d959170c"
+        },
+        "date": 1623896268676,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 330355168,
+            "range": "± 740663",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 902622538,
+            "range": "± 740885",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 331918903,
+            "range": "± 442377",
             "unit": "ns/iter"
           }
         ]
