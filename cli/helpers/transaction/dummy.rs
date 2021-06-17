@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::transaction::delegate_transaction;
+use crate::helpers::transaction::delegate_transaction;
 use snarkos_storage::{mem::MemDb, Ledger};
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{

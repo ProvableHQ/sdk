@@ -73,7 +73,7 @@ aleo
 
 To generate a new Aleo account, run:
 ```bash
-aleo new [FLAGS] [OPTIONS]
+aleo account new [FLAGS] [OPTIONS]
 ```
 
 The command can be run with the following optional parameters:

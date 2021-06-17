@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::snarkos::{
+use crate::helpers::snarkos::{
     errors::RpcRequestError,
     methods::SnarkOSRpcMethod,
     objects::{RequestBody, RpcRequest},
@@ -58,7 +58,7 @@ pub async fn get_block_count(connection: &RpcClient) -> Result<u32, RpcRequestEr
 #[cfg(test)]
 mod tests {
     pub use super::*;
-    use crate::snarkos::rpc::RpcAuth;
+    use crate::helpers::snarkos::rpc::RpcAuth;
 
     use tokio::runtime::Runtime;
     use wiremock::{

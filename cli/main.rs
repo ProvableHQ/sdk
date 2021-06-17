@@ -31,3 +31,34 @@ fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+// use structopt::StructOpt;
+//
+// #[derive(Debug, StructOpt)]
+// pub struct Bar {
+//     pub bar: Option<String>,
+// }
+//
+// #[derive(Debug, StructOpt)]
+// pub enum Foo {
+//     #[structopt(name = "bar")]
+//     Bar(Bar),
+// }
+//
+// #[derive(Debug, StructOpt)]
+// pub enum Command {
+//     #[structopt(name = "foo")]
+//     Foo(Foo),
+// }
+//
+// #[derive(Debug, StructOpt)]
+// #[structopt(name = "classify")]
+// pub struct ApplicationArguments {
+//     #[structopt(subcommand)]
+//     pub command: Command,
+// }
+//
+// fn main() {
+//     let opt = ApplicationArguments::from_args();
+//     println!("{:?}", opt);
+// }
