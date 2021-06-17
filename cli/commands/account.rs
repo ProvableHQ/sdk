@@ -22,6 +22,7 @@ use rand_chacha::ChaChaRng;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
+#[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
 pub enum Account {
     /// Generates a new Aleo account
     New {

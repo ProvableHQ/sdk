@@ -23,7 +23,7 @@ pub use update::*;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "aleo", author = "The Aleo Team <hello@aleo.org>")]
+#[structopt(name = "aleo", author = "The Aleo Team <hello@aleo.org>", setting = structopt::clap::AppSettings::ColoredHelp)]
 pub struct CLI {
     /// Enable debug mode
     #[structopt(short, long)]
