@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1623896270264,
+  "lastUpdate": 1623910012637,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1247,6 +1247,48 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 331918903,
             "range": "± 442377",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5038f255d415be1b5d4bd62650c29366aa324d3f",
+          "message": "Merge pull request #88 from AleoHQ/feat/cli\n\nUpgrade CLI to support accounts and transactions",
+          "timestamp": "2021-06-16T22:41:02-07:00",
+          "tree_id": "718e76165066d24338659099e5f7dcee5e06de45",
+          "url": "https://github.com/AleoHQ/aleo/commit/5038f255d415be1b5d4bd62650c29366aa324d3f"
+        },
+        "date": 1623910010447,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "account_address",
+            "value": 379541152,
+            "range": "± 14218039",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_private_key",
+            "value": 1059849343,
+            "range": "± 37576206",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "account_view_key",
+            "value": 388409912,
+            "range": "± 15920514",
             "unit": "ns/iter"
           }
         ]
