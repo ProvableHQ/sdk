@@ -56,7 +56,7 @@ pub enum RecordError {
     #[error("Attempted to build a record with an invalid commitment. Try `calculate_commitment()`")]
     InvalidCommitment,
 
-    #[error("Missing Record field: {0}")]
+    #[error("Missing Record field: {}", _0)]
     MissingField(String),
 
     #[error("Missing commitment randomness")]

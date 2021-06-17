@@ -158,7 +158,7 @@ impl<E: Environment> RecordBuilder<E> {
 
     ///
     /// Returns a `Record` and consumes the record builder.
-    /// Returns an error if fields are missing or error are encountered while building.
+    /// Returns an error if fields are missing or errors are encountered while building.
     ///
     pub fn build(self) -> Result<Record<E>, RecordError> {
         // Return error.

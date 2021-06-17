@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[macro_use]
-extern crate derivative;
+#[derive(Debug, Error)]
+pub enum TransactionError {
+    #[error("Failed to build Transaction data type. See console logs for error")]
+    BuilderError,
 
-#[macro_use]
-extern crate thiserror;
+    #[error("{}: {}", _0, _1)]
+    Crate(&'static str, String),
 
-pub mod errors;
-pub use errors::*;
-
-pub mod transaction;
-pub use transaction::*;
-
-pub mod transaction_builder;
-pub use transaction_builder::*;
+    #[error("Missing Transaction field: {}", _0)]
+    MissingField(String),
+}
