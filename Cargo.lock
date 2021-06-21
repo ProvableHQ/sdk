@@ -91,6 +91,8 @@ dependencies = [
  "aleo-environment",
  "anyhow",
  "derivative",
+ "hex",
+ "once_cell",
  "rand 0.8.4",
  "rand_chacha 0.3.1",
  "snarkos-storage",

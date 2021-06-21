@@ -42,6 +42,9 @@ pub enum TransactionError {
     #[error("{}", _0)]
     DPCTransactionError(#[from] DPCTransactionError),
 
+    #[error("Attempted to set transaction builder argument {} twice", _0)]
+    DuplicateArgument(String),
+
     #[error("Missing Transaction field: {}", _0)]
     MissingField(String),
 }
