@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo::{cli::CLI, commands::parse, updater::Updater};
+use aleo::{commands::CLI, helpers::Updater};
 
 use structopt::StructOpt;
 
@@ -26,8 +26,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     println!("{}", Updater::print_cli());
-
-    println!("{}", parse(cli.command)?);
+    println!("{}", cli.command.parse()?);
 
     Ok(())
 }

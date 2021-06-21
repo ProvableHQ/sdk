@@ -33,7 +33,7 @@ version = "0.5.4"
 default-features = false
 
 [dependencies.getrandom]
-version = "0.2.2"
+version = "0.2.3"
 features = ["js"]
 
 [dependencies.hex]
@@ -43,7 +43,7 @@ version = "0.4.3"
 version = "0.8"
 
 [dependencies.wasm-bindgen]
-version = "0.2.73"
+version = "0.2.74"
 
 [dev-dependencies.snarkvm-algorithms]
 version = "0.5.4"
@@ -51,5 +51,4 @@ default-features = false
 features = ["wasm"]
 
 [dev-dependencies.wasm-bindgen-test]
-version = "0.3.20"
-
+version = "0.3.23"
