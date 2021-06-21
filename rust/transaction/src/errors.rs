@@ -15,12 +15,15 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use snarkvm_algorithms::CRHError;
-use snarkvm_dpc::{DPCError, TransactionError as DPCTransactionError};
+use snarkvm_dpc::{AccountError, DPCError, TransactionError as DPCTransactionError};
 
 use anyhow::Error as AnyhowError;
 
 #[derive(Debug, Error)]
 pub enum TransactionError {
+    #[error("{}", _0)]
+    AccountError(#[from] AccountError),
+
     #[error("{}", _0)]
     AnyhowError(#[from] AnyhowError),
 

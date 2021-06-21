@@ -15,10 +15,9 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use snarkos_storage::mem::MemDb;
-use snarkvm_algorithms::LoadableMerkleParameters;
 use snarkvm_dpc::{
     testnet1::{
-        instantiated::{CommitmentMerkleParameters, Components as Testnet1Components},
+        instantiated::Components as Testnet1Components,
         payload::Payload as Testnet1Payload,
         transaction::amount::AleoAmount,
         BaseDPCComponents,
