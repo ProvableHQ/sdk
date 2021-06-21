@@ -14,18 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::TransactionBuilder;
+use crate::{TransactionBuilder, TransactionError};
 use aleo_environment::Environment;
 
+use snarkos_storage::Ledger;
 use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme, SignatureScheme, CRH};
 use snarkvm_dpc::{
-    testnet1::{transaction::AleoAmount, BaseDPCComponents, EncryptedRecord, Transaction as DPCTransaction},
+    testnet1::{
+        transaction::AleoAmount,
+        BaseDPCComponents,
+        EncryptedRecord,
+        NoopProgram,
+        PublicParameters,
+        Transaction as DPCTransaction,
+        TransactionKernel,
+        DPC,
+    },
     DPCComponents,
-    TransactionError,
+    DPCScheme,
+    ProgramScheme,
+    RecordScheme,
+    TransactionError as DPCTransactionError,
     TransactionScheme,
 };
-use snarkvm_utilities::{FromBytes, ToBytes};
+use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
+use rand::Rng;
 use std::io::{Read, Result as IoResult, Write};
 
 #[derive(Derivative)]
@@ -46,6 +60,81 @@ impl<E: Environment> Transaction<E> {
     pub fn new() -> TransactionBuilder<E> {
         TransactionBuilder { ..Default::default() }
     }
+
+    ///
+    /// Delegated execution of program proof generation and transaction online phase.
+    ///
+    pub fn delegate_transaction<R: Rng>(
+        transaction_kernel: TransactionKernel<E::Components>,
+        ledger: Ledger<DPCTransaction<E>, E::LoadableMerkleParameters, E::Storage>,
+        rng: &mut R,
+    ) -> Result<Self, TransactionError> {
+        let parameters = PublicParameters::<E::Components>::load(false)?;
+
+        let local_data = transaction_kernel.into_local_data();
+
+        // Enforce that the record programs are the noop program
+        // TODO (add support for arbitrary programs)
+
+        let noop_program_id = to_bytes![
+            parameters
+                .system_parameters
+                .program_verification_key_crh
+                .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)?
+        ]?;
+
+        for old_record in &local_data.old_records {
+            assert_eq!(old_record.death_program_id().to_vec(), noop_program_id);
+        }
+
+        for new_record in &local_data.new_records {
+            assert_eq!(new_record.birth_program_id().to_vec(), noop_program_id);
+        }
+
+        // Generate the program proofs
+
+        let noop_program =
+            NoopProgram::<_, <E::Components as BaseDPCComponents>::NoopProgramSNARK>::new(noop_program_id);
+
+        let mut old_death_program_proofs = Vec::new();
+        for i in 0..E::Components::NUM_INPUT_RECORDS {
+            let private_input = noop_program.execute(
+                &parameters.noop_program_snark_parameters.proving_key,
+                &parameters.noop_program_snark_parameters.verification_key,
+                &local_data,
+                i as u8,
+                rng,
+            )?;
+
+            old_death_program_proofs.push(private_input);
+        }
+
+        let mut new_birth_program_proofs = Vec::new();
+        for j in 0..E::Components::NUM_OUTPUT_RECORDS {
+            let private_input = noop_program.execute(
+                &parameters.noop_program_snark_parameters.proving_key,
+                &parameters.noop_program_snark_parameters.verification_key,
+                &local_data,
+                (E::Components::NUM_INPUT_RECORDS + j) as u8,
+                rng,
+            )?;
+
+            new_birth_program_proofs.push(private_input);
+        }
+
+        // Online execution to generate a DPC transaction
+
+        let (_new_records, transaction) = DPC::<E::Components>::execute_online(
+            &parameters,
+            transaction_kernel,
+            old_death_program_proofs,
+            new_birth_program_proofs,
+            &ledger,
+            rng,
+        )?;
+
+        Ok(Transaction::<E> { transaction })
+    }
 }
 
 impl<E: Environment> TransactionScheme for Transaction<E> {
@@ -62,7 +151,7 @@ impl<E: Environment> TransactionScheme for Transaction<E> {
     // todo: make this type part of components in snarkvm_dpc
     type ValueBalance = AleoAmount;
 
-    fn transaction_id(&self) -> Result<[u8; 32], TransactionError> {
+    fn transaction_id(&self) -> Result<[u8; 32], DPCTransactionError> {
         self.transaction.transaction_id()
     }
 

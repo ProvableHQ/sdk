@@ -60,6 +60,8 @@ name = "aleo-environment"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
+ "snarkos-storage",
+ "snarkvm-algorithms",
  "snarkvm-dpc",
  "snarkvm-utilities",
 ]
@@ -89,7 +91,10 @@ version = "0.2.0"
 dependencies = [
  "aleo-account",
  "aleo-environment",
+ "anyhow",
  "derivative",
+ "rand 0.8.3",
+ "snarkos-storage",
  "snarkvm-algorithms",
  "snarkvm-dpc",
  "snarkvm-utilities",

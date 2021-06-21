@@ -14,14 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use snarkvm_algorithms::CRHError;
+use snarkvm_dpc::{DPCError, TransactionError as DPCTransactionError};
+
+use anyhow::Error as AnyhowError;
+
 #[derive(Debug, Error)]
 pub enum TransactionError {
+    #[error("{}", _0)]
+    AnyhowError(#[from] AnyhowError),
+
     #[error("Failed to build Transaction data type. See console logs for error")]
     BuilderError,
 
     #[error("{}: {}", _0, _1)]
     Crate(&'static str, String),
 
+    #[error("{}", _0)]
+    CRHError(#[from] CRHError),
+
+    #[error("{}", _0)]
+    DPCError(#[from] DPCError),
+
+    #[error("{}", _0)]
+    DPCTransactionError(#[from] DPCTransactionError),
+
     #[error("Missing Transaction field: {}", _0)]
     MissingField(String),
+}
+
+impl From<std::io::Error> for TransactionError {
+    fn from(error: std::io::Error) -> Self {
+        TransactionError::Crate("std::io", format!("{:?}", error))
+    }
 }

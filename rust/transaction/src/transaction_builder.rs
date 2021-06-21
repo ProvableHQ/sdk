@@ -17,7 +17,7 @@
 use crate::{Transaction, TransactionError};
 use aleo_environment::Environment;
 
-use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, SNARK};
+use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, SignatureScheme, SNARK};
 use snarkvm_dpc::{
     testnet1::{transaction::Transaction as DPCTransaction, BaseDPCComponents},
     DPCComponents,
@@ -26,7 +26,8 @@ use snarkvm_dpc::{
 };
 
 /// A builder struct for the Transaction data type.
-#[derive(Debug)]
+#[derive(Derivative)]
+#[derivative(Default(bound = "E: Environment"), Debug(bound = "E: Environment"))]
 pub struct TransactionBuilder<E: Environment> {
     pub(crate) network: Option<Network>,
     pub(crate) ledger_digest: Option<<Transaction<E> as TransactionScheme>::Digest>,
@@ -35,9 +36,9 @@ pub struct TransactionBuilder<E: Environment> {
     pub(crate) program_commitment: Option<<Transaction<E> as TransactionScheme>::ProgramCommitment>,
     pub(crate) local_data_root: Option<<Transaction<E> as TransactionScheme>::LocalDataRoot>,
     pub(crate) value_balance: Option<<Transaction<E> as TransactionScheme>::ValueBalance>,
-    pub(crate) signatures: Vec<<Transaction<E> as TransactionScheme>::SerialNumber>,
+    pub(crate) signatures: Vec<<<E::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>,
     pub(crate) encrypted_records: Vec<<Transaction<E> as TransactionScheme>::EncryptedRecord>,
-    pub(crate) transaction_proof: Option<<<E::Components as DPCComponents>::OuterSNARK as SNARK>::Proof>,
+    pub(crate) transaction_proof: Option<<<E::Components as BaseDPCComponents>::OuterSNARK as SNARK>::Proof>,
     pub(crate) memorandum: Option<<Transaction<E> as TransactionScheme>::Memorandum>,
     pub(crate) inner_circuit_id: Option<<Transaction<E> as TransactionScheme>::InnerCircuitID>,
 
@@ -118,7 +119,10 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     /// Returns a new transaction builder and sets field `signatures`.
     ///
-    pub fn signatures(mut self, signatures: Vec<<Transaction<E> as TransactionScheme>::SerialNumber>) -> Self {
+    pub fn signatures(
+        mut self,
+        signatures: Vec<<<E::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>,
+    ) -> Self {
         self.signatures = signatures;
         self
     }
@@ -170,7 +174,7 @@ impl<E: Environment> TransactionBuilder<E> {
         // Get network
         let network = match self.network {
             Some(value) => value,
-            None => return Err(TranscationError::MissingField("network".to_string())),
+            None => return Err(TransactionError::MissingField("network".to_string())),
         };
 
         // Get ledger_digest
@@ -243,7 +247,7 @@ impl<E: Environment> TransactionBuilder<E> {
             None => return Err(TransactionError::MissingField("inner_circuit_id".to_string())),
         };
 
-        let transaction = DPCTransaction::<E>::new(
+        let transaction = DPCTransaction::<E::Components>::new(
             old_serial_numbers,
             new_commitments,
             memorandum,

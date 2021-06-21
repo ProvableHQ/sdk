@@ -29,7 +29,8 @@ use snarkvm_utilities::{to_bytes, variable_length_integer::variable_length_integ
 use rand::{CryptoRng, Rng};
 
 /// A builder struct for the Record data type.
-#[derive(Debug)]
+#[derive(Derivative)]
+#[derivative(Default(bound = "E: Environment"), Debug(bound = "E: Environment"))]
 pub struct RecordBuilder<E: Environment> {
     pub(crate) owner: Option<Address>,
     pub(crate) is_dummy: Option<bool>,
@@ -285,19 +286,19 @@ impl<E: Environment> RecordBuilder<E> {
     }
 }
 
-impl<E: Environment> Default for RecordBuilder<E> {
-    fn default() -> Self {
-        Self {
-            owner: None,
-            is_dummy: None,
-            value: None,
-            payload: None,
-            birth_program_id: None,
-            death_program_id: None,
-            serial_number_nonce: None,
-            commitment: None,
-            commitment_randomness: None,
-            errors: vec![],
-        }
-    }
-}
+// impl<E: Environment> Default for RecordBuilder<E> {
+//     fn default() -> Self {
+//         Self {
+//             owner: None,
+//             is_dummy: None,
+//             value: None,
+//             payload: None,
+//             birth_program_id: None,
+//             death_program_id: None,
+//             serial_number_nonce: None,
+//             commitment: None,
+//             commitment_randomness: None,
+//             errors: vec![],
+//         }
+//     }
+// }
