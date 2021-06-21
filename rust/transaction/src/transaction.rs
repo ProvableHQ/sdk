@@ -18,7 +18,7 @@ use crate::{TransactionBuilder, TransactionError};
 use aleo_environment::Environment;
 
 use snarkos_storage::Ledger;
-use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme, SignatureScheme, CRH};
+use snarkvm_algorithms::{CommitmentScheme, SignatureScheme, CRH};
 use snarkvm_dpc::{
     testnet1::{
         transaction::AleoAmount,
@@ -66,7 +66,11 @@ impl<E: Environment> Transaction<E> {
     ///
     pub fn delegate_transaction<R: Rng>(
         transaction_kernel: TransactionKernel<E::Components>,
-        ledger: Ledger<DPCTransaction<E>, E::LoadableMerkleParameters, E::Storage>,
+        ledger: Ledger<
+            DPCTransaction<E::Components>,
+            <E::Components as BaseDPCComponents>::MerkleParameters,
+            E::Storage,
+        >,
         rng: &mut R,
     ) -> Result<Self, TransactionError> {
         let parameters = PublicParameters::<E::Components>::load(false)?;

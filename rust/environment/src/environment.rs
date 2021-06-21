@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkos_storage::{mem::MemDb, Ledger};
+use snarkos_storage::mem::MemDb;
 use snarkvm_algorithms::LoadableMerkleParameters;
 use snarkvm_dpc::{
     testnet1::{
@@ -42,7 +42,6 @@ pub trait Environment {
     type Memorandum: FromBytes + ToBytes;
 
     /// Ledger Components
-    type LoadableMerkleParameters: LoadableMerkleParameters;
     type Storage: Storage;
 }
 
@@ -52,7 +51,6 @@ pub struct Testnet1;
 impl Environment for Testnet1 {
     type Amount = AleoAmount;
     type Components = Testnet1Components;
-    type LoadableMerkleParameters = CommitmentMerkleParameters;
     type Memorandum = [u8; 32];
     type Payload = Testnet1Payload;
     type Storage = MemDb;
