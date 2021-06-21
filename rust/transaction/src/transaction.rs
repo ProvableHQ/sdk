@@ -64,85 +64,6 @@ impl<E: Environment> Transaction<E> {
         TransactionBuilder { ..Default::default() }
     }
 
-    ///
-    /// Delegated execution of program proof generation and transaction online phase.
-    ///
-    pub fn delegate_transaction<R: Rng>(
-        transaction_kernel: TransactionKernel<E::Components>,
-        ledger: &Ledger<
-            DPCTransaction<E::Components>,
-            <E::Components as BaseDPCComponents>::MerkleParameters,
-            E::Storage,
-        >,
-        rng: &mut R,
-    ) -> Result<Self, TransactionError> {
-        let parameters = PublicParameters::<E::Components>::load(false)?;
-
-        let local_data = transaction_kernel.into_local_data();
-
-        // Enforce that the record programs are the noop program
-        // TODO (add support for arbitrary programs)
-
-        let noop_program_id = to_bytes![
-            parameters
-                .system_parameters
-                .program_verification_key_crh
-                .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)?
-        ]?;
-
-        for old_record in &local_data.old_records {
-            assert_eq!(old_record.death_program_id().to_vec(), noop_program_id);
-        }
-
-        for new_record in &local_data.new_records {
-            assert_eq!(new_record.birth_program_id().to_vec(), noop_program_id);
-        }
-
-        // Generate the program proofs
-
-        let noop_program =
-            NoopProgram::<_, <E::Components as BaseDPCComponents>::NoopProgramSNARK>::new(noop_program_id);
-
-        let mut old_death_program_proofs = Vec::new();
-        for i in 0..E::Components::NUM_INPUT_RECORDS {
-            let private_input = noop_program.execute(
-                &parameters.noop_program_snark_parameters.proving_key,
-                &parameters.noop_program_snark_parameters.verification_key,
-                &local_data,
-                i as u8,
-                rng,
-            )?;
-
-            old_death_program_proofs.push(private_input);
-        }
-
-        let mut new_birth_program_proofs = Vec::new();
-        for j in 0..E::Components::NUM_OUTPUT_RECORDS {
-            let private_input = noop_program.execute(
-                &parameters.noop_program_snark_parameters.proving_key,
-                &parameters.noop_program_snark_parameters.verification_key,
-                &local_data,
-                (E::Components::NUM_INPUT_RECORDS + j) as u8,
-                rng,
-            )?;
-
-            new_birth_program_proofs.push(private_input);
-        }
-
-        // Online execution to generate a DPC transaction
-
-        let (_new_records, transaction) = DPC::<E::Components>::execute_online(
-            &parameters,
-            transaction_kernel,
-            old_death_program_proofs,
-            new_birth_program_proofs,
-            ledger,
-            rng,
-        )?;
-
-        Ok(Transaction::<E> { transaction })
-    }
-
     /// Returns a transaction constructed with dummy records.
     pub fn new_dummy_transaction<R: Rng + CryptoRng>(network_id: u8, rng: &mut R) -> Result<Self, TransactionError> {
         let parameters = PublicParameters::<E::Components>::load(false)?;
@@ -253,6 +174,85 @@ impl<E: Environment> Transaction<E> {
         drop(ledger);
 
         Ok(transaction)
+    }
+
+    ///
+    /// Delegated execution of program proof generation and transaction online phase.
+    ///
+    pub fn delegate_transaction<R: Rng>(
+        transaction_kernel: TransactionKernel<E::Components>,
+        ledger: &Ledger<
+            DPCTransaction<E::Components>,
+            <E::Components as BaseDPCComponents>::MerkleParameters,
+            E::Storage,
+        >,
+        rng: &mut R,
+    ) -> Result<Self, TransactionError> {
+        let parameters = PublicParameters::<E::Components>::load(false)?;
+
+        let local_data = transaction_kernel.into_local_data();
+
+        // Enforce that the record programs are the noop program
+        // TODO (add support for arbitrary programs)
+
+        let noop_program_id = to_bytes![
+            parameters
+                .system_parameters
+                .program_verification_key_crh
+                .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)?
+        ]?;
+
+        for old_record in &local_data.old_records {
+            assert_eq!(old_record.death_program_id().to_vec(), noop_program_id);
+        }
+
+        for new_record in &local_data.new_records {
+            assert_eq!(new_record.birth_program_id().to_vec(), noop_program_id);
+        }
+
+        // Generate the program proofs
+
+        let noop_program =
+            NoopProgram::<_, <E::Components as BaseDPCComponents>::NoopProgramSNARK>::new(noop_program_id);
+
+        let mut old_death_program_proofs = Vec::new();
+        for i in 0..E::Components::NUM_INPUT_RECORDS {
+            let private_input = noop_program.execute(
+                &parameters.noop_program_snark_parameters.proving_key,
+                &parameters.noop_program_snark_parameters.verification_key,
+                &local_data,
+                i as u8,
+                rng,
+            )?;
+
+            old_death_program_proofs.push(private_input);
+        }
+
+        let mut new_birth_program_proofs = Vec::new();
+        for j in 0..E::Components::NUM_OUTPUT_RECORDS {
+            let private_input = noop_program.execute(
+                &parameters.noop_program_snark_parameters.proving_key,
+                &parameters.noop_program_snark_parameters.verification_key,
+                &local_data,
+                (E::Components::NUM_INPUT_RECORDS + j) as u8,
+                rng,
+            )?;
+
+            new_birth_program_proofs.push(private_input);
+        }
+
+        // Online execution to generate a DPC transaction
+
+        let (_new_records, transaction) = DPC::<E::Components>::execute_online(
+            &parameters,
+            transaction_kernel,
+            old_death_program_proofs,
+            new_birth_program_proofs,
+            ledger,
+            rng,
+        )?;
+
+        Ok(Transaction::<E> { transaction })
     }
 }
 

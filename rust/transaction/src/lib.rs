@@ -28,3 +28,6 @@ pub use transaction::*;
 
 pub mod transaction_builder;
 pub use transaction_builder::*;
+
+#[cfg(test)]
+mod tests;
