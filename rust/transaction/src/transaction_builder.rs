@@ -17,7 +17,7 @@
 use crate::{Transaction, TransactionError};
 use aleo_environment::Environment;
 
-use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, SignatureScheme, SNARK};
+use snarkvm_algorithms::{SignatureScheme, SNARK};
 use snarkvm_dpc::{
     testnet1::{transaction::Transaction as DPCTransaction, BaseDPCComponents},
     DPCComponents,

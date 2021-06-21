@@ -18,7 +18,7 @@ use crate::{TransactionBuilder, TransactionError};
 use aleo_environment::Environment;
 
 use snarkos_storage::Ledger;
-use snarkvm_algorithms::{CommitmentScheme, SignatureScheme, CRH};
+use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme, SignatureScheme, CRH};
 use snarkvm_dpc::{
     testnet1::{
         transaction::AleoAmount,
