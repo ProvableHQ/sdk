@@ -26,6 +26,7 @@ use snarkvm_dpc::{
         EncryptedRecord,
         NoopProgram,
         PublicParameters,
+        Record as DPCRecord,
         Transaction as DPCTransaction,
         TransactionKernel,
         DPC,
@@ -42,7 +43,7 @@ use snarkvm_dpc::{
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use rand::{CryptoRng, Rng};
-use snarkvm_dpc::testnet1::payload::Payload;
+use snarkvm_dpc::testnet1::{payload::Payload, SystemParameters};
 use std::io::{Read, Result as IoResult, Write};
 
 #[derive(Derivative)]
@@ -64,7 +65,9 @@ impl<E: Environment> Transaction<E> {
         TransactionBuilder { ..Default::default() }
     }
 
+    ///
     /// Returns a transaction constructed with dummy records.
+    ///
     pub fn new_dummy_transaction<R: Rng + CryptoRng>(network_id: u8, rng: &mut R) -> Result<Self, TransactionError> {
         let parameters = PublicParameters::<E::Components>::load(false)?;
 
@@ -136,12 +139,8 @@ impl<E: Environment> Transaction<E> {
         let memo = rng.gen();
 
         // Generate transaction
-
-        // Offline execution to generate a DPC transaction
-        let execute_context = <DPC<E::Components> as DPCScheme<
-            Ledger<DPCTransaction<E::Components>, <E::Components as BaseDPCComponents>::MerkleParameters, E::Storage>,
-        >>::execute_offline(
-            parameters.system_parameters,
+        Self::execute_offline(
+            Some(parameters),
             old_records,
             old_account_private_keys,
             new_record_owners,
@@ -151,6 +150,50 @@ impl<E: Environment> Transaction<E> {
             new_birth_program_ids,
             new_death_program_ids,
             memo,
+            network_id,
+            rng,
+        )
+    }
+
+    ///
+    /// Offline execution to generate a DPC transaction.
+    ///
+    pub fn execute_offline<R: Rng>(
+        parameters: Option<PublicParameters<<E as Environment>::Components>>,
+        old_records: Vec<DPCRecord<<E as Environment>::Components>>,
+        old_account_private_keys: Vec<AccountPrivateKey<<E as Environment>::Components>>,
+        new_record_owners: Vec<AccountAddress<<E as Environment>::Components>>,
+        new_is_dummy_flags: &[bool],
+        new_values: &[u64],
+        new_payloads: Vec<Payload>,
+        new_birth_program_ids: Vec<Vec<u8>>,
+        new_death_program_ids: Vec<Vec<u8>>,
+        memorandum: <Transaction<E> as TransactionScheme>::Memorandum,
+        network_id: u8,
+        rng: &mut R,
+    ) -> Result<Self, TransactionError> {
+        // Load public parameters if they are not provided
+        let parameters = match parameters {
+            Some(parameters) => parameters,
+            None => PublicParameters::<E::Components>::load(false)?,
+        };
+
+        let system_parameters = SystemParameters::<E::Components>::load()?;
+
+        // Offline execution to generate a DPC transaction
+        let execute_context = <DPC<E::Components> as DPCScheme<
+            Ledger<DPCTransaction<E::Components>, <E::Components as BaseDPCComponents>::MerkleParameters, E::Storage>,
+        >>::execute_offline(
+            system_parameters,
+            old_records,
+            old_account_private_keys,
+            new_record_owners,
+            &new_is_dummy_flags,
+            &new_values,
+            new_payloads,
+            new_birth_program_ids,
+            new_death_program_ids,
+            memorandum,
             network_id,
             rng,
         )?;
@@ -169,7 +212,7 @@ impl<E: Environment> Transaction<E> {
         >::open_at_path(&path)
         .unwrap();
 
-        let transaction = Self::delegate_transaction(execute_context, &ledger, rng)?;
+        let transaction = Self::delegate_transaction(Some(parameters), execute_context, &ledger, rng)?;
 
         drop(ledger);
 
@@ -180,6 +223,7 @@ impl<E: Environment> Transaction<E> {
     /// Delegated execution of program proof generation and transaction online phase.
     ///
     pub fn delegate_transaction<R: Rng>(
+        parameters: Option<PublicParameters<<E as Environment>::Components>>,
         transaction_kernel: TransactionKernel<E::Components>,
         ledger: &Ledger<
             DPCTransaction<E::Components>,
@@ -188,7 +232,11 @@ impl<E: Environment> Transaction<E> {
         >,
         rng: &mut R,
     ) -> Result<Self, TransactionError> {
-        let parameters = PublicParameters::<E::Components>::load(false)?;
+        // Load public parameters if they are not provided
+        let parameters = match parameters {
+            Some(parameters) => parameters,
+            None => PublicParameters::<E::Components>::load(false)?,
+        };
 
         let local_data = transaction_kernel.into_local_data();
 
@@ -252,7 +300,20 @@ impl<E: Environment> Transaction<E> {
             rng,
         )?;
 
-        Ok(Transaction::<E> { transaction })
+        Transaction::new()
+            .network(transaction.network)
+            .ledger_digest(transaction.ledger_digest)
+            .old_serial_numbers(transaction.old_serial_numbers)
+            .new_commitments(transaction.new_commitments)
+            .program_commitment(transaction.program_commitment)
+            .local_data_root(transaction.local_data_root)
+            .value_balance(transaction.value_balance)
+            .signatures(transaction.signatures)
+            .encrypted_records(transaction.encrypted_records)
+            .transaction_proof(transaction.transaction_proof)
+            .memorandum(transaction.memorandum)
+            .inner_circuit_id(transaction.inner_circuit_id)
+            .build()
     }
 }
 

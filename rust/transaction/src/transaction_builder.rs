@@ -227,6 +227,24 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     /// Returns a new transaction builder and sets field `memorandum`.
     ///
+    pub fn transaction_proof(
+        mut self,
+        transaction_proof: <<E::Components as BaseDPCComponents>::OuterSNARK as SNARK>::Proof,
+    ) -> Self {
+        let transaction_proof_string = hex::encode(to_bytes![transaction_proof].unwrap());
+
+        if self.transaction_proof.set(transaction_proof).is_err() {
+            self.errors.push(TransactionError::DuplicateArgument(format!(
+                "transaction_proof: {}",
+                hex::encode(transaction_proof_string)
+            )))
+        }
+        self
+    }
+
+    ///
+    /// Returns a new transaction builder and sets field `memorandum`.
+    ///
     pub fn memorandum(mut self, memorandum: <Transaction<E> as TransactionScheme>::Memorandum) -> Self {
         if self.memorandum.set(memorandum).is_err() {
             self.errors.push(TransactionError::DuplicateArgument(format!(
@@ -322,6 +340,7 @@ impl<E: Environment> TransactionBuilder<E> {
         };
 
         // Get transaction_proof
+        // todo (collin): generate this field automatically
         let transaction_proof = match self.transaction_proof.take() {
             Some(value) => value,
             None => return Err(TransactionError::MissingField("transaction_proof".to_string())),
@@ -369,7 +388,7 @@ impl<E: Environment> TransactionBuilder<E> {
 }
 
 // todo (collin) move this method to snarkvm
-fn verify_transaction_signature<E: Environment>(
+pub(crate) fn verify_transaction_signature<E: Environment>(
     parameters: &PublicParameters<E::Components>,
     transaction: &DPCTransaction<E::Components>,
 ) -> Result<(), TransactionError> {
@@ -400,7 +419,7 @@ fn verify_transaction_signature<E: Environment>(
     Ok(())
 }
 
-fn verify_transaction_proof<E: Environment>(
+pub(crate) fn verify_transaction_proof<E: Environment>(
     parameters: &PublicParameters<E::Components>,
     transaction: &DPCTransaction<E::Components>,
 ) -> Result<(), TransactionError> {
