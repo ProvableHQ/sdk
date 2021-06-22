@@ -164,10 +164,10 @@ impl<N: Network> TransactionKernelBuilder<N> {
             None => return Err(TransactionError::MissingField("network_id".to_string())),
         };
 
-        // Get memorandum
+        // Get memorandum or derive random
         let memo = match self.memo.get() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("memorandum".to_string())),
+            Some(value) => value.clone(),
+            None => rng.gen(),
         };
 
         // Check that the transaction is limited to `Components::NUM_INPUT_RECORDS` inputs.
@@ -331,7 +331,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
             new_payloads,
             new_birth_program_ids,
             new_death_program_ids,
-            *memo,
+            memo,
             *network_id,
             rng,
         )?;

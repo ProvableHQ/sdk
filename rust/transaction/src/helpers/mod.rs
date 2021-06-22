@@ -22,3 +22,6 @@ pub use transaction_kernel::*;
 
 pub mod transaction_kernel_builder;
 pub use transaction_kernel_builder::*;
+
+#[cfg(test)]
+mod tests;
