@@ -54,7 +54,7 @@ version = "0.8.0"
 [dependencies.thiserror]
 version = "1.0"
 
-[dev-dependencies.snarkvm-parameters]
+[dependencies.snarkvm-parameters]
 version = "0.5.4"
 
 [dev-dependencies.rand_chacha]

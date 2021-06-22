@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_algorithms::CRHError;
+use snarkvm_algorithms::{CRHError, SNARKError, SignatureError};
 use snarkvm_dpc::{AccountError, DPCError, TransactionError as DPCTransactionError};
 
 use anyhow::Error as AnyhowError;
@@ -45,8 +45,20 @@ pub enum TransactionError {
     #[error("Attempted to set transaction builder argument {} twice", _0)]
     DuplicateArgument(String),
 
+    #[error("Transaction proof did not verify")]
+    InvalidProof,
+
+    #[error("Transaction signature did not verify")]
+    InvalidSignature,
+
     #[error("Missing Transaction field: {}", _0)]
     MissingField(String),
+
+    #[error("{}", _0)]
+    SignatureError(#[from] SignatureError),
+
+    #[error("{}", _0)]
+    SNARKError(#[from] SNARKError),
 }
 
 impl From<std::io::Error> for TransactionError {

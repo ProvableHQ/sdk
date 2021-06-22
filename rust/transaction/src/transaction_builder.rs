@@ -17,16 +17,25 @@
 use crate::{Transaction, TransactionError};
 use aleo_environment::Environment;
 
-use snarkvm_algorithms::{SignatureScheme, SNARK};
+use snarkvm_algorithms::{MerkleParameters, SignatureScheme, CRH, SNARK};
 use snarkvm_dpc::{
-    testnet1::{transaction::Transaction as DPCTransaction, BaseDPCComponents},
+    testnet1::{
+        transaction::Transaction as DPCTransaction,
+        BaseDPCComponents,
+        InnerCircuitVerifierInput,
+        OuterCircuitVerifierInput,
+        PublicParameters,
+        RecordEncryption,
+    },
     DPCComponents,
     Network,
     TransactionScheme,
 };
-use snarkvm_utilities::{to_bytes, ToBytes};
+use snarkvm_parameters::{LedgerMerkleTreeParameters, Parameter};
+use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use once_cell::sync::OnceCell;
+use std::sync::Arc;
 
 /// A builder struct for the Transaction data type.
 #[derive(Derivative)]
@@ -330,6 +339,7 @@ impl<E: Environment> TransactionBuilder<E> {
             None => return Err(TransactionError::MissingField("inner_circuit_id".to_string())),
         };
 
+        // Create candidate transaction
         let transaction = DPCTransaction::<E::Components>::new(
             old_serial_numbers,
             new_commitments,
@@ -345,6 +355,105 @@ impl<E: Environment> TransactionBuilder<E> {
             encrypted_records,
         );
 
+        // Load public parameters
+        let parameters = PublicParameters::<<E as Environment>::Components>::load(false).unwrap();
+
+        // Check transaction signature
+        verify_transaction_signature::<E>(&parameters, &transaction)?;
+
+        // Check transaction proof
+        verify_transaction_proof::<E>(&parameters, &transaction)?;
+
         Ok(Transaction::<E> { transaction })
     }
+}
+
+// todo (collin) move this method to snarkvm
+fn verify_transaction_signature<E: Environment>(
+    parameters: &PublicParameters<E::Components>,
+    transaction: &DPCTransaction<E::Components>,
+) -> Result<(), TransactionError> {
+    let signature_message: &Vec<u8> = &to_bytes![
+        transaction.network_id(),
+        transaction.ledger_digest(),
+        transaction.old_serial_numbers(),
+        transaction.new_commitments(),
+        transaction.program_commitment(),
+        transaction.local_data_root(),
+        transaction.value_balance(),
+        transaction.memorandum()
+    ]
+    .unwrap();
+
+    let account_signature = &parameters.system_parameters.account_signature;
+    for (pk, sig) in transaction.old_serial_numbers().iter().zip(&transaction.signatures) {
+        if !<<E as Environment>::Components as DPCComponents>::AccountSignature::verify(
+            account_signature,
+            pk,
+            signature_message,
+            sig,
+        )? {
+            return Err(TransactionError::InvalidSignature);
+        }
+    }
+
+    Ok(())
+}
+
+fn verify_transaction_proof<E: Environment>(
+    parameters: &PublicParameters<E::Components>,
+    transaction: &DPCTransaction<E::Components>,
+) -> Result<(), TransactionError> {
+    // Load ledger parameters from snarkvm-parameters
+    let crh_parameters =
+        <<<<E as Environment>::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H as CRH>::Parameters::read(&LedgerMerkleTreeParameters::load_bytes().unwrap()[..]).unwrap();
+    let merkle_tree_hash_parameters =
+        <<E::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H::from(crh_parameters);
+    let ledger_parameters = Arc::new(From::from(merkle_tree_hash_parameters));
+
+    // Construct the ciphertext hashes
+    let mut new_encrypted_record_hashes = Vec::with_capacity(E::Components::NUM_OUTPUT_RECORDS);
+    for encrypted_record in &transaction.encrypted_records {
+        let encrypted_record_hash =
+            RecordEncryption::encrypted_record_hash(&parameters.system_parameters, encrypted_record)?;
+
+        new_encrypted_record_hashes.push(encrypted_record_hash);
+    }
+
+    let inner_snark_input = InnerCircuitVerifierInput {
+        system_parameters: parameters.system_parameters.clone(),
+        ledger_parameters,
+        ledger_digest: transaction.ledger_digest().clone(),
+        old_serial_numbers: transaction.old_serial_numbers().to_vec(),
+        new_commitments: transaction.new_commitments().to_vec(),
+        new_encrypted_record_hashes,
+        memo: *transaction.memorandum(),
+        program_commitment: transaction.program_commitment().clone(),
+        local_data_root: transaction.local_data_root().clone(),
+        value_balance: transaction.value_balance(),
+        network_id: transaction.network_id(),
+    };
+
+    let inner_snark_vk: <<E::Components as BaseDPCComponents>::InnerSNARK as SNARK>::VerifyingKey =
+        parameters.inner_snark_parameters.1.clone().into();
+
+    let inner_circuit_id = <<E as Environment>::Components as DPCComponents>::InnerCircuitIDCRH::hash(
+        &parameters.system_parameters.inner_circuit_id_crh,
+        &to_bytes![inner_snark_vk]?,
+    )?;
+
+    let outer_snark_input = OuterCircuitVerifierInput {
+        inner_snark_verifier_input: inner_snark_input,
+        inner_circuit_id,
+    };
+
+    if !<<E as Environment>::Components as BaseDPCComponents>::OuterSNARK::verify(
+        &parameters.outer_snark_parameters.1,
+        &outer_snark_input,
+        &transaction.transaction_proof,
+    )? {
+        return Err(TransactionError::InvalidProof);
+    }
+
+    Ok(())
 }

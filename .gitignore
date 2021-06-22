@@ -1,5 +1,6 @@
 **/*.idea/
 **/target
 **.DS_Store
+**storage_db
 storage*/
 wasm/Cargo.lock
