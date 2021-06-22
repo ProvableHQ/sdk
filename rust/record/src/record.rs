@@ -49,7 +49,7 @@ use std::{
     Eq(bound = "N: Network")
 )]
 pub struct Record<N: Network> {
-    pub(crate) record: DPCRecord<N::Components>,
+    pub record: DPCRecord<N::Components>,
 }
 
 impl<N: Network> Record<N> {

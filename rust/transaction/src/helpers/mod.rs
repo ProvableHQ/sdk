@@ -14,23 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[macro_use]
-extern crate derivative;
+pub mod empty_ledger;
+pub use empty_ledger::*;
 
-#[macro_use]
-extern crate thiserror;
+pub mod transaction_kernel;
+pub use transaction_kernel::*;
 
-pub mod errors;
-pub use errors::*;
-
-pub mod helpers;
-pub use helpers::*;
-
-pub mod transaction;
-pub use transaction::*;
-
-pub mod transaction_builder;
-pub use transaction_builder::*;
-
-#[cfg(test)]
-mod tests;
+pub mod transaction_kernel_builder;
+pub use transaction_kernel_builder::*;

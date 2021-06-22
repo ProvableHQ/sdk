@@ -13,16 +13,21 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+use aleo_account::AddressError;
 
 use snarkvm_algorithms::{CRHError, SNARKError, SignatureError};
 use snarkvm_dpc::{AccountError, DPCError, TransactionError as DPCTransactionError};
 
 use anyhow::Error as AnyhowError;
+use hex::FromHexError;
 
 #[derive(Debug, Error)]
 pub enum TransactionError {
     #[error("{}", _0)]
     AccountError(#[from] AccountError),
+
+    #[error("{}", 0)]
+    AddressError(#[from] AddressError),
 
     #[error("{}", _0)]
     AnyhowError(#[from] AnyhowError),
@@ -45,6 +50,15 @@ pub enum TransactionError {
     #[error("Attempted to set transaction builder argument {} twice", _0)]
     DuplicateArgument(String),
 
+    #[error("{}", _0)]
+    FromHexError(#[from] FromHexError),
+
+    #[error("Invalid number of inputs. (Current: {}, Max: {})", _0, _1)]
+    InvalidNumberOfInputs(usize, usize),
+
+    #[error("Invalid number of outputs. (Current: {}, Max: {})", _0, _1)]
+    InvalidNumberOfOutputs(usize, usize),
+
     #[error("Transaction proof did not verify")]
     InvalidProof,
 
@@ -53,6 +67,9 @@ pub enum TransactionError {
 
     #[error("Missing Transaction field: {}", _0)]
     MissingField(String),
+
+    #[error("Missing transaction outputs)")]
+    MissingOutputs,
 
     #[error("{}", _0)]
     SignatureError(#[from] SignatureError),

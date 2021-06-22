@@ -27,7 +27,7 @@ use snarkvm_utilities::{FromBytes, ToBytes};
 
 use std::{fmt::Debug, hash::Hash};
 
-/// The target environment for building records, and transactions.
+/// The target network for building records, and transactions.
 pub trait Network {
     type Components: DPCComponents + BaseDPCComponents;
 
@@ -39,7 +39,7 @@ pub trait Network {
     type Memorandum: FromBytes + ToBytes;
 }
 
-/// The testnet1 environment
+/// The testnet1 network
 pub struct Testnet1;
 
 impl Network for Testnet1 {

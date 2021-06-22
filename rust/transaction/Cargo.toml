@@ -17,6 +17,9 @@ path = "../account"
 [dependencies.aleo-network]
 path = "../network"
 
+[dependencies.aleo-record]
+path = "../record"
+
 [dependencies.snarkvm-algorithms]
 version = "0.5.4"
 default-features = false

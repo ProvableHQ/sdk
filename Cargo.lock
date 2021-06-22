@@ -88,6 +88,7 @@ version = "0.2.0"
 dependencies = [
  "aleo-account",
  "aleo-network",
+ "aleo-record",
  "anyhow",
  "derivative",
  "hex",
