@@ -34,13 +34,14 @@ use once_cell::sync::OnceCell;
 pub struct TransactionBuilder<E: Environment> {
     pub(crate) network: OnceCell<Network>,
     pub(crate) ledger_digest: OnceCell<<Transaction<E> as TransactionScheme>::Digest>,
-    pub(crate) old_serial_numbers: Vec<<Transaction<E> as TransactionScheme>::SerialNumber>,
-    pub(crate) new_commitments: Vec<<Transaction<E> as TransactionScheme>::Commitment>,
+    pub(crate) old_serial_numbers: OnceCell<Vec<<Transaction<E> as TransactionScheme>::SerialNumber>>,
+    pub(crate) new_commitments: OnceCell<Vec<<Transaction<E> as TransactionScheme>::Commitment>>,
     pub(crate) program_commitment: OnceCell<<Transaction<E> as TransactionScheme>::ProgramCommitment>,
     pub(crate) local_data_root: OnceCell<<Transaction<E> as TransactionScheme>::LocalDataRoot>,
     pub(crate) value_balance: OnceCell<<Transaction<E> as TransactionScheme>::ValueBalance>,
-    pub(crate) signatures: Vec<<<E::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>,
-    pub(crate) encrypted_records: Vec<<Transaction<E> as TransactionScheme>::EncryptedRecord>,
+    pub(crate) signatures:
+        OnceCell<Vec<<<E::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>>,
+    pub(crate) encrypted_records: OnceCell<Vec<<Transaction<E> as TransactionScheme>::EncryptedRecord>>,
     pub(crate) transaction_proof: OnceCell<<<E::Components as BaseDPCComponents>::OuterSNARK as SNARK>::Proof>,
     pub(crate) memorandum: OnceCell<<Transaction<E> as TransactionScheme>::Memorandum>,
     pub(crate) inner_circuit_id: OnceCell<<Transaction<E> as TransactionScheme>::InnerCircuitID>,
@@ -90,7 +91,19 @@ impl<E: Environment> TransactionBuilder<E> {
         mut self,
         old_serial_numbers: Vec<<Transaction<E> as TransactionScheme>::SerialNumber>,
     ) -> Self {
-        self.old_serial_numbers = old_serial_numbers;
+        let old_serial_numbers_string = old_serial_numbers
+            .iter()
+            .map(|number| hex::encode(to_bytes![number].unwrap()))
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        if self.old_serial_numbers.set(old_serial_numbers).is_err() {
+            self.errors.push(TransactionError::DuplicateArgument(format!(
+                "old_serial_numbers: {}",
+                old_serial_numbers_string
+            )))
+        }
+
         self
     }
 
@@ -98,7 +111,19 @@ impl<E: Environment> TransactionBuilder<E> {
     /// Returns a new transaction builder and sets field `new_commitments`.
     ///
     pub fn new_commitments(mut self, new_commitments: Vec<<Transaction<E> as TransactionScheme>::Commitment>) -> Self {
-        self.new_commitments = new_commitments;
+        let new_commitments_string = new_commitments
+            .iter()
+            .map(|commitment| hex::encode(to_bytes![commitment].unwrap()))
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        if self.new_commitments.set(new_commitments).is_err() {
+            self.errors.push(TransactionError::DuplicateArgument(format!(
+                "new_commitments: {}",
+                new_commitments_string
+            )))
+        }
+
         self
     }
 
@@ -152,7 +177,19 @@ impl<E: Environment> TransactionBuilder<E> {
         mut self,
         signatures: Vec<<<E::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>,
     ) -> Self {
-        self.signatures = signatures;
+        let signatures_string = signatures
+            .iter()
+            .map(|signature| hex::encode(to_bytes![signature].unwrap()))
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        if self.signatures.set(signatures).is_err() {
+            self.errors.push(TransactionError::DuplicateArgument(format!(
+                "signatures: {}",
+                signatures_string
+            )))
+        }
+
         self
     }
 
@@ -163,7 +200,18 @@ impl<E: Environment> TransactionBuilder<E> {
         mut self,
         encrypted_records: Vec<<Transaction<E> as TransactionScheme>::EncryptedRecord>,
     ) -> Self {
-        self.encrypted_records = encrypted_records;
+        let encrypted_records_string = encrypted_records
+            .iter()
+            .map(|encrypted_record| hex::encode(to_bytes![encrypted_record].unwrap()))
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        if self.encrypted_records.set(encrypted_records).is_err() {
+            self.errors.push(TransactionError::DuplicateArgument(format!(
+                "encrypted_records: {}",
+                encrypted_records_string
+            )))
+        }
         self
     }
 
@@ -223,17 +271,15 @@ impl<E: Environment> TransactionBuilder<E> {
         };
 
         // Get old_serial_numbers
-        let old_serial_numbers = if self.old_serial_numbers.is_empty() {
-            return Err(TransactionError::MissingField("old_serial_numbers".to_string()));
-        } else {
-            self.old_serial_numbers
+        let old_serial_numbers = match self.old_serial_numbers.take() {
+            Some(value) => value,
+            None => return Err(TransactionError::MissingField("old_serial_numbers".to_string())),
         };
 
         // Get new_commitments
-        let new_commitments = if self.new_commitments.is_empty() {
-            return Err(TransactionError::MissingField("new_commitments".to_string()));
-        } else {
-            self.new_commitments
+        let new_commitments = match self.new_commitments.take() {
+            Some(value) => value,
+            None => return Err(TransactionError::MissingField("new_commitments".to_string())),
         };
 
         // Get program_commitment
@@ -255,17 +301,15 @@ impl<E: Environment> TransactionBuilder<E> {
         };
 
         // Get signatures
-        let signatures = if self.signatures.is_empty() {
-            return Err(TransactionError::MissingField("signatures".to_string()));
-        } else {
-            self.signatures
+        let signatures = match self.signatures.take() {
+            Some(value) => value,
+            None => return Err(TransactionError::MissingField("signatures".to_string())),
         };
 
         // Get encrypted_records
-        let encrypted_records = if self.encrypted_records.is_empty() {
-            return Err(TransactionError::MissingField("encrypted_records".to_string()));
-        } else {
-            self.encrypted_records
+        let encrypted_records = match self.encrypted_records.take() {
+            Some(value) => value,
+            None => return Err(TransactionError::MissingField("encrypted_records".to_string())),
         };
 
         // Get transaction_proof
