@@ -16,7 +16,7 @@
 
 use crate::Record;
 use aleo_account::ViewKey;
-use aleo_environment::Environment;
+use aleo_network::Network;
 
 use snarkvm_dpc::{
     testnet1::{instantiated::Components, parameters::SystemParameters, record_encryption::RecordEncryption},
@@ -28,7 +28,7 @@ pub(crate) struct Decrypt;
 
 impl Decrypt {
     /// Decrypt and reconstruct the encrypted record
-    pub(crate) fn decrypt<E: Environment>(view_key: &ViewKey, encrypted_record: &[u8]) -> Result<Record<E>, DPCError> {
+    pub(crate) fn decrypt<N: Network>(view_key: &ViewKey, encrypted_record: &[u8]) -> Result<Record<N>, DPCError> {
         let system_parameters = SystemParameters::<Components>::load()?;
 
         let record = RecordEncryption::<Components>::decrypt_record(

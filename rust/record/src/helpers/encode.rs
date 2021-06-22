@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::Record;
-use aleo_environment::Environment;
+use aleo_network::Network;
 
 use snarkvm_curves::edwards_bls12::{EdwardsParameters, EdwardsProjective as EdwardsBls};
 use snarkvm_dpc::{
@@ -31,7 +31,7 @@ use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 pub(crate) struct Encode;
 
 impl Encode {
-    pub(crate) fn encode<E: Environment>(record: &Record<E>) -> Result<(Vec<EdwardsBls>, bool), DPCError> {
+    pub(crate) fn encode<N: Network>(record: &Record<N>) -> Result<(Vec<EdwardsBls>, bool), DPCError> {
         let record_bytes = to_bytes![record]?;
         let given_record: RecordInner<Components> = FromBytes::read(&record_bytes[..])?;
         RecordEncoding::<Components, EdwardsParameters, EdwardsBls>::encode(&given_record)

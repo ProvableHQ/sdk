@@ -19,7 +19,7 @@ use crate::{
     Record,
 };
 use aleo_account::*;
-use aleo_environment::Testnet1;
+use aleo_network::Testnet1;
 
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{

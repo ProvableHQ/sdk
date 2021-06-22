@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use aleo_account::{Address, ViewKey};
-use aleo_environment::Testnet1;
+use aleo_network::Testnet1;
 use aleo_record::{EncryptedRecord, Record as RecordInner};
 
 use snarkvm_dpc::{testnet1::payload::Payload, traits::record::RecordScheme};

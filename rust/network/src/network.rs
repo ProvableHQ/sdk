@@ -30,7 +30,7 @@ use snarkvm_utilities::{FromBytes, ToBytes};
 use std::{fmt::Debug, hash::Hash};
 
 /// The target environment for building records, and transactions.
-pub trait Environment {
+pub trait Network {
     type Components: DPCComponents + BaseDPCComponents;
 
     /// Record components
@@ -47,7 +47,7 @@ pub trait Environment {
 /// The testnet1 environment
 pub struct Testnet1;
 
-impl Environment for Testnet1 {
+impl Network for Testnet1 {
     type Amount = AleoAmount;
     type Components = Testnet1Components;
     type Memorandum = [u8; 32];

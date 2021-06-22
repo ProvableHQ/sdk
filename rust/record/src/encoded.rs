@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 use crate::{Encode, EncodedRecordError, Record};
-use aleo_environment::Environment;
+use aleo_network::Network;
 
 use snarkvm_curves::edwards_bls12::EdwardsProjective as EdwardsBls;
 
@@ -26,7 +26,7 @@ pub struct EncodedRecord {
 
 impl EncodedRecord {
     /// Encodes the record.
-    pub fn from<E: Environment>(record: &Record<E>) -> Result<(Vec<EdwardsBls>, bool), EncodedRecordError> {
+    pub fn from<E: Network>(record: &Record<E>) -> Result<(Vec<EdwardsBls>, bool), EncodedRecordError> {
         Ok(Encode::encode(record)?)
     }
 }

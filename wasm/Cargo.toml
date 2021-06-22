@@ -17,8 +17,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies.aleo-account]
 path = "../rust/account"
 
-[dependencies.aleo-environment]
-path = "../rust/environment"
+[dependencies.aleo-network]
+path = "../rust/network"
 
 [dependencies.aleo-record]
 path = "../rust/record"

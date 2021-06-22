@@ -16,7 +16,7 @@
 
 use crate::{RecordBuilder, RecordError};
 use aleo_account::{Address, PrivateKey};
-use aleo_environment::Environment;
+use aleo_network::Network;
 
 use snarkvm_algorithms::{
     traits::{CommitmentScheme, CRH},
@@ -42,22 +42,22 @@ use std::{
 
 #[derive(Derivative)]
 #[derivative(
-    Default(bound = "E: Environment"),
-    Debug(bound = "E: Environment"),
-    Clone(bound = "E: Environment"),
-    PartialEq(bound = "E: Environment"),
-    Eq(bound = "E: Environment")
+    Default(bound = "N: Network"),
+    Debug(bound = "N: Network"),
+    Clone(bound = "N: Network"),
+    PartialEq(bound = "N: Network"),
+    Eq(bound = "N: Network")
 )]
-pub struct Record<E: Environment> {
-    pub(crate) record: DPCRecord<E::Components>,
+pub struct Record<N: Network> {
+    pub(crate) record: DPCRecord<N::Components>,
 }
 
-impl<E: Environment> Record<E> {
+impl<N: Network> Record<N> {
     ///
     /// Returns a new record builder.
     ///
     #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> RecordBuilder<E> {
+    pub fn new() -> RecordBuilder<N> {
         RecordBuilder { ..Default::default() }
     }
 
@@ -76,7 +76,7 @@ impl<E: Environment> Record<E> {
         let payload = <Self as RecordScheme>::Payload::default();
 
         // Set birth program ID and death program ID to the noop program ID.
-        let parameters = PublicParameters::<E::Components>::load(true)?;
+        let parameters = PublicParameters::<N::Components>::load(true)?;
         let noop_program_id = to_bytes![
             parameters
                 .system_parameters
@@ -103,16 +103,15 @@ impl<E: Environment> Record<E> {
     }
 }
 
-impl<E: Environment> RecordScheme for Record<E> {
-    type Commitment = <<<E as Environment>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
+impl<N: Network> RecordScheme for Record<N> {
+    type Commitment = <<<N as Network>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
     type CommitmentRandomness =
-        <<<E as Environment>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
-    type Owner = AccountAddress<E::Components>;
+        <<<N as Network>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Randomness;
+    type Owner = AccountAddress<N::Components>;
     // todo: make this type part of components in snarkvm_dpc
     type Payload = Payload;
-    type SerialNumber =
-        <<<E as Environment>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
-    type SerialNumberNonce = <<<E as Environment>::Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output;
+    type SerialNumber = <<<N as Network>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
+    type SerialNumberNonce = <<<N as Network>::Components as DPCComponents>::SerialNumberNonceCRH as CRH>::Output;
     type Value = u64;
 
     fn owner(&self) -> &Self::Owner {
@@ -152,14 +151,14 @@ impl<E: Environment> RecordScheme for Record<E> {
     }
 }
 
-impl<E: Environment> ToBytes for Record<E> {
+impl<N: Network> ToBytes for Record<N> {
     #[inline]
     fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
         self.record.write(&mut writer)
     }
 }
 
-impl<E: Environment> FromBytes for Record<E> {
+impl<N: Network> FromBytes for Record<N> {
     #[inline]
     fn read<R: Read>(mut reader: R) -> IoResult<Self> {
         Ok(Self {
@@ -168,7 +167,7 @@ impl<E: Environment> FromBytes for Record<E> {
     }
 }
 
-impl<E: Environment> FromStr for Record<E> {
+impl<N: Network> FromStr for Record<N> {
     type Err = RecordError;
 
     fn from_str(record: &str) -> Result<Self, Self::Err> {
@@ -178,7 +177,7 @@ impl<E: Environment> FromStr for Record<E> {
     }
 }
 
-impl<E: Environment> fmt::Display for Record<E> {
+impl<N: Network> fmt::Display for Record<N> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,

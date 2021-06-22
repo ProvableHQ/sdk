@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 use crate::Record;
 use aleo_account::Address;
-use aleo_environment::{Environment, Testnet1};
+use aleo_network::{Network, Testnet1};
 
 use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
@@ -43,11 +43,11 @@ fn test_build_dummy_record() {
 
     // Load system parameters for the ledger, commitment schemes, CRH, and the
     // "always-accept" program.
-    let system_parameters = SystemParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
-    let program_snark_pp = NoopProgramSNARKParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
+    let system_parameters = SystemParameters::<<Testnet1 as Network>::Components>::load().unwrap();
+    let program_snark_pp = NoopProgramSNARKParameters::<<Testnet1 as Network>::Components>::load().unwrap();
 
     let noop_program_id = to_bytes![
-        <<Testnet1 as Environment>::Components as DPCComponents>::ProgramVerificationKeyCRH::hash(
+        <<Testnet1 as Network>::Components as DPCComponents>::ProgramVerificationKeyCRH::hash(
             &system_parameters.program_verification_key_crh,
             &to_bytes![program_snark_pp.verification_key].unwrap()
         )
@@ -78,11 +78,11 @@ fn test_build_dummy_record() {
 fn test_build_record() {
     // Load system parameters for the ledger, commitment schemes, CRH, and the
     // "always-accept" program.
-    let system_parameters = SystemParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
-    let program_snark_pp = NoopProgramSNARKParameters::<<Testnet1 as Environment>::Components>::load().unwrap();
+    let system_parameters = SystemParameters::<<Testnet1 as Network>::Components>::load().unwrap();
+    let program_snark_pp = NoopProgramSNARKParameters::<<Testnet1 as Network>::Components>::load().unwrap();
 
     let program_snark_vk_bytes = to_bytes![
-        <<Testnet1 as Environment>::Components as DPCComponents>::ProgramVerificationKeyCRH::hash(
+        <<Testnet1 as Network>::Components as DPCComponents>::ProgramVerificationKeyCRH::hash(
             &system_parameters.program_verification_key_crh,
             &to_bytes![program_snark_pp.verification_key].unwrap()
         )

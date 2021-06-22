@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{TransactionBuilder, TransactionError};
-use aleo_environment::Environment;
+use aleo_network::Network;
 
 use snarkos_storage::Ledger;
 use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme, SignatureScheme, CRH};
@@ -48,20 +48,20 @@ use std::io::{Read, Result as IoResult, Write};
 
 #[derive(Derivative)]
 #[derivative(
-    Clone(bound = "E: Environment"),
-    PartialEq(bound = "E: Environment"),
-    Eq(bound = "E: Environment")
+    Clone(bound = "N: Network"),
+    PartialEq(bound = "N: Network"),
+    Eq(bound = "N: Network")
 )]
-pub struct Transaction<E: Environment> {
-    pub(crate) transaction: DPCTransaction<E::Components>,
+pub struct Transaction<N: Network> {
+    pub(crate) transaction: DPCTransaction<N::Components>,
 }
 
-impl<E: Environment> Transaction<E> {
+impl<N: Network> Transaction<N> {
     ///
     /// Returns a new transaction builder.
     ///
     #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> TransactionBuilder<E> {
+    pub fn new() -> TransactionBuilder<N> {
         TransactionBuilder { ..Default::default() }
     }
 
@@ -69,21 +69,21 @@ impl<E: Environment> Transaction<E> {
     /// Returns a transaction constructed with dummy records.
     ///
     pub fn new_dummy_transaction<R: Rng + CryptoRng>(network_id: u8, rng: &mut R) -> Result<Self, TransactionError> {
-        let parameters = PublicParameters::<E::Components>::load(false)?;
+        let parameters = PublicParameters::<N::Components>::load(false)?;
 
-        let spender = AccountPrivateKey::<E::Components>::new(
+        let spender = AccountPrivateKey::<N::Components>::new(
             &parameters.system_parameters.account_signature,
             &parameters.system_parameters.account_commitment,
             rng,
         )?;
 
-        let new_recipient_private_key = AccountPrivateKey::<E::Components>::new(
+        let new_recipient_private_key = AccountPrivateKey::<N::Components>::new(
             &parameters.system_parameters.account_signature,
             &parameters.system_parameters.account_commitment,
             rng,
         )?;
 
-        let new_recipient = AccountAddress::<E::Components>::from_private_key(
+        let new_recipient = AccountAddress::<N::Components>::from_private_key(
             parameters.account_signature_parameters(),
             parameters.account_commitment_parameters(),
             parameters.account_encryption_parameters(),
@@ -98,20 +98,20 @@ impl<E: Environment> Transaction<E> {
         ]?;
 
         let mut old_records = Vec::new();
-        let old_account_private_keys = vec![spender.clone(); E::Components::NUM_INPUT_RECORDS];
+        let old_account_private_keys = vec![spender.clone(); N::Components::NUM_INPUT_RECORDS];
 
-        while old_records.len() < E::Components::NUM_INPUT_RECORDS {
+        while old_records.len() < N::Components::NUM_INPUT_RECORDS {
             let sn_randomness: [u8; 32] = rng.gen();
             let old_sn_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
 
-            let address = AccountAddress::<E::Components>::from_private_key(
+            let address = AccountAddress::<N::Components>::from_private_key(
                 parameters.account_signature_parameters(),
                 parameters.account_commitment_parameters(),
                 parameters.account_encryption_parameters(),
                 &spender,
             )?;
 
-            let dummy_record = DPC::<E::Components>::generate_record(
+            let dummy_record = DPC::<N::Components>::generate_record(
                 &parameters.system_parameters,
                 old_sn_nonce,
                 address,
@@ -126,14 +126,14 @@ impl<E: Environment> Transaction<E> {
             old_records.push(dummy_record);
         }
 
-        assert_eq!(old_records.len(), E::Components::NUM_INPUT_RECORDS);
+        assert_eq!(old_records.len(), N::Components::NUM_INPUT_RECORDS);
 
-        let new_record_owners = vec![new_recipient; E::Components::NUM_OUTPUT_RECORDS];
-        let new_is_dummy_flags = vec![true; E::Components::NUM_OUTPUT_RECORDS];
-        let new_values = vec![0; E::Components::NUM_OUTPUT_RECORDS];
-        let new_birth_program_ids = vec![noop_program_id.clone(); E::Components::NUM_OUTPUT_RECORDS];
-        let new_death_program_ids = vec![noop_program_id.clone(); E::Components::NUM_OUTPUT_RECORDS];
-        let new_payloads = vec![Payload::default(); E::Components::NUM_OUTPUT_RECORDS];
+        let new_record_owners = vec![new_recipient; N::Components::NUM_OUTPUT_RECORDS];
+        let new_is_dummy_flags = vec![true; N::Components::NUM_OUTPUT_RECORDS];
+        let new_values = vec![0; N::Components::NUM_OUTPUT_RECORDS];
+        let new_birth_program_ids = vec![noop_program_id.clone(); N::Components::NUM_OUTPUT_RECORDS];
+        let new_death_program_ids = vec![noop_program_id.clone(); N::Components::NUM_OUTPUT_RECORDS];
+        let new_payloads = vec![Payload::default(); N::Components::NUM_OUTPUT_RECORDS];
 
         // Generate a random memo
         let memo = rng.gen();
@@ -159,30 +159,30 @@ impl<E: Environment> Transaction<E> {
     /// Offline execution to generate a DPC transaction.
     ///
     pub fn execute_offline<R: Rng>(
-        parameters: Option<PublicParameters<<E as Environment>::Components>>,
-        old_records: Vec<DPCRecord<<E as Environment>::Components>>,
-        old_account_private_keys: Vec<AccountPrivateKey<<E as Environment>::Components>>,
-        new_record_owners: Vec<AccountAddress<<E as Environment>::Components>>,
+        parameters: Option<PublicParameters<<N as Network>::Components>>,
+        old_records: Vec<DPCRecord<<N as Network>::Components>>,
+        old_account_private_keys: Vec<AccountPrivateKey<<N as Network>::Components>>,
+        new_record_owners: Vec<AccountAddress<<N as Network>::Components>>,
         new_is_dummy_flags: &[bool],
         new_values: &[u64],
         new_payloads: Vec<Payload>,
         new_birth_program_ids: Vec<Vec<u8>>,
         new_death_program_ids: Vec<Vec<u8>>,
-        memorandum: <Transaction<E> as TransactionScheme>::Memorandum,
+        memorandum: <Transaction<N> as TransactionScheme>::Memorandum,
         network_id: u8,
         rng: &mut R,
     ) -> Result<Self, TransactionError> {
         // Load public parameters if they are not provided
         let parameters = match parameters {
             Some(parameters) => parameters,
-            None => PublicParameters::<E::Components>::load(false)?,
+            None => PublicParameters::<N::Components>::load(false)?,
         };
 
-        let system_parameters = SystemParameters::<E::Components>::load()?;
+        let system_parameters = SystemParameters::<N::Components>::load()?;
 
         // Offline execution to generate a DPC transaction
-        let execute_context = <DPC<E::Components> as DPCScheme<
-            Ledger<DPCTransaction<E::Components>, <E::Components as BaseDPCComponents>::MerkleParameters, E::Storage>,
+        let execute_context = <DPC<N::Components> as DPCScheme<
+            Ledger<DPCTransaction<N::Components>, <N::Components as BaseDPCComponents>::MerkleParameters, N::Storage>,
         >>::execute_offline(
             system_parameters,
             old_records,
@@ -206,9 +206,9 @@ impl<E: Environment> Transaction<E> {
         path.push(format!("storage_db_{}", random_path));
 
         let ledger = Ledger::<
-            DPCTransaction<E::Components>,
-            <E::Components as BaseDPCComponents>::MerkleParameters,
-            E::Storage,
+            DPCTransaction<N::Components>,
+            <N::Components as BaseDPCComponents>::MerkleParameters,
+            N::Storage,
         >::open_at_path(&path)
         .unwrap();
 
@@ -223,19 +223,19 @@ impl<E: Environment> Transaction<E> {
     /// Delegated execution of program proof generation and transaction online phase.
     ///
     pub fn delegate_transaction<R: Rng>(
-        parameters: Option<PublicParameters<<E as Environment>::Components>>,
-        transaction_kernel: TransactionKernel<E::Components>,
+        parameters: Option<PublicParameters<<N as Network>::Components>>,
+        transaction_kernel: TransactionKernel<N::Components>,
         ledger: &Ledger<
-            DPCTransaction<E::Components>,
-            <E::Components as BaseDPCComponents>::MerkleParameters,
-            E::Storage,
+            DPCTransaction<N::Components>,
+            <N::Components as BaseDPCComponents>::MerkleParameters,
+            N::Storage,
         >,
         rng: &mut R,
     ) -> Result<Self, TransactionError> {
         // Load public parameters if they are not provided
         let parameters = match parameters {
             Some(parameters) => parameters,
-            None => PublicParameters::<E::Components>::load(false)?,
+            None => PublicParameters::<N::Components>::load(false)?,
         };
 
         let local_data = transaction_kernel.into_local_data();
@@ -261,10 +261,10 @@ impl<E: Environment> Transaction<E> {
         // Generate the program proofs
 
         let noop_program =
-            NoopProgram::<_, <E::Components as BaseDPCComponents>::NoopProgramSNARK>::new(noop_program_id);
+            NoopProgram::<_, <N::Components as BaseDPCComponents>::NoopProgramSNARK>::new(noop_program_id);
 
         let mut old_death_program_proofs = Vec::new();
-        for i in 0..E::Components::NUM_INPUT_RECORDS {
+        for i in 0..N::Components::NUM_INPUT_RECORDS {
             let private_input = noop_program.execute(
                 &parameters.noop_program_snark_parameters.proving_key,
                 &parameters.noop_program_snark_parameters.verification_key,
@@ -277,12 +277,12 @@ impl<E: Environment> Transaction<E> {
         }
 
         let mut new_birth_program_proofs = Vec::new();
-        for j in 0..E::Components::NUM_OUTPUT_RECORDS {
+        for j in 0..N::Components::NUM_OUTPUT_RECORDS {
             let private_input = noop_program.execute(
                 &parameters.noop_program_snark_parameters.proving_key,
                 &parameters.noop_program_snark_parameters.verification_key,
                 &local_data,
-                (E::Components::NUM_INPUT_RECORDS + j) as u8,
+                (N::Components::NUM_INPUT_RECORDS + j) as u8,
                 rng,
             )?;
 
@@ -291,7 +291,7 @@ impl<E: Environment> Transaction<E> {
 
         // Online execution to generate a DPC transaction
 
-        let (_new_records, transaction) = DPC::<E::Components>::execute_online(
+        let (_new_records, transaction) = DPC::<N::Components>::execute_online(
             &parameters,
             transaction_kernel,
             old_death_program_proofs,
@@ -317,17 +317,17 @@ impl<E: Environment> Transaction<E> {
     }
 }
 
-impl<E: Environment> TransactionScheme for Transaction<E> {
-    type Commitment = <<E::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
-    type Digest = MerkleTreeDigest<<E::Components as BaseDPCComponents>::MerkleParameters>;
-    type EncryptedRecord = EncryptedRecord<E::Components>;
-    type InnerCircuitID = <<E::Components as DPCComponents>::InnerCircuitIDCRH as CRH>::Output;
-    type LocalDataRoot = <<E::Components as DPCComponents>::LocalDataCRH as CRH>::Output;
+impl<N: Network> TransactionScheme for Transaction<N> {
+    type Commitment = <<N::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output;
+    type Digest = MerkleTreeDigest<<N::Components as BaseDPCComponents>::MerkleParameters>;
+    type EncryptedRecord = EncryptedRecord<N::Components>;
+    type InnerCircuitID = <<N::Components as DPCComponents>::InnerCircuitIDCRH as CRH>::Output;
+    type LocalDataRoot = <<N::Components as DPCComponents>::LocalDataCRH as CRH>::Output;
     // todo: make this type part of components in snarkvm_dpc
     type Memorandum = [u8; 32];
     type ProgramCommitment =
-        <<E::Components as DPCComponents>::ProgramVerificationKeyCommitment as CommitmentScheme>::Output;
-    type SerialNumber = <<E::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
+        <<N::Components as DPCComponents>::ProgramVerificationKeyCommitment as CommitmentScheme>::Output;
+    type SerialNumber = <<N::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
     // todo: make this type part of components in snarkvm_dpc
     type ValueBalance = AleoAmount;
 
@@ -380,14 +380,14 @@ impl<E: Environment> TransactionScheme for Transaction<E> {
     }
 }
 
-impl<E: Environment> ToBytes for Transaction<E> {
+impl<N: Network> ToBytes for Transaction<N> {
     #[inline]
     fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
         self.transaction.write(&mut writer)
     }
 }
 
-impl<E: Environment> FromBytes for Transaction<E> {
+impl<N: Network> FromBytes for Transaction<N> {
     #[inline]
     fn read<R: Read>(mut reader: R) -> IoResult<Self> {
         Ok(Self {

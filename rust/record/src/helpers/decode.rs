@@ -16,7 +16,7 @@
 
 use crate::Record;
 use aleo_account::Address;
-use aleo_environment::Environment;
+use aleo_network::Network;
 
 use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
 use snarkvm_curves::edwards_bls12::{EdwardsParameters, EdwardsProjective as EdwardsBls};
@@ -36,11 +36,11 @@ use snarkvm_utilities::{to_bytes, variable_length_integer::variable_length_integ
 pub(crate) struct Decode;
 
 impl Decode {
-    pub(crate) fn decode<E: Environment>(
+    pub(crate) fn decode<N: Network>(
         owner: Address,
         serialized_record: Vec<EdwardsBls>,
         final_sign_high: bool,
-    ) -> Result<Record<E>, DPCError> {
+    ) -> Result<Record<N>, DPCError> {
         let record =
             RecordEncoding::<Components, EdwardsParameters, EdwardsBls>::decode(serialized_record, final_sign_high)?;
 

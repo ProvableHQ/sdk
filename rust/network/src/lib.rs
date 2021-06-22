@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod environment;
-pub use environment::*;
+pub mod network;
+pub use network::*;

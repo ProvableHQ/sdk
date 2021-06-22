@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{Transaction, TransactionError};
-use aleo_environment::Environment;
+use aleo_network::Network;
 
 use snarkvm_algorithms::{MerkleParameters, SignatureScheme, CRH, SNARK};
 use snarkvm_dpc::{
@@ -28,7 +28,7 @@ use snarkvm_dpc::{
         RecordEncryption,
     },
     DPCComponents,
-    Network,
+    Network as AleoNetwork,
     TransactionScheme,
 };
 use snarkvm_parameters::{LedgerMerkleTreeParameters, Parameter};
@@ -39,26 +39,26 @@ use std::sync::Arc;
 
 /// A builder struct for the Transaction data type.
 #[derive(Derivative)]
-#[derivative(Default(bound = "E: Environment"), Debug(bound = "E: Environment"))]
-pub struct TransactionBuilder<E: Environment> {
-    pub(crate) network: OnceCell<Network>,
-    pub(crate) ledger_digest: OnceCell<<Transaction<E> as TransactionScheme>::Digest>,
-    pub(crate) old_serial_numbers: OnceCell<Vec<<Transaction<E> as TransactionScheme>::SerialNumber>>,
-    pub(crate) new_commitments: OnceCell<Vec<<Transaction<E> as TransactionScheme>::Commitment>>,
-    pub(crate) program_commitment: OnceCell<<Transaction<E> as TransactionScheme>::ProgramCommitment>,
-    pub(crate) local_data_root: OnceCell<<Transaction<E> as TransactionScheme>::LocalDataRoot>,
-    pub(crate) value_balance: OnceCell<<Transaction<E> as TransactionScheme>::ValueBalance>,
+#[derivative(Default(bound = "N: Network"), Debug(bound = "N: Network"))]
+pub struct TransactionBuilder<N: Network> {
+    pub(crate) network: OnceCell<AleoNetwork>,
+    pub(crate) ledger_digest: OnceCell<<Transaction<N> as TransactionScheme>::Digest>,
+    pub(crate) old_serial_numbers: OnceCell<Vec<<Transaction<N> as TransactionScheme>::SerialNumber>>,
+    pub(crate) new_commitments: OnceCell<Vec<<Transaction<N> as TransactionScheme>::Commitment>>,
+    pub(crate) program_commitment: OnceCell<<Transaction<N> as TransactionScheme>::ProgramCommitment>,
+    pub(crate) local_data_root: OnceCell<<Transaction<N> as TransactionScheme>::LocalDataRoot>,
+    pub(crate) value_balance: OnceCell<<Transaction<N> as TransactionScheme>::ValueBalance>,
     pub(crate) signatures:
-        OnceCell<Vec<<<E::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>>,
-    pub(crate) encrypted_records: OnceCell<Vec<<Transaction<E> as TransactionScheme>::EncryptedRecord>>,
-    pub(crate) transaction_proof: OnceCell<<<E::Components as BaseDPCComponents>::OuterSNARK as SNARK>::Proof>,
-    pub(crate) memorandum: OnceCell<<Transaction<E> as TransactionScheme>::Memorandum>,
-    pub(crate) inner_circuit_id: OnceCell<<Transaction<E> as TransactionScheme>::InnerCircuitID>,
+        OnceCell<Vec<<<N::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>>,
+    pub(crate) encrypted_records: OnceCell<Vec<<Transaction<N> as TransactionScheme>::EncryptedRecord>>,
+    pub(crate) transaction_proof: OnceCell<<<N::Components as BaseDPCComponents>::OuterSNARK as SNARK>::Proof>,
+    pub(crate) memorandum: OnceCell<<Transaction<N> as TransactionScheme>::Memorandum>,
+    pub(crate) inner_circuit_id: OnceCell<<Transaction<N> as TransactionScheme>::InnerCircuitID>,
 
     pub(crate) errors: Vec<TransactionError>,
 }
 
-impl<E: Environment> TransactionBuilder<E> {
+impl<N: Network> TransactionBuilder<N> {
     ///
     /// Returns a new transaction builder.
     /// To return a transaction and consume the transaction builder, call the `.build()` method.
@@ -70,7 +70,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     /// Returns a new transaction builder and sets field `network: Network`.
     ///
-    pub fn network(mut self, network: Network) -> Self {
+    pub fn network(mut self, network: AleoNetwork) -> Self {
         if self.network.set(network).is_err() {
             self.errors.push(TransactionError::DuplicateArgument(format!(
                 "network: {}",
@@ -83,7 +83,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     /// Returns a new transaction builder and sets field `ledger_digest`.
     ///
-    pub fn ledger_digest(mut self, ledger_digest: <Transaction<E> as TransactionScheme>::Digest) -> Self {
+    pub fn ledger_digest(mut self, ledger_digest: <Transaction<N> as TransactionScheme>::Digest) -> Self {
         if self.ledger_digest.set(ledger_digest).is_err() {
             self.errors.push(TransactionError::DuplicateArgument(format!(
                 "ledger_digest: {}",
@@ -98,7 +98,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     pub fn old_serial_numbers(
         mut self,
-        old_serial_numbers: Vec<<Transaction<E> as TransactionScheme>::SerialNumber>,
+        old_serial_numbers: Vec<<Transaction<N> as TransactionScheme>::SerialNumber>,
     ) -> Self {
         let old_serial_numbers_string = old_serial_numbers
             .iter()
@@ -119,7 +119,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     /// Returns a new transaction builder and sets field `new_commitments`.
     ///
-    pub fn new_commitments(mut self, new_commitments: Vec<<Transaction<E> as TransactionScheme>::Commitment>) -> Self {
+    pub fn new_commitments(mut self, new_commitments: Vec<<Transaction<N> as TransactionScheme>::Commitment>) -> Self {
         let new_commitments_string = new_commitments
             .iter()
             .map(|commitment| hex::encode(to_bytes![commitment].unwrap()))
@@ -141,7 +141,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     pub fn program_commitment(
         mut self,
-        program_commitment: <Transaction<E> as TransactionScheme>::ProgramCommitment,
+        program_commitment: <Transaction<N> as TransactionScheme>::ProgramCommitment,
     ) -> Self {
         let program_commitment_string = hex::encode(to_bytes![program_commitment].unwrap());
         if self.program_commitment.set(program_commitment).is_err() {
@@ -156,7 +156,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     /// Returns a new transaction builder and sets field `local_data_root`.
     ///
-    pub fn local_data_root(mut self, local_data_root: <Transaction<E> as TransactionScheme>::LocalDataRoot) -> Self {
+    pub fn local_data_root(mut self, local_data_root: <Transaction<N> as TransactionScheme>::LocalDataRoot) -> Self {
         if self.local_data_root.set(local_data_root).is_err() {
             self.errors.push(TransactionError::DuplicateArgument(format!(
                 "local_data_root: {}",
@@ -169,7 +169,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     /// Returns a new transaction builder and sets field `value_balance`.
     ///
-    pub fn value_balance(mut self, value_balance: <Transaction<E> as TransactionScheme>::ValueBalance) -> Self {
+    pub fn value_balance(mut self, value_balance: <Transaction<N> as TransactionScheme>::ValueBalance) -> Self {
         if self.value_balance.set(value_balance).is_err() {
             self.errors.push(TransactionError::DuplicateArgument(format!(
                 "value_balance: {}",
@@ -184,7 +184,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     pub fn signatures(
         mut self,
-        signatures: Vec<<<E::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>,
+        signatures: Vec<<<N::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>,
     ) -> Self {
         let signatures_string = signatures
             .iter()
@@ -207,7 +207,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     pub fn encrypted_records(
         mut self,
-        encrypted_records: Vec<<Transaction<E> as TransactionScheme>::EncryptedRecord>,
+        encrypted_records: Vec<<Transaction<N> as TransactionScheme>::EncryptedRecord>,
     ) -> Self {
         let encrypted_records_string = encrypted_records
             .iter()
@@ -229,7 +229,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     pub fn transaction_proof(
         mut self,
-        transaction_proof: <<E::Components as BaseDPCComponents>::OuterSNARK as SNARK>::Proof,
+        transaction_proof: <<N::Components as BaseDPCComponents>::OuterSNARK as SNARK>::Proof,
     ) -> Self {
         let transaction_proof_string = hex::encode(to_bytes![transaction_proof].unwrap());
 
@@ -245,7 +245,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     /// Returns a new transaction builder and sets field `memorandum`.
     ///
-    pub fn memorandum(mut self, memorandum: <Transaction<E> as TransactionScheme>::Memorandum) -> Self {
+    pub fn memorandum(mut self, memorandum: <Transaction<N> as TransactionScheme>::Memorandum) -> Self {
         if self.memorandum.set(memorandum).is_err() {
             self.errors.push(TransactionError::DuplicateArgument(format!(
                 "memorandum: {}",
@@ -258,7 +258,7 @@ impl<E: Environment> TransactionBuilder<E> {
     ///
     /// Returns a new transaction builder and sets field `inner_circuit_id`.
     ///
-    pub fn inner_circuit_id(mut self, inner_circuit_id: <Transaction<E> as TransactionScheme>::InnerCircuitID) -> Self {
+    pub fn inner_circuit_id(mut self, inner_circuit_id: <Transaction<N> as TransactionScheme>::InnerCircuitID) -> Self {
         if self.inner_circuit_id.set(inner_circuit_id).is_err() {
             self.errors.push(TransactionError::DuplicateArgument(format!(
                 "inner_circuit_id: {}",
@@ -272,7 +272,7 @@ impl<E: Environment> TransactionBuilder<E> {
     /// Returns a `Transaction` and consumes the transaction builder.
     /// Returns an error if fields are missing or errors are encountered while building.
     ///
-    pub fn build(mut self) -> Result<Transaction<E>, TransactionError> {
+    pub fn build(mut self) -> Result<Transaction<N>, TransactionError> {
         // Return error.
         if !self.errors.is_empty() {
             // Print out all errors
@@ -359,7 +359,7 @@ impl<E: Environment> TransactionBuilder<E> {
         };
 
         // Create candidate transaction
-        let transaction = DPCTransaction::<E::Components>::new(
+        let transaction = DPCTransaction::<N::Components>::new(
             old_serial_numbers,
             new_commitments,
             memorandum,
@@ -375,22 +375,22 @@ impl<E: Environment> TransactionBuilder<E> {
         );
 
         // Load public parameters
-        let parameters = PublicParameters::<<E as Environment>::Components>::load(false).unwrap();
+        let parameters = PublicParameters::<<N as Network>::Components>::load(false).unwrap();
 
         // Check transaction signature
-        verify_transaction_signature::<E>(&parameters, &transaction)?;
+        verify_transaction_signature::<N>(&parameters, &transaction)?;
 
         // Check transaction proof
-        verify_transaction_proof::<E>(&parameters, &transaction)?;
+        verify_transaction_proof::<N>(&parameters, &transaction)?;
 
-        Ok(Transaction::<E> { transaction })
+        Ok(Transaction::<N> { transaction })
     }
 }
 
 // todo (collin) move this method to snarkvm
-pub(crate) fn verify_transaction_signature<E: Environment>(
-    parameters: &PublicParameters<E::Components>,
-    transaction: &DPCTransaction<E::Components>,
+pub(crate) fn verify_transaction_signature<N: Network>(
+    parameters: &PublicParameters<N::Components>,
+    transaction: &DPCTransaction<N::Components>,
 ) -> Result<(), TransactionError> {
     let signature_message: &Vec<u8> = &to_bytes![
         transaction.network_id(),
@@ -406,7 +406,7 @@ pub(crate) fn verify_transaction_signature<E: Environment>(
 
     let account_signature = &parameters.system_parameters.account_signature;
     for (pk, sig) in transaction.old_serial_numbers().iter().zip(&transaction.signatures) {
-        if !<<E as Environment>::Components as DPCComponents>::AccountSignature::verify(
+        if !<<N as Network>::Components as DPCComponents>::AccountSignature::verify(
             account_signature,
             pk,
             signature_message,
@@ -419,19 +419,19 @@ pub(crate) fn verify_transaction_signature<E: Environment>(
     Ok(())
 }
 
-pub(crate) fn verify_transaction_proof<E: Environment>(
-    parameters: &PublicParameters<E::Components>,
-    transaction: &DPCTransaction<E::Components>,
+pub(crate) fn verify_transaction_proof<N: Network>(
+    parameters: &PublicParameters<N::Components>,
+    transaction: &DPCTransaction<N::Components>,
 ) -> Result<(), TransactionError> {
     // Load ledger parameters from snarkvm-parameters
     let crh_parameters =
-        <<<<E as Environment>::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H as CRH>::Parameters::read(&LedgerMerkleTreeParameters::load_bytes().unwrap()[..]).unwrap();
+        <<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H as CRH>::Parameters::read(&LedgerMerkleTreeParameters::load_bytes().unwrap()[..]).unwrap();
     let merkle_tree_hash_parameters =
-        <<E::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H::from(crh_parameters);
+        <<N::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H::from(crh_parameters);
     let ledger_parameters = Arc::new(From::from(merkle_tree_hash_parameters));
 
     // Construct the ciphertext hashes
-    let mut new_encrypted_record_hashes = Vec::with_capacity(E::Components::NUM_OUTPUT_RECORDS);
+    let mut new_encrypted_record_hashes = Vec::with_capacity(N::Components::NUM_OUTPUT_RECORDS);
     for encrypted_record in &transaction.encrypted_records {
         let encrypted_record_hash =
             RecordEncryption::encrypted_record_hash(&parameters.system_parameters, encrypted_record)?;
@@ -453,10 +453,10 @@ pub(crate) fn verify_transaction_proof<E: Environment>(
         network_id: transaction.network_id(),
     };
 
-    let inner_snark_vk: <<E::Components as BaseDPCComponents>::InnerSNARK as SNARK>::VerifyingKey =
+    let inner_snark_vk: <<N::Components as BaseDPCComponents>::InnerSNARK as SNARK>::VerifyingKey =
         parameters.inner_snark_parameters.1.clone().into();
 
-    let inner_circuit_id = <<E as Environment>::Components as DPCComponents>::InnerCircuitIDCRH::hash(
+    let inner_circuit_id = <<N as Network>::Components as DPCComponents>::InnerCircuitIDCRH::hash(
         &parameters.system_parameters.inner_circuit_id_crh,
         &to_bytes![inner_snark_vk]?,
     )?;
@@ -466,7 +466,7 @@ pub(crate) fn verify_transaction_proof<E: Environment>(
         inner_circuit_id,
     };
 
-    if !<<E as Environment>::Components as BaseDPCComponents>::OuterSNARK::verify(
+    if !<<N as Network>::Components as BaseDPCComponents>::OuterSNARK::verify(
         &parameters.outer_snark_parameters.1,
         &outer_snark_input,
         &transaction.transaction_proof,

@@ -54,7 +54,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "aleo-environment"
+name = "aleo-network"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
@@ -69,7 +69,7 @@ name = "aleo-record"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
- "aleo-environment",
+ "aleo-network",
  "derivative",
  "hex",
  "itertools",
@@ -88,7 +88,7 @@ name = "aleo-transaction"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
- "aleo-environment",
+ "aleo-network",
  "anyhow",
  "derivative",
  "hex",
@@ -108,7 +108,7 @@ name = "aleo-wasm"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
- "aleo-environment",
+ "aleo-network",
  "aleo-record",
  "getrandom 0.2.3",
  "hex",
@@ -1560,9 +1560,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.11.3"
+version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2296f2fac53979e8ccbc4a1136b25dcefd37be9ed7e4a1f6b05a6029c84ff124"
+checksum = "246e9f61b9bb77df069a947682be06e31ac43ea37862e244a69f177694ea6d22"
 dependencies = [
  "base64",
  "bytes",
