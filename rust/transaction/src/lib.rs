@@ -20,6 +20,9 @@ extern crate derivative;
 #[macro_use]
 extern crate thiserror;
 
+pub mod empty_ledger;
+pub use empty_ledger::*;
+
 pub mod errors;
 pub use errors::*;
 

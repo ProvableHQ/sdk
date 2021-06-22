@@ -13,19 +13,17 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
-use crate::{verify_transaction_proof, verify_transaction_signature, Transaction};
+use crate::{verify_transaction_proof, verify_transaction_signature, EmptyLedger, Transaction};
 use aleo_network::{Network, Testnet1};
 
-use snarkos_storage::Ledger;
 use snarkvm_dpc::testnet1::{BaseDPCComponents, PublicParameters, Transaction as DPCTransaction};
 
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 
-type L = Ledger<
+type L = EmptyLedger<
     DPCTransaction<<Testnet1 as Network>::Components>,
     <<Testnet1 as Network>::Components as BaseDPCComponents>::MerkleParameters,
-    <Testnet1 as Network>::Storage,
 >;
 
 #[test]

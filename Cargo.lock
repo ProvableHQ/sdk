@@ -58,7 +58,6 @@ name = "aleo-network"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
- "snarkos-storage",
  "snarkvm-algorithms",
  "snarkvm-dpc",
  "snarkvm-utilities",
@@ -93,9 +92,9 @@ dependencies = [
  "derivative",
  "hex",
  "once_cell",
+ "parking_lot",
  "rand 0.8.4",
  "rand_chacha 0.3.1",
- "snarkos-storage",
  "snarkvm-algorithms",
  "snarkvm-dpc",
  "snarkvm-parameters",

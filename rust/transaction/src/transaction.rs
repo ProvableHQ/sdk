@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{TransactionBuilder, TransactionError};
+use crate::{EmptyLedger, TransactionBuilder, TransactionError};
 use aleo_network::Network;
 
-use snarkos_storage::Ledger;
-use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme, SignatureScheme, CRH};
+use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme, MerkleParameters, SignatureScheme, CRH};
 use snarkvm_dpc::{
     testnet1::{
         transaction::AleoAmount,
@@ -35,6 +34,7 @@ use snarkvm_dpc::{
     AccountPrivateKey,
     DPCComponents,
     DPCScheme,
+    LedgerScheme,
     ProgramScheme,
     RecordScheme,
     TransactionError as DPCTransactionError,
@@ -44,7 +44,11 @@ use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use rand::{CryptoRng, Rng};
 use snarkvm_dpc::testnet1::{payload::Payload, SystemParameters};
-use std::io::{Read, Result as IoResult, Write};
+use snarkvm_parameters::{testnet1::GenesisBlock, Genesis, LedgerMerkleTreeParameters, Parameter};
+use std::{
+    io::{Read, Result as IoResult, Write},
+    sync::Arc,
+};
 
 #[derive(Derivative)]
 #[derivative(
@@ -182,7 +186,7 @@ impl<N: Network> Transaction<N> {
 
         // Offline execution to generate a DPC transaction
         let execute_context = <DPC<N::Components> as DPCScheme<
-            Ledger<DPCTransaction<N::Components>, <N::Components as BaseDPCComponents>::MerkleParameters, N::Storage>,
+            EmptyLedger<DPCTransaction<N::Components>, <N::Components as BaseDPCComponents>::MerkleParameters>,
         >>::execute_offline(
             system_parameters,
             old_records,
@@ -205,12 +209,20 @@ impl<N: Network> Transaction<N> {
         let mut path = std::env::current_dir()?;
         path.push(format!("storage_db_{}", random_path));
 
-        let ledger = Ledger::<
+        // Load ledger parameters from snarkvm-parameters
+        let crh_parameters =
+            <<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H as CRH>::Parameters::read(&LedgerMerkleTreeParameters::load_bytes().unwrap()[..]).unwrap();
+        let merkle_tree_hash_parameters =
+            <<N::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H::from(crh_parameters);
+        let ledger_parameters = Arc::new(From::from(merkle_tree_hash_parameters));
+
+        // Load genesis block
+        let genesis_block = FromBytes::read(GenesisBlock::load_bytes().as_slice())?;
+
+        let ledger = EmptyLedger::<
             DPCTransaction<N::Components>,
             <N::Components as BaseDPCComponents>::MerkleParameters,
-            N::Storage,
-        >::open_at_path(&path)
-        .unwrap();
+        >::new(Some(&path), ledger_parameters, genesis_block)?;
 
         let transaction = Self::delegate_transaction(Some(parameters), execute_context, &ledger, rng)?;
 
@@ -225,11 +237,7 @@ impl<N: Network> Transaction<N> {
     pub fn delegate_transaction<R: Rng>(
         parameters: Option<PublicParameters<<N as Network>::Components>>,
         transaction_kernel: TransactionKernel<N::Components>,
-        ledger: &Ledger<
-            DPCTransaction<N::Components>,
-            <N::Components as BaseDPCComponents>::MerkleParameters,
-            N::Storage,
-        >,
+        ledger: &EmptyLedger<DPCTransaction<N::Components>, <N::Components as BaseDPCComponents>::MerkleParameters>,
         rng: &mut R,
     ) -> Result<Self, TransactionError> {
         // Load public parameters if they are not provided

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkos_storage::mem::MemDb;
 use snarkvm_dpc::{
     testnet1::{
         instantiated::Components as Testnet1Components,
@@ -23,7 +22,6 @@ use snarkvm_dpc::{
         BaseDPCComponents,
     },
     DPCComponents,
-    Storage,
 };
 use snarkvm_utilities::{FromBytes, ToBytes};
 
@@ -39,9 +37,6 @@ pub trait Network {
     /// Transaction components
     type Amount: Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash;
     type Memorandum: FromBytes + ToBytes;
-
-    /// Ledger Components
-    type Storage: Storage;
 }
 
 /// The testnet1 environment
@@ -52,5 +47,4 @@ impl Network for Testnet1 {
     type Components = Testnet1Components;
     type Memorandum = [u8; 32];
     type Payload = Testnet1Payload;
-    type Storage = MemDb;
 }

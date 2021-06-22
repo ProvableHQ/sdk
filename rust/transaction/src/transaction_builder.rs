@@ -340,7 +340,7 @@ impl<N: Network> TransactionBuilder<N> {
         };
 
         // Get transaction_proof
-        // todo (collin): generate this field automatically
+        // todo (collin): generate and check this field automatically
         let transaction_proof = match self.transaction_proof.take() {
             Some(value) => value,
             None => return Err(TransactionError::MissingField("transaction_proof".to_string())),
