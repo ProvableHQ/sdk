@@ -17,7 +17,7 @@
 use crate::{errors::TransactionError, TransactionKernelBuilder};
 use aleo_network::Network;
 
-use snarkvm_dpc::testnet1::TransactionKernel as TransactionKernelNative;
+use snarkvm_dpc::testnet1::{LocalData, TransactionKernel as TransactionKernelNative};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use std::{fmt, str::FromStr};
@@ -38,6 +38,10 @@ pub struct TransactionKernel<N: Network> {
 impl<N: Network> TransactionKernel<N> {
     pub fn new() -> TransactionKernelBuilder<N> {
         TransactionKernelBuilder { ..Default::default() }
+    }
+
+    pub fn into_local_data(&self) -> LocalData<N::Components> {
+        self.transaction_kernel.into_local_data()
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {

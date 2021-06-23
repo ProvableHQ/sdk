@@ -47,6 +47,7 @@ use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use rand::{CryptoRng, Rng};
 use snarkvm_algorithms::merkle_tree::MerklePath;
+use snarkvm_dpc::testnet1::PrivateProgramInput;
 use std::{
     io::{Read, Result as IoResult, Write},
     str::FromStr,
@@ -75,47 +76,57 @@ impl<N: Network> Transaction<N> {
     }
 
     ///
-    /// Returns a new transaction from the given TransactionKernel.
+    /// Delegated execution of program proof generation and transaction online phase.
     ///
-    pub fn from<R: Rng + CryptoRng>(
+    pub fn delegate_transaction<R: Rng, L: LedgerScheme>(
         parameters: Option<PublicParameters<<N as Network>::Components>>,
-        transaction_kernel: TransactionKernel<N>,
+        transaction_kernel: DPCTransactionKernel<N::Components>,
+        old_death_program_proofs: Vec<PrivateProgramInput>,
+        new_birth_program_proofs: Vec<PrivateProgramInput>,
+        ledger: &L,
         rng: &mut R,
-    ) -> Result<Self, TransactionError> {
+    ) -> Result<Self, TransactionError>
+        where
+            L: LedgerScheme<
+                Commitment = <<<N as Network>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output,
+                MerkleParameters = <<N as Network>::Components as BaseDPCComponents>::MerkleParameters,
+                MerklePath = MerklePath<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
+                MerkleTreeDigest = MerkleTreeDigest<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
+                SerialNumber = <<<N as Network>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey,
+                Transaction = DPCTransaction<<N as Network>::Components>,
+            >,
+    {
         // Load public parameters if they are not provided
         let parameters = match parameters {
             Some(parameters) => parameters,
             None => PublicParameters::<N::Components>::load(false)?,
         };
 
-        // Delegate online phase of transaction generation
-        let random_path: u16 = rng.gen();
+        // Online execution to generate a DPC transaction
 
-        let mut path = std::env::current_dir()?;
-        path.push(format!("storage_db_{}", random_path));
+        let (_new_records, transaction) = DPC::<N::Components>::execute_online(
+            &parameters,
+            transaction_kernel,
+            old_death_program_proofs,
+            new_birth_program_proofs,
+            ledger,
+            rng,
+        )?;
 
-        // Load ledger parameters from snarkvm-parameters
-        let crh_parameters =
-            <<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H as CRH>::Parameters::read(&LedgerMerkleTreeParameters::load_bytes().unwrap()[..]).unwrap();
-        let merkle_tree_hash_parameters =
-            <<N::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H::from(crh_parameters);
-        let ledger_parameters = Arc::new(From::from(merkle_tree_hash_parameters));
-
-        // Load genesis block
-        let genesis_block = FromBytes::read(GenesisBlock::load_bytes().as_slice())?;
-
-        // todo (collin) Deprecate EmptyLedger, set ledger as an argument to the function.
-        let ledger = EmptyLedger::<
-            DPCTransaction<N::Components>,
-            <N::Components as BaseDPCComponents>::MerkleParameters,
-        >::new(Some(&path), ledger_parameters, genesis_block)?;
-
-        let transaction =
-            Self::delegate_transaction(Some(parameters), transaction_kernel.transaction_kernel, &ledger, rng)?;
-
-        drop(ledger);
-
-        Ok(transaction)
+        Transaction::new()
+            .network(transaction.network)
+            .ledger_digest(transaction.ledger_digest)
+            .old_serial_numbers(transaction.old_serial_numbers)
+            .new_commitments(transaction.new_commitments)
+            .program_commitment(transaction.program_commitment)
+            .local_data_root(transaction.local_data_root)
+            .value_balance(transaction.value_balance)
+            .signatures(transaction.signatures)
+            .encrypted_records(transaction.encrypted_records)
+            .transaction_proof(transaction.transaction_proof)
+            .memorandum(transaction.memorandum)
+            .inner_circuit_id(transaction.inner_circuit_id)
+            .build()
     }
 
     ///
@@ -188,38 +199,14 @@ impl<N: Network> Transaction<N> {
             .build(rng)?;
 
         // Delegate online phase of transaction generation
-        Self::from(Some(parameters), transaction_kernel, rng)
-    }
+        let random_path: u16 = rng.gen();
 
-    ///
-    /// Delegated execution of program proof generation and transaction online phase.
-    ///
-    pub fn delegate_transaction<R: Rng, L: LedgerScheme>(
-        parameters: Option<PublicParameters<<N as Network>::Components>>,
-        transaction_kernel: DPCTransactionKernel<N::Components>,
-        ledger: &L,
-        rng: &mut R,
-    ) -> Result<Self, TransactionError>
-    where
-        L: LedgerScheme<
-            Commitment = <<<N as Network>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output,
-            MerkleParameters = <<N as Network>::Components as BaseDPCComponents>::MerkleParameters,
-            MerklePath = MerklePath<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
-            MerkleTreeDigest = MerkleTreeDigest<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
-            SerialNumber = <<<N as Network>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey,
-            Transaction = DPCTransaction<<N as Network>::Components>,
-        >,
-    {
-        // Load public parameters if they are not provided
-        let parameters = match parameters {
-            Some(parameters) => parameters,
-            None => PublicParameters::<N::Components>::load(false)?,
-        };
+        let mut path = std::env::current_dir()?;
+        path.push(format!("storage_db_{}", random_path));
 
         let local_data = transaction_kernel.into_local_data();
 
-        // Enforce that the record programs are the noop program
-        // TODO (add support for arbitrary programs)
+        // Enforce that the record programs are the noop program DUMMY ONLY.
 
         let noop_program_id = to_bytes![
             parameters
@@ -267,31 +254,34 @@ impl<N: Network> Transaction<N> {
             new_birth_program_proofs.push(private_input);
         }
 
-        // Online execution to generate a DPC transaction
+        // Load ledger parameters from snarkvm-parameters
+        let crh_parameters =
+            <<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H as CRH>::Parameters::read(&LedgerMerkleTreeParameters::load_bytes().unwrap()[..]).unwrap();
+        let merkle_tree_hash_parameters =
+            <<N::Components as BaseDPCComponents>::MerkleParameters as MerkleParameters>::H::from(crh_parameters);
+        let ledger_parameters = Arc::new(From::from(merkle_tree_hash_parameters));
 
-        let (_new_records, transaction) = DPC::<N::Components>::execute_online(
-            &parameters,
-            transaction_kernel,
+        // Load genesis block
+        let genesis_block = FromBytes::read(GenesisBlock::load_bytes().as_slice())?;
+
+        // Use empty ledger to generate transaction kernel DUMMY ONLY.
+        let ledger = EmptyLedger::<
+            DPCTransaction<N::Components>,
+            <N::Components as BaseDPCComponents>::MerkleParameters,
+        >::new(Some(&path), ledger_parameters, genesis_block)?;
+
+        let transaction = Self::delegate_transaction(
+            Some(parameters),
+            transaction_kernel.transaction_kernel,
             old_death_program_proofs,
             new_birth_program_proofs,
-            ledger,
+            &ledger,
             rng,
         )?;
 
-        Transaction::new()
-            .network(transaction.network)
-            .ledger_digest(transaction.ledger_digest)
-            .old_serial_numbers(transaction.old_serial_numbers)
-            .new_commitments(transaction.new_commitments)
-            .program_commitment(transaction.program_commitment)
-            .local_data_root(transaction.local_data_root)
-            .value_balance(transaction.value_balance)
-            .signatures(transaction.signatures)
-            .encrypted_records(transaction.encrypted_records)
-            .transaction_proof(transaction.transaction_proof)
-            .memorandum(transaction.memorandum)
-            .inner_circuit_id(transaction.inner_circuit_id)
-            .build()
+        drop(ledger);
+
+        Ok(transaction)
     }
 }
 
