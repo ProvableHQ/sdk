@@ -47,6 +47,9 @@ pub enum RecordError {
     #[error("Attempted to set `value: {}` on a dummy record", _0)]
     DummyMustBeZero(u64),
 
+    #[error("Attempted to set record builder argument {} twice", _0)]
+    DuplicateArgument(String),
+
     #[error("{}", _0)]
     EncryptionError(#[from] EncryptionError),
 
