@@ -18,33 +18,22 @@ use snarkvm_dpc::{
     testnet1::{
         instantiated::Components as Testnet1Components,
         payload::Payload as Testnet1Payload,
-        transaction::amount::AleoAmount,
         BaseDPCComponents,
     },
     DPCComponents,
 };
 use snarkvm_utilities::{FromBytes, ToBytes};
 
-use std::{fmt::Debug, hash::Hash};
-
 /// The target network for building records, and transactions.
 pub trait Network {
     type Components: DPCComponents + BaseDPCComponents;
-
-    /// Record components
     type Payload: FromBytes + ToBytes + Default + PartialEq;
-
-    /// Transaction components
-    type Amount: Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash;
-    type Memorandum: FromBytes + ToBytes;
 }
 
 /// The testnet1 network
 pub struct Testnet1;
 
 impl Network for Testnet1 {
-    type Amount = AleoAmount;
     type Components = Testnet1Components;
-    type Memorandum = [u8; 32];
     type Payload = Testnet1Payload;
 }

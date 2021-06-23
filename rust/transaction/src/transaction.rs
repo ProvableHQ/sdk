@@ -46,6 +46,7 @@ use snarkvm_parameters::{testnet1::GenesisBlock, Genesis, LedgerMerkleTreeParame
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use rand::{CryptoRng, Rng};
+use snarkvm_algorithms::merkle_tree::MerklePath;
 use std::{
     io::{Read, Result as IoResult, Write},
     str::FromStr,
@@ -193,12 +194,22 @@ impl<N: Network> Transaction<N> {
     ///
     /// Delegated execution of program proof generation and transaction online phase.
     ///
-    pub fn delegate_transaction<R: Rng>(
+    pub fn delegate_transaction<R: Rng, L: LedgerScheme>(
         parameters: Option<PublicParameters<<N as Network>::Components>>,
         transaction_kernel: DPCTransactionKernel<N::Components>,
-        ledger: &EmptyLedger<DPCTransaction<N::Components>, <N::Components as BaseDPCComponents>::MerkleParameters>,
+        ledger: &L,
         rng: &mut R,
-    ) -> Result<Self, TransactionError> {
+    ) -> Result<Self, TransactionError>
+    where
+        L: LedgerScheme<
+            Commitment = <<<N as Network>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output,
+            MerkleParameters = <<N as Network>::Components as BaseDPCComponents>::MerkleParameters,
+            MerklePath = MerklePath<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
+            MerkleTreeDigest = MerkleTreeDigest<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
+            SerialNumber = <<<N as Network>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey,
+            Transaction = DPCTransaction<<N as Network>::Components>,
+        >,
+    {
         // Load public parameters if they are not provided
         let parameters = match parameters {
             Some(parameters) => parameters,
