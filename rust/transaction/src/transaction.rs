@@ -165,16 +165,24 @@ impl<N: Network> Transaction<N> {
 
         // Create dummy recipient
         let new_recipient_private_key = PrivateKey::new(rng)?;
-
         let new_recipient = Address::from(&new_recipient_private_key)?;
 
         // Create dummy amount
         let amount = 0;
 
+        // Create payload: 0
+        let payload = Payload::default();
+
         // Build transaction_kernel
         let transaction_kernel = TransactionKernel::new()
             .add_input(private_key, record)
-            .add_output(new_recipient, amount)
+            .add_output(
+                new_recipient,
+                amount,
+                payload,
+                noop_program_id.clone(),
+                noop_program_id.clone(),
+            )
             .network_id(network_id)
             .build(rng)?;
 

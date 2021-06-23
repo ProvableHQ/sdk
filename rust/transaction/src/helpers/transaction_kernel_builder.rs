@@ -33,6 +33,7 @@ use snarkvm_utilities::{to_bytes, ToBytes};
 
 use once_cell::sync::OnceCell;
 use rand::Rng;
+use snarkvm_dpc::testnet1::payload::Payload;
 use std::{marker::PhantomData, str::FromStr};
 
 #[derive(Derivative)]
@@ -48,7 +49,9 @@ pub struct TransactionOutput<N: Network> {
     pub(crate) recipient: Address,
     pub(crate) amount: u64,
     // TODO (raychu86): Add support for payloads and birth/death program ids.
-    // pub(crate) payload: Option<Vec<u8>>,
+    pub(crate) payload: Payload,
+    pub(crate) birth_program_id: Vec<u8>,
+    pub(crate) death_program_id: Vec<u8>,
     _network: PhantomData<N>,
 }
 
@@ -102,9 +105,16 @@ impl<N: Network> TransactionKernelBuilder<N> {
 
     ///
     /// Returns a new transaction builder with the added transaction output.
-    /// Otherwise, returns a `TransactionError`.
+    /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn add_output(mut self, recipient: Address, amount: u64) -> Self {
+    pub fn add_output(
+        mut self,
+        recipient: Address,
+        amount: u64,
+        payload: Payload,
+        birth_program_id: Vec<u8>,
+        death_program_id: Vec<u8>,
+    ) -> Self {
         // Check that the transaction is limited to `N::Components::NUM_OUTPUT_RECORDS` inputs.
         if self.outputs.len() > N::Components::NUM_OUTPUT_RECORDS {
             self.errors.push(TransactionError::InvalidNumberOfOutputs(
@@ -116,6 +126,9 @@ impl<N: Network> TransactionKernelBuilder<N> {
             let output = TransactionOutput::<N> {
                 recipient,
                 amount,
+                payload,
+                birth_program_id,
+                death_program_id,
                 _network: PhantomData,
             };
             self.outputs.push(output);
@@ -227,7 +240,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
                 .hash(&to_bytes![noop_program_snark_parameters.verification_key]?)?
         ]?;
 
-        // Construct the new records
+        // Decode old record data
         let mut old_records = vec![];
         for record in records_to_spend {
             old_records.push(record);
@@ -238,6 +251,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
             old_account_private_keys.push(private_key);
         }
 
+        // Fill any unused old_record indices with dummy output values
         while old_records.len() < N::Components::NUM_INPUT_RECORDS {
             let sn_randomness: [u8; 32] = rng.gen();
             let old_sn_nonce = parameters.serial_number_nonce.hash(&sn_randomness)?;
@@ -280,10 +294,17 @@ impl<N: Network> TransactionKernelBuilder<N> {
         let mut new_record_owners = vec![];
         let mut new_is_dummy_flags = vec![];
         let mut new_values = vec![];
-        for (recipient, amount) in recipients.iter().zip(recipient_amounts) {
-            new_record_owners.push(recipient.address.clone());
+        let mut new_payloads = vec![];
+        let mut new_birth_program_ids = vec![];
+        let mut new_death_program_ids = vec![];
+
+        for output in &self.outputs {
+            new_record_owners.push(output.recipient.clone());
             new_is_dummy_flags.push(false);
-            new_values.push(amount);
+            new_values.push(output.amount);
+            new_payloads.push(output.payload.clone());
+            new_birth_program_ids.push(output.birth_program_id.clone());
+            new_death_program_ids.push(output.death_program_id.clone());
         }
 
         // Fill any unused new_record indices with dummy output values
@@ -291,15 +312,14 @@ impl<N: Network> TransactionKernelBuilder<N> {
             new_record_owners.push(new_record_owners[0].clone());
             new_is_dummy_flags.push(true);
             new_values.push(0);
+            new_payloads.push(Payload::default());
+            new_birth_program_ids.push(noop_program_id.clone());
+            new_death_program_ids.push(noop_program_id.clone());
         }
 
         assert_eq!(new_record_owners.len(), N::Components::NUM_OUTPUT_RECORDS);
         assert_eq!(new_is_dummy_flags.len(), N::Components::NUM_OUTPUT_RECORDS);
         assert_eq!(new_values.len(), N::Components::NUM_OUTPUT_RECORDS);
-
-        let new_birth_program_ids = vec![noop_program_id.clone(); N::Components::NUM_OUTPUT_RECORDS];
-        let new_death_program_ids = vec![noop_program_id; N::Components::NUM_OUTPUT_RECORDS];
-        let new_payloads = vec![Default::default(); N::Components::NUM_OUTPUT_RECORDS];
 
         // Generate transaction
 
