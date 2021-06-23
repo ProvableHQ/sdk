@@ -13,7 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
-use aleo_account::AddressError;
+use aleo_account::{AddressError, PrivateKeyError};
 
 use snarkvm_algorithms::{CRHError, SNARKError, SignatureError};
 use snarkvm_dpc::{AccountError, DPCError, TransactionError as DPCTransactionError};
@@ -70,6 +70,9 @@ pub enum TransactionError {
 
     #[error("Missing transaction outputs)")]
     MissingOutputs,
+
+    #[error("{}", _0)]
+    PrivateKeyError(#[from] PrivateKeyError),
 
     #[error("{}", _0)]
     SignatureError(#[from] SignatureError),

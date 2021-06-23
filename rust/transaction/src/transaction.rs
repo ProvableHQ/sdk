@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{EmptyLedger, TransactionBuilder, TransactionError};
+use crate::{EmptyLedger, TransactionBuilder, TransactionError, TransactionKernel};
+use aleo_account::{Address, PrivateKey};
 use aleo_network::Network;
+use aleo_record::Record;
 
 use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme, MerkleParameters, SignatureScheme, CRH};
 use snarkvm_dpc::{
     testnet1::{
+        payload::Payload,
         transaction::AleoAmount,
         BaseDPCComponents,
         EncryptedRecord,
         NoopProgram,
         PublicParameters,
-        Record as DPCRecord,
         Transaction as DPCTransaction,
-        TransactionKernel,
+        TransactionKernel as DPCTransactionKernel,
         DPC,
     },
     AccountAddress,
@@ -40,16 +42,18 @@ use snarkvm_dpc::{
     TransactionError as DPCTransactionError,
     TransactionScheme,
 };
+use snarkvm_parameters::{testnet1::GenesisBlock, Genesis, LedgerMerkleTreeParameters, Parameter};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use rand::{CryptoRng, Rng};
-use snarkvm_dpc::testnet1::{payload::Payload, SystemParameters};
-use snarkvm_parameters::{testnet1::GenesisBlock, Genesis, LedgerMerkleTreeParameters, Parameter};
 use std::{
     io::{Read, Result as IoResult, Write},
+    str::FromStr,
     sync::Arc,
 };
 
+/// Stores transaction data that is computed online - with on-chain data.
+/// To compute a transaction offline, see `TransactionKernel`.
 #[derive(Derivative)]
 #[derivative(
     Clone(bound = "N: Network"),
@@ -70,110 +74,11 @@ impl<N: Network> Transaction<N> {
     }
 
     ///
-    /// Returns a transaction constructed with dummy records.
+    /// Returns a new transaction from the given TransactionKernel.
     ///
-    pub fn new_dummy_transaction<R: Rng + CryptoRng>(network_id: u8, rng: &mut R) -> Result<Self, TransactionError> {
-        let parameters = PublicParameters::<N::Components>::load(false)?;
-
-        let spender = AccountPrivateKey::<N::Components>::new(
-            &parameters.system_parameters.account_signature,
-            &parameters.system_parameters.account_commitment,
-            rng,
-        )?;
-
-        let new_recipient_private_key = AccountPrivateKey::<N::Components>::new(
-            &parameters.system_parameters.account_signature,
-            &parameters.system_parameters.account_commitment,
-            rng,
-        )?;
-
-        let new_recipient = AccountAddress::<N::Components>::from_private_key(
-            parameters.account_signature_parameters(),
-            parameters.account_commitment_parameters(),
-            parameters.account_encryption_parameters(),
-            &new_recipient_private_key,
-        )?;
-
-        let noop_program_id = to_bytes![
-            parameters
-                .system_parameters
-                .program_verification_key_crh
-                .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)?
-        ]?;
-
-        let mut old_records = Vec::new();
-        let old_account_private_keys = vec![spender.clone(); N::Components::NUM_INPUT_RECORDS];
-
-        while old_records.len() < N::Components::NUM_INPUT_RECORDS {
-            let sn_randomness: [u8; 32] = rng.gen();
-            let old_sn_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
-
-            let address = AccountAddress::<N::Components>::from_private_key(
-                parameters.account_signature_parameters(),
-                parameters.account_commitment_parameters(),
-                parameters.account_encryption_parameters(),
-                &spender,
-            )?;
-
-            let dummy_record = DPC::<N::Components>::generate_record(
-                &parameters.system_parameters,
-                old_sn_nonce,
-                address,
-                true,
-                0,
-                Payload::default(),
-                noop_program_id.clone(),
-                noop_program_id.clone(),
-                rng,
-            )?;
-
-            old_records.push(dummy_record);
-        }
-
-        assert_eq!(old_records.len(), N::Components::NUM_INPUT_RECORDS);
-
-        let new_record_owners = vec![new_recipient; N::Components::NUM_OUTPUT_RECORDS];
-        let new_is_dummy_flags = vec![true; N::Components::NUM_OUTPUT_RECORDS];
-        let new_values = vec![0; N::Components::NUM_OUTPUT_RECORDS];
-        let new_birth_program_ids = vec![noop_program_id.clone(); N::Components::NUM_OUTPUT_RECORDS];
-        let new_death_program_ids = vec![noop_program_id.clone(); N::Components::NUM_OUTPUT_RECORDS];
-        let new_payloads = vec![Payload::default(); N::Components::NUM_OUTPUT_RECORDS];
-
-        // Generate a random memo
-        let memo = rng.gen();
-
-        // Generate transaction
-        Self::execute_offline(
-            Some(parameters),
-            old_records,
-            old_account_private_keys,
-            new_record_owners,
-            &new_is_dummy_flags,
-            &new_values,
-            new_payloads,
-            new_birth_program_ids,
-            new_death_program_ids,
-            memo,
-            network_id,
-            rng,
-        )
-    }
-
-    ///
-    /// Offline execution to generate a DPC transaction.
-    ///
-    pub fn execute_offline<R: Rng>(
+    pub fn from<R: Rng + CryptoRng>(
         parameters: Option<PublicParameters<<N as Network>::Components>>,
-        old_records: Vec<DPCRecord<<N as Network>::Components>>,
-        old_account_private_keys: Vec<AccountPrivateKey<<N as Network>::Components>>,
-        new_record_owners: Vec<AccountAddress<<N as Network>::Components>>,
-        new_is_dummy_flags: &[bool],
-        new_values: &[u64],
-        new_payloads: Vec<Payload>,
-        new_birth_program_ids: Vec<Vec<u8>>,
-        new_death_program_ids: Vec<Vec<u8>>,
-        memorandum: <Transaction<N> as TransactionScheme>::Memorandum,
-        network_id: u8,
+        transaction_kernel: TransactionKernel<N>,
         rng: &mut R,
     ) -> Result<Self, TransactionError> {
         // Load public parameters if they are not provided
@@ -182,28 +87,7 @@ impl<N: Network> Transaction<N> {
             None => PublicParameters::<N::Components>::load(false)?,
         };
 
-        let system_parameters = SystemParameters::<N::Components>::load()?;
-
-        // Offline execution to generate a DPC transaction
-        let execute_context = <DPC<N::Components> as DPCScheme<
-            EmptyLedger<DPCTransaction<N::Components>, <N::Components as BaseDPCComponents>::MerkleParameters>,
-        >>::execute_offline(
-            system_parameters,
-            old_records,
-            old_account_private_keys,
-            new_record_owners,
-            &new_is_dummy_flags,
-            &new_values,
-            new_payloads,
-            new_birth_program_ids,
-            new_death_program_ids,
-            memorandum,
-            network_id,
-            rng,
-        )?;
-
         // Delegate online phase of transaction generation
-
         let random_path: u16 = rng.gen();
 
         let mut path = std::env::current_dir()?;
@@ -219,12 +103,14 @@ impl<N: Network> Transaction<N> {
         // Load genesis block
         let genesis_block = FromBytes::read(GenesisBlock::load_bytes().as_slice())?;
 
+        // todo (collin) Deprecate EmptyLedger, set ledger as an argument to the function.
         let ledger = EmptyLedger::<
             DPCTransaction<N::Components>,
             <N::Components as BaseDPCComponents>::MerkleParameters,
         >::new(Some(&path), ledger_parameters, genesis_block)?;
 
-        let transaction = Self::delegate_transaction(Some(parameters), execute_context, &ledger, rng)?;
+        let transaction =
+            Self::delegate_transaction(Some(parameters), transaction_kernel.transaction_kernel, &ledger, rng)?;
 
         drop(ledger);
 
@@ -232,11 +118,76 @@ impl<N: Network> Transaction<N> {
     }
 
     ///
+    /// Returns a transaction constructed with dummy records.
+    ///
+    pub fn new_dummy<R: Rng + CryptoRng>(network_id: u8, rng: &mut R) -> Result<Self, TransactionError> {
+        let parameters = PublicParameters::<N::Components>::load(false)?;
+
+        // Create dummy spender
+        let spender = AccountPrivateKey::<N::Components>::new(
+            &parameters.system_parameters.account_signature,
+            &parameters.system_parameters.account_commitment,
+            rng,
+        )?;
+        let private_key = PrivateKey::from_str(&spender.to_string())?;
+
+        // Create dummy input record
+
+        let sn_randomness: [u8; 32] = rng.gen();
+        let old_sn_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
+
+        let address = AccountAddress::<N::Components>::from_private_key(
+            parameters.account_signature_parameters(),
+            parameters.account_commitment_parameters(),
+            parameters.account_encryption_parameters(),
+            &spender,
+        )?;
+
+        let noop_program_id = to_bytes![
+            parameters
+                .system_parameters
+                .program_verification_key_crh
+                .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)?
+        ]?;
+
+        let dummy_record = DPC::<N::Components>::generate_record(
+            &parameters.system_parameters,
+            old_sn_nonce,
+            address,
+            true,
+            0,
+            Payload::default(),
+            noop_program_id.clone(),
+            noop_program_id.clone(),
+            rng,
+        )?;
+        let record = Record::<N> { record: dummy_record };
+
+        // Create dummy recipient
+        let new_recipient_private_key = PrivateKey::new(rng)?;
+
+        let new_recipient = Address::from(&new_recipient_private_key)?;
+
+        // Create dummy amount
+        let amount = 0;
+
+        // Build transaction_kernel
+        let transaction_kernel = TransactionKernel::new()
+            .add_input(private_key, record)
+            .add_output(new_recipient, amount)
+            .network_id(network_id)
+            .build(rng)?;
+
+        // Delegate online phase of transaction generation
+        Self::from(Some(parameters), transaction_kernel, rng)
+    }
+
+    ///
     /// Delegated execution of program proof generation and transaction online phase.
     ///
     pub fn delegate_transaction<R: Rng>(
         parameters: Option<PublicParameters<<N as Network>::Components>>,
-        transaction_kernel: TransactionKernel<N::Components>,
+        transaction_kernel: DPCTransactionKernel<N::Components>,
         ledger: &EmptyLedger<DPCTransaction<N::Components>, <N::Components as BaseDPCComponents>::MerkleParameters>,
         rng: &mut R,
     ) -> Result<Self, TransactionError> {

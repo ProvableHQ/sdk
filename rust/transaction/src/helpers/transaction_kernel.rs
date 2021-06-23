@@ -22,8 +22,8 @@ use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use std::{fmt, str::FromStr};
 
-// pub type MerkleTreeLedger = EmptyLedger<Tx, CommitmentMerkleParameters>;
-
+/// Stores transaction data that is computed offline - without on-chain data.
+/// To compute a transaction online, call `Transaction::from()` and provide `TransactionKernel` as an argument.
 #[derive(Derivative)]
 #[derivative(
     Clone(bound = "N: Network"),

@@ -52,7 +52,7 @@ pub struct TransactionOutput<N: Network> {
     _network: PhantomData<N>,
 }
 
-// TODO (raychu86) Look into genericizing this model into `dpc`.
+/// A builder struct for the TransactionKernel data type.
 #[derive(Derivative)]
 #[derivative(Default(bound = "N: Network"), Debug(bound = "N: Network"))]
 pub struct TransactionKernelBuilder<N: Network> {

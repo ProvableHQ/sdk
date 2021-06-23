@@ -35,7 +35,7 @@ fn test_build_dummy_transaction() {
     let parameters = PublicParameters::<<Testnet1 as Network>::Components>::load(false).unwrap();
 
     // Create dummy transaction
-    let transaction = Transaction::<Testnet1>::new_dummy_transaction(network_id, &mut rng).unwrap();
+    let transaction = Transaction::<Testnet1>::new_dummy(network_id, &mut rng).unwrap();
 
     // Check transaction signature
     assert!(verify_transaction_signature::<Testnet1>(&parameters, &transaction.transaction).is_ok());
