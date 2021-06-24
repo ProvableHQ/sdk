@@ -20,7 +20,11 @@ use aleo_network::Network;
 use snarkvm_dpc::testnet1::{LocalData, TransactionKernel as TransactionKernelNative};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
-use std::{fmt, str::FromStr};
+use std::{
+    fmt,
+    io::{Read, Result as IoResult, Write},
+    str::FromStr,
+};
 
 /// Stores transaction data that is computed offline - without on-chain data.
 /// To compute a transaction online, call `Transaction::from()` and provide `TransactionKernel` as an argument.
@@ -50,6 +54,22 @@ impl<N: Network> TransactionKernel<N> {
             .write(&mut output)
             .expect("serialization to bytes failed");
         output
+    }
+}
+
+impl<N: Network> ToBytes for TransactionKernel<N> {
+    #[inline]
+    fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
+        self.transaction_kernel.write(&mut writer)
+    }
+}
+
+impl<N: Network> FromBytes for TransactionKernel<N> {
+    #[inline]
+    fn read<R: Read>(mut reader: R) -> IoResult<Self> {
+        Ok(Self {
+            transaction_kernel: FromBytes::read(&mut reader)?,
+        })
     }
 }
 

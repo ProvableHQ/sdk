@@ -101,6 +101,12 @@ impl<N: Network> Record<N> {
             .calculate_commitment_randomness(rng)
             .build()
     }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut output = vec![];
+        self.record.write(&mut output).expect("serialization to bytes failed");
+        output
+    }
 }
 
 impl<N: Network> RecordScheme for Record<N> {

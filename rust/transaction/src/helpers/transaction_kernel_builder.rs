@@ -48,7 +48,6 @@ pub struct TransactionInput<N: Network> {
 pub struct TransactionOutput<N: Network> {
     pub(crate) recipient: Address,
     pub(crate) amount: u64,
-    // TODO (raychu86): Add support for payloads and birth/death program ids.
     pub(crate) payload: Payload,
     pub(crate) birth_program_id: Vec<u8>,
     pub(crate) death_program_id: Vec<u8>,
