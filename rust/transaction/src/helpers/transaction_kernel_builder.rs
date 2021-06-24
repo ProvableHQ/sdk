@@ -85,6 +85,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
 
     ///
     /// Returns a new transaction builder with the added transaction input.
+    /// Otherwise, logs a `TransactionError`.
     ///
     pub fn add_input(mut self, private_key: PrivateKey, record: Record<N>) -> Self {
         // Check that the transaction is limited to `N::Components::NUM_INPUT_RECORDS` inputs.

@@ -14,46 +14,47 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Transaction, TransactionError};
+use crate::{Transaction, TransactionError, TransactionKernel};
 use aleo_network::Network;
 
-use snarkvm_algorithms::{MerkleParameters, SignatureScheme, CRH, SNARK};
+use snarkvm_algorithms::{
+    merkle_tree::{MerklePath, MerkleTreeDigest},
+    CommitmentScheme,
+    MerkleParameters,
+    SignatureScheme,
+    CRH,
+    SNARK,
+};
 use snarkvm_dpc::{
     testnet1::{
         transaction::Transaction as DPCTransaction,
         BaseDPCComponents,
         InnerCircuitVerifierInput,
         OuterCircuitVerifierInput,
+        PrivateProgramInput,
         PublicParameters,
         RecordEncryption,
+        DPC,
     },
     DPCComponents,
-    Network as AleoNetwork,
+    DPCScheme,
+    LedgerScheme,
     TransactionScheme,
 };
 use snarkvm_parameters::{LedgerMerkleTreeParameters, Parameter};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use once_cell::sync::OnceCell;
+use rand::Rng;
 use std::sync::Arc;
 
 /// A builder struct for the Transaction data type.
 #[derive(Derivative)]
-#[derivative(Default(bound = "N: Network"), Debug(bound = "N: Network"))]
+#[derivative(Default(bound = "N: Network"))]
 pub struct TransactionBuilder<N: Network> {
-    pub(crate) network: OnceCell<AleoNetwork>,
-    pub(crate) ledger_digest: OnceCell<<Transaction<N> as TransactionScheme>::Digest>,
-    pub(crate) old_serial_numbers: OnceCell<Vec<<Transaction<N> as TransactionScheme>::SerialNumber>>,
-    pub(crate) new_commitments: OnceCell<Vec<<Transaction<N> as TransactionScheme>::Commitment>>,
-    pub(crate) program_commitment: OnceCell<<Transaction<N> as TransactionScheme>::ProgramCommitment>,
-    pub(crate) local_data_root: OnceCell<<Transaction<N> as TransactionScheme>::LocalDataRoot>,
-    pub(crate) value_balance: OnceCell<<Transaction<N> as TransactionScheme>::ValueBalance>,
-    pub(crate) signatures:
-        OnceCell<Vec<<<N::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>>,
-    pub(crate) encrypted_records: OnceCell<Vec<<Transaction<N> as TransactionScheme>::EncryptedRecord>>,
-    pub(crate) transaction_proof: OnceCell<<<N::Components as BaseDPCComponents>::OuterSNARK as SNARK>::Proof>,
-    pub(crate) memorandum: OnceCell<<Transaction<N> as TransactionScheme>::Memorandum>,
-    pub(crate) inner_circuit_id: OnceCell<<Transaction<N> as TransactionScheme>::InnerCircuitID>,
+    pub(crate) transaction_kernel: OnceCell<TransactionKernel<N>>,
+    pub(crate) old_death_program_proofs: Vec<PrivateProgramInput>,
+    pub(crate) new_birth_program_proofs: Vec<PrivateProgramInput>,
 
     pub(crate) errors: Vec<TransactionError>,
 }
@@ -69,202 +70,78 @@ impl<N: Network> TransactionBuilder<N> {
 
     ///
     /// Returns a new transaction builder and sets field `network: Network`.
+    /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn network(mut self, network: AleoNetwork) -> Self {
-        if self.network.set(network).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "network: {}",
-                network.to_string()
-            )))
+    pub fn transaction_kernel(mut self, transaction_kernel: TransactionKernel<N>) -> Self {
+        let transaction_kernel_string = format!("transaction_kernel: {}", transaction_kernel.to_string());
+        if self.transaction_kernel.set(transaction_kernel).is_err() {
+            self.errors
+                .push(TransactionError::DuplicateArgument(transaction_kernel_string));
         }
         self
     }
 
     ///
-    /// Returns a new transaction builder and sets field `ledger_digest`.
+    /// Returns a new transaction builder with the added vector of old_death_program_proofs
+    /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn ledger_digest(mut self, ledger_digest: <Transaction<N> as TransactionScheme>::Digest) -> Self {
-        if self.ledger_digest.set(ledger_digest).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "ledger_digest: {}",
-                ledger_digest.to_string()
-            )))
+    pub fn add_old_death_program_proofs(self, old_death_program_proofs: Vec<PrivateProgramInput>) -> Self {
+        let mut new = self;
+        for old_death_program_proof in old_death_program_proofs {
+            let temp = new.add_old_death_program_proof(old_death_program_proof);
+            new = temp;
         }
-        self
+        new
     }
 
     ///
-    /// Returns a new transaction builder and sets field `old_serial_numbers`.
+    /// Returns a new transaction builder with the added old_death_program_proof
+    /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn old_serial_numbers(
-        mut self,
-        old_serial_numbers: Vec<<Transaction<N> as TransactionScheme>::SerialNumber>,
-    ) -> Self {
-        let old_serial_numbers_string = old_serial_numbers
-            .iter()
-            .map(|number| hex::encode(to_bytes![number].unwrap()))
-            .collect::<Vec<String>>()
-            .join(", ");
-
-        if self.old_serial_numbers.set(old_serial_numbers).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "old_serial_numbers: {}",
-                old_serial_numbers_string
-            )))
-        }
-
-        self
-    }
-
-    ///
-    /// Returns a new transaction builder and sets field `new_commitments`.
-    ///
-    pub fn new_commitments(mut self, new_commitments: Vec<<Transaction<N> as TransactionScheme>::Commitment>) -> Self {
-        let new_commitments_string = new_commitments
-            .iter()
-            .map(|commitment| hex::encode(to_bytes![commitment].unwrap()))
-            .collect::<Vec<String>>()
-            .join(", ");
-
-        if self.new_commitments.set(new_commitments).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "new_commitments: {}",
-                new_commitments_string
-            )))
+    pub fn add_old_death_program_proof(mut self, old_death_program_proof: PrivateProgramInput) -> Self {
+        // Check that the transaction is limited to `N::Components::NUM_INPUT_RECORDS` inputs.
+        if self.old_death_program_proofs.len() > N::Components::NUM_INPUT_RECORDS {
+            self.errors.push(TransactionError::InvalidNumberOfInputProofs(
+                self.old_death_program_proofs.len() + 1,
+                N::Components::NUM_INPUT_RECORDS,
+            ));
+        } else {
+            // Push the private program input.
+            self.old_death_program_proofs.push(old_death_program_proof);
         }
 
         self
     }
 
     ///
-    /// Returns a new transaction builder and sets field `program_commitment`.
+    /// Returns a new transaction builder with the added vector of new_birth_program_proofs
+    /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn program_commitment(
-        mut self,
-        program_commitment: <Transaction<N> as TransactionScheme>::ProgramCommitment,
-    ) -> Self {
-        let program_commitment_string = hex::encode(to_bytes![program_commitment].unwrap());
-        if self.program_commitment.set(program_commitment).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "program_commitment: {}",
-                program_commitment_string
-            )))
+    pub fn add_new_birth_program_proofs(self, new_birth_program_proofs: Vec<PrivateProgramInput>) -> Self {
+        let mut new = self;
+        for new_birth_program_proof in new_birth_program_proofs {
+            let temp = new.add_new_birth_program_proof(new_birth_program_proof);
+            new = temp;
         }
-        self
+        new
     }
 
     ///
-    /// Returns a new transaction builder and sets field `local_data_root`.
+    /// Returns a new transaction builder with the added new_birth_program_proof
+    /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn local_data_root(mut self, local_data_root: <Transaction<N> as TransactionScheme>::LocalDataRoot) -> Self {
-        if self.local_data_root.set(local_data_root).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "local_data_root: {}",
-                local_data_root.to_string()
-            )))
-        }
-        self
-    }
-
-    ///
-    /// Returns a new transaction builder and sets field `value_balance`.
-    ///
-    pub fn value_balance(mut self, value_balance: <Transaction<N> as TransactionScheme>::ValueBalance) -> Self {
-        if self.value_balance.set(value_balance).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "value_balance: {}",
-                value_balance.to_string()
-            )))
-        }
-        self
-    }
-
-    ///
-    /// Returns a new transaction builder and sets field `signatures`.
-    ///
-    pub fn signatures(
-        mut self,
-        signatures: Vec<<<N::Components as DPCComponents>::AccountSignature as SignatureScheme>::Output>,
-    ) -> Self {
-        let signatures_string = signatures
-            .iter()
-            .map(|signature| hex::encode(to_bytes![signature].unwrap()))
-            .collect::<Vec<String>>()
-            .join(", ");
-
-        if self.signatures.set(signatures).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "signatures: {}",
-                signatures_string
-            )))
+    pub fn add_new_birth_program_proof(mut self, new_birth_program_proof: PrivateProgramInput) -> Self {
+        // Check that the transaction is limited to `N::Components::NUM_INPUT_RECORDS` outputs.
+        if self.new_birth_program_proofs.len() > N::Components::NUM_OUTPUT_RECORDS {
+            self.errors.push(TransactionError::InvalidNumberOfOutputProofs(
+                self.new_birth_program_proofs.len() + 1,
+                N::Components::NUM_OUTPUT_RECORDS,
+            ));
+        } else {
+            // Push the private program input.
+            self.new_birth_program_proofs.push(new_birth_program_proof);
         }
 
-        self
-    }
-
-    ///
-    /// Returns a new transaction builder and sets field `encrypted_records`.
-    ///
-    pub fn encrypted_records(
-        mut self,
-        encrypted_records: Vec<<Transaction<N> as TransactionScheme>::EncryptedRecord>,
-    ) -> Self {
-        let encrypted_records_string = encrypted_records
-            .iter()
-            .map(|encrypted_record| hex::encode(to_bytes![encrypted_record].unwrap()))
-            .collect::<Vec<String>>()
-            .join(", ");
-
-        if self.encrypted_records.set(encrypted_records).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "encrypted_records: {}",
-                encrypted_records_string
-            )))
-        }
-        self
-    }
-
-    ///
-    /// Returns a new transaction builder and sets field `memorandum`.
-    ///
-    pub fn transaction_proof(
-        mut self,
-        transaction_proof: <<N::Components as BaseDPCComponents>::OuterSNARK as SNARK>::Proof,
-    ) -> Self {
-        let transaction_proof_string = hex::encode(to_bytes![transaction_proof].unwrap());
-
-        if self.transaction_proof.set(transaction_proof).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "transaction_proof: {}",
-                hex::encode(transaction_proof_string)
-            )))
-        }
-        self
-    }
-
-    ///
-    /// Returns a new transaction builder and sets field `memorandum`.
-    ///
-    pub fn memorandum(mut self, memorandum: <Transaction<N> as TransactionScheme>::Memorandum) -> Self {
-        if self.memorandum.set(memorandum).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "memorandum: {}",
-                hex::encode(memorandum)
-            )))
-        }
-        self
-    }
-
-    ///
-    /// Returns a new transaction builder and sets field `inner_circuit_id`.
-    ///
-    pub fn inner_circuit_id(mut self, inner_circuit_id: <Transaction<N> as TransactionScheme>::InnerCircuitID) -> Self {
-        if self.inner_circuit_id.set(inner_circuit_id).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "inner_circuit_id: {}",
-                inner_circuit_id.to_string()
-            )))
-        }
         self
     }
 
@@ -272,7 +149,17 @@ impl<N: Network> TransactionBuilder<N> {
     /// Returns a `Transaction` and consumes the transaction builder.
     /// Returns an error if fields are missing or errors are encountered while building.
     ///
-    pub fn build(mut self) -> Result<Transaction<N>, TransactionError> {
+    pub fn build<R: Rng, L: LedgerScheme>(mut self, ledger: &L, rng: &mut R) -> Result<Transaction<N>, TransactionError>
+    where
+        L: LedgerScheme<
+        Commitment = <<<N as Network>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output,
+        MerkleParameters = <<N as Network>::Components as BaseDPCComponents>::MerkleParameters,
+        MerklePath = MerklePath<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
+        MerkleTreeDigest = MerkleTreeDigest<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
+        SerialNumber = <<<N as Network>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey,
+        Transaction = DPCTransaction<<N as Network>::Components>,
+    >,
+    {
         // Return error.
         if !self.errors.is_empty() {
             // Print out all errors
@@ -285,97 +172,53 @@ impl<N: Network> TransactionBuilder<N> {
             return Err(TransactionError::BuilderError);
         }
 
-        // Get network
-        let network = match self.network.take() {
+        // Get transaction kernel.
+        let transaction_kernel = match self.transaction_kernel.take() {
             Some(value) => value,
-            None => return Err(TransactionError::MissingField("network".to_string())),
+            None => return Err(TransactionError::MissingField("transaction_kernel".to_string())),
         };
 
-        // Get ledger_digest
-        let ledger_digest = match self.ledger_digest.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("ledger_digest".to_string())),
-        };
+        // Check that the transaction is limited to `Components::NUM_INPUT_RECORDS` old_death_program_proofs.
+        match self.old_death_program_proofs.len() {
+            1 | 2 => {}
+            num_inputs => {
+                return Err(TransactionError::InvalidNumberOfInputProofs(
+                    num_inputs,
+                    N::Components::NUM_INPUT_RECORDS,
+                ));
+            }
+        }
 
-        // Get old_serial_numbers
-        let old_serial_numbers = match self.old_serial_numbers.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("old_serial_numbers".to_string())),
-        };
+        // Check that the transaction has at least one output and is limited to `Components::NUM_OUTPUT_RECORDS` new_birth_program_proofs.
+        match self.new_birth_program_proofs.len() {
+            0 => return Err(TransactionError::MissingOutputs),
+            1 | 2 => {}
+            num_inputs => {
+                return Err(TransactionError::InvalidNumberOfOutputProofs(
+                    num_inputs,
+                    N::Components::NUM_INPUT_RECORDS,
+                ));
+            }
+        }
 
-        // Get new_commitments
-        let new_commitments = match self.new_commitments.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("new_commitments".to_string())),
-        };
+        // Get input proofs.
+        let old_death_program_proofs = self.old_death_program_proofs.clone();
 
-        // Get program_commitment
-        let program_commitment = match self.program_commitment.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("program_commitment".to_string())),
-        };
+        // Get output proofs.
+        let new_birth_program_proofs = self.new_birth_program_proofs.clone();
 
-        // Get local_data_root
-        let local_data_root = match self.local_data_root.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("local_data_root".to_string())),
-        };
+        // Load public parameters.
+        let parameters = PublicParameters::<N::Components>::load(false)?;
 
-        // Get value_balance
-        let value_balance = match self.value_balance.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("value_balance".to_string())),
-        };
-
-        // Get signatures
-        let signatures = match self.signatures.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("signatures".to_string())),
-        };
-
-        // Get encrypted_records
-        let encrypted_records = match self.encrypted_records.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("encrypted_records".to_string())),
-        };
-
-        // Get transaction_proof
-        // todo (collin): generate and check this field automatically
-        let transaction_proof = match self.transaction_proof.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("transaction_proof".to_string())),
-        };
-
-        // Get memorandum
-        let memorandum = match self.memorandum.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("memorandum".to_string())),
-        };
-
-        // Get inner_circuit_id
-        let inner_circuit_id = match self.inner_circuit_id.take() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("inner_circuit_id".to_string())),
-        };
-
-        // Create candidate transaction
-        let transaction = DPCTransaction::<N::Components>::new(
-            old_serial_numbers,
-            new_commitments,
-            memorandum,
-            ledger_digest,
-            inner_circuit_id,
-            transaction_proof,
-            program_commitment,
-            local_data_root,
-            value_balance,
-            network,
-            signatures,
-            encrypted_records,
-        );
-
-        // Load public parameters
-        let parameters = PublicParameters::<<N as Network>::Components>::load(false).unwrap();
+        // Online execution to generate a DPC transaction
+        let (_new_records, transaction) = DPC::<N::Components>::execute_online(
+            &parameters,
+            transaction_kernel.transaction_kernel,
+            old_death_program_proofs,
+            new_birth_program_proofs,
+            ledger,
+            rng,
+        )?;
 
         // Check transaction signature
         verify_transaction_signature::<N>(&parameters, &transaction)?;
@@ -387,7 +230,7 @@ impl<N: Network> TransactionBuilder<N> {
     }
 }
 
-// todo (collin) move this method to snarkvm
+// todo: should these methods be moved to snarkvm?
 pub(crate) fn verify_transaction_signature<N: Network>(
     parameters: &PublicParameters<N::Components>,
     transaction: &DPCTransaction<N::Components>,

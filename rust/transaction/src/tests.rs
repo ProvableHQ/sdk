@@ -48,7 +48,7 @@ type L = EmptyLedger<
 >;
 
 #[test]
-fn test_delegate_transaction() {
+fn test_build_transaction() {
     let mut rng = ChaChaRng::seed_from_u64(1231275789u64);
     let network_id = 1;
 
@@ -211,14 +211,12 @@ fn test_delegate_transaction() {
     // Use empty ledger to generate transaction kernel DUMMY ONLY.
     let ledger = L::new(Some(&path), ledger_parameters, genesis_block).unwrap();
 
-    let transaction = Transaction::<Testnet1>::delegate_transaction(
-        transaction_kernel.transaction_kernel,
-        old_death_program_proofs,
-        new_birth_program_proofs,
-        &ledger,
-        &mut rng,
-    )
-    .unwrap();
+    let transaction = Transaction::<Testnet1>::new()
+        .transaction_kernel(transaction_kernel)
+        .add_old_death_program_proofs(old_death_program_proofs)
+        .add_new_birth_program_proofs(new_birth_program_proofs)
+        .build(&ledger, &mut rng)
+        .unwrap();
 
     drop(ledger);
 

@@ -19,26 +19,13 @@ use aleo_network::Network;
 
 use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme, SignatureScheme, CRH};
 use snarkvm_dpc::{
-    testnet1::{
-        transaction::AleoAmount,
-        BaseDPCComponents,
-        EncryptedRecord,
-        PublicParameters,
-        Transaction as DPCTransaction,
-        TransactionKernel as DPCTransactionKernel,
-        DPC,
-    },
+    testnet1::{transaction::AleoAmount, BaseDPCComponents, EncryptedRecord, Transaction as DPCTransaction},
     DPCComponents,
-    DPCScheme,
-    LedgerScheme,
     TransactionError as DPCTransactionError,
     TransactionScheme,
 };
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
-use rand::Rng;
-use snarkvm_algorithms::merkle_tree::MerklePath;
-use snarkvm_dpc::testnet1::PrivateProgramInput;
 use std::{
     fmt,
     io::{Read, Result as IoResult, Write},
@@ -64,56 +51,6 @@ impl<N: Network> Transaction<N> {
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> TransactionBuilder<N> {
         TransactionBuilder { ..Default::default() }
-    }
-
-    ///
-    /// Delegated execution of program proof generation and transaction online phase.
-    ///
-    pub fn delegate_transaction<R: Rng, L: LedgerScheme>(
-        transaction_kernel: DPCTransactionKernel<N::Components>,
-        old_death_program_proofs: Vec<PrivateProgramInput>,
-        new_birth_program_proofs: Vec<PrivateProgramInput>,
-        ledger: &L,
-        rng: &mut R,
-    ) -> Result<Self, TransactionError>
-        where
-            L: LedgerScheme<
-                Commitment = <<<N as Network>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output,
-                MerkleParameters = <<N as Network>::Components as BaseDPCComponents>::MerkleParameters,
-                MerklePath = MerklePath<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
-                MerkleTreeDigest = MerkleTreeDigest<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
-                SerialNumber = <<<N as Network>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey,
-                Transaction = DPCTransaction<<N as Network>::Components>,
-            >,
-    {
-        // Load public parameters if they are not provided
-        let parameters = PublicParameters::<N::Components>::load(false)?;
-
-        // Online execution to generate a DPC transaction
-
-        let (_new_records, transaction) = DPC::<N::Components>::execute_online(
-            &parameters,
-            transaction_kernel,
-            old_death_program_proofs,
-            new_birth_program_proofs,
-            ledger,
-            rng,
-        )?;
-
-        Transaction::new()
-            .network(transaction.network)
-            .ledger_digest(transaction.ledger_digest)
-            .old_serial_numbers(transaction.old_serial_numbers)
-            .new_commitments(transaction.new_commitments)
-            .program_commitment(transaction.program_commitment)
-            .local_data_root(transaction.local_data_root)
-            .value_balance(transaction.value_balance)
-            .signatures(transaction.signatures)
-            .encrypted_records(transaction.encrypted_records)
-            .transaction_proof(transaction.transaction_proof)
-            .memorandum(transaction.memorandum)
-            .inner_circuit_id(transaction.inner_circuit_id)
-            .build()
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {

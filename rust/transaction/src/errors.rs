@@ -59,6 +59,12 @@ pub enum TransactionError {
     #[error("Invalid number of outputs. (Current: {}, Max: {})", _0, _1)]
     InvalidNumberOfOutputs(usize, usize),
 
+    #[error("Invalid number of old death program proofs. (Current: {}, Max: {})", _0, _1)]
+    InvalidNumberOfInputProofs(usize, usize),
+
+    #[error("Invalid number of new birth program proofs. (Current: {}, Max: {})", _0, _1)]
+    InvalidNumberOfOutputProofs(usize, usize),
+
     #[error("Transaction proof did not verify")]
     InvalidProof,
 
