@@ -69,17 +69,29 @@ impl Transaction {
         self.transaction.inner_circuit_id().to_string()
     }
 
-    // todo: look into js_sys for arrays
-    // #[wasm_bindgen]
-    // pub fn old_serial_numbers(&self) -> js_sys<String> {
-    //     self.transaction
-    //         .old_serial_numbers()
-    //         .iter()
-    //         .map(|sn| hex::encode(to_bytes![sn].unwrap()))
-    //         .collect::<Vec<String>>()
-    // }
+    #[wasm_bindgen]
+    pub fn old_serial_numbers(&self) -> JsValue {
+        JsValue::from(
+            &self
+                .transaction
+                .old_serial_numbers()
+                .iter()
+                .map(|value| JsValue::from(hex::encode(to_bytes![value].unwrap())))
+                .collect::<js_sys::Array>(),
+        )
+    }
 
-    // new commitments
+    #[wasm_bindgen]
+    pub fn new_commitments(&self) -> JsValue {
+        JsValue::from(
+            &self
+                .transaction
+                .new_commitments()
+                .iter()
+                .map(|value| JsValue::from(hex::encode(to_bytes![value].unwrap())))
+                .collect::<js_sys::Array>(),
+        )
+    }
 
     #[wasm_bindgen]
     pub fn program_commitment(&self) -> String {
@@ -96,7 +108,17 @@ impl Transaction {
         hex::encode(to_bytes![self.transaction.value_balance()].unwrap())
     }
 
-    // encrypted_records
+    #[wasm_bindgen]
+    pub fn encrypted_records(&self) -> JsValue {
+        JsValue::from(
+            &self
+                .transaction
+                .encrypted_records()
+                .iter()
+                .map(|value| JsValue::from(hex::encode(to_bytes![value].unwrap())))
+                .collect::<js_sys::Array>(),
+        )
+    }
 
     #[wasm_bindgen]
     pub fn memorandum(&self) -> String {

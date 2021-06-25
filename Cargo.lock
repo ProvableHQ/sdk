@@ -113,6 +113,7 @@ dependencies = [
  "aleo-transaction",
  "getrandom 0.2.3",
  "hex",
+ "js-sys",
  "rand 0.8.4",
  "snarkvm-algorithms",
  "snarkvm-dpc",
