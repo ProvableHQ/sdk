@@ -13,7 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
-use crate::{verify_transaction_proof, verify_transaction_signature, EmptyLedger, Transaction, TransactionKernel};
+use crate::{EmptyLedger, Transaction, TransactionKernel};
 use aleo_account::{Address, PrivateKey};
 use aleo_network::{Network, Testnet1};
 use aleo_record::Record;
@@ -31,6 +31,7 @@ use snarkvm_dpc::{
     AccountAddress as DPCAddress,
     AccountPrivateKey as DPCPrivateKey,
     DPCComponents,
+    DPCScheme,
     LedgerScheme,
     ProgramScheme,
     RecordScheme,
@@ -218,11 +219,8 @@ fn test_build_transaction() {
         .build(&ledger, &mut rng)
         .unwrap();
 
+    // Verify transaction
+    assert!(DPC::<<Testnet1 as Network>::Components>::verify(&parameters, &transaction.transaction, &ledger).unwrap());
+
     drop(ledger);
-
-    // Check transaction signature
-    assert!(verify_transaction_signature::<Testnet1>(&parameters, &transaction.transaction).is_ok());
-
-    // Check transaction proof
-    assert!(verify_transaction_proof::<Testnet1>(&parameters, &transaction.transaction).is_ok());
 }
