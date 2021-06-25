@@ -26,7 +26,7 @@ pub struct EncodedRecord {
 
 impl EncodedRecord {
     /// Encodes the record.
-    pub fn from<E: Network>(record: &Record<E>) -> Result<(Vec<EdwardsBls>, bool), EncodedRecordError> {
+    pub fn from<N: Network>(record: &Record<N>) -> Result<(Vec<EdwardsBls>, bool), EncodedRecordError> {
         Ok(Encode::encode(record)?)
     }
 }

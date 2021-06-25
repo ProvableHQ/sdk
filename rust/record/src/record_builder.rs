@@ -26,23 +26,24 @@ use snarkvm_dpc::{
 };
 use snarkvm_utilities::{to_bytes, variable_length_integer::variable_length_integer, FromBytes, ToBytes, UniformRand};
 
+use once_cell::sync::OnceCell;
 use rand::{CryptoRng, Rng};
 
-/// A builder struct for the Record data type.
+/// A builder struct for the record data type.
 #[derive(Derivative)]
 #[derivative(Default(bound = "N: Network"), Debug(bound = "N: Network"))]
 pub struct RecordBuilder<N: Network> {
-    pub(crate) owner: Option<Address>,
-    pub(crate) is_dummy: Option<bool>,
-    pub(crate) value: Option<u64>,
-    pub(crate) payload: Option<<Record<N> as RecordScheme>::Payload>,
+    pub(crate) owner: OnceCell<Address>,
+    pub(crate) is_dummy: OnceCell<bool>,
+    pub(crate) value: OnceCell<u64>,
+    pub(crate) payload: OnceCell<<Record<N> as RecordScheme>::Payload>,
 
-    pub(crate) birth_program_id: Option<Vec<u8>>,
-    pub(crate) death_program_id: Option<Vec<u8>>,
+    pub(crate) birth_program_id: OnceCell<Vec<u8>>,
+    pub(crate) death_program_id: OnceCell<Vec<u8>>,
 
-    pub(crate) serial_number_nonce: Option<<Record<N> as RecordScheme>::SerialNumberNonce>,
-    pub(crate) commitment: Option<<Record<N> as RecordScheme>::Commitment>,
-    pub(crate) commitment_randomness: Option<<Record<N> as RecordScheme>::CommitmentRandomness>,
+    pub(crate) serial_number_nonce: OnceCell<<Record<N> as RecordScheme>::SerialNumberNonce>,
+    pub(crate) commitment: OnceCell<<Record<N> as RecordScheme>::Commitment>,
+    pub(crate) commitment_randomness: OnceCell<<Record<N> as RecordScheme>::CommitmentRandomness>,
 
     pub(crate) errors: Vec<RecordError>,
 }
@@ -60,7 +61,11 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `owner: Address`.
     ///
     pub fn owner<A: Into<Address>>(mut self, owner: A) -> Self {
-        self.owner = Some(owner.into());
+        let owner = owner.into();
+        let owner_string = format!("owner: {}", owner);
+        if self.owner.set(owner).is_err() {
+            self.errors.push(RecordError::DuplicateArgument(owner_string));
+        }
         self
     }
 
@@ -68,7 +73,10 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `value: u64`.
     ///
     pub fn value(mut self, value: u64) -> Self {
-        self.value = Some(value);
+        if self.value.set(value).is_err() {
+            self.errors
+                .push(RecordError::DuplicateArgument(format!("value: {}", value)))
+        }
         self
     }
 
@@ -76,7 +84,11 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `payload: Payload`.
     ///
     pub fn payload(mut self, payload: <Record<N> as RecordScheme>::Payload) -> Self {
-        self.payload = Some(payload);
+        let payload_string = hex::encode(&to_bytes![payload].unwrap()[..]);
+        if self.payload.set(payload).is_err() {
+            self.errors
+                .push(RecordError::DuplicateArgument(format!("payload: {}", payload_string)))
+        }
         self
     }
 
@@ -84,7 +96,13 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `birth_program_id: Vec<u8>`.
     ///
     pub fn birth_program_id(mut self, birth_program_id: Vec<u8>) -> Self {
-        self.birth_program_id = Some(birth_program_id);
+        let birth_program_id_string = hex::encode(&to_bytes![birth_program_id].unwrap()[..]);
+        if self.birth_program_id.set(birth_program_id).is_err() {
+            self.errors.push(RecordError::DuplicateArgument(format!(
+                "birth_program_id: {}",
+                birth_program_id_string
+            )))
+        }
         self
     }
 
@@ -92,7 +110,13 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `death_program_id: Vec<u8>`.
     ///
     pub fn death_program_id(mut self, death_program_id: Vec<u8>) -> Self {
-        self.death_program_id = Some(death_program_id);
+        let death_program_id_string = hex::encode(&to_bytes![death_program_id].unwrap()[..]);
+        if self.death_program_id.set(death_program_id).is_err() {
+            self.errors.push(RecordError::DuplicateArgument(format!(
+                "death_program_id: {}",
+                death_program_id_string
+            )))
+        }
         self
     }
 
@@ -100,7 +124,12 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `serial_number_nonce: SerialNumberNonce`.
     ///
     pub fn serial_number_nonce(mut self, serial_number_nonce: <Record<N> as RecordScheme>::SerialNumberNonce) -> Self {
-        self.serial_number_nonce = Some(serial_number_nonce);
+        if self.serial_number_nonce.set(serial_number_nonce).is_err() {
+            self.errors.push(RecordError::DuplicateArgument(format!(
+                "serial_number_nonce: {}",
+                hex::encode(&to_bytes![serial_number_nonce].unwrap()[..])
+            )))
+        }
         self
     }
 
@@ -109,7 +138,7 @@ impl<N: Network> RecordBuilder<N> {
     /// from the given inputs.
     ///
     pub fn calculate_serial_number_nonce<R: Rng>(
-        mut self,
+        self,
         parameters: SystemParameters<N::Components>,
         index: u8,
         joint_serial_numbers: Vec<u8>,
@@ -123,15 +152,20 @@ impl<N: Network> RecordBuilder<N> {
             <N::Components as DPCComponents>::SerialNumberNonceCRH::hash(&parameters.serial_number_nonce, &crh_input)
                 .unwrap();
 
-        self.serial_number_nonce = Some(sn_nonce);
-        self
+        self.serial_number_nonce(sn_nonce)
     }
 
     ///
     /// Returns a new record builder and sets field `commitment: RecordCommitment`.
     ///
     pub fn commitment(mut self, commitment: <Record<N> as RecordScheme>::Commitment) -> Self {
-        self.commitment = Some(commitment);
+        let commitment_string = hex::encode(&to_bytes![commitment].unwrap()[..]);
+        if self.commitment.set(commitment).is_err() {
+            self.errors.push(RecordError::DuplicateArgument(format!(
+                "commitment: {}",
+                commitment_string
+            )))
+        }
         self
     }
 
@@ -142,7 +176,13 @@ impl<N: Network> RecordBuilder<N> {
         mut self,
         commitment_randomness: <Record<N> as RecordScheme>::CommitmentRandomness,
     ) -> Self {
-        self.commitment_randomness = Some(commitment_randomness);
+        let commitment_randomness_string = hex::encode(&to_bytes![commitment_randomness].unwrap()[..]);
+        if self.commitment_randomness.set(commitment_randomness).is_err() {
+            self.errors.push(RecordError::DuplicateArgument(format!(
+                "commitment_randomness: {}",
+                commitment_randomness_string
+            )))
+        }
         self
     }
 
@@ -175,37 +215,37 @@ impl<N: Network> RecordBuilder<N> {
         }
 
         // Get owner
-        let owner = match self.owner {
+        let owner = match self.owner.get() {
             Some(value) => value,
             None => return Err(RecordError::MissingField("owner".to_string())),
         };
 
         // Get value
-        let value = match self.value {
+        let value = match self.value.get() {
             Some(value) => value,
             None => return Err(RecordError::MissingField("value".to_string())),
         };
 
         // Get payload
-        let payload = match self.payload {
+        let payload = match self.payload.get() {
             Some(payload) => payload,
             None => return Err(RecordError::MissingField("payload".to_string())),
         };
 
         // Get birth_program_id
-        let birth_program_id = match self.birth_program_id {
+        let birth_program_id = match self.birth_program_id.get() {
             Some(birth_program_id) => birth_program_id,
             None => return Err(RecordError::MissingField("birth_program_id".to_string())),
         };
 
         // Get death_program_id
-        let death_program_id = match self.death_program_id {
+        let death_program_id = match self.death_program_id.get() {
             Some(death_program_id) => death_program_id,
             None => return Err(RecordError::MissingField("death_program_id".to_string())),
         };
 
         // Get serial_number_nonce
-        let serial_number_nonce = match self.serial_number_nonce {
+        let serial_number_nonce = match self.serial_number_nonce.get() {
             Some(serial_number_nonce) => serial_number_nonce,
             None => return Err(RecordError::MissingField("serial_number_nonce".to_string())),
         };
@@ -224,13 +264,13 @@ impl<N: Network> RecordBuilder<N> {
         .unwrap();
 
         // Derive is_dummy
-        let is_dummy = (value == 0)
-            && (payload == <Record<N> as RecordScheme>::Payload::default())
-            && (birth_program_id == noop_program_id)
-            && (death_program_id == noop_program_id);
+        let is_dummy = (*value == 0)
+            && (*payload == <Record<N> as RecordScheme>::Payload::default())
+            && (*birth_program_id == noop_program_id)
+            && (*death_program_id == noop_program_id);
 
         // Get commitment_randomness
-        let commitment_randomness = match self.commitment_randomness {
+        let commitment_randomness = match self.commitment_randomness.get() {
             Some(commitment_randomness) => commitment_randomness,
             None => return Err(RecordError::MissingRandomness),
         };
@@ -251,12 +291,12 @@ impl<N: Network> RecordBuilder<N> {
         let commitment = <N::Components as DPCComponents>::RecordCommitment::commit(
             &system_parameters.record_commitment,
             &commitment_input,
-            &commitment_randomness,
+            commitment_randomness,
         )?;
 
         // Check the given record commitment is valid if the user provided it.
-        if let Some(given_commitment) = self.commitment {
-            if given_commitment != commitment {
+        if let Some(given_commitment) = self.commitment.get() {
+            if *given_commitment != commitment {
                 return Err(RecordError::InvalidCommitment);
             }
         }

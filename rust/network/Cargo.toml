@@ -15,15 +15,15 @@ edition = "2018"
 path = "../account"
 
 [dependencies.snarkvm-algorithms]
-version = "0.5.4"
+version = "0.5.5"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-dpc]
-version = "0.5.4"
+version = "0.5.5"
 default-features = false
 features = [ "wasm" ]
 
 [dependencies.snarkvm-utilities]
-version = "0.5.4"
+version = "0.5.5"
 default-features = false
