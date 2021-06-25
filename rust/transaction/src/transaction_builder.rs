@@ -139,7 +139,7 @@ impl<N: Network> TransactionBuilder<N> {
     /// Returns a `Transaction` and consumes the transaction builder.
     /// Returns an error if fields are missing or errors are encountered while building.
     ///
-    pub fn build<R: Rng, L: LedgerScheme>(mut self, ledger: &L, rng: &mut R) -> Result<Transaction<N>, TransactionError>
+    pub fn build<R: Rng, L: LedgerScheme>(&self, ledger: &L, rng: &mut R) -> Result<Transaction<N>, TransactionError>
     where
         L: LedgerScheme<
         Commitment = <<<N as Network>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output,
@@ -154,7 +154,7 @@ impl<N: Network> TransactionBuilder<N> {
         if !self.errors.is_empty() {
             // Print out all errors
 
-            for err in self.errors {
+            for err in &self.errors {
                 println!("BuilderError: {:?}", err);
             }
 
@@ -163,7 +163,7 @@ impl<N: Network> TransactionBuilder<N> {
         }
 
         // Get transaction kernel.
-        let transaction_kernel = match self.transaction_kernel.take() {
+        let transaction_kernel = match self.transaction_kernel.get() {
             Some(value) => value,
             None => return Err(TransactionError::MissingField("transaction_kernel".to_string())),
         };
@@ -203,7 +203,7 @@ impl<N: Network> TransactionBuilder<N> {
         // Online execution to generate a DPC transaction
         let (_new_records, transaction) = DPC::<N::Components>::execute_online(
             &parameters,
-            transaction_kernel.transaction_kernel,
+            transaction_kernel.transaction_kernel.clone(),
             old_death_program_proofs,
             new_birth_program_proofs,
             ledger,

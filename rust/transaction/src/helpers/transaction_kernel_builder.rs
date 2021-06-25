@@ -21,7 +21,14 @@ use aleo_record::Record;
 
 use snarkvm_algorithms::CRH;
 use snarkvm_dpc::{
-    testnet1::{BaseDPCComponents, NoopProgramSNARKParameters, SystemParameters, Transaction as DPCTransaction, DPC},
+    testnet1::{
+        payload::Payload,
+        BaseDPCComponents,
+        NoopProgramSNARKParameters,
+        SystemParameters,
+        Transaction as DPCTransaction,
+        DPC,
+    },
     AccountAddress,
     AccountError,
     AccountPrivateKey,
@@ -33,9 +40,7 @@ use snarkvm_utilities::{to_bytes, ToBytes};
 
 use once_cell::sync::OnceCell;
 use rand::Rng;
-use snarkvm_dpc::testnet1::payload::Payload;
 use std::{marker::PhantomData, str::FromStr};
-
 #[derive(Derivative)]
 #[derivative(Clone(bound = "N: Network"), Debug(bound = "N: Network"))]
 pub struct TransactionInput<N: Network> {
@@ -170,7 +175,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
     ///
     /// Otherwise, returns `TransactionError`.
     ///
-    pub fn build<R: Rng>(self, rng: &mut R) -> Result<TransactionKernel<N>, TransactionError> {
+    pub fn build<R: Rng>(&self, rng: &mut R) -> Result<TransactionKernel<N>, TransactionError> {
         // Get network
         let network_id = match self.network_id.get() {
             Some(value) => value,

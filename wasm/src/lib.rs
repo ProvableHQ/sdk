@@ -26,5 +26,8 @@ pub use record::*;
 pub mod transaction;
 pub use transaction::*;
 
+pub mod transaction_kernel;
+pub use transaction_kernel::*;
+
 pub mod view_key;
 pub use view_key::*;

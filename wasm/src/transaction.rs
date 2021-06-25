@@ -13,14 +13,76 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+use crate::TransactionKernel;
 use aleo_network::Testnet1;
-use aleo_transaction::Transaction as TransactionInner;
+use aleo_transaction::{Transaction as TransactionInner, TransactionBuilder as TransactionBuilderInner};
 
 use snarkvm_dpc::TransactionScheme;
 use snarkvm_utilities::{to_bytes, ToBytes};
 
+// use rand::rngs::StdRng;
+// use rand::SeedableRng;
+use snarkvm_dpc::testnet1::PrivateProgramInput;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+pub struct TransactionBuilder {
+    pub(crate) builder: TransactionBuilderInner<Testnet1>,
+}
+
+#[wasm_bindgen]
+impl TransactionBuilder {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self {
+        Self {
+            builder: TransactionBuilderInner::new(),
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn transaction_kernel(self, transaction_kernel: &str) -> Self {
+        let transaction_kernel = TransactionKernel::from_string(transaction_kernel);
+
+        Self {
+            builder: self.builder.transaction_kernel(transaction_kernel.transaction_kernel),
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn add_old_death_program_proof(self, verification_key: &str, proof: &str) -> Self {
+        let old_death_program_proof = PrivateProgramInput {
+            verification_key: hex::decode(verification_key).unwrap(),
+            proof: hex::decode(proof).unwrap(),
+        };
+
+        Self {
+            builder: self.builder.add_old_death_program_proof(old_death_program_proof),
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn add_new_birth_program_proof(self, verification_key: &str, proof: &str) -> Self {
+        let new_birth_program_proof = PrivateProgramInput {
+            verification_key: hex::decode(verification_key).unwrap(),
+            proof: hex::decode(proof).unwrap(),
+        };
+
+        Self {
+            builder: self.builder.add_new_birth_program_proof(new_birth_program_proof),
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn build(&self, _ledger: &str) -> Transaction {
+        unimplemented!()
+        // let rng = &mut StdRng::from_entropy();
+        //
+        // Transaction {
+        //     transaction: self.builder.build(ledger, rng).unwrap(),
+        // }
+    }
+}
 
 #[wasm_bindgen]
 pub struct Transaction {
@@ -29,14 +91,6 @@ pub struct Transaction {
 
 #[wasm_bindgen]
 impl Transaction {
-    #[wasm_bindgen(constructor)]
-    pub fn new_dummy() -> Self {
-        // let transaction = TransactionInner::<Testnet1>::new();
-
-        // Self { transaction }
-        unimplemented!()
-    }
-
     #[wasm_bindgen]
     pub fn from_string(transaction: &str) -> Self {
         let transaction = TransactionInner::<Testnet1>::from_str(transaction).unwrap();

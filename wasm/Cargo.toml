@@ -48,8 +48,13 @@ version = "0.3.51"
 [dependencies.rand]
 version = "0.8"
 
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
+
 [dependencies.wasm-bindgen]
 version = "0.2.74"
+features = ["serde-serialize"]
 
 [dev-dependencies.snarkvm-algorithms]
 version = "0.5.5"

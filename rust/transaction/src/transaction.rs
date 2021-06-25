@@ -68,12 +68,12 @@ impl<N: Network> TransactionScheme for Transaction<N> {
     type EncryptedRecord = EncryptedRecord<N::Components>;
     type InnerCircuitID = <<N::Components as DPCComponents>::InnerCircuitIDCRH as CRH>::Output;
     type LocalDataRoot = <<N::Components as DPCComponents>::LocalDataCRH as CRH>::Output;
-    // todo: make this type part of components in snarkvm_dpc
+    // todo: make this type part of components in snarkvm_dpc?
     type Memorandum = [u8; 32];
     type ProgramCommitment =
         <<N::Components as DPCComponents>::ProgramVerificationKeyCommitment as CommitmentScheme>::Output;
     type SerialNumber = <<N::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey;
-    // todo: make this type part of components in snarkvm_dpc
+    // todo: make this type part of components in snarkvm_dpc?
     type ValueBalance = AleoAmount;
 
     fn transaction_id(&self) -> Result<[u8; 32], DPCTransactionError> {

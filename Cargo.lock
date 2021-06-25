@@ -115,6 +115,7 @@ dependencies = [
  "hex",
  "js-sys",
  "rand 0.8.4",
+ "serde",
  "snarkvm-algorithms",
  "snarkvm-dpc",
  "snarkvm-utilities",
