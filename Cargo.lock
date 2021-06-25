@@ -21,7 +21,7 @@ dependencies = [
  "base64",
  "colored",
  "hex",
- "rand 0.8.3",
+ "rand 0.8.4",
  "rand_chacha 0.3.0",
  "reqwest",
  "rusty-hook",
@@ -47,7 +47,7 @@ version = "0.2.0"
 dependencies = [
  "bencher",
  "hex",
- "rand 0.8.3",
+ "rand 0.8.4",
  "rand_chacha 0.3.0",
  "snarkvm-algorithms",
  "snarkvm-dpc",
@@ -75,7 +75,7 @@ dependencies = [
  "hex",
  "itertools",
  "once_cell",
- "rand 0.8.3",
+ "rand 0.8.4",
  "rand_chacha 0.3.0",
  "snarkvm-algorithms",
  "snarkvm-curves",
@@ -94,7 +94,7 @@ dependencies = [
  "aleo-record",
  "getrandom 0.2.3",
  "hex",
- "rand 0.8.3",
+ "rand 0.8.4",
  "snarkvm-algorithms",
  "snarkvm-dpc",
  "snarkvm-utilities",
@@ -1421,9 +1421,9 @@ dependencies = [
 
 [[package]]
 name = "rand"
-version = "0.8.3"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ef9e7e66b4468674bfcb0c81af8b7fa0bb154fa9f28eb840da5c447baeb8d7e"
+checksum = "2e7573632e6454cf6b99d7aac4ccca54be06da05aca2ef7423d22d27d4d4bcd8"
 dependencies = [
  "libc",
  "rand_chacha 0.3.0",
@@ -1806,7 +1806,7 @@ dependencies = [
  "bincode",
  "hex",
  "parking_lot",
- "rand 0.8.3",
+ "rand 0.8.4",
  "serde",
  "snarkos-parameters",
  "snarkvm-algorithms",
@@ -1829,7 +1829,7 @@ dependencies = [
  "digest",
  "itertools",
  "once_cell",
- "rand 0.8.3",
+ "rand 0.8.4",
  "rand_chacha 0.3.0",
  "rayon",
  "sha2",
@@ -1849,7 +1849,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0c06eeb3b8291a9ed1b36385e9b320fb01958bf0afc475eed5dcad313b76ada"
 dependencies = [
  "derivative",
- "rand 0.8.3",
+ "rand 0.8.4",
  "rand_xorshift",
  "rustc_version",
  "serde",
@@ -1887,7 +1887,7 @@ dependencies = [
  "hex",
  "itertools",
  "once_cell",
- "rand 0.8.3",
+ "rand 0.8.4",
  "serde",
  "sha2",
  "snarkvm-algorithms",
@@ -1909,7 +1909,7 @@ checksum = "f3bcf106c1c80d4a9ed7324a9ac9d1db6c45cf7cb2e26c26f195caa54269f68f"
 dependencies = [
  "bincode",
  "derivative",
- "rand 0.8.3",
+ "rand 0.8.4",
  "rand_xorshift",
  "serde",
  "snarkvm-utilities",
@@ -1977,7 +1977,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce7aef8587139bbe542e11a1e1418bd213f62e07983fa7c5c735cf83562d472e"
 dependencies = [
  "bincode",
- "rand 0.8.3",
+ "rand 0.8.4",
  "snarkvm-derives",
  "thiserror",
 ]
@@ -2059,7 +2059,7 @@ checksum = "dac1c663cfc93810f88aed9b8941d48cabf856a1b111c29a40439018d870eb22"
 dependencies = [
  "cfg-if 1.0.0",
  "libc",
- "rand 0.8.3",
+ "rand 0.8.4",
  "redox_syscall",
  "remove_dir_all",
  "winapi",

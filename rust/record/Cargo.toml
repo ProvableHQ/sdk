@@ -52,7 +52,7 @@ version = "0.10.0"
 version = "1.8.0"
 
 [dependencies.rand]
-version = "0.8.0"
+version = "0.8.4"
 
 [dependencies.rand_chacha]
 version = "0.3.0"
