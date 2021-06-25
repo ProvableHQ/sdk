@@ -21,17 +21,17 @@ path = "../network"
 path = "../record"
 
 [dependencies.snarkvm-algorithms]
-version = "0.5.4"
+version = "0.5.5"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-dpc]
-version = "0.5.4"
+version = "0.5.5"
 default-features = false
 features = [ "wasm" ]
 
 [dependencies.snarkvm-utilities]
-version = "0.5.4"
+version = "0.5.5"
 default-features = false
 
 [dependencies.anyhow]
@@ -46,17 +46,14 @@ version = "0.4.3"
 [dependencies.once_cell]
 version = "1.8.0"
 
-[dependencies.parking_lot]
-version = "0.11.1"
-
 [dependencies.rand]
 version = "0.8.0"
 
 [dependencies.thiserror]
 version = "1.0"
 
-[dependencies.snarkvm-parameters]
-version = "0.5.4"
+[dev-dependencies.snarkvm-parameters]
+version = "0.5.5"
 
 [dev-dependencies.rand_chacha]
 version = "0.3.1"

@@ -13,18 +13,23 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+use aleo_network::Testnet1;
+use aleo_transaction::Transaction as TransactionInner;
 
-pub mod account;
-pub use account::*;
+use wasm_bindgen::prelude::*;
 
-pub mod address;
-pub use address::*;
+#[wasm_bindgen]
+pub struct Transaction {
+    pub(crate) transaction: TransactionInner<Testnet1>,
+}
 
-pub mod record;
-pub use record::*;
+#[wasm_bindgen]
+impl Transaction {
+    #[wasm_bindgen(constructor)]
+    pub fn new_dummy() -> Self {
+        let record = TransactionInner::<Testnet1>::new();
 
-pub mod transaction;
-pub use transaction::*;
-
-pub mod view_key;
-pub use view_key::*;
+        // Self { transaction }
+        unimplemented!()
+    }
+}

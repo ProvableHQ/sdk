@@ -18,13 +18,12 @@ use snarkvm_algorithms::{merkle_tree::*, traits::LoadableMerkleParameters};
 use snarkvm_dpc::{Block, LedgerScheme, TransactionScheme};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
-use parking_lot::RwLock;
 use std::{marker::PhantomData, path::Path, sync::Arc};
 
 pub struct EmptyLedger<T: TransactionScheme, P: LoadableMerkleParameters> {
     parameters: Arc<P>,
     _transaction: PhantomData<T>,
-    pub cm_merkle_tree: RwLock<MerkleTree<P>>,
+    pub cm_merkle_tree: MerkleTree<P>,
 }
 
 impl<T: TransactionScheme, P: LoadableMerkleParameters> LedgerScheme for EmptyLedger<T, P> {
@@ -48,7 +47,7 @@ impl<T: TransactionScheme, P: LoadableMerkleParameters> LedgerScheme for EmptyLe
         Ok(Self {
             parameters,
             _transaction: PhantomData,
-            cm_merkle_tree: RwLock::new(cm_merkle_tree),
+            cm_merkle_tree,
         })
     }
 
@@ -65,7 +64,7 @@ impl<T: TransactionScheme, P: LoadableMerkleParameters> LedgerScheme for EmptyLe
     /// Return a digest of the latest ledger Merkle tree.
     fn digest(&self) -> Option<Self::MerkleTreeDigest> {
         // Return merkle tree root for empty ledger.
-        let current_digest = to_bytes![self.cm_merkle_tree.read().root()].unwrap();
+        let current_digest = to_bytes![self.cm_merkle_tree.root()].unwrap();
         let digest: Self::MerkleTreeDigest = FromBytes::read(&current_digest[..]).unwrap();
 
         Some(digest)
