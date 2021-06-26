@@ -26,7 +26,7 @@ use std::{fmt, str::FromStr};
 
 #[derive(Clone, Debug)]
 pub struct PrivateKey {
-    pub(crate) private_key: AccountPrivateKey<Components>,
+    pub private_key: AccountPrivateKey<Components>,
 }
 
 impl PrivateKey {

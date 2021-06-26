@@ -17,12 +17,15 @@
 use aleo_account::{AddressError, PrivateKeyError, ViewKeyError};
 
 use snarkvm_algorithms::{CRHError, CommitmentError, EncryptionError};
-use snarkvm_dpc::DPCError;
+use snarkvm_dpc::{AccountError, DPCError};
 
 use hex::FromHexError;
 
 #[derive(Debug, Error)]
 pub enum RecordError {
+    #[error("{}", _0)]
+    AccountError(#[from] AccountError),
+
     #[error("{}", _0)]
     AddressError(#[from] AddressError),
 
@@ -58,6 +61,9 @@ pub enum RecordError {
 
     #[error("Attempted to build a record with an invalid commitment. Try `calculate_commitment()`")]
     InvalidCommitment,
+
+    #[error("invalid private key for the record")]
+    InvalidPrivateKey,
 
     #[error("Missing Record field: {}", _0)]
     MissingField(String),

@@ -13,6 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+
 use crate::TransactionKernel;
 use aleo_network::Testnet1;
 use aleo_transaction::{Transaction as TransactionInner, TransactionBuilder as TransactionBuilderInner};

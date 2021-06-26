@@ -29,11 +29,13 @@ use snarkvm_dpc::{
     },
     traits::RecordScheme,
     AccountAddress,
+    AccountPrivateKey,
     DPCComponents,
 };
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use rand::{CryptoRng, Rng};
+use snarkvm_dpc::testnet1::{SystemParameters, DPC};
 use std::{
     fmt,
     io::{Read, Result as IoResult, Write},
@@ -100,6 +102,24 @@ impl<N: Network> Record<N> {
             .serial_number_nonce(serial_number_nonce)
             .calculate_commitment_randomness(rng)
             .build()
+    }
+
+    ///
+    /// Returns the serial number that corresponds to the record.
+    ///
+    pub fn to_serial_number(&self, private_key: &PrivateKey) -> Result<Vec<u8>, RecordError> {
+        let address = Address::from(&private_key)?;
+
+        // Check that the private_key corresponds with the owner of the record
+        if self.record.owner().to_string() != address.address.to_string() {
+            return Err(RecordError::InvalidPrivateKey);
+        }
+
+        let parameters = SystemParameters::<N::Components>::load()?;
+        let private_key = AccountPrivateKey::<N::Components>::from_str(&private_key.to_string())?;
+        let (serial_number, _randomizer) = DPC::<N::Components>::generate_sn(&parameters, &self.record, &private_key)?;
+
+        Ok(to_bytes![serial_number]?)
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
