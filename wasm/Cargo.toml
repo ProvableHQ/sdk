@@ -46,7 +46,7 @@ version = "0.8"
 version = "0.2.74"
 
 [dev-dependencies.snarkvm-algorithms]
-version = "0.5.5"
+version = "0.6.0"
 default-features = false
 features = ["wasm"]
 

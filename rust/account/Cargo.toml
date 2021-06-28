@@ -17,7 +17,7 @@ path = "benches/account.rs"
 harness = false
 
 [dependencies.snarkvm-algorithms]
-version = "0.5.5"
+version = "0.6.0"
 default-features = false
 features = ["wasm"]
 

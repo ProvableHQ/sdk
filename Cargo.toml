@@ -35,7 +35,7 @@ default-features = false
 features = ["mem_storage"]
 
 [dependencies.snarkvm-algorithms]
-version = "0.5.5"
+version = "0.6.0"
 features = ["wasm"]
 
 [dependencies.snarkvm-dpc]
