@@ -14,7 +14,9 @@ name = "aleo"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
+ "aleo-network",
  "aleo-record",
+ "aleo-transaction",
  "anyhow",
  "base64",
  "colored",

@@ -44,14 +44,13 @@ impl Transaction {
             Self::New { dummy, seed } => match dummy {
                 _ => {
                     // Initialize the parameters.
-                    let network_id = 1;
                     let mut rng = match seed {
                         Some(seed) => ChaChaRng::seed_from_u64(seed),
                         None => ChaChaRng::from_entropy(),
                     };
 
                     // Create the dummy transaction.
-                    let (transaction, _records) = new_dummy_transaction(network_id, &mut rng)?;
+                    let transaction = new_dummy_transaction(&mut rng)?;
 
                     // Hexify the transaction.
                     let transaction = hex::encode(to_bytes![transaction]?);
