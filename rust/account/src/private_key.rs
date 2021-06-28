@@ -24,7 +24,7 @@ use snarkvm_dpc::{
 use rand::{CryptoRng, Rng};
 use std::{fmt, str::FromStr};
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct PrivateKey {
     pub private_key: AccountPrivateKey<Components>,
 }

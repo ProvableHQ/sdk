@@ -42,7 +42,7 @@ use once_cell::sync::OnceCell;
 use rand::Rng;
 use std::{marker::PhantomData, str::FromStr};
 #[derive(Derivative)]
-#[derivative(Clone(bound = "N: Network"), Debug(bound = "N: Network"))]
+#[derivative(Debug(bound = "N: Network"))]
 pub struct TransactionInput<N: Network> {
     pub(crate) private_key: PrivateKey,
     pub(crate) record: Record<N>,
@@ -175,7 +175,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
     ///
     /// Otherwise, returns `TransactionError`.
     ///
-    pub fn build<R: Rng>(&self, rng: &mut R) -> Result<TransactionKernel<N>, TransactionError> {
+    pub fn build<R: Rng>(self, rng: &mut R) -> Result<TransactionKernel<N>, TransactionError> {
         // Get network
         let network_id = match self.network_id.get() {
             Some(value) => value,
@@ -215,9 +215,9 @@ impl<N: Network> TransactionKernelBuilder<N> {
         let mut spenders = vec![];
         let mut records_to_spend = vec![];
 
-        for input in &self.inputs {
-            spenders.push(input.private_key.clone());
-            records_to_spend.push(input.record.clone());
+        for input in self.inputs {
+            spenders.push(input.private_key);
+            records_to_spend.push(input.record);
         }
 
         // Construct the parameters from the given transaction outputs.
@@ -261,7 +261,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
             let sn_randomness: [u8; 32] = rng.gen();
             let old_sn_nonce = parameters.serial_number_nonce.hash(&sn_randomness)?;
 
-            let private_key = old_account_private_keys[0].clone();
+            let private_key = PrivateKey::from_str(&old_account_private_keys[0].to_string())?;
             let address = Address::from(&private_key)?;
 
             // Convert to more generic AccountAddress<N::Components>.

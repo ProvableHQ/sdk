@@ -83,7 +83,7 @@ impl TransactionKernelBuilder {
     }
 
     #[wasm_bindgen]
-    pub fn build(&self) -> TransactionKernel {
+    pub fn build(self) -> TransactionKernel {
         let rng = &mut StdRng::from_entropy();
 
         TransactionKernel {
