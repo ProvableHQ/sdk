@@ -42,7 +42,7 @@ impl<T: TransactionScheme, P: LoadableMerkleParameters> LedgerScheme for EmptyLe
         _genesis_block: Self::Block,
     ) -> anyhow::Result<Self> {
         let leaves: &[[u8; 32]] = &[];
-        let cm_merkle_tree = MerkleTree::<P>::new(parameters.clone(), &leaves[..])?;
+        let cm_merkle_tree = MerkleTree::<P>::new(parameters.clone(), leaves)?;
 
         Ok(Self {
             parameters,

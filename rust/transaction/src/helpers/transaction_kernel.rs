@@ -40,10 +40,12 @@ pub struct TransactionKernel<N: Network> {
 }
 
 impl<N: Network> TransactionKernel<N> {
+    #[allow(clippy::new_ret_no_self)]
     pub fn new() -> TransactionKernelBuilder<N> {
         TransactionKernelBuilder { ..Default::default() }
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn into_local_data(&self) -> LocalData<N::Components> {
         self.transaction_kernel.into_local_data()
     }

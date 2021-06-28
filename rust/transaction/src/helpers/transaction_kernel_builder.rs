@@ -184,7 +184,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
 
         // Get memorandum or derive random
         let memo = match self.memo.get() {
-            Some(value) => value.clone(),
+            Some(value) => *value,
             None => rng.gen(),
         };
 

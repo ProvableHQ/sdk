@@ -129,13 +129,7 @@ fn test_build_transaction() {
     // Build transaction_kernel
     let transaction_kernel = TransactionKernel::new()
         .add_input(spender, record)
-        .add_output(
-            new_recipient,
-            amount,
-            payload,
-            noop_program_id.clone(),
-            noop_program_id.clone(),
-        )
+        .add_output(new_recipient, amount, payload, noop_program_id.clone(), noop_program_id)
         .network_id(network_id)
         .build(&mut rng)
         .unwrap();

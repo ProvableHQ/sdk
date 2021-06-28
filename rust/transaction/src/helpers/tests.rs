@@ -71,8 +71,7 @@ pub fn transaction_kernel_builder_test() {
     assert!(transaction_kernel.is_ok());
 
     let transaction_kernel_string = transaction_kernel.unwrap().to_string();
-    println!("{}", transaction_kernel_string);
-    assert!(false);
+
     let recovered_transaction_kernel = TransactionKernel::<Testnet1>::from_str(&transaction_kernel_string);
     assert!(recovered_transaction_kernel.is_ok());
 }

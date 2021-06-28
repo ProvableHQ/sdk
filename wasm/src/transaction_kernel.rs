@@ -130,7 +130,7 @@ mod tests {
 
         let builder = TransactionKernelBuilder::new()
             .add_input(given_private_key, given_record)
-            .add_output(given_address, 10000, payload, noop_program_id.clone(), noop_program_id)
+            .add_output(given_address, 10000, payload, noop_program_id, noop_program_id)
             .network_id(1);
 
         let transaction_kernel = builder.build();
