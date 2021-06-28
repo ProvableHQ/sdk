@@ -51,26 +51,26 @@ impl TransactionBuilder {
     }
 
     #[wasm_bindgen]
-    pub fn add_input_proof(self, verification_key: &str, proof: &str) -> Self {
-        let input_proof = PrivateProgramInput {
+    pub fn add_old_death_program_proof(self, verification_key: &str, proof: &str) -> Self {
+        let old_death_program_proof = PrivateProgramInput {
             verification_key: hex::decode(verification_key).unwrap(),
             proof: hex::decode(proof).unwrap(),
         };
 
         Self {
-            builder: self.builder.add_input_proof(input_proof),
+            builder: self.builder.add_old_death_program_proof(old_death_program_proof),
         }
     }
 
     #[wasm_bindgen]
-    pub fn add_output_proof(self, verification_key: &str, proof: &str) -> Self {
-        let output_proof = PrivateProgramInput {
+    pub fn add_new_birth_program_proof(self, verification_key: &str, proof: &str) -> Self {
+        let new_birth_program_proof = PrivateProgramInput {
             verification_key: hex::decode(verification_key).unwrap(),
             proof: hex::decode(proof).unwrap(),
         };
 
         Self {
-            builder: self.builder.add_output_proof(output_proof),
+            builder: self.builder.add_new_birth_program_proof(new_birth_program_proof),
         }
     }
 

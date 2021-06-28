@@ -43,8 +43,8 @@ use rand::Rng;
 #[derivative(Default(bound = "N: Network"))]
 pub struct TransactionBuilder<N: Network> {
     pub(crate) transaction_kernel: OnceCell<TransactionKernel<N>>,
-    pub(crate) input_proofs: Vec<PrivateProgramInput>,
-    pub(crate) output_proofs: Vec<PrivateProgramInput>,
+    pub(crate) old_death_program_proofs: Vec<PrivateProgramInput>,
+    pub(crate) new_birth_program_proofs: Vec<PrivateProgramInput>,
 
     pub(crate) errors: Vec<TransactionError>,
 }
@@ -72,64 +72,64 @@ impl<N: Network> TransactionBuilder<N> {
     }
 
     ///
-    /// Returns a new transaction builder with the added vector of input_proofs
+    /// Returns a new transaction builder with the added vector of old_death_program_proofs
     /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn add_input_proofs(self, input_proofs: Vec<PrivateProgramInput>) -> Self {
+    pub fn add_old_death_program_proofs(self, old_death_program_proofs: Vec<PrivateProgramInput>) -> Self {
         let mut new = self;
-        for input_proof in input_proofs {
-            let temp = new.add_input_proof(input_proof);
+        for old_death_program_proof in old_death_program_proofs {
+            let temp = new.add_old_death_program_proof(old_death_program_proof);
             new = temp;
         }
         new
     }
 
     ///
-    /// Returns a new transaction builder with the added input_proof
+    /// Returns a new transaction builder with the added old_death_program_proof
     /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn add_input_proof(mut self, input_proof: PrivateProgramInput) -> Self {
+    pub fn add_old_death_program_proof(mut self, old_death_program_proof: PrivateProgramInput) -> Self {
         // Check that the transaction is limited to `N::Components::NUM_INPUT_RECORDS` inputs.
-        if self.input_proofs.len() > N::Components::NUM_INPUT_RECORDS {
+        if self.old_death_program_proofs.len() > N::Components::NUM_INPUT_RECORDS {
             self.errors.push(TransactionError::InvalidNumberOfInputProofs(
-                self.input_proofs.len() + 1,
+                self.old_death_program_proofs.len() + 1,
                 N::Components::NUM_INPUT_RECORDS,
             ));
         } else {
             // Push the private program input.
-            self.input_proofs.push(input_proof);
+            self.old_death_program_proofs.push(old_death_program_proof);
         }
 
         self
     }
 
     ///
-    /// Returns a new transaction builder with the added vector of output_proofs
+    /// Returns a new transaction builder with the added vector of new_birth_program_proofs
     /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn add_output_proofs(self, output_proofs: Vec<PrivateProgramInput>) -> Self {
+    pub fn add_new_birth_program_proofs(self, new_birth_program_proofs: Vec<PrivateProgramInput>) -> Self {
         let mut new = self;
-        for output_proof in output_proofs {
-            let temp = new.add_output_proof(output_proof);
+        for new_birth_program_proof in new_birth_program_proofs {
+            let temp = new.add_new_birth_program_proof(new_birth_program_proof);
             new = temp;
         }
         new
     }
 
     ///
-    /// Returns a new transaction builder with the added output_proof
+    /// Returns a new transaction builder with the added new_birth_program_proof
     /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn add_output_proof(mut self, output_proof: PrivateProgramInput) -> Self {
+    pub fn add_new_birth_program_proof(mut self, new_birth_program_proof: PrivateProgramInput) -> Self {
         // Check that the transaction is limited to `N::Components::NUM_INPUT_RECORDS` outputs.
-        if self.output_proofs.len() > N::Components::NUM_OUTPUT_RECORDS {
+        if self.new_birth_program_proofs.len() > N::Components::NUM_OUTPUT_RECORDS {
             self.errors.push(TransactionError::InvalidNumberOfOutputProofs(
-                self.output_proofs.len() + 1,
+                self.new_birth_program_proofs.len() + 1,
                 N::Components::NUM_OUTPUT_RECORDS,
             ));
         } else {
             // Push the private program input.
-            self.output_proofs.push(output_proof);
+            self.new_birth_program_proofs.push(new_birth_program_proof);
         }
 
         self
@@ -168,8 +168,8 @@ impl<N: Network> TransactionBuilder<N> {
             None => return Err(TransactionError::MissingField("transaction_kernel".to_string())),
         };
 
-        // Check that the transaction is limited to `Components::NUM_INPUT_RECORDS` input_proofs.
-        match self.input_proofs.len() {
+        // Check that the transaction is limited to `Components::NUM_INPUT_RECORDS` old_death_program_proofs.
+        match self.old_death_program_proofs.len() {
             1 | 2 => {}
             num_inputs => {
                 return Err(TransactionError::InvalidNumberOfInputProofs(
@@ -179,8 +179,8 @@ impl<N: Network> TransactionBuilder<N> {
             }
         }
 
-        // Check that the transaction has at least one output and is limited to `Components::NUM_OUTPUT_RECORDS` output_proofs.
-        match self.output_proofs.len() {
+        // Check that the transaction has at least one output and is limited to `Components::NUM_OUTPUT_RECORDS` new_birth_program_proofs.
+        match self.new_birth_program_proofs.len() {
             0 => return Err(TransactionError::MissingOutputs),
             1 | 2 => {}
             num_inputs => {
@@ -192,10 +192,10 @@ impl<N: Network> TransactionBuilder<N> {
         }
 
         // Get input proofs.
-        let input_proofs = self.input_proofs.clone();
+        let old_death_program_proofs = self.old_death_program_proofs.clone();
 
         // Get output proofs.
-        let output_proofs = self.output_proofs.clone();
+        let new_birth_program_proofs = self.new_birth_program_proofs.clone();
 
         // Load public parameters.
         let parameters = PublicParameters::<N::Components>::load(false)?;
@@ -204,8 +204,8 @@ impl<N: Network> TransactionBuilder<N> {
         let (_new_records, transaction) = DPC::<N::Components>::execute_online(
             &parameters,
             transaction_kernel.transaction_kernel.clone(),
-            input_proofs,
-            output_proofs,
+            old_death_program_proofs,
+            new_birth_program_proofs,
             ledger,
             rng,
         )?;

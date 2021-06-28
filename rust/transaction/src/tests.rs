@@ -166,7 +166,7 @@ fn test_build_transaction() {
             noop_program_id,
         );
 
-    let mut input_proofs = Vec::new();
+    let mut old_death_program_proofs = Vec::new();
     for i in 0..<<Testnet1 as Network>::Components as DPCComponents>::NUM_INPUT_RECORDS {
         let private_input = noop_program
             .execute(
@@ -178,10 +178,10 @@ fn test_build_transaction() {
             )
             .unwrap();
 
-        input_proofs.push(private_input);
+        old_death_program_proofs.push(private_input);
     }
 
-    let mut output_proofs = Vec::new();
+    let mut new_birth_program_proofs = Vec::new();
     for j in 0..<<Testnet1 as Network>::Components as DPCComponents>::NUM_OUTPUT_RECORDS {
         let private_input = noop_program
             .execute(
@@ -193,7 +193,7 @@ fn test_build_transaction() {
             )
             .unwrap();
 
-        output_proofs.push(private_input);
+        new_birth_program_proofs.push(private_input);
     }
 
     // Load ledger parameters from snarkvm-parameters
@@ -213,8 +213,8 @@ fn test_build_transaction() {
 
     let transaction = Transaction::<Testnet1>::new()
         .transaction_kernel(transaction_kernel)
-        .add_input_proofs(input_proofs)
-        .add_output_proofs(output_proofs)
+        .add_old_death_program_proofs(old_death_program_proofs)
+        .add_new_birth_program_proofs(new_birth_program_proofs)
         .build(&ledger, &mut rng)
         .unwrap();
 
