@@ -26,6 +26,7 @@ use snarkvm_utilities::{FromBytes, ToBytes};
 
 /// The target network for building records, and transactions.
 pub trait Network {
+    const ID: u8;
     type Components: DPCComponents + BaseDPCComponents;
     type Payload: FromBytes + ToBytes + Default + PartialEq;
 }
@@ -36,4 +37,6 @@ pub struct Testnet1;
 impl Network for Testnet1 {
     type Components = Testnet1Components;
     type Payload = Testnet1Payload;
+
+    const ID: u8 = 1;
 }

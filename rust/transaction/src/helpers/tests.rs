@@ -64,8 +64,7 @@ pub fn transaction_kernel_builder_test() {
 
     let builder = TransactionKernelBuilder::new()
         .add_input(private_key, record)
-        .add_output(address, 10000, payload, noop_program_id.clone(), noop_program_id)
-        .network_id(1);
+        .add_output(address, 10000, payload, noop_program_id.clone(), noop_program_id);
 
     let transaction_kernel = builder.build(rng);
     assert!(transaction_kernel.is_ok());
@@ -101,10 +100,13 @@ pub fn transaction_kernel_test() {
     // Create payload: 0
     let payload = Payload::default();
 
-    let builder = TransactionKernel::new()
-        .add_input(private_key, record)
-        .add_output(address, 10000, payload, noop_program_id.clone(), noop_program_id)
-        .network_id(1);
+    let builder = TransactionKernel::new().add_input(private_key, record).add_output(
+        address,
+        10000,
+        payload,
+        noop_program_id.clone(),
+        noop_program_id,
+    );
 
     let transaction_kernel = builder.build(rng);
     assert!(transaction_kernel.is_ok());

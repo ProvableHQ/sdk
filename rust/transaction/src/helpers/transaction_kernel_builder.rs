@@ -69,9 +69,6 @@ pub struct TransactionKernelBuilder<N: Network> {
     /// Transaction outputs
     pub(crate) outputs: Vec<TransactionOutput<N>>,
 
-    /// Network ID
-    pub(crate) network_id: OnceCell<u8>,
-
     /// Transaction memo
     pub(crate) memo: OnceCell<[u8; 32]>,
 
@@ -145,20 +142,6 @@ impl<N: Network> TransactionKernelBuilder<N> {
     ///
     /// Returns a new transaction builder with the updated network id.
     ///
-    pub fn network_id(mut self, network_id: u8) -> Self {
-        if self.network_id.set(network_id).is_err() {
-            self.errors.push(TransactionError::DuplicateArgument(format!(
-                "network_id: {}",
-                network_id
-            )))
-        }
-
-        self
-    }
-
-    ///
-    /// Returns a new transaction builder with the updated network id.
-    ///
     pub fn memo(mut self, memo: [u8; 32]) -> Self {
         let memo_string = hex::encode(&memo[..]);
         if self.memo.set(memo).is_err() {
@@ -177,10 +160,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
     ///
     pub fn build<R: Rng>(self, rng: &mut R) -> Result<TransactionKernel<N>, TransactionError> {
         // Get network
-        let network_id = match self.network_id.get() {
-            Some(value) => value,
-            None => return Err(TransactionError::MissingField("network_id".to_string())),
-        };
+        let network_id = N::ID;
 
         // Get memorandum or derive random
         let memo = match self.memo.get() {
@@ -357,7 +337,7 @@ impl<N: Network> TransactionKernelBuilder<N> {
             new_birth_program_ids,
             new_death_program_ids,
             memo,
-            *network_id,
+            network_id,
             rng,
         )?;
 

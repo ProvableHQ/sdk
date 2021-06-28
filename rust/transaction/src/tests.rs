@@ -61,7 +61,6 @@ fn test_transaction_from_str() {
 #[test]
 fn test_build_transaction() {
     let mut rng = ChaChaRng::seed_from_u64(1231275789u64);
-    let network_id = 1;
 
     // Load public parameters
     let parameters = PublicParameters::<<Testnet1 as Network>::Components>::load(false).unwrap();
@@ -130,7 +129,6 @@ fn test_build_transaction() {
     let transaction_kernel = TransactionKernel::new()
         .add_input(spender, record)
         .add_output(new_recipient, amount, payload, noop_program_id.clone(), noop_program_id)
-        .network_id(network_id)
         .build(&mut rng)
         .unwrap();
 

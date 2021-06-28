@@ -75,14 +75,6 @@ impl TransactionKernelBuilder {
     }
 
     #[wasm_bindgen]
-    pub fn network_id(self, network_id: u8) -> Self {
-        let builder = self.builder;
-        Self {
-            builder: builder.network_id(network_id),
-        }
-    }
-
-    #[wasm_bindgen]
     pub fn build(self) -> TransactionKernel {
         let rng = &mut StdRng::from_entropy();
 
@@ -130,8 +122,7 @@ mod tests {
 
         let builder = TransactionKernelBuilder::new()
             .add_input(given_private_key, given_record)
-            .add_output(given_address, 10000, payload, noop_program_id, noop_program_id)
-            .network_id(1);
+            .add_output(given_address, 10000, payload, noop_program_id, noop_program_id);
 
         let transaction_kernel = builder.build();
 
