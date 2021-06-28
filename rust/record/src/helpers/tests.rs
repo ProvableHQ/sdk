@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    helpers::{Decode, Decrypt, Encode, Encrypt},
+    helpers::{decode::Decode, decrypt::Decrypt, encode::Encode, encrypt::Encrypt},
     Record,
 };
 use aleo_account::*;
@@ -137,11 +137,11 @@ fn test_encrypt_and_decrypt() {
                 .unwrap();
 
             // Encrypt the record
-            let (_, encryped_record) = Encrypt::encrypt(&given_record, &mut rng).unwrap();
+            let (_, encrypted_record) = Encrypt::encrypt(&given_record, &mut rng).unwrap();
             let view_key = ViewKey::from(&dummy_private_key).unwrap();
 
             // Decrypt the record
-            let decrypted_record = Decrypt::decrypt::<Testnet1>(&view_key, &encryped_record).unwrap();
+            let decrypted_record = Decrypt::decrypt::<Testnet1>(&view_key, &encrypted_record).unwrap();
 
             assert_eq!(given_record.to_string(), decrypted_record.to_string());
         }

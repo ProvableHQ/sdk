@@ -13,12 +13,19 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
-use crate::{helpers::Decrypt, Encrypt, EncryptedRecordError, EncryptionRandomness, Record};
+use crate::{
+    helpers::{
+        decrypt::Decrypt,
+        encrypt::{Encrypt, EncryptionRandomness},
+    },
+    EncryptedRecordError,
+    Record,
+};
 use aleo_account::ViewKey;
+use aleo_network::Network;
 
 use snarkvm_utilities::{to_bytes, ToBytes};
 
-use aleo_network::Network;
 use rand::Rng;
 use std::{
     fmt,
