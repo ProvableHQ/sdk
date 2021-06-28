@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::helpers::transaction::delegate_transaction;
 use aleo_account::{Address, PrivateKey};
-use aleo_network::{Network, Testnet1};
+use aleo_network::Network;
 use aleo_record::Record;
 use aleo_transaction::{Transaction, TransactionKernel};
 
@@ -24,11 +25,11 @@ use snarkvm_algorithms::traits::CRH;
 use snarkvm_dpc::{
     account::{AccountAddress as DPCAddress, AccountPrivateKey as DPCPrivateKey},
     testnet1::{
-        instantiated::{CommitmentMerkleParameters, Tx},
         parameters::PublicParameters,
         payload::Payload,
         BaseDPCComponents,
         NoopProgram,
+        Transaction as DPCTransaction,
         DPC,
     },
     traits::{DPCComponents, RecordScheme},
@@ -39,15 +40,19 @@ use snarkvm_utilities::{to_bytes, ToBytes};
 use rand::{CryptoRng, Rng};
 use std::str::FromStr;
 
-pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters, MemDb>;
+pub type MerkleTreeLedger<N> = Ledger<
+    DPCTransaction<<N as Network>::Components>,
+    <<N as Network>::Components as BaseDPCComponents>::MerkleParameters,
+    MemDb,
+>;
 
 /// Returns a transaction constructed with dummy records.
-pub fn new_dummy_transaction<R: Rng + CryptoRng>(rng: &mut R) -> anyhow::Result<Transaction<Testnet1>> {
+pub fn new_dummy_transaction<R: Rng + CryptoRng, N: Network>(rng: &mut R) -> anyhow::Result<Transaction<N>> {
     // Load public parameters
-    let parameters = PublicParameters::<<Testnet1 as Network>::Components>::load(false)?;
+    let parameters = PublicParameters::<N::Components>::load(false)?;
 
     // Create dummy spender
-    let dpc_spender = DPCPrivateKey::<<Testnet1 as Network>::Components>::new(
+    let dpc_spender = DPCPrivateKey::<N::Components>::new(
         &parameters.system_parameters.account_signature,
         &parameters.system_parameters.account_commitment,
         rng,
@@ -60,7 +65,7 @@ pub fn new_dummy_transaction<R: Rng + CryptoRng>(rng: &mut R) -> anyhow::Result<
     let sn_randomness: [u8; 32] = rng.gen();
     let old_sn_nonce = parameters.system_parameters.serial_number_nonce.hash(&sn_randomness)?;
 
-    let dpc_address = DPCAddress::<<Testnet1 as Network>::Components>::from_private_key(
+    let dpc_address = DPCAddress::<N::Components>::from_private_key(
         parameters.account_signature_parameters(),
         parameters.account_commitment_parameters(),
         parameters.account_encryption_parameters(),
@@ -74,7 +79,7 @@ pub fn new_dummy_transaction<R: Rng + CryptoRng>(rng: &mut R) -> anyhow::Result<
             .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)?
     ]?;
 
-    let dummy_record = DPC::<<Testnet1 as Network>::Components>::generate_record(
+    let dummy_record = DPC::<N::Components>::generate_record(
         &parameters.system_parameters,
         old_sn_nonce,
         dpc_address,
@@ -85,7 +90,7 @@ pub fn new_dummy_transaction<R: Rng + CryptoRng>(rng: &mut R) -> anyhow::Result<
         noop_program_id.clone(),
         rng,
     )?;
-    let record = Record::<Testnet1> { record: dummy_record };
+    let record = Record::<N> { record: dummy_record };
 
     // Create dummy recipient
     let new_recipient_private_key = PrivateKey::new(rng)?;
@@ -130,13 +135,10 @@ pub fn new_dummy_transaction<R: Rng + CryptoRng>(rng: &mut R) -> anyhow::Result<
 
     // Generate the program proofs
 
-    let noop_program =
-        NoopProgram::<_, <<Testnet1 as Network>::Components as BaseDPCComponents>::NoopProgramSNARK>::new(
-            noop_program_id,
-        );
+    let noop_program = NoopProgram::<_, <N::Components as BaseDPCComponents>::NoopProgramSNARK>::new(noop_program_id);
 
-    let mut input_proofs = Vec::new();
-    for i in 0..<<Testnet1 as Network>::Components as DPCComponents>::NUM_INPUT_RECORDS {
+    let mut old_death_program_proofs = Vec::new();
+    for i in 0..<N::Components as DPCComponents>::NUM_INPUT_RECORDS {
         let private_input = noop_program.execute(
             &parameters.noop_program_snark_parameters.proving_key,
             &parameters.noop_program_snark_parameters.verification_key,
@@ -145,20 +147,20 @@ pub fn new_dummy_transaction<R: Rng + CryptoRng>(rng: &mut R) -> anyhow::Result<
             rng,
         )?;
 
-        input_proofs.push(private_input);
+        old_death_program_proofs.push(private_input);
     }
 
-    let mut output_proofs = Vec::new();
-    for j in 0..<<Testnet1 as Network>::Components as DPCComponents>::NUM_OUTPUT_RECORDS {
+    let mut new_birth_program_proofs = Vec::new();
+    for j in 0..<N::Components as DPCComponents>::NUM_OUTPUT_RECORDS {
         let private_input = noop_program.execute(
             &parameters.noop_program_snark_parameters.proving_key,
             &parameters.noop_program_snark_parameters.verification_key,
             &local_data,
-            (<<Testnet1 as Network>::Components as DPCComponents>::NUM_INPUT_RECORDS + j) as u8,
+            (<N::Components as DPCComponents>::NUM_INPUT_RECORDS + j) as u8,
             rng,
         )?;
 
-        output_proofs.push(private_input);
+        new_birth_program_proofs.push(private_input);
     }
 
     // Use ledger to generate transaction kernel.
@@ -167,13 +169,15 @@ pub fn new_dummy_transaction<R: Rng + CryptoRng>(rng: &mut R) -> anyhow::Result<
     let mut path = std::env::current_dir()?;
     path.push(format!("storage_db_{}", random_path));
 
-    let ledger = MerkleTreeLedger::open_at_path(&path)?;
+    let ledger = MerkleTreeLedger::<N>::open_at_path(&path)?;
 
-    let transaction = Transaction::<Testnet1>::new()
-        .transaction_kernel(transaction_kernel)
-        .add_input_proofs(input_proofs)
-        .add_output_proofs(output_proofs)
-        .build(&ledger, rng)?;
+    let transaction = delegate_transaction(
+        transaction_kernel,
+        &ledger,
+        old_death_program_proofs,
+        new_birth_program_proofs,
+        rng,
+    )?;
 
     drop(ledger);
 

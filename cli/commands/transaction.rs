@@ -18,6 +18,7 @@ use crate::helpers::transaction::new_dummy_transaction;
 
 use snarkvm_utilities::{to_bytes, ToBytes};
 
+use aleo_network::Testnet1;
 use colored::*;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
@@ -50,7 +51,7 @@ impl Transaction {
                     };
 
                     // Create the dummy transaction.
-                    let transaction = new_dummy_transaction(&mut rng)?;
+                    let transaction = new_dummy_transaction::<_, Testnet1>(&mut rng)?;
 
                     // Hexify the transaction.
                     let transaction = hex::encode(to_bytes![transaction]?);

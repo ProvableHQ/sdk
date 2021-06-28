@@ -13,94 +13,45 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+use aleo_network::Network;
+use aleo_transaction::{Transaction, TransactionKernel};
 
-use snarkos_storage::{mem::MemDb, Ledger};
-use snarkvm_algorithms::traits::CRH;
-use snarkvm_dpc::{
-    testnet1::{
-        instantiated::{CommitmentMerkleParameters, Components, InstantiatedDPC, Tx},
-        parameters::PublicParameters,
-        program::NoopProgram,
-        record::Record,
-        BaseDPCComponents,
-        TransactionKernel,
-    },
-    traits::{DPCComponents, DPCScheme, ProgramScheme, RecordScheme},
+use snarkvm_algorithms::{
+    merkle_tree::{MerklePath, MerkleTreeDigest},
+    CommitmentScheme,
+    SignatureScheme,
 };
-use snarkvm_utilities::{to_bytes, ToBytes};
+use snarkvm_dpc::{
+    testnet1::{BaseDPCComponents, PrivateProgramInput, Transaction as DPCTransaction},
+    traits::DPCComponents,
+    LedgerScheme,
+};
 
 use rand::{CryptoRng, Rng};
 
-pub type MerkleTreeLedger = Ledger<Tx, CommitmentMerkleParameters, MemDb>;
-
 /// Delegated execution of program proof generation and transaction online phase.
-pub fn delegate_transaction<R: Rng + CryptoRng>(
-    transaction_kernel: TransactionKernel<Components>,
-    ledger: &MerkleTreeLedger,
+pub fn delegate_transaction<R: Rng + CryptoRng, N: Network, L: LedgerScheme>(
+    transaction_kernel: TransactionKernel<N>,
+    ledger: &L,
+    old_death_program_proofs: Vec<PrivateProgramInput>,
+    new_birth_program_proofs: Vec<PrivateProgramInput>,
     rng: &mut R,
-) -> anyhow::Result<(Tx, Vec<Record<Components>>)> {
-    let parameters = PublicParameters::<Components>::load(false)?;
+) -> anyhow::Result<Transaction<N>>
+where
+    L: LedgerScheme<
+        Commitment = <<<N as Network>::Components as DPCComponents>::RecordCommitment as CommitmentScheme>::Output,
+        MerkleParameters = <<N as Network>::Components as BaseDPCComponents>::MerkleParameters,
+        MerklePath = MerklePath<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
+        MerkleTreeDigest = MerkleTreeDigest<<<N as Network>::Components as BaseDPCComponents>::MerkleParameters>,
+        SerialNumber = <<<N as Network>::Components as DPCComponents>::AccountSignature as SignatureScheme>::PublicKey,
+        Transaction = DPCTransaction<<N as Network>::Components>,
+    >,
+{
+    let transaction = Transaction::<N>::new()
+        .transaction_kernel(transaction_kernel)
+        .add_old_death_program_proofs(old_death_program_proofs)
+        .add_new_birth_program_proofs(new_birth_program_proofs)
+        .build(ledger, rng)?;
 
-    let local_data = transaction_kernel.into_local_data();
-
-    // Enforce that the record programs are the noop program
-    // TODO (add support for arbitrary programs)
-
-    let noop_program_id = to_bytes![
-        parameters
-            .system_parameters
-            .program_verification_key_crh
-            .hash(&to_bytes![parameters.noop_program_snark_parameters.verification_key]?)?
-    ]?;
-
-    for old_record in &local_data.old_records {
-        assert_eq!(old_record.death_program_id().to_vec(), noop_program_id);
-    }
-
-    for new_record in &local_data.new_records {
-        assert_eq!(new_record.birth_program_id().to_vec(), noop_program_id);
-    }
-
-    // Generate the program proofs
-
-    let noop_program = NoopProgram::<_, <Components as BaseDPCComponents>::NoopProgramSNARK>::new(noop_program_id);
-
-    let mut old_death_program_proofs = vec![];
-    for i in 0..Components::NUM_INPUT_RECORDS {
-        let private_input = noop_program.execute(
-            &parameters.noop_program_snark_parameters.proving_key,
-            &parameters.noop_program_snark_parameters.verification_key,
-            &local_data,
-            i as u8,
-            rng,
-        )?;
-
-        old_death_program_proofs.push(private_input);
-    }
-
-    let mut new_birth_program_proofs = vec![];
-    for j in 0..Components::NUM_OUTPUT_RECORDS {
-        let private_input = noop_program.execute(
-            &parameters.noop_program_snark_parameters.proving_key,
-            &parameters.noop_program_snark_parameters.verification_key,
-            &local_data,
-            (Components::NUM_INPUT_RECORDS + j) as u8,
-            rng,
-        )?;
-
-        new_birth_program_proofs.push(private_input);
-    }
-
-    // Online execution to generate a DPC transaction
-
-    let (new_records, transaction) = InstantiatedDPC::execute_online(
-        &parameters,
-        transaction_kernel,
-        old_death_program_proofs,
-        new_birth_program_proofs,
-        ledger,
-        rng,
-    )?;
-
-    Ok((transaction, new_records))
+    Ok(transaction)
 }
