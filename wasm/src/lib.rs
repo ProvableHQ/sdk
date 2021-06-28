@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+#![allow(clippy::all)]
+
 pub mod account;
 pub use account::*;
 

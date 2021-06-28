@@ -38,6 +38,7 @@ pub enum Transaction {
 }
 
 impl Transaction {
+    #[allow(clippy::match_single_binding)]
     pub fn parse(self) -> anyhow::Result<String> {
         match self {
             Self::New { dummy, seed } => match dummy {
@@ -53,7 +54,7 @@ impl Transaction {
                     let (transaction, _records) = new_dummy_transaction(network_id, &mut rng)?;
 
                     // Hexify the transaction.
-                    let transaction = format!("{}", hex::encode(to_bytes![transaction]?));
+                    let transaction = hex::encode(to_bytes![transaction]?);
 
                     // Print the new Aleo transaction.
                     let mut output = format!("\n {}\n\n", "Transaction (Dummy)".cyan().bold());

@@ -92,7 +92,7 @@ mod tests {
 
         let signature_verification = address.verify(given_message, &signature);
 
-        println!("{} == {}", true, signature_verification);
+        println!("true == {}", signature_verification);
         assert!(signature_verification);
     }
 
@@ -109,7 +109,7 @@ mod tests {
 
         let signature_verification = address.verify(bad_message, &signature);
 
-        println!("{} == {}", false, signature_verification);
+        println!("false == {}", signature_verification);
         assert!(!signature_verification);
     }
 }

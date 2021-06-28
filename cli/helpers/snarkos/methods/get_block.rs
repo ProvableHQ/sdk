@@ -103,7 +103,7 @@ mod tests {
 
 
             Mock::given(method("POST"))
-                .and(path(format!("/")))
+                .and(path("/".to_string()))
                 .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
                 .mount(&mock_server)
                 .await;
