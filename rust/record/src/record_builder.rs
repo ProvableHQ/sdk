@@ -18,7 +18,7 @@ use crate::{Record, RecordError};
 use aleo_account::Address;
 use aleo_network::Network;
 
-use snarkvm_algorithms::traits::{CommitmentScheme, CRH};
+use snarkvm_algorithms::prelude::*;
 use snarkvm_dpc::{
     testnet1::parameters::{NoopProgramSNARKParameters, SystemParameters},
     DPCComponents,
@@ -61,10 +61,9 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `owner: Address`.
     ///
     pub fn owner<A: Into<Address>>(mut self, owner: A) -> Self {
-        let owner = owner.into();
-        let owner_string = format!("owner: {}", owner);
-        if self.owner.set(owner).is_err() {
-            self.errors.push(RecordError::DuplicateArgument(owner_string));
+        if let Err(owner) = self.owner.set(owner.into()) {
+            self.errors
+                .push(RecordError::DuplicateArgument(format!("owner: {}", owner)));
         }
         self
     }
@@ -73,7 +72,7 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `value: u64`.
     ///
     pub fn value(mut self, value: u64) -> Self {
-        if self.value.set(value).is_err() {
+        if let Err(value) = self.value.set(value) {
             self.errors
                 .push(RecordError::DuplicateArgument(format!("value: {}", value)))
         }
@@ -84,10 +83,11 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `payload: Payload`.
     ///
     pub fn payload(mut self, payload: <Record<N> as RecordScheme>::Payload) -> Self {
-        let payload_string = hex::encode(&to_bytes![payload].unwrap()[..]);
-        if self.payload.set(payload).is_err() {
-            self.errors
-                .push(RecordError::DuplicateArgument(format!("payload: {}", payload_string)))
+        if let Err(payload) = self.payload.set(payload) {
+            self.errors.push(RecordError::DuplicateArgument(format!(
+                "payload: {}",
+                hex::encode(&to_bytes![payload].unwrap()[..])
+            )))
         }
         self
     }
@@ -96,11 +96,10 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `birth_program_id: Vec<u8>`.
     ///
     pub fn birth_program_id(mut self, birth_program_id: Vec<u8>) -> Self {
-        let birth_program_id_string = hex::encode(&to_bytes![birth_program_id].unwrap()[..]);
-        if self.birth_program_id.set(birth_program_id).is_err() {
+        if let Err(birth_program_id) = self.birth_program_id.set(birth_program_id) {
             self.errors.push(RecordError::DuplicateArgument(format!(
                 "birth_program_id: {}",
-                birth_program_id_string
+                hex::encode(&to_bytes![birth_program_id].unwrap()[..])
             )))
         }
         self
@@ -110,11 +109,10 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `death_program_id: Vec<u8>`.
     ///
     pub fn death_program_id(mut self, death_program_id: Vec<u8>) -> Self {
-        let death_program_id_string = hex::encode(&to_bytes![death_program_id].unwrap()[..]);
-        if self.death_program_id.set(death_program_id).is_err() {
+        if let Err(death_program_id) = self.death_program_id.set(death_program_id) {
             self.errors.push(RecordError::DuplicateArgument(format!(
                 "death_program_id: {}",
-                death_program_id_string
+                hex::encode(&to_bytes![death_program_id].unwrap()[..])
             )))
         }
         self
@@ -124,7 +122,7 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `serial_number_nonce: SerialNumberNonce`.
     ///
     pub fn serial_number_nonce(mut self, serial_number_nonce: <Record<N> as RecordScheme>::SerialNumberNonce) -> Self {
-        if self.serial_number_nonce.set(serial_number_nonce).is_err() {
+        if let Err(serial_number_nonce) = self.serial_number_nonce.set(serial_number_nonce) {
             self.errors.push(RecordError::DuplicateArgument(format!(
                 "serial_number_nonce: {}",
                 hex::encode(&to_bytes![serial_number_nonce].unwrap()[..])
@@ -159,11 +157,10 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `commitment: RecordCommitment`.
     ///
     pub fn commitment(mut self, commitment: <Record<N> as RecordScheme>::Commitment) -> Self {
-        let commitment_string = hex::encode(&to_bytes![commitment].unwrap()[..]);
-        if self.commitment.set(commitment).is_err() {
+        if let Err(commitment) = self.commitment.set(commitment) {
             self.errors.push(RecordError::DuplicateArgument(format!(
                 "commitment: {}",
-                commitment_string
+                hex::encode(&to_bytes![commitment].unwrap()[..])
             )))
         }
         self
@@ -176,11 +173,10 @@ impl<N: Network> RecordBuilder<N> {
         mut self,
         commitment_randomness: <Record<N> as RecordScheme>::CommitmentRandomness,
     ) -> Self {
-        let commitment_randomness_string = hex::encode(&to_bytes![commitment_randomness].unwrap()[..]);
-        if self.commitment_randomness.set(commitment_randomness).is_err() {
+        if let Err(commitment_randomness) = self.commitment_randomness.set(commitment_randomness) {
             self.errors.push(RecordError::DuplicateArgument(format!(
                 "commitment_randomness: {}",
-                commitment_randomness_string
+                hex::encode(&to_bytes![commitment_randomness].unwrap()[..])
             )))
         }
         self

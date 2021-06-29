@@ -47,11 +47,14 @@ pub enum TransactionError {
     #[error("{}", _0)]
     DPCTransactionError(#[from] DPCTransactionError),
 
-    #[error("Attempted to set transaction builder argument {} twice", _0)]
+    #[error("Attempted to set transaction builder argument twice: {} ", _0)]
     DuplicateArgument(String),
 
     #[error("{}", _0)]
     FromHexError(#[from] FromHexError),
+
+    #[error("Attempted to pass invalid transaction builder argument: {}", _0)]
+    InvalidArgument(String),
 
     #[error("Invalid number of inputs. (Current: {}, Max: {})", _0, _1)]
     InvalidNumberOfInputs(usize, usize),

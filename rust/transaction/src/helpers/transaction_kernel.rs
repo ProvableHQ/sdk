@@ -17,10 +17,11 @@
 use crate::{errors::TransactionError, TransactionKernelBuilder};
 use aleo_network::Network;
 
-use snarkvm_dpc::testnet1::{LocalData, TransactionKernel as TransactionKernelNative};
+use snarkvm_dpc::testnet1::{LocalData, TransactionKernel as TransactionKernelTestnet1};
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use std::{
+    convert::TryFrom,
     fmt,
     io::{Read, Result as IoResult, Write},
     str::FromStr,
@@ -35,9 +36,7 @@ use std::{
     Eq(bound = "N: Network"),
     Debug(bound = "N: Network")
 )]
-pub struct TransactionKernel<N: Network> {
-    pub(crate) transaction_kernel: TransactionKernelNative<N::Components>,
-}
+pub struct TransactionKernel<N: Network>(pub(crate) TransactionKernelTestnet1<N::Components>);
 
 impl<N: Network> TransactionKernel<N> {
     #[allow(clippy::new_ret_no_self)]
@@ -47,14 +46,12 @@ impl<N: Network> TransactionKernel<N> {
 
     #[allow(clippy::wrong_self_convention)]
     pub fn into_local_data(&self) -> LocalData<N::Components> {
-        self.transaction_kernel.into_local_data()
+        self.0.into_local_data()
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut output = vec![];
-        self.transaction_kernel
-            .write(&mut output)
-            .expect("serialization to bytes failed");
+        self.0.write(&mut output).expect("serialization to bytes failed");
         output
     }
 }
@@ -62,26 +59,32 @@ impl<N: Network> TransactionKernel<N> {
 impl<N: Network> ToBytes for TransactionKernel<N> {
     #[inline]
     fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
-        self.transaction_kernel.write(&mut writer)
+        self.0.write(&mut writer)
     }
 }
 
 impl<N: Network> FromBytes for TransactionKernel<N> {
     #[inline]
     fn read<R: Read>(mut reader: R) -> IoResult<Self> {
-        Ok(Self {
-            transaction_kernel: FromBytes::read(&mut reader)?,
-        })
+        Ok(Self(FromBytes::read(&mut reader)?))
     }
 }
 
 impl<N: Network> FromStr for TransactionKernel<N> {
     type Err = TransactionError;
 
-    fn from_str(transaction_kernel: &str) -> Result<Self, Self::Err> {
-        Ok(Self {
-            transaction_kernel: TransactionKernelNative::<N::Components>::read(&hex::decode(transaction_kernel)?[..])?,
-        })
+    fn from_str(kernel: &str) -> Result<Self, Self::Err> {
+        Ok(Self(TransactionKernelTestnet1::<N::Components>::read(
+            &hex::decode(kernel)?[..],
+        )?))
+    }
+}
+
+impl<N: Network> TryFrom<&str> for TransactionKernel<N> {
+    type Error = TransactionError;
+
+    fn try_from(kernel: &str) -> Result<Self, Self::Error> {
+        Self::from_str(kernel)
     }
 }
 
@@ -90,7 +93,7 @@ impl<N: Network> fmt::Display for TransactionKernel<N> {
         write!(
             f,
             "{}",
-            hex::encode(to_bytes![self.transaction_kernel].expect("couldn't serialize to bytes"))
+            hex::encode(to_bytes![self.0].expect("couldn't serialize to bytes"))
         )
     }
 }

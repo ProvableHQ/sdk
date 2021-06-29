@@ -25,26 +25,18 @@ use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub struct TransactionBuilder {
-    pub(crate) builder: TransactionBuilderInner<Testnet1>,
-}
+pub struct TransactionBuilder(TransactionBuilderInner<Testnet1>);
 
 #[wasm_bindgen]
 impl TransactionBuilder {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        Self {
-            builder: TransactionBuilderInner::new(),
-        }
+        Self(TransactionBuilderInner::new())
     }
 
     #[wasm_bindgen]
-    pub fn transaction_kernel(self, transaction_kernel: &str) -> Self {
-        let transaction_kernel = TransactionKernel::from_string(transaction_kernel);
-
-        Self {
-            builder: self.builder.transaction_kernel(transaction_kernel.transaction_kernel),
-        }
+    pub fn transaction_kernel(self, kernel: &str) -> Self {
+        Self(self.0.transaction_kernel(TransactionKernel::from_string(kernel).0))
     }
 
     #[wasm_bindgen]
@@ -54,9 +46,7 @@ impl TransactionBuilder {
             proof: hex::decode(proof).unwrap(),
         };
 
-        Self {
-            builder: self.builder.add_old_death_program_proof(old_death_program_proof),
-        }
+        Self(self.0.add_old_death_program_proof(old_death_program_proof))
     }
 
     #[wasm_bindgen]
@@ -66,9 +56,7 @@ impl TransactionBuilder {
             proof: hex::decode(proof).unwrap(),
         };
 
-        Self {
-            builder: self.builder.add_new_birth_program_proof(new_birth_program_proof),
-        }
+        Self(self.0.add_new_birth_program_proof(new_birth_program_proof))
     }
 
     #[wasm_bindgen]
@@ -77,55 +65,51 @@ impl TransactionBuilder {
         // let rng = &mut StdRng::from_entropy();
         //
         // Transaction {
-        //     transaction: self.builder.build(ledger, rng).unwrap(),
+        //     transaction: self.0.build(ledger, rng).unwrap(),
         // }
     }
 }
 
 #[wasm_bindgen]
-pub struct Transaction {
-    pub(crate) transaction: TransactionInner<Testnet1>,
-}
+pub struct Transaction(TransactionInner<Testnet1>);
 
 #[wasm_bindgen]
 impl Transaction {
     #[wasm_bindgen]
     pub fn from_string(transaction: &str) -> Self {
-        let transaction = TransactionInner::<Testnet1>::from_str(transaction).unwrap();
-
-        Self { transaction }
+        Self(TransactionInner::<Testnet1>::from_str(transaction).unwrap())
     }
 
     #[wasm_bindgen]
     pub fn to_string(&self) -> String {
-        self.transaction.to_string()
+        self.0.to_string()
     }
 
     #[wasm_bindgen]
     pub fn transaction_id(&self) -> String {
-        hex::encode(to_bytes![self.transaction.transaction_id().unwrap()].unwrap())
+        hex::encode(to_bytes![self.0.transaction_id().unwrap()].unwrap())
     }
 
     #[wasm_bindgen]
     pub fn network_id(&self) -> u8 {
-        self.transaction.network_id()
+        self.0.network_id()
     }
 
     #[wasm_bindgen]
     pub fn ledger_digest(&self) -> String {
-        self.transaction.ledger_digest().to_string()
+        self.0.ledger_digest().to_string()
     }
 
     #[wasm_bindgen]
     pub fn inner_circuit_id(&self) -> String {
-        self.transaction.inner_circuit_id().to_string()
+        self.0.inner_circuit_id().to_string()
     }
 
     #[wasm_bindgen]
     pub fn old_serial_numbers(&self) -> JsValue {
         JsValue::from(
             &self
-                .transaction
+                .0
                 .old_serial_numbers()
                 .iter()
                 .map(|value| JsValue::from(hex::encode(to_bytes![value].unwrap())))
@@ -137,7 +121,7 @@ impl Transaction {
     pub fn new_commitments(&self) -> JsValue {
         JsValue::from(
             &self
-                .transaction
+                .0
                 .new_commitments()
                 .iter()
                 .map(|value| JsValue::from(hex::encode(to_bytes![value].unwrap())))
@@ -147,24 +131,24 @@ impl Transaction {
 
     #[wasm_bindgen]
     pub fn program_commitment(&self) -> String {
-        hex::encode(to_bytes![self.transaction.program_commitment()].unwrap())
+        hex::encode(to_bytes![self.0.program_commitment()].unwrap())
     }
 
     #[wasm_bindgen]
     pub fn local_data_root(&self) -> String {
-        hex::encode(to_bytes![self.transaction.local_data_root()].unwrap())
+        hex::encode(to_bytes![self.0.local_data_root()].unwrap())
     }
 
     #[wasm_bindgen]
     pub fn value_balance(&self) -> String {
-        hex::encode(to_bytes![self.transaction.value_balance()].unwrap())
+        hex::encode(to_bytes![self.0.value_balance()].unwrap())
     }
 
     #[wasm_bindgen]
     pub fn encrypted_records(&self) -> JsValue {
         JsValue::from(
             &self
-                .transaction
+                .0
                 .encrypted_records()
                 .iter()
                 .map(|value| JsValue::from(hex::encode(to_bytes![value].unwrap())))
@@ -174,11 +158,11 @@ impl Transaction {
 
     #[wasm_bindgen]
     pub fn memorandum(&self) -> String {
-        hex::encode(to_bytes![self.transaction.memorandum()].unwrap())
+        hex::encode(to_bytes![self.0.memorandum()].unwrap())
     }
 
     #[wasm_bindgen]
     pub fn size(&self) -> usize {
-        self.transaction.size()
+        self.0.size()
     }
 }

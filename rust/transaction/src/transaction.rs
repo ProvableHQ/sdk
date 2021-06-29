@@ -40,9 +40,7 @@ use std::{
     PartialEq(bound = "N: Network"),
     Eq(bound = "N: Network")
 )]
-pub struct Transaction<N: Network> {
-    pub(crate) transaction: DPCTransaction<N::Components>,
-}
+pub struct Transaction<N: Network>(pub(crate) DPCTransaction<N::Components>);
 
 impl<N: Network> Transaction<N> {
     ///
@@ -55,9 +53,7 @@ impl<N: Network> Transaction<N> {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut output = vec![];
-        self.transaction
-            .write(&mut output)
-            .expect("serialization to bytes failed");
+        self.0.write(&mut output).expect("serialization to bytes failed");
         output
     }
 }
@@ -77,67 +73,65 @@ impl<N: Network> TransactionScheme for Transaction<N> {
     type ValueBalance = AleoAmount;
 
     fn transaction_id(&self) -> Result<[u8; 32], DPCTransactionError> {
-        self.transaction.transaction_id()
+        self.0.transaction_id()
     }
 
     fn network_id(&self) -> u8 {
-        self.transaction.network_id()
+        self.0.network_id()
     }
 
     fn ledger_digest(&self) -> &Self::Digest {
-        self.transaction.ledger_digest()
+        self.0.ledger_digest()
     }
 
     fn inner_circuit_id(&self) -> &Self::InnerCircuitID {
-        self.transaction.inner_circuit_id()
+        self.0.inner_circuit_id()
     }
 
     fn old_serial_numbers(&self) -> &[Self::SerialNumber] {
-        self.transaction.old_serial_numbers()
+        self.0.old_serial_numbers()
     }
 
     fn new_commitments(&self) -> &[Self::Commitment] {
-        self.transaction.new_commitments()
+        self.0.new_commitments()
     }
 
     fn program_commitment(&self) -> &Self::ProgramCommitment {
-        self.transaction.program_commitment()
+        self.0.program_commitment()
     }
 
     fn local_data_root(&self) -> &Self::LocalDataRoot {
-        self.transaction.local_data_root()
+        self.0.local_data_root()
     }
 
     fn value_balance(&self) -> Self::ValueBalance {
-        self.transaction.value_balance()
+        self.0.value_balance()
     }
 
     fn encrypted_records(&self) -> &[Self::EncryptedRecord] {
-        self.transaction.encrypted_records()
+        self.0.encrypted_records()
     }
 
     fn memorandum(&self) -> &Self::Memorandum {
-        self.transaction.memorandum()
+        self.0.memorandum()
     }
 
     fn size(&self) -> usize {
-        self.transaction.size()
+        self.0.size()
     }
 }
 
 impl<N: Network> ToBytes for Transaction<N> {
     #[inline]
     fn write<W: Write>(&self, mut writer: W) -> IoResult<()> {
-        self.transaction.write(&mut writer)
+        self.0.write(&mut writer)
     }
 }
 
 impl<N: Network> FromBytes for Transaction<N> {
     #[inline]
     fn read<R: Read>(mut reader: R) -> IoResult<Self> {
-        Ok(Self {
-            transaction: FromBytes::read(&mut reader)?,
-        })
+        Ok(Self(FromBytes::read(&mut reader)?))
     }
 }
 
@@ -145,9 +139,9 @@ impl<N: Network> FromStr for Transaction<N> {
     type Err = TransactionError;
 
     fn from_str(transaction: &str) -> Result<Self, Self::Err> {
-        Ok(Self {
-            transaction: DPCTransaction::<N::Components>::read(&hex::decode(transaction)?[..])?,
-        })
+        Ok(Self(DPCTransaction::<N::Components>::read(
+            &hex::decode(transaction)?[..],
+        )?))
     }
 }
 
@@ -156,7 +150,7 @@ impl<N: Network> fmt::Display for Transaction<N> {
         write!(
             f,
             "{}",
-            hex::encode(to_bytes![self.transaction].expect("couldn't serialize to bytes"))
+            hex::encode(to_bytes![self.0].expect("couldn't serialize to bytes"))
         )
     }
 }

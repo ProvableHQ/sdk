@@ -41,6 +41,7 @@ use snarkvm_utilities::{to_bytes, ToBytes};
 use once_cell::sync::OnceCell;
 use rand::Rng;
 use std::{marker::PhantomData, str::FromStr};
+
 #[derive(Derivative)]
 #[derivative(Debug(bound = "N: Network"))]
 pub struct TransactionInput<N: Network> {
@@ -65,10 +66,8 @@ pub struct TransactionOutput<N: Network> {
 pub struct TransactionKernelBuilder<N: Network> {
     /// Transaction inputs
     pub(crate) inputs: Vec<TransactionInput<N>>,
-
     /// Transaction outputs
     pub(crate) outputs: Vec<TransactionOutput<N>>,
-
     /// Transaction memo
     pub(crate) memo: OnceCell<[u8; 32]>,
 
@@ -98,10 +97,8 @@ impl<N: Network> TransactionKernelBuilder<N> {
             ));
         } else {
             // Construct the transaction input.
-            let input = TransactionInput { private_key, record };
-            self.inputs.push(input);
+            self.inputs.push(TransactionInput { private_key, record });
         }
-
         self
     }
 
@@ -143,12 +140,12 @@ impl<N: Network> TransactionKernelBuilder<N> {
     /// Returns a new transaction builder with the updated network id.
     ///
     pub fn memo(mut self, memo: [u8; 32]) -> Self {
-        let memo_string = hex::encode(&memo[..]);
-        if self.memo.set(memo).is_err() {
-            self.errors
-                .push(TransactionError::DuplicateArgument(format!("memo: {}", memo_string)))
+        if let Err(memo) = self.memo.set(memo) {
+            self.errors.push(TransactionError::DuplicateArgument(format!(
+                "memo: {}",
+                hex::encode(&memo[..])
+            )))
         }
-
         self
     }
 
@@ -341,6 +338,6 @@ impl<N: Network> TransactionKernelBuilder<N> {
             rng,
         )?;
 
-        Ok(TransactionKernel { transaction_kernel })
+        Ok(TransactionKernel(transaction_kernel))
     }
 }

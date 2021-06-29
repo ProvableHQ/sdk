@@ -30,17 +30,13 @@ use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub struct TransactionKernelBuilder {
-    pub(crate) builder: TransactionKernelBuilderInner<Testnet1>,
-}
+pub struct TransactionKernelBuilder(TransactionKernelBuilderInner<Testnet1>);
 
 #[wasm_bindgen]
 impl TransactionKernelBuilder {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        Self {
-            builder: TransactionKernelBuilderInner::new(),
-        }
+        Self(TransactionKernelBuilderInner::new())
     }
 
     #[wasm_bindgen]
@@ -48,9 +44,7 @@ impl TransactionKernelBuilder {
         let private_key = PrivateKey::from_str(private_key).unwrap();
         let record = Record::from_str(record).unwrap();
 
-        Self {
-            builder: self.builder.add_input(private_key, record),
-        }
+        Self(self.0.add_input(private_key, record))
     }
 
     #[wasm_bindgen]
@@ -67,42 +61,33 @@ impl TransactionKernelBuilder {
         let birth_program_id = hex::decode(birth_program_id).unwrap();
         let death_program_id = hex::decode(death_program_id).unwrap();
 
-        Self {
-            builder: self
-                .builder
+        Self(
+            self.0
                 .add_output(recipient, amount, payload, birth_program_id, death_program_id),
-        }
+        )
     }
 
     #[wasm_bindgen]
     pub fn build(self) -> TransactionKernel {
         let rng = &mut StdRng::from_entropy();
 
-        TransactionKernel {
-            transaction_kernel: self.builder.build(rng).unwrap(),
-        }
+        TransactionKernel(self.0.build(rng).unwrap())
     }
 }
 
 #[wasm_bindgen]
-pub struct TransactionKernel {
-    pub(crate) transaction_kernel: TransactionKernelInner<Testnet1>,
-}
+pub struct TransactionKernel(pub(crate) TransactionKernelInner<Testnet1>);
 
 #[wasm_bindgen]
 impl TransactionKernel {
     #[wasm_bindgen]
     pub fn from_string(offline_transaction: &str) -> Self {
-        let transaction_kernel = TransactionKernelInner::from_str(offline_transaction).unwrap();
-        Self { transaction_kernel }
+        Self(TransactionKernelInner::from_str(offline_transaction).unwrap())
     }
 
     #[wasm_bindgen]
     pub fn to_string(&self) -> String {
-        format!(
-            "TransactionKernel {{ transaction_kernel: {} }}",
-            self.transaction_kernel
-        )
+        format!("TransactionKernel {{ transaction_kernel: {} }}", self.0)
     }
 }
 
@@ -126,7 +111,7 @@ mod tests {
 
         let transaction_kernel = builder.build();
 
-        let transaction_kernel_string = transaction_kernel.transaction_kernel.to_string();
+        let transaction_kernel_string = transaction_kernel.to_string();
 
         // Offline transaction kernel can be recovered
         let _transaction_kernel = TransactionKernel::from_string(&transaction_kernel_string);

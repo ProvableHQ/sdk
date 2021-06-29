@@ -219,7 +219,7 @@ fn test_build_transaction() {
         .unwrap();
 
     // Verify transaction
-    assert!(DPC::<<Testnet1 as Network>::Components>::verify(&parameters, &transaction.transaction, &ledger).unwrap());
+    assert!(DPC::<<Testnet1 as Network>::Components>::verify(&parameters, &transaction.0, &ledger).unwrap());
 
     drop(ledger);
 }

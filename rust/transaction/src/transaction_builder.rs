@@ -59,14 +59,13 @@ impl<N: Network> TransactionBuilder<N> {
     }
 
     ///
-    /// Returns a new transaction builder and sets field `network: Network`.
+    /// Returns a new transaction builder and sets field `transaction_kernel: TransactionKernel`.
     /// Otherwise, logs a `TransactionError`.
     ///
-    pub fn transaction_kernel(mut self, transaction_kernel: TransactionKernel<N>) -> Self {
-        let transaction_kernel_string = format!("transaction_kernel: {}", transaction_kernel.to_string());
-        if self.transaction_kernel.set(transaction_kernel).is_err() {
+    pub fn transaction_kernel(mut self, kernel: TransactionKernel<N>) -> Self {
+        if let Err(kernel) = self.transaction_kernel.set(kernel) {
             self.errors
-                .push(TransactionError::DuplicateArgument(transaction_kernel_string));
+                .push(TransactionError::DuplicateArgument(kernel.to_string()).into());
         }
         self
     }
@@ -76,12 +75,11 @@ impl<N: Network> TransactionBuilder<N> {
     /// Otherwise, logs a `TransactionError`.
     ///
     pub fn add_old_death_program_proofs(self, old_death_program_proofs: Vec<PrivateProgramInput>) -> Self {
-        let mut new = self;
+        let mut result = self;
         for old_death_program_proof in old_death_program_proofs {
-            let temp = new.add_old_death_program_proof(old_death_program_proof);
-            new = temp;
+            result = result.add_old_death_program_proof(old_death_program_proof)
         }
-        new
+        result
     }
 
     ///
@@ -203,13 +201,13 @@ impl<N: Network> TransactionBuilder<N> {
         // Online execution to generate a DPC transaction
         let (_new_records, transaction) = DPC::<N::Components>::execute_online(
             &parameters,
-            transaction_kernel.transaction_kernel.clone(),
+            transaction_kernel.0.clone(),
             old_death_program_proofs,
             new_birth_program_proofs,
             ledger,
             rng,
         )?;
 
-        Ok(Transaction::<N> { transaction })
+        Ok(Transaction::<N>(transaction))
     }
 }
