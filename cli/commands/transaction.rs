@@ -15,10 +15,10 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::helpers::transaction::new_dummy_transaction;
+use aleo_network::Testnet1;
 
 use snarkvm_utilities::{to_bytes, ToBytes};
 
-use aleo_network::Testnet1;
 use colored::*;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;

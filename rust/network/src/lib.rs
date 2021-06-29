@@ -14,5 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod network;
-pub use network::*;
+pub mod testnet1;
+pub use testnet1::*;
+
+use snarkvm_dpc::{testnet1::BaseDPCComponents, DPCComponents};
+use snarkvm_utilities::{FromBytes, ToBytes};
+
+/// This trait defines network-specific configurations and parameters.
+pub trait Network {
+    const ID: u8;
+    const NODE_PORT: u16 = 4130 + Self::ID as u16;
+    const RPC_PORT: u16 = 3030;
+
+    type Components: DPCComponents + BaseDPCComponents;
+    type Payload: FromBytes + ToBytes + Default + PartialEq;
+}

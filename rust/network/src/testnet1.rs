@@ -14,22 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_dpc::{
-    testnet1::{
-        instantiated::Components as Testnet1Components,
-        payload::Payload as Testnet1Payload,
-        BaseDPCComponents,
-    },
-    DPCComponents,
-};
-use snarkvm_utilities::{FromBytes, ToBytes};
-
-/// The target network for building records, and transactions.
-pub trait Network {
-    const ID: u8;
-    type Components: DPCComponents + BaseDPCComponents;
-    type Payload: FromBytes + ToBytes + Default + PartialEq;
-}
+use crate::Network;
+use snarkvm_dpc::testnet1::{instantiated::Components as Testnet1Components, payload::Payload as Testnet1Payload};
 
 /// The testnet1 network
 pub struct Testnet1;
