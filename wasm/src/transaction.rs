@@ -18,12 +18,9 @@ use crate::TransactionKernel;
 use aleo_network::Testnet1;
 use aleo_transaction::{Transaction as TransactionInner, TransactionBuilder as TransactionBuilderInner};
 
-use snarkvm_dpc::TransactionScheme;
+use snarkvm_dpc::{testnet1::PrivateProgramInput, TransactionScheme};
 use snarkvm_utilities::{to_bytes, ToBytes};
 
-// use rand::rngs::StdRng;
-// use rand::SeedableRng;
-use snarkvm_dpc::testnet1::PrivateProgramInput;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 

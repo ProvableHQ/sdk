@@ -26,6 +26,8 @@ use snarkvm_dpc::{
     testnet1::{
         parameters::PublicParameters,
         record::{payload::Payload, Record as DPCRecord},
+        SystemParameters,
+        DPC,
     },
     traits::RecordScheme,
     AccountAddress,
@@ -35,7 +37,6 @@ use snarkvm_dpc::{
 use snarkvm_utilities::{to_bytes, FromBytes, ToBytes};
 
 use rand::{CryptoRng, Rng};
-use snarkvm_dpc::testnet1::{SystemParameters, DPC};
 use std::{
     fmt,
     io::{Read, Result as IoResult, Write},
