@@ -118,6 +118,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15af2628f6890fe2609a3b91bef4c83450512802e59489f9c1cb1fa5df064a61"
 
 [[package]]
+name = "arc-swap"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e906254e445520903e7fc9da4f709886c84ae4bc4ddaf0e093188d66df4dc820"
+
+[[package]]
 name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1786,10 +1792,11 @@ checksum = "f67ad224767faa3c7d8b6d91985b78e70a1324408abcb1cfcc2be4c06bc06043"
 
 [[package]]
 name = "snarkos-parameters"
-version = "1.3.8"
+version = "1.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12e208e958d84a1deb6fc8f6df8111aad9033fde5cfc061120e76a3bb85fb314"
+checksum = "e7877d10f37ef1ae9a181d80f74d24ed99991c1d5869dc697f9796c623236284"
 dependencies = [
+ "arc-swap",
  "curl",
  "snarkvm-algorithms",
  "snarkvm-parameters",
@@ -1798,11 +1805,12 @@ dependencies = [
 
 [[package]]
 name = "snarkos-storage"
-version = "1.3.8"
+version = "1.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "136bacc510b4844408fb2917c42a4166468799f440f58b220dda2afb92637c7a"
+checksum = "a8b573163b06280d05083b7529cac7268c34c765021e4aa6fe6ec490ddb2ff0c"
 dependencies = [
  "anyhow",
+ "arc-swap",
  "bincode",
  "hex",
  "parking_lot",
