@@ -99,7 +99,7 @@ features = ["no-color"]
 version = "0.11.2"
 
 [dev-dependencies.tokio]
-version = "1.7.0"
+version = "1.8.1"
 features = ["rt-multi-thread"]
 
 [dev-dependencies.wasm-bindgen-test]
