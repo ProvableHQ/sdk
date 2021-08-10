@@ -14,107 +14,50 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Address, PrivateKey, ViewKey};
+use crate::{Account, PrivateKey};
 
-use rand::{Rng, SeedableRng};
+use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 use std::str::FromStr;
+
+const TEST_PRIVATE_KEY: &'static str = "APrivateKey1tyBgFoCXAq8RfZT3W2mzVV9XzJb2hVFL2LrHLToEC37tXrz";
+const TEST_VIEW_KEY: &'static str = "AViewKey1gFRs4gG66wFW1FypYRfwy6pDqix6rtquQ8uJ15RgHCC8";
+const TEST_ADDRESS: &'static str = "aleo1shhq355tyaptcej65tkrweej5wth7wqg5hcqg3hf8as5s9rtrypqs8vy3u";
 
 #[test]
 pub fn private_key_test() {
     let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
     let private_key = PrivateKey::new(rng);
-    assert!(private_key.is_ok());
 
-    let expected_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-    let candidate_private_key = private_key.unwrap().to_string();
+    let expected_private_key = "APrivateKey1tyBgFoCXAq8RfZT3W2mzVV9XzJb2hVFL2LrHLToEC37tXrz";
+    let candidate_private_key = private_key.to_string();
 
     println!("{} == {}", expected_private_key, candidate_private_key);
     assert_eq!(expected_private_key, candidate_private_key);
 }
 
 #[test]
-pub fn view_key_test() {
-    let private_key = PrivateKey::from_str("APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn").unwrap();
-    let view_key = ViewKey::from(&private_key);
-    assert!(view_key.is_ok());
+pub fn account_test() {
+    let account = Account::from_str(TEST_PRIVATE_KEY);
 
-    let expected_view_key = "AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF";
-    let candidate_view_key = view_key.unwrap().to_string();
+    assert!(account.is_ok());
+    let account = account.unwrap();
+
+    let expected_private_key = TEST_PRIVATE_KEY.to_string();
+    let candidate_private_key = account.private_key().to_string();
+
+    println!("{} == {}", expected_private_key, candidate_private_key);
+    assert_eq!(expected_private_key, candidate_private_key);
+
+    let expected_view_key = TEST_VIEW_KEY.to_string();
+    let candidate_view_key = account.view_key().to_string();
 
     println!("{} == {}", expected_view_key, candidate_view_key);
     assert_eq!(expected_view_key, candidate_view_key);
-}
 
-#[test]
-pub fn address_test() {
-    let private_key = PrivateKey::from_str("APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn").unwrap();
-    let address = Address::from(&private_key);
-    assert!(address.is_ok());
-
-    let expected_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
-    let candidate_address = address.unwrap().to_string();
+    let expected_address = TEST_ADDRESS.to_string();
+    let candidate_address = account.address().to_string();
 
     println!("{} == {}", expected_address, candidate_address);
     assert_eq!(expected_address, candidate_address);
-}
-
-#[test]
-pub fn view_key_signature_test() {
-    let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-    let private_key = PrivateKey::new(rng);
-    assert!(private_key.is_ok());
-
-    let view_key = ViewKey::from(&private_key.unwrap());
-    assert!(view_key.is_ok());
-
-    let message: [u8; 32] = rng.gen();
-
-    let signature = view_key.unwrap().sign(&message, rng);
-    assert!(signature.is_ok());
-
-    let expected_signature = "672cfc66d9d2c018fbac1a9d8245d3f1ed5ab2485031e64eaeeaf0c09c8cab03a4474f5d8f9f7108cce355c8c4509e3c625b78ccc63a0f203bf81a3493ce7c03";
-    let candidate_signature = signature.unwrap().to_string();
-
-    println!("{} == {}", expected_signature, candidate_signature);
-    assert_eq!(expected_signature, candidate_signature);
-}
-
-#[test]
-pub fn view_key_signature_verification_test() {
-    let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-    let private_key = PrivateKey::new(rng);
-    assert!(private_key.is_ok());
-
-    let view_key = ViewKey::from(&private_key.unwrap()).unwrap();
-    let address = Address::from_view_key(&view_key).unwrap();
-
-    let message: [u8; 32] = rng.gen();
-
-    let signature = view_key.sign(&message, rng);
-    assert!(signature.is_ok());
-
-    let verification = address.verify(&message, &signature.unwrap());
-    assert!(verification.is_ok());
-    assert!(verification.unwrap())
-}
-
-#[test]
-pub fn view_key_signature_failed_verification_test() {
-    let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-    let private_key = PrivateKey::new(rng);
-    assert!(private_key.is_ok());
-
-    let view_key = ViewKey::from(&private_key.unwrap()).unwrap();
-    let address = Address::from_view_key(&view_key).unwrap();
-
-    let message: [u8; 32] = rng.gen();
-    let bad_message: [u8; 32] = rng.gen();
-
-    let signature = view_key.sign(&message, rng);
-    assert!(signature.is_ok());
-
-    let verification = address.verify(&bad_message, &signature.unwrap());
-    assert!(verification.is_ok());
-    assert!(!verification.unwrap())
 }

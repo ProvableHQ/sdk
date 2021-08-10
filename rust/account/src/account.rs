@@ -13,6 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+use crate::AccountError;
 
 use rand::{CryptoRng, Rng};
 use snarkvm_dpc::{
@@ -23,6 +24,7 @@ use snarkvm_dpc::{
     view_key::ViewKey as AleoViewKey,
     AccountScheme,
 };
+use std::{fmt, str::FromStr};
 
 // todo @collin: pass network into types.
 /// An Aleo private key, e.g. APrivateKey1tn8cnHPNtcZ9pH89YBMmpPS3fP5kxooguzpbRz3pLWoSzhg
@@ -37,13 +39,13 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn new<R: Rng + CryptoRng>(rng: &mut R) -> anyhow::Result<Self> {
+    pub fn new<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, AccountError> {
         Ok(Self {
             account: AleoAccount::new(rng)?,
         })
     }
 
-    pub fn from_private_key(private_key: PrivateKey) -> anyhow::Result<Self> {
+    pub fn from_private_key(private_key: PrivateKey) -> Result<Self, AccountError> {
         let view_key = ViewKey::from_private_key(&private_key)?;
         let address = Address::from_private_key(&private_key)?;
 
@@ -66,5 +68,22 @@ impl Account {
 
     pub fn address(&self) -> &Address {
         &self.account.address
+    }
+}
+
+impl FromStr for Account {
+    type Err = AccountError;
+
+    fn from_str(private_key: &str) -> Result<Self, Self::Err> {
+        let private_key = PrivateKey::from_str(private_key)?;
+        Ok(Self::from_private_key(private_key)?)
+    }
+}
+
+impl fmt::Display for Account {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Private Key  {}", self.account.private_key.to_string())?;
+        write!(f, "   View Key  {}", self.account.view_key.to_string())?;
+        write!(f, "    Address  {}", self.account.address.to_string())
     }
 }

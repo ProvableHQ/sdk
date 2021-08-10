@@ -14,23 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[macro_use]
-extern crate thiserror;
+#[derive(Debug, Error)]
+pub enum AccountError {
+    #[error("{}: {}", _0, _1)]
+    Crate(&'static str, String),
+}
 
-pub mod account;
-pub use account::*;
-//
-// pub mod address;
-// pub use address::*;
-
-pub mod errors;
-pub use errors::*;
-//
-// pub mod private_key;
-// pub use private_key::*;
-//
-// pub mod view_key;
-// pub use view_key::*;
-
-#[cfg(test)]
-pub mod tests;
+impl From<snarkvm_dpc::errors::AccountError> for AccountError {
+    fn from(error: snarkvm_dpc::errors::AccountError) -> Self {
+        AccountError::Crate("snarkvm_errors::objects::account", format!("{:?}", error))
+    }
+}

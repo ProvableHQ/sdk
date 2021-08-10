@@ -19,19 +19,19 @@ harness = false
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "feat/dpc-state"
-default-features = false
-features = ["wasm"]
+#default-features = false
+#features = ["wasm"]
 
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "feat/dpc-state"
-default-features = false
-features = ["wasm"]
+#default-features = false
+#features = ["wasm"]
 
 [dependencies.snarkvm-utilities]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "feat/dpc-state"
-default-features = false
+#default-features = false
 
 [dependencies.anyhow]
 version = "1"
