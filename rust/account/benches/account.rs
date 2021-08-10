@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Address, PrivateKey, ViewKey};
+use aleo_account::{Account, PrivateKey};
 
 #[macro_use]
 extern crate bencher;
@@ -25,33 +25,22 @@ use rand_chacha::ChaChaRng;
 
 pub const SEED: u64 = 1231275789u64;
 
-fn account_private_key(bench: &mut Bencher) {
+fn account_new(bench: &mut Bencher) {
     let rng = &mut ChaChaRng::seed_from_u64(SEED);
 
     bench.iter(|| {
-        let _private_key = PrivateKey::new(rng).unwrap();
-    });
+        let _account = Account::new(rng).unwrap();
+    })
 }
 
-fn account_view_key(bench: &mut Bencher) {
+fn account_from_private_key(bench: &mut Bencher) {
     let rng = &mut ChaChaRng::seed_from_u64(SEED);
-
-    let private_key = PrivateKey::new(rng).unwrap();
+    let private_key = PrivateKey::new(rng);
 
     bench.iter(|| {
-        let _view_key = ViewKey::from(&private_key).unwrap();
-    });
+        let _account = Account::from_private_key(private_key.clone()).unwrap();
+    })
 }
 
-fn account_address(bench: &mut Bencher) {
-    let rng = &mut ChaChaRng::seed_from_u64(SEED);
-
-    let private_key = PrivateKey::new(rng).unwrap();
-
-    bench.iter(|| {
-        let _address = Address::from(&private_key).unwrap();
-    });
-}
-
-benchmark_group!(account, account_private_key, account_view_key, account_address);
+benchmark_group!(account, account_new, account_from_private_key);
 benchmark_main!(account);

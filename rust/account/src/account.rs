@@ -24,7 +24,7 @@ use snarkvm_dpc::{
     view_key::ViewKey as AleoViewKey,
     AccountScheme,
 };
-use std::{fmt, str::FromStr};
+use std::{convert::TryFrom, fmt, str::FromStr};
 
 // todo @collin: pass network into types.
 /// An Aleo private key, e.g. APrivateKey1tn8cnHPNtcZ9pH89YBMmpPS3fP5kxooguzpbRz3pLWoSzhg
@@ -46,8 +46,8 @@ impl Account {
     }
 
     pub fn from_private_key(private_key: PrivateKey) -> Result<Self, AccountError> {
-        let view_key = ViewKey::from_private_key(&private_key)?;
-        let address = Address::from_private_key(&private_key)?;
+        let view_key = ViewKey::try_from(&private_key)?;
+        let address = Address::try_from(&view_key)?;
 
         Ok(Self {
             account: AleoAccount::<Testnet1Parameters> {
@@ -76,7 +76,7 @@ impl FromStr for Account {
 
     fn from_str(private_key: &str) -> Result<Self, Self::Err> {
         let private_key = PrivateKey::from_str(private_key)?;
-        Ok(Self::from_private_key(private_key)?)
+        Self::from_private_key(private_key)
     }
 }
 
