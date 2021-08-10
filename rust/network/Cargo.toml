@@ -16,3 +16,9 @@ git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "feat/dpc-state"
 #default-features = false
 #features = [ "wasm" ]
+
+[features]
+default = ["full"]
+full = [ "testnet1", "testnet2" ]
+testnet1 = []
+testnet2 = []

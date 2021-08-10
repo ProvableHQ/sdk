@@ -27,6 +27,7 @@ name = "aleo"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
+ "aleo-network",
  "anyhow",
  "base64",
  "colored",
@@ -55,6 +56,7 @@ dependencies = [
 name = "aleo-account"
 version = "0.2.0"
 dependencies = [
+ "aleo-network",
  "anyhow",
  "bencher",
  "hex",

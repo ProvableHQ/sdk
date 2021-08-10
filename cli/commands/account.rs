@@ -15,11 +15,14 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use aleo_account::Account as AccountInner;
+use aleo_network::Testnet1;
 
 use colored::*;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 use structopt::StructOpt;
+
+pub type N = Testnet1;
 
 #[derive(StructOpt, Debug)]
 #[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
@@ -38,8 +41,8 @@ impl Account {
             Self::New { seed } => {
                 // Sample a new Aleo account.
                 let account = match seed {
-                    Some(seed) => AccountInner::new(&mut ChaChaRng::seed_from_u64(seed))?,
-                    None => AccountInner::new(&mut rand::thread_rng())?,
+                    Some(seed) => AccountInner::<N>::new(&mut ChaChaRng::seed_from_u64(seed))?,
+                    None => AccountInner::<N>::new(&mut rand::thread_rng())?,
                 };
 
                 // Print the new Aleo account.

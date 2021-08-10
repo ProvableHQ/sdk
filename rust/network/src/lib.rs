@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(feature = "testnet1")]
 pub mod testnet1;
 pub use testnet1::*;
 
+#[cfg(feature = "testnet2")]
 pub mod testnet2;
 pub use testnet2::*;
 

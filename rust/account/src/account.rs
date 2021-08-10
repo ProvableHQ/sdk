@@ -14,43 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 use crate::AccountError;
+use aleo_network::Network;
 
 use rand::{CryptoRng, Rng};
 use snarkvm_dpc::{
     account::Account as AleoAccount,
     address::Address as AleoAddress,
     private_key::PrivateKey as AleoPrivateKey,
-    testnet1::Testnet1Parameters,
     view_key::ViewKey as AleoViewKey,
     AccountScheme,
 };
 use std::{convert::TryFrom, fmt, str::FromStr};
 
-// todo @collin: pass network into types.
-/// An Aleo private key, e.g. APrivateKey1tn8cnHPNtcZ9pH89YBMmpPS3fP5kxooguzpbRz3pLWoSzhg
-pub type PrivateKey = AleoPrivateKey<Testnet1Parameters>;
-/// An Aleo view key, e.g. AViewKey1m9cmnBtfWziAmT1SBC63a96fo18hLddrjweMxhcqhNo5
-pub type ViewKey = AleoViewKey<Testnet1Parameters>;
-/// An Aleo address, e.g. aleo1h47qwdqqv25gwp0fkxgnqvm7ykrz0ud2vaw2cj4ac68w8wq5vqqqv58jvr
-pub type Address = AleoAddress<Testnet1Parameters>;
-
-pub struct Account {
-    account: AleoAccount<Testnet1Parameters>,
+pub struct Account<N: Network> {
+    account: AleoAccount<N::Parameters>,
 }
 
-impl Account {
+impl<N: Network> Account<N> {
     pub fn new<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, AccountError> {
         Ok(Self {
             account: AleoAccount::new(rng)?,
         })
     }
 
-    pub fn from_private_key(private_key: PrivateKey) -> Result<Self, AccountError> {
-        let view_key = ViewKey::try_from(&private_key)?;
-        let address = Address::try_from(&view_key)?;
+    pub fn from_private_key(private_key: AleoPrivateKey<N::Parameters>) -> Result<Self, AccountError> {
+        let view_key = AleoViewKey::<N::Parameters>::try_from(&private_key)?;
+        let address = AleoAddress::<N::Parameters>::try_from(&view_key)?;
 
         Ok(Self {
-            account: AleoAccount::<Testnet1Parameters> {
+            account: AleoAccount::<N::Parameters> {
                 private_key,
                 view_key,
                 address,
@@ -58,29 +50,29 @@ impl Account {
         })
     }
 
-    pub fn private_key(&self) -> &PrivateKey {
+    pub fn private_key(&self) -> &AleoPrivateKey<N::Parameters> {
         &self.account.private_key
     }
 
-    pub fn view_key(&self) -> &ViewKey {
+    pub fn view_key(&self) -> &AleoViewKey<N::Parameters> {
         &self.account.view_key
     }
 
-    pub fn address(&self) -> &Address {
+    pub fn address(&self) -> &AleoAddress<N::Parameters> {
         &self.account.address
     }
 }
 
-impl FromStr for Account {
+impl<N: Network> FromStr for Account<N> {
     type Err = AccountError;
 
     fn from_str(private_key: &str) -> Result<Self, Self::Err> {
-        let private_key = PrivateKey::from_str(private_key)?;
+        let private_key = AleoPrivateKey::<N::Parameters>::from_str(private_key)?;
         Self::from_private_key(private_key)
     }
 }
 
-impl fmt::Display for Account {
+impl<N: Network> fmt::Display for Account<N> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Private Key  {}", self.account.private_key.to_string())?;
         write!(f, "   View Key  {}", self.account.view_key.to_string())?;

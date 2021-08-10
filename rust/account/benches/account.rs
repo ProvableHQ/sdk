@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Account, PrivateKey};
+use aleo_account::Account;
+use aleo_network::{Testnet1, Testnet2};
+use snarkvm_dpc::PrivateKey;
 
 #[macro_use]
 extern crate bencher;
@@ -22,25 +24,44 @@ extern crate bencher;
 use bencher::Bencher;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
+use snarkvm_dpc::{testnet1::Testnet1Parameters, testnet2::Testnet2Parameters};
 
 pub const SEED: u64 = 1231275789u64;
 
-fn account_new(bench: &mut Bencher) {
+fn testnet1_account_new(bench: &mut Bencher) {
     let rng = &mut ChaChaRng::seed_from_u64(SEED);
 
     bench.iter(|| {
-        let _account = Account::new(rng).unwrap();
+        let _account = Account::<Testnet1>::new(rng).unwrap();
     })
 }
 
-fn account_from_private_key(bench: &mut Bencher) {
+fn testnet1_account_from_private_key(bench: &mut Bencher) {
     let rng = &mut ChaChaRng::seed_from_u64(SEED);
-    let private_key = PrivateKey::new(rng);
+    let private_key = PrivateKey::<Testnet1Parameters>::new(rng);
 
     bench.iter(|| {
-        let _account = Account::from_private_key(private_key.clone()).unwrap();
+        let _account = Account::<Testnet1>::from_private_key(private_key.clone()).unwrap();
     })
 }
 
-benchmark_group!(account, account_new, account_from_private_key);
-benchmark_main!(account);
+fn testnet2_account_new(bench: &mut Bencher) {
+    let rng = &mut ChaChaRng::seed_from_u64(SEED);
+
+    bench.iter(|| {
+        let _account = Account::<Testnet2>::new(rng).unwrap();
+    })
+}
+
+fn testnet2_account_from_private_key(bench: &mut Bencher) {
+    let rng = &mut ChaChaRng::seed_from_u64(SEED);
+    let private_key = PrivateKey::<Testnet2Parameters>::new(rng);
+
+    bench.iter(|| {
+        let _account = Account::<Testnet2>::from_private_key(private_key.clone()).unwrap();
+    })
+}
+
+benchmark_group!(testnet1, testnet1_account_new, testnet1_account_from_private_key);
+benchmark_group!(testnet2, testnet2_account_new, testnet2_account_from_private_key);
+benchmark_main!(testnet1, testnet2);

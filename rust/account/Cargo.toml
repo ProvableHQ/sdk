@@ -16,6 +16,9 @@ name = "account"
 path = "benches/account.rs"
 harness = false
 
+[dependencies.aleo-network]
+path = "../network"
+
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "feat/dpc-state"
