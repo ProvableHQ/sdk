@@ -16,15 +16,11 @@
 
 use crate::{
     view_key::{Signature, ViewKey},
-    AddressError,
-    PrivateKey,
+    AddressError, PrivateKey,
 };
 
 use snarkvm_algorithms::traits::SignatureScheme;
-use snarkvm_dpc::{
-    account::AccountAddress,
-    testnet1::{instantiated::Components, parameters::SystemParameters},
-};
+use snarkvm_dpc::{account::Address as AleoAddress, testnet1::Testnet1Parameters};
 use snarkvm_utilities::bytes::{FromBytes, ToBytes};
 
 use std::{
@@ -33,20 +29,16 @@ use std::{
     str::FromStr,
 };
 
+
+
 #[derive(Default, Clone, Debug, PartialEq, Eq)]
 pub struct Address {
-    pub address: AccountAddress<Components>,
+    pub address: AleoAddress<Testnet1Parameters>,
 }
 
 impl Address {
     pub fn from(private_key: &PrivateKey) -> Result<Self, AddressError> {
-        let parameters = SystemParameters::<Components>::load()?;
-        let address = AccountAddress::<Components>::from_private_key(
-            &parameters.account_signature,
-            &parameters.account_commitment,
-            &parameters.account_encryption,
-            &private_key.private_key,
-        )?;
+        let address = AleoAddress::<Testnet1Parameters>::from_private_key()
         Ok(Self { address })
     }
 

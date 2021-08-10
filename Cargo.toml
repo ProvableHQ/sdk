@@ -12,7 +12,12 @@ license = "GPL-3.0"
 edition = "2018"
 
 [workspace]
-members = ["rust/account", "rust/environment", "rust/record", "wasm"]
+members = [
+    "rust/account",
+#    "rust/environment",
+#    "rust/record",
+#    "wasm"
+]
 
 [lib]
 path = "cli/lib.rs"
@@ -25,24 +30,23 @@ path = "cli/main.rs"
 path = "./rust/account"
 version = "0.2.0"
 
-[dependencies.aleo-record]
-path = "./rust/record"
-version = "0.2.0"
-
 [dependencies.snarkos-storage]
 version = "1.3.8"
 default-features = false
 features = ["mem_storage"]
 
 [dependencies.snarkvm-algorithms]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 features = ["wasm"]
 
 [dependencies.snarkvm-dpc]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 
 [dependencies.snarkvm-utilities]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 
 [dependencies.anyhow]
 version = "1.0.41"

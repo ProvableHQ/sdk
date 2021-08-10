@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Address, PrivateKey, ViewKey};
+use aleo_account::Account as AccountInner;
 
 use colored::*;
 use rand::SeedableRng;
@@ -36,18 +36,16 @@ impl Account {
     pub fn parse(self) -> anyhow::Result<String> {
         match self {
             Self::New { seed } => {
-                // Sample a new Aleo private key.
-                let private_key = match seed {
-                    Some(seed) => PrivateKey::new(&mut ChaChaRng::seed_from_u64(seed))?,
-                    None => PrivateKey::new(&mut rand::thread_rng())?,
+                // Sample a new Aleo account.
+                let account = match seed {
+                    Some(seed) => AccountInner::new(&mut ChaChaRng::seed_from_u64(seed))?,
+                    None => AccountInner::new(&mut rand::thread_rng())?,
                 };
-                let view_key = ViewKey::from(&private_key)?;
-                let address = Address::from(&private_key)?;
 
                 // Print the new Aleo account.
-                let mut output = format!("\n {:>12}  {}\n", "Private Key".cyan().bold(), private_key);
-                output += &format!(" {:>12}  {}\n", "View Key".cyan().bold(), view_key);
-                output += &format!(" {:>12}  {}\n", "Address".cyan().bold(), address);
+                let mut output = format!("\n {:>12}  {}\n", "Private Key".cyan().bold(), account.private_key());
+                output += &format!(" {:>12}  {}\n", "View Key".cyan().bold(), account.view_key());
+                output += &format!(" {:>12}  {}\n", "Address".cyan().bold(), account.address());
 
                 Ok(output)
             }

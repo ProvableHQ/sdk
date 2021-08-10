@@ -18,25 +18,30 @@ path = "../account"
 path = "../environment"
 
 [dependencies.snarkvm-algorithms]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-curves]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 default-features = false
 
 [dependencies.snarkvm-dpc]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 default-features = false
 features = [ "wasm" ]
 
 [dependencies.snarkvm-fields]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 default-features = false
 
 [dependencies.snarkvm-utilities]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 default-features = false
 
 [dependencies.derivative]

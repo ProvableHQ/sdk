@@ -24,6 +24,8 @@ use snarkvm_dpc::{
 use rand::{CryptoRng, Rng};
 use std::{fmt, str::FromStr};
 
+pub type AleoPrivateKey = 
+
 #[derive(Debug)]
 pub struct PrivateKey {
     pub(crate) private_key: AccountPrivateKey<Components>,

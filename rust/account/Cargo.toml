@@ -17,18 +17,24 @@ path = "benches/account.rs"
 harness = false
 
 [dependencies.snarkvm-algorithms]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-dpc]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-utilities]
-version = "0.5.5"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
 default-features = false
+
+[dependencies.anyhow]
+version = "1"
 
 [dependencies.hex]
 version = "0.4.3"
