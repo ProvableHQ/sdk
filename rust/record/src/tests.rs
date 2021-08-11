@@ -76,7 +76,7 @@ fn test_build_dummy_record() {
     let noop_program = NoopProgram::<Testnet2Parameters>::load().unwrap();
 
     // Generate new dummy record from randomness
-    let dummy_record = Record::<Testnet2>::new_dummy(rng).unwrap();
+    let dummy_record = Record::<Testnet2>::new_noop(rng).unwrap();
 
     // Check is_dummy: true
     assert!(dummy_record.is_dummy());

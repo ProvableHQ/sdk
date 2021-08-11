@@ -17,8 +17,8 @@
 pub mod account;
 pub use account::*;
 
-// pub mod transaction;
-// pub use transaction::*;
+pub mod transaction;
+pub use transaction::*;
 
 pub mod update;
 pub use update::*;

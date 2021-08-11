@@ -29,6 +29,7 @@ dependencies = [
  "aleo-account",
  "aleo-network",
  "aleo-record",
+ "aleo-transaction",
  "anyhow",
  "base64",
  "colored",
@@ -94,6 +95,20 @@ dependencies = [
  "snarkvm-fields 0.7.5",
  "snarkvm-utilities 0.7.5",
  "thiserror",
+]
+
+[[package]]
+name = "aleo-transaction"
+version = "0.2.0"
+dependencies = [
+ "aleo-account",
+ "aleo-network",
+ "aleo-record",
+ "rand 0.8.4",
+ "snarkvm-algorithms 0.7.5",
+ "snarkvm-dpc 0.7.5",
+ "snarkvm-ledger",
+ "snarkvm-utilities 0.7.5",
 ]
 
 [[package]]
@@ -2069,6 +2084,34 @@ dependencies = [
  "snarkvm-fields 0.7.6",
  "snarkvm-r1cs 0.7.6",
  "snarkvm-utilities 0.7.6",
+ "thiserror",
+]
+
+[[package]]
+name = "snarkvm-ledger"
+version = "0.7.5"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=feat/dpc-state#63828846347e2504d3988ecc988826cebf2e424d"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "blake2",
+ "chrono",
+ "hex",
+ "once_cell",
+ "parking_lot",
+ "rand 0.8.4",
+ "serde",
+ "snarkvm-algorithms 0.7.5",
+ "snarkvm-curves 0.7.5",
+ "snarkvm-dpc 0.7.5",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-gadgets 0.7.5",
+ "snarkvm-marlin 0.7.5",
+ "snarkvm-parameters 0.7.5",
+ "snarkvm-polycommit 0.7.5",
+ "snarkvm-profiler 0.7.5",
+ "snarkvm-r1cs 0.7.5",
+ "snarkvm-utilities 0.7.5",
  "thiserror",
 ]
 

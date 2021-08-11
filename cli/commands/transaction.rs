@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::helpers::transaction::new_dummy_transaction;
-
-use snarkvm_utilities::{to_bytes, ToBytes};
+use aleo_network::Testnet1;
+use aleo_transaction::new_dummy_transaction;
+use snarkvm_utilities::{to_bytes_le, ToBytes};
 
 use colored::*;
 use rand::SeedableRng;
@@ -37,23 +37,25 @@ pub enum Transaction {
     },
 }
 
+// todo @collin: set this automatically
+pub type N = Testnet1;
+
 impl Transaction {
     pub fn parse(self) -> anyhow::Result<String> {
         match self {
             Self::New { dummy, seed } => match dummy {
                 _ => {
                     // Initialize the parameters.
-                    let network_id = 1;
                     let mut rng = match seed {
                         Some(seed) => ChaChaRng::seed_from_u64(seed),
                         None => ChaChaRng::from_entropy(),
                     };
 
                     // Create the dummy transaction.
-                    let (transaction, _records) = new_dummy_transaction(network_id, &mut rng)?;
+                    let transaction = new_dummy_transaction::<N, _>(&mut rng);
 
                     // Hexify the transaction.
-                    let transaction = format!("{}", hex::encode(to_bytes![transaction]?));
+                    let transaction = format!("{}", hex::encode(to_bytes_le![transaction]?));
 
                     // Print the new Aleo transaction.
                     let mut output = format!("\n {}\n\n", "Transaction (Dummy)".cyan().bold());

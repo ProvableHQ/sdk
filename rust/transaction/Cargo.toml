@@ -1,0 +1,46 @@
+[package]
+name = "aleo-transaction"
+version = "0.2.0"
+authors = ["The Aleo Team <hello@aleo.org>"]
+description = "Aleo"
+homepage = "https://aleo.org"
+repository = "https://github.com/AleoHQ/aleo"
+keywords = ["aleo", "cryptography", "blockchain", "decentralized", "zero-knowledge"]
+categories = ["cryptography::cryptocurrencies", "operating-systems"]
+include = ["Cargo.toml", "src", "README.md", "LICENSE.md"]
+license = "GPL-3.0"
+edition = "2018"
+
+[dependencies.aleo-account]
+path = "../account"
+
+[dependencies.aleo-network]
+path = "../network"
+
+[dependencies.aleo-record]
+path = "../record"
+
+[dependencies.snarkvm-algorithms]
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
+#default-features = false
+#features = ["wasm"]
+
+[dependencies.snarkvm-dpc]
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
+#default-features = false
+#features = [ "wasm" ]
+
+[dependencies.snarkvm-ledger]
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
+#default-features = false
+
+[dependencies.snarkvm-utilities]
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "feat/dpc-state"
+#default-features = false
+
+[dependencies.rand]
+version = "0.8.0"

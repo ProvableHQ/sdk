@@ -22,6 +22,7 @@ use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 use structopt::StructOpt;
 
+// todo @collin: set this automatically
 pub type N = Testnet1;
 
 #[derive(StructOpt, Debug)]

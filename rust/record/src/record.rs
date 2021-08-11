@@ -54,18 +54,18 @@ impl<N: Network> Record<N> {
     /// Returns a new record builder.
     ///
     #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> RecordBuilder<N> {
+    pub fn builder() -> RecordBuilder<N> {
         RecordBuilder { ..Default::default() }
     }
 
     ///
-    /// Returns a new dummy record using a given RNG.
+    /// Returns a new noop record using a given RNG.
     ///
-    pub fn new_dummy<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, RecordError> {
+    pub fn new_noop<R: Rng + CryptoRng>(rng: &mut R) -> Result<Self, RecordError> {
         // Fetch the noop program ID.
         let noop_program = NoopProgram::<N::Parameters>::load()?;
 
-        Record::new()
+        Record::builder()
             .program_id(*noop_program.program_id()) // Set program ID to the noop program ID.
             .owner(Address::try_from(&PrivateKey::<N::Parameters>::new(rng))?) // Generate a burner address.
             .value(0u64) // Set the value to 0.
