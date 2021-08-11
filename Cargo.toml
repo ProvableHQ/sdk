@@ -15,7 +15,7 @@ edition = "2018"
 members = [
     "rust/account",
     "rust/network",
-#    "rust/record",
+    "rust/record",
 #    "wasm"
 ]
 
@@ -33,6 +33,10 @@ version = "0.2.0"
 
 [dependencies.aleo-network]
 path = "./rust/network"
+version = "0.2.0"
+
+[dependencies.aleo-record]
+path = "./rust/record"
 version = "0.2.0"
 
 [dependencies.snarkos-storage]

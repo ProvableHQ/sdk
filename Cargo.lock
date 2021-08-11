@@ -28,6 +28,7 @@ version = "0.2.0"
 dependencies = [
  "aleo-account",
  "aleo-network",
+ "aleo-record",
  "anyhow",
  "base64",
  "colored",
@@ -73,6 +74,26 @@ name = "aleo-network"
 version = "0.2.0"
 dependencies = [
  "snarkvm-dpc 0.7.5",
+]
+
+[[package]]
+name = "aleo-record"
+version = "0.2.0"
+dependencies = [
+ "aleo-account",
+ "aleo-network",
+ "derivative",
+ "hex",
+ "itertools",
+ "once_cell",
+ "rand 0.8.4",
+ "rand_chacha 0.3.1",
+ "snarkvm-algorithms 0.7.5",
+ "snarkvm-curves 0.7.5",
+ "snarkvm-dpc 0.7.5",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-utilities 0.7.5",
+ "thiserror",
 ]
 
 [[package]]
