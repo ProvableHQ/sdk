@@ -17,8 +17,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies.aleo-account]
 path = "../rust/account"
 
-[dependencies.aleo-environment]
-path = "../rust/environment"
+[dependencies.aleo-network]
+path = "../rust/network"
 
 [dependencies.aleo-record]
 path = "../rust/record"
@@ -26,13 +26,13 @@ path = "../rust/record"
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "feat/dpc-state"
-default-features = false
-features = ["wasm"]
+#default-features = false
+#features = ["wasm"]
 
 [dependencies.snarkvm-utilities]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "feat/dpc-state"
-default-features = false
+#default-features = false
 
 [dependencies.getrandom]
 version = "0.2.3"

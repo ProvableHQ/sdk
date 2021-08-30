@@ -112,6 +112,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "aleo-wasm"
+version = "0.2.0"
+dependencies = [
+ "aleo-account",
+ "aleo-network",
+ "aleo-record",
+ "getrandom 0.2.3",
+ "hex",
+ "rand 0.8.4",
+ "snarkvm-algorithms 0.7.5",
+ "snarkvm-dpc 0.7.5",
+ "snarkvm-utilities 0.7.5",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+]
+
+[[package]]
 name = "ansi_term"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -816,8 +833,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7fcd999463524c52659517fe2cea98493cfe485d10565e7b0fb07dbba7ad2753"
 dependencies = [
  "cfg-if 1.0.0",
+ "js-sys",
  "libc",
  "wasi 0.10.2+wasi-snapshot-preview1",
+ "wasm-bindgen",
 ]
 
 [[package]]

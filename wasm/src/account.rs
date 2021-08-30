@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Address, PrivateKey, ViewKey};
+use aleo_account::Account as AccountInner;
+use aleo_network::Testnet2;
 
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
@@ -22,52 +23,39 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Account {
-    pub(crate) private_key: PrivateKey,
-    pub(crate) view_key: ViewKey,
-    pub(crate) address: Address,
+    pub(crate) account: AccountInner<Testnet2>,
 }
 
 #[wasm_bindgen]
 impl Account {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        // pub fn new() -> Result<Self, JsValue> {
         let rng = &mut StdRng::from_entropy();
-        let private_key = PrivateKey::new(rng).unwrap();
-        let view_key = ViewKey::from(&private_key).unwrap();
-        let address = Address::from(&private_key).unwrap();
         Self {
-            private_key,
-            view_key,
-            address,
+            account: AccountInner::new(rng).unwrap(),
         }
     }
 
     #[wasm_bindgen]
     pub fn from_private_key(private_key: &str) -> Self {
-        let private_key = PrivateKey::from_str(private_key).unwrap();
-        let view_key = ViewKey::from(&private_key).unwrap();
-        let address = Address::from(&private_key).unwrap();
         Self {
-            private_key,
-            view_key,
-            address,
+            account: AccountInner::from_str(private_key).unwrap(),
         }
     }
 
     #[wasm_bindgen]
     pub fn to_private_key(&self) -> String {
-        self.private_key.to_string()
+        self.account.private_key().to_string()
     }
 
     #[wasm_bindgen]
     pub fn to_view_key(&self) -> String {
-        self.view_key.to_string()
+        self.account.view_key().to_string()
     }
 
     #[wasm_bindgen]
     pub fn to_address(&self) -> String {
-        self.address.to_string()
+        self.account.address().to_string()
     }
 }
 

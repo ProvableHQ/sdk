@@ -17,7 +17,7 @@ members = [
     "rust/network",
     "rust/record",
     "rust/transaction",
-#    "wasm"
+    "wasm"
 ]
 
 [lib]
