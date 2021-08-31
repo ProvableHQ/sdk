@@ -13,7 +13,7 @@ edition = "2018"
 
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 #default-features = false
 #features = [ "wasm" ]
 

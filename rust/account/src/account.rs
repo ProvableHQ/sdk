@@ -18,16 +18,17 @@ use aleo_network::Network;
 
 use rand::{CryptoRng, Rng};
 use snarkvm_dpc::{
-    account::Account as AleoAccount,
-    address::Address as AleoAddress,
-    private_key::PrivateKey as AleoPrivateKey,
-    view_key::ViewKey as AleoViewKey,
+    Account as AleoAccount,
     AccountScheme,
+    Address as AleoAddress,
+    ComputeKey as AleoComputeKey,
+    PrivateKey as AleoPrivateKey,
+    ViewKey as AleoViewKey,
 };
-use std::{convert::TryFrom, fmt, str::FromStr};
+use std::{fmt, str::FromStr};
 
 pub struct Account<N: Network> {
-    account: AleoAccount<N::Parameters>,
+    pub account: AleoAccount<N::Parameters>,
 }
 
 impl<N: Network> Account<N> {
@@ -38,20 +39,17 @@ impl<N: Network> Account<N> {
     }
 
     pub fn from_private_key(private_key: AleoPrivateKey<N::Parameters>) -> Result<Self, AccountError> {
-        let view_key = AleoViewKey::<N::Parameters>::try_from(&private_key)?;
-        let address = AleoAddress::<N::Parameters>::try_from(&view_key)?;
-
         Ok(Self {
-            account: AleoAccount::<N::Parameters> {
-                private_key,
-                view_key,
-                address,
-            },
+            account: AleoAccount::<N::Parameters>::from_private_key(private_key)?,
         })
     }
 
     pub fn private_key(&self) -> &AleoPrivateKey<N::Parameters> {
-        &self.account.private_key
+        &self.account.private_key()
+    }
+
+    pub fn compute_key(&self) -> &AleoComputeKey<N::Parameters> {
+        self.account.compute_key()
     }
 
     pub fn view_key(&self) -> &AleoViewKey<N::Parameters> {
@@ -74,7 +72,7 @@ impl<N: Network> FromStr for Account<N> {
 
 impl<N: Network> fmt::Display for Account<N> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Private Key  {}", self.account.private_key.to_string())?;
+        write!(f, "Private Key  {}", self.account.private_key().to_string())?;
         write!(f, "   View Key  {}", self.account.view_key.to_string())?;
         write!(f, "    Address  {}", self.account.address.to_string())
     }

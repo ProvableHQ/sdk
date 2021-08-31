@@ -19,29 +19,29 @@ path = "../network"
 
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 #default-features = false
 #features = ["wasm"]
 
 [dependencies.snarkvm-curves]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 #default-features = false
 
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 #default-features = false
 #features = [ "wasm" ]
 
 [dependencies.snarkvm-fields]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 #default-features = false
 
 [dependencies.snarkvm-utilities]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 #default-features = false
 
 [dependencies.derivative]

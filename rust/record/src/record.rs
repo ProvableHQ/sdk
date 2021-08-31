@@ -21,6 +21,7 @@ use snarkvm_algorithms::{merkle_tree::MerkleTreeDigest, CommitmentScheme};
 use snarkvm_dpc::{
     record::{Payload, Record as AleoRecord},
     Address,
+    ComputeKey,
     NoopProgram,
     Parameters,
     PrivateKey,
@@ -78,8 +79,8 @@ impl<N: Network> Record<N> {
     ///
     /// Returns the serial number that corresponds to the record.
     ///
-    pub fn to_serial_number(&self, private_key: &PrivateKey<N::Parameters>) -> Result<Vec<u8>, RecordError> {
-        let (serial_number, _randomizer) = self.record.to_serial_number(private_key)?;
+    pub fn to_serial_number(&self, compute_key: &ComputeKey<N::Parameters>) -> Result<Vec<u8>, RecordError> {
+        let (serial_number, _randomizer) = self.record.to_serial_number(compute_key)?;
 
         Ok(to_bytes_le![serial_number]?)
     }

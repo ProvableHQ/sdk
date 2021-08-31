@@ -51,16 +51,16 @@ features = ["mem_storage"]
 
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 features = ["wasm"]
 
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 
 [dependencies.snarkvm-utilities]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 
 [dependencies.anyhow]
 version = "1.0.41"

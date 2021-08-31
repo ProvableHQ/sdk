@@ -73,9 +73,9 @@ mod tests {
     fn test_new_seeded() {
         let seed = Some(1231275789u64);
         let expected = r"
-  Private Key  APrivateKey1tyBgFoCXAq8RfZT3W2mzVV9XzJb2hVFL2LrHLToEC37tXrz
-     View Key  AViewKey1gFRs4gG66wFW1FypYRfwy6pDqix6rtquQ8uJ15RgHCC8
-      Address  aleo1shhq355tyaptcej65tkrweej5wth7wqg5hcqg3hf8as5s9rtrypqs8vy3u
+  Private Key  APrivateKey1y9jeNQybT9Mxk1AssbFmSXcFu9dG7sWkfYEsBUZrMin816z
+     View Key  AViewKey1hNsfjkmrfiYWqMKtpKUW9LfGw93Pzz82UmmMn7pHHqZc
+      Address  aleo10kkut299n0fsmwu9z20hjmcdym4nv5s8adgtqaev3n3yqjlasqyqq6rk4d
 ";
         let account = Account::New { seed };
         let actual = account.parse().unwrap();

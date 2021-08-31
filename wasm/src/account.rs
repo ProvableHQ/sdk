@@ -65,53 +65,45 @@ mod tests {
 
     use wasm_bindgen_test::*;
 
+    const TEST_PRIVATE_KEY: &'static str = "APrivateKey1y9jeNQybT9Mxk1AssbFmSXcFu9dG7sWkfYEsBUZrMin816z";
+    const TEST_VIEW_KEY: &'static str = "AViewKey1hNsfjkmrfiYWqMKtpKUW9LfGw93Pzz82UmmMn7pHHqZc";
+    const TEST_ADDRESS: &'static str = "aleo10kkut299n0fsmwu9z20hjmcdym4nv5s8adgtqaev3n3yqjlasqyqq6rk4d";
+
     #[wasm_bindgen_test]
     pub fn from_private_key_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-        let given_view_key = "AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF";
-        let given_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
+        let account = Account::from_private_key(TEST_PRIVATE_KEY);
 
-        let account = Account::from_private_key(given_private_key);
+        println!("{} == {}", TEST_PRIVATE_KEY, account.account.private_key().to_string());
+        assert_eq!(TEST_PRIVATE_KEY, account.account.private_key().to_string());
 
-        println!("{} == {}", given_private_key, account.private_key.to_string());
-        assert_eq!(given_private_key, account.private_key.to_string());
+        println!("{} == {}", TEST_VIEW_KEY, account.account.account.view_key.to_string());
+        assert_eq!(TEST_VIEW_KEY, account.account.account.view_key.to_string());
 
-        println!("{} == {}", given_view_key, account.view_key.to_string());
-        assert_eq!(given_view_key, account.view_key.to_string());
-
-        println!("{} == {}", given_address, account.address.to_string());
-        assert_eq!(given_address, account.address.to_string());
+        println!("{} == {}", TEST_ADDRESS, account.account.account.address.to_string());
+        assert_eq!(TEST_ADDRESS, account.account.account.address.to_string());
     }
 
     #[wasm_bindgen_test]
     pub fn to_private_key_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
+        let account = Account::from_private_key(TEST_PRIVATE_KEY);
 
-        let account = Account::from_private_key(given_private_key);
-
-        println!("{} == {}", given_private_key, account.to_private_key());
-        assert_eq!(given_private_key, account.to_private_key());
+        println!("{} == {}", TEST_PRIVATE_KEY, account.to_private_key());
+        assert_eq!(TEST_PRIVATE_KEY, account.to_private_key());
     }
 
     #[wasm_bindgen_test]
     pub fn to_view_key_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-        let given_view_key = "AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF";
+        let account = Account::from_private_key(TEST_PRIVATE_KEY);
 
-        let account = Account::from_private_key(given_private_key);
-
-        println!("{} == {}", given_view_key, account.to_view_key());
-        assert_eq!(given_view_key, account.to_view_key());
+        println!("{} == {}", TEST_VIEW_KEY, account.to_view_key());
+        assert_eq!(TEST_VIEW_KEY, account.to_view_key());
     }
 
     #[wasm_bindgen_test]
     pub fn to_address_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-        let given_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
+        let account = Account::from_private_key(TEST_PRIVATE_KEY);
 
-        let account = Account::from_private_key(given_private_key);
-
-        println!("{} == {}", given_address, account.to_address());
-        assert_eq!(given_address, account.to_address());
+        println!("{} == {}", TEST_ADDRESS, account.to_address());
+        assert_eq!(TEST_ADDRESS, account.to_address());
     }
 }

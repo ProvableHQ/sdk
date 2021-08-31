@@ -20,9 +20,9 @@ use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 use std::str::FromStr;
 
-const TEST_PRIVATE_KEY: &'static str = "APrivateKey1tyBgFoCXAq8RfZT3W2mzVV9XzJb2hVFL2LrHLToEC37tXrz";
-const TEST_VIEW_KEY: &'static str = "AViewKey1gFRs4gG66wFW1FypYRfwy6pDqix6rtquQ8uJ15RgHCC8";
-const TEST_ADDRESS: &'static str = "aleo1shhq355tyaptcej65tkrweej5wth7wqg5hcqg3hf8as5s9rtrypqs8vy3u";
+const TEST_PRIVATE_KEY: &'static str = "APrivateKey1y9jeNQybT9Mxk1AssbFmSXcFu9dG7sWkfYEsBUZrMin816z";
+const TEST_VIEW_KEY: &'static str = "AViewKey1hNsfjkmrfiYWqMKtpKUW9LfGw93Pzz82UmmMn7pHHqZc";
+const TEST_ADDRESS: &'static str = "aleo10kkut299n0fsmwu9z20hjmcdym4nv5s8adgtqaev3n3yqjlasqyqq6rk4d";
 
 mod testnet1 {
     use super::*;
@@ -84,6 +84,7 @@ mod testnet1 {
     }
 }
 
+// The account scheme for testnet1 and testnet2 should be the same - we can reuse the test account values.
 mod testnet2 {
     use super::*;
     use aleo_network::Testnet2;

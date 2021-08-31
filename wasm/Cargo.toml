@@ -25,13 +25,13 @@ path = "../rust/record"
 
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 #default-features = false
 #features = ["wasm"]
 
 [dependencies.snarkvm-utilities]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 #default-features = false
 
 [dependencies.getrandom]
@@ -49,7 +49,7 @@ version = "0.2.74"
 
 [dev-dependencies.snarkvm-algorithms]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "feat/dpc-state"
+rev = "f2c0098"
 default-features = false
 features = ["wasm"]
 

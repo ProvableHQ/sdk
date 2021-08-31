@@ -64,5 +64,6 @@ pub fn new_dummy_transaction<N: Network, R: Rng + CryptoRng>(rng: &mut R) -> Tra
     // Delegate online phase of transaction.
     let ledger = create_empty_ledger::<N>();
 
-    dpc.execute(authorization, state.executables(), &ledger, rng).unwrap()
+    dpc.execute(&vec![], authorization, state.executables(), &ledger, rng)
+        .unwrap()
 }

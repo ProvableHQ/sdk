@@ -25,8 +25,9 @@ use snarkvm_dpc::{
     ProgramScheme,
     RecordScheme,
 };
-use snarkvm_utilities::FromBytes;
+use snarkvm_utilities::{to_bytes_le, FromBytes, ToBytes};
 
+use aleo_account::Account;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 use std::str::FromStr;
@@ -38,9 +39,9 @@ pub const TEST_RECORD_VALUE: u64 = 100;
 pub const TEST_RECORD_PAYLOAD: &str = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 pub const TEST_RECORD_SERIAL_NUMBER_NONCE: &str = "d3cb77fba8ef681178b0dd54dedae5d8c72ea496acb71a788a9bf3be8cf55208";
 pub const TEST_RECORD_COMMITMENT_RANDOMNESS: &str = "e095bb02db522a7dd926a2dff52838bb541dd9cf6eb07c416deeee6f30e54a02";
-pub const TEST_RECORD_COMMITMENT: &str = "539c6c38300f4a9a76fec4d1dfcfca14a397de3baace7c1599365140e3e22c12";
-pub const TEST_SERIAL_NUMBER: &str = "383bb5598e831bb9a885e81b1cf0e9464499bef66f6929704eacbc6e2c48b70d091d4a3ddb3abb022543a3c3554eb19f4bfce9d9757e59dc70d9cf179ad30a02";
-pub const TEST_PRIVATE_KEY: &str = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
+pub const TEST_RECORD_COMMITMENT: &str = "f63d0636641aa72c122a929ff9e590cd48d9354a9851372f82bc8f50ef670f0f";
+pub const TEST_SERIAL_NUMBER: &str = "383bb5598e831bb9a885e81b1cf0e9464499bef66f6929704eacbc6e2c48b70d";
+pub const TEST_PRIVATE_KEY: &str = "APrivateKey1y9jeNQybT9Mxk1AssbFmSXcFu9dG7sWkfYEsBUZrMin816z";
 pub const TEST_NOOP_PROGRAM_ID: &str =
     "5b194fdaf269948cf110a0947766b46b109a676572af2d87286cfdafabf93c0266742fb673162a59f6b00bb6534a2100";
 
@@ -57,8 +58,11 @@ fn test_record_from_str() {
 pub fn test_serial_number_derivation() {
     let record = Record::<Testnet2>::from_str(TEST_RECORD).unwrap();
     let private_key = PrivateKey::<Testnet2Parameters>::from_str(TEST_PRIVATE_KEY).unwrap();
+    let account = Account::<Testnet2>::from_private_key(private_key).unwrap();
 
-    let serial_number = record.to_serial_number(&private_key);
+    println!("{}", hex::encode(&to_bytes_le![account.compute_key()].unwrap()[..]));
+
+    let serial_number = record.to_serial_number(account.compute_key());
     assert!(serial_number.is_ok());
 
     let candidate_serial_number = hex::encode(serial_number.unwrap());
@@ -115,7 +119,7 @@ fn test_build_record() {
     let commitment = <Record<Testnet2> as RecordScheme>::Commitment::read_le(&commitment_bytes[..]).unwrap();
 
     // Generate new record from randomness
-    let given_record = Record::<Testnet2>::new()
+    let given_record = Record::<Testnet2>::builder()
         .owner(owner.clone())
         .value(value)
         .payload(payload.clone())
@@ -137,7 +141,7 @@ fn test_build_record() {
 
     assert_eq!(given_record.commitment_randomness(), commitment_randomness);
 
-    // println!("{}", hex::encode(to_bytes_le![given_record.commitment()].unwrap()));
+    println!("{}", hex::encode(to_bytes_le![given_record.commitment()].unwrap()));
     assert_eq!(given_record.commitment(), commitment);
 }
 
