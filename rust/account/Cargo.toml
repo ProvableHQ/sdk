@@ -39,6 +39,9 @@ rev = "f2c0098"
 [dependencies.anyhow]
 version = "1"
 
+[dependencies.derivative]
+version = "2.2.0"
+
 [dependencies.hex]
 version = "0.4.3"
 

@@ -157,18 +157,14 @@ impl<N: Network> FromStr for Record<N> {
     type Err = RecordError;
 
     fn from_str(record: &str) -> Result<Self, Self::Err> {
-        let record = hex::decode(record)?;
-
-        Ok(Self::read_le(&record[..])?)
+        Ok(Self {
+            record: AleoRecord::<N::Parameters>::from_str(record)?,
+        })
     }
 }
 
 impl<N: Network> fmt::Display for Record<N> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            hex::encode(to_bytes_le![self].expect("serialization to bytes failed"))
-        )
+        write!(f, "{}", self.record)
     }
 }

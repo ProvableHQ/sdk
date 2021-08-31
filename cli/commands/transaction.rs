@@ -54,12 +54,9 @@ impl Transaction {
                     // Create the dummy transaction.
                     let transaction = new_dummy_transaction::<N, _>(&mut rng);
 
-                    // Hexify the transaction.
-                    let transaction = format!("{}", hex::encode(to_bytes_le![transaction]?));
-
                     // Print the new Aleo transaction.
                     let mut output = format!("\n {}\n\n", "Transaction (Dummy)".cyan().bold());
-                    output += &format!("{}\n", transaction);
+                    output += &format!("{}\n", hex::encode(to_bytes_le![transaction]?));
 
                     Ok(output)
                 }

@@ -27,6 +27,8 @@ use snarkvm_dpc::{
 };
 use std::{fmt, str::FromStr};
 
+#[derive(Derivative)]
+#[derivative(Clone(bound = "N: Network"), Debug(bound = "N: Network"))]
 pub struct Account<N: Network> {
     pub account: AleoAccount<N::Parameters>,
 }
@@ -45,7 +47,7 @@ impl<N: Network> Account<N> {
     }
 
     pub fn private_key(&self) -> &AleoPrivateKey<N::Parameters> {
-        &self.account.private_key()
+        self.account.private_key()
     }
 
     pub fn compute_key(&self) -> &AleoComputeKey<N::Parameters> {
@@ -71,9 +73,7 @@ impl<N: Network> FromStr for Account<N> {
 }
 
 impl<N: Network> fmt::Display for Account<N> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Private Key  {}", self.account.private_key().to_string())?;
-        write!(f, "   View Key  {}", self.account.view_key.to_string())?;
-        write!(f, "    Address  {}", self.account.address.to_string())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.account)
     }
 }

@@ -61,6 +61,7 @@ dependencies = [
  "aleo-network",
  "anyhow",
  "bencher",
+ "derivative",
  "hex",
  "rand 0.8.4",
  "rand_chacha 0.3.1",
