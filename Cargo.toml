@@ -51,19 +51,19 @@ features = ["mem_storage"]
 
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "f2c0098"
+branch = "testnet2"
 features = ["wasm"]
 
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "f2c0098"
+branch = "testnet2"
 
 [dependencies.snarkvm-utilities]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "f2c0098"
+branch = "testnet2"
 
 [dependencies.anyhow]
-version = "1.0.41"
+version = "1"
 
 [dependencies.base64]
 version = "0.13"

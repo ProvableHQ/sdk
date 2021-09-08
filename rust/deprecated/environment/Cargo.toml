@@ -13,17 +13,17 @@ edition = "2018"
 
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "f2c0098"
+branch = "testnet2"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "f2c0098"
+branch = "testnet2"
 default-features = false
 features = [ "wasm" ]
 
 [dependencies.snarkvm-utilities]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "f2c0098"
+branch = "testnet2"
 default-features = false

@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use aleo_account::Account as AccountInner;
-use aleo_network::Testnet1;
+use aleo_network::*;
 
 use colored::*;
 use rand::SeedableRng;
@@ -23,7 +23,7 @@ use rand_chacha::ChaChaRng;
 use structopt::StructOpt;
 
 // todo @collin: set this automatically
-pub type N = Testnet1;
+pub type N = Testnet2;
 
 #[derive(StructOpt, Debug)]
 #[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]

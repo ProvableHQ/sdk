@@ -25,7 +25,7 @@ use snarkvm_dpc::{
     PrivateKey as AleoPrivateKey,
     ViewKey as AleoViewKey,
 };
-use std::{fmt, str::FromStr};
+use std::{convert::TryFrom, fmt, str::FromStr};
 
 #[derive(Derivative)]
 #[derivative(Clone(bound = "N: Network"), Debug(bound = "N: Network"))]
@@ -42,7 +42,7 @@ impl<N: Network> Account<N> {
 
     pub fn from_private_key(private_key: AleoPrivateKey<N::Parameters>) -> Result<Self, AccountError> {
         Ok(Self {
-            account: AleoAccount::<N::Parameters>::from_private_key(private_key)?,
+            account: AleoAccount::<N::Parameters>::try_from(private_key)?,
         })
     }
 
