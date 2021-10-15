@@ -14,9 +14,9 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-#[dependencies.aleo-account]
-#path = "../rust/account"
-#
+[dependencies.aleo-account]
+path = "../rust/account"
+
 #[dependencies.aleo-network]
 #path = "../rust/network"
 

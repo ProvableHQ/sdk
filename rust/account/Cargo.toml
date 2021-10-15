@@ -19,7 +19,7 @@ harness = false
 #[dependencies.aleo-network]
 #path = "../network"
 
-[dependencies.snarkvm-wasm]
+[dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "testnet2"
 
