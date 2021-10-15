@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_wasm::{network::testnet2::Testnet2, Account as AleoAccount, AccountScheme, PrivateKey};
+use aleo_account::{AccountScheme, AleoAccount, PrivateKey, Testnet2};
 
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;

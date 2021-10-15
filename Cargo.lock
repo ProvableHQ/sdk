@@ -37,13 +37,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "aleo-account"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "bencher",
+ "derivative",
+ "hex",
+ "rand",
+ "rand_chacha",
+ "snarkvm-dpc",
+ "thiserror",
+]
+
+[[package]]
 name = "aleo-wasm"
 version = "0.2.0"
 dependencies = [
+ "aleo-account",
  "getrandom",
  "hex",
  "rand",
- "snarkvm-wasm",
  "wasm-bindgen",
  "wasm-bindgen-test",
 ]
@@ -109,6 +123,12 @@ name = "bech32"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf9ff0bbfd639f15c74af777d81383cf53efb7c93613f6cab67c6c11e05bbf8b"
+
+[[package]]
+name = "bencher"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dfdb4953a096c551ce9ace855a604d702e6e62d77fac690575ae347571717f5"
 
 [[package]]
 name = "bincode"
@@ -1587,28 +1607,6 @@ dependencies = [
  "rand",
  "snarkvm-derives",
  "thiserror",
-]
-
-[[package]]
-name = "snarkvm-wasm"
-version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#19848e6621ed357a92bcaa856edc6b99d8fed3d6"
-dependencies = [
- "derivative",
- "getrandom",
- "rand",
- "rand_xorshift",
- "serde",
- "snarkvm-algorithms",
- "snarkvm-curves",
- "snarkvm-dpc",
- "snarkvm-fields",
- "snarkvm-gadgets",
- "snarkvm-marlin",
- "snarkvm-polycommit",
- "snarkvm-r1cs",
- "snarkvm-utilities",
- "wasm-bindgen",
 ]
 
 [[package]]
