@@ -35,7 +35,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies.snarkvm-wasm]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "19848e6"
+branch = "testnet2"
 
 [dependencies.getrandom]
 version = "0.2"
