@@ -21,7 +21,7 @@ harness = false
 
 [dependencies.snarkvm-wasm]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "7f7580b"
+rev = "19848e6"
 
 [dependencies.anyhow]
 version = "1"

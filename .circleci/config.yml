@@ -44,7 +44,7 @@ jobs:
 
   rust_stable:
     docker:
-      - image: cimg/rust:1.51.0
+      - image: cimg/rust:1.55.0
     resource_class: xlarge
     steps:
       - checkout
@@ -53,7 +53,7 @@ jobs:
       - run:
           name: Build and test
           no_output_timeout: 30m
-          command: RUST_MIN_STACK=8388608 cargo test --all --no-fail-fast
+          command: RUST_MIN_STACK=8388608 cargo test --no-fail-fast
       - persist_to_workspace:
           root: ~/
           paths: project/
@@ -87,7 +87,7 @@ jobs:
       - run:
           name: Build and test
           no_output_timeout: 30m
-          command: RUST_MIN_STACK=8388608 cargo test --all --no-fail-fast
+          command: RUST_MIN_STACK=8388608 cargo test --no-fail-fast
       - clear_environment:
           cache_key: aleo-nightly-cache
 
