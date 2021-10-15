@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod account;
-pub use account::*;
+// pub mod account;
+// pub use account::*;
 
-pub mod transaction;
-pub use transaction::*;
+// pub mod transaction;
+// pub use transaction::*;
 
 pub mod update;
 pub use update::*;
@@ -42,8 +42,8 @@ pub struct CLI {
 
 #[derive(StructOpt, Debug)]
 pub enum Command {
-    #[structopt(name = "account")]
-    Account(Account),
+    // #[structopt(name = "account")]
+    // Account(Account),
     // #[structopt(name = "tx")]
     // Transaction(Transaction),
     #[structopt(name = "update")]
@@ -53,7 +53,7 @@ pub enum Command {
 impl Command {
     pub fn parse(self) -> anyhow::Result<String> {
         match self {
-            Self::Account(command) => command.parse(),
+            // Self::Account(command) => command.parse(),
             // Self::Transaction(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }

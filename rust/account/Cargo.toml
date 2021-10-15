@@ -16,25 +16,12 @@ name = "account"
 path = "benches/account.rs"
 harness = false
 
-[dependencies.aleo-network]
-path = "../network"
+#[dependencies.aleo-network]
+#path = "../network"
 
-[dependencies.snarkvm-algorithms]
+[dependencies.snarkvm-wasm]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-#default-features = false
-#features = ["wasm"]
-
-[dependencies.snarkvm-dpc]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-#default-features = false
-#features = ["wasm"]
-
-[dependencies.snarkvm-utilities]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-#default-features = false
+rev = "7f7580b"
 
 [dependencies.anyhow]
 version = "1"

@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Error)]
-pub enum AccountError {
-    #[error("{}: {}", _0, _1)]
-    Crate(&'static str, String),
-}
-
-impl From<snarkvm_dpc::errors::AccountError> for AccountError {
-    fn from(error: snarkvm_dpc::errors::AccountError) -> Self {
-        AccountError::Crate("snarkvm_errors::objects::account", format!("{:?}", error))
-    }
-}
+// #[derive(Debug, Error)]
+// pub enum AccountError {
+//     #[error("{}: {}", _0, _1)]
+//     Crate(&'static str, String),
+// }
+//
+// impl From<snarkvm_dpc::errors::AccountError> for AccountError {
+//     fn from(error: snarkvm_dpc::errors::AccountError) -> Self {
+//         AccountError::Crate("snarkvm_errors::objects::account", format!("{:?}", error))
+//     }
+// }

@@ -13,10 +13,10 @@ edition = "2018"
 
 [workspace]
 members = [
-    "rust/account",
-    "rust/network",
-    "rust/record",
-    "rust/transaction",
+#    "rust/account",
+#    "rust/network",
+#    "rust/record",
+#    "rust/transaction",
     "wasm"
 ]
 
@@ -27,40 +27,45 @@ path = "cli/lib.rs"
 name = "aleo"
 path = "cli/main.rs"
 
+#[dependencies.snarkvm-wasm]
+#git = "https://github.com/AleoHQ/snarkVM.git"
+#rev = "7f7580b"
 
-[dependencies.aleo-account]
-path = "./rust/account"
-version = "0.2.0"
+#[dependencies.aleo-account]
+#path = "./rust/account"
+#version = "0.2.0"
 
-[dependencies.aleo-network]
-path = "./rust/network"
-version = "0.2.0"
+#[dependencies.aleo-network]
+#path = "./rust/network"
+#version = "0.2.0"
 
-[dependencies.aleo-record]
-path = "./rust/record"
-version = "0.2.0"
+#[dependencies.aleo-record]
+#path = "./rust/record"
+#version = "0.2.0"
+#
+#[dependencies.aleo-transaction]
+#path = "./rust/transaction"
+#version = "0.2.0"
 
-[dependencies.aleo-transaction]
-path = "./rust/transaction"
-version = "0.2.0"
+#[dependencies.snarkos-storage]
+#version = "1.3.8"
+#default-features = false
+#features = ["mem_storage"]
+#
+#[dependencies.snarkvm-algorithms]
+#git = "https://github.com/AleoHQ/snarkVM.git"
+#rev = "7f7580b"
+#features = ["wasm"]
+#
+#[dependencies.snarkvm-dpc]
+#git = "https://github.com/AleoHQ/snarkVM.git"
+#rev = "7f7580b"
+#features = ["wasm"]
+#
+#[dependencies.snarkvm-utilities]
+#git = "https://github.com/AleoHQ/snarkVM.git"
+#rev = "7f7580b"
 
-[dependencies.snarkos-storage]
-version = "1.3.8"
-default-features = false
-features = ["mem_storage"]
-
-[dependencies.snarkvm-algorithms]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-features = ["wasm"]
-
-[dependencies.snarkvm-dpc]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-
-[dependencies.snarkvm-utilities]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
 
 [dependencies.anyhow]
 version = "1"
@@ -121,7 +126,7 @@ version = "1.7.0"
 features = ["rt-multi-thread"]
 
 [dev-dependencies.wasm-bindgen-test]
-version = "0.3.24"
+version = "0.3.28"
 
 [dev-dependencies.wiremock]
 version = "0.5"
