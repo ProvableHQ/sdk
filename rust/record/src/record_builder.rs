@@ -73,9 +73,11 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `payload: Payload`.
     ///
     pub fn payload(mut self, payload: Payload) -> Self {
-        let error_message = format!("payload: {}", hex::encode(&to_bytes_le![payload].unwrap()[..]));
-        if let Err(_) = self.payload.set(payload) {
-            self.errors.push(RecordError::DuplicateArgument(error_message))
+        if let Err(payload) = self.payload.set(payload) {
+            self.errors.push(RecordError::DuplicateArgument(format!(
+                "payload: {}",
+                hex::encode(&to_bytes_le![payload].unwrap()[..])
+            )))
         }
         self
     }
@@ -84,7 +86,7 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `program_id: N::ProgramID`.
     ///
     pub fn program_id(mut self, program_id: N::ProgramID) -> Self {
-        if let Err(_) = self.program_id.set(program_id) {
+        if let Err(program_id) = self.program_id.set(program_id) {
             self.errors.push(RecordError::DuplicateArgument(format!(
                 "program_id: {}",
                 hex::encode(&to_bytes_le![program_id].unwrap()[..])
@@ -97,7 +99,7 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `serial_number_nonce: N::SerialNumber`.
     ///
     pub fn serial_number_nonce(mut self, serial_number_nonce: N::SerialNumber) -> Self {
-        if let Err(_) = self.serial_number_nonce.set(serial_number_nonce) {
+        if let Err(serial_number_nonce) = self.serial_number_nonce.set(serial_number_nonce) {
             self.errors.push(RecordError::DuplicateArgument(format!(
                 "serial_number_nonce: {}",
                 hex::encode(&to_bytes_le![serial_number_nonce].unwrap()[..])
@@ -110,7 +112,7 @@ impl<N: Network> RecordBuilder<N> {
     /// Returns a new record builder and sets field `commitment: RecordCommitment`.
     ///
     pub fn commitment(mut self, commitment: N::Commitment) -> Self {
-        if let Err(_) = self.commitment.set(commitment) {
+        if let Err(commitment) = self.commitment.set(commitment) {
             self.errors.push(RecordError::DuplicateArgument(format!(
                 "commitment: {}",
                 hex::encode(&to_bytes_le![commitment].unwrap()[..])
@@ -126,12 +128,11 @@ impl<N: Network> RecordBuilder<N> {
         mut self,
         commitment_randomness: <N::CommitmentScheme as CommitmentScheme>::Randomness,
     ) -> Self {
-        let error_message = format!(
-            "commitment_randomness: {}",
-            hex::encode(&to_bytes_le![commitment_randomness].unwrap()[..])
-        );
-        if let Err(_) = self.commitment_randomness.set(commitment_randomness) {
-            self.errors.push(RecordError::DuplicateArgument(error_message))
+        if let Err(commitment_randomness) = self.commitment_randomness.set(commitment_randomness) {
+            self.errors.push(RecordError::DuplicateArgument(format!(
+                "commitment_randomness: {}",
+                hex::encode(&to_bytes_le![commitment_randomness].unwrap()[..])
+            )))
         }
         self
     }
