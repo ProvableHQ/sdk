@@ -15,4 +15,9 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 // use crate::AccountError;
 
-pub use snarkvm_dpc::{network::testnet2::Testnet2, Account as AleoAccount, AccountScheme, PrivateKey};
+pub use snarkvm_dpc::{
+    network::{testnet1::Testnet1, testnet2::Testnet2},
+    Account as AleoAccount,
+    AccountScheme,
+    PrivateKey,
+};

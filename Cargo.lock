@@ -40,14 +40,10 @@ dependencies = [
 name = "aleo-account"
 version = "0.2.0"
 dependencies = [
- "anyhow",
  "bencher",
- "derivative",
- "hex",
  "rand",
  "rand_chacha",
  "snarkvm-dpc",
- "thiserror",
 ]
 
 [[package]]

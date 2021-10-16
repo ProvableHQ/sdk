@@ -16,32 +16,17 @@ name = "account"
 path = "benches/account.rs"
 harness = false
 
-#[dependencies.aleo-network]
-#path = "../network"
-
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "testnet2"
 features = [ "wasm" ]
 
-[dependencies.anyhow]
-version = "1"
-
-[dependencies.derivative]
-version = "2.2.0"
-
-[dependencies.hex]
-version = "0.4.3"
-
-[dependencies.rand]
+[dev-dependencies.rand]
 version = "0.8.0"
 
-[dependencies.rand_chacha]
+[dev-dependencies.rand_chacha]
 version = "0.3.0"
 default-features = false
-
-[dependencies.thiserror]
-version = "1.0"
 
 [dev-dependencies.bencher]
 version = "0.1.5"
