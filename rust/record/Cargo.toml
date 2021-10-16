@@ -14,9 +14,6 @@ edition = "2018"
 [dependencies.aleo-account]
 path = "../account"
 
-[dependencies.aleo-network]
-path = "../network"
-
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "testnet2"
