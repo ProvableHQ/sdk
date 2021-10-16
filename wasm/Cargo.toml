@@ -20,8 +20,8 @@ path = "../rust/account"
 #[dependencies.aleo-network]
 #path = "../rust/network"
 
-#[dependencies.aleo-record]
-#path = "../rust/record"
+[dependencies.aleo-record]
+path = "../rust/record"
 
 #[dependencies.snarkvm-dpc]
 #git = "https://github.com/AleoHQ/snarkVM.git"
