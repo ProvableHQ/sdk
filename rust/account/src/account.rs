@@ -13,7 +13,6 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
-// use crate::AccountError;
 
 pub use snarkvm_dpc::{
     network::{testnet1::Testnet1, testnet2::Testnet2},

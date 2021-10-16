@@ -66,53 +66,45 @@ mod tests {
 
     use wasm_bindgen_test::*;
 
-    const ALEO_TESTNET2_PRIVATE_KEY: &str = "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p";
-    const ALEO_TESTNET2_VIEW_KEY: &str = "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder";
-    const ALEO_TESTNET2_ADDRESS: &str = "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4";
+    const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p";
+    const ALEO_VIEW_KEY: &str = "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder";
+    const ALEO_ADDRESS: &str = "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4";
 
     #[wasm_bindgen_test]
     pub fn from_private_key_test() {
-        let account = Account::from_private_key(ALEO_TESTNET2_PRIVATE_KEY);
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
 
-        println!(
-            "{} == {}",
-            ALEO_TESTNET2_PRIVATE_KEY,
-            account.account.private_key().to_string()
-        );
-        assert_eq!(ALEO_TESTNET2_PRIVATE_KEY, account.account.private_key().to_string());
+        println!("{} == {}", ALEO_PRIVATE_KEY, account.account.private_key().to_string());
+        assert_eq!(ALEO_PRIVATE_KEY, account.account.private_key().to_string());
 
-        println!(
-            "{} == {}",
-            ALEO_TESTNET2_VIEW_KEY,
-            account.account.view_key().to_string()
-        );
-        assert_eq!(ALEO_TESTNET2_VIEW_KEY, account.account.view_key().to_string());
+        println!("{} == {}", ALEO_VIEW_KEY, account.account.view_key().to_string());
+        assert_eq!(ALEO_VIEW_KEY, account.account.view_key().to_string());
 
-        println!("{} == {}", ALEO_TESTNET2_ADDRESS, account.account.address().to_string());
-        assert_eq!(ALEO_TESTNET2_ADDRESS, account.account.address().to_string());
+        println!("{} == {}", ALEO_ADDRESS, account.account.address().to_string());
+        assert_eq!(ALEO_ADDRESS, account.account.address().to_string());
     }
 
     #[wasm_bindgen_test]
     pub fn to_private_key_test() {
-        let account = Account::from_private_key(ALEO_TESTNET2_PRIVATE_KEY);
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
 
-        println!("{} == {}", ALEO_TESTNET2_PRIVATE_KEY, account.to_private_key());
-        assert_eq!(ALEO_TESTNET2_PRIVATE_KEY, account.to_private_key());
+        println!("{} == {}", ALEO_PRIVATE_KEY, account.to_private_key());
+        assert_eq!(ALEO_PRIVATE_KEY, account.to_private_key());
     }
 
     #[wasm_bindgen_test]
     pub fn to_view_key_test() {
-        let account = Account::from_private_key(ALEO_TESTNET2_PRIVATE_KEY);
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
 
-        println!("{} == {}", ALEO_TESTNET2_VIEW_KEY, account.to_view_key());
-        assert_eq!(ALEO_TESTNET2_VIEW_KEY, account.to_view_key());
+        println!("{} == {}", ALEO_VIEW_KEY, account.to_view_key());
+        assert_eq!(ALEO_VIEW_KEY, account.to_view_key());
     }
 
     #[wasm_bindgen_test]
     pub fn to_address_test() {
-        let account = Account::from_private_key(ALEO_TESTNET2_PRIVATE_KEY);
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
 
-        println!("{} == {}", ALEO_TESTNET2_ADDRESS, account.to_address());
-        assert_eq!(ALEO_TESTNET2_ADDRESS, account.to_address());
+        println!("{} == {}", ALEO_ADDRESS, account.to_address());
+        assert_eq!(ALEO_ADDRESS, account.to_address());
     }
 }

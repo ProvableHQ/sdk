@@ -74,61 +74,55 @@ mod testnet1 {
         assert_eq!(expected_address, candidate_address);
     }
 }
-//
-// // The account scheme for testnet1 and testnet2 should be the same - we can reuse the test account values.
-// mod testnet2 {
-//     use super::*;
-//
-//     #[test]
-//     pub fn account_new() {
-//         let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-//         let account = Account::<N>::new(rng);
-//
-//         assert!(account.is_ok());
-//         let account = account.unwrap();
-//
-//         let expected_private_key = TEST_PRIVATE_KEY.to_string();
-//         let candidate_private_key = account.private_key().to_string();
-//
-//         println!("{} == {}", expected_private_key, candidate_private_key);
-//         assert_eq!(expected_private_key, candidate_private_key);
-//
-//         let expected_view_key = TEST_VIEW_KEY.to_string();
-//         let candidate_view_key = account.view_key().to_string();
-//
-//         println!("{} == {}", expected_view_key, candidate_view_key);
-//         assert_eq!(expected_view_key, candidate_view_key);
-//
-//         let expected_address = TEST_ADDRESS.to_string();
-//         let candidate_address = account.address().to_string();
-//
-//         println!("{} == {}", expected_address, candidate_address);
-//         assert_eq!(expected_address, candidate_address);
-//     }
-//
-//     #[test]
-//     pub fn account_from_str() {
-//         let account = Account::<N>::from_str(TEST_PRIVATE_KEY);
-//
-//         assert!(account.is_ok());
-//         let account = account.unwrap();
-//
-//         let expected_private_key = TEST_PRIVATE_KEY.to_string();
-//         let candidate_private_key = account.private_key().to_string();
-//
-//         println!("{} == {}", expected_private_key, candidate_private_key);
-//         assert_eq!(expected_private_key, candidate_private_key);
-//
-//         let expected_view_key = TEST_VIEW_KEY.to_string();
-//         let candidate_view_key = account.view_key().to_string();
-//
-//         println!("{} == {}", expected_view_key, candidate_view_key);
-//         assert_eq!(expected_view_key, candidate_view_key);
-//
-//         let expected_address = TEST_ADDRESS.to_string();
-//         let candidate_address = account.address().to_string();
-//
-//         println!("{} == {}", expected_address, candidate_address);
-//         assert_eq!(expected_address, candidate_address);
-//     }
-// }
+
+// The account scheme for testnet1 and testnet2 should be the same - we can reuse the test account values.
+mod testnet2 {
+    use super::*;
+
+    #[test]
+    pub fn account_new() {
+        let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
+        let account = AleoAccount::<Testnet2>::new(rng);
+
+        let expected_private_key = ALEO_PRIVATE_KEY.to_string();
+        let candidate_private_key = account.private_key().to_string();
+
+        println!("{} == {}", expected_private_key, candidate_private_key);
+        assert_eq!(expected_private_key, candidate_private_key);
+
+        let expected_view_key = ALEO_VIEW_KEY.to_string();
+        let candidate_view_key = account.view_key().to_string();
+
+        println!("{} == {}", expected_view_key, candidate_view_key);
+        assert_eq!(expected_view_key, candidate_view_key);
+
+        let expected_address = ALEO_ADDRESS.to_string();
+        let candidate_address = account.address().to_string();
+
+        println!("{} == {}", expected_address, candidate_address);
+        assert_eq!(expected_address, candidate_address);
+    }
+
+    #[test]
+    pub fn account_from_str() {
+        let account = AleoAccount::<Testnet2>::from(PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap());
+
+        let expected_private_key = ALEO_PRIVATE_KEY.to_string();
+        let candidate_private_key = account.private_key().to_string();
+
+        println!("{} == {}", expected_private_key, candidate_private_key);
+        assert_eq!(expected_private_key, candidate_private_key);
+
+        let expected_view_key = ALEO_VIEW_KEY.to_string();
+        let candidate_view_key = account.view_key().to_string();
+
+        println!("{} == {}", expected_view_key, candidate_view_key);
+        assert_eq!(expected_view_key, candidate_view_key);
+
+        let expected_address = ALEO_ADDRESS.to_string();
+        let candidate_address = account.address().to_string();
+
+        println!("{} == {}", expected_address, candidate_address);
+        assert_eq!(expected_address, candidate_address);
+    }
+}
