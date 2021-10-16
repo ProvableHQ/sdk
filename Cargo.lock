@@ -26,12 +26,12 @@ dependencies = [
 name = "aleo"
 version = "0.2.0"
 dependencies = [
+ "aleo-account",
  "anyhow",
  "colored",
  "rand",
  "rand_chacha",
  "self_update",
- "snarkvm-dpc",
  "structopt",
  "thiserror",
 ]

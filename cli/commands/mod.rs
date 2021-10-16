@@ -17,9 +17,6 @@
 pub mod account;
 pub use account::*;
 
-// pub mod transaction;
-// pub use transaction::*;
-
 pub mod update;
 pub use update::*;
 
@@ -42,10 +39,8 @@ pub struct CLI {
 
 #[derive(StructOpt, Debug)]
 pub enum Command {
-    // #[structopt(name = "account")]
-    // Account(Account),
-    // #[structopt(name = "tx")]
-    // Transaction(Transaction),
+    #[structopt(name = "account")]
+    Account(Account),
     #[structopt(name = "update")]
     Update(Update),
 }
@@ -53,8 +48,7 @@ pub enum Command {
 impl Command {
     pub fn parse(self) -> anyhow::Result<String> {
         match self {
-            // Self::Account(command) => command.parse(),
-            // Self::Transaction(command) => command.parse(),
+            Self::Account(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }
     }

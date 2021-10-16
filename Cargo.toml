@@ -14,9 +14,7 @@ edition = "2018"
 [workspace]
 members = [
     "rust/account",
-#    "rust/network",
 #    "rust/record",
-#    "rust/transaction",
     "wasm"
 ]
 
@@ -27,58 +25,16 @@ path = "cli/lib.rs"
 name = "aleo"
 path = "cli/main.rs"
 
-[dependencies.snarkvm-dpc]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-
-#[dependencies.aleo-account]
-#path = "./rust/account"
-#version = "0.2.0"
-
-#[dependencies.aleo-network]
-#path = "./rust/network"
-#version = "0.2.0"
-
-#[dependencies.aleo-record]
-#path = "./rust/record"
-#version = "0.2.0"
-#
-#[dependencies.aleo-transaction]
-#path = "./rust/transaction"
-#version = "0.2.0"
-
-#[dependencies.snarkos-storage]
-#version = "1.3.8"
-#default-features = false
-#features = ["mem_storage"]
-#
-#[dependencies.snarkvm-algorithms]
-#git = "https://github.com/AleoHQ/snarkVM.git"
-#branch = "testnet2"
-#features = ["wasm"]
-#
-#[dependencies.snarkvm-dpc]
-#git = "https://github.com/AleoHQ/snarkVM.git"
-#branch = "testnet2"
-#features = ["wasm"]
-#
-#[dependencies.snarkvm-utilities]
-#git = "https://github.com/AleoHQ/snarkVM.git"
-#branch = "testnet2"
-
+[dependencies.aleo-account]
+path = "./rust/account"
+version = "0.2.0"
 
 [dependencies.anyhow]
 version = "1.0.44"
 
-#[dependencies.base64]
-#version = "0.13"
-#
 [dependencies.colored]
 version = "2"
 
-#[dependencies.hex]
-#version = "0.4.3"
-#
 [dependencies.rand]
 version = "0.8"
 default-features = false
@@ -86,50 +42,15 @@ default-features = false
 [dependencies.rand_chacha]
 version = "0.3.0"
 default-features = false
-#
-#[dependencies.reqwest]
-#version = "0.11"
-#features = ["json"]
-#
+
 [dependencies.self_update]
 version = "0.27"
 
-#[dependencies.serde]
-#version = "1.0"
-#features = ["derive"]
-#
-#[dependencies.serde_json]
-#version = "1.0"
-#
 [dependencies.structopt]
 version = "0.3"
 
 [dependencies.thiserror]
 version = "1.0"
-
-#[dependencies.uuid]
-#version = "0.8.1"
-#features = ["v4", "serde"]
-#
-#[dependencies.wasm-bindgen]
-#version = "0.2"
-#
-#[dev-dependencies.colored]
-#version = "2"
-#features = ["no-color"]
-#
-#[dev-dependencies.rusty-hook]
-#version = "0.11.2"
-#
-#[dev-dependencies.tokio]
-#version = "1.7.0"
-#features = ["rt-multi-thread"]
-#
-#[dev-dependencies.wasm-bindgen-test]
-#version = "0.3.28"
-#
-#[dev-dependencies.wiremock]
-#version = "0.5"
 
 [profile.release]
 opt-level = 3
