@@ -16,7 +16,7 @@
 
 use hex::FromHexError;
 
-use snarkvm_dpc::errors::{AccountError, ProgramError, RecordError as AleoRecordError};
+use snarkvm_dpc::errors::{AccountError, RecordError as AleoRecordError};
 
 #[derive(Debug, Error)]
 pub enum RecordError {
@@ -46,9 +46,6 @@ pub enum RecordError {
 
     #[error("Missing commitment randomness")]
     MissingRandomness,
-
-    #[error("{}", _0)]
-    ProgramError(#[from] ProgramError),
 }
 
 impl From<std::io::Error> for RecordError {

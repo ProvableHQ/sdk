@@ -14,7 +14,7 @@ edition = "2018"
 [workspace]
 members = [
     "rust/account",
-#    "rust/record",
+    "rust/record",
     "wasm"
 ]
 

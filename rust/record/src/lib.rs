@@ -22,8 +22,7 @@ extern crate thiserror;
 pub mod errors;
 pub use errors::*;
 
-pub mod record;
-pub use record::*;
+pub use snarkvm_dpc::{Payload, Record, RecordCiphertext};
 
 pub mod record_builder;
 pub use record_builder::*;
