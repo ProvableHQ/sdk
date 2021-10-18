@@ -27,5 +27,5 @@ pub use snarkvm_dpc::{Payload, Record, RecordCiphertext};
 pub mod record_builder;
 pub use record_builder::*;
 
-// #[cfg(test)]
-// pub mod tests;
+#[cfg(test)]
+pub mod tests;
