@@ -57,12 +57,6 @@ impl Account {
 mod tests {
     use crate::commands::Account;
 
-    //     const ALEO_TESTNET2_ACCOUNT: &str = "
-    //   Private Key  APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p
-    //      View Key  AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder
-    //       Address  aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4
-    // ";
-
     #[test]
     fn test_new() {
         for _ in 0..3 {
@@ -71,12 +65,16 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn test_new_seeded() {
-    //     let seed = Some(1231275789u64);
-    //
-    //     let account = Account::New { seed };
-    //     let actual = account.parse().unwrap();
-    //     assert_eq!(ALEO_TESTNET2_ACCOUNT, actual);
-    // }
+    #[test]
+    fn test_new_seeded() {
+        let seed = Some(1231275789u64);
+        let expected = r"
+  Private Key  APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p
+     View Key  AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder
+      Address  aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4
+";
+        let account = Account::New { seed };
+        let actual = account.parse().unwrap();
+        assert_eq!(expected, actual);
+    }
 }
