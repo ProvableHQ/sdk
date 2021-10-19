@@ -24,7 +24,7 @@ use snarkvm_dpc::network::testnet2::Testnet2;
 use std::str::FromStr;
 
 pub const TEST_NOOP_PROGRAM_ID: &str =
-    "18400029571753438738614626927281925709440276250495863570971928333622240058519790728469309546311970535240187832421";
+    "65e82032c8fc5e1f0d72352116563e3414e126ea5d6bd5b45dacc069c77fa8545da03f96eeaed603495860a0a89a1e00";
 pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkpGK4YrQyh9eh5PZb3yA5Qqeosg5wb3CoyBtrW31cvTMc5";
 pub const TEST_RECORD_OWNER: &str = "aleo1tvs8cfdfes7ktmzca85yqay342l2dhy6w42p0exdz5g6g7h6dv9qspyu68";
 pub const TEST_ENCRYPTED_RECORD: &str = "40013daa2e7118c256214fe43b9991ff9e180eae719c3055d1e05a82772e892e160f73ce422217aac220a4a63b3657aeb671fb9564bd92915b74cfbac1fc8074d40215f07f0365bcb751cc9decafcecb2d1d66fd9d58adede8375fa7f884c9a4a406182e3e6c89d0b613329d0951419d79e093ce31f909f9b1970a36ea69f742b70ab491fb9e528615ee265917604404fd174559f9a103292d4b4359d84b54c18403fcb0abe6262b656ef18573bb86beadda6d481027da4ed6cdc738a18adfe1190fee888efca69120b559b16a51fa4a135d8547b3871a3777b4387333c30157db035a32b0c3e0c062ff670db9a8ad44180890cb237ae22de9304ec24c20cade500a42d83c9ec14ce5e4f24064e9c9e54606424d1af08ec80fca4a118bef0901350cceabbf30be907e57c403bf53d9ec3a907435596a84e52bc64d804fd4cf1b4005f2c0927a467790e4faf2f7650f75e18ebbf10a0e954c26a0088a20a7f627b401";
@@ -53,7 +53,10 @@ fn print_test_record() {
             .unwrap()
             .decrypt(account.view_key())
             .unwrap();
-    println!("NOOP PID: {}", Testnet2::noop_program_id());
+    println!(
+        "NOOP PID: {}",
+        hex::encode(Testnet2::noop_program_id().to_bytes_le().unwrap())
+    );
     println!("Owner: {}", coinbase_record.owner());
     println!("Private Key: {}", account.private_key());
     println!(
@@ -160,7 +163,6 @@ fn test_build_record() {
 
     assert_eq!(actual_record.commitment_randomness(), commitment_randomness);
 
-    println!("{}", hex::encode(to_bytes_le![actual_record.commitment()].unwrap()));
     assert_eq!(actual_record.commitment(), commitment);
 
     assert_eq!(actual_record, expected_record);

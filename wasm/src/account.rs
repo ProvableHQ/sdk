@@ -28,6 +28,7 @@ pub struct Account {
 #[wasm_bindgen]
 impl Account {
     #[wasm_bindgen(constructor)]
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let rng = &mut StdRng::from_entropy();
         Self {
