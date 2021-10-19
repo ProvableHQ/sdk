@@ -84,7 +84,7 @@ impl Record {
 
 #[cfg(test)]
 mod tests {
-    use crate::Record;
+    use crate::record::Record;
 
     pub const TEST_NOOP_PROGRAM_ID: &str =
         "65e82032c8fc5e1f0d72352116563e3414e126ea5d6bd5b45dacc069c77fa8545da03f96eeaed603495860a0a89a1e00";

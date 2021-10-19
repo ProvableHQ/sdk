@@ -61,7 +61,7 @@ impl ViewKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::address::Address;
+    use crate::account::address::Address;
 
     use wasm_bindgen_test::*;
 
