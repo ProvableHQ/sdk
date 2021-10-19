@@ -16,7 +16,7 @@
 use crate::{Record, RecordBuilder, RecordCiphertext};
 
 use snarkvm_dpc::{Account, AccountScheme, Address, AleoAmount, ComputeKey, Network, Payload, PrivateKey};
-use snarkvm_utilities::{to_bytes_le, FromBytes, ToBytes};
+use snarkvm_utilities::FromBytes;
 
 use rand::thread_rng;
 use snarkvm_algorithms::CommitmentScheme;
@@ -37,7 +37,10 @@ pub const TEST_RECORD_COMMITMENT_RANDOMNESS: &str = "7d0be67f6fe333fc0f9c449c8b2
 pub const TEST_RECORD_COMMITMENT: &str = "0edae0842f26ea03835faa88ff29e2b57c910e02fb7e8d1f702374f0efa8f810";
 
 // Generates test data and prints to the console
+#[allow(dead_code)]
 fn print_test_record() {
+    use snarkvm_utilities::ToBytes;
+
     let rng = &mut thread_rng();
     let account = snarkvm_dpc::Account::<Testnet2>::new(rng);
     let coinbase_record =

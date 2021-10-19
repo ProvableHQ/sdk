@@ -118,6 +118,6 @@ mod tests {
             TEST_RECORD_COMMITMENT_RANDOMNESS
         );
         assert_eq!(record_from_string.commitment(), TEST_RECORD_COMMITMENT);
-        assert_eq!(record_from_string.is_dummy(), false);
+        assert!(!record_from_string.is_dummy());
     }
 }
