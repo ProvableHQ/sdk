@@ -26,6 +26,7 @@ const ALEO_ADDRESS: &str = "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c
 
 mod testnet2 {
     use super::*;
+    use snarkvm_dpc::AccountScheme;
 
     #[test]
     pub fn account_new() {

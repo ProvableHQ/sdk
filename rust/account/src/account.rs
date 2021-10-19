@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub use snarkvm_dpc::{
+pub use snarkvm_dpc::AccountScheme;
+use snarkvm_dpc::{
     network::testnet2::Testnet2,
     Account as AleoAccount,
-    AccountScheme,
     Address as AleoAddress,
     PrivateKey as AleoPrivateKey,
+    ViewKey as AleoViewKey,
 };
 
 pub type Account = AleoAccount<Testnet2>;
 pub type Address = AleoAddress<Testnet2>;
 pub type PrivateKey = AleoPrivateKey<Testnet2>;
+pub type ViewKey = AleoViewKey<Testnet2>;

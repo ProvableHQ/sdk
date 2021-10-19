@@ -102,7 +102,7 @@ fn print_test_record() {
 
 #[test]
 fn test_record_from_str() {
-    let record = Record::<Testnet2>::from_str(TEST_RECORD);
+    let record = Record::from_str(TEST_RECORD);
     assert!(record.is_ok());
 
     let candidate_record = record.unwrap().to_string();
@@ -144,7 +144,7 @@ fn test_build_record() {
         .build()
         .unwrap();
 
-    let expected_record = Record::<Testnet2>::from(
+    let expected_record = Record::from(
         owner,
         value,
         payload.clone(),
@@ -177,10 +177,9 @@ fn test_encrypted_record() {
     let account = Account::<Testnet2>::from(private_key);
     let view_key = account.view_key();
 
-    let record_ciphertext =
-        RecordCiphertext::<Testnet2>::from_bytes_le(&hex::decode(TEST_ENCRYPTED_RECORD).unwrap()).unwrap();
+    let record_ciphertext = RecordCiphertext::from_bytes_le(&hex::decode(TEST_ENCRYPTED_RECORD).unwrap()).unwrap();
     let decrypted_record = record_ciphertext.decrypt(view_key).unwrap();
-    let record = Record::<Testnet2>::from_str(TEST_RECORD).unwrap();
+    let record = Record::from_str(TEST_RECORD).unwrap();
 
     assert_eq!(decrypted_record, record);
 }
