@@ -14,20 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo::{cli::CLI, commands::parse, updater::Updater};
+pub use snarkvm_dpc::{
+    network::testnet2::Testnet2,
+    Account as AleoAccount,
+    AccountScheme,
+    Address as AleoAddress,
+    PrivateKey as AleoPrivateKey,
+};
 
-use structopt::StructOpt;
-
-fn main() -> anyhow::Result<()> {
-    let cli = CLI::from_args();
-
-    if cli.debug {
-        println!("\n{:#?}\n", cli);
-    }
-
-    println!("{}", Updater::print_cli());
-
-    println!("{}", parse(cli.command)?);
-
-    Ok(())
-}
+pub type Account = AleoAccount<Testnet2>;
+pub type Address = AleoAddress<Testnet2>;
+pub type PrivateKey = AleoPrivateKey<Testnet2>;

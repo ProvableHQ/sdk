@@ -14,107 +14,63 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Address, PrivateKey, ViewKey};
+use crate::*;
 
-use rand::{Rng, SeedableRng};
+use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 use std::str::FromStr;
 
-#[test]
-pub fn private_key_test() {
-    let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-    let private_key = PrivateKey::new(rng);
-    assert!(private_key.is_ok());
+const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p";
+const ALEO_VIEW_KEY: &str = "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder";
+const ALEO_ADDRESS: &str = "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4";
 
-    let expected_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-    let candidate_private_key = private_key.unwrap().to_string();
+mod testnet2 {
+    use super::*;
 
-    println!("{} == {}", expected_private_key, candidate_private_key);
-    assert_eq!(expected_private_key, candidate_private_key);
-}
+    #[test]
+    pub fn account_new() {
+        let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
+        let account = Account::new(rng);
 
-#[test]
-pub fn view_key_test() {
-    let private_key = PrivateKey::from_str("APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn").unwrap();
-    let view_key = ViewKey::from(&private_key);
-    assert!(view_key.is_ok());
+        let expected_private_key = ALEO_PRIVATE_KEY.to_string();
+        let candidate_private_key = account.private_key().to_string();
 
-    let expected_view_key = "AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF";
-    let candidate_view_key = view_key.unwrap().to_string();
+        println!("{} == {}", expected_private_key, candidate_private_key);
+        assert_eq!(expected_private_key, candidate_private_key);
 
-    println!("{} == {}", expected_view_key, candidate_view_key);
-    assert_eq!(expected_view_key, candidate_view_key);
-}
+        let expected_view_key = ALEO_VIEW_KEY.to_string();
+        let candidate_view_key = account.view_key().to_string();
 
-#[test]
-pub fn address_test() {
-    let private_key = PrivateKey::from_str("APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn").unwrap();
-    let address = Address::from(&private_key);
-    assert!(address.is_ok());
+        println!("{} == {}", expected_view_key, candidate_view_key);
+        assert_eq!(expected_view_key, candidate_view_key);
 
-    let expected_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
-    let candidate_address = address.unwrap().to_string();
+        let expected_address = ALEO_ADDRESS.to_string();
+        let candidate_address = account.address().to_string();
 
-    println!("{} == {}", expected_address, candidate_address);
-    assert_eq!(expected_address, candidate_address);
-}
+        println!("{} == {}", expected_address, candidate_address);
+        assert_eq!(expected_address, candidate_address);
+    }
 
-#[test]
-pub fn view_key_signature_test() {
-    let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-    let private_key = PrivateKey::new(rng);
-    assert!(private_key.is_ok());
+    #[test]
+    pub fn account_from_str() {
+        let account = Account::from(PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap());
 
-    let view_key = ViewKey::from(&private_key.unwrap());
-    assert!(view_key.is_ok());
+        let expected_private_key = ALEO_PRIVATE_KEY.to_string();
+        let candidate_private_key = account.private_key().to_string();
 
-    let message: [u8; 32] = rng.gen();
+        println!("{} == {}", expected_private_key, candidate_private_key);
+        assert_eq!(expected_private_key, candidate_private_key);
 
-    let signature = view_key.unwrap().sign(&message, rng);
-    assert!(signature.is_ok());
+        let expected_view_key = ALEO_VIEW_KEY.to_string();
+        let candidate_view_key = account.view_key().to_string();
 
-    let expected_signature = "672cfc66d9d2c018fbac1a9d8245d3f1ed5ab2485031e64eaeeaf0c09c8cab03a4474f5d8f9f7108cce355c8c4509e3c625b78ccc63a0f203bf81a3493ce7c03";
-    let candidate_signature = signature.unwrap().to_string();
+        println!("{} == {}", expected_view_key, candidate_view_key);
+        assert_eq!(expected_view_key, candidate_view_key);
 
-    println!("{} == {}", expected_signature, candidate_signature);
-    assert_eq!(expected_signature, candidate_signature);
-}
+        let expected_address = ALEO_ADDRESS.to_string();
+        let candidate_address = account.address().to_string();
 
-#[test]
-pub fn view_key_signature_verification_test() {
-    let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-    let private_key = PrivateKey::new(rng);
-    assert!(private_key.is_ok());
-
-    let view_key = ViewKey::from(&private_key.unwrap()).unwrap();
-    let address = Address::from_view_key(&view_key).unwrap();
-
-    let message: [u8; 32] = rng.gen();
-
-    let signature = view_key.sign(&message, rng);
-    assert!(signature.is_ok());
-
-    let verification = address.verify(&message, &signature.unwrap());
-    assert!(verification.is_ok());
-    assert!(verification.unwrap())
-}
-
-#[test]
-pub fn view_key_signature_failed_verification_test() {
-    let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-    let private_key = PrivateKey::new(rng);
-    assert!(private_key.is_ok());
-
-    let view_key = ViewKey::from(&private_key.unwrap()).unwrap();
-    let address = Address::from_view_key(&view_key).unwrap();
-
-    let message: [u8; 32] = rng.gen();
-    let bad_message: [u8; 32] = rng.gen();
-
-    let signature = view_key.sign(&message, rng);
-    assert!(signature.is_ok());
-
-    let verification = address.verify(&bad_message, &signature.unwrap());
-    assert!(verification.is_ok());
-    assert!(!verification.unwrap())
+        println!("{} == {}", expected_address, candidate_address);
+        assert_eq!(expected_address, candidate_address);
+    }
 }

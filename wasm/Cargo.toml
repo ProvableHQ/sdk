@@ -14,11 +14,28 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[dependencies]
-aleo-account = { path = "../rust/account" }
+[dependencies.aleo-account]
+path = "../rust/account"
 
-rand = { version = "0.7", default-features = false, features = ["wasm-bindgen"] }
-wasm-bindgen = { version = "0.2.70" }
+[dependencies.aleo-record]
+path = "../rust/record"
 
-[dev-dependencies]
-wasm-bindgen-test = { version = "0.3.20" }
+[dependencies.getrandom]
+version = "0.2"
+features = ["js"]
+
+[dependencies.hex]
+version = "0.4.3"
+
+[dependencies.rand]
+version = "0.8"
+
+[dependencies.snarkvm-utilities]
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "testnet2"
+
+[dependencies.wasm-bindgen]
+version = "0.2"
+
+[dev-dependencies.wasm-bindgen-test]
+version = "0.3.28"

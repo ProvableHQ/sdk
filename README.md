@@ -3,7 +3,7 @@
 <p align="center">
     <a href="https://github.com/AleoHQ/aleo/actions"><img src="https://github.com/AleoHQ/aleo/workflows/CI/badge.svg"></a>
     <a href="https://codecov.io/gh/AleoHQ/aleo"><img src="https://codecov.io/gh/AleoHQ/aleo/branch/main/graph/badge.svg?token=HIVCMHYMTZ"/></a>
-    <a href="https://discord.gg/WYQNdbHzZR"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
+    <a href="https://discord.gg/5v2ynrw2ds"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
 </p>
 
 The Aleo SDK is a developer framework to make it simple to create a new account, craft a transaction,
@@ -73,7 +73,7 @@ aleo
 
 To generate a new Aleo account, run:
 ```bash
-aleo new [FLAGS] [OPTIONS]
+aleo account new [FLAGS] [OPTIONS]
 ```
 
 The command can be run with the following optional parameters:
@@ -86,8 +86,22 @@ OPTIONS:
     -s, --seed <seed> 
 ```
 
-## Development
+### 3.2 Generate a new Aleo transaction.
 
+To generate a new Aleo transaction, run:
+```bash
+aleo tx new [FLAGS] [OPTIONS]
 ```
-cargo run --release --example dummy_transaction
+
+The command can be run with the following optional parameters:
 ```
+FLAGS:
+    -d, --dummy      Craft a dummy transaction
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -s, --seed <seed> 
+```
+
+Note: Only dummy transactions are currently supported.

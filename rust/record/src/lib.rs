@@ -13,32 +13,19 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+#[macro_use]
+extern crate derivative;
 
-use uuid::Uuid;
+#[macro_use]
+extern crate thiserror;
 
-#[derive(Debug, Error)]
-pub enum RpcRequestError {
-    #[error("Deserialization error: {}", _0)]
-    DeserializationError(serde_json::error::Error),
+pub mod errors;
+pub use errors::*;
 
-    #[error("{}", _0)]
-    JsonRPC(String),
+pub use snarkvm_dpc::{Payload, Record, RecordCiphertext};
 
-    #[error("{}", _0)]
-    Message(String),
+pub mod record_builder;
+pub use record_builder::*;
 
-    #[error("Request id {} does not match response id {}", _0, _1)]
-    RequestIdMismatch(Uuid, Uuid),
-
-    #[error("{}", _0)]
-    Reqwest(reqwest::Error),
-
-    #[error(transparent)]
-    Std(std::io::Error),
-}
-
-impl From<reqwest::Error> for RpcRequestError {
-    fn from(error: reqwest::Error) -> Self {
-        RpcRequestError::Reqwest(error)
-    }
-}
+#[cfg(test)]
+pub mod tests;

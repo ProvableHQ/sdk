@@ -14,22 +14,5 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo::transaction::create_dummy_transaction;
-use snarkvm_utilities::{to_bytes, ToBytes};
-
-use rand::thread_rng;
-
-/// Creates a new dummy transaction.
-pub fn main() -> anyhow::Result<()> {
-    // Initialize the parameters.
-    let network_id = 1;
-    let rng = &mut thread_rng();
-
-    // Create the dummy transaction.
-    let (transaction, _records) = create_dummy_transaction(network_id, rng)?;
-
-    // Hexify and print it out.
-    println!("{}", hex::encode(to_bytes![transaction]?));
-
-    Ok(())
-}
+pub mod updater;
+pub use updater::*;

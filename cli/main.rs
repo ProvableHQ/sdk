@@ -14,7 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod errors;
-pub mod methods;
-pub mod objects;
-pub mod rpc;
+use aleo::{commands::CLI, helpers::Updater};
+
+use structopt::StructOpt;
+
+fn main() -> anyhow::Result<()> {
+    let cli = CLI::from_args();
+
+    if cli.debug {
+        println!("\n{:#?}\n", cli);
+    }
+
+    println!("{}", Updater::print_cli());
+    println!("{}", cli.command.parse()?);
+
+    Ok(())
+}
