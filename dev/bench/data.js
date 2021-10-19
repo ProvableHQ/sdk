@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1623910304403,
+  "lastUpdate": 1634676009554,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1373,6 +1373,38 @@ window.BENCHMARK_DATA = {
             "name": "account_view_key",
             "value": 364112376,
             "range": "± 39533126",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "AleoHQ",
+            "username": "AleoHQ"
+          },
+          "committer": {
+            "name": "AleoHQ",
+            "username": "AleoHQ"
+          },
+          "id": "0dc75000b1a831ea9cfbf9cf85295977840407a0",
+          "message": "Fix website deployment",
+          "timestamp": "2021-10-19T19:38:24Z",
+          "url": "https://github.com/AleoHQ/aleo/pull/142/commits/0dc75000b1a831ea9cfbf9cf85295977840407a0"
+        },
+        "date": 1634676007675,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 379757,
+            "range": "± 116092",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 15093003,
+            "range": "± 2823204",
             "unit": "ns/iter"
           }
         ]
