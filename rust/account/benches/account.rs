@@ -35,7 +35,7 @@ fn testnet2_account_new(bench: &mut Bencher) {
 
 fn testnet2_account_from_private_key(bench: &mut Bencher) {
     let rng = &mut ChaChaRng::seed_from_u64(SEED);
-    let private_key = PrivateKey::<Testnet2>::new(rng);
+    let private_key = PrivateKey::new(rng);
 
     bench.iter(|| {
         let _account = Account::from(private_key.clone());
