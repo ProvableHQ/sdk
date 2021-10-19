@@ -16,3 +16,6 @@
 
 pub mod record;
 pub use record::*;
+
+pub mod ciphertext;
+pub use ciphertext::*;
