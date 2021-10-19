@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{AccountScheme, AleoAccount, Testnet2};
+use aleo_account::{Account as AccountNative, AccountScheme};
 
 use colored::*;
 use rand::SeedableRng;
@@ -38,8 +38,8 @@ impl Account {
             Self::New { seed } => {
                 // Sample a new Aleo account.
                 let account = match seed {
-                    Some(seed) => AleoAccount::<Testnet2>::new(&mut ChaChaRng::seed_from_u64(seed)),
-                    None => AleoAccount::<Testnet2>::new(&mut rand::thread_rng()),
+                    Some(seed) => AccountNative::new(&mut ChaChaRng::seed_from_u64(seed)),
+                    None => AccountNative::new(&mut rand::thread_rng()),
                 };
 
                 // Print the new Aleo account.

@@ -25,28 +25,11 @@ use rand_chacha::ChaChaRng;
 
 pub const SEED: u64 = 1231275789u64;
 
-fn testnet1_account_new(bench: &mut Bencher) {
-    let rng = &mut ChaChaRng::seed_from_u64(SEED);
-
-    bench.iter(|| {
-        let _account = AleoAccount::<Testnet1>::new(rng);
-    })
-}
-
-fn testnet1_account_from_private_key(bench: &mut Bencher) {
-    let rng = &mut ChaChaRng::seed_from_u64(SEED);
-    let private_key = PrivateKey::<Testnet1>::new(rng);
-
-    bench.iter(|| {
-        let _account = AleoAccount::<Testnet1>::from(private_key.clone());
-    })
-}
-
 fn testnet2_account_new(bench: &mut Bencher) {
     let rng = &mut ChaChaRng::seed_from_u64(SEED);
 
     bench.iter(|| {
-        let _account = AleoAccount::<Testnet2>::new(rng);
+        let _account = Account::new(rng);
     })
 }
 
@@ -55,10 +38,9 @@ fn testnet2_account_from_private_key(bench: &mut Bencher) {
     let private_key = PrivateKey::<Testnet2>::new(rng);
 
     bench.iter(|| {
-        let _account = AleoAccount::<Testnet2>::from(private_key.clone());
+        let _account = Account::from(private_key.clone());
     })
 }
 
-benchmark_group!(testnet1, testnet1_account_new, testnet1_account_from_private_key);
 benchmark_group!(testnet2, testnet2_account_new, testnet2_account_from_private_key);
-benchmark_main!(testnet1, testnet2);
+benchmark_main!(testnet2);

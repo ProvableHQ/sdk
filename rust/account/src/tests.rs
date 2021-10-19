@@ -30,7 +30,7 @@ mod testnet1 {
     #[test]
     pub fn account_new() {
         let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-        let account = AleoAccount::<Testnet1>::new(rng);
+        let account = Account::new(rng);
 
         let expected_private_key = ALEO_PRIVATE_KEY.to_string();
         let candidate_private_key = account.private_key().to_string();
@@ -53,7 +53,7 @@ mod testnet1 {
 
     #[test]
     pub fn account_from_str() {
-        let account = AleoAccount::<Testnet1>::from(PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap());
+        let account = Account::from(PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap());
 
         let expected_private_key = ALEO_PRIVATE_KEY.to_string();
         let candidate_private_key = account.private_key().to_string();
@@ -82,7 +82,7 @@ mod testnet2 {
     #[test]
     pub fn account_new() {
         let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-        let account = AleoAccount::<Testnet2>::new(rng);
+        let account = Account::new(rng);
 
         let expected_private_key = ALEO_PRIVATE_KEY.to_string();
         let candidate_private_key = account.private_key().to_string();
@@ -105,7 +105,7 @@ mod testnet2 {
 
     #[test]
     pub fn account_from_str() {
-        let account = AleoAccount::<Testnet2>::from(PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap());
+        let account = Account::from(PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap());
 
         let expected_private_key = ALEO_PRIVATE_KEY.to_string();
         let candidate_private_key = account.private_key().to_string();
