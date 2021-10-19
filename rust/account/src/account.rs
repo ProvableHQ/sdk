@@ -15,9 +15,13 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use snarkvm_dpc::{
-    network::{testnet1::Testnet1, testnet2::Testnet2},
+    network::testnet2::Testnet2,
     Account as AleoAccount,
     AccountScheme,
-    Address,
-    PrivateKey,
+    Address as AleoAddress,
+    PrivateKey as AleoPrivateKey,
 };
+
+pub type Account = AleoAccount<Testnet2>;
+pub type Address = AleoAddress<Testnet2>;
+pub type PrivateKey = AleoPrivateKey<Testnet2>;

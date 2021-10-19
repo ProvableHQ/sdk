@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{AccountScheme, AleoAccount, PrivateKey, Testnet2};
+use aleo_account::{Account as AccountNative, AccountScheme, PrivateKey};
 
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
@@ -22,7 +22,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Account {
-    pub(crate) account: AleoAccount<Testnet2>,
+    pub(crate) account: AccountNative,
 }
 
 #[wasm_bindgen]
@@ -32,7 +32,7 @@ impl Account {
     pub fn new() -> Self {
         let rng = &mut StdRng::from_entropy();
         Self {
-            account: AleoAccount::new(rng),
+            account: AccountNative::new(rng),
         }
     }
 
@@ -41,7 +41,7 @@ impl Account {
         let private_key = PrivateKey::from_str(private_key).unwrap();
 
         Self {
-            account: AleoAccount::from(private_key),
+            account: AccountNative::from(private_key),
         }
     }
 
