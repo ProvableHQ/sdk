@@ -56,6 +56,7 @@ impl Account {
 #[cfg(test)]
 mod tests {
     use crate::commands::Account;
+    use colored::Colorize;
 
     #[test]
     fn test_new() {
@@ -68,9 +69,21 @@ mod tests {
     #[test]
     fn test_new_seeded() {
         let seed = Some(1231275789u64);
-        // Will fail in IntelliJ since it runs cargo test --color=always, but should past in other circumstances
-        // TODO(collinc97) ensure it passes regardless of color flag settings
-        let expected = "\n \u{1b}[1;36m Private Key\u{1b}[0m  APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p\n \u{1b}[1;36m    View Key\u{1b}[0m  AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder\n \u{1b}[1;36m     Address\u{1b}[0m  aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4\n";
+        let mut expected = format!(
+            "\n {:>12}  {}\n",
+            "Private Key".cyan().bold(),
+            "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p"
+        );
+        expected += &format!(
+            " {:>12}  {}\n",
+            "View Key".cyan().bold(),
+            "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder"
+        );
+        expected += &format!(
+            " {:>12}  {}\n",
+            "Address".cyan().bold(),
+            "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4"
+        );
         let account = Account::New { seed };
         let actual = account.parse().unwrap();
         assert_eq!(expected, actual);
