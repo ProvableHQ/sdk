@@ -19,20 +19,10 @@ extern crate derivative;
 #[macro_use]
 extern crate thiserror;
 
-pub mod encoded;
-pub use encoded::*;
-
-pub mod encrypted;
-pub use encrypted::*;
-
 pub mod errors;
 pub use errors::*;
 
-mod helpers;
-use helpers::*;
-
-pub mod record;
-pub use record::*;
+pub use snarkvm_dpc::{Payload, Record, RecordCiphertext};
 
 pub mod record_builder;
 pub use record_builder::*;

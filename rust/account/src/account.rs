@@ -13,20 +13,15 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
-use crate::{Encode, EncodedRecordError, Record};
-use aleo_environment::Environment;
 
-use snarkvm_curves::edwards_bls12::EdwardsProjective as EdwardsBls;
+pub use snarkvm_dpc::{
+    network::testnet2::Testnet2,
+    Account as AleoAccount,
+    AccountScheme,
+    Address as AleoAddress,
+    PrivateKey as AleoPrivateKey,
+};
 
-// todo: does this struct need to exist?
-pub struct EncodedRecord {
-    elements: Vec<EdwardsBls>,
-    final_sign_high: bool,
-}
-
-impl EncodedRecord {
-    /// Encodes the record.
-    pub fn from<E: Environment>(record: &Record<E>) -> Result<(Vec<EdwardsBls>, bool), EncodedRecordError> {
-        Ok(Encode::encode(record)?)
-    }
-}
+pub type Account = AleoAccount<Testnet2>;
+pub type Address = AleoAddress<Testnet2>;
+pub type PrivateKey = AleoPrivateKey<Testnet2>;

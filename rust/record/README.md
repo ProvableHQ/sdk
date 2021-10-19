@@ -7,5 +7,5 @@
 ## Architecture
 
 ```
-Record <--> EncodedRecord <--> EncryptedRecord
+Record <--> EncryptedRecord
 ```

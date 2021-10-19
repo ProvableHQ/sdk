@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Address, PrivateKey, ViewKey};
+use aleo_account::{Account as AccountNative, AccountScheme};
 
 use colored::*;
 use rand::SeedableRng;
@@ -36,18 +36,16 @@ impl Account {
     pub fn parse(self) -> anyhow::Result<String> {
         match self {
             Self::New { seed } => {
-                // Sample a new Aleo private key.
-                let private_key = match seed {
-                    Some(seed) => PrivateKey::new(&mut ChaChaRng::seed_from_u64(seed))?,
-                    None => PrivateKey::new(&mut rand::thread_rng())?,
+                // Sample a new Aleo account.
+                let account = match seed {
+                    Some(seed) => AccountNative::new(&mut ChaChaRng::seed_from_u64(seed)),
+                    None => AccountNative::new(&mut rand::thread_rng()),
                 };
-                let view_key = ViewKey::from(&private_key)?;
-                let address = Address::from(&private_key)?;
 
                 // Print the new Aleo account.
-                let mut output = format!("\n {:>12}  {}\n", "Private Key".cyan().bold(), private_key);
-                output += &format!(" {:>12}  {}\n", "View Key".cyan().bold(), view_key);
-                output += &format!(" {:>12}  {}\n", "Address".cyan().bold(), address);
+                let mut output = format!("\n {:>12}  {}\n", "Private Key".cyan().bold(), account.private_key());
+                output += &format!(" {:>12}  {}\n", "View Key".cyan().bold(), account.view_key());
+                output += &format!(" {:>12}  {}\n", "Address".cyan().bold(), account.address());
 
                 Ok(output)
             }
@@ -58,6 +56,7 @@ impl Account {
 #[cfg(test)]
 mod tests {
     use crate::commands::Account;
+    use colored::Colorize;
 
     #[test]
     fn test_new() {
@@ -70,11 +69,21 @@ mod tests {
     #[test]
     fn test_new_seeded() {
         let seed = Some(1231275789u64);
-        let expected = r"
-  Private Key  APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn
-     View Key  AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF
-      Address  aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh
-";
+        let mut expected = format!(
+            "\n {:>12}  {}\n",
+            "Private Key".cyan().bold(),
+            "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p"
+        );
+        expected += &format!(
+            " {:>12}  {}\n",
+            "View Key".cyan().bold(),
+            "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder"
+        );
+        expected += &format!(
+            " {:>12}  {}\n",
+            "Address".cyan().bold(),
+            "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4"
+        );
         let account = Account::New { seed };
         let actual = account.parse().unwrap();
         assert_eq!(expected, actual);

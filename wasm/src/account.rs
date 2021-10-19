@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Address, PrivateKey, ViewKey};
+use aleo_account::{Account as AccountNative, AccountScheme, PrivateKey};
 
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
@@ -22,52 +22,42 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Account {
-    pub(crate) private_key: PrivateKey,
-    pub(crate) view_key: ViewKey,
-    pub(crate) address: Address,
+    pub(crate) account: AccountNative,
 }
 
 #[wasm_bindgen]
 impl Account {
     #[wasm_bindgen(constructor)]
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        // pub fn new() -> Result<Self, JsValue> {
         let rng = &mut StdRng::from_entropy();
-        let private_key = PrivateKey::new(rng).unwrap();
-        let view_key = ViewKey::from(&private_key).unwrap();
-        let address = Address::from(&private_key).unwrap();
         Self {
-            private_key,
-            view_key,
-            address,
+            account: AccountNative::new(rng),
         }
     }
 
     #[wasm_bindgen]
     pub fn from_private_key(private_key: &str) -> Self {
         let private_key = PrivateKey::from_str(private_key).unwrap();
-        let view_key = ViewKey::from(&private_key).unwrap();
-        let address = Address::from(&private_key).unwrap();
+
         Self {
-            private_key,
-            view_key,
-            address,
+            account: AccountNative::from(private_key),
         }
     }
 
     #[wasm_bindgen]
     pub fn to_private_key(&self) -> String {
-        self.private_key.to_string()
+        self.account.private_key().to_string()
     }
 
     #[wasm_bindgen]
     pub fn to_view_key(&self) -> String {
-        self.view_key.to_string()
+        self.account.view_key().to_string()
     }
 
     #[wasm_bindgen]
     pub fn to_address(&self) -> String {
-        self.address.to_string()
+        self.account.address().to_string()
     }
 }
 
@@ -77,53 +67,45 @@ mod tests {
 
     use wasm_bindgen_test::*;
 
+    const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p";
+    const ALEO_VIEW_KEY: &str = "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder";
+    const ALEO_ADDRESS: &str = "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4";
+
     #[wasm_bindgen_test]
     pub fn from_private_key_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-        let given_view_key = "AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF";
-        let given_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
 
-        let account = Account::from_private_key(given_private_key);
+        println!("{} == {}", ALEO_PRIVATE_KEY, account.account.private_key().to_string());
+        assert_eq!(ALEO_PRIVATE_KEY, account.account.private_key().to_string());
 
-        println!("{} == {}", given_private_key, account.private_key.to_string());
-        assert_eq!(given_private_key, account.private_key.to_string());
+        println!("{} == {}", ALEO_VIEW_KEY, account.account.view_key().to_string());
+        assert_eq!(ALEO_VIEW_KEY, account.account.view_key().to_string());
 
-        println!("{} == {}", given_view_key, account.view_key.to_string());
-        assert_eq!(given_view_key, account.view_key.to_string());
-
-        println!("{} == {}", given_address, account.address.to_string());
-        assert_eq!(given_address, account.address.to_string());
+        println!("{} == {}", ALEO_ADDRESS, account.account.address().to_string());
+        assert_eq!(ALEO_ADDRESS, account.account.address().to_string());
     }
 
     #[wasm_bindgen_test]
     pub fn to_private_key_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
 
-        let account = Account::from_private_key(given_private_key);
-
-        println!("{} == {}", given_private_key, account.to_private_key());
-        assert_eq!(given_private_key, account.to_private_key());
+        println!("{} == {}", ALEO_PRIVATE_KEY, account.to_private_key());
+        assert_eq!(ALEO_PRIVATE_KEY, account.to_private_key());
     }
 
     #[wasm_bindgen_test]
     pub fn to_view_key_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-        let given_view_key = "AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF";
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
 
-        let account = Account::from_private_key(given_private_key);
-
-        println!("{} == {}", given_view_key, account.to_view_key());
-        assert_eq!(given_view_key, account.to_view_key());
+        println!("{} == {}", ALEO_VIEW_KEY, account.to_view_key());
+        assert_eq!(ALEO_VIEW_KEY, account.to_view_key());
     }
 
     #[wasm_bindgen_test]
     pub fn to_address_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-        let given_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
 
-        let account = Account::from_private_key(given_private_key);
-
-        println!("{} == {}", given_address, account.to_address());
-        assert_eq!(given_address, account.to_address());
+        println!("{} == {}", ALEO_ADDRESS, account.to_address());
+        assert_eq!(ALEO_ADDRESS, account.to_address());
     }
 }
