@@ -19,9 +19,9 @@ pub use account::*;
 
 // pub mod address;
 // pub use address::*;
-//
-// pub mod record;
-// pub use record::*;
-//
+
+pub mod record;
+pub use record::*;
+
 // pub mod view_key;
 // pub use view_key::*;

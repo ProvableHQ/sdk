@@ -74,6 +74,7 @@ dependencies = [
  "getrandom",
  "hex",
  "rand",
+ "snarkvm-utilities",
  "wasm-bindgen",
  "wasm-bindgen-test",
 ]

@@ -30,6 +30,10 @@ version = "0.4.3"
 [dependencies.rand]
 version = "0.8"
 
+[dependencies.snarkvm-utilities]
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "testnet2"
+
 [dependencies.wasm-bindgen]
 version = "0.2"
 

@@ -18,5 +18,6 @@ pub use snarkvm_dpc::{
     network::{testnet1::Testnet1, testnet2::Testnet2},
     Account as AleoAccount,
     AccountScheme,
+    Address,
     PrivateKey,
 };
