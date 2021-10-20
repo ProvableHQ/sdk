@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1634678527012,
+  "lastUpdate": 1634766309206,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1441,6 +1441,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17832389,
             "range": "± 1700307",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "Collin Chin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "02cb46360f6b912dc47cd8b2977e30231ac24346",
+          "message": "Merge pull request #145 from AleoHQ/feat/testnet2-records\n\nfeat: re-export snarkvm testnet2 records",
+          "timestamp": "2021-10-20T14:32:43-07:00",
+          "tree_id": "30f8c982a18c983264fbeb8313c551fdefbe63c3",
+          "url": "https://github.com/AleoHQ/aleo/commit/02cb46360f6b912dc47cd8b2977e30231ac24346"
+        },
+        "date": 1634766306803,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 458052,
+            "range": "± 129197",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 17433001,
+            "range": "± 1566217",
             "unit": "ns/iter"
           }
         ]
