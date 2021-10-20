@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::Testnet2;
-use aleo_record::Record as AleoRecord;
+use aleo_record::Record as RecordNative;
 
 use snarkvm_utilities::bytes::ToBytes;
 use std::str::FromStr;
@@ -23,7 +22,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Record {
-    pub(crate) record: AleoRecord<Testnet2>,
+    pub(crate) record: RecordNative,
 }
 // TODO(amousa11) use native serialization/deserialization functions once implemented in snarkVM
 #[wasm_bindgen]
@@ -31,7 +30,7 @@ impl Record {
     #[wasm_bindgen]
     pub fn from_string(record: &str) -> Self {
         Self {
-            record: AleoRecord::<Testnet2>::from_str(record).unwrap(),
+            record: RecordNative::from_str(record).unwrap(),
         }
     }
 
