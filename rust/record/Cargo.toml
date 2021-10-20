@@ -14,49 +14,14 @@ edition = "2018"
 [dependencies.aleo-account]
 path = "../account"
 
-[dependencies.snarkvm-algorithms]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-default-features = false
-features = ["wasm"]
-
-[dependencies.snarkvm-curves]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-default-features = false
-
 [dependencies.snarkvm-dpc]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "testnet2"
 features = [ "wasm" ]
 
-[dependencies.snarkvm-fields]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-default-features = false
-
-[dependencies.snarkvm-utilities]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-
-[dependencies.derivative]
-version = "2.2.0"
-
-[dependencies.hex]
-version = "0.4.3"
-
-[dependencies.itertools]
-version = "0.10.0"
-
-[dependencies.once_cell]
-version = "1.8.0"
-
-[dependencies.rand]
+[dev-dependencies.rand]
 version = "0.8.0"
 
-[dependencies.rand_chacha]
+[dev-dependencies.rand_chacha]
 version = "0.3.0"
 default-features = false
-
-[dependencies.thiserror]
-version = "1.0"

@@ -51,18 +51,9 @@ name = "aleo-record"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
- "derivative",
- "hex",
- "itertools",
- "once_cell",
  "rand",
  "rand_chacha",
- "snarkvm-algorithms",
- "snarkvm-curves",
  "snarkvm-dpc",
- "snarkvm-fields",
- "snarkvm-utilities",
- "thiserror",
 ]
 
 [[package]]
