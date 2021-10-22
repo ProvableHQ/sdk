@@ -16,7 +16,6 @@
 
 use aleo_record::Record as RecordNative;
 
-use snarkvm_utilities::bytes::ToBytes;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
@@ -52,7 +51,7 @@ impl Record {
 
     #[wasm_bindgen]
     pub fn program_id(&self) -> String {
-        hex::encode(self.record.program_id().to_bytes_le().unwrap())
+        self.record.program_id().to_string()
     }
 
     #[wasm_bindgen]
@@ -62,12 +61,12 @@ impl Record {
 
     #[wasm_bindgen]
     pub fn commitment(&self) -> String {
-        hex::encode(self.record.commitment().to_bytes_le().unwrap())
+        self.record.commitment().to_string()
     }
 
     #[wasm_bindgen]
     pub fn commitment_randomness(&self) -> String {
-        hex::encode(self.record.commitment_randomness().to_bytes_le().unwrap())
+        self.record.commitment_randomness().to_string()
     }
 
     #[wasm_bindgen]

@@ -18,7 +18,6 @@ use crate::record::Record;
 use aleo_account::ViewKey;
 use aleo_record::RecordCiphertext as AleoRecordCiphertext;
 use rand::{rngs::StdRng, SeedableRng};
-use snarkvm_utilities::ToBytes;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
@@ -57,7 +56,7 @@ impl RecordCiphertext {
 
     #[wasm_bindgen]
     pub fn to_string(&self) -> String {
-        hex::encode(self.ciphertext.to_bytes_le().unwrap())
+        self.ciphertext.to_string()
     }
 }
 
