@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1634766309206,
+  "lastUpdate": 1634953005068,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1477,6 +1477,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17433001,
             "range": "± 1566217",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "Collin Chin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6df23af5227e546eced3ca5ac29897a34cbbfb43",
+          "message": "Merge pull request #144 from AleoHQ/feat/record-ciphertext\n\nAdd RecordCiphertext to wasm",
+          "timestamp": "2021-10-22T18:25:16-07:00",
+          "tree_id": "bfee8f3ccee43cb16d85e8a9ce8f8af10cf01bdf",
+          "url": "https://github.com/AleoHQ/aleo/commit/6df23af5227e546eced3ca5ac29897a34cbbfb43"
+        },
+        "date": 1634953002514,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 369791,
+            "range": "± 56385",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 13505725,
+            "range": "± 762863",
             "unit": "ns/iter"
           }
         ]
