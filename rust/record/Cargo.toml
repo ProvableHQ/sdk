@@ -14,10 +14,11 @@ edition = "2018"
 [dependencies.aleo-account]
 path = "../account"
 
-[dependencies.snarkvm-dpc]
+[dependencies.snarkvm-wasm]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "testnet2"
-features = [ "wasm" ]
+default-features = false
+features = [ "dpc" ]
 
 [dev-dependencies.rand]
 version = "0.8.0"
@@ -25,3 +26,6 @@ version = "0.8.0"
 [dev-dependencies.rand_chacha]
 version = "0.3.0"
 default-features = false
+
+[dev-dependencies.serde_json]
+version = "1.0"

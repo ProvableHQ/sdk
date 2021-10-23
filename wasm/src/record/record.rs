@@ -16,15 +16,15 @@
 
 use aleo_record::Record as RecordNative;
 
-use snarkvm_utilities::bytes::ToBytes;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+#[derive(Eq, PartialEq, Debug)]
 pub struct Record {
     pub(crate) record: RecordNative,
 }
-// TODO(amousa11) use native serialization/deserialization functions once implemented in snarkVM
+
 #[wasm_bindgen]
 impl Record {
     #[wasm_bindgen]
@@ -46,27 +46,27 @@ impl Record {
 
     #[wasm_bindgen]
     pub fn payload(&self) -> String {
-        hex::encode(self.record.payload().to_bytes_le().unwrap())
+        self.record.payload().to_string()
     }
 
     #[wasm_bindgen]
     pub fn program_id(&self) -> String {
-        hex::encode(self.record.program_id().to_bytes_le().unwrap())
+        self.record.program_id().to_string()
     }
 
     #[wasm_bindgen]
     pub fn serial_number_nonce(&self) -> String {
-        hex::encode(self.record.serial_number_nonce().to_bytes_le().unwrap())
+        self.record.serial_number_nonce().to_string()
     }
 
     #[wasm_bindgen]
     pub fn commitment(&self) -> String {
-        hex::encode(self.record.commitment().to_bytes_le().unwrap())
+        self.record.commitment().to_string()
     }
 
     #[wasm_bindgen]
     pub fn commitment_randomness(&self) -> String {
-        hex::encode(self.record.commitment_randomness().to_bytes_le().unwrap())
+        self.record.commitment_randomness().to_string()
     }
 
     #[wasm_bindgen]
@@ -84,23 +84,33 @@ impl Record {
 #[cfg(test)]
 mod tests {
     use crate::record::Record;
+    use wasm_bindgen_test::*;
 
-    pub const TEST_NOOP_PROGRAM_ID: &str =
-        "65e82032c8fc5e1f0d72352116563e3414e126ea5d6bd5b45dacc069c77fa8545da03f96eeaed603495860a0a89a1e00";
-    // pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkpGK4YrQyh9eh5PZb3yA5Qqeosg5wb3CoyBtrW31cvTMc5";
-    pub const TEST_RECORD_OWNER: &str = "aleo1tvs8cfdfes7ktmzca85yqay342l2dhy6w42p0exdz5g6g7h6dv9qspyu68";
-    // pub const TEST_ENCRYPTED_RECORD: &str = "40013daa2e7118c256214fe43b9991ff9e180eae719c3055d1e05a82772e892e160f73ce422217aac220a4a63b3657aeb671fb9564bd92915b74cfbac1fc8074d40215f07f0365bcb751cc9decafcecb2d1d66fd9d58adede8375fa7f884c9a4a406182e3e6c89d0b613329d0951419d79e093ce31f909f9b1970a36ea69f742b70ab491fb9e528615ee265917604404fd174559f9a103292d4b4359d84b54c18403fcb0abe6262b656ef18573bb86beadda6d481027da4ed6cdc738a18adfe1190fee888efca69120b559b16a51fa4a135d8547b3871a3777b4387333c30157db035a32b0c3e0c062ff670db9a8ad44180890cb237ae22de9304ec24c20cade500a42d83c9ec14ce5e4f24064e9c9e54606424d1af08ec80fca4a118bef0901350cceabbf30be907e57c403bf53d9ec3a907435596a84e52bc64d804fd4cf1b4005f2c0927a467790e4faf2f7650f75e18ebbf10a0e954c26a0088a20a7f627b401";
-    pub const TEST_RECORD: &str = "5b207c25a9cc3d65ec58e9e8407491aabea6dc9a755417e4cd1511a47afa6b0ad204000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000065e82032c8fc5e1f0d72352116563e3414e126ea5d6bd5b45dacc069c77fa8545da03f96eeaed603495860a0a89a1e001d7c00289aaa122fda585f50039736c3d2f2420c7fc7c896a9e2b9c63d9658027d0be67f6fe333fc0f9c449c8b2f0476c475b458de948277d7f2650ad3f39802";
+    // pub const TEST_ENCRYPTED_RECORD: &str = "fe9da41a69bb6c123c5efb6eddb631f30d15afc13a16f5b0dd0e84fdc69b7d0e9716f6c7c6b408ae86f003ebbde81351c25f7d1aa2dced557a98ed0d04cefb059ba863e82aaec5038b0e93dd731ed2f4829b73867621a2e8d7398e8266269812b8e4f147f0237c46d97b447d6ef43cda46c8eeb7bd21665b44068daf6b75390397f78140b1714af29d35b33b673dc5f34368878865ad5de762142fd314fd161042418e7be64a5a10c2ab7a02f7209b90f9a9fe209eb1b6dcb5e0ac9dfd799211094d4a11d0460002c2cc7f89c1bfc927b8b25132bc7741ef920bd7e750103b0a83452b530f6fa021f10010b332d2db9b8f28bd7aa776d628a7e2872b04fd520c10016cca0ac481f7e54be1d0a0777f03acee6b5526882bb51812dbefe3df510031dd6dd4fd9d4ac9ecf37dab27471d1b52e304cefbc21872394cf0ab12734d0f";
+    // pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkpJBBaC1KFHUYvkjJr5BAEmCMWhmr64PSUrf2NUbN834pF,";
+    // pub const TEST_VIEW_KEY: &str = "AViewKey1eUcCcmwtfgQSFnJLWht2oAtsX7hUwidF3NxbBRmtGCVQ";
+
+    pub const TEST_RECORD_OWNER: &str = "aleo1evf0f0nvl3yllpj0j22j6lkewkc3c6wecfl8vy9wksdww5z4j5xst5s66p";
+    pub const TEST_RECORD: &str = r#"{
+  "commitment": "4218024304985908499884486807040779889086035135067775071962256837276694183387",
+  "commitment_randomness": "1521902152034036495150866564746129551572531637726507920867282482838392298647",
+  "owner": "aleo1evf0f0nvl3yllpj0j22j6lkewkc3c6wecfl8vy9wksdww5z4j5xst5s66p",
+  "payload": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "program_id": "18400029571753438738614626927281925709440276250495863570971928333622240058519790728469309546311970535240187832421",
+  "serial_number_nonce": "5455867346689625386208179041362643697790949181082665867416444278481408419120",
+  "value": 1234
+}"#;
     pub const TEST_RECORD_VALUE: u64 = 1234;
     pub const TEST_RECORD_PAYLOAD: &str = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
     pub const TEST_RECORD_SERIAL_NUMBER_NONCE: &str =
-        "1d7c00289aaa122fda585f50039736c3d2f2420c7fc7c896a9e2b9c63d965802";
-    // pub const TEST_SERIAL_NUMBER: &str = "3576fc686f3ab2439c14c6008ff90adb30d5bcf0884d0fac2c36bc8609a3b503";
+        "5455867346689625386208179041362643697790949181082665867416444278481408419120";
     pub const TEST_RECORD_COMMITMENT_RANDOMNESS: &str =
-        "7d0be67f6fe333fc0f9c449c8b2f0476c475b458de948277d7f2650ad3f39802";
-    pub const TEST_RECORD_COMMITMENT: &str = "0edae0842f26ea03835faa88ff29e2b57c910e02fb7e8d1f702374f0efa8f810";
+        "1521902152034036495150866564746129551572531637726507920867282482838392298647";
+    pub const TEST_RECORD_COMMITMENT: &str =
+        "4218024304985908499884486807040779889086035135067775071962256837276694183387";
+    pub const TEST_NOOP_PROGRAM_ID: &str = "18400029571753438738614626927281925709440276250495863570971928333622240058519790728469309546311970535240187832421";
 
-    #[test]
+    #[wasm_bindgen_test]
     fn test_from_string() {
         let record_from_string = Record::from_string(TEST_RECORD);
 

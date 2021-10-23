@@ -16,10 +16,11 @@ name = "account"
 path = "benches/account.rs"
 harness = false
 
-[dependencies.snarkvm-dpc]
+[dependencies.snarkvm-wasm]
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "testnet2"
-features = [ "wasm" ]
+default-features = false
+features = [ "dpc" ]
 
 [dev-dependencies.rand]
 version = "0.8.0"

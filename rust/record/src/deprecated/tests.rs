@@ -13,174 +13,56 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
-use crate::{Record, RecordBuilder, RecordCiphertext};
+use crate::{Record, RecordCiphertext};
 
-use snarkvm_dpc::{Account, AccountScheme, Address, AleoAmount, ComputeKey, Network, Payload, PrivateKey};
-use snarkvm_utilities::FromBytes;
+use snarkvm_dpc::{AccountScheme, AleoAmount, Network};
 
+use aleo_account::ViewKey;
 use rand::thread_rng;
-use snarkvm_algorithms::CommitmentScheme;
 use snarkvm_dpc::network::testnet2::Testnet2;
 use std::str::FromStr;
 
-pub const TEST_NOOP_PROGRAM_ID: &str =
-    "65e82032c8fc5e1f0d72352116563e3414e126ea5d6bd5b45dacc069c77fa8545da03f96eeaed603495860a0a89a1e00";
-pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkpGK4YrQyh9eh5PZb3yA5Qqeosg5wb3CoyBtrW31cvTMc5";
-pub const TEST_RECORD_OWNER: &str = "aleo1tvs8cfdfes7ktmzca85yqay342l2dhy6w42p0exdz5g6g7h6dv9qspyu68";
-pub const TEST_ENCRYPTED_RECORD: &str = "40013daa2e7118c256214fe43b9991ff9e180eae719c3055d1e05a82772e892e160f73ce422217aac220a4a63b3657aeb671fb9564bd92915b74cfbac1fc8074d40215f07f0365bcb751cc9decafcecb2d1d66fd9d58adede8375fa7f884c9a4a406182e3e6c89d0b613329d0951419d79e093ce31f909f9b1970a36ea69f742b70ab491fb9e528615ee265917604404fd174559f9a103292d4b4359d84b54c18403fcb0abe6262b656ef18573bb86beadda6d481027da4ed6cdc738a18adfe1190fee888efca69120b559b16a51fa4a135d8547b3871a3777b4387333c30157db035a32b0c3e0c062ff670db9a8ad44180890cb237ae22de9304ec24c20cade500a42d83c9ec14ce5e4f24064e9c9e54606424d1af08ec80fca4a118bef0901350cceabbf30be907e57c403bf53d9ec3a907435596a84e52bc64d804fd4cf1b4005f2c0927a467790e4faf2f7650f75e18ebbf10a0e954c26a0088a20a7f627b401";
-pub const TEST_RECORD: &str = "5b207c25a9cc3d65ec58e9e8407491aabea6dc9a755417e4cd1511a47afa6b0ad204000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000065e82032c8fc5e1f0d72352116563e3414e126ea5d6bd5b45dacc069c77fa8545da03f96eeaed603495860a0a89a1e001d7c00289aaa122fda585f50039736c3d2f2420c7fc7c896a9e2b9c63d9658027d0be67f6fe333fc0f9c449c8b2f0476c475b458de948277d7f2650ad3f39802";
-pub const TEST_RECORD_VALUE: u64 = 1234;
-pub const TEST_RECORD_PAYLOAD: &str = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-pub const TEST_RECORD_SERIAL_NUMBER_NONCE: &str = "1d7c00289aaa122fda585f50039736c3d2f2420c7fc7c896a9e2b9c63d965802";
-pub const TEST_SERIAL_NUMBER: &str = "3576fc686f3ab2439c14c6008ff90adb30d5bcf0884d0fac2c36bc8609a3b503";
-pub const TEST_RECORD_COMMITMENT_RANDOMNESS: &str = "7d0be67f6fe333fc0f9c449c8b2f0476c475b458de948277d7f2650ad3f39802";
-pub const TEST_RECORD_COMMITMENT: &str = "0edae0842f26ea03835faa88ff29e2b57c910e02fb7e8d1f702374f0efa8f810";
+pub const TEST_VIEW_KEY: &str = "AViewKey1eUcCcmwtfgQSFnJLWht2oAtsX7hUwidF3NxbBRmtGCVQ";
+pub const TEST_ENCRYPTED_RECORD: &str = "fe9da41a69bb6c123c5efb6eddb631f30d15afc13a16f5b0dd0e84fdc69b7d0e9716f6c7c6b408ae86f003ebbde81351c25f7d1aa2dced557a98ed0d04cefb059ba863e82aaec5038b0e93dd731ed2f4829b73867621a2e8d7398e8266269812b8e4f147f0237c46d97b447d6ef43cda46c8eeb7bd21665b44068daf6b75390397f78140b1714af29d35b33b673dc5f34368878865ad5de762142fd314fd161042418e7be64a5a10c2ab7a02f7209b90f9a9fe209eb1b6dcb5e0ac9dfd799211094d4a11d0460002c2cc7f89c1bfc927b8b25132bc7741ef920bd7e750103b0a83452b530f6fa021f10010b332d2db9b8f28bd7aa776d628a7e2872b04fd520c10016cca0ac481f7e54be1d0a0777f03acee6b5526882bb51812dbefe3df510031dd6dd4fd9d4ac9ecf37dab27471d1b52e304cefbc21872394cf0ab12734d0f";
+pub const TEST_RECORD: &str = r#"{
+  "commitment": "4218024304985908499884486807040779889086035135067775071962256837276694183387",
+  "commitment_randomness": "1521902152034036495150866564746129551572531637726507920867282482838392298647",
+  "owner": "aleo1evf0f0nvl3yllpj0j22j6lkewkc3c6wecfl8vy9wksdww5z4j5xst5s66p",
+  "payload": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "program_id": "18400029571753438738614626927281925709440276250495863570971928333622240058519790728469309546311970535240187832421",
+  "serial_number_nonce": "5455867346689625386208179041362643697790949181082665867416444278481408419120",
+  "value": 1234
+}"#;
 
 // Generates test data and prints to the console
 #[allow(dead_code)]
 fn print_test_record() {
-    use snarkvm_utilities::ToBytes;
-
     let rng = &mut thread_rng();
     let account = snarkvm_dpc::Account::<Testnet2>::new(rng);
-    let coinbase_record =
-        snarkvm_dpc::Transaction::new_coinbase(account.address(), AleoAmount(TEST_RECORD_VALUE as i64), rng)
-            .unwrap()
-            .transitions()
-            .iter()
-            .next()
-            .unwrap()
-            .ciphertexts()
-            .iter()
-            .next()
-            .unwrap()
-            .decrypt(account.view_key())
-            .unwrap();
-    println!(
-        "NOOP PID: {}",
-        hex::encode(Testnet2::noop_program_id().to_bytes_le().unwrap())
-    );
-    println!("Owner: {}", coinbase_record.owner());
-    println!("Private Key: {}", account.private_key());
-    println!(
-        "RecordCiphertext: {}",
-        hex::encode(
-            RecordCiphertext::encrypt(&coinbase_record, rng)
-                .unwrap()
-                .to_bytes_le()
-                .unwrap()
-        )
-    );
-    println!("Record: {}", coinbase_record);
-    println!(
-        "Payload: {}",
-        hex::encode(coinbase_record.payload().to_bytes_le().unwrap())
-    );
-    println!(
-        "SN Nonce: {}",
-        hex::encode(coinbase_record.serial_number_nonce().to_bytes_le().unwrap())
-    );
-    println!(
-        "SN: {}",
-        hex::encode(
-            coinbase_record
-                .to_serial_number(&ComputeKey::<Testnet2>::from_private_key(account.private_key()))
-                .unwrap()
-                .to_bytes_le()
-                .unwrap()
-        )
-    );
-    println!(
-        "CM Randomness: {}",
-        hex::encode(coinbase_record.commitment_randomness().to_bytes_le().unwrap())
-    );
-    println!(
-        "CM: {}",
-        hex::encode(coinbase_record.commitment().to_bytes_le().unwrap())
-    );
-}
-
-#[test]
-fn test_record_from_str() {
-    let record = Record::<Testnet2>::from_str(TEST_RECORD);
-    assert!(record.is_ok());
-
-    let candidate_record = record.unwrap().to_string();
-    assert_eq!(TEST_RECORD, candidate_record);
-}
-
-#[test]
-fn test_build_record() {
-    // Load noop program id.
-    let noop_program_id = *Testnet2::noop_program_id();
-
-    let owner = Address::<Testnet2>::from_str(TEST_RECORD_OWNER).unwrap();
-
-    let value = TEST_RECORD_VALUE;
-
-    let payload_bytes = hex::decode(TEST_RECORD_PAYLOAD).unwrap();
-    let payload = Payload::read_le(&payload_bytes[..]).unwrap();
-
-    let serial_number_nonce_bytes = hex::decode(TEST_RECORD_SERIAL_NUMBER_NONCE).unwrap();
-    let serial_number_nonce = <Testnet2 as Network>::SerialNumber::read_le(&serial_number_nonce_bytes[..]).unwrap();
-
-    let commitment_randomness_bytes = hex::decode(TEST_RECORD_COMMITMENT_RANDOMNESS).unwrap();
-    let commitment_randomness = <<Testnet2 as Network>::CommitmentScheme as CommitmentScheme>::Randomness::read_le(
-        &commitment_randomness_bytes[..],
-    )
-    .unwrap();
-
-    let commitment_bytes = hex::decode(TEST_RECORD_COMMITMENT).unwrap();
-    let commitment = <Testnet2 as Network>::Commitment::read_le(&commitment_bytes[..]).unwrap();
-
-    // Construct record with builder
-    let actual_record = RecordBuilder::<Testnet2>::new()
-        .owner(owner.clone())
-        .value(value)
-        .payload(payload.clone())
-        .program_id(noop_program_id)
-        .serial_number_nonce(serial_number_nonce.clone())
-        .commitment_randomness(commitment_randomness)
-        .build()
+    let transaction = snarkvm_dpc::Transaction::new_coinbase(account.address(), AleoAmount(1234), rng).unwrap();
+    let record_ciphertext = transaction
+        .transitions()
+        .iter()
+        .next()
+        .unwrap()
+        .ciphertexts()
+        .iter()
+        .next()
         .unwrap();
-
-    let expected_record = Record::<Testnet2>::from(
-        owner,
-        value,
-        payload.clone(),
-        noop_program_id,
-        serial_number_nonce,
-        commitment_randomness,
-    )
-    .unwrap();
-
-    assert_eq!(actual_record.owner(), owner);
-
-    assert_eq!(actual_record.value(), value);
-
-    assert_eq!(*actual_record.payload(), payload);
-
-    assert_eq!(actual_record.program_id(), noop_program_id);
-
-    assert_eq!(actual_record.serial_number_nonce(), serial_number_nonce);
-
-    assert_eq!(actual_record.commitment_randomness(), commitment_randomness);
-
-    assert_eq!(actual_record.commitment(), commitment);
-
-    assert_eq!(actual_record, expected_record);
+    let coinbase_record = record_ciphertext.decrypt(account.view_key()).unwrap();
+    println!("NOOP PID: {}", Testnet2::noop_program_id().to_string());
+    println!("RecordCiphertext: {}", record_ciphertext);
+    println!("Record: {}", coinbase_record);
+    println!("Account: {}", account);
 }
 
 #[test]
-fn test_encrypted_record() {
-    let private_key = PrivateKey::<Testnet2>::from_str(TEST_PRIVATE_KEY).unwrap();
-    let account = Account::<Testnet2>::from(private_key);
-    let view_key = account.view_key();
+fn record_decryption_test() {
+    let view_key = ViewKey::from_str(TEST_VIEW_KEY).unwrap();
 
-    let record_ciphertext =
-        RecordCiphertext::<Testnet2>::from_bytes_le(&hex::decode(TEST_ENCRYPTED_RECORD).unwrap()).unwrap();
-    let decrypted_record = record_ciphertext.decrypt(view_key).unwrap();
-    let record = Record::<Testnet2>::from_str(TEST_RECORD).unwrap();
+    let record_ciphertext = RecordCiphertext::from_str(TEST_ENCRYPTED_RECORD).unwrap();
+    let decrypted_record = record_ciphertext.decrypt(&view_key).unwrap();
+    let record = Record::from_str(TEST_RECORD).unwrap();
 
     assert_eq!(decrypted_record, record);
 }
