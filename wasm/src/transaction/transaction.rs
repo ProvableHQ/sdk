@@ -91,4 +91,11 @@ mod tests {
 
         assert_eq!(TEST_DECRYPTED_RECORD, first_decrypted_record);
     }
+
+    #[wasm_bindgen_test]
+    fn test_from_string_to_string() {
+        let tx = Transaction::from_string(TEST_TRANSACTION.to_string());
+        let tx_copy = Transaction::from_string(tx.to_string());
+        assert_eq!(tx.transaction, tx_copy.transaction);
+    }
 }
