@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod account;
-pub mod record;
-pub mod transaction;
+use snarkvm_wasm::{network::testnet2::Testnet2, Transaction as AleoTransaction};
+
+pub use snarkvm_wasm::AleoAmount;
+pub type Transaction = AleoTransaction<Testnet2>;
