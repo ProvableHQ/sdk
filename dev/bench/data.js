@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1635183818874,
+  "lastUpdate": 1635188075880,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1549,6 +1549,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 19093494,
             "range": "± 1764116",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alimousa@berkeley.edu",
+            "name": "Ali Mousa",
+            "username": "amousa11"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ff4f5173cc78375f45ed074e5d8a05cc7b28f3ac",
+          "message": "Merge pull request #153 from AleoHQ/feat/website-record\n\nfeat: add record decryption to website",
+          "timestamp": "2021-10-25T11:47:42-07:00",
+          "tree_id": "1da4fa9aa0dcd1819ae8a8d3bf8c1142c45420e5",
+          "url": "https://github.com/AleoHQ/aleo/commit/ff4f5173cc78375f45ed074e5d8a05cc7b28f3ac"
+        },
+        "date": 1635188073177,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 467615,
+            "range": "± 76275",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 17661919,
+            "range": "± 1693155",
             "unit": "ns/iter"
           }
         ]
