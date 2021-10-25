@@ -33,6 +33,7 @@ impl Transaction {
         }
     }
 
+    #[wasm_bindgen]
     pub fn to_decrypted_records(&self, view_key_string: String) -> Vec<JsValue> {
         let view_key = ViewKey::from_str(&view_key_string).unwrap();
         self.transaction
