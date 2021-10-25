@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1634953005068,
+  "lastUpdate": 1635183818874,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1513,6 +1513,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 13505725,
             "range": "± 762863",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alimousa@berkeley.edu",
+            "name": "Ali Mousa",
+            "username": "amousa11"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9f1e4a491ea9728dd930ebfd3b92423042a35602",
+          "message": "Merge pull request #152 from AleoHQ/feat/transaction\n\nfeat: Add Transaction to wasm",
+          "timestamp": "2021-10-25T10:28:48-07:00",
+          "tree_id": "7eb46fc9260e8a1891204e3ecf13f42040c2b676",
+          "url": "https://github.com/AleoHQ/aleo/commit/9f1e4a491ea9728dd930ebfd3b92423042a35602"
+        },
+        "date": 1635183815991,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 517978,
+            "range": "± 87911",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 19093494,
+            "range": "± 1764116",
             "unit": "ns/iter"
           }
         ]
