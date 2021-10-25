@@ -58,14 +58,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "aleo-transaction"
+version = "0.2.0"
+dependencies = [
+ "snarkvm-wasm",
+]
+
+[[package]]
 name = "aleo-wasm"
 version = "0.2.0"
 dependencies = [
  "aleo-account",
  "aleo-record",
+ "aleo-transaction",
  "getrandom",
  "hex",
  "rand",
+ "serde_json",
  "snarkvm-utilities",
  "wasm-bindgen",
  "wasm-bindgen-test",
