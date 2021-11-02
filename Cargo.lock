@@ -234,7 +234,6 @@ dependencies = [
  "num-integer",
  "num-traits",
  "serde",
- "time",
  "winapi",
 ]
 
@@ -733,9 +732,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.104"
+version = "0.2.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b2f96d100e1cf1929e7719b7edb3b90ab5298072638fccd77be9ce942ecdfce"
+checksum = "a60553f9a9e039a333b4e9b20573b9e9b9c0bb3a11e201ccc48ef4283456d673"
 
 [[package]]
 name = "lock_api"
@@ -891,9 +890,9 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "openssl"
-version = "0.10.36"
+version = "0.10.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d9facdb76fec0b73c406f125d44d86fdad818d66fef0531eec9233ca425ff4a"
+checksum = "0c7ae222234c30df141154f159066c5093ff73b63204dcda7121eb082fc56a95"
 dependencies = [
  "bitflags",
  "cfg-if",
@@ -911,9 +910,9 @@ checksum = "28988d872ab76095a6e6ac88d99b54fd267702734fd7ffe610ca27f533ddb95a"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.67"
+version = "0.9.70"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69df2d8dfc6ce3aaf44b40dec6f487d5a886516cf6879c49e98e0710f310a058"
+checksum = "c6517987b3f8226b5da3661dad65ff7f300cc59fb5ea8333ca191fc65fde3edf"
 dependencies = [
  "autocfg",
  "cc",
@@ -982,15 +981,15 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "pkg-config"
-version = "0.3.21"
+version = "0.3.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10e2fcbb64ecbe64c8e040a386c3104d384583af58b956d870aaaf229df6e66d"
+checksum = "12295df4f294471248581bc09bef3c38a5e46f1e36d6a37353621a0c6c357e1f"
 
 [[package]]
 name = "ppv-lite86"
-version = "0.2.14"
+version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3ca011bd0129ff4ae15cd04c4eef202cadf6c51c21e47aba319b4e0501db741"
+checksum = "ed0cfbc8191465bed66e1718596ee0b0b35d5ee1f41c5df2189d0fe8bde535ba"
 
 [[package]]
 name = "proc-macro-crate"
@@ -1027,9 +1026,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.30"
+version = "1.0.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edc3358ebc67bc8b7fa0c007f945b0b18226f78437d61bec735a9eb96b61ee70"
+checksum = "ba508cc11742c0dc5c1659771673afbab7a0efab23aa17e854cbab0837ed0b43"
 dependencies = [
  "unicode-xid",
 ]
@@ -1368,7 +1367,7 @@ checksum = "1ecab6c735a6bb4139c0caafd0cc3635748bbb3acf4550e8138122099251f309"
 [[package]]
 name = "snarkvm-algorithms"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "anyhow",
  "blake2",
@@ -1397,7 +1396,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-curves"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "derivative",
  "rand",
@@ -1411,7 +1410,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-derives"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "proc-macro-crate",
  "proc-macro-error",
@@ -1423,7 +1422,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-dpc"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "anyhow",
  "base58",
@@ -1452,7 +1451,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-fields"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "anyhow",
  "derivative",
@@ -1465,7 +1464,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-gadgets"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "anyhow",
  "derivative",
@@ -1485,7 +1484,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-marlin"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "bincode",
  "blake2",
@@ -1509,7 +1508,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-parameters"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -1527,7 +1526,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-polycommit"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "derivative",
  "digest",
@@ -1545,12 +1544,12 @@ dependencies = [
 [[package]]
 name = "snarkvm-profiler"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 
 [[package]]
 name = "snarkvm-r1cs"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -1566,7 +1565,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-utilities"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "anyhow",
  "bincode",
@@ -1580,7 +1579,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-wasm"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#e51b625f1721c6aef4a911a9069de4e97109dc46"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#ca2195555cd7ba3dfd535a91d084a09004bf963c"
 dependencies = [
  "derivative",
  "getrandom",
@@ -1640,9 +1639,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.80"
+version = "1.0.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d010a1623fbd906d51d650a9916aaefc05ffa0e4053ff7fe601167f3e715d194"
+checksum = "f2afee18b8beb5a596ecb4a2dce128c719b4ba399d34126b9e4396e3f9860966"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1703,16 +1702,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "time"
-version = "0.1.43"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca8a50ef2360fbd1eeb0ecd46795a87a19024eb4b53c5dc916ca1fd95fe62438"
-dependencies = [
- "libc",
- "winapi",
-]
-
-[[package]]
 name = "tinyvec"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1729,9 +1718,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.12.0"
+version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2c2416fdedca8443ae44b4527de1ea633af61d8f7169ffa6e72c5b53d24efcc"
+checksum = "588b2d10a336da58d877567cd8fb8a14b463e2104910f8132cd054b4b96e29ee"
 dependencies = [
  "autocfg",
  "bytes",
@@ -1755,9 +1744,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.6.8"
+version = "0.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08d3725d3efa29485e87311c5b699de63cde14b00ed4d256b8318aa30ca452cd"
+checksum = "9e99e1983e5d376cd8eb4b66604d2e99e79f5bd988c3055891dcd8c9e2604cc0"
 dependencies = [
  "bytes",
  "futures-core",
