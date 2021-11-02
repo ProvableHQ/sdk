@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1635188075880,
+  "lastUpdate": 1635892347629,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1585,6 +1585,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17661919,
             "range": "± 1693155",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "Collin Chin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2309e64a945ba77b10a5f9a7c7bff6a85c4c893a",
+          "message": "Merge pull request #164 from AleoHQ/feat/snarkvm-bech32-updates\n\nupdate wasm tests with bech32 encoded objects",
+          "timestamp": "2021-11-02T15:19:32-07:00",
+          "tree_id": "9a6020872d4c91878e472da6fe80b0e39ba56efb",
+          "url": "https://github.com/AleoHQ/aleo/commit/2309e64a945ba77b10a5f9a7c7bff6a85c4c893a"
+        },
+        "date": 1635892344894,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 469767,
+            "range": "± 138738",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 17590929,
+            "range": "± 1752103",
             "unit": "ns/iter"
           }
         ]
