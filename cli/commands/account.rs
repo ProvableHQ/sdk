@@ -82,7 +82,7 @@ mod tests {
         expected += &format!(
             " {:>12}  {}\n",
             "Address".cyan().bold(),
-            "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4"
+            "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah"
         );
         let account = Account::New { seed };
         let actual = account.parse().unwrap();
