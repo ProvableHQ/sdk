@@ -34,6 +34,108 @@ impl Transaction {
     }
 
     #[wasm_bindgen]
+    pub fn to_string(&self) -> String {
+        serde_json::to_string(&self.transaction).unwrap()
+    }
+
+    #[wasm_bindgen]
+    pub fn is_valid(&self) -> bool {
+        self.transaction.is_valid()
+    }
+
+    // #[wasm_bindgen]
+    // pub fn contains_transition_id(&self, transition_id: String) -> bool {}
+
+    // #[wasm_bindgen]
+    // pub fn contains_serial_number(&self, serial_number: String) -> bool {}
+
+    // #[wasm_bindgen]
+    // pub fn contains_commitment(&self, commitment: String) -> bool {}
+
+    #[wasm_bindgen]
+    pub fn transaction_id(&self) -> String {
+        self.transaction.transaction_id().to_string()
+    }
+
+    #[wasm_bindgen]
+    pub fn inner_circuit_id(&self) -> String {
+        self.transaction.inner_circuit_id().to_string()
+    }
+
+    #[wasm_bindgen]
+    pub fn ledger_root(&self) -> String {
+        self.transaction.ledger_root().to_string()
+    }
+
+    #[wasm_bindgen]
+    pub fn transition_ids(&self) -> Vec<JsValue> {
+        self.transaction
+            .transition_ids()
+            .iter()
+            .map(|transition_id| JsValue::from_str(&transition_id.to_string()))
+            .collect::<Vec<JsValue>>()
+    }
+
+    #[wasm_bindgen]
+    pub fn serial_numbers(&self) -> Vec<JsValue> {
+        self.transaction
+            .serial_numbers()
+            .iter()
+            .map(|serial_number| JsValue::from_str(&serial_number.to_string()))
+            .collect::<Vec<JsValue>>()
+    }
+
+    #[wasm_bindgen]
+    pub fn commitments(&self) -> Vec<JsValue> {
+        self.transaction
+            .commitments()
+            .iter()
+            .map(|commitment| JsValue::from_str(&commitment.to_string()))
+            .collect::<Vec<JsValue>>()
+    }
+
+    #[wasm_bindgen]
+    pub fn ciphertexts(&self) -> Vec<JsValue> {
+        self.transaction
+            .ciphertexts()
+            .iter()
+            .map(|ciphertext| JsValue::from_str(&ciphertext.to_string()))
+            .collect::<Vec<JsValue>>()
+    }
+
+    #[wasm_bindgen]
+    pub fn value_balance(&self) -> String {
+        self.transaction.value_balance().to_string()
+    }
+
+    #[wasm_bindgen]
+    pub fn transitions(&self) -> Vec<JsValue> {
+        self.transaction
+            .transitions()
+            .iter()
+            .map(|transition| JsValue::from_str(&transition.to_string()))
+            .collect::<Vec<JsValue>>()
+    }
+
+    // #[wasm_bindgen]
+    // pub fn events(&self) -> Vec<JsValue> {
+    //     self.transaction
+    //         .events()
+    //         .iter()
+    //         .map(|event| JsValue::from_str(&event.to_string()))
+    //         .collect()
+    // }
+
+    // #[wasm_bindgen]
+    // pub fn to_ciphertext_ids(&self) -> Vec<JsValue> {
+    //     self.transaction
+    //         .to_ciphertext_ids()
+    //         .iter()
+    //         .map(|id| JsValue::from_str(&id.to_string()))
+    //         .collect()
+    // }
+
+    #[wasm_bindgen]
     pub fn to_decrypted_records(&self, view_key_string: String) -> Vec<JsValue> {
         let view_key = ViewKey::from_str(&view_key_string).unwrap();
         self.transaction
@@ -43,20 +145,11 @@ impl Transaction {
             .collect::<Vec<JsValue>>()
     }
 
-    #[wasm_bindgen]
-    pub fn to_string(&self) -> String {
-        serde_json::to_string(&self.transaction).unwrap()
-    }
+    // #[wasm_bindgen]
+    // pub fn to_local_proof(&self, record_commitment: String) -> String {}
 
-    #[wasm_bindgen]
-    pub fn transitions(&self) -> String {
-        serde_json::to_string(self.transaction.transitions()).unwrap()
-    }
-
-    #[wasm_bindgen]
-    pub fn transaction_id(&self) -> String {
-        self.transaction.transaction_id().to_string()
-    }
+    // #[wasm_bindgen]
+    // pub fn compute_transaction_id(&self, transitions: Vec<String>) -> String {}
 }
 
 #[cfg(test)]
