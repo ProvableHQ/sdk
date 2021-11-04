@@ -58,8 +58,12 @@ mod tests {
     use crate::commands::Account;
     use colored::Colorize;
 
+    pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p";
+    pub const TEST_VIEW_KEY: &str = "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder";
+    pub const TEST_ADDRESS: &str = "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah";
+
     #[test]
-    fn test_new() {
+    fn test_parse_new() {
         for _ in 0..3 {
             let account = Account::New { seed: None };
             assert!(account.parse().is_ok());
@@ -67,23 +71,12 @@ mod tests {
     }
 
     #[test]
-    fn test_new_seeded() {
+    fn test_expected_output_seeded() {
         let seed = Some(1231275789u64);
-        let mut expected = format!(
-            "\n {:>12}  {}\n",
-            "Private Key".cyan().bold(),
-            "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p"
-        );
-        expected += &format!(
-            " {:>12}  {}\n",
-            "View Key".cyan().bold(),
-            "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder"
-        );
-        expected += &format!(
-            " {:>12}  {}\n",
-            "Address".cyan().bold(),
-            "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah"
-        );
+        let mut expected = format!("\n {:>12}  {}\n", "Private Key".cyan().bold(), TEST_PRIVATE_KEY);
+        expected += &format!(" {:>12}  {}\n", "View Key".cyan().bold(), TEST_VIEW_KEY);
+        expected += &format!(" {:>12}  {}\n", "Address".cyan().bold(), TEST_ADDRESS);
+
         let account = Account::New { seed };
         let actual = account.parse().unwrap();
         assert_eq!(expected, actual);
