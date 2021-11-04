@@ -14,7 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub use snarkvm_wasm::{network::testnet2::Testnet2, Record as AleoRecord, RecordCiphertext as AleoRecordCiphertext};
+pub use snarkvm_wasm::{
+    network::testnet2::Testnet2,
+    Network,
+    Record as AleoRecord,
+    RecordCiphertext as AleoRecordCiphertext,
+};
 
 pub type Record = AleoRecord<Testnet2>;
 pub type RecordCiphertext = AleoRecordCiphertext<Testnet2>;
