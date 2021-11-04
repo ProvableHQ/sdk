@@ -57,7 +57,7 @@ impl Record {
                 output += &format!(
                     " {:>24}  {}\n",
                     "Serial Number Nonce".cyan().bold(),
-                    record.serial_number_nonce().to_string()
+                    record.serial_number_nonce()
                 );
                 output += &format!(
                     " {:>24}  {}\n",
