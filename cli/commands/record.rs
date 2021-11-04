@@ -24,11 +24,11 @@ use structopt::StructOpt;
 #[derive(StructOpt, Debug)]
 #[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
 pub enum Record {
-    /// Creates a new Aleo record by attempting to decrypt a record with a given view key.
+    /// Creates a new Aleo record by attempting to decrypt a record ciphertext with a given view key.
     From {
         #[structopt(short = "c", long)]
         ciphertext: String,
-        #[structopt(short = "v", long)]
+        #[structopt(short = "k", long = "viewkey")]
         view_key: String,
     },
 }

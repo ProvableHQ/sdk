@@ -86,22 +86,20 @@ OPTIONS:
     -s, --seed <seed> 
 ```
 
-### 3.2 Generate a new Aleo transaction.
+### 3.2 Decrypt an Aleo record ciphertext.
 
-To generate a new Aleo transaction, run:
+To decrypt a record and view its contexts, run:
 ```bash
-aleo tx new [FLAGS] [OPTIONS]
+aleo record from [FLAGS] [OPTIONS]
 ```
 
 The command can be run with the following optional parameters:
 ```
 FLAGS:
-    -d, --dummy      Craft a dummy transaction
     -h, --help       Prints help information
     -V, --version    Prints version information
 
 OPTIONS:
-    -s, --seed <seed> 
+    -c, --ciphertext <ciphertext> (required) The cipherext hex string.
+    -k, --viewkey <view-key> (required) The Aleo view key string to decrypt the ciphertext.
 ```
-
-Note: Only dummy transactions are currently supported.
