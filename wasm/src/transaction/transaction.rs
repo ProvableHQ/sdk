@@ -81,7 +81,6 @@ impl Transaction {
     pub fn transition_ids(&self) -> Vec<JsValue> {
         self.transaction
             .transition_ids()
-            .iter()
             .map(|transition_id| JsValue::from_str(&transition_id.to_string()))
             .collect::<Vec<JsValue>>()
     }
@@ -90,7 +89,6 @@ impl Transaction {
     pub fn serial_numbers(&self) -> Vec<JsValue> {
         self.transaction
             .serial_numbers()
-            .iter()
             .map(|serial_number| JsValue::from_str(&serial_number.to_string()))
             .collect::<Vec<JsValue>>()
     }
@@ -99,7 +97,6 @@ impl Transaction {
     pub fn commitments(&self) -> Vec<JsValue> {
         self.transaction
             .commitments()
-            .iter()
             .map(|commitment| JsValue::from_str(&commitment.to_string()))
             .collect::<Vec<JsValue>>()
     }
@@ -108,7 +105,6 @@ impl Transaction {
     pub fn ciphertexts(&self) -> Vec<JsValue> {
         self.transaction
             .ciphertexts()
-            .iter()
             .map(|ciphertext| JsValue::from_str(&ciphertext.to_string()))
             .collect::<Vec<JsValue>>()
     }
@@ -140,9 +136,7 @@ impl Transaction {
     pub fn to_ciphertext_ids(&self) -> Vec<JsValue> {
         self.transaction
             .to_ciphertext_ids()
-            .unwrap()
-            .iter()
-            .map(|id| JsValue::from_str(&id.to_string()))
+            .map(|id| JsValue::from_str(&id.unwrap().to_string()))
             .collect()
     }
 
@@ -165,28 +159,29 @@ impl Transaction {
 
 #[cfg(test)]
 mod tests {
-    use crate::transaction::Transaction;
+    use super::*;
     use wasm_bindgen_test::*;
-    pub const TEST_VIEW_KEY: &str = "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder";
-    // pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkpDHHovMFpfRonXDGRSEHCHbCvmXLftUqEmjbrRmB5hAm6";
-    // pub const TEST_ADDRESS: &str = "aleo16q7dkt4pf047kv6rsvvu89lnp33wvrksfy0yz5ewf6m5rkr57vpskxxyzq";
 
-    pub const TEST_TRANSACTION: &str = r#"{"transaction_id":"at16qf3ts624xhm8e0qzzn4mzlz3en7e36cejje6sjddnwmnd9x4u8sed2vjy","inner_circuit_id":"ic1rmppyewe0a0nsqgsvjnp3sg9769rajwlfeduasp9e7lrms4cmfc3m8axzsw3s56a5lnkcwfc297sqkcyaes","ledger_root":"al1enk2kwh9nuzcj2q9kdutekavlf8ayjqcuszgezsfax8qxn9k0yxqfr9fr2","transitions":["{\"ciphertext_ids\":[\"ar1rkdw6q3mnmflsx495e93k8cmlsfchzt5wlalehlyylmyhgptlgqqguwgyt\",\"ar1nhu2e009qg6dqjzqchnuhcqpprshyx95xlx74265ms9295wkyvrs9kg05p\"],\"ciphertexts\":[\"2960c7f5ec2e47a340095581a2c8b45dc6a2f5d409184741360bc86fab6be60a444c1ae19c6d95d9fce03d4ff5269acd0a7ae9a19cadd2f6fe32047234fea803a8d0ebc13f9e94357c7d44f2fb65aa6899678772557b505703400d42b16cfb01b18e0c66bdbbdfb2e84941fff0aed46c595a3da42a40338079d54fc67b57e40c43323d7f9a0e7c7d7eb6af37940c4cff922b25c00eaf8d1a2342f45acd2cdb07d8d0b6d35e8e3bd125252d8ec77436d3d4909a42f72bd883df44bd725628240522061e695c171458593c16408700908f3e8689ccd06c64c28a4dd913db5d580a10df55469f0500bacff37f5960ffdfed70e27bf4f53ad8129281ed6f4f88b5076ab07627677a3bf2688bc03cadf7d1cfd47c242c443cb852385266f049423e0da5a722028afe0becca8a3192976c3777cc784da3ad5d84ae3b943a29b5af1101\",\"7dad440a5b5b8d8184bbb3e4d4c02df3b36f2f882e4577376bcd9a5a3947ec0da09cca87c1eff47451b347d8cd2746b2655b2d9c3cfe05bcd128175be4bf0110fef6e640c9951d08256e27163e4244516208daa7ca1290233758e0ced6706904d0019d13fd2d37fcfe38c1c469ba0e7c551287a96f4e834be22c730a31336f0239b02d3c321558f3b06ea7bc51f92e3f573c2a92b593cc0cef86c5536949df02cd84bbd455472596c95c3feaa16d568f41f79a2618b6ab6036294bf7b3c35b0b0d87ec994762a8511e59cb8444b518e49b2980c3af6b4285e40400996c984110558841e6efa6186f07e70114a0d31c34b2e5d6f8a46d1353db89cc26d34483038487e171471880d0cb4230c12382389d01aaf44b6e181365d19a1c14ec66cc04dd0a39f598702dbec7cc7fe4e456174266f6424703c8441daed49c7702b91202\"],\"commitments\":[\"cm1kc92nxd38vr0y4y3qxj80gr8tnhma6qj6n0vp8rt38uhzp4x9yzsa5rsf8\",\"cm1fgljcgmaxh6p3vwv4ejppj4y6lznnt53v5h23uwy50q8xvzufs8q9t8f8y\"],\"proof\":\"ozkp12ua77mckm5sxnp2q4c0cywjz3g59na7006qeachq4q9hwy56y8y4nkvt0nlk7djx23qphm0ara04zcqaj3gv29av0npnggrq3g5f97vphc2e7jameqgd0gttgejqn7uqtudxa2zy0v24df3mgh6pvqs2srm86fnq4guverzfc8y2a55kmy6gdwhr9vdc0pmttgckv94dq4vp8kemtxhgftvpfnxhdcy8ukjcvdgxl72vpe8rxyjr6hy2kjvuvnzeayvy536mlyjkfl9a2zm6c9xtgtd3f2kvx4264wn9tnpa4gctesq9n8v0v8d62ne8cxxvaevd035pyd4kvtl0a0w8a7n39tkgp7r7gmt744xuft8t3pl3r7359jgay5vd58yep5fvxlswpfajsm5h3vqpp3uwr3e5wyejj5zhvj6nl3qc0awzsz2v4k0vdk7ezptjpg2wd9zcqqgv5lua4\",\"serial_numbers\":[\"sn1kpvt63p04q65ukjx2jxzhw5fmaka66e89xrvj0xp96jeq7jqluqqrn6q6j\",\"sn1ytl8qhqelajwk6ly86228yfv0rzu6cvl80jfu3lf72nfc6wazcxqzf5f4k\"],\"transition_id\":\"as10gylyhmeq2cttg5lrz57m08cew3ss5mp98gyr7deyy0sxqxt7yqsd406xu\",\"value_balance\":-1234}"],"events":[]}"#;
-    pub const TEST_TRANSACTION_ID: &str = "at16qf3ts624xhm8e0qzzn4mzlz3en7e36cejje6sjddnwmnd9x4u8sed2vjy";
+    pub const TEST_VIEW_KEY: &str = "AViewKey1sYw6xvs7q6HHeiKnRceuCo1rHy7wFQGngf6JiLD6UUqE";
+    // pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkpDHHovMFpfRonXDGRSEHCHbCvmXLftUqEmjbrRmB5hAm6";
+    // pub const TEST_ADDRESS: &str = "aleo16q7dkt4pf047kv6rsvvu89lnp33wvrksfy0yz5ewf6m5rkr57vpsr6kg8z";
+
+    pub const TEST_TRANSACTION: &str = r#"{"transaction_id":"at14qlg8y2ce37cddax8l42tju3ck0ty8p066phslwqnelv93lmqyqssj642y","inner_circuit_id":"ic14z3rtzc25jgjxs6tzat3wtsrf5gees5zel8tggsslzrfyzhxw4xsgdfe4qk6997427zsfl9tqqesq5fzw5q","ledger_root":"al1enk2kwh9nuzcj2q9kdutekavlf8ayjqcuszgezsfax8qxn9k0yxqfr9fr2","transitions":[{"transition_id":"as1ygytn778gqs2ttkdyttmdgmkdpqr6akggm6jg5m8wh66num47szs3286gh","serial_numbers":["sn1k6hn4zhfn7jax5zzu6u7wtze86yl68e6dj7uts5zauflnhrtu59qqkmync","sn1tjy0ea839tt2qypurtq7xgrnfpe6qdmzjyfz98k4c6qnyqe44yqqtcycr6"],"commitments":["cm1ns5vj65nn764hk5ghgx66qdc0g2jcnh56s0f3scp3nh580atyvrqqw8a05","cm16349fd0m9ag5a8cu9qu92uz488rxcvqe4g48q3ayj3muqwnxguxslmgwhz"],"ciphertext_ids":["ar1srw0tvywnygrqatt735wp5g66pse4wsz99ng9zennfjp4zklhszshhzspy","ar1dqvr3fj9hrfcafgu8tnfhxskz40vuepdydjcgpymxevvp6u43vqs0jwmzy"],"ciphertexts":["6c99ae29aa4a25a127592aff6f46e24fb91e842ed5924f20a371b3e1d63c320a3604ab052573a04367fb0214a5274c57768962a124c10ff9f8fcd763936c0d02462468f15a7f609ca32925d6620ab9fc08604c04edebce96fcc8391279d88f0db2f1ec156c3ab36eb07300dc6cd80843a2b7dab524ff5fdeaace004d3d85a41113ffe51c74b1311ca26250ba36f5aedeee95f0a9356933f44a7da27adbc725112f108d2f5307dca927ad3b2f62dd772a24b9af151cdffbf2bd3dbfbcb2c4470e5d5f9454ade784f19315a5d0c123ba6293fac1e26474b12d4deccdf413e513030050f4b0d1c773bc9fa8d3b7e618742a367873d9957b4d84ef9902e001540402167976e78cbe5dc0474d68a47dfd266f505a95ca49610b310067a9b41cf8de03379234d2ca0900241fb867679d81f8a9a3a11bb9f1ca2979de74e21fb363990a","4daf5e933fedd547f4b3ddfcf7d05faa6b6105ccba143b57712b719a04c7330f9ec90c9277478ba5dc07c83dc0d5053533290868ff49baffd3a603c64f35500ac58d7c61137d958c5c957debfc3069cfe93da7cb5571aa7b543ad7ddbe525b0b440d0c1b37865bc2378fe0142d1968a8a43b8f7eb8a0113f53b83c6dd7707000fbf80f27924523ae35519b7554699ea66cd310d45dda45430a9cb2e2312b2e0669bcc4573fb7e082c943ac89e6878166766f8eccb471f2b06efd7cb09cfbe711bf8ab136b360db0ba5293829809b286d7ceec05d0b4e25840736f26ae8140812998e6cdfcc2bcda827e0b123ce6787970fb72f9f7192c9374858eab0ecabaa0e2dd5001738db1b83f67290e854c755f481415dfa4ff3f7e5fec1471fd186cd058467b3f46a79d3deb1007afbebded319198cff626dca6e7882697dd609164c08"],"value_balance":-1234,"proof":"ozkp1hw8pjqwxkzre4jq5sy5pwlm24km4v767fdyryzqhfwltrwm4c0x0xekzfkw08p5p806q68fpqej26yc9h6v436lekxuweewr88hpp6gg8quj9jjzmhq36vltcf0zkr56y0whpzsc30kk62zk9tjtxuraqzjagcvteta5nezly06zu780h6jxwxpd770pyqkep3r22ghkar8pawm8vcz37ykj56s3wltelvr6ujpft02nf48fu74l4w0uyu2aq7juddrx4tac3dy7m8pfgwh3cxnkk2zkgclcevl8dcukf2w5zszpmcqt0p6w4dhffunkthln8egvr50wdhlgfjfv6dg0z9c23k8hsp7wvwr9q3865jlq8w9ecy5wnqfnsvqgqxgatckdc6972d4ansn3rycv7kqywxe5k6l8xwjycef8anlxkgv3w5wz86ppm7kcxkplu30scgnsqqg2q84y5"}],"events":[]}"#;
+    pub const TEST_TRANSACTION_ID: &str = "at14qlg8y2ce37cddax8l42tju3ck0ty8p066phslwqnelv93lmqyqssj642y";
     pub const TEST_INNER_CIRCUIT_ID: &str =
-        "ic1rmppyewe0a0nsqgsvjnp3sg9769rajwlfeduasp9e7lrms4cmfc3m8axzsw3s56a5lnkcwfc297sqkcyaes";
+        "ic14z3rtzc25jgjxs6tzat3wtsrf5gees5zel8tggsslzrfyzhxw4xsgdfe4qk6997427zsfl9tqqesq5fzw5q";
     pub const TEST_LEDGER_ROOT: &str = "al1enk2kwh9nuzcj2q9kdutekavlf8ayjqcuszgezsfax8qxn9k0yxqfr9fr2";
-    pub const TEST_TRANSITION: &str = r#"{"ciphertext_ids":["ar1rkdw6q3mnmflsx495e93k8cmlsfchzt5wlalehlyylmyhgptlgqqguwgyt","ar1nhu2e009qg6dqjzqchnuhcqpprshyx95xlx74265ms9295wkyvrs9kg05p"],"ciphertexts":["2960c7f5ec2e47a340095581a2c8b45dc6a2f5d409184741360bc86fab6be60a444c1ae19c6d95d9fce03d4ff5269acd0a7ae9a19cadd2f6fe32047234fea803a8d0ebc13f9e94357c7d44f2fb65aa6899678772557b505703400d42b16cfb01b18e0c66bdbbdfb2e84941fff0aed46c595a3da42a40338079d54fc67b57e40c43323d7f9a0e7c7d7eb6af37940c4cff922b25c00eaf8d1a2342f45acd2cdb07d8d0b6d35e8e3bd125252d8ec77436d3d4909a42f72bd883df44bd725628240522061e695c171458593c16408700908f3e8689ccd06c64c28a4dd913db5d580a10df55469f0500bacff37f5960ffdfed70e27bf4f53ad8129281ed6f4f88b5076ab07627677a3bf2688bc03cadf7d1cfd47c242c443cb852385266f049423e0da5a722028afe0becca8a3192976c3777cc784da3ad5d84ae3b943a29b5af1101","7dad440a5b5b8d8184bbb3e4d4c02df3b36f2f882e4577376bcd9a5a3947ec0da09cca87c1eff47451b347d8cd2746b2655b2d9c3cfe05bcd128175be4bf0110fef6e640c9951d08256e27163e4244516208daa7ca1290233758e0ced6706904d0019d13fd2d37fcfe38c1c469ba0e7c551287a96f4e834be22c730a31336f0239b02d3c321558f3b06ea7bc51f92e3f573c2a92b593cc0cef86c5536949df02cd84bbd455472596c95c3feaa16d568f41f79a2618b6ab6036294bf7b3c35b0b0d87ec994762a8511e59cb8444b518e49b2980c3af6b4285e40400996c984110558841e6efa6186f07e70114a0d31c34b2e5d6f8a46d1353db89cc26d34483038487e171471880d0cb4230c12382389d01aaf44b6e181365d19a1c14ec66cc04dd0a39f598702dbec7cc7fe4e456174266f6424703c8441daed49c7702b91202"],"commitments":["cm1kc92nxd38vr0y4y3qxj80gr8tnhma6qj6n0vp8rt38uhzp4x9yzsa5rsf8","cm1fgljcgmaxh6p3vwv4ejppj4y6lznnt53v5h23uwy50q8xvzufs8q9t8f8y"],"proof":"ozkp12ua77mckm5sxnp2q4c0cywjz3g59na7006qeachq4q9hwy56y8y4nkvt0nlk7djx23qphm0ara04zcqaj3gv29av0npnggrq3g5f97vphc2e7jameqgd0gttgejqn7uqtudxa2zy0v24df3mgh6pvqs2srm86fnq4guverzfc8y2a55kmy6gdwhr9vdc0pmttgckv94dq4vp8kemtxhgftvpfnxhdcy8ukjcvdgxl72vpe8rxyjr6hy2kjvuvnzeayvy536mlyjkfl9a2zm6c9xtgtd3f2kvx4264wn9tnpa4gctesq9n8v0v8d62ne8cxxvaevd035pyd4kvtl0a0w8a7n39tkgp7r7gmt744xuft8t3pl3r7359jgay5vd58yep5fvxlswpfajsm5h3vqpp3uwr3e5wyejj5zhvj6nl3qc0awzsz2v4k0vdk7ezptjpg2wd9zcqqgv5lua4","serial_numbers":["sn1kpvt63p04q65ukjx2jxzhw5fmaka66e89xrvj0xp96jeq7jqluqqrn6q6j","sn1ytl8qhqelajwk6ly86228yfv0rzu6cvl80jfu3lf72nfc6wazcxqzf5f4k"],"transition_id":"as10gylyhmeq2cttg5lrz57m08cew3ss5mp98gyr7deyy0sxqxt7yqsd406xu","value_balance":-1234}"#;
-    pub const TEST_TRANSITION_ID: &str = "as10gylyhmeq2cttg5lrz57m08cew3ss5mp98gyr7deyy0sxqxt7yqsd406xu";
+    pub const TEST_TRANSITION: &str = r#"{"transition_id":"as1ygytn778gqs2ttkdyttmdgmkdpqr6akggm6jg5m8wh66num47szs3286gh","serial_numbers":["sn1k6hn4zhfn7jax5zzu6u7wtze86yl68e6dj7uts5zauflnhrtu59qqkmync","sn1tjy0ea839tt2qypurtq7xgrnfpe6qdmzjyfz98k4c6qnyqe44yqqtcycr6"],"commitments":["cm1ns5vj65nn764hk5ghgx66qdc0g2jcnh56s0f3scp3nh580atyvrqqw8a05","cm16349fd0m9ag5a8cu9qu92uz488rxcvqe4g48q3ayj3muqwnxguxslmgwhz"],"ciphertext_ids":["ar1srw0tvywnygrqatt735wp5g66pse4wsz99ng9zennfjp4zklhszshhzspy","ar1dqvr3fj9hrfcafgu8tnfhxskz40vuepdydjcgpymxevvp6u43vqs0jwmzy"],"ciphertexts":["6c99ae29aa4a25a127592aff6f46e24fb91e842ed5924f20a371b3e1d63c320a3604ab052573a04367fb0214a5274c57768962a124c10ff9f8fcd763936c0d02462468f15a7f609ca32925d6620ab9fc08604c04edebce96fcc8391279d88f0db2f1ec156c3ab36eb07300dc6cd80843a2b7dab524ff5fdeaace004d3d85a41113ffe51c74b1311ca26250ba36f5aedeee95f0a9356933f44a7da27adbc725112f108d2f5307dca927ad3b2f62dd772a24b9af151cdffbf2bd3dbfbcb2c4470e5d5f9454ade784f19315a5d0c123ba6293fac1e26474b12d4deccdf413e513030050f4b0d1c773bc9fa8d3b7e618742a367873d9957b4d84ef9902e001540402167976e78cbe5dc0474d68a47dfd266f505a95ca49610b310067a9b41cf8de03379234d2ca0900241fb867679d81f8a9a3a11bb9f1ca2979de74e21fb363990a","4daf5e933fedd547f4b3ddfcf7d05faa6b6105ccba143b57712b719a04c7330f9ec90c9277478ba5dc07c83dc0d5053533290868ff49baffd3a603c64f35500ac58d7c61137d958c5c957debfc3069cfe93da7cb5571aa7b543ad7ddbe525b0b440d0c1b37865bc2378fe0142d1968a8a43b8f7eb8a0113f53b83c6dd7707000fbf80f27924523ae35519b7554699ea66cd310d45dda45430a9cb2e2312b2e0669bcc4573fb7e082c943ac89e6878166766f8eccb471f2b06efd7cb09cfbe711bf8ab136b360db0ba5293829809b286d7ceec05d0b4e25840736f26ae8140812998e6cdfcc2bcda827e0b123ce6787970fb72f9f7192c9374858eab0ecabaa0e2dd5001738db1b83f67290e854c755f481415dfa4ff3f7e5fec1471fd186cd058467b3f46a79d3deb1007afbebded319198cff626dca6e7882697dd609164c08"],"value_balance":-1234,"proof":"ozkp1hw8pjqwxkzre4jq5sy5pwlm24km4v767fdyryzqhfwltrwm4c0x0xekzfkw08p5p806q68fpqej26yc9h6v436lekxuweewr88hpp6gg8quj9jjzmhq36vltcf0zkr56y0whpzsc30kk62zk9tjtxuraqzjagcvteta5nezly06zu780h6jxwxpd770pyqkep3r22ghkar8pawm8vcz37ykj56s3wltelvr6ujpft02nf48fu74l4w0uyu2aq7juddrx4tac3dy7m8pfgwh3cxnkk2zkgclcevl8dcukf2w5zszpmcqt0p6w4dhffunkthln8egvr50wdhlgfjfv6dg0z9c23k8hsp7wvwr9q3865jlq8w9ecy5wnqfnsvqgqxgatckdc6972d4ansn3rycv7kqywxe5k6l8xwjycef8anlxkgv3w5wz86ppm7kcxkplu30scgnsqqg2q84y5"}"#;
+    pub const TEST_TRANSITION_ID: &str = "as1ygytn778gqs2ttkdyttmdgmkdpqr6akggm6jg5m8wh66num47szs3286gh";
     pub const TEST_INCORRECT_TRANSITION_ID: &str = "as1aa6dlcxpe3l7tdt9vgpxf5hfnanjusxnhchhnpkr4k6w7mvrguqqylt8t2";
-    pub const TEST_SERIAL_NUMBER: &str = "sn1kpvt63p04q65ukjx2jxzhw5fmaka66e89xrvj0xp96jeq7jqluqqrn6q6j";
+    pub const TEST_SERIAL_NUMBER: &str = "sn1k6hn4zhfn7jax5zzu6u7wtze86yl68e6dj7uts5zauflnhrtu59qqkmync";
     pub const TEST_INCORRECT_SERIAL_NUMBER: &str = "sn1qh7d0lc3tqps7q4ugynkvqrwugnhj0jujqy6ch9m0qzfqvue55rq8q0tqf";
-    pub const TEST_COMMITMENT: &str = "cm1kc92nxd38vr0y4y3qxj80gr8tnhma6qj6n0vp8rt38uhzp4x9yzsa5rsf8";
+    pub const TEST_COMMITMENT: &str = "cm1ns5vj65nn764hk5ghgx66qdc0g2jcnh56s0f3scp3nh580atyvrqqw8a05";
     pub const TEST_INCORRECT_COMMITMENT: &str = "cm17zevnsqg744lkzwcduxh33tnj5pnuth0fk86ny4wh7utq7eauyzsqrf3rm";
-    pub const TEST_CIPHERTEXT: &str = "2960c7f5ec2e47a340095581a2c8b45dc6a2f5d409184741360bc86fab6be60a444c1ae19c6d95d9fce03d4ff5269acd0a7ae9a19cadd2f6fe32047234fea803a8d0ebc13f9e94357c7d44f2fb65aa6899678772557b505703400d42b16cfb01b18e0c66bdbbdfb2e84941fff0aed46c595a3da42a40338079d54fc67b57e40c43323d7f9a0e7c7d7eb6af37940c4cff922b25c00eaf8d1a2342f45acd2cdb07d8d0b6d35e8e3bd125252d8ec77436d3d4909a42f72bd883df44bd725628240522061e695c171458593c16408700908f3e8689ccd06c64c28a4dd913db5d580a10df55469f0500bacff37f5960ffdfed70e27bf4f53ad8129281ed6f4f88b5076ab07627677a3bf2688bc03cadf7d1cfd47c242c443cb852385266f049423e0da5a722028afe0becca8a3192976c3777cc784da3ad5d84ae3b943a29b5af1101";
-    pub const TEST_CIPHERTEXT_ID: &str = "ar1rkdw6q3mnmflsx495e93k8cmlsfchzt5wlalehlyylmyhgptlgqqguwgyt";
+    pub const TEST_CIPHERTEXT: &str = "6c99ae29aa4a25a127592aff6f46e24fb91e842ed5924f20a371b3e1d63c320a3604ab052573a04367fb0214a5274c57768962a124c10ff9f8fcd763936c0d02462468f15a7f609ca32925d6620ab9fc08604c04edebce96fcc8391279d88f0db2f1ec156c3ab36eb07300dc6cd80843a2b7dab524ff5fdeaace004d3d85a41113ffe51c74b1311ca26250ba36f5aedeee95f0a9356933f44a7da27adbc725112f108d2f5307dca927ad3b2f62dd772a24b9af151cdffbf2bd3dbfbcb2c4470e5d5f9454ade784f19315a5d0c123ba6293fac1e26474b12d4deccdf413e513030050f4b0d1c773bc9fa8d3b7e618742a367873d9957b4d84ef9902e001540402167976e78cbe5dc0474d68a47dfd266f505a95ca49610b310067a9b41cf8de03379234d2ca0900241fb867679d81f8a9a3a11bb9f1ca2979de74e21fb363990a";
+    pub const TEST_CIPHERTEXT_ID: &str = "ar1srw0tvywnygrqatt735wp5g66pse4wsz99ng9zennfjp4zklhszshhzspy";
     pub const TEST_VALUE_BALANCE: &str = "-1234";
-    pub const TEST_DECRYPTED_RECORD: &str = r#"{"commitment":"cm1kc92nxd38vr0y4y3qxj80gr8tnhma6qj6n0vp8rt38uhzp4x9yzsa5rsf8","commitment_randomness":"cr10hnw9346yd2a5jzg8ky835vaa8qz8drs9m7w34j509tchglm95psdvhsdn","owner":"aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah","payload":"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","program_id":"ap1vyxdja243p7ft8mmgfewaq02h6uvkua02n9echr83qhlr6mz32xqk4n8ut2tvyhmvxp27kjeeedqzhcpj3j","serial_number_nonce":"sn1kpvt63p04q65ukjx2jxzhw5fmaka66e89xrvj0xp96jeq7jqluqqrn6q6j","value":1234}"#;
+    pub const TEST_DECRYPTED_RECORD: &str = r#"{"owner":"aleo16q7dkt4pf047kv6rsvvu89lnp33wvrksfy0yz5ewf6m5rkr57vpsr6kg8z","value":1234,"payload":"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","program_id":"ap108dg24pwmezwu7hd9gt0dhrp759stge4sq4jecsg066usnclepfnhwn9a0xl5zv5spt7vvgwfqfsqt3dlw4","serial_number_nonce":"sn1k6hn4zhfn7jax5zzu6u7wtze86yl68e6dj7uts5zauflnhrtu59qqkmync","commitment_randomness":"cr1ngk3836h00qj6u9uefkgg3j5gq7uzkv5hdmzjkvhqelvqanps5qs7sacdp","commitment":"cm1ns5vj65nn764hk5ghgx66qdc0g2jcnh56s0f3scp3nh580atyvrqqw8a05"}"#;
 
     #[wasm_bindgen_test]
     fn test_from_string() {
