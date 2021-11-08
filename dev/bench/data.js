@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1636049868754,
+  "lastUpdate": 1636414547485,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1657,6 +1657,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17131544,
             "range": "± 3281816",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "Collin Chin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8c286c90723cfefd6d97ce8564c0a9a24f8240ec",
+          "message": "Merge pull request #170 from AleoHQ/feat/wasm-transaction-methods\n\nWasm transaction methods",
+          "timestamp": "2021-11-08T15:22:01-08:00",
+          "tree_id": "bc309e248e7fc3e27c9d8f687ac531431fcdc873",
+          "url": "https://github.com/AleoHQ/aleo/commit/8c286c90723cfefd6d97ce8564c0a9a24f8240ec"
+        },
+        "date": 1636414544219,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 495292,
+            "range": "± 29656",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 17458253,
+            "range": "± 1855963",
             "unit": "ns/iter"
           }
         ]
