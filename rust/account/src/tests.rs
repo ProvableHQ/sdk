@@ -22,55 +22,51 @@ use std::str::FromStr;
 
 const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p";
 const ALEO_VIEW_KEY: &str = "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder";
-const ALEO_ADDRESS: &str = "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrsydapc4";
+const ALEO_ADDRESS: &str = "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah";
 
-mod testnet2 {
-    use super::*;
+#[test]
+pub fn account_new() {
+    let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
+    let account = Account::new(rng);
 
-    #[test]
-    pub fn account_new() {
-        let rng = &mut ChaChaRng::seed_from_u64(1231275789u64);
-        let account = Account::new(rng);
+    let expected_private_key = ALEO_PRIVATE_KEY.to_string();
+    let candidate_private_key = account.private_key().to_string();
 
-        let expected_private_key = ALEO_PRIVATE_KEY.to_string();
-        let candidate_private_key = account.private_key().to_string();
+    println!("{} == {}", expected_private_key, candidate_private_key);
+    assert_eq!(expected_private_key, candidate_private_key);
 
-        println!("{} == {}", expected_private_key, candidate_private_key);
-        assert_eq!(expected_private_key, candidate_private_key);
+    let expected_view_key = ALEO_VIEW_KEY.to_string();
+    let candidate_view_key = account.view_key().to_string();
 
-        let expected_view_key = ALEO_VIEW_KEY.to_string();
-        let candidate_view_key = account.view_key().to_string();
+    println!("{} == {}", expected_view_key, candidate_view_key);
+    assert_eq!(expected_view_key, candidate_view_key);
 
-        println!("{} == {}", expected_view_key, candidate_view_key);
-        assert_eq!(expected_view_key, candidate_view_key);
+    let expected_address = ALEO_ADDRESS.to_string();
+    let candidate_address = account.address().to_string();
 
-        let expected_address = ALEO_ADDRESS.to_string();
-        let candidate_address = account.address().to_string();
+    println!("{} == {}", expected_address, candidate_address);
+    assert_eq!(expected_address, candidate_address);
+}
 
-        println!("{} == {}", expected_address, candidate_address);
-        assert_eq!(expected_address, candidate_address);
-    }
+#[test]
+pub fn account_from_str() {
+    let account = Account::from(PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap());
 
-    #[test]
-    pub fn account_from_str() {
-        let account = Account::from(PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap());
+    let expected_private_key = ALEO_PRIVATE_KEY.to_string();
+    let candidate_private_key = account.private_key().to_string();
 
-        let expected_private_key = ALEO_PRIVATE_KEY.to_string();
-        let candidate_private_key = account.private_key().to_string();
+    println!("{} == {}", expected_private_key, candidate_private_key);
+    assert_eq!(expected_private_key, candidate_private_key);
 
-        println!("{} == {}", expected_private_key, candidate_private_key);
-        assert_eq!(expected_private_key, candidate_private_key);
+    let expected_view_key = ALEO_VIEW_KEY.to_string();
+    let candidate_view_key = account.view_key().to_string();
 
-        let expected_view_key = ALEO_VIEW_KEY.to_string();
-        let candidate_view_key = account.view_key().to_string();
+    println!("{} == {}", expected_view_key, candidate_view_key);
+    assert_eq!(expected_view_key, candidate_view_key);
 
-        println!("{} == {}", expected_view_key, candidate_view_key);
-        assert_eq!(expected_view_key, candidate_view_key);
+    let expected_address = ALEO_ADDRESS.to_string();
+    let candidate_address = account.address().to_string();
 
-        let expected_address = ALEO_ADDRESS.to_string();
-        let candidate_address = account.address().to_string();
-
-        println!("{} == {}", expected_address, candidate_address);
-        assert_eq!(expected_address, candidate_address);
-    }
+    println!("{} == {}", expected_address, candidate_address);
+    assert_eq!(expected_address, candidate_address);
 }
