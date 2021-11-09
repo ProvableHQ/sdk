@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1636414547485,
+  "lastUpdate": 1636484520112,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1693,6 +1693,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17458253,
             "range": "± 1855963",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "collin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "collin",
+            "username": "collinc97"
+          },
+          "distinct": true,
+          "id": "edac217e67807042060fe516919dee6cc6e9b0d3",
+          "message": "feat: add record ciphertext decryption to cli",
+          "timestamp": "2021-11-09T10:48:16-08:00",
+          "tree_id": "82363127394d45c677272c9eee520a1957e8d9fc",
+          "url": "https://github.com/AleoHQ/aleo/commit/edac217e67807042060fe516919dee6cc6e9b0d3"
+        },
+        "date": 1636484516778,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 410157,
+            "range": "± 3080",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 14845315,
+            "range": "± 15563",
             "unit": "ns/iter"
           }
         ]
