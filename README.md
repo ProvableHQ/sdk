@@ -32,8 +32,8 @@ We recommend installing Rust using [rustup](https://www.rustup.rs/). You can ins
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
   ```
 
-- Windows (64-bit):  
-  
+- Windows (64-bit):
+
   Download the [Windows 64-bit executable](https://win.rustup.rs/x86_64) or
   [Windows 32-bit executable](https://win.rustup.rs/i686) and follow the on-screen instructions.
 
@@ -49,7 +49,7 @@ Now to use `aleo`, in your terminal, run:
 ```bash
 aleo
 ```
- 
+
 ### 2.2b Build from Source Code
 
 Alternatively, you can install `aleo` by building from the source code as follows:
@@ -86,22 +86,20 @@ OPTIONS:
     -s, --seed <seed> 
 ```
 
-### 3.2 Generate a new Aleo transaction.
+### 3.2 Decrypt an Aleo record ciphertext.
 
-To generate a new Aleo transaction, run:
+To decrypt a record and view its contexts, run:
 ```bash
-aleo tx new [FLAGS] [OPTIONS]
+aleo record from [FLAGS] [OPTIONS]
 ```
 
 The command can be run with the following optional parameters:
 ```
 FLAGS:
-    -d, --dummy      Craft a dummy transaction
     -h, --help       Prints help information
     -V, --version    Prints version information
 
 OPTIONS:
-    -s, --seed <seed> 
+    -c, --ciphertext <ciphertext> (required) The cipherext hex string.
+    -k, --viewkey <view-key> (required) The Aleo view key string to decrypt the ciphertext.
 ```
-
-Note: Only dummy transactions are currently supported.
