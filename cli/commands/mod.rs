@@ -17,8 +17,8 @@
 pub mod account;
 pub use account::*;
 
-pub mod record;
-pub use record::*;
+// pub mod record;
+// pub use record::*;
 
 pub mod update;
 pub use update::*;
@@ -44,8 +44,8 @@ pub struct CLI {
 pub enum Command {
     #[structopt(name = "account")]
     Account(Account),
-    #[structopt(name = "record")]
-    Record(Record),
+    // #[structopt(name = "record")]
+    // Record(Record),
     #[structopt(name = "update")]
     Update(Update),
 }
@@ -54,7 +54,7 @@ impl Command {
     pub fn parse(self) -> anyhow::Result<String> {
         match self {
             Self::Account(command) => command.parse(),
-            Self::Record(command) => command.parse(),
+            // Self::Record(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }
     }
