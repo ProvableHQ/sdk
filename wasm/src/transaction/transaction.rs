@@ -142,6 +142,14 @@ impl Transaction {
             .collect::<Vec<JsValue>>()
     }
 
+    #[wasm_bindgen]
+    pub fn to_records(&self) -> Vec<JsValue> {
+        self.transaction
+            .to_records()
+            .map(|r| JsValue::from_str(&r.to_string()))
+            .collect::<Vec<JsValue>>()
+    }
+
     // #[wasm_bindgen]
     // pub fn to_local_proof(&self, record_commitment: String) -> String {}
 
