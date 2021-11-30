@@ -30,6 +30,8 @@ pub struct Record {
 impl Record {
     #[wasm_bindgen]
     pub fn from_string(record: &str) -> Self {
+        console_error_panic_hook::set_once();
+
         Self {
             record: RecordNative::from_str(record).unwrap(),
         }

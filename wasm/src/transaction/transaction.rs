@@ -29,6 +29,8 @@ pub struct Transaction {
 impl Transaction {
     #[wasm_bindgen]
     pub fn from_string(transaction: String) -> Self {
+        console_error_panic_hook::set_once();
+
         Self {
             transaction: serde_json::from_str(&transaction).unwrap(),
         }
