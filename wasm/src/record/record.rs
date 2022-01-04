@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::record::Ciphertext;
 use aleo_account::ViewKey;
 use aleo_record::{Record as RecordNative, RecordCiphertext as CiphertextNative, RecordViewKey};
 
@@ -39,10 +38,7 @@ impl Record {
     }
 
     #[wasm_bindgen]
-    pub fn from_account_view_key(
-        account_view_key: String, // todo: use wasm ViewKey
-        ciphertext: String,       // todo: use wasm Ciphertext
-    ) -> Self {
+    pub fn from_account_view_key(account_view_key: String, ciphertext: String) -> Self {
         let account_view_key = ViewKey::from_str(&account_view_key).unwrap();
         let ciphertext = CiphertextNative::from_str(&ciphertext).unwrap();
         Self {
@@ -51,10 +47,7 @@ impl Record {
     }
 
     #[wasm_bindgen]
-    pub fn from_record_view_key(
-        record_view_key: String, // todo: use wasm RecordViewKey
-        ciphertext: String,      // todo: use wasm Ciphertext
-    ) -> Self {
+    pub fn from_record_view_key(record_view_key: String, ciphertext: String) -> Self {
         let record_view_key = RecordViewKey::from_str(&record_view_key).unwrap();
         let ciphertext = CiphertextNative::from_str(&ciphertext).unwrap();
         Self {
@@ -122,10 +115,11 @@ mod tests {
     use crate::record::Record;
     use wasm_bindgen_test::*;
 
-    // pub const TEST_VIEW_KEY: &str = "AViewKey1sYw6xvs7q6HHeiKnRceuCo1rHy7wFQGngf6JiLD6UUqE";
+    pub const TEST_VIEW_KEY: &str = "AViewKey1sYw6xvs7q6HHeiKnRceuCo1rHy7wFQGngf6JiLD6UUqE";
     // pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkpDHHovMFpfRonXDGRSEHCHbCvmXLftUqEmjbrRmB5hAm6";
     // pub const TEST_ADDRESS: &str = "aleo16q7dkt4pf047kv6rsvvu89lnp33wvrksfy0yz5ewf6m5rkr57vpsr6kg8z";
 
+    pub const TEST_CIPHERTEXT: &str = "recd1484ja6rq2k2tpt2lg5rgl3hdl8z4c45yknz0t9unl2f7752gpuxnkusew2tpxm4tf3susgsez6d9xasme7en5gjmegdycvnyh6w95rgtdtvgsw3sfff7z0chn380dyuhj3jnafxczvpy57hezxewk349qec39qmfen5hajjz0zda2yxwumsn8cmku970h342xdm7v0s6kv2qjyygjqdxwgk6s90tjped8l0ca8ktnznw59mggakk7vxuszmkp8s2gqw7u9fd7k6d0m6edfv8janawnajm8etx4f8z3pwk8ekk9ktnczw050cjlmvz85k8thxg08xm5ae69azcsyhy0v06m7va7h34lzkqz5w9ur7ur047xglsxy5yqcqluttchz5p4dwcu6cfkdvy4557k8rqp9k6ycj9tutvckftq93d494cgaklhapkqzh2xgmta90lg65f5npqd893ss";
     pub const TEST_DECRYPTED_RECORD: &str = r#"{
     "owner":"aleo16q7dkt4pf047kv6rsvvu89lnp33wvrksfy0yz5ewf6m5rkr57vpsr6kg8z",
     "value":1234,
@@ -157,5 +151,21 @@ mod tests {
         assert_eq!(record_from_string.record_view_key(), TEST_RECORD_VIEW_KEY);
         assert_eq!(record_from_string.commitment(), TEST_RECORD_COMMITMENT);
         assert!(!record_from_string.is_dummy());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_from_account_view_key() {
+        let expected_record = Record::from_string(TEST_DECRYPTED_RECORD);
+        let actual_record = Record::from_account_view_key(TEST_VIEW_KEY.to_string(), TEST_CIPHERTEXT.to_string());
+
+        assert_eq!(expected_record, actual_record);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_from_record_view_key() {
+        let expected_record = Record::from_string(TEST_DECRYPTED_RECORD);
+        let actual_record = Record::from_record_view_key(TEST_RECORD_VIEW_KEY.to_string(), TEST_CIPHERTEXT.to_string());
+
+        assert_eq!(expected_record, actual_record);
     }
 }
