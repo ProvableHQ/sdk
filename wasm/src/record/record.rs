@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use aleo_account::ViewKey;
-use aleo_record::{Record as RecordNative, RecordCiphertext as CiphertextNative, RecordViewKey};
+use aleo_record::{DecryptionKey, Record as RecordNative, RecordCiphertext as CiphertextNative, RecordViewKey};
 
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
@@ -38,20 +38,17 @@ impl Record {
     }
 
     #[wasm_bindgen]
-    pub fn from_account_view_key(account_view_key: String, ciphertext: String) -> Self {
-        let account_view_key = ViewKey::from_str(&account_view_key).unwrap();
-        let ciphertext = CiphertextNative::from_str(&ciphertext).unwrap();
-        Self {
-            record: RecordNative::from_account_view_key(&account_view_key, &ciphertext).unwrap(),
-        }
-    }
+    pub fn decrypt(decryption_key: String, ciphertext: String) -> Self {
+        // Attempt to decrypt as account view key string first and record view key second.
+        let decryption_key: DecryptionKey = match ViewKey::from_str(&decryption_key) {
+            Ok(view_key) => view_key.into(),
+            Err(_) => DecryptionKey::from_record_view_key(&RecordViewKey::from_str(&decryption_key).unwrap()),
+        };
 
-    #[wasm_bindgen]
-    pub fn from_record_view_key(record_view_key: String, ciphertext: String) -> Self {
-        let record_view_key = RecordViewKey::from_str(&record_view_key).unwrap();
         let ciphertext = CiphertextNative::from_str(&ciphertext).unwrap();
+
         Self {
-            record: RecordNative::from_record_view_key(record_view_key, &ciphertext).unwrap(),
+            record: RecordNative::decrypt(&decryption_key, &ciphertext).unwrap(),
         }
     }
 
@@ -62,7 +59,6 @@ impl Record {
 
     #[wasm_bindgen]
     pub fn owner(&self) -> String {
-        // todo: return wasm Address
         self.record.owner().to_string()
     }
 
@@ -88,7 +84,6 @@ impl Record {
 
     #[wasm_bindgen]
     pub fn record_view_key(&self) -> String {
-        // todo: return wasm RecordViewKey
         self.record.record_view_key().to_string()
     }
 
@@ -99,7 +94,6 @@ impl Record {
 
     #[wasm_bindgen]
     pub fn ciphertext(&self) -> String {
-        // todo: return wasm Ciphertext
         self.record.ciphertext().to_string()
     }
 
@@ -156,7 +150,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_from_account_view_key() {
         let expected_record = Record::from_string(TEST_DECRYPTED_RECORD);
-        let actual_record = Record::from_account_view_key(TEST_VIEW_KEY.to_string(), TEST_CIPHERTEXT.to_string());
+        let actual_record = Record::decrypt(TEST_VIEW_KEY.to_string(), TEST_CIPHERTEXT.to_string());
 
         assert_eq!(expected_record, actual_record);
     }
@@ -164,7 +158,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_from_record_view_key() {
         let expected_record = Record::from_string(TEST_DECRYPTED_RECORD);
-        let actual_record = Record::from_record_view_key(TEST_RECORD_VIEW_KEY.to_string(), TEST_CIPHERTEXT.to_string());
+        let actual_record = Record::decrypt(TEST_RECORD_VIEW_KEY.to_string(), TEST_CIPHERTEXT.to_string());
 
         assert_eq!(expected_record, actual_record);
     }

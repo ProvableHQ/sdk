@@ -137,8 +137,7 @@ impl Transaction {
     pub fn to_decrypted_records(&self, view_key_string: String) -> Vec<JsValue> {
         let view_key = ViewKey::from_str(&view_key_string).unwrap();
         self.transaction
-            .to_decrypted_records(&view_key)
-            .iter()
+            .to_decrypted_records(&view_key.into())
             .map(|r| JsValue::from_str(&r.to_string()))
             .collect::<Vec<JsValue>>()
     }

@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use aleo_account::ViewKey;
-use aleo_record::{RecordCiphertext as CiphertextNative, RecordViewKey};
+use aleo_record::{DecryptionKey, RecordCiphertext as CiphertextNative, RecordViewKey};
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
@@ -41,10 +41,14 @@ impl Ciphertext {
     }
 
     #[wasm_bindgen]
-    pub fn to_plaintext(&self, record_view_key_string: String) -> Result<String, JsValue> {
-        let record_view_key = RecordViewKey::from_str(&record_view_key_string).unwrap();
-        match self.ciphertext.to_plaintext(&record_view_key) {
-            Ok(record_bytes) => Ok(hex::encode(&record_bytes[..])),
+    pub fn to_plaintext(&self, decryption_key: String) -> Result<String, JsValue> {
+        // Attempt to decrypt as account view key string first and record view key second.
+        let decryption_key: DecryptionKey = match ViewKey::from_str(&decryption_key) {
+            Ok(view_key) => view_key.into(),
+            Err(_) => DecryptionKey::from_record_view_key(&RecordViewKey::from_str(&decryption_key).unwrap()),
+        };
+        match self.ciphertext.to_plaintext(&decryption_key) {
+            Ok((record_bytes, _record_view_key)) => Ok(hex::encode(&record_bytes[..])),
             Err(e) => Err(JsValue::from(e.to_string())),
         }
     }
