@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1637185041496,
+  "lastUpdate": 1643045078147,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1765,6 +1765,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 15436099,
             "range": "± 3672008",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "Collin Chin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "285a7d040c13fc746656c0fde02fbb9fd613f73f",
+          "message": "Merge pull request #190 from AleoHQ/testnet2\n\nTestnet2 Updates",
+          "timestamp": "2022-01-24T09:10:36-08:00",
+          "tree_id": "a74e628e236d8e77fac35c82961710e04ab9c221",
+          "url": "https://github.com/AleoHQ/aleo/commit/285a7d040c13fc746656c0fde02fbb9fd613f73f"
+        },
+        "date": 1643045073688,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 401834,
+            "range": "± 3181",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 14898168,
+            "range": "± 63670",
             "unit": "ns/iter"
           }
         ]
