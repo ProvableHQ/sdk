@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.2.0"
+version = "0.3.1"
 authors = ["The Aleo Team <hello@aleo.org>"]
 description = "Aleo"
 homepage = "https://aleo.org"
@@ -46,3 +46,6 @@ features = [ "serde-serialize" ]
 
 [dev-dependencies.wasm-bindgen-test]
 version = "0.3.28"
+
+[dependencies.console_error_panic_hook]
+version = "0.1.7"
