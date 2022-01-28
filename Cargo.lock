@@ -152,9 +152,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.52"
+version = "1.0.53"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84450d0b4a8bd1ba4144ce8ce718fbc5d071358b1e5384bace6536b3d1f2d5b3"
+checksum = "94a45b455c14666b85fc40a019e8ab9eb75e3a124e05494f5397122bc9eb06e0"
 
 [[package]]
 name = "arrayref"
@@ -1442,18 +1442,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.134"
+version = "1.0.136"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96b3c34c1690edf8174f5b289a336ab03f568a4460d8c6df75f2f3a692b3bc6a"
+checksum = "ce31e24b01e1e524df96f1c2fdd054405f8d7376249a5110886fb4b658484789"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.134"
+version = "1.0.136"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "784ed1fbfa13fe191077537b0d70ec8ad1e903cfe04831da608aa36457cb653d"
+checksum = "08597e7152fcd306f41838ed3e37be9eaeed2b61c42e2117266a554fab4662f9"
 dependencies = [
  "proc-macro2 1.0.36",
  "quote 1.0.14",
@@ -1509,8 +1509,9 @@ checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
 [[package]]
 name = "snarkvm-algorithms"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
+ "aleo-std",
  "anyhow",
  "blake2",
  "blake2s_simd",
@@ -1538,7 +1539,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-curves"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "derivative",
  "rand",
@@ -1552,7 +1553,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-derives"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "proc-macro-crate",
  "proc-macro-error",
@@ -1564,7 +1565,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-dpc"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "anyhow",
  "base58",
@@ -1596,7 +1597,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-fields"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "anyhow",
  "derivative",
@@ -1609,7 +1610,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-gadgets"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "anyhow",
  "derivative",
@@ -1629,7 +1630,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-marlin"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "bincode",
  "blake2",
@@ -1654,7 +1655,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-parameters"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -1673,7 +1674,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-polycommit"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "derivative",
  "digest 0.9.0",
@@ -1693,12 +1694,12 @@ dependencies = [
 [[package]]
 name = "snarkvm-profiler"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 
 [[package]]
 name = "snarkvm-r1cs"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -1714,7 +1715,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-utilities"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "anyhow",
  "bincode",
@@ -1729,7 +1730,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-wasm"
 version = "0.7.5"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#1a538cdbbba4ba2a50e5f9847235d58be41e3ddd"
+source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#51633e2fac247bc829bd316a93f59b6ba0759661"
 dependencies = [
  "derivative",
  "getrandom",
