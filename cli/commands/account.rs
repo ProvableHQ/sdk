@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Account as AccountNative, AccountScheme};
+use aleo_account::Account as AccountNative;
 
 use colored::*;
 use rand::SeedableRng;
