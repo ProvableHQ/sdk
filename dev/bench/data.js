@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1644512482604,
+  "lastUpdate": 1644530136329,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1873,6 +1873,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17946898,
             "range": "± 81147",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "Collin Chin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fdbf4bbf77d9f55ef058e073c49bd1475499387c",
+          "message": "Merge pull request #248 from AleoHQ/bounty\n\nadd ethdenver bounty link",
+          "timestamp": "2022-02-10T16:46:13-05:00",
+          "tree_id": "2694d387a481c47d111778dc26413a8828b33a01",
+          "url": "https://github.com/AleoHQ/aleo/commit/fdbf4bbf77d9f55ef058e073c49bd1475499387c"
+        },
+        "date": 1644530133462,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 456806,
+            "range": "± 70773",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 15473976,
+            "range": "± 1712091",
             "unit": "ns/iter"
           }
         ]
