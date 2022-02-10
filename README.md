@@ -86,20 +86,33 @@ OPTIONS:
     -s, --seed <seed> 
 ```
 
-### 3.2 Decrypt an Aleo record ciphertext.
+[//]: # (### 3.2 Decrypt an Aleo record ciphertext.)
 
-To decrypt a record and view its contexts, run:
-```bash
-aleo record from [FLAGS] [OPTIONS]
-```
+[//]: # ()
+[//]: # (To decrypt a record and view its contexts, run:)
 
-The command can be run with the following optional parameters:
-```
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+[//]: # (```bash)
 
-OPTIONS:
-    -c, --ciphertext <ciphertext> (required) The cipherext hex string.
-    -k, --viewkey <view-key> (required) The Aleo view key string to decrypt the ciphertext.
-```
+[//]: # (aleo record from [FLAGS] [OPTIONS])
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (The command can be run with the following optional parameters:)
+
+[//]: # (```)
+
+[//]: # (FLAGS:)
+
+[//]: # (    -h, --help       Prints help information)
+
+[//]: # (    -V, --version    Prints version information)
+
+[//]: # ()
+[//]: # (OPTIONS:)
+
+[//]: # (    -c, --ciphertext <ciphertext> &#40;required&#41; The cipherext hex string.)
+
+[//]: # (    -k, --viewkey <view-key> &#40;required&#41; The Aleo view key string to decrypt the ciphertext.)
+
+[//]: # (```)
