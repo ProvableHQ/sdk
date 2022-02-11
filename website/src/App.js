@@ -18,11 +18,11 @@ function App() {
                 <Menu mode="horizontal" defaultSelectedKeys={['1']}>
                     <Menu.Item key="1" onClick={() => setMenuIndex(0)}>Account</Menu.Item>
                     <Menu.Item key="2" onClick={() => setMenuIndex(1)}>Record</Menu.Item>
-                    <Menu.Item key="3">
-                        <a href="./dev/bench" target="_blank" rel="noopener noreferrer">
-                            Benchmarks
-                        </a>
-                    </Menu.Item>
+                    {/*<Menu.Item key="3">*/}
+                    {/*    <a href="./dev/bench" target="_blank" rel="noopener noreferrer">*/}
+                    {/*        Benchmarks*/}
+                    {/*    </a>*/}
+                    {/*</Menu.Item>*/}
                 </Menu>
             </Header>
             <Content style={{padding: '50px 50px'}}>

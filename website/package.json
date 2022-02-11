@@ -5,9 +5,6 @@
   "dependencies": {
     "@aleohq/ui": "^0.0.9",
     "@ant-design/icons": "^4.4.0",
-    "@testing-library/jest-dom": "^5.11.4",
-    "@testing-library/react": "^11.1.0",
-    "@testing-library/user-event": "^12.1.10",
     "aleo-wasm": "file:../wasm/pkg",
     "antd": "^4.11.2",
     "copy-to-clipboard": "^3.3.1",
@@ -32,8 +29,7 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {
