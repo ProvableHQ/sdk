@@ -125,23 +125,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aleo-wasm"
-version = "0.3.1"
-dependencies = [
- "aleo-account",
- "aleo-record",
- "aleo-transaction",
- "console_error_panic_hook",
- "getrandom",
- "hex",
- "rand",
- "serde_json",
- "snarkvm-utilities",
- "wasm-bindgen",
- "wasm-bindgen-test",
-]
-
-[[package]]
 name = "ansi_term"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1373,6 +1356,23 @@ name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
+
+[[package]]
+name = "sdk"
+version = "0.3.1"
+dependencies = [
+ "aleo-account",
+ "aleo-record",
+ "aleo-transaction",
+ "console_error_panic_hook",
+ "getrandom",
+ "hex",
+ "rand",
+ "serde_json",
+ "snarkvm-utilities",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+]
 
 [[package]]
 name = "security-framework"

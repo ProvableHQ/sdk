@@ -1,5 +1,5 @@
 [package]
-name = "aleo-wasm"
+name = "sdk"
 version = "0.3.1"
 authors = ["The Aleo Team <hello@aleo.org>"]
 description = "Aleo"
