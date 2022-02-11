@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1644604739895,
+  "lastUpdate": 1644605716188,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -2017,6 +2017,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 14972306,
             "range": "± 38556",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "amousa11@gmail.com",
+            "name": "Ali Mousa",
+            "username": "amousa11"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b738eae3428e1e8181e49ebf081e2dcfe0603502",
+          "message": "Merge pull request #250 from AleoHQ/webpack\n\nuse webpack build",
+          "timestamp": "2022-02-11T10:49:35-08:00",
+          "tree_id": "69aab781780665a1b4f096e3907683255ee4f288",
+          "url": "https://github.com/AleoHQ/aleo/commit/b738eae3428e1e8181e49ebf081e2dcfe0603502"
+        },
+        "date": 1644605713153,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 487474,
+            "range": "± 7552",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 17946126,
+            "range": "± 75246",
             "unit": "ns/iter"
           }
         ]
