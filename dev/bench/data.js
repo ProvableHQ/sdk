@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1644602837479,
+  "lastUpdate": 1644604739895,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -1981,6 +1981,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 14983227,
             "range": "± 29913",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "Collin Chin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4f50d281999f5a8a31d0374c368cf054d70ce76b",
+          "message": "Merge pull request #198 from AleoHQ/dependabot/cargo/self_update-0.28.0\n\nbuild(deps): bump self_update from 0.27.0 to 0.28.0",
+          "timestamp": "2022-02-11T13:25:48-05:00",
+          "tree_id": "7df44e28d5da4f171a9880ddf4ba90c27fae7389",
+          "url": "https://github.com/AleoHQ/aleo/commit/4f50d281999f5a8a31d0374c368cf054d70ce76b"
+        },
+        "date": 1644604735243,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 405982,
+            "range": "± 2970",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 14972306,
+            "range": "± 38556",
             "unit": "ns/iter"
           }
         ]
