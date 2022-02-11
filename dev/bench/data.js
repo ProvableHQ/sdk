@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1644606183006,
+  "lastUpdate": 1644606489413,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -2125,6 +2125,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17679671,
             "range": "± 3011735",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "amousa11@gmail.com",
+            "name": "Ali Mousa",
+            "username": "amousa11"
+          },
+          "committer": {
+            "email": "amousa11@gmail.com",
+            "name": "Ali Mousa",
+            "username": "amousa11"
+          },
+          "distinct": true,
+          "id": "852ad416ea037034000c59ad76ccd995a2e0d6e7",
+          "message": "update package.json",
+          "timestamp": "2022-02-11T11:03:05-08:00",
+          "tree_id": "8c11ad217e673d4711030d859f31d307a22b3eb5",
+          "url": "https://github.com/AleoHQ/aleo/commit/852ad416ea037034000c59ad76ccd995a2e0d6e7"
+        },
+        "date": 1644606485562,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 478018,
+            "range": "± 53758",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 17811630,
+            "range": "± 1187126",
             "unit": "ns/iter"
           }
         ]
