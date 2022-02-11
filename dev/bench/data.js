@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1644605716188,
+  "lastUpdate": 1644606121919,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -2053,6 +2053,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17946126,
             "range": "± 75246",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "amousa11@gmail.com",
+            "name": "Ali Mousa",
+            "username": "amousa11"
+          },
+          "committer": {
+            "email": "amousa11@gmail.com",
+            "name": "Ali Mousa",
+            "username": "amousa11"
+          },
+          "distinct": true,
+          "id": "ff81bc37e267ec73fcfe667f464daed324612506",
+          "message": "Merge branch 'main' of https://github.com/AleoHQ/aleo",
+          "timestamp": "2022-02-11T10:56:38-08:00",
+          "tree_id": "eafcdd5be48f82167b2d608297e5608e3398bda6",
+          "url": "https://github.com/AleoHQ/aleo/commit/ff81bc37e267ec73fcfe667f464daed324612506"
+        },
+        "date": 1644606116815,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 407045,
+            "range": "± 3107",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 14999728,
+            "range": "± 40929",
             "unit": "ns/iter"
           }
         ]
