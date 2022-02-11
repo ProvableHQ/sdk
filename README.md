@@ -17,9 +17,9 @@ and broadcast it to the network.
 
 ## 1. Overview
 
-** ATTENTION: This codebase is in active development. **
+**EthDenver 2022 participants click [here](https://github.com/AleoHQ/bounty-2022-ethdenver).**
 
-For more information, visit [Welcome to Aleo](https://github.com/AleoHQ/welcome) to get started.
+For more information, on Aleo visit [Welcome to Aleo](https://developer.aleo.org/aleo/getting_started/overview/) to get started.
 
 ## 2. Build Guide
 
