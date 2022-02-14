@@ -21,7 +21,7 @@ default-features = false
 features = [ "dpc" ]
 
 [dev-dependencies.rand]
-version = "0.8.0"
+version = "0.8.5"
 
 [dev-dependencies.rand_chacha]
 version = "0.3.0"
