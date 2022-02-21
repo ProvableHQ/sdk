@@ -35,7 +35,7 @@ path = "./rust/record"
 version = "0.2.0"
 
 [dependencies.anyhow]
-version = "1.0.44"
+version = "1.0.54"
 
 [dependencies.colored]
 version = "2"
