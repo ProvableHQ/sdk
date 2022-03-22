@@ -49,7 +49,7 @@ version = "0.3.0"
 default-features = false
 
 [dependencies.self_update]
-version = "0.28"
+version = "0.29"
 
 [dependencies.structopt]
 version = "0.3"
