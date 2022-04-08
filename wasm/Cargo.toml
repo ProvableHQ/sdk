@@ -45,7 +45,7 @@ version = "0.2"
 features = [ "serde-serialize" ]
 
 [dev-dependencies.wasm-bindgen-test]
-version = "0.3.28"
+version = "0.3.30"
 
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
