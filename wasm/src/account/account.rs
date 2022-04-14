@@ -17,7 +17,7 @@
 use aleo_account::{Account as AccountNative, PrivateKey};
 
 use rand::{rngs::StdRng, SeedableRng};
-use std::str::FromStr;
+use std::{convert::TryInto, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -48,6 +48,18 @@ impl Account {
     }
 
     #[wasm_bindgen]
+    pub fn from_seed(seed: &[u8]) -> Self {
+        console_error_panic_hook::set_once();
+
+        let seed: [u8; 32] = seed.try_into().unwrap();
+        let rng = &mut StdRng::from_seed(seed);
+
+        Self {
+            account: AccountNative::new(rng),
+        }
+    }
+
+    #[wasm_bindgen]
     pub fn to_private_key(&self) -> String {
         self.account.private_key().to_string()
     }
@@ -69,13 +81,28 @@ mod tests {
 
     use wasm_bindgen_test::*;
 
-    const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p";
-    const ALEO_VIEW_KEY: &str = "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder";
-    const ALEO_ADDRESS: &str = "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah";
+    const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp4md8AREpQMoEmmVG8kAp8qKpgT95o6upA9ZzL2yHYUMM";
+    const ALEO_VIEW_KEY: &str = "AViewKey1oUHFc3G2ioQ1w2uPne162XPpWJ3gbWizmrqiSjmpuyaP";
+    const ALEO_ADDRESS: &str = "aleo1lakxjm562uz3ekufmtnma56m6k4utmg82tgv55zt4tymn8e9v5fq6gsgun";
+    const ALEO_SEED: &[u8] = b"aleo-32-bytes-seed-phrase-xxxxxx";
 
     #[wasm_bindgen_test]
     pub fn from_private_key_test() {
         let account = Account::from_private_key(ALEO_PRIVATE_KEY);
+
+        println!("{} == {}", ALEO_PRIVATE_KEY, account.account.private_key().to_string());
+        assert_eq!(ALEO_PRIVATE_KEY, account.account.private_key().to_string());
+
+        println!("{} == {}", ALEO_VIEW_KEY, account.account.view_key().to_string());
+        assert_eq!(ALEO_VIEW_KEY, account.account.view_key().to_string());
+
+        println!("{} == {}", ALEO_ADDRESS, account.account.address().to_string());
+        assert_eq!(ALEO_ADDRESS, account.account.address().to_string());
+    }
+
+    #[wasm_bindgen_test]
+    pub fn from_seed_test() {
+        let account = Account::from_seed(ALEO_SEED);
 
         println!("{} == {}", ALEO_PRIVATE_KEY, account.account.private_key().to_string());
         assert_eq!(ALEO_PRIVATE_KEY, account.account.private_key().to_string());
