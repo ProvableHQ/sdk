@@ -17,7 +17,8 @@
 use aleo_account::{Account as AccountNative, PrivateKey};
 
 use rand::{rngs::StdRng, SeedableRng};
-use std::{convert::TryInto, str::FromStr};
+use rand_chacha::ChaChaRng;
+use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -48,14 +49,11 @@ impl Account {
     }
 
     #[wasm_bindgen]
-    pub fn from_seed(seed: &[u8]) -> Self {
+    pub fn from_seed(seed: u64) -> Self {
         console_error_panic_hook::set_once();
 
-        let seed: [u8; 32] = seed.try_into().unwrap();
-        let rng = &mut StdRng::from_seed(seed);
-
         Self {
-            account: AccountNative::new(rng),
+            account: AccountNative::new(&mut ChaChaRng::seed_from_u64(seed)),
         }
     }
 
@@ -81,10 +79,10 @@ mod tests {
 
     use wasm_bindgen_test::*;
 
-    const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp4md8AREpQMoEmmVG8kAp8qKpgT95o6upA9ZzL2yHYUMM";
-    const ALEO_VIEW_KEY: &str = "AViewKey1oUHFc3G2ioQ1w2uPne162XPpWJ3gbWizmrqiSjmpuyaP";
-    const ALEO_ADDRESS: &str = "aleo1lakxjm562uz3ekufmtnma56m6k4utmg82tgv55zt4tymn8e9v5fq6gsgun";
-    const ALEO_SEED: &[u8] = b"aleo-32-bytes-seed-phrase-xxxxxx";
+    const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkpCfr2a7zoqz35qnJuyAMGzaGupqQTMqMD7skj5eP1Zjck";
+    const ALEO_VIEW_KEY: &str = "AViewKey1mMm5Tjekqw7jVjAFapyFiryGZmzWr5Qm3cKq7EY5nTGC";
+    const ALEO_ADDRESS: &str = "aleo1fmyklartl6clae8znsqu2ptu9nqtyv9840eujnz9pr5u9vsh358ssl2zrj";
+    const ALEO_SEED: u64 = 12345;
 
     #[wasm_bindgen_test]
     pub fn from_private_key_test() {
