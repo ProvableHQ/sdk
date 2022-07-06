@@ -16,17 +16,17 @@
 
 use aleo::{commands::CLI, helpers::Updater};
 
-use structopt::StructOpt;
+use clap::Parser;
 
 fn main() -> anyhow::Result<()> {
-    let cli = CLI::from_args();
-
-    if cli.debug {
-        println!("\n{:#?}\n", cli);
-    }
-
+    // Parse the given arguments.
+    let cli = CLI::parse();
+    // Run the updater.
     println!("{}", Updater::print_cli());
-    println!("{}", cli.command.parse()?);
-
+    // Run the CLI.
+    match cli.command.parse() {
+        Ok(output) => println!("{output}\n"),
+        Err(error) => println!("⚠️  {error}\n"),
+    }
     Ok(())
 }

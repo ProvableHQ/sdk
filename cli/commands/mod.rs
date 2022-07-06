@@ -14,47 +14,57 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod account;
+mod account;
 pub use account::*;
 
-// pub mod record;
-// pub use record::*;
+mod build;
+pub use build::*;
 
-pub mod update;
+mod new;
+pub use new::*;
+
+mod run;
+pub use run::*;
+
+mod update;
 pub use update::*;
 
-use structopt::StructOpt;
+use anyhow::Result;
+use clap::Parser;
 
-#[derive(StructOpt, Debug)]
-#[structopt(name = "aleo", author = "The Aleo Team <hello@aleo.org>", setting = structopt::clap::AppSettings::ColoredHelp)]
+#[derive(Debug, Parser)]
+#[clap(name = "aleo", author = "The Aleo Team <hello@aleo.org>", setting = clap::AppSettings::ColoredHelp)]
 pub struct CLI {
-    /// Enable debug mode
-    #[structopt(short, long)]
-    pub debug: bool,
-
-    /// Enable verbose mode
-    #[structopt(short, long, parse(from_occurrences))]
-    pub verbose: u8,
-
-    #[structopt(subcommand)]
+    /// Specify the verbosity [options: 0, 1, 2, 3]
+    #[clap(default_value = "2", short, long)]
+    pub verbosity: u8,
+    /// Specify a subcommand.
+    #[clap(subcommand)]
     pub command: Command,
 }
 
-#[derive(StructOpt, Debug)]
+#[derive(Debug, Parser)]
 pub enum Command {
-    #[structopt(name = "account")]
-    Account(Account),
-    // #[structopt(name = "record")]
-    // Record(Record),
-    #[structopt(name = "update")]
+    // #[clap(subcommand)]
+    // Account(Account),
+    #[clap(name = "build")]
+    Build(Build),
+    #[clap(name = "new")]
+    New(New),
+    #[clap(name = "run")]
+    Run(Run),
+    #[clap(subcommand)]
     Update(Update),
 }
 
 impl Command {
-    pub fn parse(self) -> anyhow::Result<String> {
+    /// Parses the command.
+    pub fn parse(self) -> Result<String> {
         match self {
-            Self::Account(command) => command.parse(),
-            // Self::Record(command) => command.parse(),
+            // Self::Account(command) => command.parse(),
+            Self::Build(command) => command.parse(),
+            Self::New(command) => command.parse(),
+            Self::Run(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }
     }

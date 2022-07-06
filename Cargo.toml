@@ -35,7 +35,11 @@ path = "./rust/record"
 version = "0.2.0"
 
 [dependencies.anyhow]
-version = "1.0.44"
+version = "1.0"
+
+[dependencies.clap]
+version = "3.1"
+features = ["derive"]
 
 [dependencies.colored]
 version = "2"
@@ -51,8 +55,11 @@ default-features = false
 [dependencies.self_update]
 version = "0.28"
 
-[dependencies.structopt]
-version = "0.3"
+[dependencies.snarkvm]
+#path = "../snarkVM"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "18ee4e5"
+features = ["circuit", "console"]
 
 [dependencies.thiserror]
 version = "1.0"
