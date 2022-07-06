@@ -14,19 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Aleo, Network};
-use snarkvm::package::Package;
+use crate::{commands::Build, Aleo, Network};
+use snarkvm::{
+    package::Package,
+    prelude::{Identifier, PrivateKey, Value},
+};
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use clap::Parser;
 use colored::Colorize;
 
-/// Compiles an Aleo program.
+/// Executes an Aleo program function.
 #[derive(Debug, Parser)]
-pub struct Build;
+pub struct Run {
+    /// The function name.
+    #[clap(parse(try_from_str))]
+    function: Identifier<Network>,
+    /// The function inputs.
+    #[clap(parse(try_from_str))]
+    inputs: Vec<Value<Network>>,
+}
 
-impl Build {
-    /// Compiles an Aleo program with the specified name.
+impl Run {
+    /// Compiles an Aleo program function with the specified name.
     pub fn parse(self) -> Result<String> {
         // Derive the program directory path.
         let path = std::env::current_dir()?;
@@ -35,26 +45,38 @@ impl Build {
         let package = Package::open(&path)?;
         // If the program requires a build, invoke the build command.
         if package.is_build_required::<Aleo>()? {
-            Self::build(&package)?;
+            Build::build(&package)?;
         }
+
+        // Check that the function exists.
+        if !package.program_file().program().contains_function(&self.function) {
+            bail!("Function '{}' does not exist.", self.function)
+        }
+
+        // Initialize an RNG.
+        let rng = &mut rand::thread_rng();
+
+        // Initialize a new burner caller account.
+        let private_key = PrivateKey::<Network>::new(rng)?;
+        // let caller = Address::try_from(&private_key)?;
+
+        // Compute the signed request.
+        let request = package
+            .program_file()
+            .program()
+            .sign(&private_key, self.function, &self.inputs, rng)?;
+
+        // Execute the request.
+        package.run::<Aleo>(&request)?;
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
         // Log the build as successful.
         Ok(format!(
-            "✅ Built '{}' {}",
+            "✅ Executed '{}' {}",
             package.program_id().to_string().bold(),
             path_string.dimmed()
         ))
-    }
-
-    /// Performs the build command.
-    pub(crate) fn build(package: &Package<Network>) -> Result<()> {
-        println!("⏳ Compiling '{}'...\n", package.program_id().to_string().bold());
-        // Build the package.
-        package.build::<Aleo>()?;
-        println!();
-        Ok(())
     }
 }
