@@ -14,36 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::Network;
+use snarkvm::{package::Package, prelude::ProgramID};
+
 use anyhow::{bail, Result};
 use clap::Parser;
+use core::str::FromStr;
 
-/// Create new Aleo program.
+/// Create a new Aleo package.
 #[derive(Debug, Parser)]
 pub struct New {
-    /// The name of the program.
+    /// The program name.
     name: String,
 }
 
 impl New {
     pub fn parse(self) -> Result<String> {
-        // Check that the given program name is valid.
-        // if !Package::is_program_name_valid(&self.name) {
-        //     return Err(CliError::invalid_project_name().into());
-        // }
-
         // Derive the program directory path.
         let mut path = std::env::current_dir()?;
         path.push(&self.name);
 
-        // Verify the program directory path does not exist yet.
-        if path.exists() {
-            bail!("The program directory already exists: {}", path.display());
-        }
+        // Create the program ID from the name.
+        let id = ProgramID::<Network>::from_str(&self.name)?;
 
-        // Create the program directory.
-        std::fs::create_dir_all(&path)?;
-
-        // Package::initialize(&self.name, &path)?;
+        // Create the package.
+        Package::new(&path, &id)?;
 
         Ok(String::new())
     }

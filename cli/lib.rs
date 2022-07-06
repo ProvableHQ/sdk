@@ -20,3 +20,5 @@ extern crate thiserror;
 pub mod commands;
 pub mod errors;
 pub mod helpers;
+
+pub(crate) type Network = snarkvm::prelude::Testnet3;

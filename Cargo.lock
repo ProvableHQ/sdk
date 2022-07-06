@@ -33,7 +33,8 @@ dependencies = [
  "colored",
  "rand",
  "rand_chacha",
- "self_update",
+ "self_update 0.28.0",
+ "snarkvm",
  "thiserror",
 ]
 
@@ -183,6 +184,12 @@ name = "bech32"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf9ff0bbfd639f15c74af777d81383cf53efb7c93613f6cab67c6c11e05bbf8b"
+
+[[package]]
+name = "bech32"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5738be7561b0eeb501ef1d5c5db3f24e01ceb55fededd9b00039aada34966ad"
 
 [[package]]
 name = "bencher"
@@ -394,6 +401,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam-deque"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6455c0ca19f0d2fbf751b908d5c55c1f5cbc65e03c4225427254b46890bdde1e"
+dependencies = [
+ "cfg-if",
+ "crossbeam-epoch",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-epoch"
+version = "0.9.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07db9d94cbd326813772c968ccd25999e5f8ae22f4f8d1b11effa37ef6ce281d"
+dependencies = [
+ "autocfg",
+ "cfg-if",
+ "crossbeam-utils",
+ "memoffset",
+ "once_cell",
+ "scopeguard",
+]
+
+[[package]]
 name = "crossbeam-utils"
 version = "0.8.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -421,6 +453,36 @@ checksum = "b584a330336237c1eecd3e94266efb216c56ed91225d634cb2991c5f3fd1aeab"
 dependencies = [
  "generic-array",
  "subtle",
+]
+
+[[package]]
+name = "curl"
+version = "0.4.43"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37d855aeef205b43f65a5001e0997d81f8efca7badad4fad7d897aa7f0d0651f"
+dependencies = [
+ "curl-sys",
+ "libc",
+ "openssl-probe",
+ "openssl-sys",
+ "schannel",
+ "socket2",
+ "winapi",
+]
+
+[[package]]
+name = "curl-sys"
+version = "0.4.55+curl-7.83.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23734ec77368ec583c2e61dd3f0b0e5c98b93abe6d2a004ca06b91dd7e3e2762"
+dependencies = [
+ "cc",
+ "libc",
+ "libz-sys",
+ "openssl-sys",
+ "pkg-config",
+ "vcpkg",
+ "winapi",
 ]
 
 [[package]]
@@ -492,6 +554,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9852635589dc9f9ea1b6fe9f05b50ef208c85c834a562f0c6abb1c475736ec2b"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "enum_index"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5532bdea562e7be83060c36185eecccba82fe16729d2eaad2891d65417656dd"
+
+[[package]]
+name = "enum_index_derive"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ab22c8085548bf06190113dca556e149ecdbb05ae5b972a2b9899f26b944ee4"
+dependencies = [
+ "quote 0.3.15",
+ "syn 0.11.11",
 ]
 
 [[package]]
@@ -647,6 +725,9 @@ name = "hashbrown"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db0d4cf898abf0081f964436dc980e96670a0f36863e4b83aaacdb65c9d7ccc3"
+dependencies = [
+ "ahash",
+]
 
 [[package]]
 name = "heck"
@@ -828,6 +909,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
 
 [[package]]
+name = "libz-sys"
+version = "1.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9702761c3935f8cc2f101793272e202c72b99da8f4224a19ddcf1279a6450bbf"
+dependencies = [
+ "cc",
+ "libc",
+ "pkg-config",
+ "vcpkg",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -859,10 +952,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
+name = "memoffset"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5aa361d4faea93603064a027415f07bd8e1d5c88c9fbf68bf56a285428fd79ce"
+dependencies = [
+ "autocfg",
+]
+
+[[package]]
 name = "mime"
 version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a60c7ce501c71e03a9c9c0d35b861413ae925bd979cc7a4e30d060069aaac8d"
+
+[[package]]
+name = "minimal-lexical"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "mio"
@@ -895,6 +1003,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nom"
+version = "7.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8903e5a29a317527874d0402f867152a3d21c908bb0b933e416c65e301d4c36"
+dependencies = [
+ "memchr",
+ "minimal-lexical",
+]
+
+[[package]]
 name = "num-bigint"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -903,6 +1021,17 @@ dependencies = [
  "autocfg",
  "num-integer",
  "num-traits",
+]
+
+[[package]]
+name = "num-derive"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "876a53fff98e03a936a674b29568b0e605f06b29372c2489ff4de23f1949743d"
+dependencies = [
+ "proc-macro2 1.0.40",
+ "quote 1.0.20",
+ "syn 1.0.98",
 ]
 
 [[package]]
@@ -1011,7 +1140,17 @@ checksum = "7d17b78036a60663b797adeaee46f5c9dfebb86948d1255007a1d6be0271ff99"
 dependencies = [
  "instant",
  "lock_api",
- "parking_lot_core",
+ "parking_lot_core 0.8.5",
+]
+
+[[package]]
+name = "parking_lot"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3742b2c103b9f06bc9fff0a37ff4912935851bee6d36f3c02bcc755bcfec228f"
+dependencies = [
+ "lock_api",
+ "parking_lot_core 0.9.3",
 ]
 
 [[package]]
@@ -1026,6 +1165,19 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "winapi",
+]
+
+[[package]]
+name = "parking_lot_core"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09a279cbf25cb0757810394fbc1e359949b59e348145c643a939a525692e6929"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "redox_syscall",
+ "smallvec",
+ "windows-sys",
 ]
 
 [[package]]
@@ -1083,6 +1235,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "proc-macro-crate"
+version = "1.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e17d47ce914bf4de440332250b0edd23ce48c005f59fab39d3335866b114f11a"
+dependencies = [
+ "thiserror",
+ "toml",
+]
+
+[[package]]
 name = "proc-macro-error"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1112,7 +1274,7 @@ version = "0.4.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf3d2011ab5c909338f7887f4fc896d35932e29146c12c8d01da6b22a80ba759"
 dependencies = [
- "unicode-xid",
+ "unicode-xid 0.1.0",
 ]
 
 [[package]]
@@ -1132,6 +1294,21 @@ checksum = "26aab6b48e2590e4a64d1ed808749ba06257882b461d01ca71baeb747074a6dd"
 dependencies = [
  "memchr",
 ]
+
+[[package]]
+name = "quick-xml"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8533f14c8382aaad0d592c812ac3b826162128b65662331e1127b45c3d18536b"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "quote"
+version = "0.3.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a6e920b65c65f10b2ae65c831a81a073a89edd28c7cce89475bff467ab4167a"
 
 [[package]]
 name = "quote"
@@ -1188,6 +1365,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d25bf25ec5ae4a3f1b92f929810509a2f53d7dca2f50b794ff57e3face536c8f"
 dependencies = [
  "rand_core",
+]
+
+[[package]]
+name = "rayon"
+version = "1.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd99e5772ead8baa5215278c9b15bf92087709e9c1b2d1f97cdb5a183c933a7d"
+dependencies = [
+ "autocfg",
+ "crossbeam-deque",
+ "either",
+ "rayon-core",
+]
+
+[[package]]
+name = "rayon-core"
+version = "1.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "258bcdb5ac6dad48491bb2992db6b7cf74878b0384908af124823d118c99683f"
+dependencies = [
+ "crossbeam-channel",
+ "crossbeam-deque",
+ "crossbeam-utils",
+ "num_cpus",
 ]
 
 [[package]]
@@ -1289,6 +1490,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3f6f92acf49d1b98f7a81226834412ada05458b7364277387724a237f062695"
 
 [[package]]
+name = "same-file"
+version = "1.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
+dependencies = [
+ "winapi-util",
+]
+
+[[package]]
 name = "schannel"
 version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1322,7 +1532,7 @@ dependencies = [
  "hex",
  "rand",
  "serde_json",
- "snarkvm-utilities",
+ "snarkvm-utilities 0.8.0",
  "wasm-bindgen",
  "wasm-bindgen-test",
 ]
@@ -1359,10 +1569,27 @@ dependencies = [
  "hyper",
  "indicatif",
  "log",
- "quick-xml",
+ "quick-xml 0.20.0",
  "regex",
  "reqwest",
  "semver 0.11.0",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "self_update"
+version = "0.30.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88c865d17fb512577be02a09fd2fd96c31c7e46fe649205d84feefd8b2a332da"
+dependencies = [
+ "hyper",
+ "indicatif",
+ "log",
+ "quick-xml 0.22.0",
+ "regex",
+ "reqwest",
+ "semver 1.0.12",
  "serde_json",
  "tempfile",
 ]
@@ -1458,6 +1685,55 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fd0db749597d91ff862fd1d55ea87f7855a744a8425a64695b6fca237d1dad1"
 
 [[package]]
+name = "snarkvm"
+version = "0.7.5"
+dependencies = [
+ "anyhow",
+ "clap",
+ "colored",
+ "self_update 0.30.0",
+ "snarkvm-compiler",
+ "snarkvm-console",
+ "snarkvm-utilities 0.7.5",
+ "thiserror",
+ "walkdir",
+]
+
+[[package]]
+name = "snarkvm-algorithms"
+version = "0.7.5"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "bincode",
+ "blake2s_simd",
+ "crossbeam-channel",
+ "curl",
+ "derivative",
+ "digest 0.10.3",
+ "hashbrown 0.12.1",
+ "hex",
+ "itertools",
+ "lazy_static",
+ "num_cpus",
+ "once_cell",
+ "parking_lot 0.12.1",
+ "rand",
+ "rand_chacha",
+ "rand_core",
+ "rayon",
+ "serde",
+ "sha2",
+ "smallvec",
+ "snarkvm-curves 0.7.5",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-parameters 0.7.5",
+ "snarkvm-r1cs 0.7.5",
+ "snarkvm-utilities 0.7.5",
+ "thiserror",
+]
+
+[[package]]
 name = "snarkvm-algorithms"
 version = "0.8.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#3887cbbe73dc961c2fe80641b7a70424a743d7c5"
@@ -1479,11 +1755,403 @@ dependencies = [
  "serde",
  "sha2",
  "smallvec",
- "snarkvm-curves",
- "snarkvm-fields",
+ "snarkvm-curves 0.8.0",
+ "snarkvm-fields 0.8.0",
  "snarkvm-profiler",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-r1cs 0.8.0",
+ "snarkvm-utilities 0.8.0",
+ "thiserror",
+]
+
+[[package]]
+name = "snarkvm-circuit"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-account",
+ "snarkvm-circuit-algorithms",
+ "snarkvm-circuit-collections",
+ "snarkvm-circuit-environment",
+ "snarkvm-circuit-network",
+ "snarkvm-circuit-program",
+ "snarkvm-circuit-transition",
+ "snarkvm-circuit-types",
+]
+
+[[package]]
+name = "snarkvm-circuit-account"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-algorithms",
+ "snarkvm-circuit-network",
+ "snarkvm-circuit-types",
+ "snarkvm-console-account",
+]
+
+[[package]]
+name = "snarkvm-circuit-algorithms"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-types",
+ "snarkvm-console-algorithms",
+ "snarkvm-fields 0.7.5",
+]
+
+[[package]]
+name = "snarkvm-circuit-collections"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-algorithms",
+ "snarkvm-circuit-types",
+ "snarkvm-console-collections",
+]
+
+[[package]]
+name = "snarkvm-circuit-environment"
+version = "0.7.5"
+dependencies = [
+ "indexmap",
+ "itertools",
+ "nom",
+ "num-traits",
+ "once_cell",
+ "snarkvm-circuit-environment-witness",
+ "snarkvm-console-network",
+ "snarkvm-curves 0.7.5",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-r1cs 0.7.5",
+ "snarkvm-utilities 0.7.5",
+]
+
+[[package]]
+name = "snarkvm-circuit-environment-witness"
+version = "0.7.5"
+
+[[package]]
+name = "snarkvm-circuit-network"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-algorithms",
+ "snarkvm-circuit-collections",
+ "snarkvm-circuit-types",
+ "snarkvm-console-network",
+ "snarkvm-fields 0.7.5",
+]
+
+[[package]]
+name = "snarkvm-circuit-program"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-account",
+ "snarkvm-circuit-network",
+ "snarkvm-circuit-types",
+ "snarkvm-console-program",
+ "snarkvm-utilities 0.7.5",
+]
+
+[[package]]
+name = "snarkvm-circuit-transition"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-account",
+ "snarkvm-circuit-network",
+ "snarkvm-circuit-types",
+ "snarkvm-console-transition",
+ "snarkvm-utilities 0.7.5",
+]
+
+[[package]]
+name = "snarkvm-circuit-types"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-environment",
+ "snarkvm-circuit-types-address",
+ "snarkvm-circuit-types-boolean",
+ "snarkvm-circuit-types-field",
+ "snarkvm-circuit-types-group",
+ "snarkvm-circuit-types-integers",
+ "snarkvm-circuit-types-scalar",
+ "snarkvm-circuit-types-string",
+]
+
+[[package]]
+name = "snarkvm-circuit-types-address"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-environment",
+ "snarkvm-circuit-types-boolean",
+ "snarkvm-circuit-types-field",
+ "snarkvm-circuit-types-group",
+ "snarkvm-circuit-types-scalar",
+ "snarkvm-console-types-address",
+]
+
+[[package]]
+name = "snarkvm-circuit-types-boolean"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-environment",
+ "snarkvm-console-types-boolean",
+]
+
+[[package]]
+name = "snarkvm-circuit-types-field"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-environment",
+ "snarkvm-circuit-types-boolean",
+ "snarkvm-console-types-field",
+]
+
+[[package]]
+name = "snarkvm-circuit-types-group"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-environment",
+ "snarkvm-circuit-types-boolean",
+ "snarkvm-circuit-types-field",
+ "snarkvm-circuit-types-scalar",
+ "snarkvm-console-types-group",
+ "snarkvm-curves 0.7.5",
+]
+
+[[package]]
+name = "snarkvm-circuit-types-integers"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-environment",
+ "snarkvm-circuit-types-boolean",
+ "snarkvm-circuit-types-field",
+ "snarkvm-console-types-integers",
+]
+
+[[package]]
+name = "snarkvm-circuit-types-scalar"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-environment",
+ "snarkvm-circuit-types-boolean",
+ "snarkvm-circuit-types-field",
+ "snarkvm-console-types-scalar",
+]
+
+[[package]]
+name = "snarkvm-circuit-types-string"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-circuit-environment",
+ "snarkvm-circuit-types-boolean",
+ "snarkvm-circuit-types-field",
+ "snarkvm-circuit-types-integers",
+ "snarkvm-console-types-string",
+]
+
+[[package]]
+name = "snarkvm-compiler"
+version = "0.7.5"
+dependencies = [
+ "anyhow",
+ "colored",
+ "indexmap",
+ "parking_lot 0.12.1",
+ "paste",
+ "rand",
+ "snarkvm-algorithms 0.7.5",
+ "snarkvm-circuit",
+ "snarkvm-console",
+ "snarkvm-curves 0.7.5",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-utilities 0.7.5",
+ "tracing",
+]
+
+[[package]]
+name = "snarkvm-console"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-account",
+ "snarkvm-console-algorithms",
+ "snarkvm-console-collections",
+ "snarkvm-console-network",
+ "snarkvm-console-program",
+ "snarkvm-console-transition",
+ "snarkvm-console-types",
+]
+
+[[package]]
+name = "snarkvm-console-account"
+version = "0.7.5"
+dependencies = [
+ "base58",
+ "snarkvm-console-network",
+ "snarkvm-console-types",
+]
+
+[[package]]
+name = "snarkvm-console-algorithms"
+version = "0.7.5"
+dependencies = [
+ "blake2s_simd",
+ "smallvec",
+ "snarkvm-console-types",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-utilities 0.7.5",
+]
+
+[[package]]
+name = "snarkvm-console-collections"
+version = "0.7.5"
+dependencies = [
+ "aleo-std",
+ "rayon",
+ "snarkvm-console-algorithms",
+ "snarkvm-console-types",
+]
+
+[[package]]
+name = "snarkvm-console-network"
+version = "0.7.5"
+dependencies = [
+ "anyhow",
+ "itertools",
+ "lazy_static",
+ "serde",
+ "snarkvm-console-algorithms",
+ "snarkvm-console-collections",
+ "snarkvm-console-network-environment",
+ "snarkvm-console-types",
+ "snarkvm-curves 0.7.5",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-utilities 0.7.5",
+]
+
+[[package]]
+name = "snarkvm-console-network-environment"
+version = "0.7.5"
+dependencies = [
+ "anyhow",
+ "bech32 0.9.0",
+ "itertools",
+ "nom",
+ "num-traits",
+ "rand",
+ "rand_xorshift",
+ "serde",
+ "snarkvm-curves 0.7.5",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-utilities 0.7.5",
+]
+
+[[package]]
+name = "snarkvm-console-program"
+version = "0.7.5"
+dependencies = [
+ "enum_index",
+ "enum_index_derive",
+ "indexmap",
+ "num-derive",
+ "num-traits",
+ "once_cell",
+ "snarkvm-console-account",
+ "snarkvm-console-network",
+ "snarkvm-console-types",
+]
+
+[[package]]
+name = "snarkvm-console-transition"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-account",
+ "snarkvm-console-network",
+ "snarkvm-console-types",
+]
+
+[[package]]
+name = "snarkvm-console-types"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-network-environment",
+ "snarkvm-console-types-address",
+ "snarkvm-console-types-boolean",
+ "snarkvm-console-types-field",
+ "snarkvm-console-types-group",
+ "snarkvm-console-types-integers",
+ "snarkvm-console-types-scalar",
+ "snarkvm-console-types-string",
+]
+
+[[package]]
+name = "snarkvm-console-types-address"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-network-environment",
+ "snarkvm-console-types-boolean",
+ "snarkvm-console-types-field",
+ "snarkvm-console-types-group",
+]
+
+[[package]]
+name = "snarkvm-console-types-boolean"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-network-environment",
+]
+
+[[package]]
+name = "snarkvm-console-types-field"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-network-environment",
+ "snarkvm-console-types-boolean",
+]
+
+[[package]]
+name = "snarkvm-console-types-group"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-network-environment",
+ "snarkvm-console-types-boolean",
+ "snarkvm-console-types-field",
+ "snarkvm-console-types-scalar",
+]
+
+[[package]]
+name = "snarkvm-console-types-integers"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-network-environment",
+ "snarkvm-console-types-boolean",
+ "snarkvm-console-types-field",
+]
+
+[[package]]
+name = "snarkvm-console-types-scalar"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-network-environment",
+ "snarkvm-console-types-boolean",
+ "snarkvm-console-types-field",
+]
+
+[[package]]
+name = "snarkvm-console-types-string"
+version = "0.7.5"
+dependencies = [
+ "snarkvm-console-network-environment",
+ "snarkvm-console-types-boolean",
+ "snarkvm-console-types-field",
+ "snarkvm-console-types-integers",
+]
+
+[[package]]
+name = "snarkvm-curves"
+version = "0.7.5"
+dependencies = [
+ "derivative",
+ "rand",
+ "rustc_version",
+ "serde",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-utilities 0.7.5",
  "thiserror",
 ]
 
@@ -1496,8 +2164,8 @@ dependencies = [
  "rand",
  "rustc_version",
  "serde",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-fields 0.8.0",
+ "snarkvm-utilities 0.8.0",
  "thiserror",
 ]
 
@@ -1506,7 +2174,7 @@ name = "snarkvm-derives"
 version = "0.8.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#3887cbbe73dc961c2fe80641b7a70424a743d7c5"
 dependencies = [
- "proc-macro-crate",
+ "proc-macro-crate 0.1.5",
  "proc-macro-error",
  "proc-macro2 1.0.40",
  "quote 1.0.20",
@@ -1520,7 +2188,7 @@ source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#3887cbbe73dc
 dependencies = [
  "anyhow",
  "base58",
- "bech32",
+ "bech32 0.8.1",
  "bincode",
  "blake2",
  "chrono",
@@ -1531,16 +2199,30 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
- "snarkvm-algorithms",
- "snarkvm-curves",
- "snarkvm-fields",
+ "snarkvm-algorithms 0.8.0",
+ "snarkvm-curves 0.8.0",
+ "snarkvm-fields 0.8.0",
  "snarkvm-gadgets",
  "snarkvm-marlin",
- "snarkvm-parameters",
+ "snarkvm-parameters 0.8.0",
  "snarkvm-polycommit",
  "snarkvm-profiler",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-r1cs 0.8.0",
+ "snarkvm-utilities 0.8.0",
+ "thiserror",
+]
+
+[[package]]
+name = "snarkvm-fields"
+version = "0.7.5"
+dependencies = [
+ "anyhow",
+ "derivative",
+ "num-traits",
+ "rand",
+ "rayon",
+ "serde",
+ "snarkvm-utilities 0.7.5",
  "thiserror",
 ]
 
@@ -1553,7 +2235,7 @@ dependencies = [
  "derivative",
  "rand",
  "serde",
- "snarkvm-utilities",
+ "snarkvm-utilities 0.8.0",
  "thiserror",
 ]
 
@@ -1569,11 +2251,11 @@ dependencies = [
  "num-bigint",
  "num-integer",
  "num-traits",
- "snarkvm-algorithms",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-algorithms 0.8.0",
+ "snarkvm-curves 0.8.0",
+ "snarkvm-fields 0.8.0",
+ "snarkvm-r1cs 0.8.0",
+ "snarkvm-utilities 0.8.0",
  "thiserror",
 ]
 
@@ -1593,14 +2275,35 @@ dependencies = [
  "rand_core",
  "serde",
  "smallvec",
- "snarkvm-algorithms",
- "snarkvm-curves",
- "snarkvm-fields",
+ "snarkvm-algorithms 0.8.0",
+ "snarkvm-curves 0.8.0",
+ "snarkvm-fields 0.8.0",
  "snarkvm-gadgets",
  "snarkvm-polycommit",
  "snarkvm-profiler",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-r1cs 0.8.0",
+ "snarkvm-utilities 0.8.0",
+]
+
+[[package]]
+name = "snarkvm-parameters"
+version = "0.7.5"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "bincode",
+ "cfg-if",
+ "curl",
+ "hex",
+ "itertools",
+ "lazy_static",
+ "paste",
+ "rand",
+ "serde_json",
+ "sha2",
+ "snarkvm-curves 0.7.5",
+ "snarkvm-utilities 0.7.5",
+ "thiserror",
 ]
 
 [[package]]
@@ -1612,12 +2315,12 @@ dependencies = [
  "anyhow",
  "cfg-if",
  "hex",
- "parking_lot",
+ "parking_lot 0.11.2",
  "paste",
  "reqwest",
  "serde_json",
- "snarkvm-algorithms",
- "snarkvm-utilities",
+ "snarkvm-algorithms 0.8.0",
+ "snarkvm-utilities 0.8.0",
  "thiserror",
  "wasm-bindgen-futures",
 ]
@@ -1633,19 +2336,34 @@ dependencies = [
  "itertools",
  "rand",
  "rand_core",
- "snarkvm-algorithms",
- "snarkvm-curves",
- "snarkvm-fields",
+ "snarkvm-algorithms 0.8.0",
+ "snarkvm-curves 0.8.0",
+ "snarkvm-fields 0.8.0",
  "snarkvm-gadgets",
  "snarkvm-profiler",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-r1cs 0.8.0",
+ "snarkvm-utilities 0.8.0",
 ]
 
 [[package]]
 name = "snarkvm-profiler"
 version = "0.8.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#3887cbbe73dc961c2fe80641b7a70424a743d7c5"
+
+[[package]]
+name = "snarkvm-r1cs"
+version = "0.7.5"
+dependencies = [
+ "anyhow",
+ "cfg-if",
+ "fxhash",
+ "indexmap",
+ "itertools",
+ "snarkvm-curves 0.7.5",
+ "snarkvm-fields 0.7.5",
+ "snarkvm-utilities 0.7.5",
+ "thiserror",
+]
 
 [[package]]
 name = "snarkvm-r1cs"
@@ -1657,9 +2375,26 @@ dependencies = [
  "fxhash",
  "indexmap",
  "itertools",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-curves 0.8.0",
+ "snarkvm-fields 0.8.0",
+ "snarkvm-utilities 0.8.0",
+ "thiserror",
+]
+
+[[package]]
+name = "snarkvm-utilities"
+version = "0.7.5"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "bincode",
+ "num-bigint",
+ "num_cpus",
+ "rand",
+ "rand_xorshift",
+ "rayon",
+ "serde",
+ "snarkvm-utilities-derives",
  "thiserror",
 ]
 
@@ -1679,6 +2414,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "snarkvm-utilities-derives"
+version = "0.7.5"
+dependencies = [
+ "proc-macro-crate 1.1.3",
+ "proc-macro-error",
+ "proc-macro2 1.0.40",
+ "quote 1.0.20",
+ "syn 1.0.98",
+]
+
+[[package]]
 name = "snarkvm-wasm"
 version = "0.8.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?branch=testnet2#3887cbbe73dc961c2fe80641b7a70424a743d7c5"
@@ -1689,7 +2435,7 @@ dependencies = [
  "rand_xorshift",
  "serde",
  "snarkvm-dpc",
- "snarkvm-utilities",
+ "snarkvm-utilities 0.8.0",
  "wasm-bindgen",
 ]
 
@@ -1717,13 +2463,24 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
+version = "0.11.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3b891b9015c88c576343b9b3e41c2c11a51c219ef067b264bd9c8aa9b441dad"
+dependencies = [
+ "quote 0.3.15",
+ "synom",
+ "unicode-xid 0.0.4",
+]
+
+[[package]]
+name = "syn"
 version = "0.15.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ca4b3b69a77cbe1ffc9e198781b7acb0c7365a883670e8f1c1bc66fba79a5c5"
 dependencies = [
  "proc-macro2 0.4.30",
  "quote 0.6.13",
- "unicode-xid",
+ "unicode-xid 0.1.0",
 ]
 
 [[package]]
@@ -1735,6 +2492,15 @@ dependencies = [
  "proc-macro2 1.0.40",
  "quote 1.0.20",
  "unicode-ident",
+]
+
+[[package]]
+name = "synom"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a393066ed9010ebaed60b9eafa373d4b1baac186dd7e008555b0f702b51945b6"
+dependencies = [
+ "unicode-xid 0.0.4",
 ]
 
 [[package]]
@@ -1875,7 +2641,19 @@ checksum = "a400e31aa60b9d44a52a8ee0343b5b18566b03a8321e0d321f695cf56e940160"
 dependencies = [
  "cfg-if",
  "pin-project-lite",
+ "tracing-attributes",
  "tracing-core",
+]
+
+[[package]]
+name = "tracing-attributes"
+version = "0.1.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11c75893af559bc8e10716548bdef5cb2b983f8e637db9d0e15126b61b484ee2"
+dependencies = [
+ "proc-macro2 1.0.40",
+ "quote 1.0.20",
+ "syn 1.0.98",
 ]
 
 [[package]]
@@ -1928,6 +2706,12 @@ dependencies = [
 
 [[package]]
 name = "unicode-xid"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8c1f860d7d29cf02cb2f3f359fd35991af3d30bac52c57d265a3c461074cb4dc"
+
+[[package]]
+name = "unicode-xid"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc72304796d0818e357ead4e000d19c9c174ab23dc11093ac919054d20a6a7fc"
@@ -1955,6 +2739,17 @@ name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+
+[[package]]
+name = "walkdir"
+version = "2.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "808cf2735cd4b6866113f648b791c6adc5714537bc222d9347bb203386ffda56"
+dependencies = [
+ "same-file",
+ "winapi",
+ "winapi-util",
+]
 
 [[package]]
 name = "want"
