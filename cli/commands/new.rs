@@ -46,7 +46,7 @@ impl New {
         let path_string = format!("(in \"{}\")", path.display());
 
         Ok(format!(
-            "✅ Created an Aleo package '{}' {}",
+            "✅ Created an Aleo program '{}' {}",
             self.name.bold(),
             path_string.dimmed()
         ))
