@@ -17,12 +17,13 @@
 use crate::{commands::Build, Aleo, Network};
 use snarkvm::{
     package::Package,
-    prelude::{Identifier, PrivateKey, Value},
+    prelude::{Identifier, Locator, PrivateKey, Value},
 };
 
 use anyhow::{bail, Result};
 use clap::Parser;
 use colored::Colorize;
+use core::str::FromStr;
 
 /// Executes an Aleo program function.
 #[derive(Debug, Parser)]
@@ -66,16 +67,30 @@ impl Run {
             .program()
             .sign(&private_key, self.function, &self.inputs, rng)?;
 
+        // Prepare the locator.
+        let locator = Locator::<Network>::from_str(&format!("{}/{}", package.program_id(), self.function))?;
+
+        println!("🚀 Executing '{}'...\n", locator.to_string().bold());
+
         // Execute the request.
-        package.run::<Aleo>(&request)?;
+        let (response, _transition) = package.run::<Aleo>(&request)?;
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
-        // Log the build as successful.
+        // Log the outputs.
+        match response.outputs().len() > 1 {
+            true => println!("\n➡️  {}\n", "Outputs"),
+            false => println!("\n➡️  {}\n", "Output"),
+        };
+        for output in response.outputs() {
+            println!("{}", format!(" • {}", output));
+        }
+        println!();
+
         Ok(format!(
             "✅ Executed '{}' {}",
-            package.program_id().to_string().bold(),
+            locator.to_string().bold(),
             path_string.dimmed()
         ))
     }
