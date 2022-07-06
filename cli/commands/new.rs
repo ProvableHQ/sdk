@@ -17,8 +17,9 @@
 use crate::Network;
 use snarkvm::{package::Package, prelude::ProgramID};
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use clap::Parser;
+use colored::Colorize;
 use core::str::FromStr;
 
 /// Create a new Aleo package.
@@ -29,6 +30,7 @@ pub struct New {
 }
 
 impl New {
+    /// Creates an Aleo package with the specified name.
     pub fn parse(self) -> Result<String> {
         // Derive the program directory path.
         let mut path = std::env::current_dir()?;
@@ -40,6 +42,13 @@ impl New {
         // Create the package.
         Package::new(&path, &id)?;
 
-        Ok(String::new())
+        // Prepare the path string.
+        let path_string = format!("(in \"{}\")", path.display());
+
+        Ok(format!(
+            "✅ Created an Aleo package '{}' {}",
+            self.name.bold(),
+            path_string.dimmed()
+        ))
     }
 }
