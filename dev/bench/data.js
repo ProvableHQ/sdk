@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1650579582580,
+  "lastUpdate": 1657097986762,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -2233,6 +2233,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 14993360,
             "range": "± 84493",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5cc2a569c901aa67181312671547f101392c4170",
+          "message": "Merge pull request #280 from AleoHQ/feat/cli\n\nSwitches to `clap`, updates commands",
+          "timestamp": "2022-07-06T01:47:04-07:00",
+          "tree_id": "d059cc2c65f5783762ab0d97f1f43cabb3395768",
+          "url": "https://github.com/AleoHQ/aleo/commit/5cc2a569c901aa67181312671547f101392c4170"
+        },
+        "date": 1657097983502,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 438294,
+            "range": "± 10225",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 17111881,
+            "range": "± 167310",
             "unit": "ns/iter"
           }
         ]
