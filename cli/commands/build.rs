@@ -39,6 +39,8 @@ impl Build {
         // Load the package.
         let package = Package::open(&path)?;
 
+        println!("⏳ Compiling...\n");
+
         // Build the package.
         package.build::<Aleo>()?;
 
@@ -46,12 +48,10 @@ impl Build {
         let path_string = format!("(in \"{}\")", path.display());
 
         // Log the build as successful.
-        println!(
-            "✅ Built '{}' {}",
+        Ok(format!(
+            "\n✅ Built '{}' {}",
             package.program_id().to_string().bold(),
             path_string.dimmed()
-        );
-
-        Ok(String::new())
+        ))
     }
 }
