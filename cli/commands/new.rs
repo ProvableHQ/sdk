@@ -14,46 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-mod account;
-pub use account::*;
-
-mod new;
-pub use new::*;
-
-mod update;
-pub use update::*;
-
-use anyhow::Result;
+use anyhow::{bail, Result};
 use clap::Parser;
 
+/// Create new Aleo program.
 #[derive(Debug, Parser)]
-#[clap(name = "aleo", author = "The Aleo Team <hello@aleo.org>", setting = clap::AppSettings::ColoredHelp)]
-pub struct CLI {
-    /// Specify the verbosity [options: 0, 1, 2, 3]
-    #[clap(default_value = "2", short, long)]
-    pub verbosity: u8,
-    /// Specify a subcommand.
-    #[clap(subcommand)]
-    pub command: Command,
+pub struct New {
+    /// The name of the program.
+    name: String,
 }
 
-#[derive(Debug, Parser)]
-pub enum Command {
-    #[clap(subcommand)]
-    Account(Account),
-    #[clap(name = "new")]
-    New(New),
-    #[clap(subcommand)]
-    Update(Update),
-}
-
-impl Command {
-    /// Parses the command.
+impl New {
     pub fn parse(self) -> Result<String> {
-        match self {
-            Self::Account(command) => command.parse(),
-            Self::New(command) => command.parse(),
-            Self::Update(command) => command.parse(),
+        // Check that the given program name is valid.
+        // if !Package::is_program_name_valid(&self.name) {
+        //     return Err(CliError::invalid_project_name().into());
+        // }
+
+        // Derive the program directory path.
+        let mut path = std::env::current_dir()?;
+        path.push(&self.name);
+
+        // Verify the program directory path does not exist yet.
+        if path.exists() {
+            bail!("The program directory already exists: {}", path.display());
         }
+
+        // Create the program directory.
+        std::fs::create_dir_all(&path)?;
+
+        // Package::initialize(&self.name, &path)?;
+
+        Ok(String::new())
     }
 }

@@ -16,24 +16,25 @@
 
 use aleo_account::Account as AccountNative;
 
+use anyhow::Result;
+use clap::Parser;
 use colored::*;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
-use structopt::StructOpt;
 
-#[derive(StructOpt, Debug)]
-#[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
+/// Commands to manage Aleo accounts.
+#[derive(Debug, Parser)]
 pub enum Account {
     /// Generates a new Aleo account
     New {
         /// Seed the RNG with a numeric value
-        #[structopt(short = "s", long)]
+        #[clap(short = 's', long)]
         seed: Option<u64>,
     },
 }
 
 impl Account {
-    pub fn parse(self) -> anyhow::Result<String> {
+    pub fn parse(self) -> Result<String> {
         match self {
             Self::New { seed } => {
                 // Sample a new Aleo account.

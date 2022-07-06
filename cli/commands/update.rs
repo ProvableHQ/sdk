@@ -16,25 +16,25 @@
 
 use crate::helpers::Updater;
 
-use structopt::StructOpt;
+use anyhow::Result;
+use clap::Parser;
 
-#[derive(StructOpt, Debug)]
-#[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
+/// Update Aleo.
+#[derive(Debug, Parser)]
 pub enum Update {
     /// Update Aleo to the latest version
     Update {
         /// Lists all available versions of Aleo
-        #[structopt(short = "l", long)]
+        #[clap(short = 'l', long)]
         list: bool,
-
         /// Suppress outputs to terminal
-        #[structopt(short = "q", long)]
+        #[clap(short = 'q', long)]
         quiet: bool,
     },
 }
 
 impl Update {
-    pub fn parse(self) -> anyhow::Result<String> {
+    pub fn parse(self) -> Result<String> {
         match self {
             Self::Update { list, quiet } => match list {
                 true => match Updater::show_available_releases() {
