@@ -14,41 +14,44 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Network;
-use snarkvm::{package::Package, prelude::ProgramID};
+use crate::{Aleo, Network};
+use snarkvm::{
+    file::{AleoFile, Manifest},
+    package::Package,
+    prelude::Locator,
+};
 
-use anyhow::Result;
+use anyhow::{ensure, Result};
 use clap::Parser;
 use colored::Colorize;
 use core::str::FromStr;
 
-/// Create a new Aleo package.
+/// Compiles an Aleo package.
 #[derive(Debug, Parser)]
-pub struct New {
-    /// The program name.
-    name: String,
-}
+pub struct Build;
 
-impl New {
-    /// Creates an Aleo package with the specified name.
+impl Build {
+    /// Compiles an Aleo package with the specified name.
     pub fn parse(self) -> Result<String> {
         // Derive the program directory path.
-        let mut path = std::env::current_dir()?;
-        path.push(&self.name);
+        let path = std::env::current_dir()?;
 
-        // Create the program ID from the name.
-        let id = ProgramID::<Network>::from_str(&self.name)?;
+        // Load the package.
+        let package = Package::open(&path)?;
 
-        // Create the package.
-        Package::create(&path, &id)?;
+        // Build the package.
+        package.build::<Aleo>()?;
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
-        Ok(format!(
-            "✅ Created an Aleo package '{}' {}",
-            self.name.bold(),
+        // Log the build as successful.
+        println!(
+            "✅ Built '{}' {}",
+            package.program_id().to_string().bold(),
             path_string.dimmed()
-        ))
+        );
+
+        Ok(String::new())
     }
 }

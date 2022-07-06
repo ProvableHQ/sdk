@@ -17,6 +17,9 @@
 mod account;
 pub use account::*;
 
+mod build;
+pub use build::*;
+
 mod new;
 pub use new::*;
 
@@ -41,6 +44,8 @@ pub struct CLI {
 pub enum Command {
     #[clap(subcommand)]
     Account(Account),
+    #[clap(name = "build")]
+    Build(Build),
     #[clap(name = "new")]
     New(New),
     #[clap(subcommand)]
@@ -52,6 +57,7 @@ impl Command {
     pub fn parse(self) -> Result<String> {
         match self {
             Self::Account(command) => command.parse(),
+            Self::Build(command) => command.parse(),
             Self::New(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }

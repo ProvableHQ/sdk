@@ -1692,9 +1692,10 @@ dependencies = [
  "clap",
  "colored",
  "self_update 0.30.0",
+ "serde_json",
+ "snarkvm-circuit",
  "snarkvm-compiler",
  "snarkvm-console",
- "snarkvm-utilities 0.7.5",
  "thiserror",
  "walkdir",
 ]

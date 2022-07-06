@@ -59,7 +59,7 @@ version = "0.28"
 path = "../snarkVM"
 #git = "https://github.com/AleoHQ/snarkVM.git"
 #branch = "testnet3"
-features = ["console"]
+features = ["circuit", "console"]
 
 [dependencies.thiserror]
 version = "1.0"
