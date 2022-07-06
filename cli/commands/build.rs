@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Aleo, Network};
+use crate::{Aleo};
 use snarkvm::{
-    file::{AleoFile, Manifest},
     package::Package,
-    prelude::Locator,
 };
 
-use anyhow::{ensure, Result};
+use anyhow::{Result};
 use clap::Parser;
 use colored::Colorize;
-use core::str::FromStr;
 
 /// Compiles an Aleo package.
 #[derive(Debug, Parser)]
@@ -39,17 +36,22 @@ impl Build {
         // Load the package.
         let package = Package::open(&path)?;
 
-        println!("⏳ Compiling...\n");
-
-        // Build the package.
-        package.build::<Aleo>()?;
+        // Determine if a build is required.
+        let is_build_required = package.is_build_stale::<Aleo>()?;
+        // If the program requires a build, invoke the build command.
+        if is_build_required {
+            println!("⏳ Compiling '{}'...\n", package.program_id().to_string().bold());
+            // Build the package.
+            package.build::<Aleo>()?;
+            println!();
+        }
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
         // Log the build as successful.
         Ok(format!(
-            "\n✅ Built '{}' {}",
+            "✅ Built '{}' {}",
             package.program_id().to_string().bold(),
             path_string.dimmed()
         ))
