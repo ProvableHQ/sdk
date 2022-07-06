@@ -58,7 +58,7 @@ version = "0.28"
 [dependencies.snarkvm]
 #path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "8ace957"
+rev = "18ee4e5"
 features = ["circuit", "console"]
 
 [dependencies.thiserror]
