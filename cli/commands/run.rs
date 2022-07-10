@@ -17,7 +17,7 @@
 use crate::{commands::Build, Aleo, Network};
 use snarkvm::{
     package::Package,
-    prelude::{Identifier, Locator, PrivateKey, Value},
+    prelude::{Identifier, Locator, Value},
 };
 
 use anyhow::{bail, Result};
@@ -48,32 +48,23 @@ impl Run {
         if package.is_build_required::<Aleo>()? {
             Build::build(&package)?;
         }
-
         // Check that the function exists.
         if !package.program_file().program().contains_function(&self.function) {
             bail!("Function '{}' does not exist.", self.function)
         }
 
-        // Initialize an RNG.
-        let rng = &mut rand::thread_rng();
-
-        // Initialize a new burner caller account.
-        let private_key = PrivateKey::<Network>::new(rng)?;
-        // let caller = Address::try_from(&private_key)?;
-
-        // Compute the signed request.
-        let request = package
-            .program_file()
-            .program()
-            .sign(&private_key, self.function, &self.inputs, rng)?;
-
         // Prepare the locator.
         let locator = Locator::<Network>::from_str(&format!("{}/{}", package.program_id(), self.function))?;
 
-        println!("🚀 Executing '{}'...\n", locator.to_string().bold());
-
+        // Initialize an RNG.
+        let rng = &mut rand::thread_rng();
         // Execute the request.
-        let (response, _transition) = package.run::<Aleo>(&request)?;
+        let (response, _transition) = package.run::<Aleo, _>(
+            package.manifest_file().development_private_key(),
+            self.function,
+            &self.inputs,
+            rng,
+        )?;
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
