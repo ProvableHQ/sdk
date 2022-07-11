@@ -26,8 +26,6 @@ dependencies = [
 name = "aleo"
 version = "0.2.0"
 dependencies = [
- "aleo-account",
- "aleo-record",
  "anyhow",
  "clap",
  "colored",
