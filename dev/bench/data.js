@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657097986762,
+  "lastUpdate": 1657580786575,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -2269,6 +2269,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17111881,
             "range": "± 167310",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "distinct": true,
+          "id": "03b12fffe1e276c845d15ef6c3264aa6f9e9a731",
+          "message": "Merge branch 'feat/cli' of https://github.com/AleoHQ/aleo",
+          "timestamp": "2022-07-11T15:55:04-07:00",
+          "tree_id": "969f257ecd4d10ff4f3ea101076c5821831451b9",
+          "url": "https://github.com/AleoHQ/aleo/commit/03b12fffe1e276c845d15ef6c3264aa6f9e9a731"
+        },
+        "date": 1657580783320,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 401239,
+            "range": "± 2983",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 15007352,
+            "range": "± 135687",
             "unit": "ns/iter"
           }
         ]
