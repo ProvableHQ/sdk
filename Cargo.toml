@@ -26,14 +26,6 @@ path = "cli/lib.rs"
 name = "aleo"
 path = "cli/main.rs"
 
-[dependencies.aleo-account]
-path = "./rust/account"
-version = "0.2.0"
-
-[dependencies.aleo-record]
-path = "./rust/record"
-version = "0.2.0"
-
 [dependencies.anyhow]
 version = "1.0"
 
@@ -58,7 +50,7 @@ version = "0.28"
 [dependencies.snarkvm]
 #path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "18ee4e5"
+rev = "ecc17f1dc"
 features = ["circuit", "console"]
 
 [dependencies.thiserror]

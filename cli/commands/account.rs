@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::Account as AccountNative;
+use snarkvm::prelude::{PrivateKey, ViewKey, Address, Testnet3};
 
 use anyhow::Result;
 use clap::Parser;
 use colored::*;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
+use std::convert::TryFrom;
 
 /// Commands to manage Aleo accounts.
 #[derive(Debug, Parser)]
@@ -38,15 +39,17 @@ impl Account {
         match self {
             Self::New { seed } => {
                 // Sample a new Aleo account.
-                let account = match seed {
-                    Some(seed) => AccountNative::new(&mut ChaChaRng::seed_from_u64(seed)),
-                    None => AccountNative::new(&mut rand::thread_rng()),
+                let private_key = match seed {
+                    Some(seed) => PrivateKey::<Testnet3>::new(&mut ChaChaRng::seed_from_u64(seed))?,
+                    None => PrivateKey::new(&mut rand::thread_rng())?,
                 };
+                let view_key = ViewKey::try_from(&private_key)?;
+                let address = Address::try_from(&view_key)?;
 
                 // Print the new Aleo account.
-                let mut output = format!("\n {:>12}  {}\n", "Private Key".cyan().bold(), account.private_key());
-                output += &format!(" {:>12}  {}\n", "View Key".cyan().bold(), account.view_key());
-                output += &format!(" {:>12}  {}\n", "Address".cyan().bold(), account.address());
+                let mut output = format!("\n {:>12}  {}\n", "Private Key".cyan().bold(), private_key);
+                output += &format!(" {:>12}  {}\n", "View Key".cyan().bold(), view_key);
+                output += &format!(" {:>12}  {}\n", "Address".cyan().bold(), address);
 
                 Ok(output)
             }
