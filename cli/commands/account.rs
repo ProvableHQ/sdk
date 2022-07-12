@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm::prelude::{PrivateKey, ViewKey, Address, Testnet3};
+use snarkvm::prelude::{Address, PrivateKey, Testnet3, ViewKey};
 
 use anyhow::Result;
 use clap::Parser;
