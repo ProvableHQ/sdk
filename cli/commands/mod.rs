@@ -20,6 +20,9 @@ pub use account::*;
 mod build;
 pub use build::*;
 
+mod clean;
+pub use clean::*;
+
 mod new;
 pub use new::*;
 
@@ -45,10 +48,12 @@ pub struct CLI {
 
 #[derive(Debug, Parser)]
 pub enum Command {
-    // #[clap(subcommand)]
-    // Account(Account),
+    #[clap(subcommand)]
+    Account(Account),
     #[clap(name = "build")]
     Build(Build),
+    #[clap(name = "clean")]
+    Clean(Clean),
     #[clap(name = "new")]
     New(New),
     #[clap(name = "run")]
@@ -61,8 +66,9 @@ impl Command {
     /// Parses the command.
     pub fn parse(self) -> Result<String> {
         match self {
-            // Self::Account(command) => command.parse(),
+            Self::Account(command) => command.parse(),
             Self::Build(command) => command.parse(),
+            Self::Clean(command) => command.parse(),
             Self::New(command) => command.parse(),
             Self::Run(command) => command.parse(),
             Self::Update(command) => command.parse(),
