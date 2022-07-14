@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::Network;
-use snarkvm::{package::Package};
+use snarkvm::package::Package;
 
 use anyhow::Result;
 use clap::Parser;
@@ -39,9 +39,6 @@ impl Clean {
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", package.build_directory().display());
 
-        Ok(format!(
-            "✅ Cleaned the build directory {}",
-            path_string.dimmed()
-        ))
+        Ok(format!("✅ Cleaned the build directory {}", path_string.dimmed()))
     }
 }
