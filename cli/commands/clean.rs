@@ -31,13 +31,11 @@ impl Clean {
         // Derive the program directory path.
         let path = std::env::current_dir()?;
 
-        // Load the package.
-        let package = Package::<Network>::open(&path)?;
         // Clean the build directory.
-        package.clean()?;
+        Package::<Network>::clean(&path)?;
 
         // Prepare the path string.
-        let path_string = format!("(in \"{}\")", package.build_directory().display());
+        let path_string = format!("(in \"{}\")", path.join("build").display());
 
         Ok(format!("✅ Cleaned the build directory {}", path_string.dimmed()))
     }
