@@ -34,7 +34,7 @@ impl Build {
         // Load the package.
         let package = Package::open(&path)?;
         // If the program requires a build, invoke the build command.
-        if package.is_build_required::<Aleo>()? {
+        if package.is_build_required::<Aleo>() {
             Self::build(&package)?;
         }
 

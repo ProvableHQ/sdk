@@ -45,7 +45,7 @@ impl Run {
         // Load the package.
         let package = Package::open(&path)?;
         // If the program requires a build, invoke the build command.
-        if package.is_build_required::<Aleo>()? {
+        if package.is_build_required::<Aleo>() {
             Build::build(&package)?;
         }
         // Check that the function exists.
