@@ -34,6 +34,12 @@ pub struct Run {
     /// The function inputs.
     #[clap(parse(try_from_str))]
     inputs: Vec<Value<Network>>,
+    /// Uses the specified endpoint.
+    #[clap(long)]
+    endpoint: Option<String>,
+    /// Toggles offline mode.
+    #[clap(long)]
+    offline: bool,
 }
 
 impl Run {
@@ -46,7 +52,7 @@ impl Run {
         let package = Package::open(&path)?;
         // If the program requires a build, invoke the build command.
         if package.is_build_required::<Aleo>() {
-            Build::build(&package)?;
+            Build::build(&package, self.endpoint, self.offline)?;
         }
         // Check that the function exists.
         if !package.program_file().program().contains_function(&self.function) {

@@ -23,7 +23,14 @@ use colored::Colorize;
 
 /// Compiles an Aleo program.
 #[derive(Debug, Parser)]
-pub struct Build;
+pub struct Build {
+    /// Uses the specified endpoint.
+    #[clap(long)]
+    endpoint: Option<String>,
+    /// Toggles offline mode.
+    #[clap(long)]
+    offline: bool,
+}
 
 impl Build {
     /// Compiles an Aleo program with the specified name.
@@ -35,7 +42,7 @@ impl Build {
         let package = Package::open(&path)?;
         // If the program requires a build, invoke the build command.
         if package.is_build_required::<Aleo>() {
-            Self::build(&package)?;
+            Self::build(&package, self.endpoint, self.offline)?;
         }
 
         // Prepare the path string.
@@ -50,10 +57,13 @@ impl Build {
     }
 
     /// Performs the build command.
-    pub(crate) fn build(package: &Package<Network>) -> Result<()> {
+    pub(crate) fn build(package: &Package<Network>, endpoint: Option<String>, offline: bool) -> Result<()> {
         println!("⏳ Compiling '{}'...\n", package.program_id().to_string().bold());
         // Build the package.
-        package.build::<Aleo>()?;
+        package.build::<Aleo>(match offline {
+            true => None,
+            false => Some(endpoint.unwrap_or("https://vm.aleo.org/testnet3/build".to_string())),
+        })?;
         println!();
         Ok(())
     }
