@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1658127028460,
+  "lastUpdate": 1658169278768,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -2701,6 +2701,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 15049412,
             "range": "± 91180",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "762af04a41dd2ad3872d1bd4de02472a0932a070",
+          "message": "Merge pull request #284 from AleoHQ/uncomment-dep",
+          "timestamp": "2022-07-18T11:22:09-07:00",
+          "tree_id": "71b5dc4d10b782373df7b636a496bc3c1bd44971",
+          "url": "https://github.com/AleoHQ/aleo/commit/762af04a41dd2ad3872d1bd4de02472a0932a070"
+        },
+        "date": 1658169275410,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 403968,
+            "range": "± 2774",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 15018501,
+            "range": "± 16479",
             "unit": "ns/iter"
           }
         ]
