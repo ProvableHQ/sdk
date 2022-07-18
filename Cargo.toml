@@ -48,9 +48,8 @@ default-features = false
 version = "0.28"
 
 [dependencies.snarkvm]
-path = "../snarkVM"
-#git = "https://github.com/AleoHQ/snarkVM.git"
-#rev = "7cdcf44"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "7cdcf44"
 features = ["circuit", "console", "parallel"]
 
 [dependencies.thiserror]
