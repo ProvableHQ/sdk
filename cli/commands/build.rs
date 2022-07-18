@@ -57,13 +57,14 @@ impl Build {
     }
 
     /// Performs the build command.
-    pub(crate) fn build(package: &Package<Network>, endpoint: Option<String>, offline: bool) -> Result<()> {
+    pub(crate) fn build(package: &Package<Network>, endpoint: Option<String>, _offline: bool) -> Result<()> {
         println!("⏳ Compiling '{}'...\n", package.program_id().to_string().bold());
         // Build the package.
-        package.build::<Aleo>(match offline {
-            true => None,
-            false => Some(endpoint.unwrap_or("https://vm.aleo.org/testnet3/build".to_string())),
-        })?;
+        package.build::<Aleo>(endpoint)?;
+        // package.build::<Aleo>(match offline {
+        //     true => None,
+        //     false => Some(endpoint.unwrap_or("https://vm.aleo.org/testnet3/build".to_string())),
+        // })?;
         println!();
         Ok(())
     }
