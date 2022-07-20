@@ -49,7 +49,7 @@ version = "0.28"
 
 [dependencies.snarkvm]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "fa0c074"
+rev = "074cd20"
 features = ["circuit", "console", "parallel"]
 
 [dependencies.thiserror]
