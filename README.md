@@ -214,6 +214,128 @@ Similar to the input sections, the output section does the same for the output o
       output r2 as u32.private;
   ```
 
+### 3.5 Types
+
+Aleo is a typed language, right now you have the following data types available:
+
+Aleo defined:
+```
+Boolean
+Field
+Group
+I8
+I16
+I32
+I64
+I128
+U8
+U16
+U32
+U64
+U128
+Scalar
+String (not well supported right now)
+```
+
+User defined:
+```
+Interface
+Record
+```
+
+#### 3.5.1 Registers
+
+Register are the places where you store data to then be able to modify it.
+
+#### 3.5.2 Interfaces
+
+Interfaces are user-defined data structures. They are very much like traditional structs in conventional programming languages. You can store Interfaces into registers, like with any other Aleo data types.
+
+For example, let's build an interface representing a fixed-size array of 3 elements. Add this at the bottom of the *main.aleo* file:
+
+```
+interface array3:
+    a0 as u32;
+    a1 as u32;
+    a2 as u32;
+```
+
+Now, just for example purposes, let's code a function that adds one to every element of a register with an array3 data type stored in it.
+
+```
+function sum_one_to_array3:
+    input r0 as array3.private;
+    add r0.a0 1u32 into r1;
+    add r0.a1 1u32 into r2;
+    add r0.a2 1u32 into r3;
+    cast r1 r2 r3 into r4 as array3;
+    output r4 as array3.private;
+```
+
+As you can see, we can input an interface into register `r0` and access interface elements with the `.` syntax. We perform the `add` instruction on every element, storing the results in registers `r1`, `r2` and `r3` and, finally, we make use of the cast command to create a new array3 interface into `r4`.
+
+Now, let's run it. In this case, the only new thing you need to know is that interfaces are passed to the cli in the following format:
+
+```
+"{a0: 1u32, a1: 2u32, a2: 3u32}"
+```
+
+Now we can execute the `aleo run` command. We will clean the project to pick up the new code:
+
+```
+aleo clean && aleo run sum_one_to_array3 "{a0: 0u32, a1: 1u32, a2: 2u32}"
+```
+
+And we get the new array3 element as output:
+
+```
+🚀 Executing 'foo.aleo/sum_one_to_array3'...
+ • Calling 'foo.aleo/sum_one_to_array3'...
+ • Executed 'sum_one_to_array3' (in 1331 ms)
+➡️  Output
+ • {
+  a0: 1u32,
+  a1: 2u32,
+  a2: 3u32
+}
+✅ Executed 'foo.aleo/sum_one_to_array3' (in "[...]/foo")
+```
+
+#### 3.5.3 Records
+
+A record is a fundamental data structure for encoding user assets and application state. They are very similar to interfaces, but they have two non-optional parameters:
+
+```
+record token:
+    owner as address.private
+    gates as u64.private
+```
+
+the `owner` refers to the Aleo address that owns the record and `gates` is the amount of credits that the record has to spend.
+
+Records are important because they represent the basic Aleo structure to handle state in your application.
+
+When running an Aleo function, only registers that belong to the application address can be passed as input registers. Otherwise, an error would be raised and the application wouldn't run.
+
+You can find your development application address inside the *program.json* file:
+
+```
+{
+    "program": "foo.aleo",
+    "version": "0.0.0",
+    "description": "",
+    "development": {
+        "private_key": "APrivateKey1zkpFsQNXJwdvjKs9bRsM91KcwJW1gW4CDtF3FJbgVBAvPds",
+        "address": "aleo1x5nz5u4j50w482t5xtqc3jdwly9s8saaxlgjz0wvmuzmxv2l5q9qmypx09"
+    },
+    "license": "MIT"
+}
+```
+
+#### 3.5.4 Aleo State
+
+In Aleo, the state of an application is managed through records. An Aleo account can create a transaction to consume a record and produce a new record in its place. Records on Aleo are encrypted to the record owner address, ensuring that all records in Aleo are fully private.
+
 [//]: # (### 3.4 Decrypt an Aleo record ciphertext.)
 
 [//]: # ()
