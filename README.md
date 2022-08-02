@@ -88,8 +88,6 @@ OPTIONS:
 
 ### 3.2 Create and build a new project
 
-#### 3.2.1 Create a new project
-
 To create a new project, we'll use the `new` command. Our project:
 
 ``` bash
@@ -102,7 +100,7 @@ This will create **foo** directory and the files with the basic structure of the
 - **main.aleo** the main file of the source code.
 - **program.json** containing the identification of the project in JSON format. Particularly, a dev address and its private key for the program.
 
-Let's open *main.aleo* and define the sum function:
+The main.aleo file should have contents like this:
 
 ```
 // The 'foo.aleo' program.
@@ -113,10 +111,6 @@ function hello:
     add r0 r1 into r2;
     output r2 as u32.private;
 ```
-
-We will dig on what this code means in a second. First, we are going to build our foo program.
-
-#### 3.2.2 Compile a new project
 
 To compile the project, run in the main directory:
 
@@ -137,15 +131,15 @@ First, a "universal setup" is loaded into your environment. You can read more ab
 
 Once the universal setup is ready, every function in your *main.aleo* file is built, generating this in the output folder:
 
-* **sum.prover** the prover for the sum function.
-* **sum.verifier** the verifier for the sum function.
+* **hello.prover** the prover for the sum function.
+* **hello.verifier** the verifier for the sum function.
 * **main.avm** the bytecode of your aleo program to be run by the VM.
 
 As you can already guess, we have only one `.avm` file for the whole program, but a prover and verifier for every function.
 
-#### 3.2.3 Running a program
+### 3.3 Running a program
 
-You can run a program with the `aleo run` command, followed by the function name you want to execute and its input parameters. Let's run our sum functions:
+You can run a program with the `aleo run` command, followed by the function name you want to execute and its input parameters
 
 ``` bash
 aleo run sum 2u32 3u32
@@ -154,17 +148,17 @@ aleo run sum 2u32 3u32
 when the executing is finished, you should see the following output:
 
 ``` bash
-🚀 Executing 'foo.aleo/sum'...
- • Calling 'foo.aleo/sum'...
- • Executed 'sum' (in 1170 ms)
+🚀 Executing 'foo.aleo/hello'...
+ • Calling 'foo.aleo/hello'...
+ • Executed 'hello' (in 1170 ms)
 ➡️  Output
  • 5u32
-✅ Executed 'foo.aleo/sum' (in "[...]/foo")
+✅ Executed 'foo.aleo/hello' (in "[...]/foo")
 ```
 
-As you can see here, the sum function execution lasted 1170ms and the output register was assigned with the `5u32` value, representing the sum of the inputs.
+As you can see, the output register was assigned with the `5u32` value, representing the sum of the inputs.
 
-[//]: # (### 3.3 Decrypt an Aleo record ciphertext.)
+[//]: # (### 3.4 Decrypt an Aleo record ciphertext.)
 
 [//]: # ()
 [//]: # (To decrypt a record and view its contexts, run:)
