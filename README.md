@@ -86,6 +86,36 @@ OPTIONS:
     -s, --seed <seed> 
 ```
 
+### 3.2 Create and build a new project
+
+#### 3.2.1 Create a new project
+
+To create a new project, we'll use the `new` command. Our project:
+
+``` bash
+aleo new foo
+```
+
+This will create **foo** directory and the files with the basic structure of the project:
+
+- **README.md** having the skeleton of a README with instructions on how to compile.
+- **main.aleo** the main file of the source code.
+- **program.json** containing the identification of the project in JSON format. Particularly, a dev address and its private key for the program.
+
+Let's open *main.aleo* and define the sum function:
+
+```
+// The 'foo.aleo' program.
+program foo.aleo;
+function sum:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+```
+
+We will dig on what this code means in a second. First, we are going to build our foo program.
+
 [//]: # (### 3.2 Decrypt an Aleo record ciphertext.)
 
 [//]: # ()
