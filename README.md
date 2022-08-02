@@ -222,21 +222,21 @@ Aleo is a typed language, right now you have the following data types available:
 
 Aleo defined:
 ```
-Boolean
-Field
-Group
-I8
-I16
-I32
-I64
-I128
-U8
-U16
-U32
-U64
-U128
-Scalar
-String (not well supported right now)
+boolean
+field
+group
+i8
+i16
+i32
+i64
+i128
+u8
+u16
+u32
+u64
+u128
+scalar
+string (not well supported right now)
 ```
 
 User defined:
@@ -247,11 +247,11 @@ Record
 
 #### 3.5.1 Registers
 
-Register are the places where you store data to then be able to modify it.
+Registers are the places where you store data to then be able to modify it.
 
 #### 3.5.2 Interfaces
 
-Interfaces are user-defined data structures. They are very much like traditional structs in conventional programming languages. You can store Interfaces into registers, like with any other Aleo data types.
+Interfaces are user-defined data structures. They are very much like traditional structs in conventional programming languages. You can store interfaces into registers, like with any other Aleo data types.
 
 For example, let's build an interface representing a fixed-size array of 3 elements. Add this at the bottom of the *main.aleo* file:
 
@@ -262,7 +262,7 @@ interface array3:
     a2 as u32;
 ```
 
-Now, just for example purposes, let's code a function that adds one to every element of a register with an array3 data type stored in it.
+Now, just for example purposes, let's code a function that adds one to each element of a register with an array3 data type stored in it.
 
 ```
 function sum_one_to_array3:
@@ -288,7 +288,7 @@ Now we can execute the `aleo run` command. We will clean the project to pick up 
 aleo clean && aleo run sum_one_to_array3 "{a0: 0u32, a1: 1u32, a2: 2u32}"
 ```
 
-And we get the new array3 element as output:
+And we get the new `array3` element as output:
 
 ```
 🚀 Executing 'foo.aleo/sum_one_to_array3'...
@@ -336,7 +336,7 @@ You can find your development application address inside the *program.json* file
 
 #### 3.5.4 Aleo State
 
-In Aleo, the state of an application is managed through records. An Aleo account can create a transaction to consume a record and produce a new record in its place. Records on Aleo are encrypted to the record owner address, ensuring that all records in Aleo are fully private.
+In Aleo, the state of an application is managed through records. An Aleo account can create a transaction to consume a record and produce a new record in its place. Records in Aleo are encrypted to the record owner address, ensuring that all records in Aleo are fully private.
 
 
 ### 3.6 Your first Aleo Program: Making a transfer
@@ -370,9 +370,9 @@ function transfer_amount:
     // receiver new token record
     output r6 as token.record;
 ```
-First, we defined our own record type data type called `token`, that has the two non-optional parameters, `owner` and `gates`, and a user-defined parameter called `amount`, representing the amount of tokens we have.
+First, we define our own record data type called `token`, that has the two non-optional parameters, `owner` and `gates`, and a user-defined parameter called `amount`, representing the amount of tokens we have.
 
-This `transfer_amount` function receives 3 input parameters (`sender` record, `receiver` record and `amount`) and stores them in 3 registers (`r0`, `r1` and `r2`). After that, it computes the final balance for both of them and stores it in `r3` and `r4` (using **sub** and **add** instructions to compute the subtraction and addition). With those final amounts, it creates the output records for sender and receiver, storing them in `r5` and `r6` . Finally, both records are sent out of the function with the **output** instruction.
+This `transfer_amount` function receives 3 input parameters (`sender` record, `receiver` record and `amount`) and stores them in 3 registers (`r0`, `r1` and `r2`). After that, it computes the final balance for both of them and stores it in `r3` and `r4` (using **sub** and **add** instructions to compute the subtraction and addition respectively). With those final amounts, it creates the output records for sender and receiver, storing them in `r5` and `r6` . Finally, both records are sent out of the function with the **output** instruction.
 
 To run this function, the first parameter is the input record of the program. The format of this parameter is the same as for interface types:
 
@@ -384,11 +384,11 @@ To run this function, the first parameter is the input record of the program. Th
 }
 ```
 
-where:
+Where:
 
-* owner: the public address of the program, as found in the `development.address` of the build/program.json file.
-* gates: the gates that the record has.
-* other parameters: depending on the program itself (in this example, we used the parameter _amount_ with the value 50).
+- owner: the public address of the program, as found in the `development.address` of the build/program.json file.
+- gates: the gates that the record has.
+- other parameters: depending on the program itself (in this example, we used the parameter _amount_ with the value 50).
 
 Let's run the `transfer_amount` function (if you are following along, remember to use the address found in the program.json for the owner field):
 
@@ -424,7 +424,7 @@ We get the following output records:
 
 And that's it. You have transferred your first own-defined tokens in Aleo!
 
-Note: the _nonce is not written in Aleo instructions. The compiler outputs the _nonce in record outputs. The user needs to provide it as input when using a record.
+Note: the `_nonce` is not written in Aleo instructions. The compiler outputs the _nonce in record outputs. The user needs to provide it as input when using a record.
 
 [//]: # (### 3.7 Decrypt an Aleo record ciphertext.)
 
