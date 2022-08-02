@@ -107,7 +107,7 @@ Let's open *main.aleo* and define the sum function:
 ```
 // The 'foo.aleo' program.
 program foo.aleo;
-function sum:
+function hello:
     input r0 as u32.public;
     input r1 as u32.private;
     add r0 r1 into r2;
