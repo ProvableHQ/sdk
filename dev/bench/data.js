@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659477932385,
+  "lastUpdate": 1659480263803,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -2881,6 +2881,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 15657939,
             "range": "± 2127681",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cbbe6c4a4041da6d5c55a88bd73ca6fcd63f317d",
+          "message": "Merge pull request #293 from Entropy1729/CU-36ga2gy_create_and_build_new_project_readme\n\nCreate and build new project",
+          "timestamp": "2022-08-03T00:39:03+02:00",
+          "tree_id": "39c08666a4ae0ba179039ab742ed07348c301abf",
+          "url": "https://github.com/AleoHQ/aleo/commit/cbbe6c4a4041da6d5c55a88bd73ca6fcd63f317d"
+        },
+        "date": 1659480260147,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 402919,
+            "range": "± 2801",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 15081717,
+            "range": "± 39495",
             "unit": "ns/iter"
           }
         ]
