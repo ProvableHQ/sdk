@@ -158,6 +158,62 @@ when the executing is finished, you should see the following output:
 
 As you can see, the output register was assigned with the `5u32` value, representing the sum of the inputs.
 
+### 3.4 Overview of a program
+
+Let's examine the foo program inside the *main.aleo* file:
+
+```
+// The 'foo.aleo' program.
+program foo.aleo;
+
+function sum:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+```
+
+First, we need to declare the program as the following:
+
+```
+program foo.aleo;
+```
+
+Afterwards, we can start writing its functions (or other aleo structures such as interfaces, records, closures, as we will see later)
+
+In the case of functions we have it very easy:
+
+```
+function [function_name]: 
+```
+
+The functions are composed of three main parts:
+
+- **The input section**
+  Here we declare its input parameters:
+  ```
+      input r0 as u32.public;
+      input r1 as u32.private;
+  ```
+  Everything in aleo instructions are declared/stored inside a register with a type (`i8`,`field`,`bool`, etc) and a visibility option (`public` or `private`), register are named as `r0`, `r1`, ..., `rn`.
+
+  In this case we use `r0`, and `r1` to store the inputs passed in sequential order to a program as `u32` values, where we can store 32bits unsigned integers to perform our sum operation.
+
+- **The instructions section**
+  The next section, consists in the core of our function, here we call the amount of Aleo Instructions we need to make our program do what we want. For example, performing an add operation:
+  ```
+      add r0 r1 into r2;
+  ```
+  Every aleo instruction is followed by its input parameters with its specific types, and the result is store in the *into* register.
+
+  You can find all the available aleo instructions [here](https://hackmd.io/@aleo/SJ0mrYRv5#shr).
+
+* **The output section**
+Similar to the input sections, the output section does the same for the output of the program. It's the return of the function.
+  ```
+      output r2 as u32.private;
+  ```
+
 [//]: # (### 3.4 Decrypt an Aleo record ciphertext.)
 
 [//]: # ()
