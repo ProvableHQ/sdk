@@ -164,7 +164,7 @@ when the executing is finished, you should see the following output:
 
 As you can see here, the sum function execution lasted 1170ms and the output register was assigned with the `5u32` value, representing the sum of the inputs.
 
-[//]: # (### 3.2 Decrypt an Aleo record ciphertext.)
+[//]: # (### 3.3 Decrypt an Aleo record ciphertext.)
 
 [//]: # ()
 [//]: # (To decrypt a record and view its contexts, run:)
