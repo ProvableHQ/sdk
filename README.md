@@ -336,6 +336,94 @@ You can find your development application address inside the *program.json* file
 
 In Aleo, the state of an application is managed through records. An Aleo account can create a transaction to consume a record and produce a new record in its place. Records on Aleo are encrypted to the record owner address, ensuring that all records in Aleo are fully private.
 
+
+### 3.6 Your first Aleo Program: Making a transfer
+
+
+Consider this program:
+```
+// The 'foo.aleo' program.
+program foo.aleo;
+record token:
+    owner as address.private;
+    gates as u64.private;
+    amount as u64.private;
+function transfer_amount:
+    //  sender token record
+    input r0 as token.record;
+    // receiver address
+    input r1 as address.private;
+    // amount to transfer
+    input r2 as u64.private;
+    // final balance of sender
+    sub r0.amount r2 into r3;
+    // final balance of receiver
+    add 0u64 r2 into r4;
+    // sender token record after the transfer
+    cast r0.owner r0.gates r3 into r5 as token.record;
+    // receiver token record after the transfer
+    cast r1 0u64 r4 into r6 as token.record;
+    // sender new token record
+    output r5 as token.record;
+    // receiver new token record
+    output r6 as token.record;
+```
+First, we defined our own record type data type called `token`, that has the two non-optional parameters, `owner` and `gates`, and a user-defined parameter called `amount`, representing the amount of tokens we have.
+
+This `transfer_amount` function receives 3 input parameters (`sender` record, `receiver` record and `amount`) and stores them in 3 registers (`r0`, `r1` and `r2`). After that, it computes the final balance for both of them and stores it in `r3` and `r4` (using **sub** and **add** instructions to compute the subtraction and addition). With those final amounts, it creates the output records for sender and receiver, storing them in `r5` and `r6` . Finally, both records are sent out of the function with the **output** instruction.
+
+To run this function, the first parameter is the input record of the program. The format of this parameter is the same as for interface types:
+
+```
+{
+  owner: aleo1x5nz5u4j50w482t5xtqc3jdwly9s8saaxlgjz0wvmuzmxv2l5q9qmypx09.private,
+  gates: 0u64.private,
+  amount: 50u64.private
+}
+```
+
+where:
+
+* owner: the public address of the program, as found in the `development.address` of the build/program.json file.
+* gates: the gates that the record has.
+* other parameters: depending on the program itself (in this example, we used the parameter _amount_ with the value 50).
+
+Let's run the `transfer_amount` function (if you are following along, remember to use the address found in the program.json for the owner field):
+
+``` bash
+aleo clean && aleo run transfer_amount "{
+owner: aleo1x5nz5u4j50w482t5xtqc3jdwly9s8saaxlgjz0wvmuzmxv2l5q9qmypx09.private,
+gates: 0u64.private,
+amount: 50u64.private
+}" aleo1h3gu7fky36y8r7v2x9phc434fgf20g8qd7c7u45v269jfw6vmugqjegcvp 10u64
+```
+
+We get the following output records:
+
+```
+🚀 Executing 'foo.aleo/transfer_amount'...
+ • Calling 'foo.aleo/transfer_amount'...
+ • Executed 'transfer_amount' (in 3520 ms)
+➡️  Outputs
+ • {
+  owner: aleo1x5nz5u4j50w482t5xtqc3jdwly9s8saaxlgjz0wvmuzmxv2l5q9qmypx09.private,
+  gates: 0u64.private,
+  amount: 40u64.private
+  _nonce: 2293253577170800572742339369209137467208538700597121244293392265726446806023group.public
+}
+ • {
+  owner: aleo1h3gu7fky36y8r7v2x9phc434fgf20g8qd7c7u45v269jfw6vmugqjegcvp.private,
+  gates: 0u64.private,
+  amount: 10u64.private
+  _nonce: 2323253577170856894742339369235137467208538700597121244293392765726742543235group.public
+}
+✅ Executed 'foo.aleo/transfer_amount' (in "[...]/foo")
+```
+
+And that's it. You have transferred your first own-defined tokens in Aleo!
+
+Note: the _nonce is not written in Aleo instructions. The compiler outputs the _nonce in record outputs. The user needs to provide it as input when using a record.
+
 [//]: # (### 3.4 Decrypt an Aleo record ciphertext.)
 
 [//]: # ()
