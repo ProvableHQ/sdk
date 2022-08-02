@@ -131,9 +131,9 @@ First, a "universal setup" is loaded into your environment. You can read more ab
 
 Once the universal setup is ready, every function in your *main.aleo* file is built, generating this in the output folder:
 
-* **hello.prover** the prover for the sum function.
-* **hello.verifier** the verifier for the sum function.
-* **main.avm** the bytecode of your aleo program to be run by the VM.
+- **hello.prover** the prover for the sum function.
+- **hello.verifier** the verifier for the sum function.
+- **main.avm** the bytecode of your aleo program to be run by the VM.
 
 As you can already guess, we have only one `.avm` file for the whole program, but a prover and verifier for every function.
 
@@ -145,7 +145,7 @@ You can run a program with the `aleo run` command, followed by the function name
 aleo run sum 2u32 3u32
 ```
 
-when the executing is finished, you should see the following output:
+When the execution is finished, you should see the following output:
 
 ``` bash
 🚀 Executing 'foo.aleo/hello'...
@@ -195,11 +195,12 @@ The functions are composed of three main parts:
       input r0 as u32.public;
       input r1 as u32.private;
   ```
-  Everything in aleo instructions are declared/stored inside a register with a type (`i8`,`field`,`bool`, etc) and a visibility option (`public` or `private`), register are named as `r0`, `r1`, ..., `rn`.
+  Everything in aleo instructions are declared/stored inside a register with a type (`i8`,`field`,`bool`, etc) and a visibility option (`public` or `private`), registers are named as `r0`, `r1`, ..., `rn`.
 
   In this case we use `r0`, and `r1` to store the inputs passed in sequential order to a program as `u32` values, where we can store 32bits unsigned integers to perform our sum operation.
 
 - **The instructions section**
+
   The next section, consists in the core of our function, here we call the amount of Aleo Instructions we need to make our program do what we want. For example, performing an add operation:
   ```
       add r0 r1 into r2;
@@ -208,8 +209,9 @@ The functions are composed of three main parts:
 
   You can find all the available aleo instructions [here](https://hackmd.io/@aleo/SJ0mrYRv5#shr).
 
-* **The output section**
-Similar to the input sections, the output section does the same for the output of the program. It's the return of the function.
+- **The output section**
+
+  Similar to the input sections, the output section does the same for the output of the program. It's the return of the function.
   ```
       output r2 as u32.private;
   ```
@@ -424,7 +426,7 @@ And that's it. You have transferred your first own-defined tokens in Aleo!
 
 Note: the _nonce is not written in Aleo instructions. The compiler outputs the _nonce in record outputs. The user needs to provide it as input when using a record.
 
-[//]: # (### 3.4 Decrypt an Aleo record ciphertext.)
+[//]: # (### 3.7 Decrypt an Aleo record ciphertext.)
 
 [//]: # ()
 [//]: # (To decrypt a record and view its contexts, run:)
