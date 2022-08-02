@@ -116,6 +116,33 @@ function sum:
 
 We will dig on what this code means in a second. First, we are going to build our foo program.
 
+#### 3.2.2 Compile a new project
+
+To compile the project, run in the main directory:
+
+``` bash
+aleo build
+```
+
+You will see output like this:
+
+```
+⏳ Compiling 'foo.aleo'...
+ • Loaded universal setup (in 1478 ms)
+ • Built 'sum' (in 6323 ms)
+✅ Built 'foo.aleo' (in "[...]/foo")
+```
+
+First, a "universal setup" is loaded into your environment. You can read more about this [here](https://www.aleo.org/post/announcing-aleo-setup) or in the [Marlin paper](https://eprint.iacr.org/2019/1047.pdf).
+
+Once the universal setup is ready, every function in your *main.aleo* file is built, generating this in the output folder:
+
+* **sum.prover** the prover for the sum function.
+* **sum.verifier** the verifier for the sum function.
+* **main.avm** the bytecode of your aleo program to be run by the VM.
+
+As you can already guess, we have only one `.avm` file for the whole program, but a prover and verifier for every function.
+
 [//]: # (### 3.2 Decrypt an Aleo record ciphertext.)
 
 [//]: # ()
