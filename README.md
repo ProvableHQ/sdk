@@ -143,6 +143,27 @@ Once the universal setup is ready, every function in your *main.aleo* file is bu
 
 As you can already guess, we have only one `.avm` file for the whole program, but a prover and verifier for every function.
 
+#### 3.2.3 Running a program
+
+You can run a program with the `aleo run` command, followed by the function name you want to execute and its input parameters. Let's run our sum functions:
+
+``` bash
+aleo run sum 2u32 3u32
+```
+
+when the executing is finished, you should see the following output:
+
+``` bash
+🚀 Executing 'foo.aleo/sum'...
+ • Calling 'foo.aleo/sum'...
+ • Executed 'sum' (in 1170 ms)
+➡️  Output
+ • 5u32
+✅ Executed 'foo.aleo/sum' (in "[...]/foo")
+```
+
+As you can see here, the sum function execution lasted 1170ms and the output register was assigned with the `5u32` value, representing the sum of the inputs.
+
 [//]: # (### 3.2 Decrypt an Aleo record ciphertext.)
 
 [//]: # ()
