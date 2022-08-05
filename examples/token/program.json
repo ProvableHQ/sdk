@@ -1,0 +1,10 @@
+{
+    "program": "token.aleo",
+    "version": "0.0.0",
+    "description": "",
+    "development": {
+        "private_key": "APrivateKey1zkpB3DxLAYtTP2NZ3dZiebXaAJtt7ZSQQ6LMEhVyKy2ynVH",
+        "address": "aleo1gy9h3a9sywc7p23acd5jjt9suuh663q0fv8uegpgr36je20xf5rsggnarq"
+    },
+    "license": "MIT"
+}
