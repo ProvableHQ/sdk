@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659693153643,
+  "lastUpdate": 1659737283579,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3025,6 +3025,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet2_account_new",
             "value": 17199772,
             "range": "± 38051",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "distinct": true,
+          "id": "6f2c3ec15855bf217b426741b632ec28db918373",
+          "message": "Add examples folder",
+          "timestamp": "2022-08-05T15:02:46-07:00",
+          "tree_id": "f6d3b1e5539d3d062aebf12b1eab2ccac4dabb57",
+          "url": "https://github.com/AleoHQ/aleo/commit/6f2c3ec15855bf217b426741b632ec28db918373"
+        },
+        "date": 1659737279567,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet2_account_from_private_key",
+            "value": 403695,
+            "range": "± 3556",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet2_account_new",
+            "value": 15019669,
+            "range": "± 13196",
             "unit": "ns/iter"
           }
         ]
