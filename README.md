@@ -17,8 +17,6 @@ and broadcast it to the network.
 
 ## 1. Overview
 
-**EthDenver 2022 participants click [here](https://github.com/AleoHQ/bounty-2022-ethdenver).**
-
 For more information, on Aleo visit [Welcome to Aleo](https://developer.aleo.org/aleo/getting_started/overview/) to get started.
 
 ## 2. Build Guide
@@ -37,29 +35,25 @@ We recommend installing Rust using [rustup](https://www.rustup.rs/). You can ins
   Download the [Windows 64-bit executable](https://win.rustup.rs/x86_64) or
   [Windows 32-bit executable](https://win.rustup.rs/i686) and follow the on-screen instructions.
 
-### 2.2a Build from Crates.io
+### 2.2 Build from Crates.io
 
 We recommend installing `aleo` this way. In your terminal, run:
 
-```bash
-cargo install aleo
-```
-
-Now to use `aleo`, in your terminal, run:
-```bash
-aleo
-```
-
+<!--
 ### 2.2b Build from Source Code
 
 Alternatively, you can install `aleo` by building from the source code as follows:
+-->
 
 ```bash
 # Download the source code
-git clone https://github.com/AleoHQ/aleo && cd aleo
+git clone https://github.com/AleoHQ/aleo.git
 
-# Install Aleo
-$ cargo install --path .
+# Enter the 'aleo' directory
+cd aleo
+
+# Install 'aleo'
+cargo install --path .
 ```
 
 Now to use `aleo`, in your terminal, run:
