@@ -53,17 +53,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aleo-record"
-version = "0.2.0"
-dependencies = [
- "aleo-account",
- "rand",
- "rand_chacha",
- "serde_json",
- "snarkvm-wasm",
-]
-
-[[package]]
 name = "aleo-std"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1606,7 +1595,6 @@ name = "sdk"
 version = "0.3.1"
 dependencies = [
  "aleo-account",
- "aleo-record",
  "console_error_panic_hook",
  "getrandom",
  "hex",
