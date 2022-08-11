@@ -130,13 +130,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aleo-transaction"
-version = "0.2.0"
-dependencies = [
- "snarkvm-wasm",
-]
-
-[[package]]
 name = "anyhow"
 version = "1.0.59"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1614,7 +1607,6 @@ version = "0.3.1"
 dependencies = [
  "aleo-account",
  "aleo-record",
- "aleo-transaction",
  "console_error_panic_hook",
  "getrandom",
  "hex",
