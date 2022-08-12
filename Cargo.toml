@@ -14,8 +14,6 @@ edition = "2018"
 [workspace]
 members = [
     "rust/account",
-    "rust/record",
-    "rust/transaction",
     "wasm"
 ]
 
@@ -49,7 +47,7 @@ version = "0.28"
 
 [dependencies.snarkvm]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "22f3aa8"
+rev = "2589aba"
 features = ["aleo-cli", "circuit", "console", "parallel"]
 
 [dependencies.thiserror]

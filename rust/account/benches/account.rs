@@ -22,25 +22,26 @@ extern crate bencher;
 use bencher::Bencher;
 use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
+use std::convert::TryFrom;
 
 pub const SEED: u64 = 1231275789u64;
 
-fn testnet2_account_new(bench: &mut Bencher) {
+fn testnet3_private_key_new(bench: &mut Bencher) {
     let rng = &mut ChaChaRng::seed_from_u64(SEED);
 
     bench.iter(|| {
-        let _account = Account::new(rng);
+        let _private_key = PrivateKey::new(rng).unwrap();
     })
 }
 
-fn testnet2_account_from_private_key(bench: &mut Bencher) {
+fn testnet3_address_from_private_key(bench: &mut Bencher) {
     let rng = &mut ChaChaRng::seed_from_u64(SEED);
-    let private_key = PrivateKey::new(rng);
+    let private_key = PrivateKey::new(rng).unwrap();
 
     bench.iter(|| {
-        let _account = Account::from(private_key.clone());
+        let _address = Address::try_from(private_key).unwrap();
     })
 }
 
-benchmark_group!(testnet2, testnet2_account_new, testnet2_account_from_private_key);
-benchmark_main!(testnet2);
+benchmark_group!(testnet3, testnet3_private_key_new, testnet3_address_from_private_key);
+benchmark_main!(testnet3);

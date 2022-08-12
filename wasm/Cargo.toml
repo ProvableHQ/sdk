@@ -17,12 +17,6 @@ crate-type = ["cdylib", "rlib"]
 [dependencies.aleo-account]
 path = "../rust/account"
 
-[dependencies.aleo-record]
-path = "../rust/record"
-
-[dependencies.aleo-transaction]
-path = "../rust/transaction"
-
 [dependencies.getrandom]
 version = "0.2"
 features = ["js"]
@@ -35,10 +29,6 @@ version = "0.8"
 
 [dependencies.serde_json]
 version = "1.0"
-
-[dependencies.snarkvm-utilities]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
 
 [dependencies.wasm-bindgen]
 version = "0.2"
