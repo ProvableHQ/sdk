@@ -115,7 +115,7 @@ impl<N: Network> Ledger<N> {
         let record = self
             .ledger
             .read()
-            .find_records(&self.view_key, RecordsFilter::AllUnspent(self.private_key))
+            .find_records(&self.view_key, RecordsFilter::Unspent)?
             .max_by(|(_, a), (_, b)| (**a.gates()).cmp(&**b.gates()));
 
         // Prepare the additional fee.
@@ -148,7 +148,7 @@ impl<N: Network> Ledger<N> {
         let record = self
             .ledger
             .read()
-            .find_records(&self.view_key, RecordsFilter::AllUnspent(self.private_key))
+            .find_records(&self.view_key, RecordsFilter::Unspent)?
             .filter(|(_, record)| !record.gates().is_zero())
             .min_by(|(_, a), (_, b)| (**a.gates()).cmp(&**b.gates()));
 

@@ -1,5 +1,5 @@
 use crate::helpers::Ledger;
-use snarkvm::prelude::{Field, GraphKey, Network, RecordsFilter, Transaction, ViewKey};
+use snarkvm::prelude::{Field, Network, RecordsFilter, Transaction, ViewKey};
 
 use anyhow::Result;
 use core::marker::PhantomData;
@@ -222,37 +222,31 @@ impl<N: Network> Server<N> {
         let records: IndexMap<_, _> = ledger
             .ledger
             .read()
-            .find_records(&view_key, RecordsFilter::All)
+            .find_records(&view_key, RecordsFilter::All).or_reject()?
             .collect();
         // Return the records.
         Ok(reply::with_status(reply::json(&records), StatusCode::OK))
     }
 
     /// Returns the spent records for the given view key.
-    async fn records_spent(body: IndexMap<String, String>, ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
-        // Parse the body.
-        let view_key: ViewKey<N> = body["view_key"].parse().or_reject()?;
-        let graph_key: GraphKey<N> = body["graph_key"].parse().or_reject()?;
+    async fn records_spent(view_key: ViewKey<N>, ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
         // Fetch the records using the view key.
         let records = ledger
             .ledger
             .read()
-            .find_records(&view_key, RecordsFilter::Spent(graph_key))
+            .find_records(&view_key, RecordsFilter::Spent).or_reject()?
             .collect::<IndexMap<_, _>>();
         // Return the records.
         Ok(reply::with_status(reply::json(&records), StatusCode::OK))
     }
 
     /// Returns the unspent records for the given view key.
-    async fn records_unspent(body: IndexMap<String, String>, ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
-        // Parse the body.
-        let view_key: ViewKey<N> = body["view_key"].parse().or_reject()?;
-        let graph_key: GraphKey<N> = body["graph_key"].parse().or_reject()?;
+    async fn records_unspent(view_key: ViewKey<N>, ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
         // Fetch the records using the view key.
         let records = ledger
             .ledger
             .read()
-            .find_records(&view_key, RecordsFilter::Unspent(graph_key))
+            .find_records(&view_key, RecordsFilter::Unspent).or_reject()?
             .collect::<IndexMap<_, _>>();
         // Return the records.
         Ok(reply::with_status(reply::json(&records), StatusCode::OK))

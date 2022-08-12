@@ -18,7 +18,7 @@ harness = false
 
 [dependencies.snarkvm-wasm]
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "0a5f6f1"
+rev = "412ff7b"
 features = ["parallel"]
 
 [dev-dependencies.rand]
