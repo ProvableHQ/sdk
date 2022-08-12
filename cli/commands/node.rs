@@ -22,9 +22,9 @@ use snarkvm::{
         Block,
         BlockMemory,
         Identifier,
-        OutputRecordsFilter,
         PrivateKey,
         ProgramID,
+        RecordsFilter,
         Transaction,
         Value,
         ViewKey,
@@ -112,7 +112,7 @@ impl Ledger {
         let records = self
             .ledger
             .read()
-            .find_records(&self.view_key, OutputRecordsFilter::AllUnspent(self.private_key))
+            .find_records(&self.view_key, RecordsFilter::AllUnspent(self.private_key))
             .filter(|(_, record)| !record.gates().is_zero())
             .collect::<IndexMap<_, _>>();
         ensure!(!records.len().is_zero(), "The Aleo account has no records to spend.");
@@ -192,10 +192,12 @@ impl Node {
 
                     // Advance to the next block.
                     let next_block = ledger.advance_to_next_block()?;
-                    println!("Block {}: {}", next_block.height(), serde_json::to_string_pretty(&next_block)?);
+                    println!(
+                        "Block {}: {}",
+                        next_block.height(),
+                        serde_json::to_string_pretty(&next_block)?
+                    );
                 }
-
-                // Ok("Successfully terminated the local Aleo node".to_string())
             }
         }
     }
