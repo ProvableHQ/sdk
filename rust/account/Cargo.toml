@@ -18,9 +18,8 @@ harness = false
 
 [dependencies.snarkvm-wasm]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
-default-features = false
-features = [ "dpc" ]
+rev = "2589aba"
+features = ["parallel"]
 
 [dev-dependencies.rand]
 version = "0.8.0"

@@ -32,7 +32,8 @@ version = "1.0"
 
 [dependencies.snarkvm-utilities]
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
+rev = "2589aba"
+features = ["parallel"]
 
 [dependencies.wasm-bindgen]
 version = "0.2"
