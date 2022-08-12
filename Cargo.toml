@@ -36,7 +36,10 @@ version = "2"
 
 [dependencies.indexmap]
 version = "1.9"
-features = ["rayon"]
+features = ["rayon", "serde"]
+
+[dependencies.once_cell]
+version = "1"
 
 [dependencies.parking_lot]
 version = "0.12"
@@ -61,11 +64,18 @@ version = "1"
 [dependencies.snarkvm]
 #path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "d207aa2"
+rev = "0a5f6f1"
 features = ["aleo-cli", "circuit", "console", "parallel"]
 
 [dependencies.thiserror]
 version = "1.0"
+
+[dependencies.tokio]
+version = "1.5"
+features = ["rt"]
+
+[dependencies.warp]
+version = "0.3"
 
 [profile.release]
 opt-level = 3
