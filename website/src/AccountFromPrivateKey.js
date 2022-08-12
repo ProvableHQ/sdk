@@ -10,7 +10,7 @@ export const AccountFromPrivateKey = () => {
     const onChange = (event) => {
         setAccount(null);
         try {
-            setAccount(aleo.Account.from_private_key(event.target.value))
+            setAccount(aleo.PrivateKey.from_string(event.target.value))
         } catch (error) {
             console.error(error);
         }

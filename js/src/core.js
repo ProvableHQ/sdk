@@ -2,19 +2,19 @@ const aleo = require('aleo-wasm');
 
 class Account {
     constructor() {
-        this.account = new aleo.Account();
+        this.private_key = new aleo.PrivateKey();
     }
 
     privateKey() {
-        return this.account.to_private_key();
+        return this.private_key.to_string();
     }
 
     viewKey() {
-        return this.account.to_view_key();
+        return this.private_key.to_view_key();
     }
 
     address() {
-        return this.account.to_address();
+        return this.private_key.to_address();
     }
 }
 
