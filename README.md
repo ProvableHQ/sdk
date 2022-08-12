@@ -117,16 +117,16 @@ You will see output like this:
 ```
 ⏳ Compiling 'foo.aleo'...
  • Loaded universal setup (in 1478 ms)
- • Built 'sum' (in 6323 ms)
-✅ Built 'foo.aleo' (in "[...]/foo")
+ • Built 'hello' (in 3250 ms)
+✅ Built 'foo.aleo' (in "~/foo")
 ```
 
 First, a "universal setup" is loaded into your environment. You can read more about this [here](https://www.aleo.org/post/announcing-aleo-setup) or in the [Marlin paper](https://eprint.iacr.org/2019/1047.pdf).
 
 Once the universal setup is ready, every function in your *main.aleo* file is built, generating this in the output folder:
 
-- **hello.prover** the prover for the sum function.
-- **hello.verifier** the verifier for the sum function.
+- **hello.prover** the prover for the `hello` function.
+- **hello.verifier** the verifier for the `hello` function.
 - **main.avm** the bytecode of your aleo program to be run by the VM.
 
 As you can already guess, we have only one `.avm` file for the whole program, but a prover and verifier for every function.
@@ -136,7 +136,7 @@ As you can already guess, we have only one `.avm` file for the whole program, bu
 You can run a program with the `aleo run` command, followed by the function name you want to execute and its input parameters
 
 ``` bash
-aleo run sum 2u32 3u32
+aleo run hello 2u32 3u32
 ```
 
 When the execution is finished, you should see the following output:
@@ -160,7 +160,7 @@ Let's examine the foo program inside the *main.aleo* file:
 // The 'foo.aleo' program.
 program foo.aleo;
 
-function sum:
+function hello:
     input r0 as u32.public;
     input r1 as u32.private;
     add r0 r1 into r2;
@@ -212,9 +212,9 @@ The functions are composed of three main parts:
 
 ### 3.5 Types
 
-Aleo is a typed language, right now you have the following data types available:
+Aleo uses a strongly-typed syntax. The language supports 16 primitive types, and allows users to define custom types.
 
-Aleo defined:
+The Aleo primitive types include:
 ```
 boolean
 field
@@ -230,14 +230,10 @@ u32
 u64
 u128
 scalar
-string (not well supported right now)
+string
 ```
 
-User defined:
-```
-Interface
-Record
-```
+Users can define custom types using the `interface` or `record` keywords. We will explore these in the next few sections.
 
 #### 3.5.1 Registers
 
