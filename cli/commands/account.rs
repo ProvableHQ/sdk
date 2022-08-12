@@ -75,19 +75,19 @@ mod tests {
     fn test_new_seeded() {
         let seed = Some(1231275789u64);
         let mut expected = format!(
-            "\n {:>12}  {}\n",
+            " {:>12}  {}\n",
             "Private Key".cyan().bold(),
-            "APrivateKey1zkp8cC4jgHEBnbtu3xxs1Ndja2EMizcvTRDq5Nikdkukg1p"
+            "APrivateKey1zkp2oVPTci9kKcUprnbzMwq95Di1MQERpYBhEeqvkrDirK1"
         );
         expected += &format!(
             " {:>12}  {}\n",
             "View Key".cyan().bold(),
-            "AViewKey1iAf6a7fv6ELA4ECwAth1hDNUJJNNoWNThmREjpybqder"
+            "AViewKey1mmLWAuYDaM1NfgNaD1Jy7THG8uS4Ui2zyugFuPEijgyQ"
         );
         expected += &format!(
-            " {:>12}  {}\n",
+            " {:>12}  {}",
             "Address".cyan().bold(),
-            "aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah"
+            "aleo1whnlxsgnhc8ywft2l4nu9hywedspcjpwcsgg490ckz34tthqsupqdh5z64"
         );
         let account = Account::New { seed };
         let actual = account.parse().unwrap();
