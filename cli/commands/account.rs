@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm::prelude::{Address, PrivateKey, Testnet3, ViewKey};
+use crate::Network;
+use snarkvm::prelude::{Address, PrivateKey, ViewKey};
 
 use anyhow::Result;
 use clap::Parser;
@@ -40,7 +41,7 @@ impl Account {
             Self::New { seed } => {
                 // Sample a new Aleo account.
                 let private_key = match seed {
-                    Some(seed) => PrivateKey::<Testnet3>::new(&mut ChaChaRng::seed_from_u64(seed))?,
+                    Some(seed) => PrivateKey::<Network>::new(&mut ChaChaRng::seed_from_u64(seed))?,
                     None => PrivateKey::new(&mut rand::thread_rng())?,
                 };
                 let view_key = ViewKey::try_from(&private_key)?;

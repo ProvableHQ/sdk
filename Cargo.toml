@@ -36,6 +36,13 @@ features = ["derive"]
 [dependencies.colored]
 version = "2"
 
+[dependencies.indexmap]
+version = "1.9"
+features = ["rayon"]
+
+[dependencies.parking_lot]
+version = "0.12"
+
 [dependencies.rand]
 version = "0.8"
 default-features = false
@@ -47,9 +54,16 @@ default-features = false
 [dependencies.self_update]
 version = "0.28"
 
+[dependencies.serde]
+version = "1"
+
+[dependencies.serde_json]
+version = "1"
+
 [dependencies.snarkvm]
+#path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "22f3aa8"
+rev = "57b20ba"
 features = ["aleo-cli", "circuit", "console", "parallel"]
 
 [dependencies.thiserror]

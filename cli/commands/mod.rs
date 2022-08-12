@@ -26,6 +26,9 @@ pub use clean::*;
 mod new;
 pub use new::*;
 
+mod node;
+pub use node::*;
+
 mod run;
 pub use run::*;
 
@@ -56,6 +59,8 @@ pub enum Command {
     Clean(Clean),
     #[clap(name = "new")]
     New(New),
+    #[clap(subcommand)]
+    Node(Node),
     #[clap(name = "run")]
     Run(Run),
     #[clap(subcommand)]
@@ -70,6 +75,7 @@ impl Command {
             Self::Build(command) => command.parse(),
             Self::Clean(command) => command.parse(),
             Self::New(command) => command.parse(),
+            Self::Node(command) => command.parse(),
             Self::Run(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }
