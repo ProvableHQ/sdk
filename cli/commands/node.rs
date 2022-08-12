@@ -116,7 +116,6 @@ impl Ledger {
             .filter(|(_, record)| !record.gates().is_zero())
             .collect::<IndexMap<_, _>>();
         ensure!(!records.len().is_zero(), "The Aleo account has no records to spend.");
-        // trace!("Unspent Records:\n{:#?}", records);
 
         // Initialize an RNG.
         let rng = &mut ::rand::thread_rng();
@@ -170,7 +169,7 @@ impl Node {
                 let manifest = Manifest::open(&directory)?;
 
                 println!(
-                    "⏳ Starting a local development node for '{}'...\n",
+                    "⏳ Starting a local development node for '{}' (in-memory)...\n",
                     manifest.program_id().to_string().bold()
                 );
 
@@ -180,26 +179,23 @@ impl Node {
                 // Initialize the ledger.
                 let ledger = Arc::new(Ledger::load(private_key)?);
 
-                // println!("⏳ Initializing the first block for the local development node...\n");
-
                 // // Initialize a channel to send requests to the ledger.
                 // let (ledger_sender, ledger_receiver) = mpsc::channel(64);
                 // let _handle_ledger = handle_ledger::<Network>(ledger.clone(), ledger_receiver);
                 // let _handle_server = handle_server::<Network>(ledger.clone(), ledger_sender);
 
-                // loop {
-                //     // Create a transfer transaction.
-                //     let transaction = ledger.create_transfer(ledger.address(), 1)?;
-                //     // Add the transaction to the memory pool.
-                //     ledger.add_to_memory_pool(transaction)?;
-                //
-                //     // Advance to the next block.
-                //     let next_block = ledger.advance_to_next_block()?;
-                //     println!("Block {}: {}", next_block.height(), serde_json::to_string_pretty(&next_block)?);
-                //     // trace!("Block {}: {}", next_block.height(), serde_json::to_string_pretty(&next_block)?);
-                // }
+                loop {
+                    // Create a transfer transaction.
+                    let transaction = ledger.create_transfer(ledger.address(), 1)?;
+                    // Add the transaction to the memory pool.
+                    ledger.add_to_memory_pool(transaction)?;
 
-                Ok("Successfully terminated the local Aleo node".to_string())
+                    // Advance to the next block.
+                    let next_block = ledger.advance_to_next_block()?;
+                    println!("Block {}: {}", next_block.height(), serde_json::to_string_pretty(&next_block)?);
+                }
+
+                // Ok("Successfully terminated the local Aleo node".to_string())
             }
         }
     }
