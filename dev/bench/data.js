@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660278411221,
+  "lastUpdate": 1660280676920,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3241,6 +3241,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 177239,
             "range": "± 357",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3525b30e7f2795d1be2a6fa85ab7be9c130a6cff",
+          "message": "Merge pull request #301 from AleoHQ/fix/circle-ci\n\nFix/circle ci",
+          "timestamp": "2022-08-12T07:00:24+02:00",
+          "tree_id": "00bf66b879c71e89350f2308b120f257ba002ce7",
+          "url": "https://github.com/AleoHQ/aleo/commit/3525b30e7f2795d1be2a6fa85ab7be9c130a6cff"
+        },
+        "date": 1660280673360,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 307073,
+            "range": "± 2979",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 177797,
+            "range": "± 185",
             "unit": "ns/iter"
           }
         ]
