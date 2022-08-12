@@ -54,7 +54,7 @@ pub struct Server<N: Network> {
     /// The ledger sender.
     ledger_sender: LedgerSender<N>,
     /// The server handles.
-    handles: JoinHandle<Vec<JoinHandle<()>>>,
+    handles: Vec<JoinHandle<()>>,
     /// PhantomData.
     _phantom: PhantomData<N>,
 }
@@ -136,7 +136,7 @@ impl<N: Network> Server<N> {
             .build()?;
 
         // Initialize the server.
-        let handles = runtime.spawn(async move {
+        let handles = runtime.block_on(async move {
             // Initialize a vector for the server handles.
             let mut handles = Vec::new();
 
@@ -153,7 +153,7 @@ impl<N: Network> Server<N> {
                     .or(records_unspent)
                     .or(transaction_broadcast);
                 // Start the server.
-                println!("🌐 Server is running at http://0.0.0.0:4180\n");
+                println!("\n🌐 Server is running at http://0.0.0.0:4180");
                 warp::serve(routes).run(([0, 0, 0, 0], 4180)).await;
             }));
 
