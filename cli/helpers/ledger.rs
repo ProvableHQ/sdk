@@ -19,14 +19,11 @@ use snarkvm::prelude::{
     Address,
     Block,
     BlockMemory,
-    Field,
     Identifier,
     Network,
-    Plaintext,
     PrivateKey,
     Program,
     ProgramID,
-    Record,
     RecordsFilter,
     Transaction,
     Value,
@@ -35,9 +32,8 @@ use snarkvm::prelude::{
     VM,
 };
 
-use anyhow::{anyhow, ensure, Result};
+use anyhow::{anyhow, bail, ensure, Result};
 use core::str::FromStr;
-use indexmap::IndexMap;
 use once_cell::race::OnceBox;
 use parking_lot::RwLock;
 use std::{convert::TryFrom, sync::Arc};
@@ -113,45 +109,32 @@ impl<N: Network> Ledger<N> {
         Ok(next_block)
     }
 
-    /// Returns the unspent records.
-    pub fn find_unspent_records(&self) -> Result<IndexMap<Field<N>, Record<N, Plaintext<N>>>> {
-        // Fetch the unspent records.
-        let records = self
+    /// Creates a deploy transaction.
+    pub fn create_deploy(&self, program: &Program<N>, additional_fee: u64) -> Result<Transaction<N>> {
+        // Fetch the unspent record with the most gates.
+        let record = self
             .ledger
             .read()
             .find_records(&self.view_key, RecordsFilter::AllUnspent(self.private_key))
-            .filter(|(_, record)| !record.gates().is_zero())
-            .collect::<IndexMap<_, _>>();
-        // Return the unspent records.
-        Ok(records)
-    }
-
-    /// Creates a deploy transaction.
-    pub fn create_deploy(&self, program: &Program<N>, additional_fee: u64) -> Result<Transaction<N>> {
-        // Fetch the unspent records.
-        let records = self.find_unspent_records()?;
-        ensure!(!records.len().is_zero(), "The Aleo account has no records to spend.");
+            .max_by(|(_, a), (_, b)| (**a.gates()).cmp(&**b.gates()));
 
         // Prepare the additional fee.
-        let credits = records
-            .values()
-            .max_by(|a, b| (**a.gates()).cmp(&**b.gates()))
-            .unwrap()
-            .clone();
+        let credits = match record {
+            Some((_, record)) => record,
+            None => bail!("The Aleo account has no records to spend."),
+        };
         ensure!(
             ***credits.gates() >= additional_fee,
-            "The additional fee is more than the record balance."
+            "The additional fee exceeds the record balance."
         );
 
-        // Initialize an RNG.
-        let rng = &mut ::rand::thread_rng();
         // Deploy.
         let transaction = Transaction::deploy(
             &self.ledger.read().vm(),
             &self.private_key,
             program,
             (credits, additional_fee),
-            rng,
+            &mut rand::thread_rng(),
         )?;
         // Verify.
         assert!(self.ledger.read().vm().verify(&transaction));
@@ -161,12 +144,19 @@ impl<N: Network> Ledger<N> {
 
     /// Creates a transfer transaction.
     pub fn create_transfer(&self, to: &Address<N>, amount: u64) -> Result<Transaction<N>> {
-        // Fetch the unspent records.
-        let records = self.find_unspent_records()?;
-        ensure!(!records.len().is_zero(), "The Aleo account has no records to spend.");
+        // Fetch the unspent record with the least gates.
+        let record = self
+            .ledger
+            .read()
+            .find_records(&self.view_key, RecordsFilter::AllUnspent(self.private_key))
+            .filter(|(_, record)| !record.gates().is_zero())
+            .min_by(|(_, a), (_, b)| (**a.gates()).cmp(&**b.gates()));
 
-        // Initialize an RNG.
-        let rng = &mut ::rand::thread_rng();
+        // Prepare the record.
+        let record = match record {
+            Some((_, record)) => record,
+            None => bail!("The Aleo account has no records to spend."),
+        };
 
         // Create a new transaction.
         Transaction::execute(
@@ -175,12 +165,12 @@ impl<N: Network> Ledger<N> {
             &ProgramID::from_str("credits.aleo")?,
             Identifier::from_str("transfer")?,
             &[
-                Value::Record(records.values().next().unwrap().clone()),
+                Value::Record(record),
                 Value::from_str(&format!("{to}"))?,
                 Value::from_str(&format!("{amount}u64"))?,
             ],
             None,
-            rng,
+            &mut rand::thread_rng(),
         )
     }
 }
