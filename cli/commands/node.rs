@@ -17,13 +17,18 @@
 use crate::Network;
 use snarkvm::{
     file::Manifest,
+    package::Package,
     prelude::{
         Address,
         Block,
         BlockMemory,
+        Field,
         Identifier,
+        Plaintext,
         PrivateKey,
+        Program,
         ProgramID,
+        Record,
         RecordsFilter,
         Transaction,
         Value,
@@ -94,9 +99,6 @@ impl Ledger {
         let rng = &mut ::rand::thread_rng();
         // Propose the next block.
         let next_block = self.ledger.read().propose_next_block(&self.private_key, rng)?;
-        // Ensure the given block is a valid next block.
-        self.ledger.read().check_next_block(&next_block)?;
-
         // Add the next block to the ledger.
         if let Err(error) = self.ledger.write().add_next_block(&next_block) {
             // Log the error.
@@ -106,8 +108,8 @@ impl Ledger {
         Ok(next_block)
     }
 
-    /// Creates a transfer transaction.
-    pub fn create_transfer(&self, to: &Address<Network>, amount: u64) -> Result<Transaction<Network>> {
+    /// Returns the unspent records.
+    pub fn unspent_records(&self) -> Result<IndexMap<Field<Network>, Record<Network, Plaintext<Network>>>> {
         // Fetch the unspent records.
         let records = self
             .ledger
@@ -115,6 +117,47 @@ impl Ledger {
             .find_records(&self.view_key, RecordsFilter::AllUnspent(self.private_key))
             .filter(|(_, record)| !record.gates().is_zero())
             .collect::<IndexMap<_, _>>();
+        // Return the unspent records.
+        Ok(records)
+    }
+
+    /// Creates a deploy transaction.
+    pub fn create_deploy(&self, program: &Program<Network>, additional_fee: u64) -> Result<Transaction<Network>> {
+        // Fetch the unspent records.
+        let records = self.unspent_records()?;
+        ensure!(!records.len().is_zero(), "The Aleo account has no records to spend.");
+
+        // Prepare the additional fee.
+        let credits = records
+            .values()
+            .max_by(|a, b| (**a.gates()).cmp(&**b.gates()))
+            .unwrap()
+            .clone();
+        ensure!(
+            ***credits.gates() >= additional_fee,
+            "The additional fee is more than the record balance."
+        );
+
+        // Initialize an RNG.
+        let rng = &mut ::rand::thread_rng();
+        // Deploy.
+        let transaction = Transaction::deploy(
+            &self.ledger.read().vm(),
+            &self.private_key,
+            program,
+            (credits, additional_fee),
+            rng,
+        )?;
+        // Verify.
+        assert!(self.ledger.read().vm().verify(&transaction));
+        // Return the transaction.
+        Ok(transaction)
+    }
+
+    /// Creates a transfer transaction.
+    pub fn create_transfer(&self, to: &Address<Network>, amount: u64) -> Result<Transaction<Network>> {
+        // Fetch the unspent records.
+        let records = self.unspent_records()?;
         ensure!(!records.len().is_zero(), "The Aleo account has no records to spend.");
 
         // Initialize an RNG.
@@ -141,13 +184,16 @@ impl Ledger {
 #[derive(Debug, Parser)]
 pub enum Node {
     /// Starts a local development node
-    Start,
+    Start {
+        /// Skips deploying the local program at genesis.
+        nodeploy: bool,
+    },
 }
 
 impl Node {
     pub fn parse(self) -> Result<String> {
         match self {
-            Self::Start => {
+            Self::Start { nodeploy } => {
                 // Derive the program directory path.
                 let directory = std::env::current_dir()?;
 
@@ -184,6 +230,38 @@ impl Node {
                 // let _handle_ledger = handle_ledger::<Network>(ledger.clone(), ledger_receiver);
                 // let _handle_server = handle_server::<Network>(ledger.clone(), ledger_sender);
 
+                if !nodeploy {
+                    println!(
+                        "\n📦 Deploying '{}' to the local development node...\n",
+                        manifest.program_id().to_string().bold()
+                    );
+
+                    // Load the package.
+                    let package = Package::open(&directory)?;
+                    // Load the program.
+                    let program = package.program();
+
+                    // Create a deployment transaction.
+                    let transaction = ledger.create_deploy(program, 1)?;
+                    // Add the transaction to the memory pool.
+                    ledger.add_to_memory_pool(transaction.clone())?;
+
+                    // Advance to the next block.
+                    let next_block = ledger.advance_to_next_block()?;
+                    println!(
+                        "\n🛡️  Produced block {} ({})\n\n{}\n",
+                        next_block.height(),
+                        next_block.hash(),
+                        serde_json::to_string_pretty(&next_block.header())?.dimmed()
+                    );
+
+                    println!(
+                        "✅ Deployed '{}' in transaction '{}'\n",
+                        manifest.program_id().to_string().bold(),
+                        transaction.id()
+                    );
+                }
+
                 loop {
                     // Create a transfer transaction.
                     let transaction = ledger.create_transfer(ledger.address(), 1)?;
@@ -193,9 +271,10 @@ impl Node {
                     // Advance to the next block.
                     let next_block = ledger.advance_to_next_block()?;
                     println!(
-                        "Block {}: {}",
+                        "\n🛡️  Produced block {} ({})\n\n{}\n",
                         next_block.height(),
-                        serde_json::to_string_pretty(&next_block)?
+                        next_block.hash(),
+                        serde_json::to_string_pretty(&next_block.header())?.dimmed()
                     );
                 }
             }
