@@ -225,11 +225,7 @@ impl Node {
                 // Initialize the ledger.
                 let ledger = Arc::new(Ledger::load(private_key)?);
 
-                // // Initialize a channel to send requests to the ledger.
-                // let (ledger_sender, ledger_receiver) = mpsc::channel(64);
-                // let _handle_ledger = handle_ledger::<Network>(ledger.clone(), ledger_receiver);
-                // let _handle_server = handle_server::<Network>(ledger.clone(), ledger_sender);
-
+                // Deploy the local program.
                 if !nodeploy {
                     println!(
                         "\n📦 Deploying '{}' to the local development node...\n",
