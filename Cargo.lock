@@ -1499,7 +1499,6 @@ dependencies = [
  "hex",
  "rand",
  "serde_json",
- "snarkvm-utilities",
  "wasm-bindgen",
  "wasm-bindgen-test",
 ]

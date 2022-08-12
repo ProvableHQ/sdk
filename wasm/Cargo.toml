@@ -30,11 +30,6 @@ version = "0.8"
 [dependencies.serde_json]
 version = "1.0"
 
-[dependencies.snarkvm-utilities]
-git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "2589aba"
-features = ["parallel"]
-
 [dependencies.wasm-bindgen]
 version = "0.2"
 features = [ "serde-serialize" ]
