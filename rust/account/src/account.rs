@@ -15,14 +15,11 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use snarkvm_wasm::{
-    network::testnet2::Testnet2,
-    Account as AleoAccount,
-    Address as AleoAddress,
-    PrivateKey as AleoPrivateKey,
-    ViewKey as AleoViewKey,
+    account::{Address as AleoAddress, PrivateKey as AleoPrivateKey, ViewKey as AleoViewKey},
+    network::Testnet3,
 };
 
-pub type Account = AleoAccount<Testnet2>;
-pub type Address = AleoAddress<Testnet2>;
-pub type PrivateKey = AleoPrivateKey<Testnet2>;
-pub type ViewKey = AleoViewKey<Testnet2>;
+pub type CurrentNetwork = Testnet3;
+pub type Address = AleoAddress<CurrentNetwork>;
+pub type PrivateKey = AleoPrivateKey<CurrentNetwork>;
+pub type ViewKey = AleoViewKey<CurrentNetwork>;

@@ -11,13 +11,13 @@ export const NewAccount = () => {
     const generateAccount = async () => {
         setLoading(true);
         setTimeout(() => {
-            setAccount(new aleo.Account());
+            setAccount(new aleo.PrivateKey());
             setLoading(false);
         }, 1000);
     }
     const clear = () => setAccount(null);
 
-    const privateKey = () => account !== null ? account.to_private_key() : "";
+    const privateKey = () => account !== null ? account.to_string() : "";
     const viewKey = () => account !== null ? account.to_view_key() : "";
     const address = () => account !== null ? account.to_address() : "";
 

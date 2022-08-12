@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{
-    address::Address as AddressNative,
-    private_key::PrivateKey,
-    view_key::{Signature, ViewKey},
-};
+use aleo_account::{Address as AddressNative, PrivateKey, ViewKey};
 
-use std::str::FromStr;
+use snarkvm_utilities::Uniform;
+
+use rand::{rngs::StdRng, SeedableRng};
+use std::{convert::TryFrom, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -30,17 +29,28 @@ pub struct Address {
 
 #[wasm_bindgen]
 impl Address {
+    #[wasm_bindgen(constructor)]
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        console_error_panic_hook::set_once();
+
+        let rng = &mut StdRng::from_entropy();
+        Self {
+            address: AddressNative::new(Uniform::rand(rng)),
+        }
+    }
+
     #[wasm_bindgen]
     pub fn from_private_key(private_key: &str) -> Self {
         let private_key = PrivateKey::from_str(private_key).unwrap();
-        let address = AddressNative::from(&private_key).unwrap();
+        let address = AddressNative::try_from(&private_key).unwrap();
         Self { address }
     }
 
     #[wasm_bindgen]
     pub fn from_view_key(view_key: &str) -> Self {
         let view_key = ViewKey::from_str(view_key).unwrap();
-        let address = AddressNative::from_view_key(&view_key).unwrap();
+        let address = AddressNative::try_from(&view_key).unwrap();
         Self { address }
     }
 
@@ -48,16 +58,6 @@ impl Address {
     pub fn from_string(address: &str) -> Self {
         let address = AddressNative::from_str(address).unwrap();
         Self { address }
-    }
-
-    /// Verify a signature signed by the view key
-    /// Returns `true` if the signature is verified correctly. Otherwise, returns `false`.
-    #[wasm_bindgen]
-    pub fn verify(&self, message: &str, signature: &str) -> bool {
-        let signature = Signature::from_str(signature).unwrap();
-        let message = message.as_bytes();
-
-        self.address.verify(&message, &signature).unwrap()
     }
 
     #[wasm_bindgen]
@@ -70,27 +70,38 @@ impl Address {
 mod tests {
     use super::*;
 
+    use snarkvm_utilities::test_crypto_rng;
     use wasm_bindgen_test::*;
 
+    const ITERATIONS: u64 = 1_000;
+
     #[wasm_bindgen_test]
-    pub fn from_private_key_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-        let given_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
+    pub fn test_address_new() {
+        for _ in 0..ITERATIONS {
+            // Generate a new address.
+            let expected = Address::new();
 
-        let address = Address::from_private_key(given_private_key);
-
-        println!("{} == {}", given_address, address.to_string());
-        assert_eq!(given_address, address.to_string());
+            // Check the address derived from string.
+            assert_eq!(
+                expected.to_string(),
+                Address::from_string(&expected.to_string()).to_string()
+            );
+        }
     }
 
     #[wasm_bindgen_test]
-    pub fn from_view_key_test() {
-        let given_view_key = "AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF";
-        let given_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
+    pub fn test_address_from_private_key() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key.
+            let private_key = PrivateKey::new(&mut test_crypto_rng()).unwrap();
+            let expected = Address::from_private_key(&private_key.to_string());
 
-        let address = Address::from_view_key(given_view_key);
-
-        println!("{} == {}", given_address, address.to_string());
-        assert_eq!(given_address, address.to_string());
+            // Check the address derived from the view key.
+            let view_key = ViewKey::try_from(&private_key).unwrap();
+            assert_eq!(
+                expected.to_string(),
+                Address::from_view_key(&view_key.to_string()).to_string()
+            );
+        }
     }
 }
