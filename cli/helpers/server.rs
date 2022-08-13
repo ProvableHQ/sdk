@@ -178,8 +178,12 @@ impl<N: Network> Server<N> {
             while let Some(request) = ledger_receiver.recv().await {
                 match request {
                     LedgerRequest::TransactionBroadcast(transaction) => {
-                        if let Err(error) = ledger.add_to_memory_pool(transaction) {
-                            eprintln!("{error}")
+                        // Retrieve the transaction ID.
+                        let transaction_id = transaction.id();
+                        // Add the transaction to the memory pool.
+                        match ledger.add_to_memory_pool(transaction) {
+                            Ok(()) => println!("✉️ Added transaction '{transaction_id}' to the memory pool"),
+                            Err(error) => eprintln!("⚠️ Failed to add transaction '{transaction_id}' to the memory pool: {error}")
                         }
                     }
                 };
