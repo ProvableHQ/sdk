@@ -1,5 +1,7 @@
 # token.aleo
 
+#### Tip: Install the [Aleo plugin](../../sublime) for `Sublime Text 3` to make `.aleo` files easy to read!
+
 ## Build Guide
 
 To compile this Aleo program, run:
@@ -7,13 +9,16 @@ To compile this Aleo program, run:
 aleo build
 ```
 
-## Demo
+## Usage
 
+#### Note: This is an early draft and the UI/UX will improve rapidly!
+
+To mint a public token, run:
 ```bash
-aleo run transfer "{
-  owner: aleo1gy9h3a9sywc7p23acd5jjt9suuh663q0fv8uegpgr36je20xf5rsggnarq.private,
-  gates: 0u64.private,
-  amount: 100u64.private,
-  _nonce: 0group
-}" aleo1s5rr2mkm9ys3tk7ch7mxsa3f5az3vuvgr0h8zrhj3hpzfcqt9vqsulemeq 100u64
+aleo run mint_public aleo1hf0jutqqeqv2nhazntuted4z99ax873lgfaw623ytqc68z72cqqqa9xeg4 100u64
+```
+
+To mint a private token, run:
+```bash
+aleo run mint_private aleo1hf0jutqqeqv2nhazntuted4z99ax873lgfaw623ytqc68z72cqqqa9xeg4 100u64
 ```

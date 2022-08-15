@@ -1,5 +1,7 @@
 # token.aleo
 
+#### Tip: Install the [Aleo plugin](../../sublime) for `Sublime Text 3` to make `.aleo` files easy to read!
+
 ## Build Guide
 
 To compile this Aleo program, run:
