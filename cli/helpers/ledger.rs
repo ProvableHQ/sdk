@@ -15,22 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::helpers::Server;
-use snarkvm::prelude::{
-    Address,
-    Block,
-    BlockMemory,
-    Identifier,
-    Network,
-    PrivateKey,
-    Program,
-    ProgramID,
-    RecordsFilter,
-    Transaction,
-    Value,
-    ViewKey,
-    Zero,
-    VM,
-};
+use snarkvm::prelude::{Address, Block, BlockMemory, Identifier, Network, PrivateKey, Program, ProgramID, RecordsFilter, ProgramStore, Transaction, Value, ViewKey, Zero, VM, ProgramMemory};
 
 use anyhow::{anyhow, bail, ensure, Result};
 use core::str::FromStr;
@@ -38,7 +23,8 @@ use once_cell::race::OnceBox;
 use parking_lot::RwLock;
 use std::{convert::TryFrom, sync::Arc};
 
-pub(crate) type InternalLedger<N> = snarkvm::prelude::Ledger<N, BlockMemory<N>>;
+pub(crate) type InternalStorage<N> = ProgramMemory<N>;
+pub(crate) type InternalLedger<N> = snarkvm::prelude::Ledger<N, BlockMemory<N>, InternalStorage<N>>;
 
 pub struct Ledger<N: Network> {
     /// The internal ledger.
@@ -62,8 +48,10 @@ impl<N: Network> Ledger<N> {
 
         // Initialize an RNG.
         let rng = &mut ::rand::thread_rng();
+        // Initialize the store.
+        let store = ProgramStore::<_, InternalStorage<_>>::open()?;
         // Create a genesis block.
-        let genesis = Block::genesis(&VM::new()?, private_key, rng)?;
+        let genesis = Block::genesis(&VM::new(store)?, private_key, rng)?;
         // Initialize the ledger.
         let ledger = Arc::new(Self {
             ledger: RwLock::new(InternalLedger::new_with_genesis(&genesis, address)?),

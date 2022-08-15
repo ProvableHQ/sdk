@@ -1,0 +1,53 @@
+{
+    "name": "Aleo Color Scheme",
+    "globals":
+    {
+        "background": "rgb(34, 34, 34)",
+        "foreground": "#EEEEEE",
+        "caret": "white"
+    },
+    "rules":
+    [
+        {
+            "name": "Keyword",
+            "scope": "keyword",
+            "foreground": "#F92672",
+        },
+        {
+            "name": "Finalize",
+            "scope": "finalize",
+            "foreground": "#AE81FF",
+        },
+        {
+            "name": "Qualifiers",
+            "scope": "qualifiers",
+            "foreground": "#FD971F",
+        },
+        {
+            "name": "Visibility",
+            "scope": "visibility",
+            "foreground": "#66D9EF",
+        },
+        {
+            "name": "Instruction",
+            "scope": "instruction",
+            "foreground": "#A6E22E",
+        },
+        {
+            "name": "Comment",
+            "scope": "comment",
+            "foreground": "#888888"
+        },
+        {
+            "name": "String",
+            "scope": "string",
+            "foreground": "#E6DB74",
+        },
+        {
+            "name": "Number",
+            "scope": "constant.numeric",
+            "foreground": "#AE81FF",
+            "font_style": "italic",
+        }
+    ]
+}

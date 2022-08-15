@@ -1,0 +1,87 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+name: Aleo
+file_extensions:
+  - aleo
+scope: source.aleo # Namespace for a language context. The scope should be unique for each context.
+# scopeName: aleo.log
+
+contexts:
+  # The prototype context is prepended to all contexts but those setting
+  # meta_include_prototype: false.
+  prototype:
+    - include: comments
+
+  main:
+    # The main context is the initial starting point of our syntax.
+    # Include other contexts from here (or specify them directly).
+    - include: keywords
+    - include: finalize
+    - include: qualifiers
+    - include: visibility
+    - include: instructions
+    - include: numbers
+    - include: strings
+
+  keywords:
+    # Keywords are if, else for and while.
+    # Note that blackslashes don't need to be escaped within single quoted
+    # strings in YAML. When using single quoted strings, only single quotes
+    # need to be escaped: this is done by using two single quotes next to each
+    # other.
+    - match: '\b(function|program|as|by|interface|closure|into|import)\b'
+      scope: keyword.control.aleo
+
+  finalize:
+    - match: '\b(finalize|mapping|increment|decrement)\b'
+      scope: finalize.aleo
+
+  qualifiers:
+    - match: '\b()\b'
+      scope: qualifiers.aleo
+
+  visibility:
+    - match: '\b(constant|public|private|record|aleo)\b'
+      scope: visibility.aleo
+
+  instructions:
+    - match: '\b(add|and|call|cast|commit|div|hash|input|key|mul|or|output|sub|ternary|pow|value)\b'
+      scope: instruction.aleo
+
+  numbers:
+    - match: '\b(-)?[0-9.]+\b'
+      scope: constant.numeric.aleo
+
+  strings:
+    # Strings begin and end with quotes, and use backslashes as an escape
+    # character.
+    - match: '"'
+      scope: punctuation.definition.string.begin.aleo
+      push: inside_string
+
+  inside_string:
+    - meta_include_prototype: false
+    - meta_scope: string.quoted.double.aleo
+    - match: '\.'
+      scope: constant.character.escape.aleo
+    - match: '"'
+      scope: punctuation.definition.string.end.aleo
+      pop: true
+
+  comments:
+    # Comments begin with a '//' and finish at the end of the line.
+    - match: '//'
+      scope: punctuation.definition.comment.aleo
+      push:
+        # This is an anonymous context push for brevity.
+        - meta_scope: comment.line.double-slash.aleo
+        - match: $\n?
+          pop: true
+    # Multi-line comments begin with a '/*' and finish with a '*/'.
+    - match: '/\*'
+      scope: punctuation.definition.comment.c
+      push:
+        - meta_scope: comment.block.c
+        - match: '\*/'
+          pop: true
