@@ -9,6 +9,10 @@ mapping account:
     // The token amount.
     value amount as u64.public;
 
+mapping approvals:
+    key owner_spender as field.public;
+    value amount as u64.public;
+
 record token:
     // The token owner.
     owner as address.private;
@@ -16,6 +20,76 @@ record token:
     gates as u64.private;
     // The token amount.
     amount as u64.private;
+
+/* Approve */
+
+function approve_public:
+    input r0 as address.public; // approver
+    input r1 as address.public; // spender
+    input r2 as u64.public; // amount spender is allowed to withdraw from approver
+
+    finalize r0 r1 r2;
+
+finalize approve_public:
+    input r0 as address.public; // approver
+    input r1 as address.public; // spender
+    input r2 as u64.public; // increase in amount spender is allowed to withdraw from approver
+
+    hash.ped64 r0 into r3; // hash approver into field
+    hash.ped64 r1 into r4; // hash spender into field
+
+    mul r3 r4 into r5; // multiply approver f by spender f
+
+    // if approvals for approver field times spender field exists, the approved amount is increased.
+    // otherwise, the approved allowance is created.
+    increment approvals[r5] by r2;
+
+/* Unapprove */
+
+function unapprove_public:
+    input r0 as address.public; // approver
+    input r1 as address.public; // spender
+    input r2 as u64.public; // amount spender's allowance is decreasing by
+
+    finalize r0 r1 r2;
+
+finalize unapprove_public:
+    input r0 as address.public; // approver
+    input r1 as address.public; // spender
+    input r2 as u64.public; // decrease in amount spender is allowed to withdraw from approver
+
+    hash.ped64 r0 into r3; // hash approver into field
+    hash.ped64 r1 into r4; // hash spender into field
+
+    mul r3 r4 into r5; // multiply approver field by spender field
+
+    // if approvals for approver field times spender field exists, the approved amount is decreased.
+    // otherwise, the approved allowance is created.
+    decrement approvals[r5] by r2;
+
+/* Transfer From */
+
+function transfer_from_public:
+    input r0 as address.public; // from the approver
+    input r1 as address.public; // to the receiver
+    input r2 as u64.public; // amount to transfer
+
+    finalize self.caller r0 r1 r2;
+
+finalize transfer_from_public:
+    input r0 as address.public; // from the spender
+    input r1 as address.public; // from the approver
+    input r2 as address.public; // to the receiver
+    input r3 as u64.public; // amount to transfer
+
+    hash.ped64 r1 into r4; // hash approver into field
+    hash.ped64 r0 into r5; // hash spender into field
+
+    mul r4 r5 into r6; // multiply approver f by spender f
+
+    decrement approvals[r6] by r3;
+    decrement account[r1] by r3;
+    increment account[r2] by r3;
 
 /* Mint */
 
