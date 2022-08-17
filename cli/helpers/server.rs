@@ -153,7 +153,7 @@ impl<N: Network> Server<N> {
                     .or(records_unspent)
                     .or(transaction_broadcast);
                 // Start the server.
-                println!("\n🌐 Server is running at http://0.0.0.0:4180");
+                println!("\n🌐 Server is running at http://0.0.0.0:4180\n");
                 warp::serve(routes).run(([0, 0, 0, 0], 4180)).await;
             }));
 
