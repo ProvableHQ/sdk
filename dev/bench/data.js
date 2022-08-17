@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660722081024,
+  "lastUpdate": 1660724169061,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3637,6 +3637,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 186190,
             "range": "± 207",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "62eb2bd531f2eb3a342652d16ff62d3dcab93e97",
+          "message": "Merge pull request #308 from AleoHQ/feat/routes\n\nAbstract routes, updates the latest GET methods",
+          "timestamp": "2022-08-17T10:08:46+02:00",
+          "tree_id": "3b50c4ef6b0300c3422f3dd02ec24f7ff4385a24",
+          "url": "https://github.com/AleoHQ/aleo/commit/62eb2bd531f2eb3a342652d16ff62d3dcab93e97"
+        },
+        "date": 1660724165466,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 315716,
+            "range": "± 5047",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 183635,
+            "range": "± 294",
             "unit": "ns/iter"
           }
         ]
