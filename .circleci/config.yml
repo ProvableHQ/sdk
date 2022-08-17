@@ -153,22 +153,6 @@ jobs:
       - clear_environment:
           cache_key: snarkos-clippy-cache
 
-  codecov:
-    machine:
-      image: ubuntu-1604:202004-01
-      docker_layer_caching: true
-    resource_class: xlarge
-    steps:
-      - attach_workspace:
-          at: /home/circleci/project/
-      - run:
-          name: Run kcov
-          command: >
-            cd ~/project/project/ &&
-            docker run --security-opt seccomp=unconfined -v ~/project/project/:/home/circleci/project/
-            howardwu/snarkos-codecov:2021-01-31 bash /home/circleci/project/.resources/kcov.sh
-      - run: cd ./project/ && bash <(curl -s https://codecov.io/bash)
-
 workflows:
   version: 2
 
@@ -178,6 +162,3 @@ workflows:
       - wasm
       - check-fmt
       - check-clippy
-      - codecov:
-          requires:
-            - rust_stable
