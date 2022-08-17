@@ -1,6 +1,10 @@
 // The 'token.aleo' program.
 program token.aleo;
 
+interface approval:
+    approver as address;
+    spender as address;
+
 // On-chain storage of an `account` map, with `owner` as the key,
 // and `amount` as the value.
 mapping account:
@@ -35,14 +39,13 @@ finalize approve_public:
     input r1 as address.public; // spender
     input r2 as u64.public; // increase in amount spender is allowed to withdraw from approver
 
-    hash.ped64 r0 into r3; // hash approver into field
-    hash.ped64 r1 into r4; // hash spender into field
+    cast r0 r1 into r3 as approval;
 
-    mul r3 r4 into r5; // multiply approver f by spender f
+    hash.ped64 r3 into r4; // hash approval interface
 
     // if approvals for approver field times spender field exists, the approved amount is increased.
     // otherwise, the approved allowance is created.
-    increment approvals[r5] by r2;
+    increment approvals[r4] by r2;
 
 /* Unapprove */
 
@@ -58,14 +61,12 @@ finalize unapprove_public:
     input r1 as address.public; // spender
     input r2 as u64.public; // decrease in amount spender is allowed to withdraw from approver
 
-    hash.ped64 r0 into r3; // hash approver into field
-    hash.ped64 r1 into r4; // hash spender into field
-
-    mul r3 r4 into r5; // multiply approver field by spender field
+    cast r0 r1 into r3 as approval;
+    hash.ped64 r3 into r4; // hash interface
 
     // if approvals for approver field times spender field exists, the approved amount is decreased.
     // otherwise, the approved allowance is created.
-    decrement approvals[r5] by r2;
+    decrement approvals[r4] by r2;
 
 /* Transfer From */
 
@@ -82,12 +83,10 @@ finalize transfer_from_public:
     input r2 as address.public; // to the receiver
     input r3 as u64.public; // amount to transfer
 
-    hash.ped64 r1 into r4; // hash approver into field
-    hash.ped64 r0 into r5; // hash spender into field
+    cast r1 r0 into r4 as approval;
+    hash.ped64 r4 into r5; // hash approval interface
 
-    mul r4 r5 into r6; // multiply approver f by spender f
-
-    decrement approvals[r6] by r3;
+    decrement approvals[r5] by r3;
     decrement account[r1] by r3;
     increment account[r2] by r3;
 
