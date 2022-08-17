@@ -1,6 +1,6 @@
 %YAML 1.2
 ---
-# See http://www.sublimetext.com/docs/3/syntax.html
+# See https://www.sublimetext.com/docs/syntax.html
 name: Aleo
 file_extensions:
   - aleo
@@ -25,7 +25,7 @@ contexts:
     - include: strings
 
   keywords:
-    # Keywords are if, else for and while.
+    # Keywords are the following.
     # Note that blackslashes don't need to be escaped within single quoted
     # strings in YAML. When using single quoted strings, only single quotes
     # need to be escaped: this is done by using two single quotes next to each
@@ -46,7 +46,7 @@ contexts:
       scope: visibility.aleo
 
   instructions:
-    - match: '\b(abs|abs.w|add|add.w|and|assert.eq|assert.neq|call|cast|commit.bhp256|commit.bhp512|commit.bhp768|commit.bhp1024|commit.ped64|commit.ped128|div|div.w|double|gt|gte|hash.bhp256|hash.bhp512|hash.bhp768|hash.bhp1024|hash.ped64|hash.ped128|hash.psd2|hash.psd4|hash.psd8|inv|input|is.eq|is.neq|lt|lte|key|mod|mul|mul.w|nand|neg|nor|not|or|output|pow|pow.w|rem|rem.w|shl|shl.w|srh|shr.w|sqrt|sub|sub.w|square|ternary|value|xor)\b'
+    - match: '\b(abs|abs\.w|add|add\.w|and|assert\.eq|assert\.neq|call|cast|commit\.bhp256|commit\.bhp512|commit\.bhp768|commit\.bhp1024|commit\.ped64|commit\.ped128|div|div\.w|double|gt|gte|hash\.bhp256|hash\.bhp512|hash\.bhp768|hash\.bhp1024|hash\.ped64|hash\.ped128|hash\.psd2|hash\.psd4|hash\.psd8|inv|input|is\.eq|is\.neq|lt|lte|key|mod|mul|mul\.w|nand|neg|nor|not|or|output|pow|pow\.w|rem|rem\.w|shl|shl\.w|srh|shr\.w|sqrt|sub|sub\.w|square|ternary|value|xor)\b'
       scope: instruction.aleo
 
   numbers:
