@@ -62,20 +62,78 @@ pub struct Server<N: Network> {
 impl<N: Network> Server<N> {
     /// Initializes a new instance of the server.
     pub fn start(ledger: Arc<Ledger<N>>) -> Result<Self> {
+        // Initialize a runtime.
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .thread_stack_size(8 * 1024 * 1024)
+            .build()?;
+
         // Initialize a channel to send requests to the ledger.
         let (ledger_sender, ledger_receiver) = mpsc::channel(64);
 
-        // GET /testnet3/latest/height
-        let latest_height = warp::get()
-            .and(warp::path!("testnet3" / "latest" / "height"))
-            .and(with(ledger.clone()))
-            .and_then(Self::latest_height);
+        // Initialize the server.
+        let sender = ledger_sender.clone();
+        let handles = runtime.block_on(async move {
+            // Initialize a vector for the server handles.
+            let mut handles = Vec::new();
 
-        // GET /testnet3/latest/hash
-        let latest_hash = warp::get()
-            .and(warp::path!("testnet3" / "latest" / "hash"))
+            // Initialize the routes.
+            let routes = Self::routes(ledger.clone(), sender);
+
+            // Spawn the server.
+            handles.push(tokio::spawn(async move {
+                // Start the server.
+                println!("\n🌐 Server is running at http://0.0.0.0:4180\n");
+                warp::serve(routes).run(([0, 0, 0, 0], 4180)).await;
+            }));
+
+            // Spawn the ledger handler.
+            handles.push(Self::start_handler(ledger, ledger_receiver));
+
+            // Return the handles.
+            handles
+        });
+
+        Ok(Self {
+            runtime,
+            ledger_sender,
+            handles,
+            _phantom: PhantomData,
+        })
+    }
+
+    /// Initializes a ledger handler.
+    fn start_handler(ledger: Arc<Ledger<N>>, mut ledger_receiver: LedgerReceiver<N>) -> JoinHandle<()> {
+        tokio::spawn(async move {
+            while let Some(request) = ledger_receiver.recv().await {
+                match request {
+                    LedgerRequest::TransactionBroadcast(transaction) => {
+                        // Retrieve the transaction ID.
+                        let transaction_id = transaction.id();
+                        // Add the transaction to the memory pool.
+                        match ledger.add_to_memory_pool(transaction) {
+                            Ok(()) => println!("✉️ Added transaction '{transaction_id}' to the memory pool"),
+                            Err(error) => eprintln!("⚠️ Failed to add transaction '{transaction_id}' to the memory pool: {error}")
+                        }
+                    }
+                };
+            }
+        })
+    }
+
+    /// Initializes the routes, given the ledger sender.
+    fn routes(ledger: Arc<Ledger<N>>, ledger_sender: LedgerSender<N>) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+        // GET /testnet3/latest/block/height
+        let latest_block_height = warp::get()
+            .and(warp::path!("testnet3" / "latest" / "block" / "height"))
             .and(with(ledger.clone()))
-            .and_then(Self::latest_hash);
+            .and_then(Self::latest_block_height);
+
+        // GET /testnet3/latest/block/hash
+        let latest_block_hash = warp::get()
+            .and(warp::path!("testnet3" / "latest" / "block" / "hash"))
+            .and(with(ledger.clone()))
+            .and_then(Self::latest_block_hash);
 
         // GET /testnet3/latest/block
         let latest_block = warp::get()
@@ -129,77 +187,30 @@ impl<N: Network> Server<N> {
             .and(with(ledger_sender.clone()))
             .and_then(Self::transaction_broadcast);
 
-        // Initialize a runtime.
-        let runtime = tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .thread_stack_size(8 * 1024 * 1024)
-            .build()?;
+        // Prepare the list of routes.
+        let routes = latest_block_height
+            .or(latest_block_hash)
+            .or(latest_block)
+            .or(get_block)
+            .or(state_path)
+            .or(records_all)
+            .or(records_spent)
+            .or(records_unspent)
+            .or(transaction_broadcast);
 
-        // Initialize the server.
-        let handles = runtime.block_on(async move {
-            // Initialize a vector for the server handles.
-            let mut handles = Vec::new();
-
-            // Spawn the server.
-            handles.push(tokio::spawn(async move {
-                // Prepare the list of routes.
-                let routes = latest_height
-                    .or(latest_hash)
-                    .or(latest_block)
-                    .or(get_block)
-                    .or(state_path)
-                    .or(records_all)
-                    .or(records_spent)
-                    .or(records_unspent)
-                    .or(transaction_broadcast);
-                // Start the server.
-                println!("\n🌐 Server is running at http://0.0.0.0:4180\n");
-                warp::serve(routes).run(([0, 0, 0, 0], 4180)).await;
-            }));
-
-            // Spawn the ledger handler.
-            handles.push(Self::start_handler(ledger, ledger_receiver));
-
-            // Return the handles.
-            handles
-        });
-
-        Ok(Self {
-            runtime,
-            ledger_sender,
-            handles,
-            _phantom: PhantomData,
-        })
-    }
-
-    /// Initializes a ledger handler.
-    fn start_handler(ledger: Arc<Ledger<N>>, mut ledger_receiver: LedgerReceiver<N>) -> JoinHandle<()> {
-        tokio::spawn(async move {
-            while let Some(request) = ledger_receiver.recv().await {
-                match request {
-                    LedgerRequest::TransactionBroadcast(transaction) => {
-                        // Retrieve the transaction ID.
-                        let transaction_id = transaction.id();
-                        // Add the transaction to the memory pool.
-                        match ledger.add_to_memory_pool(transaction) {
-                            Ok(()) => println!("✉️ Added transaction '{transaction_id}' to the memory pool"),
-                            Err(error) => eprintln!("⚠️ Failed to add transaction '{transaction_id}' to the memory pool: {error}")
-                        }
-                    }
-                };
-            }
-        })
+        // Return the routes.
+        routes
     }
 }
 
 impl<N: Network> Server<N> {
     /// Returns the latest block height.
-    async fn latest_height(ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
+    async fn latest_block_height(ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
         Ok(reply::json(&ledger.ledger.read().latest_height()))
     }
 
     /// Returns the latest block hash.
-    async fn latest_hash(ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
+    async fn latest_block_hash(ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
         Ok(reply::json(&ledger.ledger.read().latest_hash()))
     }
 
