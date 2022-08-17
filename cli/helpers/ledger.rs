@@ -15,7 +15,24 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::helpers::Server;
-use snarkvm::prelude::{Address, Block, BlockMemory, Identifier, Network, PrivateKey, Program, ProgramID, RecordsFilter, ProgramStore, Transaction, Value, ViewKey, Zero, VM, ProgramMemory};
+use snarkvm::prelude::{
+    Address,
+    Block,
+    BlockMemory,
+    Identifier,
+    Network,
+    PrivateKey,
+    Program,
+    ProgramID,
+    ProgramMemory,
+    ProgramStore,
+    RecordsFilter,
+    Transaction,
+    Value,
+    ViewKey,
+    Zero,
+    VM,
+};
 
 use anyhow::{anyhow, bail, ensure, Result};
 use core::str::FromStr;
@@ -56,7 +73,7 @@ impl<N: Network> Ledger<N> {
         let ledger = Arc::new(Self {
             ledger: RwLock::new(InternalLedger::new_with_genesis(&genesis, address)?),
             server: OnceBox::new(),
-            private_key: private_key.clone(),
+            private_key: *private_key,
             view_key,
             address,
         });
@@ -118,7 +135,7 @@ impl<N: Network> Ledger<N> {
 
         // Deploy.
         let transaction = Transaction::deploy(
-            &self.ledger.read().vm(),
+            self.ledger.read().vm(),
             &self.private_key,
             program,
             (credits, additional_fee),
@@ -148,7 +165,7 @@ impl<N: Network> Ledger<N> {
 
         // Create a new transaction.
         Transaction::execute(
-            &self.ledger.read().vm(),
+            self.ledger.read().vm(),
             &self.private_key,
             &ProgramID::from_str("credits.aleo")?,
             Identifier::from_str("transfer")?,

@@ -25,7 +25,7 @@ pub trait OrReject<T> {
 impl<T> OrReject<T> for anyhow::Result<T> {
     /// Returns the result if it is successful, otherwise returns a rejection.
     fn or_reject(self) -> Result<T, Rejection> {
-        Ok(self.map_err(|e| reject::custom(ServerError::Request(e.to_string())))?)
+        self.map_err(|e| reject::custom(ServerError::Request(e.to_string())))
     }
 }
 
@@ -113,7 +113,9 @@ impl<N: Network> Server<N> {
                         // Add the transaction to the memory pool.
                         match ledger.add_to_memory_pool(transaction) {
                             Ok(()) => println!("✉️ Added transaction '{transaction_id}' to the memory pool"),
-                            Err(error) => eprintln!("⚠️ Failed to add transaction '{transaction_id}' to the memory pool: {error}")
+                            Err(error) => {
+                                eprintln!("⚠️ Failed to add transaction '{transaction_id}' to the memory pool: {error}")
+                            }
                         }
                     }
                 };
@@ -122,7 +124,10 @@ impl<N: Network> Server<N> {
     }
 
     /// Initializes the routes, given the ledger sender.
-    fn routes(ledger: Arc<Ledger<N>>, ledger_sender: LedgerSender<N>) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+    fn routes(
+        ledger: Arc<Ledger<N>>,
+        ledger_sender: LedgerSender<N>,
+    ) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
         // GET /testnet3/latest/block/height
         let latest_block_height = warp::get()
             .and(warp::path!("testnet3" / "latest" / "block" / "height"))
@@ -176,7 +181,7 @@ impl<N: Network> Server<N> {
             .and(warp::path!("testnet3" / "records" / "unspent"))
             .and(warp::body::content_length_limit(128))
             .and(warp::body::json())
-            .and(with(ledger.clone()))
+            .and(with(ledger))
             .and_then(Self::records_unspent);
 
         // POST /testnet3/transaction/broadcast
@@ -184,11 +189,11 @@ impl<N: Network> Server<N> {
             .and(warp::path!("testnet3" / "transaction" / "broadcast"))
             .and(warp::body::content_length_limit(10 * 1024 * 1024))
             .and(warp::body::json())
-            .and(with(ledger_sender.clone()))
+            .and(with(ledger_sender))
             .and_then(Self::transaction_broadcast);
 
-        // Prepare the list of routes.
-        let routes = latest_block_height
+        // Return the list of routes.
+        latest_block_height
             .or(latest_block_hash)
             .or(latest_block)
             .or(get_block)
@@ -196,10 +201,7 @@ impl<N: Network> Server<N> {
             .or(records_all)
             .or(records_spent)
             .or(records_unspent)
-            .or(transaction_broadcast);
-
-        // Return the routes.
-        routes
+            .or(transaction_broadcast)
     }
 }
 
@@ -237,7 +239,8 @@ impl<N: Network> Server<N> {
         let records: IndexMap<_, _> = ledger
             .ledger
             .read()
-            .find_records(&view_key, RecordsFilter::All).or_reject()?
+            .find_records(&view_key, RecordsFilter::All)
+            .or_reject()?
             .collect();
         // Return the records.
         Ok(reply::with_status(reply::json(&records), StatusCode::OK))
@@ -249,7 +252,8 @@ impl<N: Network> Server<N> {
         let records = ledger
             .ledger
             .read()
-            .find_records(&view_key, RecordsFilter::Spent).or_reject()?
+            .find_records(&view_key, RecordsFilter::Spent)
+            .or_reject()?
             .collect::<IndexMap<_, _>>();
         // Return the records.
         Ok(reply::with_status(reply::json(&records), StatusCode::OK))
@@ -261,7 +265,8 @@ impl<N: Network> Server<N> {
         let records = ledger
             .ledger
             .read()
-            .find_records(&view_key, RecordsFilter::Unspent).or_reject()?
+            .find_records(&view_key, RecordsFilter::Unspent)
+            .or_reject()?
             .collect::<IndexMap<_, _>>();
         // Return the records.
         Ok(reply::with_status(reply::json(&records), StatusCode::OK))

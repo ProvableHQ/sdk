@@ -45,6 +45,7 @@ impl PrivateKey {
     }
 
     #[wasm_bindgen]
+    #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.private_key.to_string()
     }

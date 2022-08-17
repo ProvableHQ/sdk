@@ -44,6 +44,7 @@ pub struct Run {
 
 impl Run {
     /// Compiles an Aleo program function with the specified name.
+    #[allow(clippy::format_in_format_args)]
     pub fn parse(self) -> Result<String> {
         // Derive the program directory path.
         let path = std::env::current_dir()?;
@@ -77,11 +78,11 @@ impl Run {
 
         // Log the outputs.
         match response.outputs().len() > 1 {
-            true => println!("\n➡️  {}\n", "Outputs"),
-            false => println!("\n➡️  {}\n", "Output"),
+            true => println!("\n➡️  Outputs\n"),
+            false => println!("\n➡️  Outputs\n"),
         };
         for output in response.outputs() {
-            println!("{}", format!(" • {}", output));
+            println!("{}", format!(" • {output}"));
         }
         println!();
 
