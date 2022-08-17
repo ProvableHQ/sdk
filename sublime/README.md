@@ -1,4 +1,4 @@
-# Aleo - Sublime Text 3
+# Aleo - Sublime Text
 
 **Note from Howard:** Contributions are welcomed!
 - This syntax highlighter works, but is far from elegant. Any PRs to help improve it are welcomed!
@@ -13,12 +13,12 @@ Follow these steps to install [Package Control](https://packagecontrol.io/instal
 3. Click the `Preferences` > `Browse Packages...` menu
 4. Copy the `Aleo/` folder into `Packages/`
 
-(On some OSes, you may need to restart `Sublime Text 3` for changes to take effect.)
+(On some OSes, you may need to restart `Sublime Text` for changes to take effect.)
 
 ## Usage
 
 Follow these steps to toggle the `Aleo` syntax highlighter.
 
-1. Open `Sublime Text 3`.
+1. Open `Sublime Text`.
 2. Select `Sublime Text` > `Preferences` > `Select Color Scheme...` > `aleo`
 3. Select `View` > `Syntax` > `aleo`
