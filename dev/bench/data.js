@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660714300901,
+  "lastUpdate": 1660716916503,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3565,6 +3565,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 191776,
             "range": "± 43923",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "be7a048f10e84b432f9f5a2df6caea9e50f56dcd",
+          "message": "Merge pull request #306 from AleoHQ/sublime-instructions\n\nSublime instructions",
+          "timestamp": "2022-08-17T08:08:33+02:00",
+          "tree_id": "0fdd20bb973a1d8dd993882bb4c93272b482a548",
+          "url": "https://github.com/AleoHQ/aleo/commit/be7a048f10e84b432f9f5a2df6caea9e50f56dcd"
+        },
+        "date": 1660716912937,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 334109,
+            "range": "± 41935",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 188296,
+            "range": "± 868",
             "unit": "ns/iter"
           }
         ]
