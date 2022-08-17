@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660716916503,
+  "lastUpdate": 1660722081024,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3601,6 +3601,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 188296,
             "range": "± 868",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a17768e3130fe67fb9964f5a13b37b9e767666c6",
+          "message": "Merge pull request #307 from AleoHQ/fix/deploy\n\nAdds support for deploying program imports on node start",
+          "timestamp": "2022-08-17T09:34:48+02:00",
+          "tree_id": "e790cb86058e2a47d7cdb1a86af2c50f0aa8f6a5",
+          "url": "https://github.com/AleoHQ/aleo/commit/a17768e3130fe67fb9964f5a13b37b9e767666c6"
+        },
+        "date": 1660722077896,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 315173,
+            "range": "± 4576",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 186190,
+            "range": "± 207",
             "unit": "ns/iter"
           }
         ]
