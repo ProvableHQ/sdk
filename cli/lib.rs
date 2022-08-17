@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+#![forbid(unsafe_code)]
+#![allow(clippy::assertions_on_result_states)]
+
 #[macro_use]
 extern crate thiserror;
 

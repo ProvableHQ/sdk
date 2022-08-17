@@ -1,11 +1,12 @@
 version: 2.1
+
 commands:
   setup_environment:
     description: "Setup testing environment"
     parameters:
       cache_key:
         type: string
-        default: aleo-stable-cache
+        default: snarkvm-stable-cache
     steps:
       - run: set -e
       - setup_remote_docker
@@ -26,12 +27,13 @@ commands:
       - restore_cache:
           keys:
             - << parameters.cache_key >>
+
   clear_environment:
     description: "Clear environment"
     parameters:
       cache_key:
         type: string
-        default: aleo-stable-cache
+        default: snarkvm-stable-cache
     steps:
       - run: (sccache -s||true)
       - run: set +e
@@ -40,47 +42,123 @@ commands:
           paths:
             - .cache/sccache
             - .cargo
-jobs:
 
+  run_serial:
+    description: "Build and run tests"
+    parameters:
+      workspace_member:
+        type: string
+      cache_key:
+        type: string
+      flags:
+        type: string
+        default: ""
+    steps:
+      - checkout
+      - setup_environment:
+          cache_key: << parameters.cache_key >>
+      - run:
+          no_output_timeout: 30m
+          command: cd << parameters.workspace_member >> && RUST_MIN_STACK=67108864 cargo test << parameters.flags >>
+      - clear_environment:
+          cache_key: << parameters.cache_key >>
+
+  run_parallel:
+    description: "Build and run tests (in parallel)"
+    parameters:
+      workspace_member:
+        type: string
+      cache_key:
+        type: string
+      flags:
+        type: string
+        default: ""
+    steps:
+      - checkout
+      - setup_environment:
+          cache_key: << parameters.cache_key >>
+      - run:
+          no_output_timeout: 30m
+          command: |
+            cd << parameters.workspace_member >>
+            cargo test -- --list --format terse | sed 's/: test//' > test_names.txt
+            TEST_NAMES=$(circleci tests split test_names.txt)
+            for i in $(echo $TEST_NAMES | sed "s/ / /g")
+            do
+                RUST_MIN_STACK=67108864 cargo test $i << parameters.flags >>
+            done
+      - clear_environment:
+          cache_key: << parameters.cache_key >>
+
+jobs:
   rust_stable:
     docker:
-      - image: cimg/rust:1.62.0
+      - image: cimg/rust:1.62
+    resource_class: xlarge
+    steps:
+      - run_serial:
+          workspace_member: .
+          cache_key: aleo-stable-cache
+
+  wasm:
+    docker:
+      - image: cimg/rust:1.62
+    resource_class: 2xlarge
+    steps:
+      - checkout
+      - setup_environment:
+          cache_key: snarkvm-wasm-cache
+      - run:
+          no_output_timeout: 30m
+          command: |
+            sudo apt-get install nodejs
+            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+            cd wasm && wasm-pack test --node
+            # cargo test --target wasm32-unknown-unknown
+      - clear_environment:
+          cache_key: snarkvm-wasm-cache
+
+  check-fmt:
+    docker:
+      - image: cimg/rust:1.62
     resource_class: xlarge
     steps:
       - checkout
       - setup_environment:
-          cache_key: aleo-stable-cache
+          cache_key: snarkvm-fmt-cache
       - run:
-          name: Build and test
-          no_output_timeout: 30m
-          command: RUST_MIN_STACK=8388608 cargo test --color=always --no-fail-fast
-      - persist_to_workspace:
-          root: ~/
-          paths: project/
+          name: Check style
+          no_output_timeout: 35m
+          command: |
+            rustup toolchain install nightly-x86_64-unknown-linux-gnu
+            cargo +nightly fmt --all -- --check
       - clear_environment:
-          cache_key: aleo-stable-cache
+          cache_key: snarkvm-fmt-cache
 
-  codecov:
-    machine:
-      image: ubuntu-1604:202004-01
-      docker_layer_caching: true
-    resource_class: xlarge
+  check-clippy:
+    docker:
+      - image: cimg/rust:1.62
+    resource_class: 2xlarge
     steps:
-      - attach_workspace:
-          at: /home/circleci/project/
+      - checkout
+      - setup_environment:
+          cache_key: snarkos-clippy-cache
       - run:
-          name: Run kcov
-          command: >
-            cd ~/project/project/ &&
-            docker run --security-opt seccomp=unconfined -v ~/project/project/:/home/circleci/project/
-            howardwu/snarkos-codecov:2021-01-31 bash /home/circleci/project/.resources/kcov.sh
-      - run: cd ./project/ && bash <(curl -s https://codecov.io/bash)
+          name: Check lint
+          no_output_timeout: 35m
+          command: |
+            rustup toolchain install nightly-x86_64-unknown-linux-gnu
+            cargo +nightly clippy --workspace --all-targets -- -D warnings
+            cargo +nightly clippy --workspace --all-targets --all-features -- -D warnings
+      - clear_environment:
+          cache_key: snarkos-clippy-cache
 
 workflows:
   version: 2
+
   main-workflow:
     jobs:
       - rust_stable
-      - codecov:
-          requires:
-            - rust_stable
+      - wasm
+      - check-fmt
+      - check-clippy
