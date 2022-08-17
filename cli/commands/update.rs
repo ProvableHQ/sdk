@@ -51,13 +51,13 @@ impl Update {
                                 } else if status.updated() {
                                     Ok(format!("\nAleo has updated to version {}", status.version()))
                                 } else {
-                                    Ok(format!(""))
+                                    Ok(String::new())
                                 }
                             }
                             Err(e) => Ok(format!("\nFailed to update Aleo to the latest version\n{}\n", e)),
                         }
                     } else {
-                        Ok(format!(""))
+                        Ok(String::new())
                     }
                 }
             },

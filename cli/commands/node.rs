@@ -15,7 +15,10 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{helpers::Ledger, Network};
-use snarkvm::{file::Manifest, file::AleoFile, package::Package};
+use snarkvm::{
+    file::{AleoFile, Manifest},
+    package::Package,
+};
 
 use anyhow::{ensure, Result};
 use clap::Parser;
@@ -78,12 +81,16 @@ impl Node {
                     let imports_directory = package.imports_directory();
 
                     // Load all of the imported programs (in order of imports).
-                    let programs = program.imports().keys().map(|program_id| {
-                        // Open the Aleo imported program file.
-                        let import_program_file = AleoFile::open(&imports_directory, program_id, false)?;
-                        // Return the imported program.
-                        Ok(import_program_file.program().clone())
-                    }).collect::<Result<Vec<_>>>()?;
+                    let programs = program
+                        .imports()
+                        .keys()
+                        .map(|program_id| {
+                            // Open the Aleo imported program file.
+                            let import_program_file = AleoFile::open(&imports_directory, program_id, false)?;
+                            // Return the imported program.
+                            Ok(import_program_file.program().clone())
+                        })
+                        .collect::<Result<Vec<_>>>()?;
 
                     // Deploy the imported programs (in order of imports), and the main program.
                     for program in programs.iter().chain([program.clone()].iter()) {

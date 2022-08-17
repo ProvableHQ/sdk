@@ -85,7 +85,7 @@ impl Updater {
             output += &format!("to update to v{}.", latest_version).bold().green();
             output
         } else {
-            format!("")
+            String::new()
         }
     }
 }
