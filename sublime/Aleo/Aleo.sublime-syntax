@@ -46,7 +46,7 @@ contexts:
       scope: visibility.aleo
 
   instructions:
-    - match: '\b(abs|abs\.w|add|add\.w|and|assert\.eq|assert\.neq|call|cast|commit\.bhp256|commit\.bhp512|commit\.bhp768|commit\.bhp1024|commit\.ped64|commit\.ped128|div|div\.w|double|gt|gte|hash\.bhp256|hash\.bhp512|hash\.bhp768|hash\.bhp1024|hash\.ped64|hash\.ped128|hash\.psd2|hash\.psd4|hash\.psd8|inv|input|is\.eq|is\.neq|lt|lte|key|mod|mul|mul\.w|nand|neg|nor|not|or|output|pow|pow\.w|rem|rem\.w|shl|shl\.w|srh|shr\.w|sqrt|sub|sub\.w|square|ternary|value|xor)\b'
+    - match: '\b(abs\.w|abs|add\.w|add|and|assert\.eq|assert\.neq|call|cast|commit\.bhp256|commit\.bhp512|commit\.bhp768|commit\.bhp1024|commit\.ped64|commit\.ped128|div\.w|div|double|gt|gte|hash\.bhp256|hash\.bhp512|hash\.bhp768|hash\.bhp1024|hash\.ped64|hash\.ped128|hash\.psd2|hash\.psd4|hash\.psd8|inv|input|is\.eq|is\.neq|lt|lte|key|mod|mul\.w|mul|nand|neg|nor|not|or|output|pow\.w|pow|rem\.w|rem|shl\.w|shl|shr\.w|srh|sqrt|sub\.w|sub|square|ternary|value|xor)\b'
       scope: instruction.aleo
 
   numbers:
