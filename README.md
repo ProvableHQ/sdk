@@ -17,7 +17,7 @@ and broadcast it to the network.
 
 ## 1. Overview
 
-For more information, on Aleo visit [Welcome to Aleo](https://developer.aleo.org/aleo/getting_started/overview/) to get started.
+For more information, on Aleo visit [Welcome to Aleo](https://developer.aleo.org/overview/) to get started.
 
 ## 2. Build Guide
 
@@ -77,7 +77,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -s, --seed <seed> 
+    -s, --seed <seed>
 ```
 
 ### 3.2 Create and build a new project
@@ -178,7 +178,7 @@ Afterwards, we can start writing its functions (or other aleo structures such as
 In the case of functions we have it very easy:
 
 ```
-function [function_name]: 
+function [function_name]:
 ```
 
 The functions are composed of three main parts:
