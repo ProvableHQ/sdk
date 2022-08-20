@@ -77,7 +77,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -s, --seed <seed> 
+    -s, --seed <seed>
 ```
 
 ### 3.2 Create and build a new project
@@ -99,6 +99,7 @@ The main.aleo file should have contents like this:
 ```
 // The 'foo.aleo' program.
 program foo.aleo;
+
 function hello:
     input r0 as u32.public;
     input r1 as u32.private;
@@ -178,7 +179,7 @@ Afterwards, we can start writing its functions (or other aleo structures such as
 In the case of functions we have it very easy:
 
 ```
-function [function_name]: 
+function [function_name]:
 ```
 
 The functions are composed of three main parts:
