@@ -35,15 +35,9 @@ We recommend installing Rust using [rustup](https://www.rustup.rs/). You can ins
   Download the [Windows 64-bit executable](https://win.rustup.rs/x86_64) or
   [Windows 32-bit executable](https://win.rustup.rs/i686) and follow the on-screen instructions.
 
-### 2.2 Build from Crates.io
+### 2.2 Build from Source Code
 
 We recommend installing `aleo` this way. In your terminal, run:
-
-<!--
-### 2.2b Build from Source Code
-
-Alternatively, you can install `aleo` by building from the source code as follows:
--->
 
 ```bash
 # Download the source code
@@ -77,7 +71,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -s, --seed <seed> 
+    -s, --seed <seed>
 ```
 
 ### 3.2 Create and build a new project
@@ -178,7 +172,7 @@ Afterwards, we can start writing its functions (or other aleo structures such as
 In the case of functions we have it very easy:
 
 ```
-function [function_name]: 
+function [function_name]:
 ```
 
 The functions are composed of three main parts:
