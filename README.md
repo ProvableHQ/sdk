@@ -63,7 +63,7 @@ aleo
 
 ## 3. Usage Guide
 
-### 3.1 Generate a new Aleo account.
+### 3.1 Generate a new Aleo account
 
 To generate a new Aleo account, run:
 ```bash
@@ -77,7 +77,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -s, --seed <seed> 
+    -s, --seed <seed>
 ```
 
 ### 3.2 Create and build a new project
@@ -178,7 +178,7 @@ Afterwards, we can start writing its functions (or other aleo structures such as
 In the case of functions we have it very easy:
 
 ```
-function [function_name]: 
+function [function_name]:
 ```
 
 The functions are composed of three main parts:
