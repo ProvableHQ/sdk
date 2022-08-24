@@ -74,6 +74,9 @@ version = "1.0"
 version = "1.5"
 features = ["rt"]
 
+[dependencies.ureq]
+version = "2"
+
 [dependencies.warp]
 version = "0.3"
 

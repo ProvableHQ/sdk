@@ -23,6 +23,9 @@ pub use build::*;
 mod clean;
 pub use clean::*;
 
+mod deploy;
+pub use deploy::*;
+
 mod new;
 pub use new::*;
 
@@ -57,6 +60,8 @@ pub enum Command {
     Build(Build),
     #[clap(name = "clean")]
     Clean(Clean),
+    #[clap(name = "deploy")]
+    Deploy(Deploy),
     #[clap(name = "new")]
     New(New),
     #[clap(subcommand)]
@@ -74,6 +79,7 @@ impl Command {
             Self::Account(command) => command.parse(),
             Self::Build(command) => command.parse(),
             Self::Clean(command) => command.parse(),
+            Self::Deploy(command) => command.parse(),
             Self::New(command) => command.parse(),
             Self::Node(command) => command.parse(),
             Self::Run(command) => command.parse(),
