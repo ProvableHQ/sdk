@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{Aleo, Network};
-use snarkvm::{package::Package, prelude::{test_crypto_rng, Testnet3}};
+use snarkvm::{package::Package, prelude::{test_crypto_rng, Testnet3, Process}};
 
 use anyhow::Result;
 use clap::Parser;
@@ -59,14 +59,11 @@ impl Deploy {
         println!("⏳ Deploying '{}'...\n", package.program_id().to_string().bold());
         // Retrieve the main program.
         let program = package.program();
-        println!("{}", program.id());
         // Construct the process.
-        let process = package.get_process()?;
+        let process = Process::load()?;
         let rng = &mut test_crypto_rng();
         let deployment = process.deploy::<Aleo, _>(program, rng).unwrap();
-        
-        ureq::post("http://127.0.0.1/testnet3/deploy").send_json(&deployment)?.into_json()?;
-        
+        ureq::post("http://127.0.0.1/testnet3/deploy").send_json(&deployment)?; 
         println!();
         Ok(())
     }
