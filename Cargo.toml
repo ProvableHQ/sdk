@@ -76,6 +76,7 @@ features = ["rt"]
 
 [dependencies.ureq]
 version = "2"
+features = ["json"]
 
 [dependencies.warp]
 version = "0.3"
