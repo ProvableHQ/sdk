@@ -152,6 +152,12 @@ impl<N: Network> Server<N> {
             .and(with(ledger.clone()))
             .and_then(Self::get_transactions);
 
+        // GET /testnet3/transaction/{hash}
+        let get_transaction_by_hash = warp::get()
+            .and(warp::path!("testnet3" / "transaction" / String))
+            .and(with(ledger.clone()))
+            .and_then(Self::get_transaction_by_hash);
+
         // GET /testnet3/block/{height}
         let get_block = warp::get()
             .and(warp::path!("testnet3" / "block" / u32))
@@ -209,6 +215,7 @@ impl<N: Network> Server<N> {
             .or(records_unspent)
             .or(transaction_broadcast)
             .or(get_transactions)
+            .or(get_transaction_by_hash)
     }
 }
 
@@ -236,6 +243,11 @@ impl<N: Network> Server<N> {
     /// Returns the transactions for the given block height.
     async fn get_transactions(height: u32, ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
         Ok(reply::json(&ledger.ledger.read().get_transactions(height).or_reject()?))
+    }
+
+    /// Returns the transactions for the given block height.
+    async fn get_transaction_by_hash(hash: String, ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
+        Ok(reply::json(&ledger.ledger.read().get_transaction_by_hash(&hash).or_reject()?))
     }
 
     /// Returns the state path for the given commitment.
