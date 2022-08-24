@@ -146,6 +146,7 @@ impl<N: Network> Server<N> {
             .and(with(ledger.clone()))
             .and_then(Self::latest_block);
 
+        // GET /testnet3/transactions/{height}
         let get_transactions = warp::get()
             .and(warp::path!("testnet3" / "transactions" / u32))
             .and(with(ledger.clone()))
