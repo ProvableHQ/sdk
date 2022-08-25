@@ -14,34 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Aleo, Network};
-use snarkvm::{package::Package, prelude::{test_crypto_rng, Testnet3, Process}};
+use crate::Aleo;
+use snarkvm::{package::Package, prelude::Testnet3};
 
 use anyhow::Result;
 use clap::Parser;
 use colored::Colorize;
 
-/// Compiles an Aleo program.
+/// Deploys an Aleo program.
 #[derive(Debug, Parser)]
-pub struct Deploy {
-    /// Uses the specified endpoint.
-    #[clap(long)]
-    endpoint: Option<String>,
-    /// Toggles offline mode.
-    #[clap(long)]
-    offline: bool,
-}
+pub struct Deploy;
 
 impl Deploy {
-    /// Compiles an Aleo program with the specified name.
+    /// Deploys an Aleo program with the specified name.
     pub fn parse(self) -> Result<String> {
         // Derive the program directory path.
         let path = std::env::current_dir()?;
 
         // Load the package.
         let package = Package::<Testnet3>::open(&path)?;
+        println!("⏳ Deploying '{}'...\n", package.program_id().to_string().bold());
 
-        Self::deploy(&package, self.endpoint, self.offline)?;
+        package.deploy::<Aleo>(Some("https://www.aleo.network/testnet3/deploy".to_string()))?;
+        println!();
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
@@ -52,19 +47,5 @@ impl Deploy {
             package.program_id().to_string().bold(),
             path_string.dimmed()
         ))
-    }
-
-    /// Performs the deploy command.
-    pub(crate) fn deploy(package: &Package<Network>, endpoint: Option<String>, _offline: bool) -> Result<()> {
-        println!("⏳ Deploying '{}'...\n", package.program_id().to_string().bold());
-        // Retrieve the main program.
-        let program = package.program();
-        // Construct the process.
-        let process = Process::load()?;
-        let rng = &mut test_crypto_rng();
-        let deployment = process.deploy::<Aleo, _>(program, rng).unwrap();
-        ureq::post("http://127.0.0.1/testnet3/deploy").send_json(&deployment)?; 
-        println!();
-        Ok(())
     }
 }
