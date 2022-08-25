@@ -246,7 +246,7 @@ impl<N: Network> Server<N> {
     }
 
     /// Returns the transactions for the given block height.
-    async fn get_transaction_by_hash(hash: String, ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
+    async fn get_transaction(transaction_id: N::TransactionID, ledger: Arc<Ledger<N>>) -> Result<impl Reply, Rejection> {
         Ok(reply::json(
             &ledger.ledger.read().get_transaction_by_hash(&hash).or_reject()?,
         ))
