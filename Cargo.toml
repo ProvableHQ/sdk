@@ -64,7 +64,7 @@ version = "1"
 [dependencies.snarkvm]
 #path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "extend-ledger-api"
+rev = "1db1f75"
 features = ["aleo-cli", "circuit", "console", "parallel"]
 
 [dependencies.thiserror]
