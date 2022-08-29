@@ -54,7 +54,7 @@ impl Build {
 
         // Log the build as successful.
         Ok(format!(
-            "\n✅ Built '{}' {}",
+            "✅ Built '{}' {}",
             package.program_id().to_string().bold(),
             path_string.dimmed()
         ))

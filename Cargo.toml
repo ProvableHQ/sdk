@@ -64,7 +64,7 @@ version = "1"
 [dependencies.snarkvm]
 #path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "4213a44"
+rev = "f54ec57"
 features = ["aleo-cli", "circuit", "console", "parallel"]
 
 [dependencies.thiserror]
