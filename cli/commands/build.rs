@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Aleo, Network};
+use crate::Aleo;
 use snarkvm::package::Package;
 
 use anyhow::Result;
@@ -40,10 +40,14 @@ impl Build {
 
         // Load the package.
         let package = Package::open(&path)?;
-        // If the program requires a build, invoke the build command.
-        if package.is_build_required::<Aleo>() {
-            Self::build(&package, self.endpoint, self.offline)?;
-        }
+
+        // Build the package, if the package requires building.
+        package.build::<Aleo>(self.endpoint)?;
+
+        // package.build::<Aleo>(match self.offline {
+        //     true => None,
+        //     false => Some(endpoint.unwrap_or("https://vm.aleo.org/testnet3/build".to_string())),
+        // })?;
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
@@ -54,18 +58,5 @@ impl Build {
             package.program_id().to_string().bold(),
             path_string.dimmed()
         ))
-    }
-
-    /// Performs the build command.
-    pub(crate) fn build(package: &Package<Network>, endpoint: Option<String>, _offline: bool) -> Result<()> {
-        println!("⏳ Compiling '{}'...\n", package.program_id().to_string().bold());
-        // Build the package.
-        package.build::<Aleo>(endpoint)?;
-        // package.build::<Aleo>(match offline {
-        //     true => None,
-        //     false => Some(endpoint.unwrap_or("https://vm.aleo.org/testnet3/build".to_string())),
-        // })?;
-        println!();
-        Ok(())
     }
 }
