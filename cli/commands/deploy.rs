@@ -33,8 +33,8 @@ impl Deploy {
 
         // Load the package.
         let package = Package::<Network>::open(&path)?;
-        println!("⏳ Deploying '{}'...\n", package.program_id().to_string().bold());
 
+        // Deploy the package.
         package.deploy::<Aleo>(Some("https://www.aleo.network/testnet3/deploy".to_string()))?;
         println!();
 

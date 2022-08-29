@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{commands::Build, Aleo, Network};
+use crate::{Aleo, Network};
 use snarkvm::{
     package::Package,
     prelude::{Identifier, Locator, Value},
 };
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use clap::Parser;
 use colored::Colorize;
 use core::str::FromStr;
@@ -51,40 +51,34 @@ impl Run {
 
         // Load the package.
         let package = Package::open(&path)?;
-        // If the program requires a build, invoke the build command.
-        if package.is_build_required::<Aleo>() {
-            Build::build(&package, self.endpoint, self.offline)?;
-        }
-        // Check that the function exists.
-        if !package.program_file().program().contains_function(&self.function) {
-            bail!("Function '{}' does not exist.", self.function)
-        }
-
-        // Prepare the locator.
-        let locator = Locator::<Network>::from_str(&format!("{}/{}", package.program_id(), self.function))?;
 
         // Initialize an RNG.
         let rng = &mut rand::thread_rng();
+
         // Execute the request.
         let (response, _transition) = package.run::<Aleo, _>(
+            self.endpoint,
             package.manifest_file().development_private_key(),
             self.function,
             &self.inputs,
             rng,
         )?;
 
-        // Prepare the path string.
-        let path_string = format!("(in \"{}\")", path.display());
-
         // Log the outputs.
-        match response.outputs().len() > 1 {
-            true => println!("\n➡️  Outputs\n"),
-            false => println!("\n➡️  Outputs\n"),
+        match response.outputs().len() {
+            0 => (),
+            1 => println!("\n➡️  Output\n"),
+            _ => println!("\n➡️  Outputs\n"),
         };
         for output in response.outputs() {
             println!("{}", format!(" • {output}"));
         }
         println!();
+
+        // Prepare the locator.
+        let locator = Locator::<Network>::from_str(&format!("{}/{}", package.program_id(), self.function))?;
+        // Prepare the path string.
+        let path_string = format!("(in \"{}\")", path.display());
 
         Ok(format!(
             "✅ Executed '{}' {}",
