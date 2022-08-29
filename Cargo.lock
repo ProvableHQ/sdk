@@ -48,6 +48,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "ureq",
+ "walkdir",
  "warp",
 ]
 
