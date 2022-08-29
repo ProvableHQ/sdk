@@ -31,6 +31,7 @@ pub enum Node {
     /// Starts a local development node
     Start {
         /// Skips deploying the local program at genesis.
+        #[clap(long)]
         nodeploy: bool,
     },
 }

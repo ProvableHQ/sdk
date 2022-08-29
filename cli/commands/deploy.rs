@@ -14,47 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Aleo;
+use crate::{Aleo, Network};
 use snarkvm::package::Package;
 
 use anyhow::Result;
 use clap::Parser;
 use colored::Colorize;
 
-/// Compiles an Aleo program.
+/// Deploys an Aleo program.
 #[derive(Debug, Parser)]
-pub struct Build {
-    /// Uses the specified endpoint.
-    #[clap(long)]
-    endpoint: Option<String>,
-    /// Toggles offline mode.
-    #[clap(long)]
-    offline: bool,
-}
+pub struct Deploy;
 
-impl Build {
-    /// Compiles an Aleo program with the specified name.
+impl Deploy {
+    /// Deploys an Aleo program with the specified name.
     pub fn parse(self) -> Result<String> {
         // Derive the program directory path.
         let path = std::env::current_dir()?;
 
         // Load the package.
-        let package = Package::open(&path)?;
+        let package = Package::<Network>::open(&path)?;
 
-        // Build the package, if the package requires building.
-        package.build::<Aleo>(self.endpoint)?;
-
-        // package.build::<Aleo>(match self.offline {
-        //     true => None,
-        //     false => Some(endpoint.unwrap_or("https://vm.aleo.org/testnet3/build".to_string())),
-        // })?;
+        // Deploy the package.
+        package.deploy::<Aleo>(Some("https://www.aleo.network/testnet3/deploy".to_string()))?;
+        println!();
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
-        // Log the build as successful.
+        // Log the deploy as successful.
         Ok(format!(
-            "✅ Built '{}' {}",
+            "✅ Deployed '{}' {}",
             package.program_id().to_string().bold(),
             path_string.dimmed()
         ))

@@ -17,7 +17,7 @@ and broadcast it to the network.
 
 ## 1. Overview
 
-For more information, on Aleo visit [Welcome to Aleo](https://developer.aleo.org/aleo/getting_started/overview/) to get started.
+For more information on Aleo, visit [Welcome to Aleo](https://developer.aleo.org/overview/) to get started.
 
 ## 2. Build Guide
 
@@ -35,15 +35,9 @@ We recommend installing Rust using [rustup](https://www.rustup.rs/). You can ins
   Download the [Windows 64-bit executable](https://win.rustup.rs/x86_64) or
   [Windows 32-bit executable](https://win.rustup.rs/i686) and follow the on-screen instructions.
 
-### 2.2 Build from Crates.io
+### 2.2 Build from Source Code
 
 We recommend installing `aleo` this way. In your terminal, run:
-
-<!--
-### 2.2b Build from Source Code
-
-Alternatively, you can install `aleo` by building from the source code as follows:
--->
 
 ```bash
 # Download the source code
@@ -63,7 +57,7 @@ aleo
 
 ## 3. Usage Guide
 
-### 3.1 Generate a new Aleo account.
+### 3.1 Generate a new Aleo account
 
 To generate a new Aleo account, run:
 ```bash
@@ -77,7 +71,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -s, --seed <seed> 
+    -s, --seed <seed>
 ```
 
 ### 3.2 Create and build a new project
@@ -99,6 +93,7 @@ The main.aleo file should have contents like this:
 ```
 // The 'foo.aleo' program.
 program foo.aleo;
+
 function hello:
     input r0 as u32.public;
     input r1 as u32.private;
@@ -173,39 +168,40 @@ First, we need to declare the program as the following:
 program foo.aleo;
 ```
 
-Afterwards, we can start writing its functions (or other aleo structures such as interfaces, records, closures, as we will see later)
+Afterwards, we can start writing its functions (or other Aleo structures such as interfaces, records, closures, as we will see later).
 
 In the case of functions we have it very easy:
 
 ```
-function [function_name]: 
+function [function_name]:
 ```
 
 The functions are composed of three main parts:
 
 - **The input section**
+
   Here we declare its input parameters:
   ```
       input r0 as u32.public;
       input r1 as u32.private;
   ```
-  Everything in aleo instructions are declared/stored inside a register with a type (`i8`,`field`,`bool`, etc) and a visibility option (`public` or `private`), registers are named as `r0`, `r1`, ..., `rn`.
+  Everything in Aleo instructions is declared/stored inside a register with a type (`i8`,`field`,`bool`, etc.) and a visibility option (`public` or `private`), registers are named `r0`, `r1`, ..., `rn`.
 
-  In this case we use `r0`, and `r1` to store the inputs passed in sequential order to a program as `u32` values, where we can store 32bits unsigned integers to perform our sum operation.
+  In this case we use `r0` and `r1` to store the inputs passed in sequential order to a program as `u32` values, where we can store 32-bit unsigned integers to perform our sum operation.
 
 - **The instructions section**
 
-  The next section, consists in the core of our function, here we call the amount of Aleo Instructions we need to make our program do what we want. For example, performing an add operation:
+  The next section consists in the core of our function, here we call the amount of Aleo Instructions we need to make our program do what we want. For example, performing an addition operation:
   ```
       add r0 r1 into r2;
   ```
-  Every aleo instruction is followed by its input parameters with its specific types, and the result is store in the *into* register.
+  Every Aleo instruction is followed by its input parameters with its specific types, and the result is stored in the *into* register.
 
   You can find all the available aleo instructions [here](https://hackmd.io/@aleo/SJ0mrYRv5#shr).
 
 - **The output section**
 
-  Similar to the input sections, the output section does the same for the output of the program. It's the return of the function.
+  Similar to the input section, the output section does the same for the output of the program. It's the return of the function.
   ```
       output r2 as u32.private;
   ```
@@ -216,6 +212,7 @@ Aleo uses a strongly-typed syntax. The language supports 16 primitive types, and
 
 The Aleo primitive types include:
 ```
+address
 boolean
 field
 group
@@ -252,7 +249,7 @@ interface array3:
     a2 as u32;
 ```
 
-Now, just for example purposes, let's code a function that adds one to each element of a register with an array3 data type stored in it.
+Now, just for example purposes, let's code a function that adds one to each element of a register with an `array3` data type stored in it.
 
 ```
 function sum_one_to_array3:
@@ -264,9 +261,9 @@ function sum_one_to_array3:
     output r4 as array3.private;
 ```
 
-As you can see, we can input an interface into register `r0` and access interface elements with the `.` syntax. We perform the `add` instruction on every element, storing the results in registers `r1`, `r2` and `r3` and, finally, we make use of the cast command to create a new array3 interface into `r4`.
+As you can see, we can input an interface into register `r0` and access interface elements with the `.` syntax. We perform the `add` instruction on every element, storing the results in registers `r1`, `r2` and `r3` and, finally, we make use of the cast command to create a new `array3` interface into `r4`.
 
-Now, let's run it. In this case, the only new thing you need to know is that interfaces are passed to the cli in the following format:
+Now, let's run it. In this case, the only new thing you need to know is that interfaces are passed to the CLI in the following format:
 
 ```
 "{a0: 1u32, a1: 2u32, a2: 3u32}"
@@ -307,7 +304,7 @@ the `owner` refers to the Aleo address that owns the record and `gates` is the a
 
 Records are important because they represent the basic Aleo structure to handle state in your application.
 
-When running an Aleo function, only registers that belong to the application address can be passed as input registers. Otherwise, an error would be raised and the application wouldn't run.
+When running an Aleo function, only records that belong to the application address can be passed as input registers. Otherwise, an error would be raised and the application wouldn't run.
 
 You can find your development application address inside the *program.json* file:
 
