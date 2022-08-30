@@ -39,3 +39,22 @@ version = "0.3.28"
 
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+	'console',
+	'Document',
+	'EventListener',
+  	'Element',
+  	'HtmlElement',
+  	'Node',
+  	'Window',
+	'InputEvent',
+	'HtmlInputElement',
+	'HtmlTextAreaElement',
+	'HtmlButtonElement',
+]
+
+[profile.release]
+lto = true
