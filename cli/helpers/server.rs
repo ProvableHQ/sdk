@@ -144,15 +144,15 @@ impl<N: Network> Server<N> {
         ledger: Arc<Ledger<N>>,
         ledger_sender: LedgerSender<N>,
     ) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-        // GET /testnet3/latest/block/height
+        // GET /testnet3/latest/height
         let latest_block_height = warp::get()
-            .and(warp::path!("testnet3" / "latest" / "block" / "height"))
+            .and(warp::path!("testnet3" / "latest" / "height"))
             .and(with(ledger.clone()))
             .and_then(Self::latest_block_height);
 
-        // GET /testnet3/latest/block/hash
+        // GET /testnet3/latest/hash
         let latest_block_hash = warp::get()
-            .and(warp::path!("testnet3" / "latest" / "block" / "hash"))
+            .and(warp::path!("testnet3" / "latest" / "hash"))
             .and(with(ledger.clone()))
             .and_then(Self::latest_block_hash);
 
