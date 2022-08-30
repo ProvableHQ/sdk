@@ -38,6 +38,9 @@ pub use run::*;
 mod update;
 pub use update::*;
 
+mod execute;
+pub use execute::*;
+
 use anyhow::Result;
 use clap::Parser;
 
@@ -70,6 +73,8 @@ pub enum Command {
     Run(Run),
     #[clap(subcommand)]
     Update(Update),
+    #[clap(name = "execute")]
+    Execute(Execute),
 }
 
 impl Command {
@@ -84,6 +89,7 @@ impl Command {
             Self::Node(command) => command.parse(),
             Self::Run(command) => command.parse(),
             Self::Update(command) => command.parse(),
+            Self::Execute(command) => command.parse(),
         }
     }
 }
