@@ -23,7 +23,8 @@ extern crate thiserror;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref DEPLOY_URL: String = std::env::var("https://www.aleo.network/testnet3/deploy").unwrap();
+    static ref DEPLOY_URL: String =
+        std::env::var("DEPLOY_URL").unwrap_or("https://www.aleo.network/testnet3/deploy".to_string());
 }
 
 pub mod commands;
