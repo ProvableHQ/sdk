@@ -22,9 +22,11 @@ extern crate thiserror;
 
 use lazy_static::lazy_static;
 
+// In Phase 1, the deploys are made through the Explorer.
+// EXPLORER_URL is an env variable that allows the configuration of the
+// explorer server address.
 lazy_static! {
     static ref EXPLORER_URL: String = std::env::var("EXPLORER_URL").unwrap_or("https://www.aleo.network".to_string());
-    static ref DEPLOY_URL: String = format!("{}/testnet3/deploy", crate::EXPLORER_URL.to_string());
 }
 
 pub mod commands;
