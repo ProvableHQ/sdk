@@ -38,6 +38,9 @@ version = "2"
 version = "1.9"
 features = ["rayon", "serde"]
 
+[dependencies.lazy_static]
+version = "1.4"
+
 [dependencies.once_cell]
 version = "1"
 

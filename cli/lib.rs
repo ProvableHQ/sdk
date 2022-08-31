@@ -20,6 +20,12 @@
 #[macro_use]
 extern crate thiserror;
 
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref DEPLOY_URL: String = std::env::var("https://www.aleo.network/testnet3/deploy").unwrap();
+}
+
 pub mod commands;
 pub mod errors;
 pub mod helpers;

@@ -35,7 +35,7 @@ impl Deploy {
         let package = Package::<Network>::open(&path)?;
 
         // Deploy the package.
-        package.deploy::<Aleo>(Some("https://www.aleo.network/testnet3/deploy".to_string()))?;
+        package.deploy::<Aleo>(Some(crate::DEPLOY_URL.to_string()))?;
         println!();
 
         // Prepare the path string.
