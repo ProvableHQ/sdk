@@ -48,9 +48,15 @@ impl Account {
                 let address = Address::try_from(&view_key)?;
 
                 // Print the new Aleo account.
-                let mut output = format!(" {:>12}  {}\n", "Private Key".cyan().bold(), private_key);
-                output += &format!(" {:>12}  {}\n", "View Key".cyan().bold(), view_key);
-                output += &format!(" {:>12}  {}", "Address".cyan().bold(), address);
+                let output = format!(
+                    " {:>12}  {}\n {:>12}  {}\n {:>12}  {}",
+                    "Private Key".cyan().bold(),
+                    private_key,
+                    "View Key".cyan().bold(),
+                    view_key,
+                    "Address".cyan().bold(),
+                    address
+                );
 
                 Ok(output)
             }

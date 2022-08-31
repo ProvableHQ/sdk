@@ -18,6 +18,7 @@ use crate::errors::UpdaterError;
 
 use colored::Colorize;
 use self_update::{backends::github, version::bump_is_greater, Status};
+use std::fmt::Write as _;
 
 pub struct Updater;
 
@@ -37,7 +38,7 @@ impl Updater {
 
         let mut output = "List of available versions\n".to_string();
         for release in releases {
-            output += &format!("  * {}\n", release.version);
+            let _ = writeln!(output, "  * {}", release.version);
         }
         Ok(output)
     }
