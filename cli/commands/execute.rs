@@ -17,13 +17,15 @@
 use crate::{Aleo, Network};
 use snarkvm::{
     package::Package,
-    prelude::{Identifier, Locator, Value},
+    prelude::{Ciphertext, Identifier, Locator, PrivateKey, Record, Value, ViewKey},
 };
 
-use anyhow::Result;
+use anyhow::{Error, Result};
 use clap::Parser;
 use colored::Colorize;
 use core::str::FromStr;
+use serde_json::json;
+use std::convert::TryFrom;
 
 /// Executes an Aleo program function.
 #[derive(Debug, Parser)]
@@ -49,12 +51,33 @@ impl Execute {
         // Initialize an RNG.
         let rng = &mut rand::thread_rng();
 
+        // TODO: Find a way for not having to turn a snarkvm::snarkvm_circuit::PrivateKey into a string just to turn it back into a snarkvm::prelude::PrivateKey.
+        let private_key = PrivateKey::<Network>::from_str(&package.manifest_file().development_private_key().to_string())?;
+
+        // Derive the view key from the private key
+        let view_key = ViewKey::try_from(private_key)?;
+
+        // TODO: Find a better way to filter commitments from the program execution inputs.
+        let mut inputs: Vec<Value<Network>> = Vec::new();
+        self.inputs
+            .into_iter()
+            .try_for_each(|input| {
+                if input.to_string().ends_with(".field") {
+                    let ciphertext: Record<Network, Ciphertext<Network>> = ureq::get(&format!("https://www.aleo.network/testnet3/ciphertext/unspent/{input}")).send_json(json!(view_key.to_string()))?.into_json()?;
+                    let record = ciphertext.decrypt(&view_key)?;
+                    inputs.push(Value::Record(record));
+                } else {
+                    inputs.push(input);
+                }
+                Ok::<(), Error>(())
+            })?;
+
         // Execute the request.
         let execution = package.execute::<Aleo, _>(
             Some("https://www.aleo.network/testnet3/execute".to_string()),
             package.manifest_file().development_private_key(),
             self.function,
-            &self.inputs,
+            &inputs,
             rng,
         )?;
 
