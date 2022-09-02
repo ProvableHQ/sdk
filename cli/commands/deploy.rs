@@ -35,12 +35,13 @@ impl Deploy {
         let package = Package::<Network>::open(&path)?;
 
         // Deploy the package.
-        package.deploy::<Aleo>(Some("https://www.aleo.network/testnet3/deploy".to_string()))?;
+        let response = package.deploy::<Aleo>(Some("https://www.aleo.network/testnet3/deploy".to_string()))?;
         println!();
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
+        println!("  Transaction ID: {}\n", response.transaction_id().bold());
         // Log the deploy as successful.
         Ok(format!(
             "✅ Deployed '{}' {}",
