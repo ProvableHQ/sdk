@@ -76,7 +76,7 @@ impl Execute {
 
         // Execute the request.
         let execution = package.execute::<Aleo, _>(
-            Some("https://www.aleo.network/testnet3/execute".to_string()),
+            Some("https://www.aleo.network/testnet3/program/execute".to_string()),
             package.manifest_file().development_private_key(),
             self.function,
             &inputs,
