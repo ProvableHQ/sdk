@@ -61,7 +61,7 @@ impl Execute {
         // TODO: Find a better way to filter commitments from the program execution inputs.
         let mut inputs: Vec<Value<Network>> = Vec::new();
         self.inputs.into_iter().try_for_each(|input| {
-            if input.to_string().ends_with(".field") {
+            if input.to_string().ends_with("field") {
                 let ciphertext: Record<Network, Ciphertext<Network>> =
                     ureq::get(&format!("https://www.aleo.network/testnet3/ciphertext/unspent/{input}"))
                         .send_json(json!(view_key.to_string()))?
