@@ -16,6 +16,7 @@
 
 use crate::errors::UpdaterError;
 
+use anyhow::Result;
 use colored::Colorize;
 use self_update::{backends::github, version::bump_is_greater, Status};
 use std::fmt::Write as _;
@@ -29,7 +30,7 @@ impl Updater {
     const ALEO_REPO_OWNER: &'static str = "AleoHQ";
 
     /// Show all available releases for `aleo`.
-    pub fn show_available_releases() -> Result<String, UpdaterError> {
+    pub fn show_available_releases() -> Result<String> {
         let releases = github::ReleaseList::configure()
             .repo_owner(Self::ALEO_REPO_OWNER)
             .repo_name(Self::ALEO_REPO_NAME)
@@ -38,7 +39,7 @@ impl Updater {
 
         let mut output = "List of available versions\n".to_string();
         for release in releases {
-            let _ = writeln!(output, "  * {}", release.version);
+            writeln!(output, "  * {}", release.version)?;
         }
         Ok(output)
     }
