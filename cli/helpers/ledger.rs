@@ -47,6 +47,8 @@ pub(crate) type InternalServer<N> = snarkvm::prelude::Server<N, BlockMemory<N>, 
 pub struct Ledger<N: Network> {
     /// The internal ledger.
     pub ledger: Arc<RwLock<InternalLedger<N>>>,
+    /// The runtime.
+    runtime: tokio::runtime::Runtime,
     /// The server.
     server: InternalServer<N>,
     /// The account private key.
@@ -101,12 +103,23 @@ impl<N: Network> Ledger<N> {
                 .or(get_development_address)
         };
 
+        // Initialize a runtime.
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .thread_stack_size(8 * 1024 * 1024)
+            .build()?;
+
         // Initialize the server.
-        let server = InternalServer::<N>::start(ledger.clone(), Some(additional_routes))?;
+        let ledger_clone = ledger.clone();
+        let server = runtime.block_on(async move {
+            // Start the server.
+            InternalServer::<N>::start(ledger_clone, Some(additional_routes))
+        })?;
 
         // Return the ledger.
         Ok(Arc::new(Self {
             ledger,
+            runtime,
             server,
             private_key: *private_key,
             view_key,
