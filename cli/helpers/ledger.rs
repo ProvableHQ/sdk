@@ -113,7 +113,7 @@ impl<N: Network> Ledger<N> {
         let ledger_clone = ledger.clone();
         let server = runtime.block_on(async move {
             // Start the server.
-            InternalServer::<N>::start(ledger_clone, Some(additional_routes))
+            InternalServer::<N>::start(ledger_clone, Some(additional_routes), Some(4180))
         })?;
 
         // Return the ledger.
