@@ -75,13 +75,24 @@ impl Execute {
         })?;
 
         // Execute the request.
-        let execution = package.execute::<Aleo, _>(
-            Some("https://www.aleo.network/testnet3/program/execute".to_string()),
+        let (response, _execution) = package.execute::<Aleo, _>(
+            Some("http://127.0.0.1/testnet3/program/execute".to_string()),
             package.manifest_file().development_private_key(),
             self.function,
             &inputs,
             rng,
         )?;
+
+        // Log the outputs.
+        match response.outputs().len() {
+            0 => (),
+            1 => println!("\n➡️  Output\n"),
+            _ => println!("\n➡️  Outputs\n"),
+        };
+        for output in response.outputs() {
+            println!("{}", format!(" • {output}"));
+        }
+        println!();
 
         // Prepare the locator.
         let locator = Locator::<Network>::from_str(&format!("{}/{}", package.program_id(), self.function))?;
