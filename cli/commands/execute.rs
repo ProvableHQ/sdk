@@ -24,7 +24,6 @@ use anyhow::{Error, Result};
 use clap::Parser;
 use colored::Colorize;
 use core::str::FromStr;
-use serde_json::json;
 use std::convert::TryFrom;
 
 /// Executes an Aleo program function.
@@ -63,8 +62,8 @@ impl Execute {
         self.inputs.into_iter().try_for_each(|input| {
             if input.to_string().ends_with("field") {
                 let ciphertext: Record<Network, Ciphertext<Network>> =
-                    ureq::get(&format!("https://www.aleo.network/testnet3/ciphertext/unspent/{input}"))
-                        .send_json(json!(view_key.to_string()))?
+                    ureq::get(&format!("http://localhost/testnet3/ciphertext/unspent/{input}"))
+                        .call()?
                         .into_json()?;
                 let record = ciphertext.decrypt(&view_key)?;
                 inputs.push(Value::Record(record));
