@@ -53,7 +53,7 @@ impl Run {
         let package = Package::open(&path)?;
         // If the program requires a build, invoke the build command.
         if package.is_build_required::<Aleo>() {
-            Build::build(&package, self.endpoint, self.offline)?;
+            Build::build(&package, self.endpoint.clone(), self.offline)?;
         }
         // Check that the function exists.
         if !package.program_file().program().contains_function(&self.function) {
@@ -67,6 +67,7 @@ impl Run {
         let rng = &mut rand::thread_rng();
         // Execute the request.
         let (response, _transition) = package.run::<Aleo, _>(
+            self.endpoint,
             package.manifest_file().development_private_key(),
             self.function,
             &self.inputs,

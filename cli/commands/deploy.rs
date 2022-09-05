@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Aleo;
-use snarkvm::{package::Package, prelude::Testnet3};
+use crate::{Aleo, Network};
+use snarkvm::package::Package;
 
 use anyhow::Result;
 use clap::Parser;
@@ -32,11 +32,10 @@ impl Deploy {
         let path = std::env::current_dir()?;
 
         // Load the package.
-        let package = Package::<Testnet3>::open(&path)?;
-        println!("⏳ Deploying '{}'...\n", package.program_id().to_string().bold());
+        let package = Package::<Network>::open(&path)?;
 
+        // Deploy the package.
         package.deploy::<Aleo>(Some("https://www.aleo.network/testnet3/deploy".to_string()))?;
-        println!();
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
