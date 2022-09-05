@@ -62,7 +62,7 @@ impl Execute {
         self.inputs.into_iter().try_for_each(|input| {
             if input.to_string().ends_with("field") {
                 let ciphertext: Record<Network, Ciphertext<Network>> =
-                    ureq::get(&format!("http://localhost/testnet3/ciphertext/unspent/{input}"))
+                    ureq::get(&format!("https://www.aleo.network/testnet3/ciphertext/{input}"))
                         .call()?
                         .into_json()?;
                 let record = ciphertext.decrypt(&view_key)?;
@@ -75,7 +75,7 @@ impl Execute {
 
         // Execute the request.
         let (response, _execution) = package.execute::<Aleo, _>(
-            Some("http://127.0.0.1/testnet3/program/execute".to_string()),
+            Some("https://www.aleo.network/testnet3/program/execute".to_string()),
             package.manifest_file().development_private_key(),
             self.function,
             &inputs,
