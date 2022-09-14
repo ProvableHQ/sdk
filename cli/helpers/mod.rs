@@ -17,8 +17,5 @@
 pub mod ledger;
 pub use ledger::*;
 
-pub mod server;
-pub use server::*;
-
 pub mod updater;
 pub use updater::*;

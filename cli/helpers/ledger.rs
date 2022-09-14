@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::helpers::Server;
 use snarkvm::prelude::{
     Address,
     Block,
@@ -34,20 +33,24 @@ use snarkvm::prelude::{
     VM,
 };
 
-use anyhow::{anyhow, bail, ensure, Result};
+use anyhow::{bail, ensure, Result};
 use core::str::FromStr;
-use once_cell::race::OnceBox;
 use parking_lot::RwLock;
 use std::{convert::TryFrom, sync::Arc};
+use warp::{reply, Filter, Rejection};
 
 pub(crate) type InternalStorage<N> = ProgramMemory<N>;
 pub(crate) type InternalLedger<N> = snarkvm::prelude::Ledger<N, BlockMemory<N>, InternalStorage<N>>;
+pub(crate) type InternalServer<N> = snarkvm::prelude::Server<N, BlockMemory<N>, InternalStorage<N>>;
 
+#[allow(dead_code)]
 pub struct Ledger<N: Network> {
     /// The internal ledger.
-    pub ledger: RwLock<InternalLedger<N>>,
+    pub ledger: Arc<RwLock<InternalLedger<N>>>,
+    /// The runtime.
+    runtime: tokio::runtime::Runtime,
     /// The server.
-    server: OnceBox<Server<N>>,
+    server: InternalServer<N>,
     /// The account private key.
     private_key: PrivateKey<N>,
     /// The account view key.
@@ -69,22 +72,59 @@ impl<N: Network> Ledger<N> {
         let store = ProgramStore::<_, InternalStorage<_>>::open()?;
         // Create a genesis block.
         let genesis = Block::genesis(&VM::new(store)?, private_key, rng)?;
+
         // Initialize the ledger.
-        let ledger = Arc::new(Self {
-            ledger: RwLock::new(InternalLedger::new_with_genesis(&genesis, address)?),
-            server: OnceBox::new(),
+        let ledger = Arc::new(RwLock::new(InternalLedger::new_with_genesis(&genesis, address)?));
+
+        // Initialize the additional routes.
+        let additional_routes = {
+            // GET /testnet3/development/privateKey
+            let get_development_private_key = warp::get()
+                .and(warp::path!("testnet3" / "development" / "privateKey"))
+                .and(snarkvm::rest::with(*private_key))
+                .and_then(|private_key: PrivateKey<N>| async move {
+                    Ok::<_, Rejection>(reply::json(&private_key.to_string()))
+                });
+
+            // GET /testnet3/development/viewKey
+            let get_development_view_key = warp::get()
+                .and(warp::path!("testnet3" / "development" / "viewKey"))
+                .and(snarkvm::rest::with(view_key))
+                .and_then(|view_key: ViewKey<N>| async move { Ok::<_, Rejection>(reply::json(&view_key.to_string())) });
+
+            // GET /testnet3/development/address
+            let get_development_address = warp::get()
+                .and(warp::path!("testnet3" / "development" / "address"))
+                .and(snarkvm::rest::with(address))
+                .and_then(|address: Address<N>| async move { Ok::<_, Rejection>(reply::json(&address.to_string())) });
+
+            get_development_private_key
+                .or(get_development_view_key)
+                .or(get_development_address)
+        };
+
+        // Initialize a runtime.
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .thread_stack_size(8 * 1024 * 1024)
+            .build()?;
+
+        // Initialize the server.
+        let ledger_clone = ledger.clone();
+        let server = runtime.block_on(async move {
+            // Start the server.
+            InternalServer::<N>::start(ledger_clone, Some(additional_routes), Some(4180))
+        })?;
+
+        // Return the ledger.
+        Ok(Arc::new(Self {
+            ledger,
+            runtime,
+            server,
             private_key: *private_key,
             view_key,
             address,
-        });
-        // Initialize the server.
-        let server = Server::<N>::start(ledger.clone())?;
-        ledger
-            .server
-            .set(Box::new(server))
-            .map_err(|_| anyhow!("Failed to save the server"))?;
-        // Return the ledger.
-        Ok(ledger)
+        }))
     }
 
     /// Returns the account address.
