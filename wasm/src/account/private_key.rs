@@ -17,7 +17,10 @@
 use aleo_account::{Address, PrivateKey as PrivateKeyNative, ViewKey};
 
 use rand::{rngs::StdRng, SeedableRng};
-use std::{convert::TryFrom, str::FromStr};
+use std::{
+    convert::{TryFrom, TryInto},
+    str::FromStr,
+};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -40,6 +43,17 @@ impl PrivateKey {
     #[wasm_bindgen]
     pub fn from_string(private_key: &str) -> Self {
         let private_key = PrivateKeyNative::from_str(private_key).unwrap();
+
+        Self { private_key }
+    }
+
+    #[wasm_bindgen]
+    pub fn from_seed(seed: &[u8]) -> Self {
+        console_error_panic_hook::set_once();
+
+        let seed: [u8; 32] = seed.try_into().unwrap();
+        let rng = &mut StdRng::from_seed(seed);
+        let private_key = PrivateKeyNative::new(rng).unwrap();
 
         Self { private_key }
     }
@@ -82,6 +96,17 @@ mod tests {
                 expected.to_string(),
                 PrivateKey::from_string(&expected.to_string()).to_string()
             );
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_private_key_from_seed() {
+        let seed: [u8; 32] = [1; 32];
+        let expected = PrivateKey::from_seed(&seed);
+
+        for _ in 0..ITERATIONS {
+            // Check the private_key is always the same from the same seed.
+            assert_eq!(expected.to_string(), PrivateKey::from_seed(&seed).to_string());
         }
     }
 
