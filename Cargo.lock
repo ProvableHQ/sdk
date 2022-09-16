@@ -41,7 +41,7 @@ dependencies = [
  "rand",
  "rand_chacha",
  "rusty-hook",
- "self_update",
+ "self_update 0.32.0",
  "serde",
  "serde_json",
  "snarkvm",
@@ -346,6 +346,7 @@ dependencies = [
  "libc",
  "once_cell",
  "terminal_size",
+ "unicode-width",
  "winapi",
 ]
 
@@ -906,6 +907,17 @@ dependencies = [
  "lazy_static",
  "number_prefix",
  "regex",
+]
+
+[[package]]
+name = "indicatif"
+version = "0.17.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfddc9561e8baf264e0e45e197fd7696320026eb10a8180340debc27b18f535b"
+dependencies = [
+ "console",
+ "number_prefix",
+ "unicode-width",
 ]
 
 [[package]]
@@ -1686,7 +1698,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88c865d17fb512577be02a09fd2fd96c31c7e46fe649205d84feefd8b2a332da"
 dependencies = [
  "hyper",
- "indicatif",
+ "indicatif 0.16.2",
+ "log",
+ "quick-xml",
+ "regex",
+ "reqwest",
+ "semver",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "self_update"
+version = "0.32.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e08f3ce73aed26096783c26570ba416ff8f4524c89a14bcdf068967dc80daef"
+dependencies = [
+ "hyper",
+ "indicatif 0.17.1",
  "log",
  "quick-xml",
  "regex",
@@ -1808,7 +1837,7 @@ dependencies = [
  "parking_lot",
  "rand",
  "rayon",
- "self_update",
+ "self_update 0.30.0",
  "serde_json",
  "snarkvm-circuit",
  "snarkvm-compiler",
