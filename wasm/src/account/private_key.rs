@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Address, PrivateKey as PrivateKeyNative, ViewKey};
+use aleo_account::{Address, PrivateKey as PrivateKeyNative, Signature, ViewKey};
 
 use rand::{rngs::StdRng, SeedableRng};
 use std::{
@@ -75,6 +75,15 @@ impl PrivateKey {
         let address = Address::try_from(self.private_key).unwrap();
         address.to_string()
     }
+
+    #[wasm_bindgen]
+    pub fn sign(&self, message: &[u8]) -> String {
+        let rng = &mut StdRng::from_entropy();
+
+        let signature = Signature::sign_bytes(&self.private_key, message, rng).unwrap();
+
+        signature.to_string()
+    }
 }
 
 #[cfg(test)]
@@ -120,6 +129,22 @@ mod tests {
             // Check the private_key derived from the view key.
             let view_key = ViewKey::from_str(&private_key.to_view_key()).unwrap();
             assert_eq!(expected, Address::try_from(&view_key).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_signature() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key.
+            let private_key = PrivateKey::new();
+            let message: [u8; 32] = [1; 32];
+
+            let signature = private_key.sign(&message);
+            let signature_native = Signature::from_str(&signature).unwrap();
+            let address = Address::from_str(&private_key.to_address()).unwrap();
+
+            // Check the private_key derived from the view key.
+            assert_eq!(true, signature_native.verify_bytes(&address, &message));
         }
     }
 }
