@@ -71,7 +71,7 @@ features = ["aleo-cli", "circuit", "console", "parallel", "rest"]
 version = "1.0"
 
 [dependencies.tokio]
-version = "1.5"
+version = "1.21"
 features = ["rt"]
 
 [dependencies.ureq]
