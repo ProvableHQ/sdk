@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Address, PrivateKey as PrivateKeyNative, Record, ViewKey};
+use aleo_account::{Address, PrivateKey as PrivateKeyNative, RecordCiphertext, ViewKey};
 
 use rand::{rngs::StdRng, SeedableRng};
 use std::{convert::TryFrom, str::FromStr};
@@ -64,8 +64,8 @@ impl PrivateKey {
 
     #[wasm_bindgen]
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
-        let view_key = ViewKey::try_from(self.private_key).unwrap();
-        let ciphertext = Record::from_str(ciphertext).map_err(|error| error.to_string())?;
+        let view_key = ViewKey::try_from(self.private_key).map_err(|error| error.to_string())?;
+        let ciphertext = RecordCiphertext::from_str(ciphertext).map_err(|error| error.to_string())?;
         match ciphertext.decrypt(&view_key) {
             Ok(plaintext) => Ok(plaintext.to_string()),
             Err(_) => Err("Incorrect view key".to_string()),
@@ -80,16 +80,8 @@ mod tests {
     use wasm_bindgen_test::*;
 
     const ITERATIONS: u64 = 1_000;
-
-    #[wasm_bindgen_test]
-    pub fn test_decrypt() {
-        let ciphertext = "record1qyqspplg2ud9gguy8ud9wjmee3cf2vztxcjxe2ernf8m7ru5wvsqkdqxqyqsq7y540qmemqx3675pufewwmywsudzrpstjx3fd38c6d8uz4r4mgpqqqt2q2jjczxp2y6986zdqz3mr5jmhggmge3exc72vgw2kgr4gea2zgzhrz8q";
-        let private_key = PrivateKey::from_string("APrivateKey1zkp6ka4UZu9JfMFDBqzKBffX7HQpYneKtzCTwnHb5GXVDpL");
-        let plaintext = private_key.decrypt(ciphertext);
-        let expected_plaintext = "{\n  owner: aleo1snwe5h89dv6hv2q2pl3v8l9cweeuwrgejmlnwza6ndacygznlu9sjt8pgv.private,\n  gates: 1u64.private,\n  _nonce: 4447510634654730534613001085815220248957154008834207042015711498717088580021group.public\n}";
-        assert!(plaintext.is_ok());
-        assert_eq!(expected_plaintext, plaintext.unwrap())
-    }
+    const CORRECT_PRIVATE_KEY: &str = "APrivateKey1zkp6ka4UZu9JfMFDBqzKBffX7HQpYneKtzCTwnHb5GXVDpL";
+    const INCORRECT_PRIVATE_KEY: &str = "APrivateKey1zkp6zrcYuoiMR6ePdWVLLdFehR8VMZQ2amsb8nqjLfNFanp";
 
     #[wasm_bindgen_test]
     pub fn test_private_key_new() {
@@ -116,5 +108,23 @@ mod tests {
             let view_key = ViewKey::from_str(&private_key.to_view_key()).unwrap();
             assert_eq!(expected, Address::try_from(&view_key).unwrap());
         }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_decrypt_success() {
+        let ciphertext = "record1qyqspplg2ud9gguy8ud9wjmee3cf2vztxcjxe2ernf8m7ru5wvsqkdqxqyqsq7y540qmemqx3675pufewwmywsudzrpstjx3fd38c6d8uz4r4mgpqqqt2q2jjczxp2y6986zdqz3mr5jmhggmge3exc72vgw2kgr4gea2zgzhrz8q";
+        let private_key = PrivateKey::from_string(CORRECT_PRIVATE_KEY);
+        let plaintext = private_key.decrypt(ciphertext);
+        let expected_plaintext = "{\n  owner: aleo1snwe5h89dv6hv2q2pl3v8l9cweeuwrgejmlnwza6ndacygznlu9sjt8pgv.private,\n  gates: 1u64.private,\n  _nonce: 4447510634654730534613001085815220248957154008834207042015711498717088580021group.public\n}";
+        assert!(plaintext.is_ok());
+        assert_eq!(expected_plaintext, plaintext.unwrap())
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_decrypt_fails() {
+        let ciphertext = "record1qyqspplg2ud9gguy8ud9wjmee3cf2vztxcjxe2ernf8m7ru5wvsqkdqxqyqsq7y540qmemqx3675pufewwmywsudzrpstjx3fd38c6d8uz4r4mgpqqqt2q2jjczxp2y6986zdqz3mr5jmhggmge3exc72vgw2kgr4gea2zgzhrz8q";
+        let incorrect_private_key = PrivateKey::from_string(INCORRECT_PRIVATE_KEY);
+        let plaintext = incorrect_private_key.decrypt(ciphertext);
+        assert!(plaintext.is_err());
     }
 }
