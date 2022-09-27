@@ -115,7 +115,7 @@ mod tests {
         let ciphertext = "record1qyqspplg2ud9gguy8ud9wjmee3cf2vztxcjxe2ernf8m7ru5wvsqkdqxqyqsq7y540qmemqx3675pufewwmywsudzrpstjx3fd38c6d8uz4r4mgpqqqt2q2jjczxp2y6986zdqz3mr5jmhggmge3exc72vgw2kgr4gea2zgzhrz8q";
         let private_key = PrivateKey::from_string(CORRECT_PRIVATE_KEY);
         let plaintext = private_key.decrypt(ciphertext);
-        let expected_plaintext = "{\n  owner: aleo1snwe5h89dv6hv2q2pl3v8l9cweeuwrgejmlnwza6ndacygznlu9sjt8pgv.private,\n  gates: 1u64.private,\n  _nonce: 4447510634654730534613001085815220248957154008834207042015711498717088580021group.public\n}";
+        let expected_plaintext = "{owner: aleo1snwe5h89dv6hv2q2pl3v8l9cweeuwrgejmlnwza6ndacygznlu9sjt8pgv.private, gates: 1u64.private, data: {}, _nonce: 4447510634654730534613001085815220248957154008834207042015711498717088580021group.public}";
         assert!(plaintext.is_ok());
         assert_eq!(expected_plaintext, plaintext.unwrap())
     }
