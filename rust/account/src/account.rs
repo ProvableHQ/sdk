@@ -24,4 +24,4 @@ pub type CurrentNetwork = Testnet3;
 pub type Address = AleoAddress<CurrentNetwork>;
 pub type PrivateKey = AleoPrivateKey<CurrentNetwork>;
 pub type ViewKey = AleoViewKey<CurrentNetwork>;
-pub type Record = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
+pub type RecordCiphertext = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
