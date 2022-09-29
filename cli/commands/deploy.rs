@@ -15,11 +15,15 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{Aleo, Network};
-use snarkvm::package::Package;
+use snarkvm::{
+    package::Package,
+    prelude::{Ciphertext, PrivateKey, Record, ViewKey},
+};
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use clap::Parser;
 use colored::Colorize;
+use std::{convert::TryFrom, str::FromStr};
 
 /// Deploys an Aleo program.
 #[derive(Debug, Parser)]
@@ -34,18 +38,42 @@ impl Deploy {
         // Load the package.
         let package = Package::<Network>::open(&path)?;
 
-        // Deploy the package.
-        package.deploy::<Aleo>(Some("https://www.aleo.network/testnet3/deploy".to_string()))?;
-        println!();
+        // TODO: Find a way for not having to turn a snarkvm::snarkvm_circuit::PrivateKey into a string just to turn it back into a snarkvm::prelude::PrivateKey.
+        let private_key =
+            PrivateKey::<Network>::from_str(&package.manifest_file().development_private_key().to_string())?;
+        let view_key = ViewKey::try_from(private_key)?;
 
-        // Prepare the path string.
-        let path_string = format!("(in \"{}\")", path.display());
+        let ciphertext = ureq::post("http://localhost/testnet3/ciphertexts/unspent")
+            .send_json(serde_json::json!(view_key.to_string()))?
+            .into_json::<Vec<Record<Network, Ciphertext<Network>>>>()?
+            .into_iter()
+            .next();
 
-        // Log the deploy as successful.
-        Ok(format!(
-            "✅ Deployed '{}' {}",
-            package.program_id().to_string().bold(),
-            path_string.dimmed()
-        ))
+        if let Some(ciphertext) = ciphertext {
+            let record = ciphertext.decrypt(&view_key)?;
+            // Deploy the package.
+            package.deploy::<Aleo>(
+                Some("http://localhost:4000/testnet3/deploy".to_string()),
+                &private_key,
+                record,
+            )?;
+            println!();
+
+            // Prepare the path string.
+            let path_string = format!("(in \"{}\")", path.display());
+
+            // Log the deploy as successful.
+            Ok(format!(
+                "✅ Deployed '{}' {}",
+                package.program_id().to_string().bold(),
+                path_string.dimmed()
+            ))
+        } else {
+            bail!(
+                "⚠️ Could not deploy '{}' {}",
+                package.program_id().to_string().bold(),
+                "No unspent ciphertexts found".dimmed()
+            )
+        }
     }
 }
