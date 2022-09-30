@@ -26,6 +26,9 @@ pub use clean::*;
 mod deploy;
 pub use deploy::*;
 
+mod execute;
+pub use execute::*;
+
 mod new;
 pub use new::*;
 
