@@ -62,6 +62,8 @@ pub enum Command {
     Clean(Clean),
     #[clap(name = "deploy")]
     Deploy(Deploy),
+    #[clap(name = "execute")]
+    Execute(Execute),
     #[clap(name = "new")]
     New(New),
     #[clap(subcommand)]
@@ -80,6 +82,7 @@ impl Command {
             Self::Build(command) => command.parse(),
             Self::Clean(command) => command.parse(),
             Self::Deploy(command) => command.parse(),
+            Self::Execute(command) => command.parse(),
             Self::New(command) => command.parse(),
             Self::Node(command) => command.parse(),
             Self::Run(command) => command.parse(),
