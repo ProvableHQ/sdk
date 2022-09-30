@@ -73,6 +73,7 @@ impl Execute {
             Ok::<(), Error>(())
         })?;
 
+        // Find an unspent ciphertext to use later for the fee.
         let ciphertext = ureq::post("http://localhost/testnet3/ciphertexts/unspent")
             .send_json(serde_json::json!(view_key.to_string()))?
             .into_json::<Vec<Record<Network, Ciphertext<Network>>>>()?
