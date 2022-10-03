@@ -104,8 +104,14 @@ impl Execute {
                 1 => println!("\n➡️  Output\n"),
                 _ => println!("\n➡️  Outputs\n"),
             };
-            for output in response.outputs() {
-                println!("{}", format!(" • {output}"));
+            // TODO: Handle output cases better.
+            for (output, output_id) in response.outputs().iter().zip(response.output_ids()) {
+                match output_id {
+                    snarkvm::prelude::OutputID::Record(commitment, _) => {
+                        println!("{}", format!(" • {output} - {commitment}"))
+                    }
+                    _ => println!("{}", format!(" • {output}")),
+                }
             }
             println!();
 
