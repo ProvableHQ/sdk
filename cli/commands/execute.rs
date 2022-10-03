@@ -83,7 +83,7 @@ impl Execute {
         if let Some(ciphertext) = ciphertext {
             let record = ciphertext.decrypt(&view_key)?;
             // Execute the request.
-            let (response, _execution) = package.execute::<Aleo, _>(
+            let (response, execution) = package.execute::<Aleo, _>(
                 Some("http://localhost:4000/testnet3/execute".to_string()),
                 package.manifest_file().development_private_key(),
                 record,
@@ -91,6 +91,12 @@ impl Execute {
                 &inputs,
                 rng,
             )?;
+
+            // Print the transaction id.
+            println!(
+                "{}",
+                format!("Transaction ID: {}", execution.id().to_string().bright_green())
+            );
 
             // Log the outputs.
             match response.outputs().len() {
