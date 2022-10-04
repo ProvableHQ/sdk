@@ -129,7 +129,7 @@ impl Execute {
             bail!(
                 "⚠️ Could not deploy '{}' {}",
                 package.program_id().to_string().bold(),
-                "No unspent ciphertexts found".dimmed()
+                "No unspent records found".dimmed()
             )
         }
     }
