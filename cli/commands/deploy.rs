@@ -52,11 +52,20 @@ impl Deploy {
         if let Some(ciphertext) = ciphertext {
             let record = ciphertext.decrypt(&view_key)?;
             // Deploy the package.
-            package.deploy::<Aleo>(
+            let deployment_transaction = package.deploy::<Aleo>(
                 Some("http://localhost:4000/testnet3/deploy".to_string()),
                 &private_key,
                 record,
             )?;
+            println!();
+            // Print the transaction id.
+            println!(
+                "{}",
+                format_args!(
+                    "Transaction ID: {}",
+                    deployment_transaction.id().to_string().bright_green()
+                )
+            );
             println!();
 
             // Prepare the path string.
