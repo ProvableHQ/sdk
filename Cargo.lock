@@ -232,6 +232,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "bs58"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "771fe0050b883fcc3ea2359b1a96bcfbc090b7116eae7c3c512c7a083fdf23d3"
+
+[[package]]
 name = "buf_redux"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -895,18 +901,6 @@ dependencies = [
  "hashbrown",
  "rayon",
  "serde",
-]
-
-[[package]]
-name = "indicatif"
-version = "0.16.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d207dc617c7a380ab07ff572a6e52fa202a2a8f355860ac9c38e23f8196be1b"
-dependencies = [
- "console",
- "lazy_static",
- "number_prefix",
- "regex",
 ]
 
 [[package]]
@@ -1693,12 +1687,12 @@ dependencies = [
 
 [[package]]
 name = "self_update"
-version = "0.30.0"
+version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88c865d17fb512577be02a09fd2fd96c31c7e46fe649205d84feefd8b2a332da"
+checksum = "b05ab948d728a6439b9da58a94c9df77d421a8bf558145681f908e170232f120"
 dependencies = [
  "hyper",
- "indicatif 0.16.2",
+ "indicatif",
  "log",
  "quick-xml",
  "regex",
@@ -1715,7 +1709,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e08f3ce73aed26096783c26570ba416ff8f4524c89a14bcdf068967dc80daef"
 dependencies = [
  "hyper",
- "indicatif 0.17.1",
+ "indicatif",
  "log",
  "quick-xml",
  "regex",
@@ -1827,7 +1821,7 @@ checksum = "2fd0db749597d91ff862fd1d55ea87f7855a744a8425a64695b6fca237d1dad1"
 [[package]]
 name = "snarkvm"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "anyhow",
  "clap",
@@ -1837,18 +1831,44 @@ dependencies = [
  "parking_lot",
  "rand",
  "rayon",
- "self_update 0.30.0",
+ "self_update 0.31.0",
  "serde_json",
  "snarkvm-circuit",
  "snarkvm-compiler",
- "snarkvm-console",
- "snarkvm-fields",
+ "snarkvm-console 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
  "snarkvm-parameters",
  "snarkvm-rest",
- "snarkvm-utilities",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
  "thiserror",
  "ureq",
  "walkdir",
+]
+
+[[package]]
+name = "snarkvm-algorithms"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "hashbrown",
+ "hex",
+ "itertools",
+ "parking_lot",
+ "rand",
+ "rand_chacha",
+ "rand_core",
+ "rayon",
+ "serde",
+ "sha2",
+ "smallvec",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-parameters",
+ "snarkvm-r1cs 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "thiserror",
 ]
 
 [[package]]
@@ -1864,23 +1884,20 @@ dependencies = [
  "parking_lot",
  "rand",
  "rand_chacha",
- "rand_core",
- "rayon",
  "serde",
  "sha2",
  "smallvec",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-parameters",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-r1cs 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
  "thiserror",
 ]
 
 [[package]]
 name = "snarkvm-circuit"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-account",
  "snarkvm-circuit-algorithms",
@@ -1894,38 +1911,38 @@ dependencies = [
 [[package]]
 name = "snarkvm-circuit-account"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-network",
  "snarkvm-circuit-types",
- "snarkvm-console-account",
+ "snarkvm-console-account 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-algorithms"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-types",
- "snarkvm-console-algorithms",
- "snarkvm-fields",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-collections"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-types",
- "snarkvm-console-collections",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-environment"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "indexmap",
  "itertools",
@@ -1933,45 +1950,45 @@ dependencies = [
  "num-traits",
  "once_cell",
  "snarkvm-circuit-environment-witness",
- "snarkvm-console-network",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-r1cs 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-environment-witness"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 
 [[package]]
 name = "snarkvm-circuit-network"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-collections",
  "snarkvm-circuit-types",
- "snarkvm-console-network",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-program"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-account",
  "snarkvm-circuit-network",
  "snarkvm-circuit-types",
- "snarkvm-console-program",
- "snarkvm-utilities",
+ "snarkvm-console-program 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-address",
@@ -1986,85 +2003,85 @@ dependencies = [
 [[package]]
 name = "snarkvm-circuit-types-address"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-group",
  "snarkvm-circuit-types-scalar",
- "snarkvm-console-types-address",
+ "snarkvm-console-types-address 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-boolean"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-environment",
- "snarkvm-console-types-boolean",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-field"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
- "snarkvm-console-types-field",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-group"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-scalar",
- "snarkvm-console-types-group",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-integers"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
- "snarkvm-console-types-integers",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-scalar"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
- "snarkvm-console-types-scalar",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-string"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-integers",
- "snarkvm-console-types-string",
+ "snarkvm-console-types-string 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
 name = "snarkvm-compiler"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "anyhow",
  "colored",
@@ -2076,13 +2093,13 @@ dependencies = [
  "rayon",
  "serde",
  "serde_json",
- "snarkvm-algorithms",
+ "snarkvm-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
  "snarkvm-circuit",
- "snarkvm-console",
- "snarkvm-curves",
- "snarkvm-fields",
+ "snarkvm-console 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
  "snarkvm-parameters",
- "snarkvm-utilities",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
  "time",
  "tracing",
 ]
@@ -2090,14 +2107,37 @@ dependencies = [
 [[package]]
 name = "snarkvm-console"
 version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "snarkvm-console-account 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-program 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+]
+
+[[package]]
+name = "snarkvm-console"
+version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
- "snarkvm-console-account",
- "snarkvm-console-algorithms",
- "snarkvm-console-collections",
- "snarkvm-console-network",
- "snarkvm-console-program",
- "snarkvm-console-types",
+ "snarkvm-console-account 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-program 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-account"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "bs58",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2106,8 +2146,20 @@ version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
  "base58",
- "snarkvm-console-network",
- "snarkvm-console-types",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-algorithms"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "blake2s_simd",
+ "smallvec",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2117,9 +2169,20 @@ source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e
 dependencies = [
  "blake2s_simd",
  "smallvec",
- "snarkvm-console-types",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-collections"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "aleo-std",
+ "rayon",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2129,8 +2192,27 @@ source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e
 dependencies = [
  "aleo-std",
  "rayon",
- "snarkvm-console-algorithms",
- "snarkvm-console-types",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-network"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "anyhow",
+ "itertools",
+ "lazy_static",
+ "serde",
+ "snarkvm-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2142,14 +2224,31 @@ dependencies = [
  "itertools",
  "lazy_static",
  "serde",
- "snarkvm-algorithms",
- "snarkvm-console-algorithms",
- "snarkvm-console-collections",
- "snarkvm-console-network-environment",
- "snarkvm-console-types",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-network-environment"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "anyhow",
+ "bech32",
+ "itertools",
+ "nom",
+ "num-traits",
+ "rand",
+ "serde",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2164,9 +2263,26 @@ dependencies = [
  "num-traits",
  "rand",
  "serde",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-program"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "enum_index",
+ "enum_index_derive",
+ "indexmap",
+ "num-derive",
+ "num-traits",
+ "once_cell",
+ "serde_json",
+ "snarkvm-console-account 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2181,9 +2297,24 @@ dependencies = [
  "num-traits",
  "once_cell",
  "serde_json",
- "snarkvm-console-account",
- "snarkvm-console-network",
- "snarkvm-console-types",
+ "snarkvm-console-account 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-types"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-address 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-string 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2191,14 +2322,25 @@ name = "snarkvm-console-types"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-address",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-group",
- "snarkvm-console-types-integers",
- "snarkvm-console-types-scalar",
- "snarkvm-console-types-string",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-address 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-string 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-types-address"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2206,10 +2348,18 @@ name = "snarkvm-console-types-address"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-group",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-types-boolean"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2217,7 +2367,16 @@ name = "snarkvm-console-types-boolean"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
- "snarkvm-console-network-environment",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-types-field"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2225,8 +2384,19 @@ name = "snarkvm-console-types-field"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-types-group"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2234,10 +2404,20 @@ name = "snarkvm-console-types-group"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-scalar",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-types-integers"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2245,9 +2425,19 @@ name = "snarkvm-console-types-integers"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-types-scalar"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2255,9 +2445,20 @@ name = "snarkvm-console-types-scalar"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-console-types-string"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
 ]
 
 [[package]]
@@ -2265,10 +2466,23 @@ name = "snarkvm-console-types-string"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-integers",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+]
+
+[[package]]
+name = "snarkvm-curves"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "rand",
+ "rustc_version",
+ "serde",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "thiserror",
 ]
 
 [[package]]
@@ -2279,8 +2493,25 @@ dependencies = [
  "rand",
  "rustc_version",
  "serde",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "thiserror",
+]
+
+[[package]]
+name = "snarkvm-fields"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "derivative",
+ "itertools",
+ "num-traits",
+ "rand",
+ "rayon",
+ "serde",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
  "thiserror",
 ]
 
@@ -2297,14 +2528,14 @@ dependencies = [
  "rand",
  "rayon",
  "serde",
- "snarkvm-utilities",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
  "thiserror",
 ]
 
 [[package]]
 name = "snarkvm-parameters"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -2319,8 +2550,24 @@ dependencies = [
  "rand",
  "serde_json",
  "sha2",
- "snarkvm-curves",
- "snarkvm-utilities",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "thiserror",
+]
+
+[[package]]
+name = "snarkvm-r1cs"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "anyhow",
+ "cfg-if",
+ "fxhash",
+ "indexmap",
+ "itertools",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
  "thiserror",
 ]
 
@@ -2334,25 +2581,44 @@ dependencies = [
  "fxhash",
  "indexmap",
  "itertools",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
  "thiserror",
 ]
 
 [[package]]
 name = "snarkvm-rest"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd#69cf3bd1120f9a7e488ecf8379ff07785ccd2215"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
 dependencies = [
  "anyhow",
  "indexmap",
  "parking_lot",
+ "serde",
  "snarkvm-compiler",
- "snarkvm-console",
+ "snarkvm-console 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
  "tokio",
  "tracing",
  "warp",
+]
+
+[[package]]
+name = "snarkvm-utilities"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "bincode",
+ "num-bigint",
+ "num_cpus",
+ "rand",
+ "rand_xorshift",
+ "rayon",
+ "serde",
+ "snarkvm-utilities-derives 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment)",
+ "thiserror",
 ]
 
 [[package]]
@@ -2369,8 +2635,18 @@ dependencies = [
  "rand_xorshift",
  "rayon",
  "serde",
- "snarkvm-utilities-derives",
+ "snarkvm-utilities-derives 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
  "thiserror",
+]
+
+[[package]]
+name = "snarkvm-utilities-derives"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=feat/program_deployment#710f772a1b1cfd4eb4d4d26a98e67a12a84a34ca"
+dependencies = [
+ "proc-macro2 1.0.43",
+ "quote 1.0.21",
+ "syn 1.0.99",
 ]
 
 [[package]]
@@ -2391,11 +2667,11 @@ dependencies = [
  "getrandom",
  "rand",
  "serde",
- "snarkvm-console",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-console 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-r1cs 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=69cf3bd)",
  "wasm-bindgen",
 ]
 
