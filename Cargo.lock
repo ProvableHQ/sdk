@@ -223,6 +223,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "bs58"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "771fe0050b883fcc3ea2359b1a96bcfbc090b7116eae7c3c512c7a083fdf23d3"
+
+[[package]]
 name = "buf_redux"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1829,7 +1835,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-algorithms"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -2088,7 +2094,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "snarkvm-console-account 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "snarkvm-console-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
@@ -2114,9 +2120,9 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-account"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
- "base58",
+ "bs58",
  "snarkvm-console-network 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
@@ -2134,7 +2140,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-algorithms"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "blake2s_simd",
  "smallvec",
@@ -2158,7 +2164,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-collections"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "aleo-std",
  "rayon",
@@ -2180,7 +2186,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-network"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "anyhow",
  "itertools",
@@ -2218,7 +2224,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-network-environment"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "anyhow",
  "bech32",
@@ -2252,7 +2258,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-program"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "enum_index",
  "enum_index_derive",
@@ -2286,7 +2292,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "snarkvm-console-types-address 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
@@ -2316,7 +2322,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-address"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
@@ -2338,7 +2344,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-boolean"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
@@ -2354,7 +2360,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-field"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
@@ -2372,7 +2378,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-group"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
@@ -2394,7 +2400,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-integers"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
@@ -2414,7 +2420,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-scalar"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
@@ -2434,7 +2440,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-string"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
@@ -2456,7 +2462,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-curves"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "rand",
  "rustc_version",
@@ -2482,7 +2488,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-fields"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -2539,7 +2545,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-r1cs"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -2586,7 +2592,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-utilities"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -2622,7 +2628,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-utilities-derives"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "proc-macro2 1.0.44",
  "quote 1.0.21",
@@ -2642,7 +2648,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-wasm"
 version = "0.9.0"
-source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#58e33b67777112f158b2ae4958f2fa86228e7dbd"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#e24b85cb4094cf025aa24798dfe0c14a820fb629"
 dependencies = [
  "getrandom",
  "rand",
