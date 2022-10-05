@@ -49,7 +49,7 @@ impl ViewKey {
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
         let ciphertext = RecordCiphertext::from_str(ciphertext).map_err(|error| error.to_string())?;
         match ciphertext.decrypt(&self.view_key) {
-            Ok(plaintext) => Ok(plaintext.to_string()),
+            Ok(plaintext) => Ok(serde_json::to_string(&plaintext).map_err(|error| error.to_string())?),
             Err(_) => Err("Incorrect view key".to_string()),
         }
     }
@@ -79,7 +79,7 @@ mod tests {
         let ciphertext = "record1qyqspplg2ud9gguy8ud9wjmee3cf2vztxcjxe2ernf8m7ru5wvsqkdqxqyqsq7y540qmemqx3675pufewwmywsudzrpstjx3fd38c6d8uz4r4mgpqqqt2q2jjczxp2y6986zdqz3mr5jmhggmge3exc72vgw2kgr4gea2zgzhrz8q";
         let view_key = ViewKey::from_string(CORRECT_VIEW_KEY);
         let plaintext = view_key.decrypt(ciphertext);
-        let expected_plaintext = "{owner: aleo1snwe5h89dv6hv2q2pl3v8l9cweeuwrgejmlnwza6ndacygznlu9sjt8pgv.private, gates: 1u64.private, data: {}, _nonce: 4447510634654730534613001085815220248957154008834207042015711498717088580021group.public}";
+        let expected_plaintext = "{\"owner\":\"aleo1snwe5h89dv6hv2q2pl3v8l9cweeuwrgejmlnwza6ndacygznlu9sjt8pgv.private\",\"gates\":\"1u64.private\",\"data\":{},\"_nonce\":\"4447510634654730534613001085815220248957154008834207042015711498717088580021group\"}";
         assert!(plaintext.is_ok());
         assert_eq!(expected_plaintext, plaintext.unwrap())
     }
