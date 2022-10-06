@@ -48,7 +48,7 @@ impl PrivateKey {
         Self::from_str(private_key).unwrap()
     }
 
-    #[allow(clippy::inherent_to_string)]
+    #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
