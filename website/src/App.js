@@ -2,8 +2,8 @@ import './App.css';
 import React, {useState} from 'react';
 
 import {Layout, Menu} from 'antd';
-import {NewAccount} from "./NewAccount";
-import {AccountFromPrivateKey} from "./AccountFromPrivateKey";
+import {NewAccount} from "./tabs/account/NewAccount";
+import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
 
 const {Header, Content, Footer} = Layout;
 
