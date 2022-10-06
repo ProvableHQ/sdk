@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{Address, ViewKey};
+use crate::account::{Address, Signature, ViewKey};
 use aleo_account::PrivateKey as PrivateKeyNative;
 
 use core::{fmt, ops::Deref, str::FromStr};
@@ -50,6 +50,10 @@ impl PrivateKey {
     pub fn to_address(&self) -> Address {
         Address::from_private_key(self)
     }
+
+    pub fn sign(&self, message: &[u8]) -> Signature {
+        Signature::sign(&self, message)
+    }
 }
 
 impl FromStr for PrivateKey {
@@ -78,6 +82,7 @@ impl Deref for PrivateKey {
 mod tests {
     use super::*;
 
+    use rand::Rng;
     use wasm_bindgen_test::*;
 
     const ITERATIONS: u64 = 1_000;
@@ -85,6 +90,20 @@ mod tests {
     const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
     const ALEO_VIEW_KEY: &str = "AViewKey1cxguxtKkjYnT9XDza9yTvVMxt6Ckb1Pv4ck1hppMzmCB";
     const ALEO_ADDRESS: &str = "aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4";
+
+    #[wasm_bindgen_test]
+    pub fn test_private_key_sanity_check() {
+        let private_key = PrivateKey::from_string(ALEO_PRIVATE_KEY);
+
+        println!("{} == {}", ALEO_PRIVATE_KEY, private_key.to_string());
+        assert_eq!(ALEO_PRIVATE_KEY, private_key.to_string());
+
+        println!("{} == {}", ALEO_VIEW_KEY, private_key.to_view_key());
+        assert_eq!(ALEO_VIEW_KEY, private_key.to_view_key().to_string());
+
+        println!("{} == {}", ALEO_ADDRESS, private_key.to_address());
+        assert_eq!(ALEO_ADDRESS, private_key.to_address().to_string());
+    }
 
     #[wasm_bindgen_test]
     pub fn test_private_key_new() {
@@ -111,16 +130,18 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    pub fn test_private_key_sanity_check() {
-        let private_key = PrivateKey::from_string(ALEO_PRIVATE_KEY);
+    pub fn test_signature() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let message: [u8; 32] = StdRng::from_entropy().gen();
 
-        println!("{} == {}", ALEO_PRIVATE_KEY, private_key.to_string());
-        assert_eq!(ALEO_PRIVATE_KEY, private_key.to_string());
-
-        println!("{} == {}", ALEO_VIEW_KEY, private_key.to_view_key());
-        assert_eq!(ALEO_VIEW_KEY, private_key.to_view_key().to_string());
-
-        println!("{} == {}", ALEO_ADDRESS, private_key.to_address());
-        assert_eq!(ALEO_ADDRESS, private_key.to_address().to_string());
+            // Sign the message.
+            let signature = private_key.sign(&message);
+            // Check the signature is valid.
+            assert!(signature.verify(&private_key.to_address(), &message));
+            // Check the signature is valid (natively).
+            assert!(signature.verify_bytes(&private_key.to_address(), &message));
+        }
     }
 }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{PrivateKey, ViewKey};
+use crate::account::{PrivateKey, Signature, ViewKey};
 use aleo_account::Address as AddressNative;
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
@@ -41,6 +41,10 @@ impl Address {
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
+    }
+
+    pub fn verify(&self, message: &[u8], signature: &Signature) -> bool {
+        signature.verify(&self, message)
     }
 }
 
