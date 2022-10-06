@@ -70,6 +70,10 @@ mod tests {
 
     const ITERATIONS: u64 = 1_000;
 
+    const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
+    const ALEO_VIEW_KEY: &str = "AViewKey1cxguxtKkjYnT9XDza9yTvVMxt6Ckb1Pv4ck1hppMzmCB";
+    const ALEO_ADDRESS: &str = "aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4";
+
     #[wasm_bindgen_test]
     pub fn test_private_key_new() {
         for _ in 0..ITERATIONS {
@@ -95,5 +99,19 @@ mod tests {
             let view_key = private_key.to_view_key();
             assert_eq!(expected, Address::from_view_key(&view_key).to_string());
         }
+    }
+    
+    #[wasm_bindgen_test]
+    pub fn test_private_key_sanity_check() {
+        let private_key = PrivateKey::from_string(ALEO_PRIVATE_KEY);
+
+        println!("{} == {}", ALEO_PRIVATE_KEY, private_key.to_string());
+        assert_eq!(ALEO_PRIVATE_KEY, private_key.to_string());
+
+        println!("{} == {}", ALEO_VIEW_KEY, private_key.to_view_key());
+        assert_eq!(ALEO_VIEW_KEY, private_key.to_view_key());
+
+        println!("{} == {}", ALEO_ADDRESS, private_key.to_address());
+        assert_eq!(ALEO_ADDRESS, private_key.to_address());
     }
 }
