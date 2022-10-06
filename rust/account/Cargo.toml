@@ -24,9 +24,5 @@ features = ["parallel"]
 [dev-dependencies.rand]
 version = "0.8.0"
 
-[dev-dependencies.rand_chacha]
-version = "0.3.0"
-default-features = false
-
 [dev-dependencies.bencher]
 version = "0.1.5"
