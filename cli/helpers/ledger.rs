@@ -69,12 +69,12 @@ impl<N: Network> Ledger<N> {
         // Initialize an RNG.
         let rng = &mut ::rand::thread_rng();
         // Initialize the store.
-        let store = ProgramStore::<_, InternalStorage<_>>::open()?;
+        let store = ProgramStore::<_, InternalStorage<_>>::open(None)?;
         // Create a genesis block.
         let genesis = Block::genesis(&VM::new(store)?, private_key, rng)?;
 
         // Initialize the ledger.
-        let ledger = Arc::new(RwLock::new(InternalLedger::new_with_genesis(&genesis, address)?));
+        let ledger = Arc::new(RwLock::new(InternalLedger::new_with_genesis(&genesis, address, None)?));
 
         // Initialize the additional routes.
         let additional_routes = {

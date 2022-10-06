@@ -34,13 +34,6 @@ features = ["derive"]
 [dependencies.colored]
 version = "2"
 
-[dependencies.indexmap]
-version = "1.9"
-features = ["rayon", "serde"]
-
-[dependencies.once_cell]
-version = "1"
-
 [dependencies.parking_lot]
 version = "0.12"
 
@@ -64,7 +57,7 @@ version = "1"
 [dependencies.snarkvm]
 #path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "69cf3bd"
+rev = "ea14990"
 features = ["aleo-cli", "circuit", "console", "parallel", "rest"]
 
 [dependencies.thiserror]
@@ -73,10 +66,6 @@ version = "1.0"
 [dependencies.tokio]
 version = "1.21"
 features = ["rt"]
-
-[dependencies.ureq]
-version = "2"
-features = ["json"]
 
 [dependencies.warp]
 version = "0.3"
