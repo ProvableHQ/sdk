@@ -31,7 +31,12 @@ impl ViewKey {
     }
 
     pub fn from_string(view_key: &str) -> Self {
-        Self(ViewKeyNative::from_str(view_key).unwrap())
+        Self::from_str(view_key).unwrap()
+    }
+
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String {
+        self.0.to_string()
     }
 
     pub fn to_address(&self) -> Address {
@@ -47,17 +52,25 @@ impl ViewKey {
     }
 }
 
-impl Deref for ViewKey {
-    type Target = ViewKeyNative;
+impl FromStr for ViewKey {
+    type Err = anyhow::Error;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
+    fn from_str(view_key: &str) -> Result<Self, Self::Err> {
+        Ok(Self(ViewKeyNative::from_str(view_key)?))
     }
 }
 
 impl fmt::Display for ViewKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl Deref for ViewKey {
+    type Target = ViewKeyNative;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

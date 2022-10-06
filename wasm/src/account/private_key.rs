@@ -35,7 +35,12 @@ impl PrivateKey {
     }
 
     pub fn from_string(private_key: &str) -> Self {
-        Self(PrivateKeyNative::from_str(private_key).unwrap())
+        Self::from_str(private_key).unwrap()
+    }
+
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String {
+        self.0.to_string()
     }
 
     pub fn to_view_key(&self) -> ViewKey {
@@ -47,17 +52,25 @@ impl PrivateKey {
     }
 }
 
-impl Deref for PrivateKey {
-    type Target = PrivateKeyNative;
+impl FromStr for PrivateKey {
+    type Err = anyhow::Error;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
+    fn from_str(private_key: &str) -> Result<Self, Self::Err> {
+        Ok(Self(PrivateKeyNative::from_str(private_key)?))
     }
 }
 
 impl fmt::Display for PrivateKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl Deref for PrivateKey {
+    type Target = PrivateKeyNative;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

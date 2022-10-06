@@ -1615,6 +1615,7 @@ name = "sdk"
 version = "0.3.1"
 dependencies = [
  "aleo-account",
+ "anyhow",
  "console_error_panic_hook",
  "getrandom",
  "hex",

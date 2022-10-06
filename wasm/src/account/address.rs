@@ -35,7 +35,26 @@ impl Address {
     }
 
     pub fn from_string(address: &str) -> Self {
-        Self(AddressNative::from_str(address).unwrap())
+        Self::from_str(address).unwrap()
+    }
+
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+}
+
+impl FromStr for Address {
+    type Err = anyhow::Error;
+
+    fn from_str(address: &str) -> Result<Self, Self::Err> {
+        Ok(Self(AddressNative::from_str(address)?))
+    }
+}
+
+impl fmt::Display for Address {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -44,12 +63,6 @@ impl Deref for Address {
 
     fn deref(&self) -> &Self::Target {
         &self.0
-    }
-}
-
-impl fmt::Display for Address {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
 
