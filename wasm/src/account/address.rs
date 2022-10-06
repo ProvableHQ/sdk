@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{Address as AddressNative, PrivateKey as PrivateKeyNative, ViewKey as ViewKeyNative};
+use crate::account::ViewKey;
+use aleo_account::{Address as AddressNative, PrivateKey as PrivateKeyNative};
 
-use core::{convert::TryFrom, fmt, str::FromStr};
+use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -32,13 +33,20 @@ impl Address {
         Self { address: AddressNative::try_from(private_key).unwrap() }
     }
 
-    pub fn from_view_key(view_key: &str) -> Self {
-        let view_key = ViewKeyNative::from_str(view_key).unwrap();
-        Self { address: AddressNative::try_from(&view_key).unwrap() }
+    pub fn from_view_key(view_key: &ViewKey) -> Self {
+        Self { address: AddressNative::try_from(**view_key).unwrap() }
     }
 
     pub fn from_string(address: &str) -> Self {
         Self { address: AddressNative::from_str(address).unwrap() }
+    }
+}
+
+impl Deref for Address {
+    type Target = AddressNative;
+
+    fn deref(&self) -> &Self::Target {
+        &self.address
     }
 }
 

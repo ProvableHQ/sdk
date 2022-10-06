@@ -17,7 +17,7 @@
 use crate::account::{Address, ViewKey};
 use aleo_account::PrivateKey as PrivateKeyNative;
 
-use core::{fmt, str::FromStr};
+use core::{fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
@@ -40,12 +40,20 @@ impl PrivateKey {
         Self { private_key: PrivateKeyNative::from_str(private_key).unwrap() }
     }
 
-    pub fn to_view_key(&self) -> String {
-        ViewKey::from_private_key(&self.to_string()).to_string()
+    pub fn to_view_key(&self) -> ViewKey {
+        ViewKey::from_private_key(&self.to_string())
     }
 
     pub fn to_address(&self) -> Address {
         Address::from_private_key(&self.to_string())
+    }
+}
+
+impl Deref for PrivateKey {
+    type Target = PrivateKeyNative;
+
+    fn deref(&self) -> &Self::Target {
+        &self.private_key
     }
 }
 
@@ -99,7 +107,7 @@ mod tests {
         assert_eq!(ALEO_PRIVATE_KEY, private_key.to_string());
 
         println!("{} == {}", ALEO_VIEW_KEY, private_key.to_view_key());
-        assert_eq!(ALEO_VIEW_KEY, private_key.to_view_key());
+        assert_eq!(ALEO_VIEW_KEY, private_key.to_view_key().to_string());
 
         println!("{} == {}", ALEO_ADDRESS, private_key.to_address());
         assert_eq!(ALEO_ADDRESS, private_key.to_address().to_string());

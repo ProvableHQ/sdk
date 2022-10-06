@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {Card, Divider, Form, Input} from "antd";
-import {CopyButton} from "./CopyButton";
+import {CopyButton} from "./components/CopyButton";
 import {useAleoWASM} from "./aleo-wasm-hook";
 
 export const AccountFromPrivateKey = () => {

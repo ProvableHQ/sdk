@@ -17,7 +17,7 @@
 use crate::account::Address;
 use aleo_account::{PrivateKey as PrivateKeyNative, Record, ViewKey as ViewKeyNative};
 
-use core::{convert::TryFrom, fmt, str::FromStr};
+use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -37,8 +37,8 @@ impl ViewKey {
         Self { view_key: ViewKeyNative::from_str(view_key).unwrap() }
     }
 
-    pub fn to_address(&self) -> String {
-        Address::from_view_key(&self.to_string()).to_string()
+    pub fn to_address(&self) -> Address {
+        Address::from_view_key(&self)
     }
 
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
@@ -47,6 +47,14 @@ impl ViewKey {
             Ok(plaintext) => Ok(plaintext.to_string()),
             Err(error) => Err(error.to_string()),
         }
+    }
+}
+
+impl Deref for ViewKey {
+    type Target = ViewKeyNative;
+
+    fn deref(&self) -> &Self::Target {
+        &self.view_key
     }
 }
 
