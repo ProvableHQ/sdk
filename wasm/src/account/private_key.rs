@@ -62,7 +62,7 @@ impl PrivateKey {
     }
 
     pub fn sign(&self, message: &[u8]) -> Signature {
-        Signature::sign(&self, message)
+        Signature::sign(self, message)
     }
 }
 

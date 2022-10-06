@@ -44,7 +44,7 @@ impl Address {
     }
 
     pub fn verify(&self, message: &[u8], signature: &Signature) -> bool {
-        signature.verify(&self, message)
+        signature.verify(self, message)
     }
 }
 

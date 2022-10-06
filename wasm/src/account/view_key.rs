@@ -40,7 +40,7 @@ impl ViewKey {
     }
 
     pub fn to_address(&self) -> Address {
-        Address::from_view_key(&self)
+        Address::from_view_key(self)
     }
 
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
