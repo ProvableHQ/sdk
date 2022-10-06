@@ -25,6 +25,8 @@ use snarkvm_wasm::{
     program::{Ciphertext as AleoCiphertext, Record as AleoRecord},
 };
 
+pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
+
 pub type CurrentNetwork = Testnet3;
 
 pub type Address = AleoAddress<CurrentNetwork>;

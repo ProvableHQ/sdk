@@ -80,7 +80,7 @@ mod tests {
     const ITERATIONS: u64 = 1_000;
 
     #[wasm_bindgen_test]
-    pub fn test_address_from_private_key() {
+    pub fn test_from_private_key() {
         for _ in 0..ITERATIONS {
             // Sample a new private key.
             let private_key = PrivateKey::new();

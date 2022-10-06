@@ -15,9 +15,9 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::account::{Address, Signature, ViewKey};
-use aleo_account::PrivateKey as PrivateKeyNative;
+use aleo_account::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKey as PrivateKeyNative, ToBytes};
 
-use core::{fmt, ops::Deref, str::FromStr};
+use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
@@ -32,6 +32,16 @@ impl PrivateKey {
     pub fn new() -> Self {
         console_error_panic_hook::set_once();
         Self(PrivateKeyNative::new(&mut StdRng::from_entropy()).unwrap())
+    }
+
+    pub fn from_seed_unchecked(seed: &[u8]) -> Self {
+        console_error_panic_hook::set_once();
+        // Cast into a fixed-size byte array. Note: This is a **hard** requirement for security.
+        let seed: [u8; 32] = seed.try_into().unwrap();
+        // Recover the field element deterministically.
+        let field = <CurrentNetwork as Environment>::Field::from_bytes_le_mod_order(&seed);
+        // Cast and recover the private key from the seed.
+        Self(PrivateKeyNative::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).unwrap())
     }
 
     pub fn from_string(private_key: &str) -> Self {
@@ -92,7 +102,7 @@ mod tests {
     const ALEO_ADDRESS: &str = "aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4";
 
     #[wasm_bindgen_test]
-    pub fn test_private_key_sanity_check() {
+    pub fn test_sanity_check() {
         let private_key = PrivateKey::from_string(ALEO_PRIVATE_KEY);
 
         println!("{} == {}", ALEO_PRIVATE_KEY, private_key.to_string());
@@ -106,7 +116,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    pub fn test_private_key_new() {
+    pub fn test_new() {
         for _ in 0..ITERATIONS {
             // Generate a new private_key.
             let expected = PrivateKey::new();
@@ -117,7 +127,19 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    pub fn test_private_key_to_address() {
+    pub fn test_from_seed_unchecked() {
+        for _ in 0..ITERATIONS {
+            // Sample a random seed.
+            let seed: [u8; 32] = StdRng::from_entropy().gen();
+
+            // Ensure the private key is deterministically recoverable.
+            let expected = PrivateKey::from_seed_unchecked(&seed);
+            assert_eq!(expected, PrivateKey::from_seed_unchecked(&seed));
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_to_address() {
         for _ in 0..ITERATIONS {
             // Sample a new private key.
             let private_key = PrivateKey::new();
