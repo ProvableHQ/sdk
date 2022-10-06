@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{PrivateKey, Record, ViewKey as ViewKeyNative};
+use crate::account::{Address};
+use aleo_account::{PrivateKey as PrivateKeyNative, Record, ViewKey as ViewKeyNative};
 
 use std::{convert::TryFrom, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ViewKey {
     pub(crate) view_key: ViewKeyNative,
 }
@@ -28,21 +30,28 @@ pub struct ViewKey {
 impl ViewKey {
     #[wasm_bindgen]
     pub fn from_private_key(private_key: &str) -> Self {
-        let private_key = PrivateKey::from_str(private_key).unwrap();
-        let view_key = ViewKeyNative::try_from(private_key).unwrap();
-        Self { view_key }
+        let private_key = PrivateKeyNative::from_str(private_key).unwrap();
+        Self {
+            view_key: ViewKeyNative::try_from(private_key).unwrap(),
+        }
     }
 
     #[wasm_bindgen]
     pub fn from_string(view_key: &str) -> Self {
-        let view_key = ViewKeyNative::from_str(view_key).unwrap();
-        Self { view_key }
+        Self {
+            view_key: ViewKeyNative::from_str(view_key).unwrap(),
+        }
     }
 
     #[wasm_bindgen]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.view_key.to_string()
+    }
+
+    #[wasm_bindgen]
+    pub fn to_address(&self) -> String {
+        Address::from_view_key(&self.to_string()).to_string()
     }
 
     #[wasm_bindgen]
