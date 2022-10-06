@@ -17,5 +17,8 @@
 pub mod private_key;
 pub use private_key::*;
 
+pub mod view_key;
+pub use view_key::*;
+
 pub mod signature;
 pub use signature::*;

@@ -22,6 +22,7 @@ use snarkvm_wasm::{
         ViewKey as AleoViewKey,
     },
     network::Testnet3,
+    program::{Ciphertext as AleoCiphertext, Record as AleoRecord},
 };
 
 pub type CurrentNetwork = Testnet3;
@@ -29,3 +30,4 @@ pub type Address = AleoAddress<CurrentNetwork>;
 pub type PrivateKey = AleoPrivateKey<CurrentNetwork>;
 pub type Signature = AleoSignature<CurrentNetwork>;
 pub type ViewKey = AleoViewKey<CurrentNetwork>;
+pub type RecordCiphertext = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
