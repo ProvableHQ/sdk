@@ -14,31 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::ViewKey;
-use aleo_account::{Address as AddressNative, PrivateKey as PrivateKeyNative};
+use crate::account::{PrivateKey, ViewKey};
+use aleo_account::Address as AddressNative;
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Address {
-    pub(crate) address: AddressNative,
-}
+pub struct Address(AddressNative);
 
 #[wasm_bindgen]
 impl Address {
-    pub fn from_private_key(private_key: &str) -> Self {
-        let private_key = PrivateKeyNative::from_str(private_key).unwrap();
-        Self { address: AddressNative::try_from(private_key).unwrap() }
+    pub fn from_private_key(private_key: &PrivateKey) -> Self {
+        Self(AddressNative::try_from(**private_key).unwrap())
     }
 
     pub fn from_view_key(view_key: &ViewKey) -> Self {
-        Self { address: AddressNative::try_from(**view_key).unwrap() }
+        Self(AddressNative::try_from(**view_key).unwrap())
     }
 
     pub fn from_string(address: &str) -> Self {
-        Self { address: AddressNative::from_str(address).unwrap() }
+        Self(AddressNative::from_str(address).unwrap())
     }
 }
 
@@ -46,13 +43,13 @@ impl Deref for Address {
     type Target = AddressNative;
 
     fn deref(&self) -> &Self::Target {
-        &self.address
+        &self.0
     }
 }
 
 impl fmt::Display for Address {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.address)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -70,7 +67,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key.
             let private_key = PrivateKey::new();
-            let expected = Address::from_private_key(&private_key.to_string());
+            let expected = Address::from_private_key(&private_key);
 
             // Check the address derived from the view key.
             let view_key = private_key.to_view_key();

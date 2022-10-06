@@ -23,9 +23,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PrivateKey {
-    pub(crate) private_key: PrivateKeyNative,
-}
+pub struct PrivateKey(PrivateKeyNative);
 
 #[wasm_bindgen]
 impl PrivateKey {
@@ -33,19 +31,19 @@ impl PrivateKey {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         console_error_panic_hook::set_once();
-        Self { private_key: PrivateKeyNative::new(&mut StdRng::from_entropy()).unwrap() }
+        Self(PrivateKeyNative::new(&mut StdRng::from_entropy()).unwrap())
     }
 
     pub fn from_string(private_key: &str) -> Self {
-        Self { private_key: PrivateKeyNative::from_str(private_key).unwrap() }
+        Self(PrivateKeyNative::from_str(private_key).unwrap())
     }
 
     pub fn to_view_key(&self) -> ViewKey {
-        ViewKey::from_private_key(&self.to_string())
+        ViewKey::from_private_key(self)
     }
 
     pub fn to_address(&self) -> Address {
-        Address::from_private_key(&self.to_string())
+        Address::from_private_key(self)
     }
 }
 
@@ -53,13 +51,13 @@ impl Deref for PrivateKey {
     type Target = PrivateKeyNative;
 
     fn deref(&self) -> &Self::Target {
-        &self.private_key
+        &self.0
     }
 }
 
 impl fmt::Display for PrivateKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.private_key)
+        write!(f, "{}", self.0)
     }
 }
 

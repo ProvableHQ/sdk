@@ -14,27 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::Address;
-use aleo_account::{PrivateKey as PrivateKeyNative, Record, ViewKey as ViewKeyNative};
+use crate::account::{Address, PrivateKey};
+use aleo_account::{Record, ViewKey as ViewKeyNative};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ViewKey {
-    pub(crate) view_key: ViewKeyNative,
-}
+pub struct ViewKey(ViewKeyNative);
 
 #[wasm_bindgen]
 impl ViewKey {
-    pub fn from_private_key(private_key: &str) -> Self {
-        let private_key = PrivateKeyNative::from_str(private_key).unwrap();
-        Self { view_key: ViewKeyNative::try_from(private_key).unwrap() }
+    pub fn from_private_key(private_key: &PrivateKey) -> Self {
+        Self(ViewKeyNative::try_from(**private_key).unwrap())
     }
 
     pub fn from_string(view_key: &str) -> Self {
-        Self { view_key: ViewKeyNative::from_str(view_key).unwrap() }
+        Self(ViewKeyNative::from_str(view_key).unwrap())
     }
 
     pub fn to_address(&self) -> Address {
@@ -43,7 +40,7 @@ impl ViewKey {
 
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
         let ciphertext = Record::from_str(ciphertext).map_err(|error| error.to_string())?;
-        match ciphertext.decrypt(&self.view_key) {
+        match ciphertext.decrypt(&self.0) {
             Ok(plaintext) => Ok(plaintext.to_string()),
             Err(error) => Err(error.to_string()),
         }
@@ -54,13 +51,13 @@ impl Deref for ViewKey {
     type Target = ViewKeyNative;
 
     fn deref(&self) -> &Self::Target {
-        &self.view_key
+        &self.0
     }
 }
 
 impl fmt::Display for ViewKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.view_key)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -83,7 +80,8 @@ mod tests {
     pub fn test_from_private_key() {
         let given_private_key = "APrivateKey1zkp4RyQ8Utj7aRcJgPQGEok8RMzWwUZzBhhgX6rhmBT8dcP";
         let given_view_key = "AViewKey1i3fn5SECcVBtQMCVtTPSvdApoMYmg3ToJfNDfgHJAuoD";
-        let view_key = ViewKey::from_private_key(given_private_key);
+        let private_key = PrivateKey::from_string(given_private_key);
+        let view_key = ViewKey::from_private_key(&private_key);
         assert_eq!(given_view_key, view_key.to_string());
     }
 
