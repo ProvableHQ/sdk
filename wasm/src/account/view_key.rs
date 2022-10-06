@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{Address};
+use crate::account::Address;
 use aleo_account::{PrivateKey as PrivateKeyNative, Record, ViewKey as ViewKeyNative};
 
-use std::{convert::TryFrom, str::FromStr};
+use core::{convert::TryFrom, fmt, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -28,39 +28,31 @@ pub struct ViewKey {
 
 #[wasm_bindgen]
 impl ViewKey {
-    #[wasm_bindgen]
     pub fn from_private_key(private_key: &str) -> Self {
         let private_key = PrivateKeyNative::from_str(private_key).unwrap();
-        Self {
-            view_key: ViewKeyNative::try_from(private_key).unwrap(),
-        }
+        Self { view_key: ViewKeyNative::try_from(private_key).unwrap() }
     }
 
-    #[wasm_bindgen]
     pub fn from_string(view_key: &str) -> Self {
-        Self {
-            view_key: ViewKeyNative::from_str(view_key).unwrap(),
-        }
+        Self { view_key: ViewKeyNative::from_str(view_key).unwrap() }
     }
 
-    #[wasm_bindgen]
-    #[allow(clippy::inherent_to_string)]
-    pub fn to_string(&self) -> String {
-        self.view_key.to_string()
-    }
-
-    #[wasm_bindgen]
     pub fn to_address(&self) -> String {
         Address::from_view_key(&self.to_string()).to_string()
     }
 
-    #[wasm_bindgen]
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
         let ciphertext = Record::from_str(ciphertext).map_err(|error| error.to_string())?;
         match ciphertext.decrypt(&self.view_key) {
             Ok(plaintext) => Ok(plaintext.to_string()),
             Err(error) => Err(error.to_string()),
         }
+    }
+}
+
+impl fmt::Display for ViewKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.view_key)
     }
 }
 

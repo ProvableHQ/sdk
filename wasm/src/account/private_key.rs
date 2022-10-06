@@ -17,8 +17,8 @@
 use crate::account::{Address, ViewKey};
 use aleo_account::PrivateKey as PrivateKeyNative;
 
+use core::{fmt, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
-use std::{str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -33,32 +33,25 @@ impl PrivateKey {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         console_error_panic_hook::set_once();
-        Self {
-            private_key: PrivateKeyNative::new(&mut StdRng::from_entropy()).unwrap(),
-        }
+        Self { private_key: PrivateKeyNative::new(&mut StdRng::from_entropy()).unwrap() }
     }
 
-    #[wasm_bindgen]
     pub fn from_string(private_key: &str) -> Self {
-        Self {
-            private_key: PrivateKeyNative::from_str(private_key).unwrap(),
-        }
+        Self { private_key: PrivateKeyNative::from_str(private_key).unwrap() }
     }
 
-    #[wasm_bindgen]
-    #[allow(clippy::inherent_to_string)]
-    pub fn to_string(&self) -> String {
-        self.private_key.to_string()
-    }
-
-    #[wasm_bindgen]
     pub fn to_view_key(&self) -> String {
         ViewKey::from_private_key(&self.to_string()).to_string()
     }
 
-    #[wasm_bindgen]
-    pub fn to_address(&self) -> String {
-        Address::from_private_key(&self.to_string()).to_string()
+    pub fn to_address(&self) -> Address {
+        Address::from_private_key(&self.to_string())
+    }
+}
+
+impl fmt::Display for PrivateKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.private_key)
     }
 }
 
@@ -81,10 +74,7 @@ mod tests {
             let expected = PrivateKey::new();
 
             // Check the private_key derived from string.
-            assert_eq!(
-                expected,
-                PrivateKey::from_string(&expected.to_string())
-            );
+            assert_eq!(expected, PrivateKey::from_string(&expected.to_string()));
         }
     }
 
@@ -97,10 +87,10 @@ mod tests {
 
             // Check the private_key derived from the view key.
             let view_key = private_key.to_view_key();
-            assert_eq!(expected, Address::from_view_key(&view_key).to_string());
+            assert_eq!(expected, Address::from_view_key(&view_key));
         }
     }
-    
+
     #[wasm_bindgen_test]
     pub fn test_private_key_sanity_check() {
         let private_key = PrivateKey::from_string(ALEO_PRIVATE_KEY);
@@ -112,6 +102,6 @@ mod tests {
         assert_eq!(ALEO_VIEW_KEY, private_key.to_view_key());
 
         println!("{} == {}", ALEO_ADDRESS, private_key.to_address());
-        assert_eq!(ALEO_ADDRESS, private_key.to_address());
+        assert_eq!(ALEO_ADDRESS, private_key.to_address().to_string());
     }
 }

@@ -16,7 +16,7 @@
 
 use aleo_account::{Address as AddressNative, PrivateKey as PrivateKeyNative, ViewKey as ViewKeyNative};
 
-use std::{convert::TryFrom, str::FromStr};
+use core::{convert::TryFrom, fmt, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -27,32 +27,24 @@ pub struct Address {
 
 #[wasm_bindgen]
 impl Address {
-    #[wasm_bindgen]
     pub fn from_private_key(private_key: &str) -> Self {
         let private_key = PrivateKeyNative::from_str(private_key).unwrap();
-        Self {
-            address: AddressNative::try_from(private_key).unwrap(),
-        }
+        Self { address: AddressNative::try_from(private_key).unwrap() }
     }
 
-    #[wasm_bindgen]
     pub fn from_view_key(view_key: &str) -> Self {
         let view_key = ViewKeyNative::from_str(view_key).unwrap();
-        Self {
-            address: AddressNative::try_from(&view_key).unwrap(),
-        }
+        Self { address: AddressNative::try_from(&view_key).unwrap() }
     }
 
-    #[wasm_bindgen]
     pub fn from_string(address: &str) -> Self {
-        Self {
-            address: AddressNative::from_str(address).unwrap(),
-        }
+        Self { address: AddressNative::from_str(address).unwrap() }
     }
+}
 
-    #[wasm_bindgen]
-    pub fn to_string(&self) -> String {
-        self.address.to_string()
+impl fmt::Display for Address {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.address)
     }
 }
 

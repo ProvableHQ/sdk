@@ -98,16 +98,12 @@ impl<N: Network> Ledger<N> {
                 .and(snarkvm::rest::with(address))
                 .and_then(|address: Address<N>| async move { Ok::<_, Rejection>(reply::json(&address.to_string())) });
 
-            get_development_private_key
-                .or(get_development_view_key)
-                .or(get_development_address)
+            get_development_private_key.or(get_development_view_key).or(get_development_address)
         };
 
         // Initialize a runtime.
-        let runtime = tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .thread_stack_size(8 * 1024 * 1024)
-            .build()?;
+        let runtime =
+            tokio::runtime::Builder::new_multi_thread().enable_all().thread_stack_size(8 * 1024 * 1024).build()?;
 
         // Initialize the server.
         let ledger_clone = ledger.clone();
@@ -117,14 +113,7 @@ impl<N: Network> Ledger<N> {
         })?;
 
         // Return the ledger.
-        Ok(Arc::new(Self {
-            ledger,
-            runtime,
-            server,
-            private_key: *private_key,
-            view_key,
-            address,
-        }))
+        Ok(Arc::new(Self { ledger, runtime, server, private_key: *private_key, view_key, address }))
     }
 
     /// Returns the account address.
@@ -168,10 +157,7 @@ impl<N: Network> Ledger<N> {
             Some((_, record)) => record,
             None => bail!("The Aleo account has no records to spend."),
         };
-        ensure!(
-            ***credits.gates() >= additional_fee,
-            "The additional fee exceeds the record balance."
-        );
+        ensure!(***credits.gates() >= additional_fee, "The additional fee exceeds the record balance.");
 
         // Deploy.
         let transaction = Transaction::deploy(
@@ -209,11 +195,7 @@ impl<N: Network> Ledger<N> {
             &self.private_key,
             &ProgramID::from_str("credits.aleo")?,
             Identifier::from_str("transfer")?,
-            &[
-                Value::Record(record),
-                Value::from_str(&format!("{to}"))?,
-                Value::from_str(&format!("{amount}u64"))?,
-            ],
+            &[Value::Record(record), Value::from_str(&format!("{to}"))?, Value::from_str(&format!("{amount}u64"))?],
             None,
             &mut rand::thread_rng(),
         )
