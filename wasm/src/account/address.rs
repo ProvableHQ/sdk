@@ -38,13 +38,13 @@ impl Address {
         Self::from_str(address).unwrap()
     }
 
-    #[allow(clippy::inherent_to_string)]
+    #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
     pub fn verify(&self, message: &[u8], signature: &Signature) -> bool {
-        signature.verify(&self, message)
+        signature.verify(self, message)
     }
 }
 

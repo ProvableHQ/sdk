@@ -48,7 +48,7 @@ impl PrivateKey {
         Self::from_str(private_key).unwrap()
     }
 
-    #[allow(clippy::inherent_to_string)]
+    #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
@@ -62,7 +62,7 @@ impl PrivateKey {
     }
 
     pub fn sign(&self, message: &[u8]) -> Signature {
-        Signature::sign(&self, message)
+        Signature::sign(self, message)
     }
 }
 

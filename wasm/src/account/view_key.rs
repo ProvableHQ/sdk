@@ -34,13 +34,13 @@ impl ViewKey {
         Self::from_str(view_key).unwrap()
     }
 
-    #[allow(clippy::inherent_to_string)]
+    #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
     pub fn to_address(&self) -> Address {
-        Address::from_view_key(&self)
+        Address::from_view_key(self)
     }
 
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
