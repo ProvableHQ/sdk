@@ -15,11 +15,23 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use snarkvm_wasm::{
-    account::{Address as AleoAddress, PrivateKey as AleoPrivateKey, ViewKey as AleoViewKey},
+    account::{
+        Address as AleoAddress,
+        PrivateKey as AleoPrivateKey,
+        Signature as AleoSignature,
+        ViewKey as AleoViewKey,
+    },
     network::Testnet3,
+    program::{Ciphertext as AleoCiphertext, Record as AleoRecord},
 };
 
+pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
+
 pub type CurrentNetwork = Testnet3;
+
 pub type Address = AleoAddress<CurrentNetwork>;
 pub type PrivateKey = AleoPrivateKey<CurrentNetwork>;
+pub type Signature = AleoSignature<CurrentNetwork>;
 pub type ViewKey = AleoViewKey<CurrentNetwork>;
+
+pub type Record = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;

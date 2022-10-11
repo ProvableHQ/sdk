@@ -29,11 +29,13 @@
   },
   "scripts": {
     "preinstall": "cd ../wasm && wasm-pack build",
+    "prestart": "yarn preinstall",
+    "prerestart": "yarn preinstall",
     "start": "webpack-dev-server",
-    "dev": "webpack-dev-server",
     "build": "webpack --config webpack.config.js",
     "predeploy": "yarn build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "clean": "rm -rf node_modules"
   },
   "eslintConfig": {
     "extends": [

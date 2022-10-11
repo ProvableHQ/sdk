@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {Card, Divider, Form, Input} from "antd";
-import {CopyButton} from "./CopyButton";
-import {useAleoWASM} from "./aleo-wasm-hook";
+import {CopyButton} from "../../components/CopyButton";
+import {useAleoWASM} from "../../aleo-wasm-hook";
 
 export const AccountFromPrivateKey = () => {
     const [account, setAccount] = useState(null);
@@ -19,8 +19,8 @@ export const AccountFromPrivateKey = () => {
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
 
     if (aleo !== null) {
-        const viewKey = () => account !== null ? account.to_view_key() : "";
-        const address = () => account !== null ? account.to_address() : "";
+        const viewKey = () => account !== null ? account.to_view_key().to_string() : "";
+        const address = () => account !== null ? account.to_address().to_string() : "";
 
         return <Card title="Load Account from Private Key" style={{width: "100%", borderRadius: "20px"}}
                      bordered={false}>

@@ -44,11 +44,7 @@ impl Node {
                 let directory = std::env::current_dir()?;
 
                 // Ensure the directory path exists.
-                ensure!(
-                    directory.exists(),
-                    "The program directory does not exist: {}",
-                    directory.display()
-                );
+                ensure!(directory.exists(), "The program directory does not exist: {}", directory.display());
                 // Ensure the manifest file exists.
                 ensure!(
                     Manifest::<Network>::exists_at(&directory),
