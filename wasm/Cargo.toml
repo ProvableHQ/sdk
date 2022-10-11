@@ -17,6 +17,9 @@ crate-type = ["cdylib", "rlib"]
 [dependencies.aleo-account]
 path = "../rust/account"
 
+[dependencies.anyhow]
+version = "1.0"
+
 [dependencies.getrandom]
 version = "0.2"
 features = ["js"]

@@ -22,16 +22,7 @@ use walkdir::WalkDir;
 const EXPECTED_LICENSE_TEXT: &[u8] = include_bytes!(".resources/license_header");
 
 // The following directories will be excluded from the license scan.
-const DIRS_TO_SKIP: [&str; 8] = [
-    ".cargo",
-    ".circleci",
-    ".git",
-    ".github",
-    ".resources",
-    "examples",
-    "js",
-    "target",
-];
+const DIRS_TO_SKIP: [&str; 8] = [".cargo", ".circleci", ".git", ".github", ".resources", "examples", "js", "target"];
 
 fn check_file_licenses<P: AsRef<Path>>(path: P) {
     let path = path.as_ref();
@@ -52,9 +43,7 @@ fn check_file_licenses<P: AsRef<Path>>(path: P) {
         if entry_type.is_file() && entry.file_name().to_str().unwrap_or("").ends_with(".rs") {
             let file = File::open(entry.path()).unwrap();
             let mut contents = Vec::with_capacity(EXPECTED_LICENSE_TEXT.len());
-            file.take(EXPECTED_LICENSE_TEXT.len() as u64)
-                .read_to_end(&mut contents)
-                .unwrap();
+            file.take(EXPECTED_LICENSE_TEXT.len() as u64).read_to_end(&mut contents).unwrap();
 
             assert!(
                 contents == EXPECTED_LICENSE_TEXT,

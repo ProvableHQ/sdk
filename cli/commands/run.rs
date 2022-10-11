@@ -80,10 +80,6 @@ impl Run {
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
-        Ok(format!(
-            "✅ Executed '{}' {}",
-            locator.to_string().bold(),
-            path_string.dimmed()
-        ))
+        Ok(format!("✅ Executed '{}' {}", locator.to_string().bold(), path_string.dimmed()))
     }
 }

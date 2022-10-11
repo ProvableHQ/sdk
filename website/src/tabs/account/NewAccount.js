@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {Button, Card, Col, Divider, Form, Input, Row} from "antd";
-import {CopyButton} from "./CopyButton";
-import {useAleoWASM} from "./aleo-wasm-hook";
+import {CopyButton} from "../../components/CopyButton";
+import {useAleoWASM} from "../../aleo-wasm-hook";
 
 export const NewAccount = () => {
     const [account, setAccount] = useState(null);
@@ -18,8 +18,8 @@ export const NewAccount = () => {
     const clear = () => setAccount(null);
 
     const privateKey = () => account !== null ? account.to_string() : "";
-    const viewKey = () => account !== null ? account.to_view_key() : "";
-    const address = () => account !== null ? account.to_address() : "";
+    const viewKey = () => account !== null ? account.to_view_key().to_string() : "";
+    const address = () => account !== null ? account.to_address().to_string() : "";
 
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
 

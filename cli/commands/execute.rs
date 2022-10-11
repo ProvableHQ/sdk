@@ -62,9 +62,7 @@ impl Execute {
         self.inputs.into_iter().try_for_each(|input| {
             if input.to_string().ends_with("field") {
                 let ciphertext: Record<Network, Ciphertext<Network>> =
-                    ureq::get(&format!("http://localhost/testnet3/ciphertext/{input}"))
-                        .call()?
-                        .into_json()?;
+                    ureq::get(&format!("http://localhost/testnet3/ciphertext/{input}")).call()?.into_json()?;
                 let record = ciphertext.decrypt(&view_key)?;
                 inputs.push(Value::Record(record));
             } else {
@@ -93,10 +91,7 @@ impl Execute {
             )?;
 
             // Print the transaction id.
-            println!(
-                "{}",
-                format!("Transaction ID: {}", execution.id().to_string().bright_green())
-            );
+            println!("{}", format!("Transaction ID: {}", execution.id().to_string().bright_green()));
 
             // Log the outputs.
             match response.outputs().len() {
@@ -120,11 +115,7 @@ impl Execute {
             // Prepare the path string.
             let path_string = format!("(in \"{}\")", path.display());
 
-            Ok(format!(
-                "✅ Executed '{}' {}",
-                locator.to_string().bold(),
-                path_string.dimmed()
-            ))
+            Ok(format!("✅ Executed '{}' {}", locator.to_string().bold(), path_string.dimmed()))
         } else {
             bail!(
                 "⚠️ Could not deploy '{}' {}",
