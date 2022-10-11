@@ -56,27 +56,18 @@ impl Deploy {
                 Some("http://localhost:4000/testnet3/deploy".to_string()),
                 &private_key,
                 record,
+                1_u64,
             )?;
             println!();
             // Print the transaction id.
-            println!(
-                "{}",
-                format_args!(
-                    "Transaction ID: {}",
-                    deployment_transaction.id().to_string().bright_green()
-                )
-            );
+            println!("{}", format_args!("Transaction ID: {}", deployment_transaction.id().to_string().bright_green()));
             println!();
 
             // Prepare the path string.
             let path_string = format!("(in \"{}\")", path.display());
 
             // Log the deploy as successful.
-            Ok(format!(
-                "✅ Deployed '{}' {}",
-                package.program_id().to_string().bold(),
-                path_string.dimmed()
-            ))
+            Ok(format!("✅ Deployed '{}' {}", package.program_id().to_string().bold(), path_string.dimmed()))
         } else {
             bail!(
                 "⚠️ Could not deploy '{}' {}",

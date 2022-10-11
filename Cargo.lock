@@ -35,6 +35,8 @@ dependencies = [
  "anyhow",
  "clap",
  "colored",
+ "indexmap",
+ "once_cell",
  "parking_lot",
  "rand",
  "rand_chacha",
@@ -45,6 +47,7 @@ dependencies = [
  "snarkvm",
  "thiserror",
  "tokio",
+ "ureq",
  "walkdir",
  "warp",
 ]
