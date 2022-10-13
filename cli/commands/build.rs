@@ -53,10 +53,6 @@ impl Build {
         let path_string = format!("(in \"{}\")", path.display());
 
         // Log the build as successful.
-        Ok(format!(
-            "✅ Built '{}' {}",
-            package.program_id().to_string().bold(),
-            path_string.dimmed()
-        ))
+        Ok(format!("✅ Built '{}' {}", package.program_id().to_string().bold(), path_string.dimmed()))
     }
 }
