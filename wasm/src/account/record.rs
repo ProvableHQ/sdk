@@ -14,17 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod address;
-pub use address::*;
+use aleo_account::RecordPlaintext as RecordPlaintextNative;
 
-pub mod private_key;
-pub use private_key::*;
+use core::str::FromStr;
+use wasm_bindgen::prelude::*;
 
-pub mod signature;
-pub use signature::*;
+#[wasm_bindgen]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RecordPlaintext(RecordPlaintextNative);
 
-pub mod view_key;
-pub use view_key::*;
+#[wasm_bindgen]
+impl RecordPlaintext {
+    pub fn from_string(record: &str) -> Self {
+        Self::from_str(record).unwrap()
+    }
 
-pub mod record;
-pub use record::*;
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+
+    pub fn gates(&self) -> String {
+        self.0.gates().to_string()
+    }
+}
+
+impl FromStr for RecordPlaintext {
+    type Err = anyhow::Error;
+
+    fn from_str(plaintext: &str) -> Result<Self, Self::Err> {
+        Ok(Self(RecordPlaintextNative::from_str(plaintext)?))
+    }
+}
