@@ -25,7 +25,8 @@ use lazy_static::lazy_static;
 // EXPLORER_URL is an env variable that allows the configuration of the
 // explorer server address.
 lazy_static! {
-    static ref EXPLORER_URL: String = std::env::var("EXPLORER_URL").unwrap_or_else(|_| "https://www.aleo.network".to_string());
+    static ref EXPLORER_URL: String =
+        std::env::var("EXPLORER_URL").unwrap_or_else(|_| "https://www.aleo.network".to_string());
 }
 
 pub mod commands;
