@@ -56,7 +56,7 @@ version = "0.3.0"
 default-features = false
 
 [dependencies.self_update]
-version = "0.30"
+version = "0.32"
 
 [dependencies.serde]
 version = "1"
@@ -67,19 +67,15 @@ version = "1"
 [dependencies.snarkvm]
 #path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "69cf3bd"
+rev = "4045a57"
 features = ["aleo-cli", "circuit", "console", "parallel", "rest"]
 
 [dependencies.thiserror]
 version = "1.0"
 
 [dependencies.tokio]
-version = "1.5"
+version = "1.21"
 features = ["rt"]
-
-[dependencies.ureq]
-version = "2"
-features = ["json"]
 
 [dependencies.warp]
 version = "0.3"

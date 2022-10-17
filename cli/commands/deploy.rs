@@ -35,7 +35,7 @@ impl Deploy {
         let package = Package::<Network>::open(&path)?;
 
         // Deploy the package.
-        let deploy_url = format!("{}/testnet3/deploy", crate::EXPLORER_URL.to_string());
+        let deploy_url = format!("{}/testnet3/deploy", *crate::EXPLORER_URL);
         package.deploy::<Aleo>(Some(deploy_url))?;
         println!();
 
@@ -43,10 +43,6 @@ impl Deploy {
         let path_string = format!("(in \"{}\")", path.display());
 
         // Log the deploy as successful.
-        Ok(format!(
-            "✅ Deployed '{}' {}",
-            package.program_id().to_string().bold(),
-            path_string.dimmed()
-        ))
+        Ok(format!("✅ Deployed '{}' {}", package.program_id().to_string().bold(), path_string.dimmed()))
     }
 }
