@@ -1780,14 +1780,37 @@ dependencies = [
  "serde_json",
  "snarkvm-circuit",
  "snarkvm-compiler",
- "snarkvm-console",
- "snarkvm-fields",
+ "snarkvm-console 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "snarkvm-parameters",
  "snarkvm-rest",
- "snarkvm-utilities",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "thiserror",
  "ureq",
  "walkdir",
+]
+
+[[package]]
+name = "snarkvm-algorithms"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "hashbrown",
+ "hex",
+ "itertools",
+ "parking_lot",
+ "rand",
+ "rand_chacha",
+ "serde",
+ "sha2",
+ "smallvec",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-r1cs 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "thiserror",
 ]
 
 [[package]]
@@ -1808,11 +1831,11 @@ dependencies = [
  "serde",
  "sha2",
  "smallvec",
- "snarkvm-curves",
- "snarkvm-fields",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "snarkvm-parameters",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-r1cs 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "thiserror",
 ]
 
@@ -1838,7 +1861,7 @@ dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-network",
  "snarkvm-circuit-types",
- "snarkvm-console-account",
+ "snarkvm-console-account 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1847,8 +1870,8 @@ version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
  "snarkvm-circuit-types",
- "snarkvm-console-algorithms",
- "snarkvm-fields",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1858,7 +1881,7 @@ source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-types",
- "snarkvm-console-collections",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1872,11 +1895,11 @@ dependencies = [
  "num-traits",
  "once_cell",
  "snarkvm-circuit-environment-witness",
- "snarkvm-console-network",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-r1cs",
- "snarkvm-utilities",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-r1cs 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1892,7 +1915,7 @@ dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-collections",
  "snarkvm-circuit-types",
- "snarkvm-console-network",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1903,8 +1926,8 @@ dependencies = [
  "snarkvm-circuit-account",
  "snarkvm-circuit-network",
  "snarkvm-circuit-types",
- "snarkvm-console-program",
- "snarkvm-utilities",
+ "snarkvm-console-program 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1932,7 +1955,7 @@ dependencies = [
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-group",
  "snarkvm-circuit-types-scalar",
- "snarkvm-console-types-address",
+ "snarkvm-console-types-address 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1941,7 +1964,7 @@ version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
  "snarkvm-circuit-environment",
- "snarkvm-console-types-boolean",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1951,7 +1974,7 @@ source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
- "snarkvm-console-types-field",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1963,7 +1986,7 @@ dependencies = [
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-scalar",
- "snarkvm-console-types-group",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1974,7 +1997,7 @@ dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
- "snarkvm-console-types-integers",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1985,7 +2008,7 @@ dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
- "snarkvm-console-types-scalar",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -1997,7 +2020,7 @@ dependencies = [
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-integers",
- "snarkvm-console-types-string",
+ "snarkvm-console-types-string 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
 ]
 
 [[package]]
@@ -2015,13 +2038,13 @@ dependencies = [
  "rayon",
  "serde",
  "serde_json",
- "snarkvm-algorithms",
+ "snarkvm-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "snarkvm-circuit",
- "snarkvm-console",
- "snarkvm-curves",
- "snarkvm-fields",
+ "snarkvm-console 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "snarkvm-parameters",
- "snarkvm-utilities",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "time",
  "tracing",
 ]
@@ -2029,14 +2052,37 @@ dependencies = [
 [[package]]
 name = "snarkvm-console"
 version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "snarkvm-console-account 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-program 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+]
+
+[[package]]
+name = "snarkvm-console"
+version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
- "snarkvm-console-account",
- "snarkvm-console-algorithms",
- "snarkvm-console-collections",
- "snarkvm-console-network",
- "snarkvm-console-program",
- "snarkvm-console-types",
+ "snarkvm-console-account 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-program 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-account"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "bs58",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2045,8 +2091,20 @@ version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
  "bs58",
- "snarkvm-console-network",
- "snarkvm-console-types",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-algorithms"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "blake2s_simd",
+ "smallvec",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2056,9 +2114,20 @@ source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc
 dependencies = [
  "blake2s_simd",
  "smallvec",
- "snarkvm-console-types",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-collections"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "aleo-std",
+ "rayon",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2068,8 +2137,27 @@ source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc
 dependencies = [
  "aleo-std",
  "rayon",
- "snarkvm-console-algorithms",
- "snarkvm-console-types",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-network"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "anyhow",
+ "itertools",
+ "lazy_static",
+ "serde",
+ "snarkvm-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2081,14 +2169,31 @@ dependencies = [
  "itertools",
  "lazy_static",
  "serde",
- "snarkvm-algorithms",
- "snarkvm-console-algorithms",
- "snarkvm-console-collections",
- "snarkvm-console-network-environment",
- "snarkvm-console-types",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-algorithms 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-collections 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-network-environment"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "anyhow",
+ "bech32",
+ "itertools",
+ "nom",
+ "num-traits",
+ "rand",
+ "serde",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2103,9 +2208,26 @@ dependencies = [
  "num-traits",
  "rand",
  "serde",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-program"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "enum_index",
+ "enum_index_derive",
+ "indexmap",
+ "num-derive",
+ "num-traits",
+ "once_cell",
+ "serde_json",
+ "snarkvm-console-account 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2120,9 +2242,24 @@ dependencies = [
  "num-traits",
  "once_cell",
  "serde_json",
- "snarkvm-console-account",
- "snarkvm-console-network",
- "snarkvm-console-types",
+ "snarkvm-console-account 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-network 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-types"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-address 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-string 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2130,14 +2267,25 @@ name = "snarkvm-console-types"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-address",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-group",
- "snarkvm-console-types-integers",
- "snarkvm-console-types-scalar",
- "snarkvm-console-types-string",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-address 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-string 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-types-address"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2145,10 +2293,18 @@ name = "snarkvm-console-types-address"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-group",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-group 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-types-boolean"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2156,7 +2312,16 @@ name = "snarkvm-console-types-boolean"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
- "snarkvm-console-network-environment",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-types-field"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2164,8 +2329,19 @@ name = "snarkvm-console-types-field"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-types-group"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2173,10 +2349,20 @@ name = "snarkvm-console-types-group"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-scalar",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-scalar 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-types-integers"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2184,9 +2370,19 @@ name = "snarkvm-console-types-integers"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-types-scalar"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2194,9 +2390,20 @@ name = "snarkvm-console-types-scalar"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-console-types-string"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
 ]
 
 [[package]]
@@ -2204,10 +2411,23 @@ name = "snarkvm-console-types-string"
 version = "0.9.0"
 source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-integers",
+ "snarkvm-console-network-environment 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-boolean 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-field 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-console-types-integers 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+]
+
+[[package]]
+name = "snarkvm-curves"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "rand",
+ "rustc_version",
+ "serde",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "thiserror",
 ]
 
 [[package]]
@@ -2218,8 +2438,25 @@ dependencies = [
  "rand",
  "rustc_version",
  "serde",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "thiserror",
+]
+
+[[package]]
+name = "snarkvm-fields"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "derivative",
+ "itertools",
+ "num-traits",
+ "rand",
+ "rayon",
+ "serde",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "thiserror",
 ]
 
@@ -2236,7 +2473,7 @@ dependencies = [
  "rand",
  "rayon",
  "serde",
- "snarkvm-utilities",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "thiserror",
 ]
 
@@ -2258,8 +2495,24 @@ dependencies = [
  "rand",
  "serde_json",
  "sha2",
- "snarkvm-curves",
- "snarkvm-utilities",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "thiserror",
+]
+
+[[package]]
+name = "snarkvm-r1cs"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "anyhow",
+ "cfg-if",
+ "fxhash",
+ "indexmap",
+ "itertools",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "thiserror",
 ]
 
@@ -2273,9 +2526,9 @@ dependencies = [
  "fxhash",
  "indexmap",
  "itertools",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-curves 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "thiserror",
 ]
 
@@ -2290,10 +2543,28 @@ dependencies = [
  "parking_lot",
  "serde",
  "snarkvm-compiler",
- "snarkvm-console",
+ "snarkvm-console 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "tokio",
  "tracing",
  "warp",
+]
+
+[[package]]
+name = "snarkvm-utilities"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "bincode",
+ "num-bigint",
+ "num_cpus",
+ "rand",
+ "rand_xorshift",
+ "rayon",
+ "serde",
+ "snarkvm-utilities-derives 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "thiserror",
 ]
 
 [[package]]
@@ -2310,8 +2581,18 @@ dependencies = [
  "rand_xorshift",
  "rayon",
  "serde",
- "snarkvm-utilities-derives",
+ "snarkvm-utilities-derives 0.9.0 (git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57)",
  "thiserror",
+]
+
+[[package]]
+name = "snarkvm-utilities-derives"
+version = "0.9.0"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
+dependencies = [
+ "proc-macro2 1.0.46",
+ "quote 1.0.21",
+ "syn 1.0.101",
 ]
 
 [[package]]
@@ -2327,15 +2608,15 @@ dependencies = [
 [[package]]
 name = "snarkvm-wasm"
 version = "0.9.0"
-source = "git+https://github.com/AleoHQ/snarkVM.git?rev=4045a57#4045a57fa0757edc0bf02b312b904654bd867ff3"
+source = "git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint#27d4131469005aa06248792675b43d120aab117c"
 dependencies = [
  "getrandom",
  "rand",
  "serde",
- "snarkvm-console",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-console 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-curves 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-fields 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
+ "snarkvm-utilities 0.9.0 (git+https://github.com/Entropy1729/snarkVM.git?branch=ciphertexts_unspent_endpoint)",
  "wasm-bindgen",
 ]
 
