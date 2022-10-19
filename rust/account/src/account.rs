@@ -34,5 +34,5 @@ pub type PrivateKey = AleoPrivateKey<CurrentNetwork>;
 pub type Signature = AleoSignature<CurrentNetwork>;
 pub type ViewKey = AleoViewKey<CurrentNetwork>;
 
-pub type RecordPlaintext = AleoRecord<CurrentNetwork, AleoPlaintext<CurrentNetwork>>;
-pub type RecordCiphertext = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
+pub type Record = AleoRecord<CurrentNetwork, AleoPlaintext<CurrentNetwork>>;
+pub type Ciphertext = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;

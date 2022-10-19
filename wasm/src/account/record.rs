@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::RecordPlaintext as RecordPlaintextNative;
+use aleo_account::Record as RecordNative;
 
 use core::str::FromStr;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RecordPlaintext(RecordPlaintextNative);
+pub struct Record(RecordNative);
 
 #[wasm_bindgen]
-impl RecordPlaintext {
+impl Record {
     pub fn from_string(record: &str) -> Self {
         Self::from_str(record).unwrap()
     }
@@ -39,10 +39,10 @@ impl RecordPlaintext {
     }
 }
 
-impl FromStr for RecordPlaintext {
+impl FromStr for Record {
     type Err = anyhow::Error;
 
     fn from_str(plaintext: &str) -> Result<Self, Self::Err> {
-        Ok(Self(RecordPlaintextNative::from_str(plaintext)?))
+        Ok(Self(RecordNative::from_str(plaintext)?))
     }
 }

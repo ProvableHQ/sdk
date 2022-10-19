@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{Address, PrivateKey, RecordPlaintext};
-use aleo_account::{RecordCiphertext, ViewKey as ViewKeyNative};
+use crate::account::{Address, PrivateKey, Record};
+use aleo_account::{Ciphertext, ViewKey as ViewKeyNative};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -43,10 +43,10 @@ impl ViewKey {
         Address::from_view_key(self)
     }
 
-    pub fn decrypt(&self, ciphertext: &str) -> Result<RecordPlaintext, String> {
-        let ciphertext = RecordCiphertext::from_str(ciphertext).map_err(|error| error.to_string())?;
+    pub fn decrypt(&self, ciphertext: &str) -> Result<Record, String> {
+        let ciphertext = Ciphertext::from_str(ciphertext).map_err(|error| error.to_string())?;
         match ciphertext.decrypt(&self.0) {
-            Ok(plaintext) => Ok(RecordPlaintext::from_string(&plaintext.to_string())),
+            Ok(plaintext) => Ok(Record::from_string(&plaintext.to_string())),
             Err(error) => Err(error.to_string()),
         }
     }
@@ -102,7 +102,7 @@ mod tests {
     pub fn test_decrypt_success() {
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
         let plaintext = view_key.decrypt(OWNER_CIPHERTEXT);
-        let expected = RecordPlaintext::from_str(OWNER_PLAINTEXT);
+        let expected = Record::from_str(OWNER_PLAINTEXT);
         assert!(plaintext.is_ok());
         assert_eq!(expected.unwrap(), plaintext.unwrap())
     }
