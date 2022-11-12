@@ -24,6 +24,11 @@ path = "cli/lib.rs"
 name = "aleo"
 path = "cli/main.rs"
 
+[workspace.dependencies.snarkvm]
+path = "../snarkVM"
+#git = "https://github.com/AleoHQ/snarkVM.git"
+#version = "0.9.6"
+
 [dependencies.anyhow]
 version = "1.0"
 
@@ -55,8 +60,7 @@ version = "1"
 version = "1"
 
 [dependencies.snarkvm]
-git = "https://github.com/AleoHQ/snarkVM.git"
-version = "0.9.3"
+workspace = true
 features = ["aleo-cli", "circuit", "console", "parallel"]
 
 [dependencies.thiserror]
