@@ -92,6 +92,23 @@ impl<N: Network> Client<N> {
         }
     }
 
+    pub async fn find_block_hash(&self, transaction_id: N::TransactionID) -> Result<N::BlockHash> {
+        let url = format!("{}/testnet3/find/blockHash/{transaction_id}", self.base_url);
+        match self.client.get(url).send().await?.json().await {
+            Ok(hash) => Ok(hash),
+            Err(error) => bail!("Failed to parse block hash: {error}"),
+        }
+    }
+
+    /// Returns the transition ID that contains the given `input ID` or `output ID`.
+    pub async fn find_transition_id(&self, input_or_output_id: Field<N>) -> Result<N::TransitionID> {
+        let url = format!("{}/testnet3/find/transitionID/{input_or_output_id}", self.base_url);
+        match self.client.get(url).send().await?.json().await {
+            Ok(transition_id) => Ok(transition_id),
+            Err(error) => bail!("Failed to parse transition ID: {error}"),
+        }
+    }
+
     pub async fn transaction_broadcast(&self, transaction: Transaction<N>) -> Result<Block<N>> {
         let url = format!("{}/testnet3/transaction/broadcast", self.base_url);
         match self.client.post(url).body(serde_json::to_string(&transaction)?).send().await?.json().await {
