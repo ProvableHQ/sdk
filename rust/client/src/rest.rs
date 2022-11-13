@@ -65,18 +65,18 @@ impl<N: Network> Client<N> {
         }
     }
 
-    pub async fn get_transaction(&self, transaction_id: N::TransactionID) -> Result<Block<N>> {
+    pub async fn get_transaction(&self, transaction_id: N::TransactionID) -> Result<Transaction<N>> {
         let url = format!("{}/testnet3/transaction/{transaction_id}", self.base_url);
         match self.client.get(url).send().await?.json().await {
-            Ok(block) => Ok(block),
+            Ok(transaction) => Ok(transaction),
             Err(error) => bail!("Failed to parse transaction '{transaction_id}': {error}"),
         }
     }
 
-    pub async fn get_memory_pool_transactions(&self) -> Result<Block<N>> {
+    pub async fn get_memory_pool_transactions(&self) -> Result<Vec<Transaction<N>>> {
         let url = format!("{}/testnet3/memoryPool/transactions", self.base_url);
         match self.client.get(url).send().await?.json().await {
-            Ok(block) => Ok(block),
+            Ok(transactions) => Ok(transactions),
             Err(error) => bail!("Failed to parse memory pool transactions: {error}"),
         }
     }
