@@ -14,6 +14,7 @@ edition = "2018"
 [workspace]
 members = [
     "rust/account",
+    "rust/client",
     "wasm"
 ]
 
@@ -25,8 +26,9 @@ name = "aleo"
 path = "cli/main.rs"
 
 [workspace.dependencies.snarkvm]
-path = "../snarkVM"
-#git = "https://github.com/AleoHQ/snarkVM.git"
+#path = "../snarkVM"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "3d61b3e"
 #version = "0.9.6"
 
 [dependencies.anyhow]
