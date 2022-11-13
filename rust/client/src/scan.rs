@@ -18,6 +18,7 @@ use super::*;
 
 impl<N: Network> Client<N> {
     /// Scans the ledger for records that match the given view key.
+    #[allow(clippy::type_complexity)]
     pub fn scan(
         &self,
         view_key: impl TryInto<ViewKey<N>>,
