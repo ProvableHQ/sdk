@@ -39,7 +39,6 @@ use snarkvm::prelude::{
     Query,
     Record,
     Response,
-    Testnet3,
     Transaction,
     Value,
     ViewKey,

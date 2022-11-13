@@ -41,8 +41,6 @@ impl<N: Network> Client<N> {
 
             // Prepare the URL.
             let url = format!("{}/testnet3/blocks/phase2/{start_height}.{end_height}.blocks", self.base_url);
-            println!("Fetching from {url}");
-
             // Request the blocks.
             let blocks_bytes = match reqwest::blocking::get(&url) {
                 Ok(response) => match response.bytes() {
@@ -86,7 +84,7 @@ mod tests {
     use core::str::FromStr;
     use std::convert::TryFrom;
 
-    type N = Testnet3;
+    type N = snarkvm::prelude::Testnet3;
 
     #[test]
     fn test_scan() {
@@ -99,7 +97,7 @@ mod tests {
         let view_key = ViewKey::<N>::try_from(&private_key).unwrap();
 
         // Scan the ledger at this range.
-        let records = client.scan(private_key, 14200..14300).unwrap();
+        let records = client.scan(private_key, 14200..14250).unwrap();
         assert_eq!(records.len(), 1);
 
         // Check the commitment.

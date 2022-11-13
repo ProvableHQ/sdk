@@ -25,11 +25,32 @@ path = "cli/lib.rs"
 name = "aleo"
 path = "cli/main.rs"
 
+[features]
+default = ["account", "client"]
+account = ["aleo-account"]
+client = ["aleo-client"]
+wasm = ["aleo-wasm"]
+
 [workspace.dependencies.snarkvm]
 #path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
 rev = "3d61b3e"
 #version = "0.9.6"
+
+[dependencies.aleo-account]
+path = "rust/account"
+version = "0.2.0"
+optional = true
+
+[dependencies.aleo-client]
+path = "rust/client"
+version = "0.2.0"
+optional = true
+
+[dependencies.aleo-wasm]
+path = "wasm"
+version = "0.2.0"
+optional = true
 
 [dependencies.anyhow]
 version = "1.0"

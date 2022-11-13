@@ -57,7 +57,7 @@ mod tests {
     use core::str::FromStr;
     use std::convert::TryFrom;
 
-    type N = Testnet3;
+    type N = snarkvm::prelude::Testnet3;
 
     #[test]
     fn test_execute() {
