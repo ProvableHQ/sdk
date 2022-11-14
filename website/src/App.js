@@ -4,6 +4,7 @@ import React, {useState} from 'react';
 import {Layout, Menu} from 'antd';
 import {NewAccount} from "./tabs/account/NewAccount";
 import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
+import {DecryptRecord} from "./tabs/record/DecryptRecord";
 
 const {Header, Content, Footer} = Layout;
 
@@ -16,6 +17,7 @@ function App() {
                 <div className="logo"/>
                 <Menu mode="horizontal" defaultSelectedKeys={['1']}>
                     <Menu.Item key="1" onClick={() => setMenuIndex(0)}>Account</Menu.Item>
+                    <Menu.Item key="2" onClick={() => setMenuIndex(1)}>Record</Menu.Item>
                 </Menu>
             </Header>
             <Content style={{padding: '50px 50px'}}>
@@ -25,6 +27,12 @@ function App() {
                         <NewAccount/>
                         <br/>
                         <AccountFromPrivateKey/>
+                    </>
+                }
+                {
+                    menuIndex === 1 &&
+                    <>
+                        <DecryptRecord/>
                     </>
                 }
             </Content>

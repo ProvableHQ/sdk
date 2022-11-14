@@ -13,7 +13,7 @@ export const NewAccount = () => {
         setTimeout(() => {
             setAccount(new aleo.PrivateKey());
             setLoading(false);
-        }, 1000);
+        }, 25);
     }
     const clear = () => setAccount(null);
 
