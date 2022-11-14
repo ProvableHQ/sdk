@@ -19,7 +19,7 @@
 #[cfg(test)]
 pub mod tests;
 
-use snarkvm::wasm::{
+use snarkvm_wasm::{
     account::{
         Address as AleoAddress,
         PrivateKey as AleoPrivateKey,
@@ -30,7 +30,7 @@ use snarkvm::wasm::{
     program::{Ciphertext as AleoCiphertext, Record as AleoRecord},
 };
 
-pub use snarkvm::wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
+pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
 
 pub type CurrentNetwork = Testnet3;
 

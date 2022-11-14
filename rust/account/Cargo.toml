@@ -16,10 +16,10 @@ name = "account"
 path = "benches/account.rs"
 harness = false
 
-[dependencies.snarkvm]
+[dependencies.snarkvm-wasm]
 workspace = true
 default-features = false
-features = ["parallel", "wasm"]
+features = ["parallel"]
 
 [dev-dependencies.rand]
 version = "0.8.0"

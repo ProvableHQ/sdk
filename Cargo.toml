@@ -35,6 +35,12 @@ wasm = ["aleo-wasm"]
 git = "https://github.com/AleoHQ/snarkVM.git"
 rev = "4b18ba7"
 
+[workspace.dependencies.snarkvm-wasm]
+#version = "0.9.6"
+#path = "../snarkVM/wasm"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "4b18ba7"
+
 [dependencies.aleo-account]
 path = "rust/account"
 version = "0.2.0"

@@ -58,7 +58,7 @@ dependencies = [
  "bencher",
  "rand",
  "rand_chacha",
- "snarkvm",
+ "snarkvm-wasm",
 ]
 
 [[package]]
@@ -1803,7 +1803,6 @@ dependencies = [
  "snarkvm-parameters",
  "snarkvm-synthesizer",
  "snarkvm-utilities",
- "snarkvm-wasm",
  "thiserror",
  "ureq",
  "walkdir",
