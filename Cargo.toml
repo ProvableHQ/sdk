@@ -14,7 +14,6 @@ edition = "2018"
 [workspace]
 members = [
     "rust/account",
-    "rust/client",
     "wasm"
 ]
 
@@ -26,24 +25,18 @@ name = "aleo"
 path = "cli/main.rs"
 
 [features]
-default = ["account", "client"]
+default = []
 account = ["aleo-account"]
-client = ["aleo-client"]
 wasm = ["aleo-wasm"]
 
 [workspace.dependencies.snarkvm]
+#version = "0.9.6"
 #path = "../snarkVM"
 git = "https://github.com/AleoHQ/snarkVM.git"
-rev = "3d61b3e"
-#version = "0.9.6"
+rev = "4b18ba7"
 
 [dependencies.aleo-account]
 path = "rust/account"
-version = "0.2.0"
-optional = true
-
-[dependencies.aleo-client]
-path = "rust/client"
 version = "0.2.0"
 optional = true
 
