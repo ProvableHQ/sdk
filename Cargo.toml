@@ -28,7 +28,7 @@ path = "cli/main.rs"
 version = "1.0"
 
 [dependencies.clap]
-version = "3.2"
+version = "4.0"
 features = ["derive"]
 
 [dependencies.colored]
