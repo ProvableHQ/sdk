@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1668476613859,
+  "lastUpdate": 1668479145517,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3745,6 +3745,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 86023,
             "range": "± 1062",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "collin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "collin",
+            "username": "collinc97"
+          },
+          "distinct": true,
+          "id": "11e501cd249c0e722ddc2de6f2bf94749002c542",
+          "message": "fix Cargo.toml",
+          "timestamp": "2022-11-14T18:10:15-08:00",
+          "tree_id": "0fd31dffaed0a31b66e9dfc3b4b46e8815ee8490",
+          "url": "https://github.com/AleoHQ/aleo/commit/11e501cd249c0e722ddc2de6f2bf94749002c542"
+        },
+        "date": 1668479142257,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 242259,
+            "range": "± 16723",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 99654,
+            "range": "± 618",
             "unit": "ns/iter"
           }
         ]
