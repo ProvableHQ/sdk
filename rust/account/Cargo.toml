@@ -1,13 +1,19 @@
 [package]
 name = "aleo-account"
-version = "0.2.0"
-authors = ["The Aleo Team <hello@aleo.org>"]
+version = "0.3.0"
+authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
 repository = "https://github.com/AleoHQ/aleo"
-keywords = ["aleo", "cryptography", "blockchain", "decentralized", "zero-knowledge"]
-categories = ["cryptography::cryptocurrencies", "operating-systems"]
-include = ["Cargo.toml", "src", "README.md", "LICENSE.md"]
+keywords = [
+  "aleo",
+  "cryptography",
+  "blockchain",
+  "decentralized",
+  "zero-knowledge"
+]
+categories = [ "cryptography::cryptocurrencies", "operating-systems" ]
+include = [ "Cargo.toml", "src", "README.md", "LICENSE.md" ]
 license = "GPL-3.0"
 edition = "2018"
 
@@ -19,7 +25,7 @@ harness = false
 [dependencies.snarkvm-wasm]
 workspace = true
 default-features = false
-features = ["parallel"]
+features = [ "parallel" ]
 
 [dev-dependencies.rand]
 version = "0.8.0"
