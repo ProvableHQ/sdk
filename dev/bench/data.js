@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660724169061,
+  "lastUpdate": 1668474429732,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3673,6 +3673,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 183635,
             "range": "± 294",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "9260812+howardwu@users.noreply.github.com",
+            "name": "Howard Wu",
+            "username": "howardwu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b1d7653c8f64b5fc2096a10db7fe1e8062e49ee4",
+          "message": "Update website.yml\n\nSigned-off-by: Howard Wu <9260812+howardwu@users.noreply.github.com>",
+          "timestamp": "2022-11-14T16:54:50-08:00",
+          "tree_id": "9ac0c6e35d722841228558857aa3d4cfbb298f14",
+          "url": "https://github.com/AleoHQ/aleo/commit/b1d7653c8f64b5fc2096a10db7fe1e8062e49ee4"
+        },
+        "date": 1668474426526,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 214868,
+            "range": "± 4698",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 85134,
+            "range": "± 89",
             "unit": "ns/iter"
           }
         ]
