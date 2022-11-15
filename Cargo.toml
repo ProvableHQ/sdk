@@ -24,6 +24,33 @@ path = "cli/lib.rs"
 name = "aleo"
 path = "cli/main.rs"
 
+[features]
+default = []
+account = ["aleo-account"]
+wasm = ["aleo-wasm"]
+
+[workspace.dependencies.snarkvm]
+version = "0.9.7"
+#path = "../snarkVM"
+#git = "https://github.com/AleoHQ/snarkVM.git"
+#rev = "4b18ba7"
+
+[workspace.dependencies.snarkvm-wasm]
+version = "0.9.7"
+#path = "../snarkVM/wasm"
+#git = "https://github.com/AleoHQ/snarkVM.git"
+#rev = "4b18ba7"
+
+[dependencies.aleo-account]
+path = "rust/account"
+version = "0.2.0"
+optional = true
+
+[dependencies.aleo-wasm]
+path = "wasm"
+version = "0.2.0"
+optional = true
+
 [dependencies.anyhow]
 version = "1.0"
 
@@ -55,8 +82,7 @@ version = "1"
 version = "1"
 
 [dependencies.snarkvm]
-git = "https://github.com/AleoHQ/snarkVM.git"
-version = "0.9.3"
+workspace = true
 features = ["aleo-cli", "circuit", "console", "parallel"]
 
 [dependencies.thiserror]

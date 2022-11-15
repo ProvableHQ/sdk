@@ -26,6 +26,10 @@ module.exports = {
         ]
     },
     plugins: [new HtmlWebpackPlugin({ template: './public/index.html' })],
+    performance: {
+        maxEntrypointSize: 8388608,
+        maxAssetSize: 8388608
+    },
     experiments: {
         asyncWebAssembly: true
     },

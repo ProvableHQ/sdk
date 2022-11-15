@@ -36,7 +36,7 @@ export const AccountFromPrivateKey = () => {
                         <Divider/>
                         <Form.Item label="View Key" colon={false}>
                             <Input size="large" placeholder="View Key" value={viewKey()}
-                                   addonAfter={<CopyButton data={address()} style={{borderRadius: '20px'}}/>} disabled/>
+                                   addonAfter={<CopyButton data={viewKey()} style={{borderRadius: '20px'}}/>} disabled/>
                         </Form.Item>
                         <Form.Item label="Address" colon={false}>
                             <Input size="large" placeholder="Address" value={address()}

@@ -17,8 +17,8 @@ path = "benches/account.rs"
 harness = false
 
 [dependencies.snarkvm-wasm]
-git = "https://github.com/AleoHQ/snarkVM.git"
-version = "0.9.3"
+workspace = true
+default-features = false
 features = ["parallel"]
 
 [dev-dependencies.rand]
