@@ -23,8 +23,8 @@ pub mod commands;
 pub mod errors;
 pub mod helpers;
 
-pub(crate) type Network = snarkvm::prelude::Testnet3;
-pub(crate) type Aleo = snarkvm::circuit::AleoV0;
+pub type Network = snarkvm::prelude::Testnet3;
+pub type Aleo = snarkvm::circuit::AleoV0;
 
 #[cfg(feature = "account")]
 pub use aleo_account as account;
