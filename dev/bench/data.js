@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1668479145517,
+  "lastUpdate": 1669673247742,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3781,6 +3781,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 99654,
             "range": "± 618",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pranavsaig@gmail.com",
+            "name": "d0cd",
+            "username": "d0cd"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4a7c2d655dc96383369804f1490d12bc9d911c2a",
+          "message": "Export Network and Aleo (#413)",
+          "timestamp": "2022-11-28T13:54:25-08:00",
+          "tree_id": "8d9c4a3490224cdbfbdfda24684b17a8f94e7b0d",
+          "url": "https://github.com/AleoHQ/aleo/commit/4a7c2d655dc96383369804f1490d12bc9d911c2a"
+        },
+        "date": 1669673244134,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 212384,
+            "range": "± 52744",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 84809,
+            "range": "± 1194",
             "unit": "ns/iter"
           }
         ]
