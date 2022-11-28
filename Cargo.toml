@@ -86,7 +86,7 @@ features = [ "aleo-cli", "circuit", "console", "parallel" ]
 version = "1.0"
 
 [dependencies.tokio]
-version = "1.21"
+version = "1.22"
 features = [ "rt" ]
 
 [dependencies.warp]
