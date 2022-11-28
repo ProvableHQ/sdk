@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1669674902777,
+  "lastUpdate": 1669674926985,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3853,6 +3853,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 95006,
             "range": "± 369",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2df989dab9beacf77584a9ef840fa738978df7c8",
+          "message": "build(deps): bump tokio from 1.21.2 to 1.22.0 (#417)\n\nBumps [tokio](https://github.com/tokio-rs/tokio) from 1.21.2 to 1.22.0.\r\n- [Release notes](https://github.com/tokio-rs/tokio/releases)\r\n- [Commits](https://github.com/tokio-rs/tokio/compare/tokio-1.21.2...tokio-1.22.0)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: tokio\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2022-11-28T14:21:46-08:00",
+          "tree_id": "f94423017ab9399f0d0a4731926b7b28b9ac962e",
+          "url": "https://github.com/AleoHQ/aleo/commit/2df989dab9beacf77584a9ef840fa738978df7c8"
+        },
+        "date": 1669674922648,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 263265,
+            "range": "± 49222",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 108473,
+            "range": "± 20577",
             "unit": "ns/iter"
           }
         ]
