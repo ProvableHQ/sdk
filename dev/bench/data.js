@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1669674926985,
+  "lastUpdate": 1669678826284,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3889,6 +3889,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 108473,
             "range": "± 20577",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "collin@aleo.org",
+            "name": "Collin Chin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3b3811125f76d471925b7443e092a167f8ab645f",
+          "message": "bump snarkvm version to v0.9.8 (#422)",
+          "timestamp": "2022-11-28T15:28:52-08:00",
+          "tree_id": "fb88326188ce43cd9e4f98ec385a2c0aa5415344",
+          "url": "https://github.com/AleoHQ/aleo/commit/3b3811125f76d471925b7443e092a167f8ab645f"
+        },
+        "date": 1669678823150,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 226307,
+            "range": "± 2623",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 84407,
+            "range": "± 228",
             "unit": "ns/iter"
           }
         ]
