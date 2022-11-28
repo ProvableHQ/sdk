@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1669673247742,
+  "lastUpdate": 1669674902777,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -3817,6 +3817,42 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_new",
             "value": 84809,
             "range": "± 1194",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d9d5872135927e7421792b9113dab38e2d242ae4",
+          "message": "build(deps): bump serde from 1.0.147 to 1.0.148 (#420)\n\nBumps [serde](https://github.com/serde-rs/serde) from 1.0.147 to 1.0.148.\r\n- [Release notes](https://github.com/serde-rs/serde/releases)\r\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.147...v1.0.148)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: serde\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2022-11-28T14:22:40-08:00",
+          "tree_id": "e38ed3615f725f200a22352c00de62941b98d07d",
+          "url": "https://github.com/AleoHQ/aleo/commit/d9d5872135927e7421792b9113dab38e2d242ae4"
+        },
+        "date": 1669674900102,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 239636,
+            "range": "± 18701",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 95006,
+            "range": "± 369",
             "unit": "ns/iter"
           }
         ]
