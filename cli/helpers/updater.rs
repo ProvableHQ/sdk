@@ -80,11 +80,12 @@ impl Updater {
     }
 
     /// Display the CLI message.
+    #[allow(clippy::unnecessary_to_owned)]
     pub fn print_cli() -> String {
         if let Ok(latest_version) = Self::update_available() {
             let mut output = "🟢 A new version is available! Run".bold().green().to_string();
             output += &" `aleo update` ".bold().white();
-            output += &format!("to update to v{latest_version}.").bold().green();
+            output += &format!("to update to v{latest_version}.\n").bold().green().to_string();
             output
         } else {
             String::new()
