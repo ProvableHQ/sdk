@@ -21,10 +21,10 @@ edition = "2018"
 members = [ "rust/account", "wasm" ]
 
 [workspace.dependencies.snarkvm]
-version = "0.9.7"
+version = "0.9.8"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.7"
+version = "0.9.8"
 
 [lib]
 path = "cli/lib.rs"
