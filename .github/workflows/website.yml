@@ -44,12 +44,19 @@ jobs:
           CI: ""
 
       - name: Deploy
+        id: modified
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
           FOLDER: website/dist
           CLEAN_EXCLUDE: '["dev"]'
+
+      - name: Check step output
+        run: |
+          [[ \
+          ${{steps.modified.outputs.deployment-status}} = success \
+          ]]
 
   benchmark:
     name: Benchmark

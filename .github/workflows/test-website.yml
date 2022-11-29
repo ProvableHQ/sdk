@@ -53,5 +53,5 @@ jobs:
       - name: Check step output
         run: |
           [[ \
-          ${{steps.modified.outputs.deployment-status}} = success \
+          ${{steps.unmodified.outputs.deployment-status}} = success \
           ]]
