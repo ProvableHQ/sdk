@@ -53,5 +53,6 @@ jobs:
       - name: Check step output
         run: |
           [[ \
+          ${{steps.unmodified.outputs.deployment-status}} = skipped || \
           ${{steps.unmodified.outputs.deployment-status}} = success \
           ]]
