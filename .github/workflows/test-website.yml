@@ -1,0 +1,58 @@
+name: Test Website Deploy
+on: [pull_request]
+
+jobs:
+  test-deploy:
+    name: Test SDK Website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      #        with:
+      #          persist-credentials: false
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
+          version: 'latest'
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-website-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install and Build
+        run: |
+          cd website
+          yarn install
+          yarn build
+        env:
+          CI: ""
+
+      - name: Test Deploy
+        id: unmodified
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: website/dist
+          clean-exclude: '["dev"]'
+          dry-run: true
+
+      - name: Check step output
+        run: |
+          [[ \
+          ${{steps.unmodified.outputs.deployment-status}} = skipped || \
+          ${{steps.unmodified.outputs.deployment-status}} = success \
+          ]]
