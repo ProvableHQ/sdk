@@ -42,13 +42,13 @@ jobs:
 
       - name: Test Deploy
         id: unmodified
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: website/dist
-          CLEAN_EXCLUDE: '["dev"]'
-          DRY-RUN: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: website/dist
+          clean-exclude: '["dev"]'
+          dry-run: true
 
       - name: Check step output
         run: |
