@@ -4,3 +4,4 @@
 storage*/
 wasm/Cargo.lock
 **/build
+**/dist
