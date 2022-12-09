@@ -37,6 +37,7 @@ dependencies = [
  "anyhow",
  "clap",
  "colored",
+ "num-format",
  "parking_lot",
  "rand",
  "rand_chacha",
@@ -1126,6 +1127,16 @@ dependencies = [
  "proc-macro2 1.0.47",
  "quote 1.0.21",
  "syn 1.0.105",
+]
+
+[[package]]
+name = "num-format"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a652d9771a63711fd3c3deb670acfbe5c30a4072e664d7a3bf5a9e1056ac72c3"
+dependencies = [
+ "arrayvec",
+ "itoa",
 ]
 
 [[package]]

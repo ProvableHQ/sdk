@@ -40,6 +40,9 @@ default = [ ]
 account = [ "aleo-account" ]
 wasm = [ "aleo-wasm" ]
 
+[dependencies]
+num-format = "0.4.4"
+
 [dependencies.aleo-account]
 path = "rust/account"
 version = "0.3.1"
