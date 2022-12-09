@@ -95,7 +95,7 @@ impl Run {
         for (function_constraints, counter) in program_frequency {
             // Log the constraints
             let counter_string = match counter {
-                1 => format!("(called 1 time)").dimmed(),
+                1 => "(called 1 time)".to_string().dimmed(),
                 counter => format!("(called {} times)", counter).dimmed(),
             };
 
