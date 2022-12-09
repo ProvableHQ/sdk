@@ -56,13 +56,24 @@ impl Run {
         let rng = &mut rand::thread_rng();
 
         // Execute the request.
-        let (response, _transition, _inclusion) = package.run::<Aleo, _>(
+        let (response, _transition, _inclusion, metrics) = package.run::<Aleo, _>(
             self.endpoint,
             package.manifest_file().development_private_key(),
             self.function,
             &self.inputs,
             rng,
         )?;
+
+        // Log the metrics.
+        println!("\n🔍 Function Constraints\n");
+        for (i, metric) in metrics.iter().enumerate() {
+            println!(
+                " •  {program_id}/{function_name}-{i} {function_constraints}",
+                program_id = metric.program_id,
+                function_name = metric.function_name,
+                function_constraints = metric.num_function_constraints
+            )
+        }
 
         // Log the outputs.
         match response.outputs().len() {
