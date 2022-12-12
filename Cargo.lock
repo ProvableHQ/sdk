@@ -30,7 +30,7 @@ dependencies = [
 
 [[package]]
 name = "aleo"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "aleo-account",
  "aleo-wasm",
@@ -54,7 +54,7 @@ dependencies = [
 
 [[package]]
 name = "aleo-account"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "bencher",
  "rand",
@@ -127,7 +127,7 @@ checksum = "7e4f181fc1a372e8ceff89612e5c9b13f72bff5b066da9f8d6827ae65af492c4"
 
 [[package]]
 name = "aleo-wasm"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "aleo-account",
  "anyhow",
