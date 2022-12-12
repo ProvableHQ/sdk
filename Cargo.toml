@@ -21,12 +21,12 @@ edition = "2018"
 members = [ "rust/account", "wasm" ]
 
 [workspace.dependencies.snarkvm]
-rev = "6c009ef"
-git = "https://github.com/AleoHQ/snarkVM"
+version = "0.9.11"
+#git = "https://github.com/AleoHQ/snarkVM"
 
 [workspace.dependencies.snarkvm-wasm]
-rev = "6c009ef"
-git = "https://github.com/AleoHQ/snarkVM"
+version = "0.9.11"
+#git = "https://github.com/AleoHQ/snarkVM"
 
 [lib]
 path = "cli/lib.rs"
