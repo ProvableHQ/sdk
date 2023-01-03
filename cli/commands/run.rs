@@ -96,7 +96,7 @@ impl Run {
             // Log the constraints
             let counter_string = match counter {
                 1 => "(called 1 time)".to_string().dimmed(),
-                counter => format!("(called {} times)", counter).dimmed(),
+                counter => format!("(called {counter} times)").dimmed(),
             };
 
             println!(" •  {function_constraints} {counter_string}",)
