@@ -114,7 +114,7 @@ jobs:
         run: |
           SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path) \
           MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version) \
-          cargo build --all --release --target=aarch64-apple-darwin --features noconfig && strip target/aarch64-apple-darwin/release/aleo
+          cargo build --all --release --target=aarch64-apple-darwin && strip target/aarch64-apple-darwin/release/aleo
         env:
           CARGO_NET_GIT_FETCH_WITH_CLI: true
 
