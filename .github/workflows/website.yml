@@ -2,7 +2,7 @@ name: Website
 on:
   push:
     branches:
-      - main
+      - testnet3
 
 jobs:
   deploy:
@@ -44,12 +44,20 @@ jobs:
           CI: ""
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+        id: modified
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: website/dist
-          CLEAN_EXCLUDE: '["dev"]'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: website/dist
+          clean-exclude: '["dev"]'
+
+      - name: Check step output
+        run: |
+          [[ \
+          ${{steps.modified.outputs.deployment-status}} = skipped || \
+          ${{steps.modified.outputs.deployment-status}} = success \
+          ]]
 
   benchmark:
     name: Benchmark

@@ -168,7 +168,7 @@ First, we need to declare the program as the following:
 program foo.aleo;
 ```
 
-Afterwards, we can start writing its functions (or other Aleo structures such as interfaces, records, closures, as we will see later).
+Afterwards, we can start writing its functions (or other Aleo structures such as structs, records, closures, as we will see later).
 
 In the case of functions we have it very easy:
 
@@ -230,7 +230,7 @@ scalar
 string
 ```
 
-Users can define custom types using the `interface` or `record` keywords. We will explore these in the next few sections.
+Users can define custom types using the `structs` or `record` keywords. We will explore these in the next few sections.
 
 #### 3.5.1 Registers
 
@@ -238,12 +238,12 @@ Registers are the places where you store data to then be able to modify it.
 
 #### 3.5.2 Interfaces
 
-Interfaces are user-defined data structures. They are very much like traditional structs in conventional programming languages. You can store interfaces into registers, like with any other Aleo data types.
+Interfaces are user-defined data structures. They are very much like traditional structs in conventional programming languages. You can store structs into registers, like with any other Aleo data types.
 
-For example, let's build an interface representing a fixed-size array of 3 elements. Add this at the bottom of the *main.aleo* file:
+For example, let's build a struct representing a fixed-size array of 3 elements. Add this at the bottom of the *main.aleo* file:
 
 ```
-interface array3:
+struct array3:
     a0 as u32;
     a1 as u32;
     a2 as u32;
@@ -261,9 +261,9 @@ function sum_one_to_array3:
     output r4 as array3.private;
 ```
 
-As you can see, we can input an interface into register `r0` and access interface elements with the `.` syntax. We perform the `add` instruction on every element, storing the results in registers `r1`, `r2` and `r3` and, finally, we make use of the cast command to create a new `array3` interface into `r4`.
+As you can see, we can input a struct into register `r0` and access struct elements with the `.` syntax. We perform the `add` instruction on every element, storing the results in registers `r1`, `r2` and `r3` and, finally, we make use of the cast command to create a new `array3` struct into `r4`.
 
-Now, let's run it. In this case, the only new thing you need to know is that interfaces are passed to the CLI in the following format:
+Now, let's run it. In this case, the only new thing you need to know is that structs are passed to the CLI in the following format:
 
 ```
 "{a0: 1u32, a1: 2u32, a2: 3u32}"
@@ -292,7 +292,7 @@ And we get the new `array3` element as output:
 
 #### 3.5.3 Records
 
-A record is a fundamental data structure for encoding user assets and application state. They are very similar to interfaces, but they have two non-optional parameters:
+A record is a fundamental data structure for encoding user assets and application state. They are very similar to structs, but they have two non-optional parameters:
 
 ```
 record token:
@@ -361,7 +361,7 @@ First, we define our own record data type called `token`, that has the two non-o
 
 This `transfer_amount` function receives 3 input parameters (`sender` record, `receiver` record and `amount`) and stores them in 3 registers (`r0`, `r1` and `r2`). After that, it computes the final balance for both of them and stores it in `r3` and `r4` (using **sub** and **add** instructions to compute the subtraction and addition respectively). With those final amounts, it creates the output records for sender and receiver, storing them in `r5` and `r6` . Finally, both records are sent out of the function with the **output** instruction.
 
-To run this function, the first parameter is the input record of the program. The format of this parameter is the same as for interface types:
+To run this function, the first parameter is the input record of the program. The format of this parameter is the same as for struct types:
 
 ```
 {

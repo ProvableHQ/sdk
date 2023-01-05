@@ -81,13 +81,15 @@ mod tests {
     use wasm_bindgen_test::*;
 
     const OWNER_PLAINTEXT: &str = r"{
-  owner: aleo1snwe5h89dv6hv2q2pl3v8l9cweeuwrgejmlnwza6ndacygznlu9sjt8pgv.private,
-  gates: 1u64.private,
-  _nonce: 4447510634654730534613001085815220248957154008834207042015711498717088580021group.public
+  owner: aleo1y50whk20gjtltkte2qcqz9dd6uaet8thhlj3t8utewp0j3hhmg8qae7s5a.public,
+  gates: 1159017656332810u64.public,
+  a: 6875465154712544327395236939215127424077297244802949502285127742492653680374field.private,
+  b: 603076889203566020456049671526074557206943911693533670547825725507132399266scalar.private,
+  _nonce: 1635890755607797813652478911794003479783620859881520791852904112255813473142group.public
 }";
-    const OWNER_CIPHERTEXT: &str = "record1qyqspplg2ud9gguy8ud9wjmee3cf2vztxcjxe2ernf8m7ru5wvsqkdqxqyqsq7y540qmemqx3675pufewwmywsudzrpstjx3fd38c6d8uz4r4mgpqqqt2q2jjczxp2y6986zdqz3mr5jmhggmge3exc72vgw2kgr4gea2zgzhrz8q";
-    const OWNER_VIEW_KEY: &str = "AViewKey1dcqVNvMqYGoVtaQJW1YnmH23XABeeQTq9d6XmYUmo7CW";
-    const NON_OWNER_VIEW_KEY: &str = "AViewKey1i3fn5SECcVBtQMCVtTPSvdApoMYmg3ToJfNDfgHJAuoD";
+    const OWNER_CIPHERTEXT: &str = "record1qqj3a67efazf0awe09grqqg44htnh9vaw7l729vl309c972x7ldquqq2k2cax8s7qsqqyqtpgvqqyqsq4seyrzvfa98fkggzccqr68af8e9m0q8rzeqh8a8aqql3a854v58sgrygdv4jn9s8ckwfd48vujrmv0rtfasqh8ygn88ch34ftck8szspvfpsqqszqzvxx9t8s9g66teeepgxmvnw5ymgapcwt2lpy9d5eus580k08wpq544jcl437wjv206u5pxst6few9ll4yhufwldgpx80rlwq8nhssqywmfsd85skg564vqhm3gxsp8q6r30udmqxrxmxx2v8xycdg8pn5ps3dhfvv";
+    const OWNER_VIEW_KEY: &str = "AViewKey1ghtvuJQQzQ31xSiVh6X1PK8biEVhQBygRGV4KdYmq4JT";
+    const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
 
     #[wasm_bindgen_test]
     pub fn test_from_private_key() {
@@ -108,8 +110,9 @@ mod tests {
 
     #[wasm_bindgen_test]
     pub fn test_decrypt_fails() {
-        let incorrect_private_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
-        let plaintext = incorrect_private_key.decrypt(OWNER_CIPHERTEXT);
+        let ciphertext = Record::from_str(OWNER_CIPHERTEXT).map_err(|error| error.to_string()).unwrap();
+        let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
+        let plaintext = ciphertext.decrypt(&incorrect_view_key.0);
         assert!(plaintext.is_err());
     }
 }
