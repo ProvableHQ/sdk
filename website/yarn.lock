@@ -1407,7 +1407,7 @@ ajv@^8.0.0, ajv@^8.8.0:
     uri-js "^4.2.2"
 
 "aleo-wasm@file:../wasm/pkg":
-  version "0.2.0"
+  version "0.3.0"
 
 ansi-html-community@^0.0.8:
   version "0.0.8"
