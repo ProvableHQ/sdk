@@ -1,9 +1,9 @@
 {
-  "name": "@aleohq/aleo-wasm",
+  "name": "@aleohq/sdk",
   "collaborators": [
     "The Aleo Team <hello@aleo.org>"
   ],
-  "description": "Aleo",
+  "description": "Aleo wasm sdk",
   "version": "0.3.2",
   "license": "GPL-3.0",
   "repository": {

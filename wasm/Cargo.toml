@@ -1,8 +1,8 @@
 [package]
-name = "aleo-wasm"
+name = "sdk"
 version = "0.3.2"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
-description = "Aleo"
+description = "Aleo wasm sdk"
 homepage = "https://aleo.org"
 repository = "https://github.com/AleoHQ/aleo"
 keywords = [

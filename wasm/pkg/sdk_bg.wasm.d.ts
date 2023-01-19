@@ -1,6 +1,18 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export function __wbg_address_free(a: number): void;
+export function address_from_private_key(a: number): number;
+export function address_from_view_key(a: number): number;
+export function address_from_string(a: number, b: number): number;
+export function address_to_string(a: number, b: number): void;
+export function address_verify(a: number, b: number, c: number, d: number): number;
+export function __wbg_viewkey_free(a: number): void;
+export function viewkey_from_private_key(a: number): number;
+export function viewkey_from_string(a: number, b: number): number;
+export function viewkey_to_string(a: number, b: number): void;
+export function viewkey_to_address(a: number): number;
+export function viewkey_decrypt(a: number, b: number, c: number, d: number): void;
 export function __wbg_privatekey_free(a: number): void;
 export function privatekey_new(): number;
 export function privatekey_from_seed_unchecked(a: number, b: number): number;
@@ -14,18 +26,6 @@ export function signature_sign(a: number, b: number, c: number): number;
 export function signature_verify(a: number, b: number, c: number, d: number): number;
 export function signature_from_string(a: number, b: number): number;
 export function signature_to_string(a: number, b: number): void;
-export function __wbg_viewkey_free(a: number): void;
-export function viewkey_from_private_key(a: number): number;
-export function viewkey_from_string(a: number, b: number): number;
-export function viewkey_to_string(a: number, b: number): void;
-export function viewkey_to_address(a: number): number;
-export function viewkey_decrypt(a: number, b: number, c: number, d: number): void;
-export function __wbg_address_free(a: number): void;
-export function address_from_private_key(a: number): number;
-export function address_from_view_key(a: number): number;
-export function address_from_string(a: number, b: number): number;
-export function address_to_string(a: number, b: number): void;
-export function address_verify(a: number, b: number, c: number, d: number): number;
 export function __wbindgen_malloc(a: number): number;
 export function __wbindgen_realloc(a: number, b: number, c: number): number;
 export function __wbindgen_add_to_stack_pointer(a: number): number;
