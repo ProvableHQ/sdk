@@ -1,0 +1,31 @@
+{
+  "name": "@aleohq/aleo-wasm",
+  "collaborators": [
+    "The Aleo Team <hello@aleo.org>"
+  ],
+  "description": "Aleo",
+  "version": "0.3.2",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AleoHQ/aleo"
+  },
+  "files": [
+    "sdk_bg.wasm",
+    "sdk.js",
+    "sdk_bg.js",
+    "sdk.d.ts",
+    "LICENSE.md"
+  ],
+  "module": "sdk.js",
+  "homepage": "https://aleo.org",
+  "types": "sdk.d.ts",
+  "sideEffects": false,
+  "keywords": [
+    "aleo",
+    "cryptography",
+    "blockchain",
+    "decentralized",
+    "zero-knowledge"
+  ]
+}
