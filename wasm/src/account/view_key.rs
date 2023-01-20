@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    account::{Address, PrivateKey},
-};
+use crate::account::{Address, PrivateKey};
 use aleo_account::{CipherTextRecord as CipherTextRecordNative, ViewKey as ViewKeyNative};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};

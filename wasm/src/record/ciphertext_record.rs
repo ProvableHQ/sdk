@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{account::ViewKey, record::PlainTextRecord};
-use aleo_account::{CipherTextRecord as CipherTextRecordNative};
+use aleo_account::CipherTextRecord as CipherTextRecordNative;
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;

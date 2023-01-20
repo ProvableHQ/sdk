@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{PlainTextRecord as PlainTextRecordNative};
+use aleo_account::PlainTextRecord as PlainTextRecordNative;
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -76,7 +76,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_to_and_from_string() {
         let record = PlainTextRecord::from_string(RECORD);
-        assert_eq!(record.to_string().replace("\n ", "").replace("\n", " "), RECORD); // <-- Will fix before PR is set to ready
+        assert_eq!(record.to_string().replace("\n ", "").replace('\n', " "), RECORD); // <-- Will fix before PR is set to ready
     }
 
     #[wasm_bindgen_test]

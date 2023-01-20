@@ -27,11 +27,7 @@ use snarkvm_wasm::{
         ViewKey as AleoViewKey,
     },
     network::Testnet3,
-    program::{
-        Ciphertext as AleoCiphertext,
-        Plaintext as AleoPlaintext,
-        Record as AleoRecord,
-    },
+    program::{Ciphertext as AleoCiphertext, Plaintext as AleoPlaintext, Record as AleoRecord},
 };
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
