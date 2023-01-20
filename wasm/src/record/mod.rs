@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod ciphertext_record;
-pub use ciphertext_record::*;
+pub mod record_ciphertext;
+pub use record_ciphertext::*;
 
-pub mod plaintext_record;
-pub use plaintext_record::*;
+pub mod record_plaintext;
+pub use record_plaintext::*;

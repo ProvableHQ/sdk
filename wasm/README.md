@@ -3,6 +3,6 @@
 ```bash
 npm login
 wasm-pack build --scope aleohq
-cd aleo-wasm
+cd pkg
 npm publish --access=public
 ```

@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{account::ViewKey, record::PlainTextRecord};
-use aleo_account::CipherTextRecord as CipherTextRecordNative;
+use aleo_account::RecordCiphertext as RecordCiphertextNative;
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -23,44 +23,44 @@ use wasm_bindgen::prelude::*;
 /// Encrypted Aleo record
 #[wasm_bindgen]
 #[derive(Clone)]
-pub struct CipherTextRecord(CipherTextRecordNative);
+pub struct RecordCiphertext(RecordCiphertextNative);
 
 #[wasm_bindgen]
-impl CipherTextRecord {
-    /// Create a plaintext record object from a string
-    pub fn from_string(record: &str) -> Result<CipherTextRecord, String> {
-        Self::from_str(record).map_err(|_| "The ciphertext string provided was invalid".to_string())
+impl RecordCiphertext {
+    /// Return a record ciphertext from a string.
+    pub fn from_string(record: &str) -> Result<RecordCiphertext, String> {
+        Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
     }
 
-    /// Get a string representation of the record
+    /// Return the record ciphertext string.
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
-    /// Decrypt the record into plaintext using the view key
-    pub fn decrypt(&self, view_key: &ViewKey) -> Result<PlainTextRecord, String> {
-        Ok(PlainTextRecord::from(
+    /// Decrypt the record ciphertext into plaintext using the view key.
+    pub fn decrypt(&self, view_key: &ViewKey) -> Result<RecordPlaintext, String> {
+        Ok(RecordPlaintext::from(
             self.0.decrypt(view_key).map_err(|_| "Decryption failed - view key did not match record".to_string())?,
         ))
     }
 
-    /// Checks if the user is the owner of the encrypted record
+    /// Returns `true` if the view key can decrypt the record ciphertext.
     pub fn is_owner(&self, view_key: &ViewKey) -> bool {
         self.0.is_owner(view_key)
     }
 }
 
-impl FromStr for CipherTextRecord {
+impl FromStr for RecordCiphertext {
     type Err = anyhow::Error;
 
     fn from_str(ciphertext: &str) -> Result<Self, Self::Err> {
-        Ok(Self(CipherTextRecordNative::from_str(ciphertext)?))
+        Ok(Self(RecordCiphertextNative::from_str(ciphertext)?))
     }
 }
 
-impl Deref for CipherTextRecord {
-    type Target = CipherTextRecordNative;
+impl Deref for RecordCiphertext {
+    type Target = RecordCiphertextNative;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -86,7 +86,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_to_and_from_string() {
-        let record = CipherTextRecord::from_string(OWNER_CIPHERTEXT).unwrap();
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         assert_eq!(record.to_string(), OWNER_CIPHERTEXT);
     }
 
@@ -94,15 +94,15 @@ mod tests {
     fn test_invalid_strings() {
         let invalid_bech32 = "record2qqj3a67efazf0awe09grqqg44htnh9vaw7l729vl309c972x7ldquqq2k2cax8s7qsqqyqtpgvqqyqsq4seyrzvfa98fkggzccqr68af8e9m0q8rzeqh8a8aqql3a854v58sgrygdv4jn9s8ckwfd48vujrmv0rtfasqh8ygn88ch34ftck8szspvfpsqqszqzvxx9t8s9g66teeepgxmvnw5ymgapcwt2lpy9d5eus580k08wpq544jcl437wjv206u5pxst6few9ll4yhufwldgpx80rlwq8nhssqywmfsd85skg564vqhm3gxsp8q6r30udmqxrxmxx2v8xycdg8pn5ps3dhfvv";
         assert_eq!(
-            CipherTextRecord::from_string("garbage").err(),
+            RecordCiphertext::from_string("garbage").err(),
             Some("The ciphertext string provided was invalid".to_string())
         );
-        assert!(CipherTextRecord::from_string(invalid_bech32).is_err());
+        assert!(RecordCiphertext::from_string(invalid_bech32).is_err());
     }
 
     #[wasm_bindgen_test]
     fn test_decrypt() {
-        let record = CipherTextRecord::from_string(OWNER_CIPHERTEXT).unwrap();
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
         let plaintext = record.decrypt(&view_key).unwrap();
         assert_eq!(plaintext.to_string(), OWNER_PLAINTEXT);
@@ -112,7 +112,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_is_owner() {
-        let record = CipherTextRecord::from_string(OWNER_CIPHERTEXT).unwrap();
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
         assert!(record.is_owner(&view_key));
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);

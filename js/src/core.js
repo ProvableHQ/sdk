@@ -38,38 +38,38 @@ class Account {
     }
 }
 
-class CipherTextRecord {
-    constructor(cipherTextRecord) {
-        this.cipher_text_record = CipherTextRecord.fromString(cipherTextRecord)
+class RecordCiphertext {
+    constructor(ciphertext) {
+        this.ciphertext = RecordCiphertext.from_string(ciphertext)
     }
 
-    decrypt(view_key) {
-        this.cipher_text_record.decrypt(view_key)
+    decrypt(viewKey) {
+        this.ciphertext.decrypt(viewKey)
     }
 
-    is_owner(view_key) {
-        return this.cipher_text_record.is_owner(view_key)
+    isOwner(viewKey) {
+        return this.ciphertext.is_owner(viewKey)
     }
 
-    static fromString(cipherTextRecord) {
-        return aleo.CipherTextRecord.from_string(cipherTextRecord);
+    static fromString(ciphertext) {
+        return aleo.RecordCiphertext.from_string(ciphertext);
     }
 }
 
-class PlainTextRecord {
-    constructor(plainTextRecord) {
-        this.plain_text_record = PlainTextRecord.fromString(plainTextRecord)
+class RecordPlaintext {
+    constructor(plaintext) {
+        this.plaintext = RecordPlaintext.from_string(plaintext)
     }
 
     gates() {
-        return this.plain_text_record.gates();
+        return this.plaintext.gates();
     }
 
-    static fromString(plainTextRecord) {
-        return aleo.PlainTextRecord.from_string(plainTextRecord);
+    static fromString(plaintext) {
+        return aleo.RecordPlaintext.from_string(plaintext);
     }
 }
 
 module.exports.Account = Account;
-module.exports.CipherTextRecord = CipherTextRecord;
-module.exports.PlainTextRecord = PlainTextRecord;
+module.exports.RecordCiphertext = RecordCiphertext;
+module.exports.RecordPlaintext = RecordPlaintext;

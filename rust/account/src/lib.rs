@@ -32,7 +32,7 @@ use snarkvm_wasm::{
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
 
-// Account management types
+// Account types
 pub type Address = AleoAddress<CurrentNetwork>;
 pub type PrivateKey = AleoPrivateKey<CurrentNetwork>;
 pub type Signature = AleoSignature<CurrentNetwork>;
@@ -41,6 +41,6 @@ pub type ViewKey = AleoViewKey<CurrentNetwork>;
 // Network types
 pub type CurrentNetwork = Testnet3;
 
-// Record management types
-pub type CipherTextRecord = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
-pub type PlainTextRecord = AleoRecord<CurrentNetwork, AleoPlaintext<CurrentNetwork>>;
+// Record types
+pub type RecordCiphertext = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
+pub type RecordPlaintext = AleoRecord<CurrentNetwork, AleoPlaintext<CurrentNetwork>>;
