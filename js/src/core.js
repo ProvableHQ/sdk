@@ -28,11 +28,19 @@ class Account {
     static fromPrivateKey(privateKey) {
         return aleo.PrivateKey.from_string(privateKey);
     }
+
+    static viewKeyFromString(viewKey) {
+        return aleo.ViewKey.from_string(viewKey);
+    }
+
+    static addressFromString(address) {
+        return aleo.Address.from_string(address);
+    }
 }
 
 class CipherTextRecord {
     constructor(cipherTextRecord) {
-        this.cipher_text_record = CipherTextRecord.fromString()
+        this.cipher_text_record = CipherTextRecord.fromString(cipherTextRecord)
     }
 
     decrypt(view_key) {
@@ -50,7 +58,7 @@ class CipherTextRecord {
 
 class PlainTextRecord {
     constructor(plainTextRecord) {
-        this.plain_text_record = PlainTextRecord.fromString()
+        this.plain_text_record = PlainTextRecord.fromString(plainTextRecord)
     }
 
     gates() {
