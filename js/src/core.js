@@ -40,7 +40,7 @@ class Account {
 
 class RecordCiphertext {
     constructor(ciphertext) {
-        this.ciphertext = RecordCiphertext.from_string(ciphertext)
+        this.ciphertext = RecordCiphertext.fromString(ciphertext)
     }
 
     decrypt(viewKey) {
@@ -48,17 +48,21 @@ class RecordCiphertext {
     }
 
     isOwner(viewKey) {
-        return this.ciphertext.is_owner(viewKey)
+        return this.ciphertext.isOwner(viewKey)
+    }
+
+    ciphertextString() {
+        return this.ciphertext.ciphertextString();
     }
 
     static fromString(ciphertext) {
-        return aleo.RecordCiphertext.from_string(ciphertext);
+        return aleo.RecordCiphertext.fromString(ciphertext);
     }
 }
 
 class RecordPlaintext {
     constructor(plaintext) {
-        this.plaintext = RecordPlaintext.from_string(plaintext)
+        this.plaintext = RecordPlaintext.fromString(plaintext)
     }
 
     gates() {
@@ -66,7 +70,7 @@ class RecordPlaintext {
     }
 
     static fromString(plaintext) {
-        return aleo.RecordPlaintext.from_string(plaintext);
+        return aleo.RecordPlaintext.fromString(plaintext);
     }
 }
 

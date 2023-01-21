@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{account::ViewKey, record::PlainTextRecord};
+use crate::{account::ViewKey, record::RecordPlaintext};
 use aleo_account::RecordCiphertext as RecordCiphertextNative;
 
 use std::{ops::Deref, str::FromStr};
@@ -28,12 +28,14 @@ pub struct RecordCiphertext(RecordCiphertextNative);
 #[wasm_bindgen]
 impl RecordCiphertext {
     /// Return a record ciphertext from a string.
+    #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordCiphertext, String> {
-        Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
+        Self::from_str(record).map_err(|_| "The ciphertext string provided was invalid".to_string())
     }
 
     /// Return the record ciphertext string.
     #[allow(clippy::inherent_to_string)]
+    #[wasm_bindgen(js_name = ciphertextString)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
@@ -46,6 +48,7 @@ impl RecordCiphertext {
     }
 
     /// Returns `true` if the view key can decrypt the record ciphertext.
+    #[wasm_bindgen(js_name = isOwner)]
     pub fn is_owner(&self, view_key: &ViewKey) -> bool {
         self.0.is_owner(view_key)
     }
