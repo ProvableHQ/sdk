@@ -51,8 +51,8 @@ class RecordCiphertext {
         return this.ciphertext.isOwner(viewKey)
     }
 
-    ciphertextString() {
-        return this.ciphertext.ciphertextString();
+    toString() {
+        return this.ciphertext.toString();
     }
 
     static fromString(ciphertext) {
