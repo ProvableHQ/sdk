@@ -27,16 +27,20 @@ use snarkvm_wasm::{
         ViewKey as AleoViewKey,
     },
     network::Testnet3,
-    program::{Ciphertext as AleoCiphertext, Record as AleoRecord},
+    program::{Ciphertext as AleoCiphertext, Plaintext as AleoPlaintext, Record as AleoRecord},
 };
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
 
-pub type CurrentNetwork = Testnet3;
-
+// Account types
 pub type Address = AleoAddress<CurrentNetwork>;
 pub type PrivateKey = AleoPrivateKey<CurrentNetwork>;
 pub type Signature = AleoSignature<CurrentNetwork>;
 pub type ViewKey = AleoViewKey<CurrentNetwork>;
 
-pub type Record = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
+// Network types
+pub type CurrentNetwork = Testnet3;
+
+// Record types
+pub type RecordCiphertext = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
+pub type RecordPlaintext = AleoRecord<CurrentNetwork, AleoPlaintext<CurrentNetwork>>;

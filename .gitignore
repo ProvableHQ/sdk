@@ -1,7 +1,14 @@
+## IDE Files
 **/*.idea/
+
+## Build Artifacts
 **/target
-**.DS_Store
-storage*/
 wasm/Cargo.lock
+**/package-lock.json
 **/build
 **/dist
+storage*/
+
+## OS Files
+**.DS_Store
+
