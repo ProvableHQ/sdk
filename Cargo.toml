@@ -23,6 +23,9 @@ members = [ "rust/account", "wasm" ]
 [workspace.dependencies.snarkvm]
 version = "0.9.11"
 
+[workspace.dependencies.snarkvm-synthesizer]
+version = "0.9.11"
+
 [workspace.dependencies.snarkvm-wasm]
 version = "0.9.11"
 

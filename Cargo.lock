@@ -59,6 +59,7 @@ dependencies = [
  "bencher",
  "rand",
  "rand_chacha",
+ "snarkvm",
  "snarkvm-wasm",
 ]
 
@@ -135,6 +136,7 @@ dependencies = [
  "getrandom",
  "hex",
  "rand",
+ "serde",
  "serde_json",
  "wasm-bindgen",
  "wasm-bindgen-test",

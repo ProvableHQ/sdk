@@ -19,6 +19,7 @@
 #[cfg(test)]
 pub mod tests;
 
+use snarkvm::synthesizer::{Process as AleoProcess, Program as AleoProgram, Transaction as AleoTransaction};
 use snarkvm_wasm::{
     account::{
         Address as AleoAddress,
@@ -27,7 +28,7 @@ use snarkvm_wasm::{
         ViewKey as AleoViewKey,
     },
     network::Testnet3,
-    program::{Ciphertext as AleoCiphertext, Plaintext as AleoPlaintext, Record as AleoRecord},
+    program::{Ciphertext as AleoCiphertext, Plaintext as AleoPlaintext, Record as AleoRecord, Request as AleoRequest},
 };
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
@@ -39,8 +40,15 @@ pub type Signature = AleoSignature<CurrentNetwork>;
 pub type ViewKey = AleoViewKey<CurrentNetwork>;
 
 // Network types
+pub type Aleo = snarkvm::circuit::AleoV0;
 pub type CurrentNetwork = Testnet3;
 
 // Record types
 pub type RecordCiphertext = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
 pub type RecordPlaintext = AleoRecord<CurrentNetwork, AleoPlaintext<CurrentNetwork>>;
+
+// Execution types
+pub type Request = AleoRequest<CurrentNetwork>;
+pub type Process = AleoProcess<CurrentNetwork>;
+pub type Program = AleoProgram<CurrentNetwork>;
+pub type Transaction = AleoTransaction<CurrentNetwork>;

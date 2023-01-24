@@ -40,6 +40,9 @@ version = "0.8"
 [dependencies.serde_json]
 version = "1.0"
 
+[dependencies.serde]
+version = "1.0.152"
+
 [dependencies.wasm-bindgen]
 version = "0.2"
 features = [ "serde-serialize" ]
