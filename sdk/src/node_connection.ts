@@ -6,11 +6,16 @@ import { Transaction} from "./models/transaction";
 type Ciphertext = string;
 
 /**
- * Class that represents an Aleo Node Connection and allows us to communicate with the node.
+ * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
+ * The methods provided in this class provide information on the Aleo Blockchain
  *
  * @param {string} host
  * @example
- * let connection = new NodeConnection("localhost:4130");
+ * // Connection to a local node
+ * let local_connection = new NodeConnection("localhost:4130");
+ *
+ * // Connection to a public beacon node
+ * let public_connection = new NodeConnection("vm.aleo.org/api");
  */
 export class NodeConnection {
   host: string;
@@ -21,7 +26,7 @@ export class NodeConnection {
   }
 
   /**
-   * Set an account inside the conecction
+   * Set an account
    *
    * @param {Account} account
    * @example
@@ -32,29 +37,11 @@ export class NodeConnection {
     this.account = account;
   }
 
-  async useFetchData(
-    url = "/",
-    method = "GET",
-    body = "",
-    headers: Record<string, string> = { "Content-Type": "application/json" }
-  ) {
-    const response = await fetch(this.host + url, {
-      method: method,
-      body: JSON.stringify(body),
-      headers: headers,
-    });
-    try {
-      return await response.json();
-    } catch (error) {
-      return error;
-    }
-  }
-
   /**
-   * Returns the information of the settled account
+   * Return the Aleo account used in the node connection
    *
    * @example
-   * let account = connection.getAccount(account);
+   * let account = connection.getAccount();
    */
    getAccount(): Account | undefined {
     return this.account;
@@ -78,64 +65,7 @@ export class NodeConnection {
   }
 
   /**
-   * Returns all of the ciphertexts for the setted account
-   *
-   * @example
-   * let cyphertexts = connection.getAllCiphertexts();
-   */
-  async getAllCiphertexts(): Promise<Array<Ciphertext>> {
-    try {
-      return await this.fetchData<Array<Ciphertext>>(
-        "/ciphertexts/all",
-        "POST",
-        this.account?.viewKey().to_string()
-      );
-    } catch (error) {
-      console.log("Error - response: ", error);
-      throw new Error("Error fetching all ciphertexts.");
-    }
-  }
-
-  /**
-   * Returns the unspent ciphertexts for the setted account
-   *
-   * @example
-   * let cyphertexts = connection.getUnspentCiphertexts();
-   */
-  async getUnspentCiphertexts(): Promise<Array<Ciphertext>> {
-    try {
-      return await this.fetchData<Array<Ciphertext>>(
-        "/ciphertexts/unspent",
-        "POST",
-        this.account?.viewKey().to_string()
-      );
-    } catch (error) {
-      console.log("Error - response: ", error);
-      throw new Error("Error fetching unspent ciphertexts.");
-    }
-  }
-
-  /**
-   * Returns the spent ciphertexts for the setted account
-   *
-   * @example
-   * let cyphertexts = connection.getSpentCiphertexts();
-   */
-  async getSpentCiphertexts(): Promise<Array<Ciphertext> | Error> {
-    try {
-      return await this.fetchData<Array<Ciphertext>>(
-        "/ciphertexts/spent",
-        "POST",
-        this.account?.viewKey().to_string()
-      );
-    } catch (error) {
-      console.log("Error - response: ", error);
-      throw new Error("Error fetching spent ciphertexts.");
-    }
-  }
-
-  /**
-   * Returns the latest height of the blockchain
+   * Returns the latest block height
    *
    * @example
    * let latestHeight = connection.getLatestHeight();
@@ -150,7 +80,7 @@ export class NodeConnection {
   }
 
   /**
-   * Returns the latest hash of the blockchain
+   * Returns the hash of the last published block
    *
    * @example
    * let latestHash = connection.getLatestHash();
@@ -165,7 +95,7 @@ export class NodeConnection {
   }
 
   /**
-   * Returns the latest block of the blockchain
+   * Returns the block contents of the latest block
    *
    * @example
    * let latestHeight = connection.getLatestBlock();
@@ -180,7 +110,7 @@ export class NodeConnection {
   }
 
   /**
-   * Returns the transactions by block
+   * Returns the transactions present at the specified block height
    *
    * @param {number} height
    * @example
@@ -196,7 +126,7 @@ export class NodeConnection {
   }
 
   /**
-   * Returns a transaction by id
+   * Returns a transaction by its unique identifier
    *
    * @param {string} id
    * @example
@@ -212,40 +142,19 @@ export class NodeConnection {
   }
 
   /**
-   * Returns a transaction by block number
+   * Returns the block contents of the block at the specified block height
    *
-   * @param {number} id
+   * @param {number} height
    * @example
    * let block = connection.getBlock(1234);
    */
-  async getBlock(id: number): Promise<Block | Error> {
+  async getBlock(height: number): Promise<Block | Error> {
     try {
-      return await this.fetchData<Block>("/block/" + id);
+      return await this.fetchData<Block>("/block/" + height);
     } catch (error) {
       console.log("Error - response: ", error);
       throw new Error("Error fetching block.");
     }
-  }
-
-  /**
-   * Returns the total balance of the account associated with the connection
-   *
-   * @example
-   * let balance = connection.getAccountBalance(); // 100
-   */
-  async getAccountBalance() {
-    const ciphertexts = await this.getUnspentCiphertexts()
-    try {
-      const balance = this.account
-          ?.decryptRecords(ciphertexts)
-          .map((record) => +record.gates().split("u64")[0])
-          .reduce((sum, current) => sum + current,0)
-      return balance;
-    } catch (error) {
-      console.log("Error - response: ", error);
-      throw new Error("Error fetching block.");
-    }
-
   }
 }
 

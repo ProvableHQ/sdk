@@ -5,15 +5,34 @@ interface AccountParam {
   seed?: Uint8Array;
 }
 /**
- * Class that represents an Aleo Account with a PrivateKey, from which an Address and a ViewKey derive.
- * Can be created with an existing private key, a seed or simply be randomly generated.
- * A seed consists of 32 bytes.
+ * Key Management class. Enables the creation of a new Aleo Account, importation of an existing account from
+ * an existing private key or seed, and message signing and verification functionality.
+ *
+ * An Aleo Account is generated from a randomly generated seed (number) from which an account private key, view key,
+ * and a public account address are derived. The private key lies at the root of an Aleo account. It is a highly
+ * sensitive secret and should be protected as it allows for creation of Aleo Program executions and arbitrary value
+ * transfers. The View Key allows for decryption of a user's activity on the blockchain. The Address is the public
+ * address to which other users of Aleo can send Aleo credits and other records to. This class should only be used
+ * environments where the safety of the underlying key material can be assured.
+ *
  * @example
+ * // Create a new account
  * let myRandomAccount = new Account();
+ *
+ * // Create an account from a randomly generated seed
  * let seed = 'ce8b23470222bdee5f894ee77b607391';
  * let arr = Uint8Array.from(seed)
  * let mySeededAccount = new Account({seed: 'ce8b23470222bdee5f894ee77b607391'});
+ *
+ * // Create an account from an existing private key
  * let myExistingAccount = new Account({privateKey: 'myExistingPrivateKey'})
+ *
+ * // Sign a message
+ * let hello_world = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
+ * let signature = myRandomAccount.sign(hello_world)
+ *
+ * // Verify a signature
+ * myRandomAccount.verify(hello_world, signature)
  */
 export class Account {
   pk: PrivateKey;
@@ -53,27 +72,31 @@ export class Account {
     return this.adr;
   }
 
+  toString() {
+    return this.address().to_string()
+  }
+
   /**
-   * Decrypts a Record given a ciphertext.
+   * Decrypts a Record in ciphertext form into plaintext
    * @param {string} ciphertext
    * @returns {Record}
    *
    * @example
    * let account = new Account();
-   * let record = account.decryptRecord("record1...");
+   * let record = account.decryptRecord("record1ciphertext");
    */
   decryptRecord(ciphertext: string) {
     return this.vk.decrypt(ciphertext);
   }
 
   /**
-   * Decrypts a set of Records given an array of ciphertexts.
+   * Decrypts an array of Records in ciphertext form into plaintext
    * @param {string[]} ciphertexts
    * @returns {Record[]}
    *
    * @example
    * let account = new Account();
-   * let record = account.decryptRecords(["record1...", "record2..."]);
+   * let record = account.decryptRecords(["record1ciphertext", "record2ciphertext"]);
    */
   decryptRecords(ciphertexts: string[]) {
     return ciphertexts.map((ciphertext) => this.vk.decrypt(ciphertext));
@@ -88,7 +111,8 @@ export class Account {
    *
    * @example
    * let account = new Account();
-   * account.sign("a message");
+   * let message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
+   * account.sign(message);
    */
   sign(message: Uint8Array) {
     return this.pk.sign(message);
@@ -103,7 +127,7 @@ export class Account {
    *
    * @example
    * let account = new Account();
-   * let message = "a message";
+   * let message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
    * let signature = account.sign(message);
    * account.verify(message, signature);
    */
