@@ -1,7 +1,10 @@
 {
-  "name": "@aleohq/aleo-sdk",
-  "version": "0.1.0",
-  "description": "Aleo Software Development Kit (SDK) for Zero-Knowledge Transactions",
+  "name": "@aleohq/sdk",
+  "version": "0.3.3",
+  "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
+  "collaborators": [
+    "The Aleo Team <hello@aleo.org>"
+  ],
   "license": "GPL-3.0",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -18,20 +21,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aleohq/aleo.git"
+    "url": "git+https://github.com/AleoHQ/aleo.git"
   },
   "keywords": [
     "Aleo",
     "ZK",
     "Blockchain",
-    "Zero Knowledge",
+    "Zero Knowledge"
   ],
   "bugs": {
     "url": "https://github.com/AleoHQ/aleo/issues"
   },
   "homepage": "https://github.com/AleoHQ/aleo#readme",
   "dependencies": {
-    "@aleohq/aleo-wasm": "^0.1.0",
+    "@aleohq/wasm": "file:../wasm/pkg",
     "jsdoc": "^3.6.11",
     "unfetch": "^4.2.0"
   },

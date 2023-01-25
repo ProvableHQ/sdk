@@ -1,4 +1,4 @@
-import { Address, PrivateKey, Signature, ViewKey } from "aleo-wasm";
+import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/wasm";
 
 interface AccountParam {
   privateKey?: string;

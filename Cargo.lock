@@ -33,7 +33,6 @@ name = "aleo"
 version = "0.3.2"
 dependencies = [
  "aleo-account",
- "aleo-wasm",
  "anyhow",
  "clap",
  "colored",
@@ -50,6 +49,7 @@ dependencies = [
  "tokio",
  "walkdir",
  "warp",
+ "wasm",
 ]
 
 [[package]]
@@ -124,21 +124,6 @@ name = "aleo-std-timer"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e4f181fc1a372e8ceff89612e5c9b13f72bff5b066da9f8d6827ae65af492c4"
-
-[[package]]
-name = "aleo-wasm"
-version = "0.3.2"
-dependencies = [
- "aleo-account",
- "anyhow",
- "console_error_panic_hook",
- "getrandom",
- "hex",
- "rand",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-test",
-]
 
 [[package]]
 name = "anyhow"
@@ -2854,6 +2839,21 @@ name = "wasi"
 version = "0.11.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
+
+[[package]]
+name = "wasm"
+version = "0.3.2"
+dependencies = [
+ "aleo-account",
+ "anyhow",
+ "console_error_panic_hook",
+ "getrandom",
+ "hex",
+ "rand",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+]
 
 [[package]]
 name = "wasm-bindgen"
