@@ -1,4 +1,4 @@
 import { Account } from "./account";
 import { NodeConnection } from "./node_connection";
-import { Address, PrivateKey, Signature, ViewKey } from "@entropy1729/aleo-sdk";
+import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/wasm";
 export { Account, NodeConnection, PrivateKey, Signature, ViewKey, Address };

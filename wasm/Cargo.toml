@@ -1,5 +1,5 @@
 [package]
-name = "aleo-wasm"
+name = "wasm"
 version = "0.3.2"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
@@ -15,7 +15,7 @@ keywords = [
 categories = [ "cryptography::cryptocurrencies", "operating-systems" ]
 include = [ "Cargo.toml", "src", "README.md", "LICENSE.md" ]
 license = "GPL-3.0"
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = [ "cdylib", "rlib" ]
