@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::account::{Address, PrivateKey};
-use aleo_account::{Record, ViewKey as ViewKeyNative};
+use aleo_account::{RecordCiphertext, ViewKey as ViewKeyNative};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -44,7 +44,7 @@ impl ViewKey {
     }
 
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
-        let ciphertext = Record::from_str(ciphertext).map_err(|error| error.to_string())?;
+        let ciphertext = RecordCiphertext::from_str(ciphertext).map_err(|error| error.to_string())?;
         match ciphertext.decrypt(&self.0) {
             Ok(plaintext) => Ok(plaintext.to_string()),
             Err(error) => Err(error.to_string()),
@@ -110,7 +110,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     pub fn test_decrypt_fails() {
-        let ciphertext = Record::from_str(OWNER_CIPHERTEXT).map_err(|error| error.to_string()).unwrap();
+        let ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).map_err(|error| error.to_string()).unwrap();
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         let plaintext = ciphertext.decrypt(&incorrect_view_key.0);
         assert!(plaintext.is_err());

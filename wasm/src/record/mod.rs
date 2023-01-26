@@ -14,5 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod account;
-pub mod record;
+pub mod record_ciphertext;
+pub use record_ciphertext::*;
+
+pub mod record_plaintext;
+pub use record_plaintext::*;
