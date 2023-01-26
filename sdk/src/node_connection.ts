@@ -65,32 +65,52 @@ export class NodeConnection {
   }
 
   /**
-   * Returns the latest block height
+   * Returns the block contents of the block at the specified block height
    *
+   * @param {number} height
    * @example
-   * let latestHeight = connection.getLatestHeight();
+   * let block = connection.getBlock(1234);
    */
-  async getLatestHeight(): Promise<number | Error> {
+  async getBlock(height: number): Promise<Block | Error> {
     try {
-      return await this.fetchData<number>("/latest/height");
+      return await this.fetchData<Block>("/block/" + height);
     } catch (error) {
       console.log("Error - response: ", error);
-      throw new Error("Error fetching latest height.");
+      throw new Error("Error fetching block.");
     }
   }
 
   /**
-   * Returns the hash of the last published block
+   * Returns a range of blocks between the specified block heights
    *
+   * @param {number} start
+   * @param {number} end
    * @example
-   * let latestHash = connection.getLatestHash();
+   * let blockRange = connection.getBlockRange(2050, 2100);
    */
-  async getLatestHash(): Promise<string | Error> {
+  async getBlockRange(start: number, end: number): Promise<Array<Block> | Error> {
     try {
-      return await this.fetchData<string>("/latest/hash");
+      return await this.fetchData<Array<Block>>("/blocks?start={" + start + "}&end={" + end + "}");
     } catch (error) {
-      console.log("Error - response: ", error);
-      throw new Error("Error fetching latest hash.");
+      let errorMessage = "Error fetching blocks between " + start + " and " + end + "."
+      console.log(errorMessage + "- response: ", error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Returns the source code of a program
+   *
+   * @param {String} programId
+   * @example
+   * let program = connection.getProgram("foo.aleo");
+   */
+  async getProgram(programId: String): Promise<String | Error> {
+    try {
+      return await this.fetchData<String>("/program/" + programId)
+    } catch (error) {
+      console.log("Error fetching program - response: ", error);
+      throw new Error("Error fetching program");
     }
   }
 
@@ -110,18 +130,47 @@ export class NodeConnection {
   }
 
   /**
-   * Returns the transactions present at the specified block height
+   * Returns the hash of the last published block
    *
-   * @param {number} height
    * @example
-   * let transactions = connection.getTransactions(654);
+   * let latestHash = connection.getLatestHash();
    */
-  async getTransactions(height: number): Promise<Array<Transaction> | Error> {
+  async getLatestHash(): Promise<string | Error> {
     try {
-      return await this.fetchData<Array<Transaction>>("/transactions/" + height);
+      return await this.fetchData<string>("/latest/hash");
     } catch (error) {
       console.log("Error - response: ", error);
-      throw new Error("Error fetching transactions.");
+      throw new Error("Error fetching latest hash.");
+    }
+  }
+
+  /**
+   * Returns the latest block height
+   *
+   * @example
+   * let latestHeight = connection.getLatestHeight();
+   */
+  async getLatestHeight(): Promise<number | Error> {
+    try {
+      return await this.fetchData<number>("/latest/height");
+    } catch (error) {
+      console.log("Error - response: ", error);
+      throw new Error("Error fetching latest height.");
+    }
+  }
+
+  /**
+   * Returns the latest state/merkle root of the Aleo blockchain
+   *
+   * @example
+   * let stateRoot = connection.getStateRoot();
+   */
+  async getStateRoot(): Promise<String | Error> {
+    try {
+      return await this.fetchData<String>("latest/stateRoot");
+    } catch (error) {
+      console.log("Error - response: ", error);
+      throw new Error("Error fetching Aleo state root");
     }
   }
 
@@ -142,18 +191,33 @@ export class NodeConnection {
   }
 
   /**
-   * Returns the block contents of the block at the specified block height
+   * Returns the transactions present at the specified block height
    *
    * @param {number} height
    * @example
-   * let block = connection.getBlock(1234);
+   * let transactions = connection.getTransactions(654);
    */
-  async getBlock(height: number): Promise<Block | Error> {
+  async getTransactions(height: number): Promise<Array<Transaction> | Error> {
     try {
-      return await this.fetchData<Block>("/block/" + height);
+      return await this.fetchData<Array<Transaction>>("/transactions/" + height);
     } catch (error) {
       console.log("Error - response: ", error);
-      throw new Error("Error fetching block.");
+      throw new Error("Error fetching transactions.");
+    }
+  }
+
+  /**
+   * Returns the transactions in the memory pool.
+   *
+   * @example
+   * let transactions = connection.getTransactionsInMempool();
+   */
+  async getTransactionsInMempool(): Promise<Array<Transaction> | Error> {
+    try {
+      return await this.fetchData<Array<Transaction>>("/memoryPool/transactions");
+    } catch (error) {
+      console.log("Error - response: ", error);
+      throw new Error("Error fetching transactions from mempool.");
     }
   }
 }
