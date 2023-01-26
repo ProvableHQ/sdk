@@ -36,7 +36,7 @@ path = "cli/main.rs"
 [features]
 default = [ ]
 account = [ "aleo-account" ]
-wasm-pkg = [ "wasm" ]
+aleo-wasm = [ "wasm" ]
 
 [dependencies]
 num-format = "0.4.4"

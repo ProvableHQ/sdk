@@ -28,5 +28,5 @@ pub type Aleo = snarkvm::circuit::AleoV0;
 
 #[cfg(feature = "account")]
 pub use aleo_account as account;
-#[cfg(feature = "wasm-pkg")]
+#[cfg(feature = "aleo-wasm")]
 pub use wasm;
