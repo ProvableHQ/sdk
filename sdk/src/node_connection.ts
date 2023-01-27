@@ -165,7 +165,7 @@ export class NodeConnection {
    * @example
    * let stateRoot = connection.getStateRoot();
    */
-  async getStateRoot(): Promise<String | Error> {
+  async getStateRoot(): Promise<string | Error> {
     try {
       return await this.fetchData<String>("latest/stateRoot");
     } catch (error) {
