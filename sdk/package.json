@@ -25,9 +25,9 @@
   },
   "keywords": [
     "Aleo",
-    "ZK",
     "Blockchain",
-    "Zero Knowledge"
+    "Zero Knowledge",
+    "ZK"
   ],
   "bugs": {
     "url": "https://github.com/AleoHQ/aleo/issues"
