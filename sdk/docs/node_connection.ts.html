@@ -107,7 +107,7 @@ export class NodeConnection {
    * @example
    * let program = connection.getProgram("foo.aleo");
    */
-  async getProgram(programId: String): Promise&lt;String | Error> {
+  async getProgram(programId: string): Promise&lt;string | Error> {
     try {
       return await this.fetchData&lt;String>("/program/" + programId)
     } catch (error) {
