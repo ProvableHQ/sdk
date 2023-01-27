@@ -101,7 +101,7 @@ export class NodeConnection {
   /**
    * Returns the source code of a program
    *
-   * @param {String} programId
+   * @param {string} programId
    * @example
    * let program = connection.getProgram("foo.aleo");
    */
