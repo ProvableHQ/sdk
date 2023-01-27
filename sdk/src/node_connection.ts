@@ -167,7 +167,7 @@ export class NodeConnection {
    */
   async getStateRoot(): Promise<string | Error> {
     try {
-      return await this.fetchData<String>("latest/stateRoot");
+      return await this.fetchData<string>("latest/stateRoot");
     } catch (error) {
       console.log("Error - response: ", error);
       throw new Error("Error fetching Aleo state root");
