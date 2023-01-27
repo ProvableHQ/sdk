@@ -107,7 +107,7 @@ export class NodeConnection {
    */
   async getProgram(programId: string): Promise<string | Error> {
     try {
-      return await this.fetchData<String>("/program/" + programId)
+      return await this.fetchData<string>("/program/" + programId)
     } catch (error) {
       console.log("Error fetching program - response: ", error);
       throw new Error("Error fetching program");
