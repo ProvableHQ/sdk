@@ -5,7 +5,7 @@ module.exports = {
     mode: 'production',
     output: {
         path: path.join(__dirname, '/dist'),
-        filename: 'index.bundle.js'
+        filename: 'index.bundle.sdk'
     },
     devServer: {
         port: 3000,

@@ -1,0 +1,52 @@
+{
+  "name": "@aleohq/sdk",
+  "version": "0.3.3",
+  "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
+  "collaborators": [
+    "The Aleo Team <hello@aleo.org>"
+  ],
+  "license": "GPL-3.0",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AleoHQ/aleo.git"
+  },
+  "keywords": [
+    "Aleo",
+    "Blockchain",
+    "Zero Knowledge",
+    "ZK"
+  ],
+  "bugs": {
+    "url": "https://github.com/AleoHQ/aleo/issues"
+  },
+  "homepage": "https://github.com/AleoHQ/aleo#readme",
+  "dependencies": {
+    "@aleohq/wasm": "file:../wasm/pkg",
+    "jsdoc": "^3.6.11",
+    "unfetch": "^4.2.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.41.0",
+    "@typescript-eslint/parser": "^5.41.0",
+    "better-docs": "^2.7.2",
+    "clean-jsdoc-theme": "^4.1.8",
+    "eslint": "^8.26.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "prettier": "2.7.1",
+    "typescript": "^4.8.4"
+  }
+}
