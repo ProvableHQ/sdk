@@ -20,10 +20,6 @@ edition = "2021"
 [lib]
 crate-type = [ "cdylib", "rlib" ]
 
-[dependencies.aleo-account]
-path = "../rust/account"
-version = "0.3.3"
-
 [dependencies.anyhow]
 version = "1.0"
 
@@ -39,6 +35,9 @@ version = "0.8"
 
 [dependencies.serde_json]
 version = "1.0"
+
+[dependencies.snarkvm-wasm]
+version = "0.9.11"
 
 [dependencies.wasm-bindgen]
 version = "0.2"

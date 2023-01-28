@@ -25,8 +25,3 @@ pub mod helpers;
 
 pub type Network = snarkvm::prelude::Testnet3;
 pub type Aleo = snarkvm::circuit::AleoV0;
-
-#[cfg(feature = "account")]
-pub use aleo_account as account;
-#[cfg(feature = "wasm")]
-pub use aleo_wasm as wasm;

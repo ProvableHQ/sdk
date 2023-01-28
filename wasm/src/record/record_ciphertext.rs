@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{account::ViewKey, record::RecordPlaintext};
-use aleo_account::RecordCiphertext as RecordCiphertextNative;
+use super::RecordPlaintext;
+use crate::{account::ViewKey, types::CiphertextNative};
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -23,7 +23,7 @@ use wasm_bindgen::prelude::*;
 /// Encrypted Aleo record
 #[wasm_bindgen]
 #[derive(Clone)]
-pub struct RecordCiphertext(RecordCiphertextNative);
+pub struct RecordCiphertext(CiphertextNative);
 
 #[wasm_bindgen]
 impl RecordCiphertext {
@@ -58,12 +58,12 @@ impl FromStr for RecordCiphertext {
     type Err = anyhow::Error;
 
     fn from_str(ciphertext: &str) -> Result<Self, Self::Err> {
-        Ok(Self(RecordCiphertextNative::from_str(ciphertext)?))
+        Ok(Self(CiphertextNative::from_str(ciphertext)?))
     }
 }
 
 impl Deref for RecordCiphertext {
-    type Target = RecordCiphertextNative;
+    type Target = CiphertextNative;
 
     fn deref(&self) -> &Self::Target {
         &self.0

@@ -15,4 +15,9 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod account;
+pub use account::*;
+
 pub mod record;
+pub use record::*;
+
+pub(crate) mod types;

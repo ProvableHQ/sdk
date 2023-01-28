@@ -1,8 +1,8 @@
 [package]
-name = "aleo-account"
+name = "aleo-rust"
 version = "0.3.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
-description = "Aleo"
+description = "Tools for getting data from the Aleo API & forming transactions"
 homepage = "https://aleo.org"
 repository = "https://github.com/AleoHQ/aleo"
 keywords = [
@@ -17,15 +17,23 @@ include = [ "Cargo.toml", "src", "README.md", "LICENSE.md" ]
 license = "GPL-3.0"
 edition = "2018"
 
-[[bench]]
-name = "account"
-path = "benches/account.rs"
-harness = false
+[dependencies.anyhow]
+version = "1.0.68"
 
-[dependencies.snarkvm-wasm]
-workspace = true
+[dependencies.reqwest]
+version = "0.11.14"
+optional = true
 default-features = false
+
+[dependencies.ureq]
+version = "2.6.2"
+
+[dependencies.snarkvm]
+workspace = true
 features = [ "parallel" ]
+
+[dependencies.serde_json]
+version = "1.0.91"
 
 [dev-dependencies.rand]
 version = "0.8.0"
@@ -36,3 +44,7 @@ default-features = false
 
 [dev-dependencies.bencher]
 version = "0.1.5"
+
+[features]
+default = [ ]
+async = [ "reqwest" ]
