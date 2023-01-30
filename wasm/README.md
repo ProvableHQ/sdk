@@ -1,3 +1,5 @@
+# Aleo Wasm
+
 ## Publish instructions
 
 ```bash
