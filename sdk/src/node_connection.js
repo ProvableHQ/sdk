@@ -69,48 +69,77 @@ var NodeConnection = /** @class */ (function () {
         });
     };
     /**
-     * Returns the latest block height
+     * Returns the block contents of the block at the specified block height
      *
+     * @param {number} height
      * @example
-     * let latestHeight = connection.getLatestHeight();
+     * let block = connection.getBlock(1234);
      */
-    NodeConnection.prototype.getLatestHeight = function () {
+    NodeConnection.prototype.getBlock = function (height) {
         return __awaiter(this, void 0, void 0, function () {
             var error_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.fetchData("/latest/height")];
+                        return [4 /*yield*/, this.fetchData("/block/" + height)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
                         error_2 = _a.sent();
                         console.log("Error - response: ", error_2);
-                        throw new Error("Error fetching latest height.");
+                        throw new Error("Error fetching block.");
                     case 3: return [2 /*return*/];
                 }
             });
         });
     };
     /**
-     * Returns the hash of the last published block
+     * Returns a range of blocks between the specified block heights
      *
+     * @param {number} start
+     * @param {number} end
      * @example
-     * let latestHash = connection.getLatestHash();
+     * let blockRange = connection.getBlockRange(2050, 2100);
      */
-    NodeConnection.prototype.getLatestHash = function () {
+    NodeConnection.prototype.getBlockRange = function (start, end) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_3;
+            var error_3, errorMessage;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.fetchData("/latest/hash")];
+                        return [4 /*yield*/, this.fetchData("/blocks?start={" + start + "}&end={" + end + "}")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
                         error_3 = _a.sent();
-                        console.log("Error - response: ", error_3);
-                        throw new Error("Error fetching latest hash.");
+                        errorMessage = "Error fetching blocks between " + start + " and " + end + ".";
+                        console.log(errorMessage + "- response: ", error_3);
+                        throw new Error(errorMessage);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Returns the source code of a program
+     *
+     * @param {string} programId
+     * @example
+     * let program = connection.getProgram("foo.aleo");
+     */
+    NodeConnection.prototype.getProgram = function (programId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var error_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.fetchData("/program/" + programId)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2:
+                        error_4 = _a.sent();
+                        console.log("Error fetching program - response: ", error_4);
+                        throw new Error("Error fetching program");
                     case 3: return [2 /*return*/];
                 }
             });
@@ -124,7 +153,7 @@ var NodeConnection = /** @class */ (function () {
      */
     NodeConnection.prototype.getLatestBlock = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var error_4;
+            var error_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -132,8 +161,8 @@ var NodeConnection = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/latest/block")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_4 = _a.sent();
-                        console.log("Error - response: ", error_4);
+                        error_5 = _a.sent();
+                        console.log("Error - response: ", error_5);
                         throw new Error("Error fetching latest block.");
                     case 3: return [2 /*return*/];
                 }
@@ -141,25 +170,72 @@ var NodeConnection = /** @class */ (function () {
         });
     };
     /**
-     * Returns the transactions present at the specified block height
+     * Returns the hash of the last published block
      *
-     * @param {number} height
      * @example
-     * let transactions = connection.getTransactions(654);
+     * let latestHash = connection.getLatestHash();
      */
-    NodeConnection.prototype.getTransactions = function (height) {
+    NodeConnection.prototype.getLatestHash = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var error_5;
+            var error_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.fetchData("/transactions/" + height)];
+                        return [4 /*yield*/, this.fetchData("/latest/hash")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_5 = _a.sent();
-                        console.log("Error - response: ", error_5);
-                        throw new Error("Error fetching transactions.");
+                        error_6 = _a.sent();
+                        console.log("Error - response: ", error_6);
+                        throw new Error("Error fetching latest hash.");
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Returns the latest block height
+     *
+     * @example
+     * let latestHeight = connection.getLatestHeight();
+     */
+    NodeConnection.prototype.getLatestHeight = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var error_7;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.fetchData("/latest/height")];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2:
+                        error_7 = _a.sent();
+                        console.log("Error - response: ", error_7);
+                        throw new Error("Error fetching latest height.");
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Returns the latest state/merkle root of the Aleo blockchain
+     *
+     * @example
+     * let stateRoot = connection.getStateRoot();
+     */
+    NodeConnection.prototype.getStateRoot = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var error_8;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.fetchData("latest/stateRoot")];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2:
+                        error_8 = _a.sent();
+                        console.log("Error - response: ", error_8);
+                        throw new Error("Error fetching Aleo state root");
                     case 3: return [2 /*return*/];
                 }
             });
@@ -174,7 +250,7 @@ var NodeConnection = /** @class */ (function () {
      */
     NodeConnection.prototype.getTransaction = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_6;
+            var error_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -182,8 +258,8 @@ var NodeConnection = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/transaction/" + id)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_6 = _a.sent();
-                        console.log("Error - response: ", error_6);
+                        error_9 = _a.sent();
+                        console.log("Error - response: ", error_9);
                         throw new Error("Error fetching transaction.");
                     case 3: return [2 /*return*/];
                 }
@@ -191,25 +267,49 @@ var NodeConnection = /** @class */ (function () {
         });
     };
     /**
-     * Returns the block contents of the block at the specified block height
+     * Returns the transactions present at the specified block height
      *
      * @param {number} height
      * @example
-     * let block = connection.getBlock(1234);
+     * let transactions = connection.getTransactions(654);
      */
-    NodeConnection.prototype.getBlock = function (height) {
+    NodeConnection.prototype.getTransactions = function (height) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_7;
+            var error_10;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.fetchData("/block/" + height)];
+                        return [4 /*yield*/, this.fetchData("/transactions/" + height)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_7 = _a.sent();
-                        console.log("Error - response: ", error_7);
-                        throw new Error("Error fetching block.");
+                        error_10 = _a.sent();
+                        console.log("Error - response: ", error_10);
+                        throw new Error("Error fetching transactions.");
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Returns the transactions in the memory pool.
+     *
+     * @example
+     * let transactions = connection.getTransactionsInMempool();
+     */
+    NodeConnection.prototype.getTransactionsInMempool = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var error_11;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.fetchData("/memoryPool/transactions")];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2:
+                        error_11 = _a.sent();
+                        console.log("Error - response: ", error_11);
+                        throw new Error("Error fetching transactions from mempool.");
                     case 3: return [2 /*return*/];
                 }
             });

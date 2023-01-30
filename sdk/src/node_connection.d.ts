@@ -35,19 +35,30 @@ export declare class NodeConnection {
     getAccount(): Account | undefined;
     fetchData<Type>(url?: string, method?: string, body?: string, headers?: Record<string, string>): Promise<Type>;
     /**
-     * Returns the latest block height
+     * Returns the block contents of the block at the specified block height
      *
+     * @param {number} height
      * @example
-     * let latestHeight = connection.getLatestHeight();
+     * let block = connection.getBlock(1234);
      */
-    getLatestHeight(): Promise<number | Error>;
+    getBlock(height: number): Promise<Block | Error>;
     /**
-     * Returns the hash of the last published block
+     * Returns a range of blocks between the specified block heights
      *
+     * @param {number} start
+     * @param {number} end
      * @example
-     * let latestHash = connection.getLatestHash();
+     * let blockRange = connection.getBlockRange(2050, 2100);
      */
-    getLatestHash(): Promise<string | Error>;
+    getBlockRange(start: number, end: number): Promise<Array<Block> | Error>;
+    /**
+     * Returns the source code of a program
+     *
+     * @param {string} programId
+     * @example
+     * let program = connection.getProgram("foo.aleo");
+     */
+    getProgram(programId: string): Promise<string | Error>;
     /**
      * Returns the block contents of the latest block
      *
@@ -56,13 +67,26 @@ export declare class NodeConnection {
      */
     getLatestBlock(): Promise<Block | Error>;
     /**
-     * Returns the transactions present at the specified block height
+     * Returns the hash of the last published block
      *
-     * @param {number} height
      * @example
-     * let transactions = connection.getTransactions(654);
+     * let latestHash = connection.getLatestHash();
      */
-    getTransactions(height: number): Promise<Array<Transaction> | Error>;
+    getLatestHash(): Promise<string | Error>;
+    /**
+     * Returns the latest block height
+     *
+     * @example
+     * let latestHeight = connection.getLatestHeight();
+     */
+    getLatestHeight(): Promise<number | Error>;
+    /**
+     * Returns the latest state/merkle root of the Aleo blockchain
+     *
+     * @example
+     * let stateRoot = connection.getStateRoot();
+     */
+    getStateRoot(): Promise<string | Error>;
     /**
      * Returns a transaction by its unique identifier
      *
@@ -72,12 +96,19 @@ export declare class NodeConnection {
      */
     getTransaction(id: string): Promise<Transaction | Error>;
     /**
-     * Returns the block contents of the block at the specified block height
+     * Returns the transactions present at the specified block height
      *
      * @param {number} height
      * @example
-     * let block = connection.getBlock(1234);
+     * let transactions = connection.getTransactions(654);
      */
-    getBlock(height: number): Promise<Block | Error>;
+    getTransactions(height: number): Promise<Array<Transaction> | Error>;
+    /**
+     * Returns the transactions in the memory pool.
+     *
+     * @example
+     * let transactions = connection.getTransactionsInMempool();
+     */
+    getTransactionsInMempool(): Promise<Array<Transaction> | Error>;
 }
 export default NodeConnection;

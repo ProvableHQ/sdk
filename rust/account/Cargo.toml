@@ -1,6 +1,6 @@
 [package]
 name = "aleo-account"
-version = "0.3.2"
+version = "0.3.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"

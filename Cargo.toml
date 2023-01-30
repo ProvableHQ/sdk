@@ -1,6 +1,6 @@
 [package]
 name = "aleo"
-version = "0.3.2"
+version = "0.3.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
@@ -43,12 +43,12 @@ num-format = "0.4.4"
 
   [dependencies.aleo-account]
   path = "rust/account"
-  version = "0.3.2"
+  version = "0.3.3"
   optional = true
 
   [dependencies.wasm]
   path = "wasm"
-  version = "0.3.2"
+  version = "0.3.3"
   optional = true
 
   [dependencies.anyhow]

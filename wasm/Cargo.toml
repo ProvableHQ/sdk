@@ -1,6 +1,6 @@
 [package]
 name = "wasm"
-version = "0.3.2"
+version = "0.3.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
@@ -22,7 +22,7 @@ crate-type = [ "cdylib", "rlib" ]
 
 [dependencies.aleo-account]
 path = "../rust/account"
-version = "0.3.2"
+version = "0.3.3"
 
 [dependencies.anyhow]
 version = "1.0"
