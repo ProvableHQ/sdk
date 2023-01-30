@@ -38515,7 +38515,7 @@ var useAleoWASM = function useAleoWASM() {
 
   (0,react.useEffect)(function () {
     if (aleo === null) {
-      __webpack_require__.e(/* import() */ 568).then(__webpack_require__.bind(__webpack_require__, 568)).then(function (module) {
+      __webpack_require__.e(/* import() */ 529).then(__webpack_require__.bind(__webpack_require__, 1529)).then(function (module) {
         return setAleo(module);
       });
     }

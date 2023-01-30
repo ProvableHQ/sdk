@@ -1,55 +1,55 @@
 "use strict";
-(self["webpackChunkaleo_website"] = self["webpackChunkaleo_website"] || []).push([[568],{
+(self["webpackChunkaleo_website"] = self["webpackChunkaleo_website"] || []).push([[529],{
 
-/***/ 568:
+/***/ 1529:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(module, async function (__webpack_handle_async_dependencies__, __webpack_async_result__) { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "Address": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.kL; },
-/* harmony export */   "PrivateKey": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__._q; },
-/* harmony export */   "RecordCiphertext": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.fW; },
-/* harmony export */   "RecordPlaintext": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.PD; },
-/* harmony export */   "Signature": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Pc; },
-/* harmony export */   "ViewKey": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.IO; },
-/* harmony export */   "__wbg_buffer_3f3d764d4747d564": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.jp; },
-/* harmony export */   "__wbg_call_168da88779e35f61": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.VD; },
-/* harmony export */   "__wbg_call_97ae9d8645dc388b": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Ni; },
-/* harmony export */   "__wbg_crypto_e1d53a1d73fb10b8": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Nk; },
-/* harmony export */   "__wbg_error_f851667af71bcfc6": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.iX; },
-/* harmony export */   "__wbg_getRandomValues_805f1c3d65988a5a": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.e; },
-/* harmony export */   "__wbg_globalThis_7f206bda628d5286": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.$L; },
-/* harmony export */   "__wbg_global_ba75c50d1cf384f4": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.wJ; },
-/* harmony export */   "__wbg_length_9e1ae1900cb0fbd5": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.bj; },
-/* harmony export */   "__wbg_msCrypto_6e7d3e1f92610cbb": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.cr; },
-/* harmony export */   "__wbg_new_8c3f0052272a457a": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.lB; },
-/* harmony export */   "__wbg_new_abda76e883ba8a5f": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.a2; },
-/* harmony export */   "__wbg_newnoargs_b5b063fc6c2f0376": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.gW; },
-/* harmony export */   "__wbg_newwithlength_f5933855e4f48a19": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.ib; },
-/* harmony export */   "__wbg_node_080f4b19d15bc1fe": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.f5; },
-/* harmony export */   "__wbg_process_038c26bf42b093f8": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.DI; },
-/* harmony export */   "__wbg_randomFillSync_6894564c2c334c42": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.ex; },
-/* harmony export */   "__wbg_require_78a3dcfbdba9cbce": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.go; },
-/* harmony export */   "__wbg_self_6d479506f72c6a71": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.yB; },
-/* harmony export */   "__wbg_set_83db9690f9353e79": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.fP; },
-/* harmony export */   "__wbg_stack_658279fe44541cf6": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.KM; },
-/* harmony export */   "__wbg_subarray_58ad4efbb5bcb886": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.kH; },
-/* harmony export */   "__wbg_versions_ab37218d2f0b24a8": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.QT; },
-/* harmony export */   "__wbg_window_f2557cc78490aceb": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Sn; },
-/* harmony export */   "__wbindgen_is_function": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.o$; },
-/* harmony export */   "__wbindgen_is_object": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Wl; },
-/* harmony export */   "__wbindgen_is_string": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.eY; },
-/* harmony export */   "__wbindgen_is_undefined": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.XP; },
-/* harmony export */   "__wbindgen_memory": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.oH; },
-/* harmony export */   "__wbindgen_object_clone_ref": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.m_; },
-/* harmony export */   "__wbindgen_object_drop_ref": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.ug; },
-/* harmony export */   "__wbindgen_string_new": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.h4; },
-/* harmony export */   "__wbindgen_throw": function() { return /* reexport safe */ _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Or; }
+/* harmony export */   "Address": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.kL; },
+/* harmony export */   "PrivateKey": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__._q; },
+/* harmony export */   "RecordCiphertext": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.fW; },
+/* harmony export */   "RecordPlaintext": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.PD; },
+/* harmony export */   "Signature": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Pc; },
+/* harmony export */   "ViewKey": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.IO; },
+/* harmony export */   "__wbg_buffer_3f3d764d4747d564": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.jp; },
+/* harmony export */   "__wbg_call_168da88779e35f61": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.VD; },
+/* harmony export */   "__wbg_call_97ae9d8645dc388b": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Ni; },
+/* harmony export */   "__wbg_crypto_e1d53a1d73fb10b8": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Nk; },
+/* harmony export */   "__wbg_error_f851667af71bcfc6": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.iX; },
+/* harmony export */   "__wbg_getRandomValues_805f1c3d65988a5a": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.e; },
+/* harmony export */   "__wbg_globalThis_7f206bda628d5286": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.$L; },
+/* harmony export */   "__wbg_global_ba75c50d1cf384f4": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.wJ; },
+/* harmony export */   "__wbg_length_9e1ae1900cb0fbd5": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.bj; },
+/* harmony export */   "__wbg_msCrypto_6e7d3e1f92610cbb": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.cr; },
+/* harmony export */   "__wbg_new_8c3f0052272a457a": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.lB; },
+/* harmony export */   "__wbg_new_abda76e883ba8a5f": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.a2; },
+/* harmony export */   "__wbg_newnoargs_b5b063fc6c2f0376": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.gW; },
+/* harmony export */   "__wbg_newwithlength_f5933855e4f48a19": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.ib; },
+/* harmony export */   "__wbg_node_080f4b19d15bc1fe": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.f5; },
+/* harmony export */   "__wbg_process_038c26bf42b093f8": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.DI; },
+/* harmony export */   "__wbg_randomFillSync_6894564c2c334c42": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.ex; },
+/* harmony export */   "__wbg_require_78a3dcfbdba9cbce": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.go; },
+/* harmony export */   "__wbg_self_6d479506f72c6a71": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.yB; },
+/* harmony export */   "__wbg_set_83db9690f9353e79": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.fP; },
+/* harmony export */   "__wbg_stack_658279fe44541cf6": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.KM; },
+/* harmony export */   "__wbg_subarray_58ad4efbb5bcb886": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.kH; },
+/* harmony export */   "__wbg_versions_ab37218d2f0b24a8": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.QT; },
+/* harmony export */   "__wbg_window_f2557cc78490aceb": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Sn; },
+/* harmony export */   "__wbindgen_is_function": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.o$; },
+/* harmony export */   "__wbindgen_is_object": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Wl; },
+/* harmony export */   "__wbindgen_is_string": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.eY; },
+/* harmony export */   "__wbindgen_is_undefined": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.XP; },
+/* harmony export */   "__wbindgen_memory": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.oH; },
+/* harmony export */   "__wbindgen_object_clone_ref": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.m_; },
+/* harmony export */   "__wbindgen_object_drop_ref": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.ug; },
+/* harmony export */   "__wbindgen_string_new": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.h4; },
+/* harmony export */   "__wbindgen_throw": function() { return /* reexport safe */ _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Or; }
 /* harmony export */ });
-/* harmony import */ var _wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5659);
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__]);
-_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
+/* harmony import */ var _aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3975);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__]);
+_aleo_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
 
 __webpack_async_result__();
@@ -57,7 +57,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 5659:
+/***/ 3975:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(module, async function (__webpack_handle_async_dependencies__, __webpack_async_result__) { try {
@@ -102,10 +102,10 @@ __webpack_require__.a(module, async function (__webpack_handle_async_dependencie
 /* harmony export */   "Or": function() { return /* binding */ __wbindgen_throw; },
 /* harmony export */   "oH": function() { return /* binding */ __wbindgen_memory; }
 /* harmony export */ });
-/* harmony import */ var _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7444);
+/* harmony import */ var _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7529);
 /* module decorator */ module = __webpack_require__.hmd(module);
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__]);
-_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__]);
+_aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
 const lTextDecoder = typeof TextDecoder === 'undefined' ? (0, module.require)('util').TextDecoder : TextDecoder;
 let cachedTextDecoder = new lTextDecoder('utf-8', {
@@ -117,7 +117,7 @@ let cachedUint8Memory0 = new Uint8Array();
 
 function getUint8Memory0() {
   if (cachedUint8Memory0.byteLength === 0) {
-    cachedUint8Memory0 = new Uint8Array(_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.memory.buffer);
+    cachedUint8Memory0 = new Uint8Array(_aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.memory.buffer);
   }
 
   return cachedUint8Memory0;
@@ -216,7 +216,7 @@ let cachedInt32Memory0 = new Int32Array();
 
 function getInt32Memory0() {
   if (cachedInt32Memory0.byteLength === 0) {
-    cachedInt32Memory0 = new Int32Array(_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.memory.buffer);
+    cachedInt32Memory0 = new Int32Array(_aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.memory.buffer);
   }
 
   return cachedInt32Memory0;
@@ -233,7 +233,7 @@ function handleError(f, args) {
   try {
     return f.apply(this, args);
   } catch (e) {
-    _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_exn_store(addHeapObject(e));
+    _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_exn_store(addHeapObject(e));
   }
 }
 
@@ -260,7 +260,7 @@ class Address {
   free() {
     const ptr = this.__destroy_into_raw();
 
-    _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_address_free(ptr);
+    _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_address_free(ptr);
   }
   /**
   * @param {PrivateKey} private_key
@@ -271,7 +271,7 @@ class Address {
   static from_private_key(private_key) {
     _assertClass(private_key, PrivateKey);
 
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_from_private_key(private_key.ptr);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_from_private_key(private_key.ptr);
     return Address.__wrap(ret);
   }
   /**
@@ -283,7 +283,7 @@ class Address {
   static from_view_key(view_key) {
     _assertClass(view_key, ViewKey);
 
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_from_view_key(view_key.ptr);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_from_view_key(view_key.ptr);
     return Address.__wrap(ret);
   }
   /**
@@ -293,9 +293,9 @@ class Address {
 
 
   static from_string(address) {
-    const ptr0 = passStringToWasm0(address, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
+    const ptr0 = passStringToWasm0(address, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_from_string(ptr0, len0);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_from_string(ptr0, len0);
     return Address.__wrap(ret);
   }
   /**
@@ -305,16 +305,16 @@ class Address {
 
   to_string() {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_to_string(retptr, this.ptr);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_to_string(retptr, this.ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return getStringFromWasm0(r0, r1);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
     }
   }
   /**
@@ -325,12 +325,12 @@ class Address {
 
 
   verify(message, signature) {
-    const ptr0 = passArray8ToWasm0(message, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
+    const ptr0 = passArray8ToWasm0(message, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
 
     _assertClass(signature, Signature);
 
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_verify(this.ptr, ptr0, len0, signature.ptr);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.address_verify(this.ptr, ptr0, len0, signature.ptr);
     return ret !== 0;
   }
 
@@ -354,14 +354,14 @@ class PrivateKey {
   free() {
     const ptr = this.__destroy_into_raw();
 
-    _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_privatekey_free(ptr);
+    _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_privatekey_free(ptr);
   }
   /**
   */
 
 
   constructor() {
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_new();
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_new();
     return PrivateKey.__wrap(ret);
   }
   /**
@@ -371,9 +371,9 @@ class PrivateKey {
 
 
   static from_seed_unchecked(seed) {
-    const ptr0 = passArray8ToWasm0(seed, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
+    const ptr0 = passArray8ToWasm0(seed, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_from_seed_unchecked(ptr0, len0);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_from_seed_unchecked(ptr0, len0);
     return PrivateKey.__wrap(ret);
   }
   /**
@@ -383,9 +383,9 @@ class PrivateKey {
 
 
   static from_string(private_key) {
-    const ptr0 = passStringToWasm0(private_key, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
+    const ptr0 = passStringToWasm0(private_key, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_from_string(ptr0, len0);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_from_string(ptr0, len0);
     return PrivateKey.__wrap(ret);
   }
   /**
@@ -395,16 +395,16 @@ class PrivateKey {
 
   to_string() {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_to_string(retptr, this.ptr);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_to_string(retptr, this.ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return getStringFromWasm0(r0, r1);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
     }
   }
   /**
@@ -413,7 +413,7 @@ class PrivateKey {
 
 
   to_view_key() {
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_to_view_key(this.ptr);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_to_view_key(this.ptr);
     return ViewKey.__wrap(ret);
   }
   /**
@@ -422,7 +422,7 @@ class PrivateKey {
 
 
   to_address() {
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_to_address(this.ptr);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_to_address(this.ptr);
     return Address.__wrap(ret);
   }
   /**
@@ -432,9 +432,9 @@ class PrivateKey {
 
 
   sign(message) {
-    const ptr0 = passArray8ToWasm0(message, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
+    const ptr0 = passArray8ToWasm0(message, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_sign(this.ptr, ptr0, len0);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.privatekey_sign(this.ptr, ptr0, len0);
     return Signature.__wrap(ret);
   }
 
@@ -459,7 +459,7 @@ class RecordCiphertext {
   free() {
     const ptr = this.__destroy_into_raw();
 
-    _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_recordciphertext_free(ptr);
+    _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_recordciphertext_free(ptr);
   }
   /**
   * Return a record ciphertext from a string.
@@ -470,11 +470,11 @@ class RecordCiphertext {
 
   static fromString(record) {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
-      const ptr0 = passStringToWasm0(record, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
+      const ptr0 = passStringToWasm0(record, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
       const len0 = WASM_VECTOR_LEN;
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordciphertext_fromString(retptr, ptr0, len0);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordciphertext_fromString(retptr, ptr0, len0);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -485,7 +485,7 @@ class RecordCiphertext {
 
       return RecordCiphertext.__wrap(r0);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
     }
   }
   /**
@@ -496,16 +496,16 @@ class RecordCiphertext {
 
   toString() {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordciphertext_toString(retptr, this.ptr);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordciphertext_toString(retptr, this.ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return getStringFromWasm0(r0, r1);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
     }
   }
   /**
@@ -517,11 +517,11 @@ class RecordCiphertext {
 
   decrypt(view_key) {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
       _assertClass(view_key, ViewKey);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordciphertext_decrypt(retptr, this.ptr, view_key.ptr);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordciphertext_decrypt(retptr, this.ptr, view_key.ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -532,7 +532,7 @@ class RecordCiphertext {
 
       return RecordPlaintext.__wrap(r0);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
     }
   }
   /**
@@ -545,7 +545,7 @@ class RecordCiphertext {
   isOwner(view_key) {
     _assertClass(view_key, ViewKey);
 
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordciphertext_isOwner(this.ptr, view_key.ptr);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordciphertext_isOwner(this.ptr, view_key.ptr);
     return ret !== 0;
   }
 
@@ -570,7 +570,7 @@ class RecordPlaintext {
   free() {
     const ptr = this.__destroy_into_raw();
 
-    _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_recordplaintext_free(ptr);
+    _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_recordplaintext_free(ptr);
   }
   /**
   * Return a record plaintext from a string.
@@ -581,11 +581,11 @@ class RecordPlaintext {
 
   static fromString(record) {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
-      const ptr0 = passStringToWasm0(record, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
+      const ptr0 = passStringToWasm0(record, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
       const len0 = WASM_VECTOR_LEN;
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordplaintext_fromString(retptr, ptr0, len0);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordplaintext_fromString(retptr, ptr0, len0);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -596,7 +596,7 @@ class RecordPlaintext {
 
       return RecordPlaintext.__wrap(r0);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
     }
   }
   /**
@@ -607,16 +607,16 @@ class RecordPlaintext {
 
   toString() {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordplaintext_toString(retptr, this.ptr);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordplaintext_toString(retptr, this.ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return getStringFromWasm0(r0, r1);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
     }
   }
   /**
@@ -626,7 +626,7 @@ class RecordPlaintext {
 
 
   gates() {
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordplaintext_gates(this.ptr);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.recordplaintext_gates(this.ptr);
     return BigInt.asUintN(64, ret);
   }
 
@@ -650,7 +650,7 @@ class Signature {
   free() {
     const ptr = this.__destroy_into_raw();
 
-    _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_signature_free(ptr);
+    _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_signature_free(ptr);
   }
   /**
   * @param {PrivateKey} private_key
@@ -662,9 +662,9 @@ class Signature {
   static sign(private_key, message) {
     _assertClass(private_key, PrivateKey);
 
-    const ptr0 = passArray8ToWasm0(message, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
+    const ptr0 = passArray8ToWasm0(message, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.signature_sign(private_key.ptr, ptr0, len0);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.signature_sign(private_key.ptr, ptr0, len0);
     return Signature.__wrap(ret);
   }
   /**
@@ -677,9 +677,9 @@ class Signature {
   verify(address, message) {
     _assertClass(address, Address);
 
-    const ptr0 = passArray8ToWasm0(message, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
+    const ptr0 = passArray8ToWasm0(message, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.signature_verify(this.ptr, address.ptr, ptr0, len0);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.signature_verify(this.ptr, address.ptr, ptr0, len0);
     return ret !== 0;
   }
   /**
@@ -689,9 +689,9 @@ class Signature {
 
 
   static from_string(signature) {
-    const ptr0 = passStringToWasm0(signature, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
+    const ptr0 = passStringToWasm0(signature, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.signature_from_string(ptr0, len0);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.signature_from_string(ptr0, len0);
     return Signature.__wrap(ret);
   }
   /**
@@ -701,16 +701,16 @@ class Signature {
 
   to_string() {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.signature_to_string(retptr, this.ptr);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.signature_to_string(retptr, this.ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return getStringFromWasm0(r0, r1);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
     }
   }
 
@@ -734,7 +734,7 @@ class ViewKey {
   free() {
     const ptr = this.__destroy_into_raw();
 
-    _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_viewkey_free(ptr);
+    _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbg_viewkey_free(ptr);
   }
   /**
   * @param {PrivateKey} private_key
@@ -745,7 +745,7 @@ class ViewKey {
   static from_private_key(private_key) {
     _assertClass(private_key, PrivateKey);
 
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_from_private_key(private_key.ptr);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_from_private_key(private_key.ptr);
     return ViewKey.__wrap(ret);
   }
   /**
@@ -755,9 +755,9 @@ class ViewKey {
 
 
   static from_string(view_key) {
-    const ptr0 = passStringToWasm0(view_key, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
+    const ptr0 = passStringToWasm0(view_key, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_from_string(ptr0, len0);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_from_string(ptr0, len0);
     return ViewKey.__wrap(ret);
   }
   /**
@@ -767,16 +767,16 @@ class ViewKey {
 
   to_string() {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_to_string(retptr, this.ptr);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_to_string(retptr, this.ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       return getStringFromWasm0(r0, r1);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(r0, r1);
     }
   }
   /**
@@ -785,7 +785,7 @@ class ViewKey {
 
 
   to_address() {
-    const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_to_address(this.ptr);
+    const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_to_address(this.ptr);
     return Address.__wrap(ret);
   }
   /**
@@ -796,11 +796,11 @@ class ViewKey {
 
   decrypt(ciphertext) {
     try {
-      const retptr = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
+      const retptr = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(-16);
 
-      const ptr0 = passStringToWasm0(ciphertext, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
+      const ptr0 = passStringToWasm0(ciphertext, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
       const len0 = WASM_VECTOR_LEN;
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_decrypt(retptr, this.ptr, ptr0, len0);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.viewkey_decrypt(retptr, this.ptr, ptr0, len0);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -816,9 +816,9 @@ class ViewKey {
 
       return getStringFromWasm0(ptr1, len1);
     } finally {
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_add_to_stack_pointer(16);
 
-      _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(ptr1, len1);
+      _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(ptr1, len1);
     }
   }
 
@@ -835,7 +835,7 @@ function __wbg_new_abda76e883ba8a5f() {
 ;
 function __wbg_stack_658279fe44541cf6(arg0, arg1) {
   const ret = getObject(arg1).stack;
-  const ptr0 = passStringToWasm0(ret, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
+  const ptr0 = passStringToWasm0(ret, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_malloc, _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_realloc);
   const len0 = WASM_VECTOR_LEN;
   getInt32Memory0()[arg0 / 4 + 1] = len0;
   getInt32Memory0()[arg0 / 4 + 0] = ptr0;
@@ -845,7 +845,7 @@ function __wbg_error_f851667af71bcfc6(arg0, arg1) {
   try {
     console.error(getStringFromWasm0(arg0, arg1));
   } finally {
-    _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(arg0, arg1);
+    _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_free(arg0, arg1);
   }
 }
 ;
@@ -1004,7 +1004,7 @@ function __wbindgen_throw(arg0, arg1) {
 }
 ;
 function __wbindgen_memory() {
-  const ret = _wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.memory;
+  const ret = _aleo_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_0__.memory;
   return addHeapObject(ret);
 }
 ;
@@ -1013,12 +1013,12 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 7444:
+/***/ 7529:
 /***/ (function(module, exports, __webpack_require__) {
 
 var __webpack_instantiate__ = function([WEBPACK_IMPORTED_MODULE_0]) {
-	return __webpack_require__.v(exports, module.id, "3f511f242b90b37a94b8", {
-		"./wasm_bg.js": {
+	return __webpack_require__.v(exports, module.id, "06cb7ad83f94a7f6aae0", {
+		"./aleo_wasm_bg.js": {
 			"__wbindgen_string_new": WEBPACK_IMPORTED_MODULE_0/* .__wbindgen_string_new */ .h4,
 			"__wbg_new_abda76e883ba8a5f": WEBPACK_IMPORTED_MODULE_0/* .__wbg_new_abda76e883ba8a5f */ .a2,
 			"__wbg_stack_658279fe44541cf6": WEBPACK_IMPORTED_MODULE_0/* .__wbg_stack_658279fe44541cf6 */ .KM,
@@ -1057,11 +1057,11 @@ var __webpack_instantiate__ = function([WEBPACK_IMPORTED_MODULE_0]) {
 }
 __webpack_require__.a(module, async function(__webpack_handle_async_dependencies__, __webpack_async_result__) {
 	try {
-	/* harmony import */ var WEBPACK_IMPORTED_MODULE_0 = __webpack_require__(5659);
+	/* harmony import */ var WEBPACK_IMPORTED_MODULE_0 = __webpack_require__(3975);
 	var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([WEBPACK_IMPORTED_MODULE_0]);
 	var [WEBPACK_IMPORTED_MODULE_0] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__;
-	await __webpack_require__.v(exports, module.id, "3f511f242b90b37a94b8", {
-		"./wasm_bg.js": {
+	await __webpack_require__.v(exports, module.id, "06cb7ad83f94a7f6aae0", {
+		"./aleo_wasm_bg.js": {
 			"__wbindgen_string_new": WEBPACK_IMPORTED_MODULE_0/* .__wbindgen_string_new */ .h4,
 			"__wbg_new_abda76e883ba8a5f": WEBPACK_IMPORTED_MODULE_0/* .__wbg_new_abda76e883ba8a5f */ .a2,
 			"__wbg_stack_658279fe44541cf6": WEBPACK_IMPORTED_MODULE_0/* .__wbg_stack_658279fe44541cf6 */ .KM,
