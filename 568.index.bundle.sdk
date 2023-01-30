@@ -155,15 +155,15 @@ function takeObject(idx) {
   return ret;
 }
 
-let WASM_VECTOR_LEN = 0;
+function _assertClass(instance, klass) {
+  if (!(instance instanceof klass)) {
+    throw new Error(`expected instance of ${klass.name}`);
+  }
 
-function passArray8ToWasm0(arg, malloc) {
-  const ptr = malloc(arg.length * 1);
-  getUint8Memory0().set(arg, ptr / 1);
-  WASM_VECTOR_LEN = arg.length;
-  return ptr;
+  return instance.ptr;
 }
 
+let WASM_VECTOR_LEN = 0;
 const lTextEncoder = typeof TextEncoder === 'undefined' ? (0, module.require)('util').TextEncoder : TextEncoder;
 let cachedTextEncoder = new lTextEncoder('utf-8');
 const encodeString = typeof cachedTextEncoder.encodeInto === 'function' ? function (arg, view) {
@@ -222,12 +222,11 @@ function getInt32Memory0() {
   return cachedInt32Memory0;
 }
 
-function _assertClass(instance, klass) {
-  if (!(instance instanceof klass)) {
-    throw new Error(`expected instance of ${klass.name}`);
-  }
-
-  return instance.ptr;
+function passArray8ToWasm0(arg, malloc) {
+  const ptr = malloc(arg.length * 1);
+  getUint8Memory0().set(arg, ptr / 1);
+  WASM_VECTOR_LEN = arg.length;
+  return ptr;
 }
 
 function handleError(f, args) {
@@ -1018,7 +1017,7 @@ __webpack_async_result__();
 /***/ (function(module, exports, __webpack_require__) {
 
 var __webpack_instantiate__ = function([WEBPACK_IMPORTED_MODULE_0]) {
-	return __webpack_require__.v(exports, module.id, "4a06258af6fa82eb26dd", {
+	return __webpack_require__.v(exports, module.id, "3f511f242b90b37a94b8", {
 		"./wasm_bg.js": {
 			"__wbindgen_string_new": WEBPACK_IMPORTED_MODULE_0/* .__wbindgen_string_new */ .h4,
 			"__wbg_new_abda76e883ba8a5f": WEBPACK_IMPORTED_MODULE_0/* .__wbg_new_abda76e883ba8a5f */ .a2,
@@ -1061,7 +1060,7 @@ __webpack_require__.a(module, async function(__webpack_handle_async_dependencies
 	/* harmony import */ var WEBPACK_IMPORTED_MODULE_0 = __webpack_require__(5659);
 	var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([WEBPACK_IMPORTED_MODULE_0]);
 	var [WEBPACK_IMPORTED_MODULE_0] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__;
-	await __webpack_require__.v(exports, module.id, "4a06258af6fa82eb26dd", {
+	await __webpack_require__.v(exports, module.id, "3f511f242b90b37a94b8", {
 		"./wasm_bg.js": {
 			"__wbindgen_string_new": WEBPACK_IMPORTED_MODULE_0/* .__wbindgen_string_new */ .h4,
 			"__wbg_new_abda76e883ba8a5f": WEBPACK_IMPORTED_MODULE_0/* .__wbg_new_abda76e883ba8a5f */ .a2,
