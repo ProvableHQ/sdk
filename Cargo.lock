@@ -62,10 +62,10 @@ dependencies = [
  "indexmap",
  "once_cell",
  "rand",
- "rand_chacha",
  "reqwest",
  "serde_json",
  "snarkvm",
+ "snarkvm-wasm",
  "ureq",
 ]
 

@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub use api::*;
 pub mod account;
 pub use account::*;
 
-pub type CurrentNetwork = snarkvm::console::network::Testnet3;
+pub mod api;
+pub use api::*;
