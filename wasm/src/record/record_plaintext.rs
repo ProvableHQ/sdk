@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::PlaintextNative;
+use crate::types::RecordPlaintextNative;
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -22,7 +22,7 @@ use wasm_bindgen::prelude::*;
 /// Aleo record plaintext
 #[wasm_bindgen]
 #[derive(Clone)]
-pub struct RecordPlaintext(PlaintextNative);
+pub struct RecordPlaintext(RecordPlaintextNative);
 
 #[wasm_bindgen]
 impl RecordPlaintext {
@@ -45,8 +45,8 @@ impl RecordPlaintext {
     }
 }
 
-impl From<PlaintextNative> for RecordPlaintext {
-    fn from(record: PlaintextNative) -> Self {
+impl From<RecordPlaintextNative> for RecordPlaintext {
+    fn from(record: RecordPlaintextNative) -> Self {
         Self(record)
     }
 }
@@ -55,12 +55,12 @@ impl FromStr for RecordPlaintext {
     type Err = anyhow::Error;
 
     fn from_str(plaintext: &str) -> Result<Self, Self::Err> {
-        Ok(Self(PlaintextNative::from_str(plaintext)?))
+        Ok(Self(RecordPlaintextNative::from_str(plaintext)?))
     }
 }
 
 impl Deref for RecordPlaintext {
-    type Target = PlaintextNative;
+    type Target = RecordPlaintextNative;
 
     fn deref(&self) -> &Self::Target {
         &self.0

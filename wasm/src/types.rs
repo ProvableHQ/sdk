@@ -32,5 +32,5 @@ pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 pub type CurrentNetwork = Testnet3;
 
 // Record types
-pub type CiphertextNative = Record<CurrentNetwork, Ciphertext<CurrentNetwork>>;
-pub type PlaintextNative = Record<CurrentNetwork, Plaintext<CurrentNetwork>>;
+pub type RecordCiphertextNative = Record<CurrentNetwork, Ciphertext<CurrentNetwork>>;
+pub type RecordPlaintextNative = Record<CurrentNetwork, Plaintext<CurrentNetwork>>;

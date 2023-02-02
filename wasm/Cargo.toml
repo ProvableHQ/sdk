@@ -37,7 +37,7 @@ version = "0.8"
 version = "1.0"
 
 [dependencies.snarkvm-wasm]
-version = "0.9.11"
+workspace = true
 
 [dependencies.wasm-bindgen]
 version = "0.2"
