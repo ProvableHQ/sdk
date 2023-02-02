@@ -14,22 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::*;
+pub mod api;
+pub use api::*;
 
-use rand::{rngs::StdRng, SeedableRng};
-use std::convert::TryFrom;
-
-const ITERATIONS: u64 = 1_000;
-
-#[test]
-pub fn test_address_from_private_key() {
-    for _ in 0..ITERATIONS {
-        // Sample a new private key.
-        let private_key = PrivateKey::new(&mut StdRng::from_entropy()).unwrap();
-        let expected = Address::try_from(&private_key).unwrap();
-
-        // Check the private_key derived from the view key.
-        let view_key = ViewKey::try_from(&private_key).unwrap();
-        assert_eq!(expected, Address::try_from(&view_key).unwrap());
-    }
-}
+pub type CurrentNetwork = snarkvm::console::network::Testnet3;

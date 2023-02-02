@@ -14,33 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#![forbid(unsafe_code)]
-
-#[cfg(test)]
-pub mod tests;
-
 use snarkvm_wasm::{
-    account::{
-        Address as AleoAddress,
-        PrivateKey as AleoPrivateKey,
-        Signature as AleoSignature,
-        ViewKey as AleoViewKey,
-    },
+    account::{Address, PrivateKey, Signature, ViewKey},
     network::Testnet3,
-    program::{Ciphertext as AleoCiphertext, Plaintext as AleoPlaintext, Record as AleoRecord},
+    program::{Ciphertext, Plaintext, Record},
 };
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
 
 // Account types
-pub type Address = AleoAddress<CurrentNetwork>;
-pub type PrivateKey = AleoPrivateKey<CurrentNetwork>;
-pub type Signature = AleoSignature<CurrentNetwork>;
-pub type ViewKey = AleoViewKey<CurrentNetwork>;
+pub type AddressNative = Address<CurrentNetwork>;
+pub type PrivateKeyNative = PrivateKey<CurrentNetwork>;
+pub type SignatureNative = Signature<CurrentNetwork>;
+pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 
 // Network types
 pub type CurrentNetwork = Testnet3;
 
 // Record types
-pub type RecordCiphertext = AleoRecord<CurrentNetwork, AleoCiphertext<CurrentNetwork>>;
-pub type RecordPlaintext = AleoRecord<CurrentNetwork, AleoPlaintext<CurrentNetwork>>;
+pub type RecordCiphertextNative = Record<CurrentNetwork, Ciphertext<CurrentNetwork>>;
+pub type RecordPlaintextNative = Record<CurrentNetwork, Plaintext<CurrentNetwork>>;
