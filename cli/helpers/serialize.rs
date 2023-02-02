@@ -14,14 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#![forbid(unsafe_code)]
+use crate::Network;
+use snarkvm::{
+    console::program::Ciphertext,
+    prelude::{Address, PrivateKey, ViewKey},
+};
 
-#[macro_use]
-extern crate thiserror;
+use serde::{Deserialize, Serialize};
 
-pub mod commands;
-pub mod errors;
-pub mod helpers;
-
-pub type Network = snarkvm::prelude::Testnet3;
-pub type Aleo = snarkvm::circuit::AleoV0;
+/// Serialization model for writing Aleo key material to disk
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AccountModel {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub private_key_ciphertext: Option<Ciphertext<Network>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<PrivateKey<Network>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub view_key: Option<ViewKey<Network>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub address: Option<Address<Network>>,
+}

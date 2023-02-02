@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{PrivateKey, Signature, ViewKey};
-use aleo_account::Address as AddressNative;
+use crate::{
+    account::{PrivateKey, Signature, ViewKey},
+    types::AddressNative,
+};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;

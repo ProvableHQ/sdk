@@ -13,7 +13,7 @@ var localStorage = window.localStorage;
 function getTheme() {
     var body = document.body;
 
-    return body.getAttribute('data-theme');
+    return body.getAttribute('tools-theme');
 }
 
 function updateTheme(theme) {
@@ -21,7 +21,7 @@ function updateTheme(theme) {
     var svgUse = document.querySelectorAll('.theme-svg-use');
     var iconID = theme === 'dark' ? '#light-theme-icon' : '#dark-theme-icon';
 
-    body.setAttribute('data-theme', theme);
+    body.setAttribute('tools-theme', theme);
     body.classList.remove('dark', 'light');
     body.classList.add(theme);
 
@@ -34,7 +34,7 @@ function updateTheme(theme) {
 
 function toggleTheme() {
     var body = document.body;
-    var theme = body.getAttribute('data-theme');
+    var theme = body.getAttribute('tools-theme');
 
     var newTheme = theme === 'dark' ? 'light' : 'dark';
 
@@ -101,13 +101,13 @@ function getAccordionIdsFromLocalStorage() {
 
 function toggleAccordion(element) {
     var currentNode = element;
-    var isCollapsed = currentNode.getAttribute('data-isopen') === 'false';
+    var isCollapsed = currentNode.getAttribute('tools-isopen') === 'false';
 
     if (isCollapsed) {
-        currentNode.setAttribute('data-isopen', 'true');
+        currentNode.setAttribute('tools-isopen', 'true');
         setAccordionIdToLocalStorage(currentNode.id);
     } else {
-        currentNode.setAttribute('data-isopen', 'false');
+        currentNode.setAttribute('tools-isopen', 'false');
         removeAccordionIdFromLocalStorage(currentNode.id);
     }
 }
@@ -350,14 +350,14 @@ function processAllPre() {
     targets.forEach(function (pre, idx) {
         var parent = pre.parentNode;
 
-        if (parent && parent.getAttribute('data-skip-pre-process') === 'true') {
+        if (parent && parent.getAttribute('tools-skip-pre-process') === 'true') {
             return;
         }
 
         var div = getPreDiv();
         var id = 'ScDloZOMdL' + idx;
 
-        var lang = pre.getAttribute('data-lang') || 'code';
+        var lang = pre.getAttribute('tools-lang') || 'code';
         var topBar = getPreTopBar(id, lang);
 
         div.innerHTML = topBar;
@@ -375,7 +375,7 @@ function highlightAndBringLineIntoView() {
     var lineNumber = window.location.hash.replace('#line', '');
 
     try {
-        var selector = '[data-line-number="' + lineNumber + '"';
+        var selector = '[tools-line-number="' + lineNumber + '"';
 
         var element = document.querySelector(selector);
 
@@ -545,7 +545,7 @@ function hideMobileMenu() {
         mobileMenuContainer.classList.remove('show');
     }
     if (target) {
-        target.setAttribute('data-isopen', 'false');
+        target.setAttribute('tools-isopen', 'false');
     }
     if (svgUse) {
         svgUse.setAttribute('xlink:href', '#menu-icon');
@@ -561,7 +561,7 @@ function showMobileMenu() {
         mobileMenuContainer.classList.add('show');
     }
     if (target) {
-        target.setAttribute('data-isopen', 'true');
+        target.setAttribute('tools-isopen', 'true');
     }
     if (svgUse) {
         svgUse.setAttribute('xlink:href', '#close-icon');
@@ -570,7 +570,7 @@ function showMobileMenu() {
 
 function onMobileMenuClick() {
     var target = document.querySelector('#mobile-menu');
-    var isOpen = target.getAttribute('data-isopen') === 'true';
+    var isOpen = target.getAttribute('tools-isopen') === 'true';
 
     if (isOpen) {
         hideMobileMenu();
@@ -615,7 +615,7 @@ function onDomContentLoaded() {
             // Replace 'code' with result.language when
             // we are able to cross-check the correctness of
             // result.
-            obj.el.parentNode.setAttribute('data-lang', 'code');
+            obj.el.parentNode.setAttribute('tools-lang', 'code');
         }
     });
     // eslint-disable-next-line no-undef

@@ -18,7 +18,7 @@ license = "GPL-3.0"
 edition = "2018"
 
 [workspace]
-members = [ "rust/account", "wasm" ]
+members = ["rust", "wasm" ]
 
 [workspace.dependencies.snarkvm]
 version = "0.9.11"
@@ -34,15 +34,14 @@ name = "aleo"
 path = "cli/main.rs"
 
 [features]
-default = [ ]
-account = [ "aleo-account" ]
+default = [ "aleo-rust" ]
 wasm = [ "aleo-wasm" ]
 
 [dependencies]
 num-format = "0.4.4"
 
-  [dependencies.aleo-account]
-  path = "rust/account"
+  [dependencies.aleo-rust]
+  path = "rust"
   version = "0.3.3"
   optional = true
 
@@ -72,6 +71,9 @@ num-format = "0.4.4"
   version = "0.3.0"
   default-features = false
 
+  [dependencies.rpassword]
+  version = "7.2.0"
+
   [dependencies.self_update]
   version = "0.32"
 
@@ -83,7 +85,7 @@ num-format = "0.4.4"
 
   [dependencies.snarkvm]
   workspace = true
-  features = [ "aleo-cli", "circuit", "console", "parallel" ]
+  features = [ "aleo-cli", "circuit", "console", "parallel", "snarkvm-synthesizer"]
 
   [dependencies.thiserror]
   version = "1.0"

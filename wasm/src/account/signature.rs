@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{Address, PrivateKey};
-use aleo_account::Signature as SignatureNative;
+use crate::{
+    account::{Address, PrivateKey},
+    types::SignatureNative,
+};
 
 use core::{fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
