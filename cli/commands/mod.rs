@@ -68,7 +68,7 @@ pub enum Command {
     // Node(Node),
     #[clap(name = "run")]
     Run(Run),
-    #[clap(subcommand)]
+    #[clap(name = "update")]
     Update(Update),
 }
 
