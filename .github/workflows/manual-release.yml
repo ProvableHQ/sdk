@@ -1,0 +1,55 @@
+name: Aleo Release
+on:
+  workflow_dispatch:
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  macos_m1:
+    name: macOS M1
+    runs-on: macos-latest
+    steps:
+      - name: Xcode Select
+        uses: devbotsxyz/xcode-select@v1.1.0
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: aarch64-apple-darwin
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: Build Aleo
+        run: |
+          SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path) \
+          MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version) \
+          cargo build --all --release --target=aarch64-apple-darwin && strip target/aarch64-apple-darwin/release/aleo
+        env:
+          CARGO_NET_GIT_FETCH_WITH_CLI: true
+
+      - id: get_version
+        uses: battila7/get-version-action@v2
+
+      - name: Zip
+        run: |
+          mkdir tempdir
+          mv target/aarch64-apple-darwin/release/aleo tempdir
+          cd tempdir
+          zip -r aleo-${{ steps.get_version.outputs.version }}-aarch64-apple-darwin.zip aleo
+          cd ..
+          mv tempdir/aleo-${{ steps.get_version.outputs.version }}-aarch64-apple-darwin.zip .
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            aleo-${{ steps.get_version.outputs.version }}-aarch64-apple-darwin.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
