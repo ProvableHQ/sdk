@@ -39,6 +39,9 @@ pub enum Account {
         /// Write key data to disk
         #[clap(short = 'w', long)]
         write: bool,
+        /// password to encrypt the private key
+        #[clap(short = 'p', long)]
+        password: Option<String>,
     },
     /// Derive view key and address from a private key plaintext
     Import {
@@ -59,6 +62,9 @@ pub enum Account {
         /// Write private key ciphertext and address to disk
         #[clap(short = 'w', long)]
         write: bool,
+        /// password to encrypt the private key
+        #[clap(short = 'p', long)]
+        password: Option<String>,
     },
     /// Decrypt a private key ciphertext
     Decrypt {
@@ -71,13 +77,16 @@ pub enum Account {
         /// Write account plaintext data to disk
         #[clap(short = 'w', long)]
         write: bool,
+        /// password to encrypt the private key
+        #[clap(short = 'p', long)]
+        password: Option<String>,
     },
 }
 
 impl Account {
     pub fn parse(self) -> Result<String> {
         match self {
-            Self::New { seed, encrypt, write } => {
+            Self::New { seed, encrypt, write, password } => {
                 // Sample a new Aleo account.
                 let private_key = match seed {
                     Some(seed) => PrivateKey::<Network>::new(&mut ChaChaRng::seed_from_u64(seed))?,
@@ -89,7 +98,7 @@ impl Account {
 
                 // If encryption flag is specified encrypt private key and add it to the output
                 let private_key_ciphertext = if encrypt {
-                    let ciphertext = Self::encrypt_with_password(&private_key)?;
+                    let ciphertext = Self::encrypt_with_password(&private_key, password)?;
                     key_output += format!("\n {:>1}  {ciphertext}", "Private Key Ciphertext".cyan().bold()).as_str();
                     Some(ciphertext)
                 } else {
@@ -138,7 +147,7 @@ impl Account {
 
                 Ok(format!("{key_output}{save_output}"))
             }
-            Self::Encrypt { private_key, file, write } => {
+            Self::Encrypt { private_key, file, write, password } => {
                 // Check for ambiguous input
                 if private_key.is_some() && file.is_some() {
                     bail!("❌ Please provide either a private key or a filepath, not both");
@@ -157,8 +166,8 @@ impl Account {
                     },
                 };
 
-                // Prompt for password and encrypt private key
-                let private_key_ciphertext = Self::encrypt_with_password(&private_key)?;
+                // Use the provided password or prompt for a password and encrypt private key
+                let private_key_ciphertext = Self::encrypt_with_password(&private_key, password)?;
                 let address = Address::try_from(&private_key)?;
 
                 // Display private key ciphertext and public address
@@ -175,7 +184,7 @@ impl Account {
 
                 Ok(format!("{key_output}{save_output}"))
             }
-            Self::Decrypt { ciphertext, file, write } => {
+            Self::Decrypt { ciphertext, file, write, password } => {
                 // Check for ambiguous input
                 if ciphertext.is_some() && file.is_some() {
                     bail!("❌ Please provide either a private key or a filepath, not both");
@@ -196,9 +205,13 @@ impl Account {
                     },
                 };
 
-                // Prompt for password and attempt to decrypt private key
-                let password = rpassword::prompt_password("Enter decryption password: ")?;
-                let private_key = Encryptor::decrypt_private_key_with_secret(&private_key_ciphertext, &password)
+                // Use supplied password or prompt for the user for a password and attempt to decrypt private key
+                let secret = if let Some(password) = password {
+                    password
+                } else {
+                    rpassword::prompt_password("Enter decryption password: ")?
+                };
+                let private_key = Encryptor::decrypt_private_key_with_secret(&private_key_ciphertext, &secret)
                     .map_err(|_| anyhow::anyhow!("❌ Incorrect password"))?;
 
                 let view_key = ViewKey::try_from(&private_key)?;
@@ -223,13 +236,22 @@ impl Account {
     }
 
     // Encrypt the private key with a password specified at the command line
-    fn encrypt_with_password(private_key: &PrivateKey<Network>) -> Result<Ciphertext<Network>> {
-        let password = rpassword::prompt_password("Enter password: ")?;
-        let password_confirm = rpassword::prompt_password("Confirm password: ")?;
-        if password != password_confirm {
-            bail!("❌ Passwords do not match");
+    fn encrypt_with_password(
+        private_key: &PrivateKey<Network>,
+        password: Option<String>,
+    ) -> Result<Ciphertext<Network>> {
+        if let Some(password) = password {
+            Ok(Encryptor::encrypt_private_key_with_secret(private_key, &password)?)
+        } else {
+            let password = rpassword::prompt_password("Enter encryption password: ")?;
+            let password_confirm = rpassword::prompt_password("Confirm encryption password: ")?;
+
+            if password != password_confirm {
+                bail!("❌ Passwords do not match");
+            }
+
+            Ok(Encryptor::encrypt_private_key_with_secret(private_key, &password)?)
         }
-        Encryptor::encrypt_private_key_with_secret(private_key, &password)
     }
 
     // Write the account keys to a file or return if write flag is not specified
@@ -283,13 +305,14 @@ impl Account {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
 
     use snarkvm::prelude::TestRng;
 
     #[test]
     fn test_account_new() {
         for _ in 0..3 {
-            let account = Account::New { seed: None, encrypt: false, write: false };
+            let account = Account::New { seed: None, encrypt: false, write: false, password: None };
             assert!(account.parse().is_ok());
         }
     }
@@ -298,7 +321,7 @@ mod tests {
     fn test_account_new_plaintext_write() {
         let temp_dir = std::env::temp_dir();
         std::env::set_current_dir(&temp_dir).unwrap();
-        let account = Account::New { seed: None, encrypt: false, write: true };
+        let account = Account::New { seed: None, encrypt: false, write: true, password: None };
         assert!(account.parse().is_ok());
         let account: AccountModel =
             serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
@@ -312,7 +335,7 @@ mod tests {
     fn test_account_import_write() {
         let temp_dir = std::env::temp_dir();
         std::env::set_current_dir(&temp_dir).unwrap();
-        let account = Account::New { seed: None, encrypt: false, write: true };
+        let account = Account::New { seed: None, encrypt: false, write: true, password: None };
         assert!(account.parse().is_ok());
         let account: AccountModel =
             serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
@@ -323,28 +346,149 @@ mod tests {
     }
 
     #[test]
+    fn test_account_create_encrypt_and_decrypt_from_file() {
+        // Create a new account in a file
+        let temp_dir = std::env::temp_dir();
+        std::env::set_current_dir(&temp_dir).unwrap();
+        let account = Account::New { seed: None, encrypt: false, write: true, password: None };
+
+        // Ensure it was created correctly
+        let new_account_parse_attempt = account.parse().unwrap();
+
+        // Assert a write message is emitted
+        assert!(new_account_parse_attempt.contains("written to"));
+
+        let account: AccountModel =
+            serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
+        assert!(account.private_key.is_some());
+        assert!(account.view_key.is_some());
+        assert!(account.address.is_some());
+        assert!(account.private_key_ciphertext.is_none());
+
+        // Encrypt the account
+        let encrypted_account = Account::Encrypt {
+            private_key: None,
+            file: Some("account-plaintext.json".to_string()),
+            write: true,
+            password: Some("mypassword".to_string()),
+        };
+        assert!(encrypted_account.parse().is_ok());
+        let account_ciphertext: AccountModel =
+            serde_json::from_reader(&mut File::open(temp_dir.join("account-ciphertext.json")).unwrap()).unwrap();
+
+        // Ensure the ciphertext exists
+        assert!(account_ciphertext.private_key.is_none());
+        assert!(account_ciphertext.view_key.is_none());
+        assert_eq!(account_ciphertext.address, account.address);
+        assert!(account_ciphertext.private_key_ciphertext.is_some());
+
+        // Ensure creating, encrypting and decrypting to file fails to write file if file already exists
+        let encrypt_parse_attempt = Account::Encrypt {
+            private_key: None,
+            file: Some("account-plaintext.json".to_string()),
+            write: true,
+            password: Some("mypassword".to_string()),
+        };
+        let encrypt_parse_attempt_result = encrypt_parse_attempt.parse().unwrap();
+        assert!(encrypt_parse_attempt_result.contains("✅ Account private key successfully encrypted"));
+        assert!(encrypt_parse_attempt_result.contains("not written to disk"));
+
+        let decrypt_parse_attempt = Account::Decrypt {
+            ciphertext: None,
+            file: Some("account-ciphertext.json".to_string()),
+            write: true,
+            password: Some("mypassword".to_string()),
+        };
+        let decrypt_parse_attempt_result = decrypt_parse_attempt.parse().unwrap();
+        assert!(decrypt_parse_attempt_result.contains("✅ Account keys successfully decrypted:"));
+        assert!(decrypt_parse_attempt_result.contains("not written to disk"));
+
+        // Remove plaintext files and ensure account decrypt from file works
+        fs::remove_file(temp_dir.join("account-plaintext.json")).unwrap();
+        let decrypt_parse_attempt_2 = Account::Decrypt {
+            ciphertext: None,
+            file: Some("account-ciphertext.json".to_string()),
+            write: true,
+            password: Some("mypassword".to_string()),
+        };
+        let decrypt_parse_attempt_2 = decrypt_parse_attempt_2.parse().unwrap();
+
+        // Assert a write message is emitted
+        assert!(decrypt_parse_attempt_2.contains("written to"));
+
+        // Assert the decrypted account is correct
+        let recovered_account: AccountModel =
+            serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
+        assert_eq!(recovered_account.private_key, account.private_key);
+        assert_eq!(recovered_account.view_key, account.view_key);
+        assert_eq!(recovered_account.address, account.address);
+
+        // Assert no new plaintext accounts can be written to file
+        let new_account_plaintext = Account::New { seed: None, encrypt: false, write: true, password: None };
+        let new_plaintext_account_parse_attempt_result = new_account_plaintext.parse().unwrap();
+
+        // Ensure a not written to disk message is emitted
+        assert!(new_plaintext_account_parse_attempt_result.contains("not written to disk"));
+
+        // Ensure the account was not written to disk
+        let plaintext_recovered_account_check: AccountModel =
+            serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
+        assert_eq!(plaintext_recovered_account_check.private_key, account.private_key);
+        assert_eq!(plaintext_recovered_account_check.view_key, account.view_key);
+        assert_eq!(plaintext_recovered_account_check.address, account.address);
+
+        // Assert no new encrypted accounts can be written to file
+        let new_account_ciphertext =
+            Account::New { seed: None, encrypt: false, write: true, password: Some("mypassword".to_string()) };
+        let new_account_ciphertext_parse_attempt_result = new_account_ciphertext.parse().unwrap();
+
+        // Ensure a not written to disk message is emitted
+        assert!(new_account_ciphertext_parse_attempt_result.contains("not written to disk"));
+
+        // Ensure the account was not written to disk
+        let ciphertext_recovered_account_check: AccountModel =
+            serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
+        assert_eq!(ciphertext_recovered_account_check.private_key, account.private_key);
+        assert_eq!(ciphertext_recovered_account_check.view_key, account.view_key);
+        assert_eq!(ciphertext_recovered_account_check.address, account.address);
+
+        // Ensure new encrypted accounts can be written to file if the file does not exist
+        fs::remove_file(temp_dir.join("account-ciphertext.json")).unwrap();
+        let new_account_ciphertext =
+            Account::New { seed: None, encrypt: true, write: true, password: Some("mypassword".to_string()) };
+        let new_account_ciphertext_parse_attempt_result_2 = new_account_ciphertext.parse().unwrap();
+        let ciphertext_recovered_account_check_2: AccountModel =
+            serde_json::from_reader(&mut File::open(temp_dir.join("account-ciphertext.json")).unwrap()).unwrap();
+        // Assert a write confirmation is printed
+        assert!(new_account_ciphertext_parse_attempt_result_2.contains("written to"));
+
+        // Assert we've created a different account and that data was written properly
+        assert_ne!(ciphertext_recovered_account_check_2.private_key_ciphertext, account.private_key_ciphertext);
+        assert_ne!(ciphertext_recovered_account_check_2.address, account.address);
+        assert!(ciphertext_recovered_account_check_2.private_key.is_none());
+        assert!(ciphertext_recovered_account_check_2.view_key.is_none());
+    }
+
+    #[test]
     fn test_account_encrypt_fails_with_invalid_inputs() {
-        let account_no_inputs = Account::Encrypt { private_key: None, file: None, write: false };
+        let account_no_inputs = Account::Encrypt { private_key: None, file: None, write: false, password: None };
         assert!(account_no_inputs.parse().is_err());
 
         let private_key = Some(PrivateKey::<Network>::new(&mut TestRng::default()).unwrap());
         let account_ambiguous_inputs =
-            Account::Encrypt { private_key, file: Some("test.json".to_string()), write: false };
+            Account::Encrypt { private_key, file: Some("test.json".to_string()), write: false, password: None };
         assert!(account_ambiguous_inputs.parse().is_err());
     }
 
     #[test]
     fn test_account_decrypt_fails_with_invalid_inputs() {
-        let account_no_inputs = Account::Decrypt { ciphertext: None, file: None, write: false };
+        let account_no_inputs = Account::Decrypt { ciphertext: None, file: None, write: false, password: None };
         assert!(account_no_inputs.parse().is_err());
-
-        let account = Account::Encrypt { private_key: None, file: None, write: false };
-        assert!(account.parse().is_err());
 
         let private_key = PrivateKey::<Network>::new(&mut ChaChaRng::seed_from_u64(5)).unwrap();
         let ciphertext = Some(Encryptor::encrypt_private_key_with_secret(&private_key, "password").unwrap());
         let account_ambiguous_inputs =
-            Account::Decrypt { ciphertext, file: Some("test.json".to_string()), write: false };
+            Account::Decrypt { ciphertext, file: Some("test.json".to_string()), write: false, password: None };
         assert!(account_ambiguous_inputs.parse().is_err());
     }
 }
