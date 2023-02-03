@@ -95,7 +95,7 @@ mod tests {
     pub fn test_from_private_key() {
         let given_private_key = "APrivateKey1zkp4RyQ8Utj7aRcJgPQGEok8RMzWwUZzBhhgX6rhmBT8dcP";
         let given_view_key = "AViewKey1i3fn5SECcVBtQMCVtTPSvdApoMYmg3ToJfNDfgHJAuoD";
-        let private_key = PrivateKey::from_string(given_private_key);
+        let private_key = PrivateKey::from_string(given_private_key).unwrap();
         let view_key = ViewKey::from_private_key(&private_key);
         assert_eq!(given_view_key, view_key.to_string());
     }

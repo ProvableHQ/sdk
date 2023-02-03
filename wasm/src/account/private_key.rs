@@ -16,19 +16,21 @@
 
 use crate::{
     account::{Address, Signature, ViewKey},
-    types::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
+    types::{CurrentNetwork, Encryptor, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
 };
 
+use crate::account::private_key_ciphertext::PrivateKeyCiphertext;
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PrivateKey(PrivateKeyNative);
 
 #[wasm_bindgen]
 impl PrivateKey {
+    /// Generate a new private key
     #[wasm_bindgen(constructor)]
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
@@ -36,7 +38,18 @@ impl PrivateKey {
         Self(PrivateKeyNative::new(&mut StdRng::from_entropy()).unwrap())
     }
 
-    pub fn from_seed_unchecked(seed: &[u8]) -> Self {
+    /// Get a private key ciphertext using a secret.
+    ///
+    /// The secret is sensitive and will be needed to decrypt the private key later, so it should be stored securely
+    pub fn new_encrypted(secret: &str) -> Result<PrivateKeyCiphertext, String> {
+        let key = Self::new();
+        let ciphertext =
+            Encryptor::encrypt_private_key_with_secret(&key, secret).map_err(|_| "Encryption failed".to_string())?;
+        Ok(PrivateKeyCiphertext::from(ciphertext))
+    }
+
+    /// Get a private key from a series of unchecked bytes
+    pub fn from_seed_unchecked(seed: &[u8]) -> PrivateKey {
         console_error_panic_hook::set_once();
         // Cast into a fixed-size byte array. Note: This is a **hard** requirement for security.
         let seed: [u8; 32] = seed.try_into().unwrap();
@@ -46,25 +59,58 @@ impl PrivateKey {
         Self(PrivateKeyNative::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).unwrap())
     }
 
-    pub fn from_string(private_key: &str) -> Self {
-        Self::from_str(private_key).unwrap()
+    /// Create a private key from a string representation
+    ///
+    /// This function will fail if the text is not a valid private key
+    pub fn from_string(private_key: &str) -> Result<PrivateKey, String> {
+        Self::from_str(private_key).map_err(|_| "Invalid private key".to_string())
     }
 
+    /// Get a string representation of the private key
+    ///
+    /// This function should be used very carefully as it exposes the private key plaintext
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
+    /// Get the view key corresponding to the private key
     pub fn to_view_key(&self) -> ViewKey {
         ViewKey::from_private_key(self)
     }
 
+    /// Get the address corresponding to the private key
     pub fn to_address(&self) -> Address {
         Address::from_private_key(self)
     }
 
+    /// Encrypt the private key with a secret.
+    ///
+    /// The secret is sensitive and will be needed to decrypt the private key later, so it should be stored securely
+    #[wasm_bindgen(js_name = toCiphertext)]
+    pub fn to_ciphertext(&self, secret: &str) -> Result<PrivateKeyCiphertext, String> {
+        let ciphertext =
+            Encryptor::encrypt_private_key_with_secret(self, secret).map_err(|_| "Encryption failed".to_string())?;
+        Ok(PrivateKeyCiphertext::from(ciphertext))
+    }
+
+    /// Get private key from a private key ciphertext using a secret.
+    #[wasm_bindgen(js_name = fromPrivateKeyCiphertext)]
+    pub fn from_private_key_ciphertext(ciphertext: &PrivateKeyCiphertext, secret: &str) -> Result<PrivateKey, String> {
+        let private_key = Encryptor::decrypt_private_key_with_secret(ciphertext, secret)
+            .map_err(|_| "Decryption failed".to_string())?;
+        Ok(Self::from(private_key))
+    }
+
+    /// Sign a message with the private key
     pub fn sign(&self, message: &[u8]) -> Signature {
         Signature::sign(self, message)
+    }
+}
+
+impl From<PrivateKeyNative> for PrivateKey {
+    fn from(private_key: PrivateKeyNative) -> Self {
+        Self(private_key)
     }
 }
 
@@ -105,7 +151,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     pub fn test_sanity_check() {
-        let private_key = PrivateKey::from_string(ALEO_PRIVATE_KEY);
+        let private_key = PrivateKey::from_string(ALEO_PRIVATE_KEY).unwrap();
 
         println!("{} == {}", ALEO_PRIVATE_KEY, private_key.to_string());
         assert_eq!(ALEO_PRIVATE_KEY, private_key.to_string());
@@ -124,7 +170,7 @@ mod tests {
             let expected = PrivateKey::new();
 
             // Check the private_key derived from string.
-            assert_eq!(expected, PrivateKey::from_string(&expected.to_string()));
+            assert_eq!(expected, PrivateKey::from_string(&expected.to_string()).unwrap());
         }
     }
 
@@ -167,5 +213,13 @@ mod tests {
             // Check the signature is valid (natively).
             assert!(signature.verify_bytes(&private_key.to_address(), &message));
         }
+    }
+
+    #[wasm_bindgen_test]
+    fn test_private_key_ciphertext_encrypt_and_decrypt() {
+        let private_key = PrivateKey::new();
+        let private_key_ciphertext = PrivateKeyCiphertext::encrypt_private_key(&private_key, "mypassword").unwrap();
+        let recovered_private_key = private_key_ciphertext.decrypt_to_private_key("mypassword").unwrap();
+        assert_eq!(private_key, recovered_private_key);
     }
 }
