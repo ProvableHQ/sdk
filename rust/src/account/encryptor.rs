@@ -139,7 +139,7 @@ mod tests {
         let enc2 = Encryptor::encrypt_private_key_with_secret(&private_key, "mypassword2").unwrap();
         assert_ne!(enc, enc2);
 
-        // Assert that we can decrypt both ciphertexts with the same secret despite being different
+        // Assert that we can decrypt both ciphertexts with to the same key
         let recovered_key_1 = Encryptor::decrypt_private_key_with_secret(&enc, "mypassword").unwrap();
         let recovered_key_2 = Encryptor::decrypt_private_key_with_secret(&enc2, "mypassword2").unwrap();
         assert_eq!(recovered_key_1, recovered_key_2);
@@ -154,7 +154,7 @@ mod tests {
         let enc2 = Encryptor::encrypt_private_key_with_secret(&private_key2, "mypassword").unwrap();
         assert_ne!(enc, enc2);
 
-        // Assert that we can decrypt both ciphertexts with the same secret despite being different
+        // Assert that private key plaintexts don't match
         let recovered_key_1 = Encryptor::decrypt_private_key_with_secret(&enc, "mypassword").unwrap();
         let recovered_key_2 = Encryptor::decrypt_private_key_with_secret(&enc2, "mypassword").unwrap();
         assert_ne!(recovered_key_1, recovered_key_2);

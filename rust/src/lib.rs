@@ -17,5 +17,7 @@
 pub mod account;
 pub use account::*;
 
+#[cfg(not(feature = "wasm"))]
 pub mod api;
+#[cfg(not(feature = "wasm"))]
 pub use api::*;
