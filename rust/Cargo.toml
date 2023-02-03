@@ -36,6 +36,7 @@ default-features = false
 
 [dependencies.ureq]
 version = "2.6.2"
+optional = true
 
 [dependencies.serde_json]
 version = "1.0.91"
@@ -54,6 +55,7 @@ optional = true
 version = "0.1.5"
 
 [features]
-default = [ "snarkvm", "snarkvm-wasm" ]
+default = [ "blocking", "snarkvm", "snarkvm-wasm" ]
 async = [ "reqwest" ]
+blocking = [ "ureq"]
 wasm = [ "snarkvm-wasm" ]
