@@ -88,7 +88,7 @@ jobs:
           cargo +nightly bench --all | tee output.txt
 
       # Download previous benchmark result from cache (if exists)
-      - name: Download previous benchmark tools
+      - name: Download previous benchmark data
         uses: actions/cache@v1
         with:
           path: ./cache

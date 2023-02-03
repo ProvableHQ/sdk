@@ -1161,7 +1161,7 @@ var hljs = (function () {
       out which of the original regexes / match groups triggered the match.
 
       The match object itself (the result of `Regex.exec`) is returned but also
-      enhanced by merging in any meta-tools that was registered with the regex.
+      enhanced by merging in any meta-data that was registered with the regex.
       This is how we keep track of which mode matched, and what type of rule
       (`illegal`, `begin`, end, etc).
     */
@@ -1721,7 +1721,7 @@ var hljs = (function () {
       const keywordHits = Object.create(null);
 
       /**
-       * Return keyword tools if a match is a keyword
+       * Return keyword data if a match is a keyword
        * @param {CompiledMode} mode - current mode
        * @param {string} matchText - the textual match
        * @returns {KeywordData | false}
@@ -2356,7 +2356,7 @@ var hljs = (function () {
         // entire highlighter
         lang = PLAINTEXT_LANGUAGE;
       }
-      // give it a temporary name if it doesn't have one in the meta-tools
+      // give it a temporary name if it doesn't have one in the meta-data
       if (!lang.name) lang.name = languageName;
       languages[languageName] = lang;
       lang.rawDefinition = languageDefinition.bind(null, hljs);
@@ -3853,7 +3853,7 @@ var hljs = (function () {
 
   /*
   Language: JSON
-  Description: JSON (JavaScript Object Notation) is a lightweight tools-interchange format.
+  Description: JSON (JavaScript Object Notation) is a lightweight data-interchange format.
   Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
   Website: http://www.json.org
   Category: common, protocols, web

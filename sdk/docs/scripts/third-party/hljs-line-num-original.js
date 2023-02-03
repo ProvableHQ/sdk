@@ -8,7 +8,7 @@
         CODE_BLOCK_NAME = 'hljs-ln-code',
         NUMBERS_BLOCK_NAME = 'hljs-ln-numbers',
         NUMBER_LINE_NAME = 'hljs-ln-n',
-        DATA_ATTR_NAME = 'tools-line-number',
+        DATA_ATTR_NAME = 'data-line-number',
         BREAK_LINE_REGEXP = /\r\n|\r|\n/g;
 
     if (w.hljs) {
@@ -270,7 +270,7 @@
         }
 
         // can be overridden because local option is priority
-        var value = getAttribute(element, 'tools-ln-start-from');
+        var value = getAttribute(element, 'data-ln-start-from');
         if (value !== null) {
             startFrom = toNumber(value, defaultValue);
         }

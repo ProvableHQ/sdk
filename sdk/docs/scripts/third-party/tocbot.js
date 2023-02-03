@@ -67,7 +67,7 @@ function ParseContent(options) {
             return null
         }
 
-        const headingLabel = heading.getAttribute('tools-heading-label') ||
+        const headingLabel = heading.getAttribute('data-heading-label') ||
             (options.headingLabelCallback ? String(options.headingLabelCallback(heading.textContent)) : heading.textContent.trim())
         var obj = {
             id: heading.id,
@@ -195,7 +195,7 @@ function BuildHtml(options) {
     }
 
     /**
-     * Render nested heading array tools into a given element.
+     * Render nested heading array data into a given element.
      * @param {HTMLElement} parent Optional. If provided updates the {@see tocElement} to match.
      * @param {Array} data
      * @return {HTMLElement}
