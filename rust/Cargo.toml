@@ -53,9 +53,6 @@ optional = true
 [dev-dependencies.bencher]
 version = "0.1.5"
 
-[dev-dependencies.rand]
-version = "0.8.0"
-
 [features]
 default = [ "snarkvm", "snarkvm-wasm" ]
 async = [ "reqwest" ]
