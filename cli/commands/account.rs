@@ -305,7 +305,7 @@ impl Account {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
+    use std::{fs, str::FromStr};
 
     use snarkvm::prelude::TestRng;
 
@@ -318,37 +318,11 @@ mod tests {
     }
 
     #[test]
-    fn test_account_new_plaintext_write() {
-        let temp_dir = std::env::temp_dir();
-        std::env::set_current_dir(&temp_dir).unwrap();
-        let account = Account::New { seed: None, encrypt: false, write: true, password: None };
-        assert!(account.parse().is_ok());
-        let account: AccountModel =
-            serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
-        assert!(account.private_key.is_some());
-        assert!(account.view_key.is_some());
-        assert!(account.address.is_some());
-        assert!(account.private_key_ciphertext.is_none());
-    }
-
-    #[test]
-    fn test_account_import_write() {
-        let temp_dir = std::env::temp_dir();
-        std::env::set_current_dir(&temp_dir).unwrap();
-        let account = Account::New { seed: None, encrypt: false, write: true, password: None };
-        assert!(account.parse().is_ok());
-        let account: AccountModel =
-            serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
-        assert!(account.private_key.is_some());
-        assert!(account.view_key.is_some());
-        assert!(account.address.is_some());
-        assert!(account.private_key_ciphertext.is_none());
-    }
-
-    #[test]
-    fn test_account_create_encrypt_and_decrypt_from_file() {
+    fn test_account_create_import_encrypt_and_decrypt_from_file() {
         // Create a new account in a file
         let temp_dir = std::env::temp_dir();
+        let _ = fs::remove_file(temp_dir.join("account-plaintext.json"));
+        let _ = fs::remove_file(temp_dir.join("account-ciphertext.json"));
         std::env::set_current_dir(&temp_dir).unwrap();
         let account = Account::New { seed: None, encrypt: false, write: true, password: None };
 
@@ -467,6 +441,68 @@ mod tests {
         assert_ne!(ciphertext_recovered_account_check_2.address, account.address);
         assert!(ciphertext_recovered_account_check_2.private_key.is_none());
         assert!(ciphertext_recovered_account_check_2.view_key.is_none());
+
+        fs::remove_file(temp_dir.join("account-ciphertext.json")).unwrap();
+        fs::remove_file(temp_dir.join("account-plaintext.json")).unwrap();
+
+        // Ensure we can import an account and write it
+        let import_private_key =
+            PrivateKey::<Network>::from_str("APrivateKey1zkp76ubxnPqcYFSiWpRAQQ2yJ9vRtEZB9t2ok2cFa8wTLKq").unwrap();
+        let import_view_key = ViewKey::<Network>::try_from(import_private_key).unwrap();
+        let import_address = Address::<Network>::try_from(import_private_key).unwrap();
+        let import_parse_attempt = Account::Import { private_key: import_private_key, write: true };
+        let import_parse_attempt_result = import_parse_attempt.parse().unwrap();
+
+        assert!(import_parse_attempt_result.contains("written to"));
+        let imported_account: AccountModel =
+            serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
+
+        assert_eq!(imported_account.private_key.unwrap(), import_private_key);
+        assert_eq!(imported_account.view_key.unwrap(), import_view_key);
+        assert_eq!(imported_account.address.unwrap(), import_address);
+
+        fs::remove_file(temp_dir.join("account-plaintext.json")).unwrap();
+
+        // Ensure we can write an account ciphertext from console input
+        let encrypted_from_console_parse_attempt = Account::Encrypt {
+            private_key: Some(import_private_key),
+            file: None,
+            write: true,
+            password: Some("mypassword".to_string()),
+        };
+        let encrypted_from_console_parse_attempt_result = encrypted_from_console_parse_attempt.parse().unwrap();
+
+        // Ensure a write message is emitted
+        assert!(encrypted_from_console_parse_attempt_result.contains("written to"));
+        let encrypted_from_console_account: AccountModel =
+            serde_json::from_reader(&mut File::open(temp_dir.join("account-ciphertext.json")).unwrap()).unwrap();
+
+        // Ensure the result is well formed
+        assert!(encrypted_from_console_account.private_key.is_none());
+        assert!(encrypted_from_console_account.view_key.is_none());
+        assert_eq!(encrypted_from_console_account.address, Some(import_address));
+        assert!(encrypted_from_console_account.private_key_ciphertext.is_some());
+
+        // Ensure we can decrypt the ciphertext to file from the command line
+        let encrypted_from_console_parse_attempt = Account::Decrypt {
+            ciphertext: encrypted_from_console_account.private_key_ciphertext,
+            file: None,
+            write: true,
+            password: Some("mypassword".to_string()),
+        };
+        let encrypted_from_console_parse_attempt_result = encrypted_from_console_parse_attempt.parse().unwrap();
+
+        // Ensure a write message is emitted
+        assert!(encrypted_from_console_parse_attempt_result.contains("written to"));
+
+        let decrypted_from_console_account: AccountModel =
+            serde_json::from_reader(&mut File::open(temp_dir.join("account-plaintext.json")).unwrap()).unwrap();
+        assert!(decrypted_from_console_account.private_key_ciphertext.is_none());
+        assert_eq!(decrypted_from_console_account.private_key, Some(import_private_key));
+        assert_eq!(decrypted_from_console_account.view_key, Some(import_view_key));
+        assert_eq!(decrypted_from_console_account.address, Some(import_address));
+        fs::remove_file(temp_dir.join("account-plaintext.json")).unwrap();
+        fs::remove_file(temp_dir.join("account-ciphertext.json")).unwrap();
     }
 
     #[test]
