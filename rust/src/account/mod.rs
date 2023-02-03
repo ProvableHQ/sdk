@@ -14,10 +14,5 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod account;
-pub use account::*;
-
-#[cfg(not(feature = "wasm"))]
-pub mod api;
-#[cfg(not(feature = "wasm"))]
-pub use api::*;
+pub mod encryptor;
+pub use encryptor::*;

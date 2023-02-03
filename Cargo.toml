@@ -34,7 +34,7 @@ name = "aleo"
 path = "cli/main.rs"
 
 [features]
-default = [ ]
+default = [ "aleo-rust" ]
 wasm = [ "aleo-wasm" ]
 
 [dependencies]
@@ -70,6 +70,9 @@ num-format = "0.4.4"
   [dependencies.rand_chacha]
   version = "0.3.0"
   default-features = false
+
+  [dependencies.rpassword]
+  version = "7.2.0"
 
   [dependencies.self_update]
   version = "0.32"

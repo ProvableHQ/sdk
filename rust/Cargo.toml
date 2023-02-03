@@ -2,7 +2,7 @@
 name = "aleo-rust"
 version = "0.3.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
-description = "Tools for getting data from the Aleo API & forming transactions"
+description = "Rust SDK for managing Aleo acccounts and programs"
 homepage = "https://aleo.org"
 repository = "https://github.com/AleoHQ/aleo"
 keywords = [
@@ -20,6 +20,15 @@ edition = "2018"
 [dependencies.anyhow]
 version = "1.0.68"
 
+[dependencies.indexmap]
+version = "1.9.2"
+
+[dependencies.once_cell]
+version = "1.13.1"
+
+[dependencies.rand]
+version = "0.8.5"
+
 [dependencies.reqwest]
 version = "0.11.14"
 optional = true
@@ -27,24 +36,26 @@ default-features = false
 
 [dependencies.ureq]
 version = "2.6.2"
-
-[dependencies.snarkvm]
-workspace = true
-features = [ "parallel" ]
+optional = true
 
 [dependencies.serde_json]
 version = "1.0.91"
 
-[dev-dependencies.rand]
-version = "0.8.0"
+[dependencies.snarkvm]
+version = "0.9.11"
+features = [ "parallel" ]
+optional = true
 
-[dev-dependencies.rand_chacha]
-version = "0.3.0"
-default-features = false
+[dependencies.snarkvm-wasm]
+version = "0.9.11"
+features = [ "parallel" ]
+optional = true
 
 [dev-dependencies.bencher]
 version = "0.1.5"
 
 [features]
-default = [ ]
+default = [ "blocking", "snarkvm", "snarkvm-wasm" ]
 async = [ "reqwest" ]
+blocking = [ "ureq"]
+wasm = [ "snarkvm-wasm" ]
