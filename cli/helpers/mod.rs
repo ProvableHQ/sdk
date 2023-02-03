@@ -17,8 +17,5 @@
 // pub mod ledger;
 // pub use ledger::*;
 
-pub mod serialize;
-pub use serialize::*;
-
 pub mod updater;
 pub use updater::*;
