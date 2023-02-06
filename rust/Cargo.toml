@@ -17,6 +17,16 @@ include = [ "Cargo.toml", "src", "README.md", "LICENSE.md" ]
 license = "GPL-3.0"
 edition = "2018"
 
+[[bench]]
+name = "account"
+path = "benches/account.rs"
+harness = false
+
+[[bench]]
+name = "private-key-encryption-at-rest"
+path = "benches/private_key_encryption.rs"
+harness = false
+
 [dependencies.anyhow]
 version = "1.0.68"
 
@@ -53,6 +63,9 @@ optional = true
 
 [dev-dependencies.bencher]
 version = "0.1.5"
+
+[dev-dependencies.rand_chacha]
+version = "0.3.1"
 
 [features]
 default = [ "blocking", "snarkvm", "snarkvm-wasm" ]
