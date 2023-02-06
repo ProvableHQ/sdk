@@ -32,5 +32,10 @@ pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 pub type CurrentNetwork = Testnet3;
 
 // Record types
-pub type RecordCiphertextNative = Record<CurrentNetwork, Ciphertext<CurrentNetwork>>;
-pub type RecordPlaintextNative = Record<CurrentNetwork, Plaintext<CurrentNetwork>>;
+pub type CiphertextNative = Ciphertext<CurrentNetwork>;
+pub type PlaintextNative = Plaintext<CurrentNetwork>;
+pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
+pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
+
+// Utility types
+pub type Encryptor = aleo_rust::Encryptor<CurrentNetwork>;
