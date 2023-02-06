@@ -136,6 +136,7 @@ checksum = "7e4f181fc1a372e8ceff89612e5c9b13f72bff5b066da9f8d6827ae65af492c4"
 name = "aleo-wasm"
 version = "0.3.3"
 dependencies = [
+ "aleo-rust",
  "anyhow",
  "console_error_panic_hook",
  "getrandom",
