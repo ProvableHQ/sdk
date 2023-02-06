@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::RecordPlaintextNative;
+use crate::types::{IdentiferNative, PrivateKeyNative, ProgramIDNative, RecordPlaintextNative};
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -42,6 +42,17 @@ impl RecordPlaintext {
     /// Returns the amount of gates in the record
     pub fn gates(&self) -> u64 {
         ***self.0.gates()
+    }
+
+    #[wasm_bindgen(js_name = serialNumber)]
+    pub fn serial_number(&self, private_key: &str, program_id: &str, record_name: &str) -> String {
+        let parsed_private_key = PrivateKeyNative::from_str(private_key).unwrap();
+        let parsed_program_id = ProgramIDNative::from_str(program_id).unwrap();
+        let record_identifier = IdentiferNative::from_str(record_name).unwrap();
+        let commitment = self.to_commitment(&parsed_program_id, &record_identifier).unwrap();
+
+        let serial_number = RecordPlaintextNative::serial_number(parsed_private_key, commitment).unwrap();
+        serial_number.to_string()
     }
 }
 
@@ -90,6 +101,16 @@ mod tests {
     fn test_gates_from_string() {
         let record = RecordPlaintext::from_string(RECORD).unwrap();
         assert_eq!(record.gates(), 99);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_serial_number() {
+        let pk = "APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE";
+        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let program_id = "token.aleo";
+        let record_name = "token";
+        let expected_sn = "4564977995400415519058823909143155627601970323571971278914520967771079582104field";
+        assert_eq!(expected_sn, record.serial_number(pk, program_id, record_name))
     }
 
     #[wasm_bindgen_test]
