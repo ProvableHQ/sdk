@@ -24,7 +24,7 @@ members = ["rust", "wasm" ]
 version = "0.9.11"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.11"
+version = "0.9.12"
 
 [lib]
 path = "cli/lib.rs"
