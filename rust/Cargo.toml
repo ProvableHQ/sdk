@@ -52,7 +52,7 @@ optional = true
 version = "1.0.91"
 
 [dependencies.snarkvm]
-version = "0.9.11"
+version = "0.9.12"
 features = [ "parallel" ]
 optional = true
 

@@ -21,7 +21,7 @@ edition = "2018"
 members = ["rust", "wasm" ]
 
 [workspace.dependencies.snarkvm]
-version = "0.9.11"
+version = "0.9.12"
 
 [workspace.dependencies.snarkvm-wasm]
 version = "0.9.11"
