@@ -28,7 +28,7 @@ path = "benches/private_key_encryption.rs"
 harness = false
 
 [dependencies.anyhow]
-version = "1.0.68"
+version = "1.0.69"
 
 [dependencies.indexmap]
 version = "1.9.2"
