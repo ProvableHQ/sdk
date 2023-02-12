@@ -26,6 +26,9 @@ pub use clean::*;
 mod deploy;
 pub use deploy::*;
 
+mod info;
+pub use info::*;
+
 mod new;
 pub use new::*;
 
@@ -62,6 +65,8 @@ pub enum Command {
     Clean(Clean),
     #[clap(name = "deploy")]
     Deploy(Deploy),
+    #[clap(name = "info")]
+    Info(Info),
     #[clap(name = "new")]
     New(New),
     // #[clap(subcommand)]
