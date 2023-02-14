@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.3.3"
+version = "0.3.4"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"

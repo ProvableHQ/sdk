@@ -114,6 +114,12 @@ impl From<PrivateKeyNative> for PrivateKey {
     }
 }
 
+impl Into<PrivateKeyNative> for PrivateKey {
+    fn into(self) -> PrivateKeyNative {
+        self.0
+    }
+}
+
 impl FromStr for PrivateKey {
     type Err = anyhow::Error;
 

@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::{IdentiferNative, PrivateKeyNative, ProgramIDNative, RecordPlaintextNative};
+use crate::{
+    account::PrivateKey,
+    types::{IdentiferNative, ProgramIDNative, RecordPlaintextNative},
+};
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -44,14 +47,13 @@ impl RecordPlaintext {
         ***self.0.gates()
     }
 
-    #[wasm_bindgen(js_name = serialNumber)]
-    pub fn serial_number(&self, private_key: &str, program_id: &str, record_name: &str) -> String {
-        let parsed_private_key = PrivateKeyNative::from_str(private_key).unwrap();
+    #[wasm_bindgen(js_name = serialNumberString)]
+    pub fn serial_number_string(&self, private_key: &PrivateKey, program_id: &str, record_name: &str) -> String {
         let parsed_program_id = ProgramIDNative::from_str(program_id).unwrap();
         let record_identifier = IdentiferNative::from_str(record_name).unwrap();
         let commitment = self.to_commitment(&parsed_program_id, &record_identifier).unwrap();
 
-        let serial_number = RecordPlaintextNative::serial_number(parsed_private_key, commitment).unwrap();
+        let serial_number = RecordPlaintextNative::serial_number(private_key.clone().into(), commitment).unwrap();
         serial_number.to_string()
     }
 }
@@ -105,12 +107,23 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_serial_number() {
-        let pk = "APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE";
+        let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
         let record = RecordPlaintext::from_string(RECORD).unwrap();
         let program_id = "token.aleo";
         let record_name = "token";
         let expected_sn = "4564977995400415519058823909143155627601970323571971278914520967771079582104field";
-        assert_eq!(expected_sn, record.serial_number(pk, program_id, record_name))
+        assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_serial_number_can_run_twice_with_same_private_key() {
+        let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
+        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let program_id = "token.aleo";
+        let record_name = "token";
+        let expected_sn = "4564977995400415519058823909143155627601970323571971278914520967771079582104field";
+        assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name));
+        assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name));
     }
 
     #[wasm_bindgen_test]
