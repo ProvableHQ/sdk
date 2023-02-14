@@ -2459,9 +2459,7 @@ dependencies = [
  "rand",
  "serde",
  "snarkvm-console",
- "snarkvm-curves",
  "snarkvm-fields",
- "snarkvm-synthesizer",
  "snarkvm-utilities",
  "wasm-bindgen",
 ]

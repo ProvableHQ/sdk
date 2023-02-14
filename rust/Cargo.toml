@@ -57,11 +57,9 @@ features = [ "parallel" ]
 optional = true
 
 [dependencies.snarkvm-wasm]
-version = "0.9.13"
-default-features = false
+workspace = true
 features = [ "console", "utilities" ]
 optional = true
-#workspace = true
 
 [dev-dependencies.bencher]
 version = "0.1.5"

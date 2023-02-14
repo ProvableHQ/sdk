@@ -25,6 +25,7 @@ version = "0.9.13"
 
 [workspace.dependencies.snarkvm-wasm]
 version = "0.9.13"
+default-features = false
 
 [lib]
 path = "cli/lib.rs"
