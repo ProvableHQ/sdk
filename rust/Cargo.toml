@@ -1,6 +1,6 @@
 [package]
 name = "aleo-rust"
-version = "0.3.3"
+version = "0.3.4"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Rust SDK for managing Aleo acccounts and programs"
 homepage = "https://aleo.org"
@@ -57,9 +57,11 @@ features = [ "parallel" ]
 optional = true
 
 [dependencies.snarkvm-wasm]
-workspace = true
-features = [ "parallel" ]
+version = "0.9.13"
+default-features = false
+features = [ "console", "utilities" ]
 optional = true
+#workspace = true
 
 [dev-dependencies.bencher]
 version = "0.1.5"
@@ -70,5 +72,5 @@ version = "0.3.1"
 [features]
 default = [ "blocking", "snarkvm", "snarkvm-wasm" ]
 async = [ "reqwest" ]
-blocking = [ "ureq"]
+blocking = [ "ureq" ]
 wasm = [ "snarkvm-wasm" ]
