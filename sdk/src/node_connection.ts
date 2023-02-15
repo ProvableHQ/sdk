@@ -3,8 +3,6 @@ import { Account } from "./account";
 import { Block } from "./models/block";
 import { Transaction} from "./models/transaction";
 
-type Ciphertext = string;
-
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
  * The methods provided in this class provide information on the Aleo Blockchain
@@ -92,7 +90,7 @@ export class NodeConnection {
     try {
       return await this.fetchData<Array<Block>>("/blocks?start={" + start + "}&end={" + end + "}");
     } catch (error) {
-      let errorMessage = "Error fetching blocks between " + start + " and " + end + "."
+      const errorMessage = "Error fetching blocks between " + start + " and " + end + "."
       console.log(errorMessage + "- response: ", error);
       throw new Error(errorMessage);
     }
