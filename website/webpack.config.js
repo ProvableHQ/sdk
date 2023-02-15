@@ -2,7 +2,7 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
-    mode: 'production',
+    mode: 'development',
     output: {
         path: path.join(__dirname, '/dist'),
         filename: 'index.bundle.js'
@@ -33,5 +33,5 @@ module.exports = {
     experiments: {
         asyncWebAssembly: true
     },
-    devtool: false,
+    devtool: 'source-map',
 }

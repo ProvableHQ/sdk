@@ -42,12 +42,32 @@ version = "0.8"
 [dependencies.serde_json]
 version = "1.0"
 
+[dependencies.snarkvm-synthesizer]
+path="../../snarkVM/synthesizer"
+version = "0.9.11"
+default-features = false
+features = [ "wasm" ]
+
+[dependencies.snarkvm-console]
+path="../../snarkVM/console"
+version = "0.9.11"
+default-features = false
+
 [dependencies.snarkvm-wasm]
-workspace = true
+path="../../snarkVM/wasm"
+version = "0.9.11"
+default-features = false
 
 [dependencies.wasm-bindgen]
 version = "0.2"
 features = [ "serde-serialize" ]
+
+[dependencies.js-sys]
+version = "0.3"
+
+[dependencies.web-sys]
+version = "0.3"
+features = ["console"]
 
 [dependencies.console_error_panic_hook]
 version = "0.1.7"

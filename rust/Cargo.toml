@@ -53,13 +53,22 @@ version = "1.0.91"
 
 [dependencies.snarkvm]
 version = "0.9.11"
-features = [ "parallel" ]
+path="../../snarkVM"
 optional = true
 
 [dependencies.snarkvm-wasm]
 version = "0.9.11"
-features = [ "parallel" ]
+path="../../snarkVM/wasm"
 optional = true
+
+[dependencies.snarkvm-synthesizer]
+path = "../../snarkVM/synthesizer"
+default-features = false
+features = [ "wasm" ]
+
+[dependencies.snarkvm-console]
+path = "../../snarkVM/console"
+default-features = false
 
 [dev-dependencies.bencher]
 version = "0.1.5"

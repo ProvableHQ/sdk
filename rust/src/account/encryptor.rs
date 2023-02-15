@@ -17,9 +17,12 @@
 use snarkvm_wasm::{
     account::PrivateKey,
     network::Network,
-    program::{Ciphertext, Identifier, Literal, Plaintext},
     types::Field,
     Uniform,
+};
+
+use snarkvm_console::{
+    program::{Ciphertext, Identifier, Literal, Plaintext}
 };
 
 use anyhow::{anyhow, Result};
