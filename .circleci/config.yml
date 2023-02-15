@@ -115,6 +115,11 @@ jobs:
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
             cd wasm && wasm-pack test --node
             # cargo test --target wasm32-unknown-unknown
+            wasm-pack build --target nodejs
+            npm install --global typescript
+            npm install --global yarn
+            cd ../sdk && yarn install && yarn build
+            yarn test
       - clear_environment:
           cache_key: snarkvm-wasm-cache
 
