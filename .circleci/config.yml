@@ -111,14 +111,17 @@ jobs:
       - run:
           no_output_timeout: 30m
           command: |
-            sudo apt-get install nodejs
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+            export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install node
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
             cd wasm && wasm-pack test --node
             # cargo test --target wasm32-unknown-unknown
             wasm-pack build --target nodejs
             npm install --global typescript
             npm install --global yarn
-            cd ../sdk && yarn install && yarn build
+            cd ../sdk && yarn install
+            yarn build
             yarn test
       - clear_environment:
           cache_key: snarkvm-wasm-cache
