@@ -19,9 +19,8 @@ interface AccountParam {
  * let myRandomAccount = new Account();
  *
  * // Create an account from a randomly generated seed
- * let seed = 'ce8b23470222bdee5f894ee77b607391';
- * let arr = Uint8Array.from(seed)
- * let mySeededAccount = new Account({seed: 'ce8b23470222bdee5f894ee77b607391'});
+ * let seed = new Uint8Array([94, 91, 52, 251, 240, 230, 226, 35, 117, 253, 224, 210, 175, 13, 205, 120, 155, 214, 7, 169, 66, 62, 206, 50, 188, 40, 29, 122, 40, 250, 54, 18]);
+ * let mySeededAccount = new Account({seed: seed});
  *
  * // Create an account from an existing private key
  * let myExistingAccount = new Account({privateKey: 'myExistingPrivateKey'})
