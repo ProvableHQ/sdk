@@ -46,14 +46,14 @@ impl RecordPlaintext {
     pub fn gates(&self) -> u64 {
         ***self.0.gates()
     }
-
+/// Attempt to get the serial number of a record to determine whether or not is has been spent
     #[wasm_bindgen(js_name = serialNumberString)]
-    pub fn serial_number_string(&self, private_key: &PrivateKey, program_id: &str, record_name: &str) -> String {
-        let parsed_program_id = ProgramIDNative::from_str(program_id).unwrap();
-        let record_identifier = IdentiferNative::from_str(record_name).unwrap();
-        let commitment = self.to_commitment(&parsed_program_id, &record_identifier).unwrap();
+    pub fn serial_number_string(&self, private_key: &PrivateKey, program_id: &str, record_name: &str) -> Result<String, String> {
+        let parsed_program_id = ProgramIDNative::from_str(program_id).map_err(|_| "Invalid ProgramID specified".to_string());
+        let record_identifier = IdentiferNative::from_str(record_name).map_err(|_| "Invalid Identifier specified for record".to_string());
+        let commitment = self.to_commitment(&parsed_program_id, &record_identifier).map_err(|_| "Record does not have a commitment and is likely either invalid or unspent".to_string())
 
-        let serial_number = RecordPlaintextNative::serial_number(private_key.clone().into(), commitment).unwrap();
+        let serial_number = RecordPlaintextNative::serial_number(*private_key.into(), commitment).map_err(|_| "Serial number derivation failed".to_string());
         serial_number.to_string()
     }
 }
