@@ -21,7 +21,7 @@ edition = "2021"
 crate-type = [ "cdylib", "rlib" ]
 
 [dependencies.aleo-rust]
-version = "0.3.3"
+version = "0.3.4"
 path = "../rust"
 features = [ "wasm" ]
 default-features = false
@@ -44,6 +44,7 @@ version = "1.0"
 
 [dependencies.snarkvm-wasm]
 workspace = true
+features = [ "fields" ]
 
 [dependencies.wasm-bindgen]
 version = "0.2"

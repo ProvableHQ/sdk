@@ -1,6 +1,6 @@
 [package]
 name = "aleo-rust"
-version = "0.3.3"
+version = "0.3.4"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Rust SDK for managing Aleo acccounts and programs"
 homepage = "https://aleo.org"
@@ -15,10 +15,20 @@ keywords = [
 categories = [ "cryptography::cryptocurrencies", "operating-systems" ]
 include = [ "Cargo.toml", "src", "README.md", "LICENSE.md" ]
 license = "GPL-3.0"
-edition = "2018"
+edition = "2021"
+
+[[bench]]
+name = "account"
+path = "benches/account.rs"
+harness = false
+
+[[bench]]
+name = "private-key-encryption-at-rest"
+path = "benches/private_key_encryption.rs"
+harness = false
 
 [dependencies.anyhow]
-version = "1.0.68"
+version = "1.0.69"
 
 [dependencies.indexmap]
 version = "1.9.2"
@@ -42,20 +52,23 @@ optional = true
 version = "1.0.91"
 
 [dependencies.snarkvm]
-version = "0.9.11"
+workspace = true
 features = [ "parallel" ]
 optional = true
 
 [dependencies.snarkvm-wasm]
-version = "0.9.11"
-features = [ "parallel" ]
+workspace = true
+features = [ "console", "utilities" ]
 optional = true
 
 [dev-dependencies.bencher]
 version = "0.1.5"
 
+[dev-dependencies.rand_chacha]
+version = "0.3.1"
+
 [features]
 default = [ "blocking", "snarkvm", "snarkvm-wasm" ]
 async = [ "reqwest" ]
-blocking = [ "ureq"]
+blocking = [ "ureq" ]
 wasm = [ "snarkvm-wasm" ]

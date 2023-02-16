@@ -1,6 +1,6 @@
 [package]
 name = "aleo"
-version = "0.3.3"
+version = "0.3.4"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
@@ -15,16 +15,17 @@ keywords = [
 categories = [ "cryptography::cryptocurrencies", "operating-systems" ]
 include = [ "Cargo.toml", "cli", "README.md", "LICENSE.md" ]
 license = "GPL-3.0"
-edition = "2018"
+edition = "2021"
 
 [workspace]
-members = ["rust", "wasm" ]
+members = [ "rust", "wasm" ]
 
 [workspace.dependencies.snarkvm]
-version = "0.9.11"
+version = "0.9.13"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.11"
+version = "0.9.13"
+default-features = false
 
 [lib]
 path = "cli/lib.rs"
@@ -42,12 +43,12 @@ num-format = "0.4.4"
 
   [dependencies.aleo-rust]
   path = "rust"
-  version = "0.3.3"
+  version = "0.3.4"
   optional = true
 
   [dependencies.aleo-wasm]
   path = "wasm"
-  version = "0.3.3"
+  version = "0.3.4"
   optional = true
 
   [dependencies.anyhow]
@@ -85,7 +86,13 @@ num-format = "0.4.4"
 
   [dependencies.snarkvm]
   workspace = true
-  features = [ "aleo-cli", "circuit", "console", "parallel", "snarkvm-synthesizer"]
+  features = [
+  "aleo-cli",
+  "circuit",
+  "console",
+  "parallel",
+  "snarkvm-synthesizer"
+]
 
   [dependencies.thiserror]
   version = "1.0"
