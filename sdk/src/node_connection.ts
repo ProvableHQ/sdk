@@ -1,7 +1,7 @@
 import fetch from "unfetch";
 import { Account } from "./account";
 import { Block } from "./models/block";
-import { Transaction} from "./models/transaction";
+import { Transaction } from "./models/transaction";
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.

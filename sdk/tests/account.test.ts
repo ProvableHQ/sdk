@@ -1,6 +1,6 @@
 import { Account } from '../src'
 import { PrivateKey, ViewKey, Address } from '@aleohq/wasm';
-import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from './account-data';
+import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from './data/account-data';
 
 describe('Account', () => {
     describe('constructors', () => {
