@@ -16,7 +16,7 @@
 
 use crate::{CiphertextNative, Encryptor, PrivateKey};
 
-use std::ops::Deref;
+use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 /// Private Key in ciphertext form
@@ -42,14 +42,34 @@ impl PrivateKeyCiphertext {
     #[wasm_bindgen(js_name = decryptToPrivateKey)]
     pub fn decrypt_to_private_key(&self, secret: &str) -> Result<PrivateKey, String> {
         let private_key = Encryptor::decrypt_private_key_with_secret(&self.0, secret)
-            .map_err(|_| "Decryption failed - view key did not match record")?;
+            .map_err(|_| "Decryption failed - ciphertext was not a private key")?;
         Ok(PrivateKey::from(private_key))
+    }
+
+    /// Returns the ciphertext string
+    #[wasm_bindgen(js_name = toString)]
+    pub fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+
+    /// Gets the ciphertext string
+    #[wasm_bindgen(js_name = fromString)]
+    pub fn from_string(ciphertext: String) -> Result<PrivateKeyCiphertext, String> {
+        Self::try_from(ciphertext).map_err(|_| "Invalid ciphertext".to_string())
     }
 }
 
 impl From<CiphertextNative> for PrivateKeyCiphertext {
     fn from(ciphertext: CiphertextNative) -> Self {
         Self(ciphertext)
+    }
+}
+
+impl TryFrom<String> for PrivateKeyCiphertext {
+    type Error = String;
+
+    fn try_from(ciphertext: String) -> Result<Self, Self::Error> {
+        Ok(Self(CiphertextNative::from_str(&ciphertext).map_err(|_| "Invalid ciphertext".to_string())?))
     }
 }
 
@@ -66,6 +86,33 @@ mod tests {
     use super::*;
 
     use wasm_bindgen_test::wasm_bindgen_test;
+
+    #[wasm_bindgen_test]
+    fn test_private_key_ciphertext_to_and_from_string() {
+        let private_key = PrivateKey::new();
+        let private_key_ciphertext = PrivateKeyCiphertext::encrypt_private_key(&private_key, "mypasword").unwrap();
+        let private_key_ciphertext_2 = PrivateKeyCiphertext::from_string(private_key_ciphertext.to_string()).unwrap();
+
+        // Assert the round trip to and from string journey results in the same key
+        assert_eq!(private_key_ciphertext, private_key_ciphertext_2);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_private_key_from_string_decryption_edge_cases() {
+        let private_key =
+            PrivateKey::from_string("APrivateKey1zkpAYS46Dq4rnt9wdohyWMwdmjmTeMJKPZdp5AhvjXZDsVG").unwrap();
+        let ciphertext = "ciphertext1qvqg7rgvam3xdcu55pwu6sl8rxwefxaj5gwthk0yzln6jv5fastzup0qn0qftqlqq7jcckyx03fzv9kke0z9puwd7cl7jzyhxfy2f2juplz39dkqs6p24urhxymhv364qm3z8mvyklv5gr52n4fxr2z59jgqytyddj8";
+        let private_key_ciphertext = PrivateKeyCiphertext::from_string(ciphertext.to_string()).unwrap();
+        let decrypted_private_key = private_key_ciphertext.decrypt_to_private_key("mypassword").unwrap();
+
+        // Assert that the private key is the same as the original for a valid ciphertext and secret
+        assert_eq!(private_key, decrypted_private_key);
+        // Assert the incorrect secret fails
+        assert!(private_key_ciphertext.decrypt_to_private_key("badpassword").is_err());
+        // Ensure invalid ciphertexts fail
+        let bad_ciphertext = "ciphertext1qvqg7rgvam3xdcu55pwu6sl8rxwefxaj5gwthk0yzln6jv5fastzup0qn0qftqlqq7jcckyx03fzv9kke0z9puwd7cl7jzyhxfy2f2juplz39dkqs6p24urhxymhv364qm3z8mvyklv5er52n4fxr2z59jgqytyddj8";
+        assert!(PrivateKeyCiphertext::from_string(bad_ciphertext.to_string()).is_err());
+    }
 
     #[wasm_bindgen_test]
     fn test_private_key_ciphertext_encrypt_and_decrypt() {

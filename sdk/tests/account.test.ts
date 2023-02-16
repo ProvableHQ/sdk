@@ -1,5 +1,5 @@
 import { Account } from '../src'
-import { PrivateKey, ViewKey, Address } from '@aleohq/wasm';
+import { PrivateKey, ViewKey, Address, RecordCiphertext } from '@aleohq/wasm';
 import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from './data/account-data';
 
 describe('Account', () => {
@@ -59,6 +59,41 @@ describe('Account', () => {
             expect(account.address().to_string()).toEqual(addressString);
             expect(account.toString()).toEqual(addressString);
         });
+
+        test('can encrypt an account and decrypt to the same account', () => {
+            const newAccount = new Account();
+            const privateKeyCiphertext = newAccount.encryptAccount("mypassword");
+            const privateKeyCiphertextString = privateKeyCiphertext.toString();
+
+            // Generate account from valid private key string
+            const accountFromString = Account.fromCiphertext(privateKeyCiphertextString, "mypassword");
+            const accountFromObject = Account.fromCiphertext(privateKeyCiphertext, "mypassword");
+
+            for (const account of [accountFromString, accountFromObject]) {
+                // Test that expected output is generated
+                expect(account.privateKey().to_string()).toEqual(newAccount.privateKey().to_string());
+                expect(account.viewKey().to_string()).toEqual(newAccount.viewKey().to_string());
+                expect(account.address().to_string()).toEqual(newAccount.toString());
+                expect(account.toString()).toEqual(newAccount.toString());
+            }
+        });
+
+        test('fails to create an account from an bad password', () => {
+            const newAccount = new Account();
+            const privateKeyCiphertext = newAccount.encryptAccount("mypassword");
+            const privateKeyCiphertextString = privateKeyCiphertext.toString();
+
+            try {
+                Account.fromCiphertext(privateKeyCiphertextString, "badpassword");
+                Account.fromCiphertext(privateKeyCiphertext, "badpassword");
+
+                // Should not get here
+                expect(true).toBe(false);
+            } catch (err) {
+                // The account should fail to decrypt
+                expect(true).toBe(true);
+            }
+        });
     });
 
     describe('View Key Record Decryption', () => {
@@ -74,7 +109,7 @@ describe('Account', () => {
             expect(decryptedRecord).toBe(recordPlaintextString);
         });
 
-        test('doesnt decrypt records from other accounts', () => {
+        test('doesnt decrypt records from other accounts or identify them as owner', () => {
             function tryDecrypt() {
                 try {
                     return account.decryptRecord(foreignCiphertextString);
@@ -85,11 +120,15 @@ describe('Account', () => {
             }
             const account = new Account({privateKey: privateKeyString});
             const decrypt_spy = jest.spyOn(account.vk, 'decrypt');
+            const recordCiphertext = RecordCiphertext.fromString(foreignCiphertextString);
 
             // Ensure a foreign record decryption attempt throws
             expect(tryDecrypt).toThrow();
             // Ensure the underlying wasm is being called with the right data
             expect(decrypt_spy).toHaveBeenCalledWith(foreignCiphertextString);
+            // Ensure the account doesn't identify the record ciphertext as its own from both string and object forms
+            expect(account.ownsRecordCiphertext(foreignCiphertextString)).toBe(false);
+            expect(account.ownsRecordCiphertext(recordCiphertext)).toBe(false);
         });
 
         test('decrypts an array of records in ciphertext form', () => {
