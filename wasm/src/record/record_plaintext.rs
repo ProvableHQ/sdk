@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::RecordPlaintextNative;
+use crate::{
+    account::PrivateKey,
+    types::{IdentiferNative, ProgramIDNative, RecordPlaintextNative},
+};
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -42,6 +45,27 @@ impl RecordPlaintext {
     /// Returns the amount of gates in the record
     pub fn gates(&self) -> u64 {
         ***self.0.gates()
+    }
+
+    /// Attempt to get the serial number of a record to determine whether or not is has been spent
+    #[wasm_bindgen(js_name = serialNumberString)]
+    pub fn serial_number_string(
+        &self,
+        private_key: &PrivateKey,
+        program_id: &str,
+        record_name: &str,
+    ) -> Result<String, String> {
+        let parsed_program_id =
+            ProgramIDNative::from_str(program_id).map_err(|_| "Invalid ProgramID specified".to_string())?;
+        let record_identifier = IdentiferNative::from_str(record_name)
+            .map_err(|_| "Invalid Identifier specified for record".to_string())?;
+        let commitment = self
+            .to_commitment(&parsed_program_id, &record_identifier)
+            .map_err(|_| "A commitment for this record and program could not be computed".to_string())?;
+
+        let serial_number = RecordPlaintextNative::serial_number(private_key.into(), commitment)
+            .map_err(|_| "Serial number derivation failed".to_string())?;
+        Ok(serial_number.to_string())
     }
 }
 
@@ -90,6 +114,49 @@ mod tests {
     fn test_gates_from_string() {
         let record = RecordPlaintext::from_string(RECORD).unwrap();
         assert_eq!(record.gates(), 99);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_serial_number() {
+        let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
+        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let program_id = "token.aleo";
+        let record_name = "token";
+        let expected_sn = "4564977995400415519058823909143155627601970323571971278914520967771079582104field";
+        let result = record.serial_number_string(&pk, program_id, record_name);
+        assert!(result.is_ok());
+        assert_eq!(expected_sn, result.unwrap());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_serial_number_can_run_twice_with_same_private_key() {
+        let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
+        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let program_id = "token.aleo";
+        let record_name = "token";
+        let expected_sn = "4564977995400415519058823909143155627601970323571971278914520967771079582104field";
+        assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name).unwrap());
+        assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name).unwrap());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_serial_number_invalid_program_id_returns_err_string() {
+        let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
+        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let program_id = "not a real program id";
+        let record_name = "token";
+        let expected_value = "Invalid ProgramID specified".to_string();
+        assert_eq!(record.serial_number_string(&pk, program_id, record_name).err(), Some(expected_value.into()));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_serial_number_invalid_record_name_returns_err_string() {
+        let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
+        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let program_id = "token.aleo";
+        let record_name = "not a real record name";
+        let expected_value = "Invalid Identifier specified for record".to_string();
+        assert_eq!(record.serial_number_string(&pk, program_id, record_name).err(), Some(expected_value.into()));
     }
 
     #[wasm_bindgen_test]
