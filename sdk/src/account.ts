@@ -1,9 +1,17 @@
-import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/wasm";
+import {
+  Address,
+  PrivateKey,
+  Signature,
+  ViewKey,
+  RecordCiphertext,
+  PrivateKeyCiphertext
+} from "@aleohq/wasm";
 
 interface AccountParam {
   privateKey?: string;
   seed?: Uint8Array;
 }
+
 /**
  * Key Management class. Enables the creation of a new Aleo Account, importation of an existing account from
  * an existing private key or seed, and message signing and verification functionality.
@@ -49,6 +57,26 @@ export class Account {
     this.adr = Address.from_private_key(this.pk);
   }
 
+  /**
+   * Attempts to create an account from a private key ciphertext
+   * @param {PrivateKeyCiphertext | string} ciphertext
+   * @param {string} password
+   * @returns {PrivateKey | Error}
+   *
+   * @example
+   * let ciphertext = PrivateKey.newEncrypted("password");
+   * let account = Account.fromCiphertext(ciphertext, "password");
+   */
+  public static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string) {
+    try {
+      ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
+      const pk = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
+      return new Account({ privateKey: pk.to_string() });
+    } catch(e) {
+      throw new Error("Wrong password or invalid ciphertext");
+    }
+  }
+
   private privateKeyFromParams(params: AccountParam) {
     if (params.seed) {
       return PrivateKey.from_seed_unchecked(params.seed);
@@ -76,6 +104,19 @@ export class Account {
   }
 
   /**
+   * Encrypt the account's private key with a password
+   * @param {string} ciphertext
+   * @returns {PrivateKeyCiphertext}
+   *
+   * @example
+   * let account = new Account();
+   * let ciphertext = account.encryptAccount("password");
+   */
+  encryptAccount(password: string) {
+    return this.pk.toCiphertext(password);
+  }
+
+  /**
    * Decrypts a Record in ciphertext form into plaintext
    * @param {string} ciphertext
    * @returns {Record}
@@ -99,6 +140,43 @@ export class Account {
    */
   decryptRecords(ciphertexts: string[]) {
     return ciphertexts.map((ciphertext) => this.vk.decrypt(ciphertext));
+  }
+
+  /**
+   * Determines whether the account owns a ciphertext record
+   * @param {RecordCipherText | string} ciphertext
+   * @returns {boolean}
+   *
+   * @example
+   * // Create a connection to the Aleo network and an account
+   * let connection = new NodeConnection("vm.aleo.org/api");
+   * let account = Account.fromCiphertext("ciphertext", "password");
+   *
+   * // Get a record from the network
+   * let record = connection.getBlock(1234);
+   * let recordCipherText = record.transactions[0].execution.transitions[0].id;
+   *
+   * // Check if the account owns the record
+   * if account.ownsRecord(recordCipherText) {
+   *     // Then one can do something like:
+   *     // Decrypt the record and check if it's spent
+   *     // Store the record in a local database
+   *     // Etc.
+   * }
+   */
+  ownsRecordCiphertext(ciphertext: RecordCiphertext | string) {
+    if (typeof ciphertext === 'string') {
+      try {
+        const ciphertextObject = RecordCiphertext.fromString(ciphertext);
+        return ciphertextObject.isOwner(this.vk);
+      }
+      catch (e) {
+        return false;
+      }
+    }
+    else {
+      return ciphertext.isOwner(this.vk);
+    }
   }
 
   /**

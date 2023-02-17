@@ -1,4 +1,4 @@
-import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/wasm";
+import { Address, PrivateKey, Signature, ViewKey, RecordCiphertext, PrivateKeyCiphertext } from "@aleohq/wasm";
 interface AccountParam {
     privateKey?: string;
     seed?: Uint8Array;
@@ -37,11 +37,32 @@ export declare class Account {
     vk: ViewKey;
     adr: Address;
     constructor(params?: AccountParam);
+    /**
+     * Attempts to create an account from a private key ciphertext
+     * @param {PrivateKeyCiphertext | string} ciphertext
+     * @param {string} password
+     * @returns {PrivateKey | Error}
+     *
+     * @example
+     * let ciphertext = PrivateKey.newEncrypted("password");
+     * let account = Account.fromCiphertext(ciphertext, "password");
+     */
+    static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string): Account;
     private privateKeyFromParams;
     privateKey(): PrivateKey;
     viewKey(): ViewKey;
     address(): Address;
     toString(): string;
+    /**
+     * Encrypt the account's private key with a password
+     * @param {string} ciphertext
+     * @returns {PrivateKeyCiphertext}
+     *
+     * @example
+     * let account = new Account();
+     * let ciphertext = account.encryptAccount("password");
+     */
+    encryptAccount(password: string): PrivateKeyCiphertext;
     /**
      * Decrypts a Record in ciphertext form into plaintext
      * @param {string} ciphertext
@@ -62,6 +83,29 @@ export declare class Account {
      * let record = account.decryptRecords(["record1ciphertext", "record2ciphertext"]);
      */
     decryptRecords(ciphertexts: string[]): string[];
+    /**
+     * Determines whether the account owns a ciphertext record
+     * @param {RecordCipherText | string} ciphertext
+     * @returns {boolean}
+     *
+     * @example
+     * // Create a connection to the Aleo network and an account
+     * let connection = new NodeConnection("vm.aleo.org/api");
+     * let account = Account.fromCiphertext("ciphertext", "password");
+     *
+     * // Get a record from the network
+     * let record = connection.getBlock(1234);
+     * let recordCipherText = record.transactions[0].execution.transitions[0].id;
+     *
+     * // Check if the account owns the record
+     * if account.ownsRecord(recordCipherText) {
+     *     // Then one can do something like:
+     *     // Decrypt the record and check if it's spent
+     *     // Store the record in a local database
+     *     // Etc.
+     * }
+     */
+    ownsRecordCiphertext(ciphertext: RecordCiphertext | string): boolean;
     /**
      * Signs a message with the account's private key.
      * Returns a Signature.

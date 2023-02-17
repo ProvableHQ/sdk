@@ -41,6 +41,7 @@ impl PrivateKey {
     /// Get a private key ciphertext using a secret.
     ///
     /// The secret is sensitive and will be needed to decrypt the private key later, so it should be stored securely
+    #[wasm_bindgen(js_name = newEncrypted)]
     pub fn new_encrypted(secret: &str) -> Result<PrivateKeyCiphertext, String> {
         let key = Self::new();
         let ciphertext =
