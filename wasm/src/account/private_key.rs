@@ -16,10 +16,9 @@
 
 use crate::{
     account::{Address, Signature, ViewKey},
-    types::{CurrentNetwork, Encryptor, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
+    types::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
 };
 
-use crate::account::private_key_ciphertext::PrivateKeyCiphertext;
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
@@ -36,17 +35,6 @@ impl PrivateKey {
     pub fn new() -> Self {
         console_error_panic_hook::set_once();
         Self(PrivateKeyNative::new(&mut StdRng::from_entropy()).unwrap())
-    }
-
-    /// Get a private key ciphertext using a secret.
-    ///
-    /// The secret is sensitive and will be needed to decrypt the private key later, so it should be stored securely
-    #[wasm_bindgen(js_name = newEncrypted)]
-    pub fn new_encrypted(secret: &str) -> Result<PrivateKeyCiphertext, String> {
-        let key = Self::new();
-        let ciphertext =
-            Encryptor::encrypt_private_key_with_secret(&key, secret).map_err(|_| "Encryption failed".to_string())?;
-        Ok(PrivateKeyCiphertext::from(ciphertext))
     }
 
     /// Get a private key from a series of unchecked bytes
@@ -85,28 +73,39 @@ impl PrivateKey {
         Address::from_private_key(self)
     }
 
-    /// Encrypt the private key with a secret.
-    ///
-    /// The secret is sensitive and will be needed to decrypt the private key later, so it should be stored securely
-    #[wasm_bindgen(js_name = toCiphertext)]
-    pub fn to_ciphertext(&self, secret: &str) -> Result<PrivateKeyCiphertext, String> {
-        let ciphertext =
-            Encryptor::encrypt_private_key_with_secret(self, secret).map_err(|_| "Encryption failed".to_string())?;
-        Ok(PrivateKeyCiphertext::from(ciphertext))
-    }
-
-    /// Get private key from a private key ciphertext using a secret.
-    #[wasm_bindgen(js_name = fromPrivateKeyCiphertext)]
-    pub fn from_private_key_ciphertext(ciphertext: &PrivateKeyCiphertext, secret: &str) -> Result<PrivateKey, String> {
-        let private_key = Encryptor::decrypt_private_key_with_secret(ciphertext, secret)
-            .map_err(|_| "Decryption failed".to_string())?;
-        Ok(Self::from(private_key))
-    }
-
     /// Sign a message with the private key
     pub fn sign(&self, message: &[u8]) -> Signature {
         Signature::sign(self, message)
     }
+
+    // /// Get a private key ciphertext using a secret.
+    // ///
+    // /// The secret is sensitive and will be needed to decrypt the private key later, so it should be stored securely
+    // #[wasm_bindgen(js_name = newEncrypted)]
+    // pub fn new_encrypted(secret: &str) -> Result<PrivateKeyCiphertext, String> {
+    //     let key = Self::new();
+    //     let ciphertext =
+    //         Encryptor::encrypt_private_key_with_secret(&key, secret).map_err(|_| "Encryption failed".to_string())?;
+    //     Ok(PrivateKeyCiphertext::from(ciphertext))
+    // }
+
+    // /// Encrypt the private key with a secret.
+    // ///
+    // /// The secret is sensitive and will be needed to decrypt the private key later, so it should be stored securely
+    // #[wasm_bindgen(js_name = toCiphertext)]
+    // pub fn to_ciphertext(&self, secret: &str) -> Result<PrivateKeyCiphertext, String> {
+    //     let ciphertext =
+    //         Encryptor::encrypt_private_key_with_secret(self, secret).map_err(|_| "Encryption failed".to_string())?;
+    //     Ok(PrivateKeyCiphertext::from(ciphertext))
+    // }
+
+    // /// Get private key from a private key ciphertext using a secret.
+    // #[wasm_bindgen(js_name = fromPrivateKeyCiphertext)]
+    // pub fn from_private_key_ciphertext(ciphertext: &PrivateKeyCiphertext, secret: &str) -> Result<PrivateKey, String> {
+    //     let private_key = Encryptor::decrypt_private_key_with_secret(ciphertext, secret)
+    //         .map_err(|_| "Decryption failed".to_string())?;
+    //     Ok(Self::from(private_key))
+    // }
 }
 
 impl From<PrivateKeyNative> for PrivateKey {
@@ -227,11 +226,11 @@ mod tests {
         }
     }
 
-    #[wasm_bindgen_test]
-    fn test_private_key_ciphertext_encrypt_and_decrypt() {
-        let private_key = PrivateKey::new();
-        let private_key_ciphertext = PrivateKeyCiphertext::encrypt_private_key(&private_key, "mypassword").unwrap();
-        let recovered_private_key = private_key_ciphertext.decrypt_to_private_key("mypassword").unwrap();
-        assert_eq!(private_key, recovered_private_key);
-    }
+    // #[wasm_bindgen_test]
+    // fn test_private_key_ciphertext_encrypt_and_decrypt() {
+    //     let private_key = PrivateKey::new();
+    //     let private_key_ciphertext = PrivateKeyCiphertext::encrypt_private_key(&private_key, "mypassword").unwrap();
+    //     let recovered_private_key = private_key_ciphertext.decrypt_to_private_key("mypassword").unwrap();
+    //     assert_eq!(private_key, recovered_private_key);
+    // }
 }
