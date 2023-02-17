@@ -193,6 +193,3 @@ workflows:
       - check-fmt
       - check-clippy
       - aleo-executable
-      - aleo-new:
-          requires:
-            - aleo-executable
