@@ -171,26 +171,17 @@ jobs:
       - run:
           name: Build and install Aleo CLI
           no_output_timeout: 30m
-          command: cargo install --path . --root . --locked
+          command: |
+            cargo install --path . --root . --locked
+            export ALEO=/home/circleci/project/project/bin/aleo
+            ./project/.circleci/aleo-new.sh
+
       - persist_to_workspace:
           root: ~/
           paths:
             - project/
       - clear_environment:
           cache_key: aleo-executable-cache
-
-  aleo-new:
-    docker:
-      - image: cimg/rust:1.67
-    resource_class: xlarge
-    steps:
-      - attach_workspace:
-          at: /home/circleci/project/
-      - run:
-          name: aleo new
-          command: |
-            export ALEO=/home/circleci/project/project/bin/aleo
-            ./project/.circleci/aleo-new.sh
 
 workflows:
   version: 2
