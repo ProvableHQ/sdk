@@ -44,11 +44,6 @@ const workerConfig = {
     mode: 'development',
     entry: "./src/workers/worker.js",
     target: "webworker",
-    plugins: [
-        new WasmPackPlugin({
-            crateDirectory: path.resolve(__dirname, "../wasm")
-        })
-    ],
     resolve: {
         extensions: [".js", ".wasm"]
     },
