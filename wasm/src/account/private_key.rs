@@ -115,6 +115,17 @@ impl From<PrivateKeyNative> for PrivateKey {
     }
 }
 
+impl From<PrivateKey> for PrivateKeyNative {
+    fn from(private_key: PrivateKey) -> Self {
+        private_key.0
+    }
+}
+
+impl From<&PrivateKey> for PrivateKeyNative {
+    fn from(private_key: &PrivateKey) -> Self {
+        private_key.0
+    }
+}
 impl FromStr for PrivateKey {
     type Err = anyhow::Error;
 

@@ -17,7 +17,7 @@
 use snarkvm_wasm::{
     account::{Address, PrivateKey, Signature, ViewKey},
     network::Testnet3,
-    program::{Ciphertext, Plaintext, Record},
+    program::{Ciphertext, Identifier, Plaintext, ProgramID, Record},
 };
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
@@ -39,3 +39,5 @@ pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 
 // Utility types
 pub type Encryptor = aleo_rust::Encryptor<CurrentNetwork>;
+pub type IdentiferNative = Identifier<CurrentNetwork>;
+pub type ProgramIDNative = ProgramID<CurrentNetwork>;
