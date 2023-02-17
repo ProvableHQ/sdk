@@ -47,6 +47,7 @@ impl PrivateKeyCiphertext {
     }
 
     /// Returns the ciphertext string
+    #[allow(clippy::inherent_to_string)]
     #[wasm_bindgen(js_name = toString)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
