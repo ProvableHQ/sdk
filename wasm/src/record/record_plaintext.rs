@@ -124,7 +124,6 @@ mod tests {
         let record_name = "token";
         let expected_sn = "4564977995400415519058823909143155627601970323571971278914520967771079582104field";
         let result = record.serial_number_string(&pk, program_id, record_name);
-        assert!(result.is_ok());
         assert_eq!(expected_sn, result.unwrap());
     }
 
@@ -146,7 +145,7 @@ mod tests {
         let program_id = "not a real program id";
         let record_name = "token";
         let expected_value = "Invalid ProgramID specified".to_string();
-        assert_eq!(record.serial_number_string(&pk, program_id, record_name).err(), Some(expected_value.into()));
+        assert_eq!(record.serial_number_string(&pk, program_id, record_name).err(), Some(expected_value));
     }
 
     #[wasm_bindgen_test]
@@ -156,7 +155,7 @@ mod tests {
         let program_id = "token.aleo";
         let record_name = "not a real record name";
         let expected_value = "Invalid Identifier specified for record".to_string();
-        assert_eq!(record.serial_number_string(&pk, program_id, record_name).err(), Some(expected_value.into()));
+        assert_eq!(record.serial_number_string(&pk, program_id, record_name).err(), Some(expected_value));
     }
 
     #[wasm_bindgen_test]
