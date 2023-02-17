@@ -93,7 +93,7 @@ commands:
 jobs:
   rust_stable:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: xlarge
     steps:
       - run_serial:
@@ -102,7 +102,7 @@ jobs:
 
   wasm:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: 2xlarge
     steps:
       - checkout
@@ -128,7 +128,7 @@ jobs:
 
   check-fmt:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: xlarge
     steps:
       - checkout
@@ -145,7 +145,7 @@ jobs:
 
   check-clippy:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: 2xlarge
     steps:
       - checkout
@@ -162,7 +162,7 @@ jobs:
 
   aleo-executable:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: xlarge
     steps:
       - checkout
@@ -181,7 +181,7 @@ jobs:
 
   aleo-new:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: xlarge
     steps:
       - attach_workspace:
@@ -189,8 +189,16 @@ jobs:
       - run:
           name: aleo new
           command: |
+            ulimit -c unlimited
             export ALEO=/home/circleci/project/project/bin/aleo
             ./project/.circleci/aleo-new.sh
+      - run:
+          command: |
+            mkdir -p /tmp/core_dumps
+            cp core.* /tmp/core_dumps
+          when: on_fail
+      - store_artifacts:
+          path: /tmp/core_dumps
 
 workflows:
   version: 2
