@@ -8,7 +8,8 @@ use crate::{
     Process,
     Program,
     ProvingKey,
-    TransactionNative
+    ProvingKeyNative,
+    TransactionNative,
 };
 
 use std::str::FromStr;
@@ -26,13 +27,15 @@ impl TransactionBuilder {
         address: Address,
         amount: u64,
         record: RecordPlaintext,
-    ) -> String {
+    ) -> Result<String, String> {
         console_error_panic_hook::set_once();
 
-        let process = Process::load_wasm().unwrap();
-        let credits_program = Program::credits().unwrap();
+        let process = Process::load_wasm().map_err(|_| "Could not initialize wasm".to_string())?;
+        let credits_program = Program::credits().map_err(|_| "Could not access credits program".to_string())?;
+        let transfer_identifier = &Identifier::from_str("transfer").map_err(|_| "Could not create transfer identifier".to_string())?;
 
-        process.insert_proving_key(credits_program.id(), &Identifier::from_str("transfer").unwrap(), proving_key.into()).unwrap();
+        process.insert_proving_key(credits_program.id(), transfer_identifier, ProvingKeyNative::from(proving_key))
+            .map_err(|_| "Could not insert proving key".to_string())?;
 
         let mut amount_str = amount.to_string();
         amount_str.push_str("u64");
@@ -40,13 +43,16 @@ impl TransactionBuilder {
         let rng = &mut rand::thread_rng();
 
         let authorization =
-            process.authorize::<Aleo, _>(&private_key, credits_program.id(), "transfer", inputs.iter(), rng).unwrap();
-        let (_, execution, _, _) = process.execute::<Aleo, _>(authorization, rng).unwrap();
+            process.authorize::<Aleo, _>(&private_key, credits_program.id(), "transfer", inputs.iter(), rng)
+            .map_err(|_| "Could generate authorization".to_string())?;
+        let (_, execution, _, _) = process.execute::<Aleo, _>(authorization, rng)
+            .map_err(|_| "Could complete program execution".to_string())?;
 
         // TODO: Figure out how to get proper inclusion proofs
-        let tx = TransactionNative::from_execution(execution, None).unwrap();
+        let tx = TransactionNative::from_execution(execution, None)
+            .map_err(|_| "Could genertae transaction from execution".to_string())?;
         let tx_string = tx.to_string();
-        tx_string
+        Ok(tx_string)
     }
 }
 

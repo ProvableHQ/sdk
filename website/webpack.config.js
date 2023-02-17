@@ -1,11 +1,15 @@
 const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
-module.exports = {
+const appConfig = {
     mode: 'development',
+    entry: {
+        index: './src/index.js'
+    },
     output: {
         path: path.join(__dirname, '/dist'),
-        filename: 'index.bundle.js'
+        filename: '[name].bundle.js'
     },
     devServer: {
         port: 3000,
@@ -35,3 +39,27 @@ module.exports = {
     },
     devtool: 'source-map',
 }
+
+const workerConfig = {
+    mode: 'development',
+    entry: "./src/workers/worker.js",
+    target: "webworker",
+    plugins: [
+        new WasmPackPlugin({
+            crateDirectory: path.resolve(__dirname, "../wasm")
+        })
+    ],
+    resolve: {
+        extensions: [".js", ".wasm"]
+    },
+    output: {
+        path: path.join(__dirname, '/dist'),
+        filename: "worker.js"
+    },
+    experiments: {
+        asyncWebAssembly: true
+    },
+    devtool: 'source-map',
+};
+
+module.exports = [appConfig, workerConfig];

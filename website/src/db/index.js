@@ -1,8 +1,9 @@
 import Dexie from 'dexie';
 
 var db = new Dexie("AleoParameters");
+var PARAMETERS_TABLE = 'parameters';
 db.version(1).stores({
-    parameters: "name"
+  [PARAMETERS_TABLE]: "name"
 });
 
 const FILES = [
@@ -38,26 +39,34 @@ const FILES = [
   //   name: 'SplitVerifier',
   //   url: 'https://aleo-public.s3.us-west-2.amazonaws.com/testnet3/split.verifier.b6bb949'
   // },
-  {
-    name: 'FeeProver',
-    url: 'https://aleo-public.s3.us-west-2.amazonaws.com/testnet3/fee.prover.0a31a56'
-  },
-  {
-    name: 'FeeVerifier',
-    url: 'https://aleo-public.s3.us-west-2.amazonaws.com/testnet3/fee.verifier.2186739'
-  },
-  {
-    name: 'InclusionProver',
-    url: 'https://aleo-public.s3.us-west-2.amazonaws.com/testnet3/inclusion.prover.b9921c5'
-  },
-  {
-    name: 'InclusionVerifier',
-    url: 'https://aleo-public.s3.us-west-2.amazonaws.com/testnet3/inclusion.verifier.3f4d6b7'
-  }
+  // {
+  //   name: 'FeeProver',
+  //   url: 'https://aleo-public.s3.us-west-2.amazonaws.com/testnet3/fee.prover.0a31a56'
+  // },
+  // {
+  //   name: 'FeeVerifier',
+  //   url: 'https://aleo-public.s3.us-west-2.amazonaws.com/testnet3/fee.verifier.2186739'
+  // },
+  // {
+  //   name: 'InclusionProver',
+  //   url: 'https://aleo-public.s3.us-west-2.amazonaws.com/testnet3/inclusion.prover.b9921c5'
+  // },
+  // {
+  //   name: 'InclusionVerifier',
+  //   url: 'https://aleo-public.s3.us-west-2.amazonaws.com/testnet3/inclusion.verifier.3f4d6b7'
+  // }
 ];
 
 export async function getAllSavedFiles() {
-  return await db.table("parameters").toArray();
+  return await db.table(PARAMETERS_TABLE).toArray();
+}
+
+export async function getSavedFile(name) {
+  let files = await db.table(PARAMETERS_TABLE).filter(file => file.name == name).toArray();
+  if (files.length == 0) {
+    throw new Error(`${name} file not found in IndexedDB`);
+  }
+  return files[0];
 }
 
 async function downloadFile(url) {

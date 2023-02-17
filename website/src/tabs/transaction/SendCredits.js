@@ -1,8 +1,10 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {Card, Divider, Form, Input, Button } from "antd";
 const { TextArea } = Input;
 import {useAleoWASM} from "../../aleo-wasm-hook";
-import {downloadAndStoreFiles, getAllSavedFiles} from '../../db';
+import {downloadAndStoreFiles, getSavedFile} from '../../db';
+
+const worker = new Worker("./worker.js");
 
 export const SendCredits = () => {
     const [privateKey, setPrivateKey] = useState("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6");
@@ -16,6 +18,12 @@ export const SendCredits = () => {
     const [transaction, setTransaction] = useState(null);
     const aleo = useAleoWASM();
 
+    useEffect(() => {
+        worker.addEventListener("message", ev => {
+            setTransaction(ev.data.transaction);
+          });
+    }, []);
+
     const safeStateUpdate = (update, event) => {
       try { update(event.target.value) }
       catch (error) { console.error(error)}
@@ -23,27 +31,21 @@ export const SendCredits = () => {
 
     const buildTransaction = async () => {
       try {
+        // Download files
         let startTime = performance.now();
         await downloadAndStoreFiles();
         console.log(`Download Completed: ${performance.now() - startTime} ms`);
         startTime = performance.now();
 
-        const files = await getAllSavedFiles();
-        const transferProver = files.filter(({name}) => name == 'TransferProver')[0];
+        // Get transfer prover from IndexedDB
+        const transferProver = await getSavedFile('TransferProver');
         console.log(transferProver);
         console.log(`Fetching Transfer Prover from IndexedDb Completed: ${performance.now() - startTime} ms`);
         startTime = performance.now();
 
-        const pK = aleo.PrivateKey.from_string(privateKey);
-        const provingKey = aleo.ProvingKey.from_bytes(transferProver.bytes);
-        console.log(`Deserialized proving key Completed: ${performance.now() - startTime} ms`);
-        startTime = performance.now();
-        const add = aleo.Address.from_string(toAddress);
-        const rec = aleo.RecordPlaintext.fromString(plaintext);
-        const transaction = await aleo.TransactionBuilder.build_transfer_full(pK, provingKey, add, BigInt(amount), rec);
-        console.log(`Transaction Completed: ${performance.now() - startTime} ms`);
-        console.log(transaction);
-        setTransaction(transaction);
+        // Build transaction
+        worker.postMessage({privateKey, transferProverBytes: transferProver.bytes, amount, toAddress, plaintext})
+        console.log('Called web worker');
       } catch (error) { console.error(error) }
     }
 

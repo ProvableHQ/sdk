@@ -12,7 +12,7 @@ import { SendCredits } from './tabs/transaction/SendCredits';
 const {Header, Content, Footer} = Layout;
 
 function App() {
-    const [menuIndex, setMenuIndex] = useState(0);
+    const [menuIndex, setMenuIndex] = useState(3);
 
     return (
         <Layout className="layout" style={{minHeight: '100vh'}}>

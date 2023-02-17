@@ -50,9 +50,9 @@ impl Deref for ProvingKey {
     }
 }
 
-impl Into<ProvingKeyNative> for ProvingKey {
-    fn into(self) -> ProvingKeyNative {
-        self.0
+impl From<ProvingKey> for ProvingKeyNative {
+    fn from(proving_key: ProvingKey) -> ProvingKeyNative {
+        proving_key.0
     }
 }
 
