@@ -1,6 +1,6 @@
 {
   // see https://www.typescriptlang.org/tsconfig to better understand tsconfigs
-  "include": ["src", "src/models"],
+  "include": ["src"],
   "exclude": ["node_modules", "tests"],
   "compilerOptions": {
     "module": "esnext",

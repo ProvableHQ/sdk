@@ -79,7 +79,7 @@ describe('Account', () => {
             }
         });
 
-        test('fails to create an account from an bad password', () => {
+        test('fails to create an account from a bad password', () => {
             const newAccount = new Account();
             const privateKeyCiphertext = newAccount.encryptAccount("mypassword");
             const privateKeyCiphertextString = privateKeyCiphertext.toString();
@@ -110,7 +110,7 @@ describe('Account', () => {
             expect(decryptedRecord).toBe(recordPlaintextString);
         });
 
-        test('doesnt decrypt records from other accounts or identify them as owner', () => {
+        test('doesnt decrypt records from other accounts nor identifies them as the record owner', () => {
             function tryDecrypt() {
                 try {
                     return account.decryptRecord(foreignCiphertextString);

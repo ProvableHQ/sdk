@@ -1,4 +1,4 @@
-// Test vectors created from a run of SnarkOS local network
+// Test data created from a run of SnarkOS local network
 
 // A random seed used to generate the private key
 const seed = new Uint8Array([94, 91, 52, 251, 240, 230, 226, 35, 117, 253, 224, 210, 175, 13, 205, 120, 155, 214, 7, 169, 66, 62, 206, 50, 188, 40, 29, 122, 40, 250, 54, 18]);
