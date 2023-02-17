@@ -149,11 +149,11 @@ export class Account {
    *
    * @example
    * // Create a connection to the Aleo network and an account
-   * let public_connection = new NodeConnection("vm.aleo.org/api");
+   * let connection = new NodeConnection("vm.aleo.org/api");
    * let account = Account.fromCiphertext("ciphertext", "password");
    *
    * // Get a record from the network
-   * let record = connection.getBlock(1234)
+   * let record = connection.getBlock(1234);
    * let recordCipherText = record.transactions[0].execution.transitions[0].id;
    *
    * // Check if the account owns the record

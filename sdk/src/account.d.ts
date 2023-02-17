@@ -44,8 +44,7 @@ export declare class Account {
      * @returns {PrivateKey | Error}
      *
      * @example
-     * let privateKey = PrivateKey.newEncrypted("password");
-     * let ciphertext = privateKey.encrypt("password");
+     * let ciphertext = PrivateKey.newEncrypted("password");
      * let account = Account.fromCiphertext(ciphertext, "password");
      */
     static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string): Account;
@@ -90,19 +89,18 @@ export declare class Account {
      * @returns {boolean}
      *
      * @example
-     * // Setup a connection to the Aleo network and an account
-     * let public_connection = new NodeConnection("vm.aleo.org/api");
-     * let ciphertext = "ciphertext1nnn"
-     * let account = Account.fromCiphertext(ciphertext, "password")
+     * // Create a connection to the Aleo network and an account
+     * let connection = new NodeConnection("vm.aleo.org/api");
+     * let account = Account.fromCiphertext("ciphertext", "password");
      *
      * // Get a record from the network
-     * let record = connection.getBlock(1234)
+     * let record = connection.getBlock(1234);
      * let recordCipherText = record.transactions[0].execution.transitions[0].id;
      *
      * // Check if the account owns the record
      * if account.ownsRecord(recordCipherText) {
-     *     // Do something like:
-     *     // Decrypt record and check if it's spent
+     *     // Then one can do something like:
+     *     // Decrypt the record and check if it's spent
      *     // Store the record in a local database
      *     // Etc.
      * }
