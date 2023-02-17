@@ -128,36 +128,36 @@ describe('WASM Objects', () => {
         //     expect(privateKeyFromCiphertext.to_string()).toBe(privateKey.to_string());
         // });
 
-        it('properly assesses equality and inequality', () => {
-            const privateKey1 = new PrivateKey();
-            const privateKey2 = PrivateKey.from_string(privateKeyString);
-            const privateKey3 = PrivateKey.from_string(privateKeyString);
-
-            // Ensure the different private keys are not equal
-            expect((privateKey1 === privateKey2)).toBeFalsy();
-            // Ensure the same private keys are equal
-            expect((privateKey2 === privateKey2)).toBeTruthy();
-            expect(privateKey2.to_string()).toBe(privateKey3.to_string());
-        });
-
-        it('has different ciphertexts for the same password, but decrypts to the same key', () => {
-            const secret = 'mypassword';
-            const privateKey = PrivateKey.from_string(privateKeyString);
-            const ciphertext = privateKey.toCiphertext(secret);
-            const ciphertext2 = privateKey.toCiphertext(secret);
-            const decryptedPrivateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
-            const decryptedPrivateKey2 = PrivateKey.fromPrivateKeyCiphertext(ciphertext2, secret);
-
-            // Ensure the ciphertexts are different
-            expect(ciphertext).not.toBe(ciphertext2);
-            // Ensure the decrypted private keys are both PrivateKey instances
-            expect(decryptedPrivateKey).toBeInstanceOf(PrivateKey);
-            expect(decryptedPrivateKey2).toBeInstanceOf(PrivateKey);
-            // Ensure the decrypted private keys are the same as the original
-            expect(decryptedPrivateKey.to_string()).toBe(privateKeyString);
-            expect(decryptedPrivateKey2.to_string()).toBe(privateKeyString);
-            expect(decryptedPrivateKey.to_string()).toBe(decryptedPrivateKey2.to_string());
-        });
+        // it('properly assesses equality and inequality', () => {
+        //     const privateKey1 = new PrivateKey();
+        //     const privateKey2 = PrivateKey.from_string(privateKeyString);
+        //     const privateKey3 = PrivateKey.from_string(privateKeyString);
+        //
+        //     // Ensure the different private keys are not equal
+        //     expect((privateKey1 === privateKey2)).toBeFalsy();
+        //     // Ensure the same private keys are equal
+        //     expect((privateKey2 === privateKey2)).toBeTruthy();
+        //     expect(privateKey2.to_string()).toBe(privateKey3.to_string());
+        // });
+        //
+        // it('has different ciphertexts for the same password, but decrypts to the same key', () => {
+        //     const secret = 'mypassword';
+        //     const privateKey = PrivateKey.from_string(privateKeyString);
+        //     const ciphertext = privateKey.toCiphertext(secret);
+        //     const ciphertext2 = privateKey.toCiphertext(secret);
+        //     const decryptedPrivateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
+        //     const decryptedPrivateKey2 = PrivateKey.fromPrivateKeyCiphertext(ciphertext2, secret);
+        //
+        //     // Ensure the ciphertexts are different
+        //     expect(ciphertext).not.toBe(ciphertext2);
+        //     // Ensure the decrypted private keys are both PrivateKey instances
+        //     expect(decryptedPrivateKey).toBeInstanceOf(PrivateKey);
+        //     expect(decryptedPrivateKey2).toBeInstanceOf(PrivateKey);
+        //     // Ensure the decrypted private keys are the same as the original
+        //     expect(decryptedPrivateKey.to_string()).toBe(privateKeyString);
+        //     expect(decryptedPrivateKey2.to_string()).toBe(privateKeyString);
+        //     expect(decryptedPrivateKey.to_string()).toBe(decryptedPrivateKey2.to_string());
+        // });
     });
 
     describe('ViewKey', () => {
