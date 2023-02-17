@@ -16,7 +16,7 @@
 
 #[macro_use]
 extern crate bencher;
-use snarkvm_wasm::{
+use snarkvm::console::{
     account::{Address, PrivateKey},
     network::Testnet3,
 };
