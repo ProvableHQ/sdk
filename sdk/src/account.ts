@@ -4,7 +4,6 @@ import {
   Signature,
   ViewKey,
   RecordCiphertext,
-  PrivateKeyCiphertext
 } from "@aleohq/wasm";
 
 interface AccountParam {
