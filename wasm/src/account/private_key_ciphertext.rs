@@ -53,7 +53,7 @@ impl PrivateKeyCiphertext {
         self.0.to_string()
     }
 
-    /// Gets the ciphertext string
+    /// Creates a PrivateKeyCiphertext from a string
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(ciphertext: String) -> Result<PrivateKeyCiphertext, String> {
         Self::try_from(ciphertext).map_err(|_| "Invalid ciphertext".to_string())
