@@ -179,7 +179,7 @@ jobs:
       - clear_environment:
           cache_key: aleo-executable-cache
 
-  leo-new:
+  aleo-new:
     docker:
       - image: cimg/rust:1.67
     resource_class: xlarge
@@ -201,3 +201,7 @@ workflows:
       - wasm
       - check-fmt
       - check-clippy
+      - aleo-executable
+      - aleo-new:
+          requires:
+            - aleo-executable
