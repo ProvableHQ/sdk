@@ -1,5 +1,4 @@
- echo "
-Downloading parameters. This may take a few minutes..."
+echo "Downloading parameters. This may take a few minutes..."
 
 # Create a new foo Leo project.
 $ALEO new foo || exit

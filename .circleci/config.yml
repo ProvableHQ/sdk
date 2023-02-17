@@ -190,7 +190,8 @@ jobs:
           name: aleo new
           command: |
             export ALEO=/home/circleci/project/project/bin/aleo
-            bash ./project/.circleci/aleo-new.sh
+            chmod +x ./project/.circleci/aleo-new.sh
+            ./project/.circleci/aleo-new.sh
 
 workflows:
   version: 2
