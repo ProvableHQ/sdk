@@ -1,4 +1,4 @@
-import { Address, PrivateKey, ViewKey, PrivateKeyCiphertext, Signature, RecordCiphertext, RecordPlaintext } from "@aleohq/wasm";
+import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext } from "@aleohq/wasm";
 import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignViewKeyString, recordPlaintextString } from './data/account-data';
 
 
