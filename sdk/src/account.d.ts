@@ -92,8 +92,8 @@ export declare class Account {
      * @example
      * // Setup a connection to the Aleo network and an account
      * let public_connection = new NodeConnection("vm.aleo.org/api");
-     * let seed = new Uint8Array([94, 91, 52, 251, 240, 230, 226, 35, 117, 253, 224, 210, 175, 13, 205, 120, 155, 214, 7, 169, 66, 62, 206, 50, 188, 40, 29, 122, 40, 250, 54, 18]);
-     * let account = new Account({seed: seed});
+     * let ciphertext = "ciphertext1nnn"
+     * let account = Account.fromCiphertext(ciphertext, "password")
      *
      * // Get a record from the network
      * let record = connection.getBlock(1234)
