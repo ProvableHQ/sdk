@@ -18,7 +18,7 @@ sleep 0.5
 done
 
 # Try to run `aleo run`.
-$ALEO run || exit
+$ALEO run hello 1u32 2u32 || exit
 
 # Remove the foo program.
 cd .. && rm -rf foo
