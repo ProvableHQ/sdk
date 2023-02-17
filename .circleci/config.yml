@@ -173,7 +173,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             cargo install --path . --root . --locked
-            export ALEO=/home/circleci/project/project/bin/aleo
+            export ALEO=/home/circleci/project/bin/aleo
             ./.circleci/aleo-new.sh
 
       - persist_to_workspace:
