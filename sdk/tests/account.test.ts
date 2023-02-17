@@ -2,6 +2,7 @@ import { Account } from '../src'
 import { PrivateKey, ViewKey, Address, RecordCiphertext } from '@aleohq/wasm';
 import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from './data/account-data';
 
+
 describe('Account', () => {
     describe('constructors', () => {
         test('creates a new account if no parameters are passed', () => {
@@ -129,6 +130,7 @@ describe('Account', () => {
             // Ensure the account doesn't identify the record ciphertext as its own from both string and object forms
             expect(account.ownsRecordCiphertext(foreignCiphertextString)).toBe(false);
             expect(account.ownsRecordCiphertext(recordCiphertext)).toBe(false);
+
         });
 
         test('decrypts an array of records in ciphertext form', () => {

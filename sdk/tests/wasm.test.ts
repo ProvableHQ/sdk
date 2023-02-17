@@ -1,6 +1,7 @@
 import { Address, PrivateKey, ViewKey, PrivateKeyCiphertext, Signature, RecordCiphertext, RecordPlaintext } from "@aleohq/wasm";
 import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignViewKeyString, recordPlaintextString } from './data/account-data';
 
+
 describe('WASM Objects', () => {
     describe('Address', () => {
         it('can be constructed from a private key', () => {
