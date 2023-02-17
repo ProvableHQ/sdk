@@ -174,7 +174,7 @@ jobs:
           command: |
             cargo install --path . --root . --locked
             export ALEO=/home/circleci/project/project/bin/aleo
-            ./project/.circleci/aleo-new.sh
+            ./.circleci/aleo-new.sh
 
       - persist_to_workspace:
           root: ~/
