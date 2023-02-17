@@ -38,6 +38,5 @@ pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
 pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 
 // Utility types
-pub type Encryptor = aleo_rust::Encryptor<CurrentNetwork>;
-pub type IdentiferNative = Identifier<CurrentNetwork>;
+pub type IdentifierNative = Identifier<CurrentNetwork>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;

@@ -4,7 +4,6 @@ import {
   Signature,
   ViewKey,
   RecordCiphertext,
-  PrivateKeyCiphertext
 } from "@aleohq/wasm";
 
 interface AccountParam {
@@ -57,25 +56,25 @@ export class Account {
     this.adr = Address.from_private_key(this.pk);
   }
 
-  /**
-   * Attempts to create an account from a private key ciphertext
-   * @param {PrivateKeyCiphertext | string} ciphertext
-   * @param {string} password
-   * @returns {PrivateKey | Error}
-   *
-   * @example
-   * let ciphertext = PrivateKey.newEncrypted("password");
-   * let account = Account.fromCiphertext(ciphertext, "password");
-   */
-  public static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string) {
-    try {
-      ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
-      const pk = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
-      return new Account({ privateKey: pk.to_string() });
-    } catch(e) {
-      throw new Error("Wrong password or invalid ciphertext");
-    }
-  }
+  // /**
+  //  * Attempts to create an account from a private key ciphertext
+  //  * @param {PrivateKeyCiphertext | string} ciphertext
+  //  * @param {string} password
+  //  * @returns {PrivateKey | Error}
+  //  *
+  //  * @example
+  //  * let ciphertext = PrivateKey.newEncrypted("password");
+  //  * let account = Account.fromCiphertext(ciphertext, "password");
+  //  */
+  // public static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string) {
+  //   try {
+  //     ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
+  //     const pk = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
+  //     return new Account({ privateKey: pk.to_string() });
+  //   } catch(e) {
+  //     throw new Error("Wrong password or invalid ciphertext");
+  //   }
+  // }
 
   private privateKeyFromParams(params: AccountParam) {
     if (params.seed) {
@@ -103,18 +102,18 @@ export class Account {
     return this.address().to_string()
   }
 
-  /**
-   * Encrypt the account's private key with a password
-   * @param {string} ciphertext
-   * @returns {PrivateKeyCiphertext}
-   *
-   * @example
-   * let account = new Account();
-   * let ciphertext = account.encryptAccount("password");
-   */
-  encryptAccount(password: string) {
-    return this.pk.toCiphertext(password);
-  }
+  // /**
+  //  * Encrypt the account's private key with a password
+  //  * @param {string} ciphertext
+  //  * @returns {PrivateKeyCiphertext}
+  //  *
+  //  * @example
+  //  * let account = new Account();
+  //  * let ciphertext = account.encryptAccount("password");
+  //  */
+  // encryptAccount(password: string) {
+  //   return this.pk.toCiphertext(password);
+  // }
 
   /**
    * Decrypts a Record in ciphertext form into plaintext

@@ -21,4 +21,3 @@ pub mod record;
 pub use record::*;
 
 pub(crate) mod types;
-pub(crate) use types::*;

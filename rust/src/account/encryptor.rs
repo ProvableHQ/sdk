@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_wasm::{
-    account::PrivateKey,
-    network::Network,
-    program::{Ciphertext, Identifier, Literal, Plaintext},
-    types::Field,
-    Uniform,
+use snarkvm::{
+    console::{
+        account::PrivateKey,
+        network::Network,
+        program::{Ciphertext, Identifier, Literal, Plaintext},
+        types::Field,
+    },
+    prelude::Uniform,
 };
 
 use anyhow::{anyhow, Result};
@@ -79,8 +81,8 @@ impl<N: Network> Encryptor<N> {
 
     // Extract a field element from a plaintext
     fn extract_value(plaintext: &Plaintext<N>, identifier: &str) -> Result<Field<N>> {
-        let identy = Identifier::from_str(identifier)?;
-        let value = plaintext.find(&[identy])?;
+        let identity = Identifier::from_str(identifier)?;
+        let value = plaintext.find(&[identity])?;
         match value {
             Plaintext::<N>::Literal(literal, ..) => match literal {
                 Literal::Field(recovered_value) => Ok(recovered_value),

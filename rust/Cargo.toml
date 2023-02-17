@@ -56,11 +56,6 @@ workspace = true
 features = [ "parallel" ]
 optional = true
 
-[dependencies.snarkvm-wasm]
-workspace = true
-features = [ "console", "utilities" ]
-optional = true
-
 [dev-dependencies.bencher]
 version = "0.1.5"
 
@@ -68,7 +63,6 @@ version = "0.1.5"
 version = "0.3.1"
 
 [features]
-default = [ "blocking", "snarkvm", "snarkvm-wasm" ]
+default = [ "blocking", "snarkvm" ]
 async = [ "reqwest" ]
 blocking = [ "ureq" ]
-wasm = [ "snarkvm-wasm" ]

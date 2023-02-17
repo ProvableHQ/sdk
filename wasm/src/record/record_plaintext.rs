@@ -16,7 +16,7 @@
 
 use crate::{
     account::PrivateKey,
-    types::{IdentiferNative, ProgramIDNative, RecordPlaintextNative},
+    types::{IdentifierNative, ProgramIDNative, RecordPlaintextNative},
 };
 
 use std::{ops::Deref, str::FromStr};
@@ -57,7 +57,7 @@ impl RecordPlaintext {
     ) -> Result<String, String> {
         let parsed_program_id =
             ProgramIDNative::from_str(program_id).map_err(|_| "Invalid ProgramID specified".to_string())?;
-        let record_identifier = IdentiferNative::from_str(record_name)
+        let record_identifier = IdentifierNative::from_str(record_name)
             .map_err(|_| "Invalid Identifier specified for record".to_string())?;
         let commitment = self
             .to_commitment(&parsed_program_id, &record_identifier)
