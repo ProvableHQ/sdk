@@ -5,6 +5,7 @@ import {useAleoWASM} from "../../aleo-wasm-hook";
 
 export const NewAccount = () => {
     const [account, setAccount] = useState(null);
+    const [signature, setSignature] = useState(null);
     const [loading, setLoading] = useState(false);
     const aleo = useAleoWASM();
 
@@ -15,11 +16,31 @@ export const NewAccount = () => {
             setLoading(false);
         }, 25);
     }
-    const clear = () => setAccount(null);
+    const signString = (str) => {
+        if (str === "" | account === null) return;
+        var arr = [];
+        for (var i = 0, l = str.length; i < l; i ++) {
+            var hex = Number(str.charCodeAt(i)).toString(16);
+            arr.push(hex);
+        }
+        return account.sign(Uint8Array.from(arr)).to_string();
+    }
+    const onMessageChange = (event) => {
+        try {
+            setSignature(signString(event.target.value))
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    const clear = () => {
+        setAccount(null);
+        setSignature(null);
+    }
 
     const privateKey = () => account !== null ? account.to_string() : "";
     const viewKey = () => account !== null ? account.to_view_key().to_string() : "";
     const address = () => account !== null ? account.to_address().to_string() : "";
+    const signatureString = () => signature !== null ? signature : "";
 
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
 
@@ -44,6 +65,17 @@ export const NewAccount = () => {
                         </Form.Item>
                         <Form.Item label="Address" colon={false}>
                             <Input size="large" placeholder="Address" value={address()}
+                                   addonAfter={<CopyButton data={address()}/>} disabled/>
+                        </Form.Item>
+                        <Divider/>
+                        <h3>Sign a Message With Your Private Key</h3>
+                        <Divider/>
+                        <Form.Item label="Message" colon={false}>
+                            <Input name="Message" size="large" placeholder="Message"
+                                   style={{borderRadius: '20px'}} onChange={onMessageChange}/>
+                        </Form.Item>
+                        <Form.Item label="Signature" colon={false}>
+                            <Input size="large" placeholder="Signature" value={signatureString()}
                                    addonAfter={<CopyButton data={address()}/>} disabled/>
                         </Form.Item>
                     </Form>
