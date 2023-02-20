@@ -37,7 +37,7 @@ export const DecryptRecord = () => {
                 setIsOwner(true);
             }
         } catch (error) {
-            console.error(error);
+            console.warn(error);
             try {
                 // If the ciphertext is valid, but the view key is not, then we can still display the info about ownership
                 aleo.RecordCiphertext.fromString(ciphertext);
@@ -45,7 +45,10 @@ export const DecryptRecord = () => {
             } catch (error) {
                 // If the ciphertext is invalid, then we can't display any info about ownership or the plaintext content
                 setIsOwner(null);
-                console.error(error);
+                console.warn(error);
+            }
+            if (plaintext !== null) {
+                setPlaintext(null);
             }
         }
     }
@@ -55,6 +58,12 @@ export const DecryptRecord = () => {
         setCiphertext(recordCipherTextString);
         setViewKey(viewKeyString);
         tryDecrypt(recordCipherTextString, viewKeyString);
+    }
+    const clearForm = async (event) => {
+        setCiphertext("");
+        setViewKey("");
+        setPlaintext(null);
+        setIsOwner(null);
     }
 
     const layout = {labelCol: {span: 4}, wrapperCol: {span: 21}};
@@ -73,10 +82,17 @@ export const DecryptRecord = () => {
                            value={viewKey} style={{borderRadius: '20px'}}/>
                 </Form.Item>
             </Form>
-            <Row justify="center">
-                <Col><Button type="primary" shape="round" size="large" onClick={populateForm}
-                             >Use Sample Record</Button></Col>
-            </Row>
+            {
+                (plaintext === null && isOwner === null && viewKey === "") ?
+                <Row justify="center">
+                    <Col><Button type="primary" shape="round" size="large" onClick={populateForm}
+                    >Use Sample Record</Button></Col>
+                </Row> :
+                    <Row justify="center">
+                        <Col><Button type="primary" shape="round" size="large" onClick={clearForm}
+                        >Clear</Button></Col>
+                    </Row>
+            }
             {
                 (plaintext !== null) ?
                     <Form {...layout}>

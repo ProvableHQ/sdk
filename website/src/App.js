@@ -1,12 +1,13 @@
 import './App.css';
 import React, {useState} from 'react';
-
 import {Layout, Menu} from 'antd';
-import {NewAccount} from "./tabs/account/NewAccount";
 import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
 import {DecryptRecord} from "./tabs/record/DecryptRecord";
 import {GetBlockByHeight} from "./tabs/rest/GetBlockByHeight";
 import {GetBlockByHash} from "./tabs/rest/GetBlockByHash";
+import {SignMessage} from "./tabs/account/SignMessage";
+import {VerifyMessage} from "./tabs/account/VerifyMessage";
+import {NewAccount} from "./tabs/account/NewAccount";
 
 const {Header, Content, Footer} = Layout;
 
@@ -30,6 +31,10 @@ function App() {
                         <NewAccount/>
                         <br/>
                         <AccountFromPrivateKey/>
+                        <br/>
+                        <SignMessage/>
+                        <br/>
+                        <VerifyMessage/>
                     </>
                 }
                 {

@@ -1,0 +1,68 @@
+import React, {useState} from "react";
+import {Card, Divider, Form, Input} from "antd";
+import {CopyButton} from "../../components/CopyButton";
+import {useAleoWASM} from "../../aleo-wasm-hook";
+import {stringToUint8Array} from "../../utils/Utils";
+
+export const SignMessage = () => {
+    const [signingAccount, setSigningAccount] = useState(null);
+    const [signingKey, setSigningKey] = useState(null);
+    const aleo = useAleoWASM();
+
+    const onKeyChange = (event) => {
+        setSigningAccount(null);
+        try {
+            setSigningAccount(aleo.PrivateKey.from_string(event.target.value))
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    const signString = (str) => {
+        if (str === "" | signingAccount === null) return;
+        return signingAccount.sign(stringToUint8Array(str)).to_string();
+    }
+    const onMessageChange = (event) => {
+        try {
+            setSigningKey(signString(event.target.value))
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
+
+    if (aleo !== null) {
+        const signatureString = () => signingKey !== null ? signingKey : "";
+
+        return <Card title="Sign Message with a Private Key" style={{width: "100%", borderRadius: "20px"}}
+                     bordered={false}>
+            <Form {...layout}>
+                <Form.Item label="Private Key" colon={false}>
+                    <Input name="privateKey" size="large" placeholder="Private Key" allowClear onChange={onKeyChange}
+                           style={{borderRadius: '20px'}}/>
+                </Form.Item>
+            </Form>
+            {
+                (signingAccount !== null) ?
+                    <Form {...layout}>
+                        <Divider/>
+                        <h3>Sign a Message With Your Private Key</h3>
+                        <Divider/>
+                        <Form.Item label="Message" colon={false}>
+                            <Input name="Message" size="large" placeholder="Message"
+                                   style={{borderRadius: '20px'}} onChange={onMessageChange}/>
+                        </Form.Item>
+                        <Form.Item label="Signature" colon={false}>
+                            <Input size="large" placeholder="Signature" value={signatureString()}
+                                   addonAfter={<CopyButton data={signatureString()}/>} disabled/>
+                        </Form.Item>
+                    </Form>
+                    : null
+            }
+        </Card>
+    } else {
+        return <h3>
+            <center>Loading...</center>
+        </h3>
+    }
+}
