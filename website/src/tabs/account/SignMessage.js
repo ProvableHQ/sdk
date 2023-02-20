@@ -7,6 +7,7 @@ import {stringToUint8Array} from "../../utils/Utils";
 export const SignMessage = () => {
     const [signingAccount, setSigningAccount] = useState(null);
     const [signingKey, setSigningKey] = useState(null);
+    const [message, setMessage] = useState(null);
     const aleo = useAleoWASM();
 
     const onKeyChange = (event) => {
@@ -19,6 +20,7 @@ export const SignMessage = () => {
         }
         finally {
             setSigningKey(null);
+            setMessage(null);
         }
     }
     const signString = (str) => {
@@ -26,6 +28,7 @@ export const SignMessage = () => {
         return signingAccount.sign(stringToUint8Array(str)).to_string();
     }
     const onMessageChange = (event) => {
+        setMessage(event.target.value);
         try {
             setSigningKey(signString(event.target.value))
         } catch (error) {
@@ -37,6 +40,8 @@ export const SignMessage = () => {
 
     if (aleo !== null) {
         const signatureString = () => signingKey !== null ? signingKey : "";
+        const messageString = () => message !== null ? message : "";
+
 
         return <Card title="Sign Message with a Private Key" style={{width: "100%", borderRadius: "20px"}}
                      bordered={false}>
@@ -50,8 +55,8 @@ export const SignMessage = () => {
                 (signingAccount) ?
                     <Form {...layout}>
                         <Form.Item label="Message" colon={false}>
-                            <Input name="Message" size="large" placeholder="Message"
-                                   style={{borderRadius: '20px'}} onChange={onMessageChange}/>
+                            <Input name="Message" size="large" placeholder="Message" value = {messageString()}
+                                   allowClear = {true} style={{borderRadius: '20px'}} onChange={onMessageChange}/>
                         </Form.Item>
                         <Form.Item label="Signature" colon={false}>
                             <Input size="large" placeholder="Signature" value={signatureString()}

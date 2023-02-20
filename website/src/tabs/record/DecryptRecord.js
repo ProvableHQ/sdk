@@ -4,8 +4,8 @@ import {CopyButton} from "../../components/CopyButton";
 import {useAleoWASM} from "../../aleo-wasm-hook";
 
 export const DecryptRecord = () => {
-    const [ciphertext, setCiphertext] = useState("");
-    const [viewKey, setViewKey] = useState("");
+    const [ciphertext, setCiphertext] = useState(null);
+    const [viewKey, setViewKey] = useState(null);
     const [plaintext, setPlaintext] = useState(null);
     const [isOwner, setIsOwner] = useState(null);
     const aleo = useAleoWASM();
@@ -60,8 +60,8 @@ export const DecryptRecord = () => {
         tryDecrypt(recordCipherTextString, viewKeyString);
     }
     const clearForm = async (event) => {
-        setCiphertext("");
-        setViewKey("");
+        setCiphertext(null);
+        setViewKey(null);
         setPlaintext(null);
         setIsOwner(null);
     }
@@ -70,31 +70,33 @@ export const DecryptRecord = () => {
 
     if (aleo !== null) {
         const recordPlaintext = () => plaintext !== null ? plaintext.toString() : "";
+        const viewKeyString = () => viewKey !== null ? viewKey.toString() : "";
+        const recordCipherTextString = () => ciphertext !== null ? ciphertext.toString() : "";
 
         return <Card title="Decrypt Record" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
             <Form {...layout}>
                 <Form.Item label="Record (Ciphertext)" colon={false}>
                     <Input name="recordCiphertext" size="large" placeholder="Record (Ciphertext)" allowClear onChange={onCiphertextChange}
-                           value={ciphertext} style={{borderRadius: '20px'}}/>
+                           value={recordCipherTextString()} style={{borderRadius: '20px'}}/>
                 </Form.Item>
                 <Form.Item label="View Key" colon={false}>
                     <Input name="viewKey" size="large" placeholder="View Key" allowClear onChange={onViewKeyChange}
-                           value={viewKey} style={{borderRadius: '20px'}}/>
+                           value={viewKeyString()} style={{borderRadius: '20px'}}/>
                 </Form.Item>
             </Form>
             {
-                (plaintext === null && isOwner === null && viewKey === "") ?
-                <Row justify="center">
-                    <Col><Button type="primary" shape="round" size="middle" onClick={populateForm}
-                    >Use Sample Record</Button></Col>
-                </Row> :
+                (ciphertext || viewKey) ?
                 <Row justify="center">
                     <Col><Button type="primary" shape="round" size="middle" onClick={clearForm}
                     >Clear</Button></Col>
+                </Row> :
+                <Row justify="center">
+                    <Col><Button type="primary" shape="round" size="middle" onClick={populateForm}
+                    >Use Sample Record</Button></Col>
                 </Row>
             }
             {
-                (plaintext !== null) ?
+                (plaintext) ?
                     <Form {...layout}>
                         <Divider/>
                         <Form.Item label="Record (Plaintext)" colon={false}>
@@ -102,18 +104,20 @@ export const DecryptRecord = () => {
                                    addonAfter={<CopyButton data={recordPlaintext()} style={{borderRadius: '20px'}}/>} disabled/>
                         </Form.Item>
                         <Row justify="center">
-                            <Alert message="Record Verified!" description="Specified view key owns the record"
+                            <Alert message="Record Verified!" description="Given view key owns the record"
                                    type="success" showIcon closable={true} />
                         </Row>
                     </Form>
-                    : (isOwner === false) ?
+                    :
+                    (isOwner === false) ?
                         <Row justify="center">
                             <Divider/>
                             <Alert message="Record Unverified"
-                                   description="The given record ciphertext is valid, but the specified view key doesn't own it"
+                                   description="The given record ciphertext is valid, but the given view key doesn't own it"
                                    type="warning" showIcon closable={true} />
                         </Row>
-                        : null
+                        :
+                        null
             }
         </Card>
     } else {

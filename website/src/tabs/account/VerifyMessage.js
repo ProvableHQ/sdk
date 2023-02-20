@@ -31,6 +31,11 @@ export const VerifyMessage = () => {
             setInputAddress(null);
             console.warn(error);
         }
+        finally {
+            setVerified(false);
+            setMessageInput(null);
+            setSignatureInput(null);
+        }
     }
     const onMessageChange = (event) => {
         setMessageInput(event.target.value);
@@ -47,6 +52,8 @@ export const VerifyMessage = () => {
         attemptVerify()
     }, [messageInput, signatureInput, inputAddress, verified]);
     if (aleo !== null) {
+        const messageString = () => messageInput !== null ? messageInput.toString() : "";
+        const signatureString = () => signatureInput !== null ? signatureInput.toString() : "";
         return <Card title="Verify Message from Address" style={{width: "100%", borderRadius: "20px"}}
                      bordered={false}>
             <Form {...layout}>
@@ -60,11 +67,11 @@ export const VerifyMessage = () => {
                     <Form {...layout}>
                         <Divider/>
                         <Form.Item label="Message" colon={false}>
-                            <Input name="Message" size="large" placeholder="Message"
+                            <Input name="Message" size="large" placeholder="Message" value={messageString()}
                                    style={{borderRadius: '20px'}} onChange={onMessageChange} />
                         </Form.Item>
                         <Form.Item label="Signature" colon={false}>
-                            <Input name="Signature" size="large" placeholder="Signature"
+                            <Input name="Signature" size="large" placeholder="Signature" value={signatureString()}
                                    style={{borderRadius: '20px'}} onChange={onSignatureChange}/>
                         </Form.Item>
                     </Form> :
@@ -74,11 +81,12 @@ export const VerifyMessage = () => {
                 (inputAddress && messageInput && signatureInput) ?
                     (verified) ?
                         <Row justify="center">
-                            <Alert message="Message Verified!" description="Message Was Signed By the Specified Address"
+                            <Alert message="Message Verified!" description="Message Was Signed By the Given Address"
                                    type="success" showIcon closable={true} />
                         </Row>
-                        :                     <Row justify="center">
-                            <Alert message="Message Unverified" description="Message Was Not Signed By the Specified Address"
+                        :
+                        <Row justify="center">
+                            <Alert message="Message Unverified" description="Message and Signature Did Not Match for the Given Address"
                                    type="warning" showIcon closable={true} />
                         </Row>
                     :
