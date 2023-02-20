@@ -42,7 +42,6 @@ export const SignMessage = () => {
         const signatureString = () => signingKey !== null ? signingKey : "";
         const messageString = () => message !== null ? message : "";
 
-
         return <Card title="Sign Message with a Private Key" style={{width: "100%", borderRadius: "20px"}}
                      bordered={false}>
             <Form {...layout}>
