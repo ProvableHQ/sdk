@@ -5,7 +5,7 @@ import {CopyButton} from "../../components/CopyButton";
 
 export const GetBlockByHash = () => {
     const [hash, setHash] = useState(null);
-    const [blockByBash, setBlockByBash] = useState(null);
+    const [blockByHash, setBlockByHash] = useState(null);
 
     const onChange = (event) => {
         setHash(null);
@@ -18,11 +18,11 @@ export const GetBlockByHash = () => {
     }
 
     const tryRequest = (hash) => {
-        setBlockByBash(null);
+        setBlockByHash(null);
         try {
             if (hash) {
                 axios.get(`https://vm.aleo.org/api/testnet3/block/${hash}`)
-                    .then(response => setBlockByBash(JSON.stringify(response.data, null, 2)));
+                    .then(response => setBlockByHash(JSON.stringify(response.data, null, 2)));
             }
         } catch (error) {
             console.error(error);
@@ -31,7 +31,7 @@ export const GetBlockByHash = () => {
 
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
 
-    const blockString = () => blockByBash !== null ? blockByBash.toString() : "";
+    const blockString = () => blockByHash !== null ? blockByHash.toString() : "";
 
     return <Card title="Get Block By Hash" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
         <Form {...layout}>
@@ -41,7 +41,7 @@ export const GetBlockByHash = () => {
             </Form.Item>
         </Form>
         {
-            (blockByBash !== null) ?
+            (blockByHash !== null) ?
                 <Form {...layout}>
                     <Divider/>
                     <Form.Item label="Block" colon={false}>
