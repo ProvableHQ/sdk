@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Button, Card, Col, Divider, Form, Input, Row} from "antd";
+import {Alert, Button, Card, Col, Divider, Form, Input, Row} from "antd";
 import {CopyButton} from "../../components/CopyButton";
 import {useAleoWASM} from "../../aleo-wasm-hook";
 
@@ -85,13 +85,13 @@ export const DecryptRecord = () => {
             {
                 (plaintext === null && isOwner === null && viewKey === "") ?
                 <Row justify="center">
-                    <Col><Button type="primary" shape="round" size="large" onClick={populateForm}
+                    <Col><Button type="primary" shape="round" size="middle" onClick={populateForm}
                     >Use Sample Record</Button></Col>
                 </Row> :
-                    <Row justify="center">
-                        <Col><Button type="primary" shape="round" size="large" onClick={clearForm}
-                        >Clear</Button></Col>
-                    </Row>
+                <Row justify="center">
+                    <Col><Button type="primary" shape="round" size="middle" onClick={clearForm}
+                    >Clear</Button></Col>
+                </Row>
             }
             {
                 (plaintext !== null) ?
@@ -101,12 +101,17 @@ export const DecryptRecord = () => {
                             <Input size="large" placeholder="Record (Plaintext)" value={recordPlaintext()}
                                    addonAfter={<CopyButton data={recordPlaintext()} style={{borderRadius: '20px'}}/>} disabled/>
                         </Form.Item>
-                        <h3><center>Specified view key owns record</center></h3>
+                        <Row justify="center">
+                            <Alert message="Record Verified!" description="Specified view key owns the record"
+                                   type="success" showIcon closable={true} />
+                        </Row>
                     </Form>
                     : (isOwner === false) ?
                         <Row justify="center">
                             <Divider/>
-                            <h3><center>Record ciphertext is valid, but the specified view key doesn't own it</center></h3>
+                            <Alert message="Record Unverified"
+                                   description="The given record ciphertext is valid, but the specified view key doesn't own it"
+                                   type="warning" showIcon closable={true} />
                         </Row>
                         : null
             }

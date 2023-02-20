@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Card, Divider, Form, Input, Row} from "antd";
+import {Alert, Card, Divider, Form, Input, Row} from "antd";
 import {useAleoWASM} from "../../aleo-wasm-hook";
 import {stringToUint8Array} from "../../utils/Utils";
 
@@ -14,13 +14,10 @@ export const VerifyMessage = () => {
     const attemptVerify = () => {
         if (messageInput !== null && signatureInput !== null && inputAddress !== null) {
             try {
-                console.log("message input is :" + messageInput);
                 let messageBytes = stringToUint8Array(messageInput);
                 let signature = aleo.Signature.from_string(signatureInput);
                 let isVerified = inputAddress.verify(messageBytes, signature);
                 setVerified(isVerified);
-                console.log("verified is: " + isVerified.toString());
-                console.log("verification state is " + verified.toString());
             } catch (error) {
                 console.warn(error);
                 setVerified(false);
@@ -47,9 +44,7 @@ export const VerifyMessage = () => {
         if ( !didMount.current ) {
             return didMount.current = true;
         }
-        if (messageInput !== null && signatureInput !== null && inputAddress !== null) {
-            attemptVerify()
-        }
+        attemptVerify()
     }, [messageInput, signatureInput, inputAddress, verified]);
     if (aleo !== null) {
         return <Card title="Verify Message from Address" style={{width: "100%", borderRadius: "20px"}}
@@ -61,7 +56,7 @@ export const VerifyMessage = () => {
                 </Form.Item>
             </Form>
             {
-                (inputAddress !== null) ?
+                (inputAddress) ?
                     <Form {...layout}>
                         <Divider/>
                         <Form.Item label="Message" colon={false}>
@@ -76,12 +71,18 @@ export const VerifyMessage = () => {
                     null
             }
             {
-                verified ?
-                    <Row justify="center">
-                        <Divider/>
-                        <h3><center>Message Verified! Message Was Signed By the Specified Address</center></h3>
-                    </Row>
-                    : null
+                (inputAddress && messageInput && signatureInput) ?
+                    (verified) ?
+                        <Row justify="center">
+                            <Alert message="Message Verified!" description="Message Was Signed By the Specified Address"
+                                   type="success" showIcon closable={true} />
+                        </Row>
+                        :                     <Row justify="center">
+                            <Alert message="Message Unverified" description="Message Was Not Signed By the Specified Address"
+                                   type="warning" showIcon closable={true} />
+                        </Row>
+                    :
+                    null
             }
         </Card>
     } else {

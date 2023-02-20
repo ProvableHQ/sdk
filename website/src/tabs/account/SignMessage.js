@@ -13,8 +13,12 @@ export const SignMessage = () => {
         setSigningAccount(null);
         try {
             setSigningAccount(aleo.PrivateKey.from_string(event.target.value))
+            onMessageChange()
         } catch (error) {
             console.error(error);
+        }
+        finally {
+            setSigningKey(null);
         }
     }
     const signString = (str) => {
@@ -43,11 +47,8 @@ export const SignMessage = () => {
                 </Form.Item>
             </Form>
             {
-                (signingAccount !== null) ?
+                (signingAccount) ?
                     <Form {...layout}>
-                        <Divider/>
-                        <h3>Sign a Message With Your Private Key</h3>
-                        <Divider/>
                         <Form.Item label="Message" colon={false}>
                             <Input name="Message" size="large" placeholder="Message"
                                    style={{borderRadius: '20px'}} onChange={onMessageChange}/>
