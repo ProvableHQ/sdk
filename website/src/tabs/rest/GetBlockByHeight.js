@@ -4,13 +4,10 @@ import axios from "axios";
 import {CopyButton} from "../../components/CopyButton";
 
 export const GetBlockByHeight = () => {
-    const [height, setHeight] = useState(null);
     const [blockByHeight, setBlockByHeight] = useState(null);
 
     const onChange = (event) => {
-        setHeight(null);
         try {
-            setHeight(event.target.value);
             tryRequest(event.target.value);
         } catch (error) {
             console.error(error);
