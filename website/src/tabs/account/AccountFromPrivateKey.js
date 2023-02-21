@@ -4,13 +4,13 @@ import {CopyButton} from "../../components/CopyButton";
 import {useAleoWASM} from "../../aleo-wasm-hook";
 
 export const AccountFromPrivateKey = () => {
-    const [account, setAccount] = useState(null);
+    const [accountFromPrivateKey, setAccountFromPrivateKey] = useState(null);
     const aleo = useAleoWASM();
 
     const onChange = (event) => {
-        setAccount(null);
+        setAccountFromPrivateKey(null);
         try {
-            setAccount(aleo.PrivateKey.from_string(event.target.value))
+            setAccountFromPrivateKey(aleo.PrivateKey.from_string(event.target.value))
         } catch (error) {
             console.error(error);
         }
@@ -19,8 +19,8 @@ export const AccountFromPrivateKey = () => {
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
 
     if (aleo !== null) {
-        const viewKey = () => account !== null ? account.to_view_key().to_string() : "";
-        const address = () => account !== null ? account.to_address().to_string() : "";
+        const viewKey = () => accountFromPrivateKey !== null ? accountFromPrivateKey.to_view_key().to_string() : "";
+        const address = () => accountFromPrivateKey !== null ? accountFromPrivateKey.to_address().to_string() : "";
 
         return <Card title="Load Account from Private Key" style={{width: "100%", borderRadius: "20px"}}
                      bordered={false}>
@@ -31,7 +31,7 @@ export const AccountFromPrivateKey = () => {
                 </Form.Item>
             </Form>
             {
-                (account !== null) ?
+                (accountFromPrivateKey !== null) ?
                     <Form {...layout}>
                         <Divider/>
                         <Form.Item label="View Key" colon={false}>
