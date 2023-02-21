@@ -85,6 +85,7 @@ impl Command {
             Self::Build(command) => command.parse(),
             Self::Clean(command) => command.parse(),
             Self::Deploy(command) => command.parse(),
+            Self::Info(command) => command.parse(),
             Self::New(command) => command.parse(),
             // Self::Node(command) => command.parse(),
             Self::Run(command) => command.parse(),

@@ -24,4 +24,4 @@ pub mod errors;
 pub mod helpers;
 
 pub type Network = snarkvm::prelude::Testnet3;
-pub type Aleo = snarkvm::circuit::AleoV0;
+pub type Aleo = snarkvm::circuit::FormalV0;

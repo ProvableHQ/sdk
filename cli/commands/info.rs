@@ -46,9 +46,9 @@ impl Info {
         let results = package.info::<Aleo>(self.endpoint)?;
 
         // Print the results.
-        for (function_name, circuit_json) in results {
-            let output = serde_json::to_string_pretty(&circuit_json).unwrap();
-            println!("\nOutputting the JSON representation for '{}'", function_name.bold());
+        for (function_name, transcript) in results {
+            let output = serde_json::to_string_pretty(&transcript).unwrap();
+            println!("\nOutputting the JSON representation for '{}'", function_name.to_string().bold());
             println!("{}\n", output);
         }
 
