@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.3.4"
+version = "0.3.5"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
@@ -12,7 +12,7 @@ keywords = [
   "decentralized",
   "zero-knowledge"
 ]
-categories = [ "cryptography::cryptocurrencies", "operating-systems" ]
+categories = [ "cryptography::cryptocurrencies" ]
 include = [ "Cargo.toml", "src", "README.md", "LICENSE.md" ]
 license = "GPL-3.0"
 edition = "2021"
@@ -38,7 +38,7 @@ version = "1.0"
 
 [dependencies.snarkvm-wasm]
 workspace = true
-features = ["console", "fields", "utilities"]
+features = [ "console", "fields", "utilities" ]
 
 [dependencies.wasm-bindgen]
 version = "0.2"
