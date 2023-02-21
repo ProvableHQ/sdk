@@ -6,7 +6,7 @@ commands:
     parameters:
       cache_key:
         type: string
-        default: snarkvm-stable-cache
+        default: aleo-stable-cache
     steps:
       - run: set -e
       - setup_remote_docker
@@ -33,7 +33,7 @@ commands:
     parameters:
       cache_key:
         type: string
-        default: snarkvm-stable-cache
+        default: aleo-stable-cache
     steps:
       - run: (sccache -s||true)
       - run: set +e
@@ -93,7 +93,7 @@ commands:
 jobs:
   rust_stable:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: xlarge
     steps:
       - run_serial:
@@ -102,12 +102,12 @@ jobs:
 
   wasm:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: 2xlarge
     steps:
       - checkout
       - setup_environment:
-          cache_key: snarkvm-wasm-cache
+          cache_key: aleo-wasm-cache
       - run:
           no_output_timeout: 30m
           command: |
@@ -124,16 +124,16 @@ jobs:
             yarn build
             yarn test
       - clear_environment:
-          cache_key: snarkvm-wasm-cache
+          cache_key: aleo-wasm-cache
 
   check-fmt:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: xlarge
     steps:
       - checkout
       - setup_environment:
-          cache_key: snarkvm-fmt-cache
+          cache_key: aleo-fmt-cache
       - run:
           name: Check style
           no_output_timeout: 35m
@@ -141,16 +141,16 @@ jobs:
             rustup toolchain install nightly-x86_64-unknown-linux-gnu
             cargo +nightly fmt --all -- --check
       - clear_environment:
-          cache_key: snarkvm-fmt-cache
+          cache_key: aleo-fmt-cache
 
   check-clippy:
     docker:
-      - image: cimg/rust:1.65
+      - image: cimg/rust:1.67
     resource_class: 2xlarge
     steps:
       - checkout
       - setup_environment:
-          cache_key: snarkos-clippy-cache
+          cache_key: aleo-clippy-cache
       - run:
           name: Check lint
           no_output_timeout: 35m
@@ -158,7 +158,30 @@ jobs:
             cargo clippy --workspace --all-targets -- -D warnings
             cargo clippy --workspace --all-targets --all-features -- -D warnings
       - clear_environment:
-          cache_key: snarkos-clippy-cache
+          cache_key: aleo-clippy-cache
+
+  aleo-executable:
+    docker:
+      - image: cimg/rust:1.67
+    resource_class: xlarge
+    steps:
+      - checkout
+      - setup_environment:
+          cache_key: aleo-executable-cache
+      - run:
+          name: Build and install Aleo CLI
+          no_output_timeout: 30m
+          command: |
+            cargo install --path . --root . --locked
+            export ALEO=/home/circleci/project/bin/aleo
+            ./.circleci/aleo-new.sh
+
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/
+      - clear_environment:
+          cache_key: aleo-executable-cache
 
 workflows:
   version: 2
@@ -169,3 +192,4 @@ workflows:
       - wasm
       - check-fmt
       - check-clippy
+      - aleo-executable

@@ -23,6 +23,6 @@ Happy hacking!
 
 [Aleo SDK account generator](https://aleohq.github.io/aleo/)
 
-[Aleo web](https://www.aleo.org/)
+[Aleo Home](https://www.aleo.org/)
 
 You can visit the [SnarkVM repo](https://github.com/AleoHQ/snarkVM) and [SnarkOS repo](https://github.com/AleoHQ/snarkOS) to go deep into the code of aleo infrastructure
