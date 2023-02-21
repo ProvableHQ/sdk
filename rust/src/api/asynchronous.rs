@@ -17,13 +17,11 @@
 use crate::AleoAPIClient;
 
 use anyhow::{anyhow, bail, Result};
-use snarkvm::{
-    console::{
-        program::{Network, ProgramID},
-        types::Field,
-    },
-    synthesizer::{Block, Program, Transaction},
+use snarkvm_console::{
+    program::{Network, ProgramID},
+    types::Field,
 };
+use snarkvm_synthesizer::{Block, Program, Transaction};
 use std::convert::TryInto;
 
 impl<N: Network> AleoAPIClient<N> {

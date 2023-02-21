@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{CiphertextNative, Encryptor, PrivateKey};
+use crate::{
+    account::PrivateKey,
+    types::{CiphertextNative, Encryptor},
+};
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;

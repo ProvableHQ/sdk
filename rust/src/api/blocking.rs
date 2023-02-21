@@ -17,14 +17,12 @@
 use crate::AleoAPIClient;
 
 use anyhow::{anyhow, bail, Result};
-use snarkvm::{
-    console::{
-        account::ViewKey,
-        program::{Ciphertext, Network, ProgramID, Record},
-        types::Field,
-    },
-    synthesizer::{Block, Program, Transaction},
+use snarkvm_console::{
+    account::ViewKey,
+    program::{Ciphertext, Network, ProgramID, Record},
+    types::Field,
 };
+use snarkvm_synthesizer::{Block, Program, Transaction};
 use std::{convert::TryInto, ops::Range};
 
 #[cfg(not(feature = "async"))]
@@ -174,7 +172,7 @@ mod tests {
     use super::*;
 
     use crate::testnet3;
-    use snarkvm::console::{account::PrivateKey, network::Testnet3};
+    use snarkvm_console::{account::PrivateKey, network::Testnet3};
     use std::{convert::TryFrom, str::FromStr};
 
     type N = Testnet3;

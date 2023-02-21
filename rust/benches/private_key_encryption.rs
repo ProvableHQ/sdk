@@ -18,7 +18,7 @@
 extern crate bencher;
 
 use aleo_rust::Encryptor;
-use snarkvm::console::{account::PrivateKey, network::Testnet3};
+use snarkvm_console::{account::PrivateKey, network::Testnet3};
 
 use bencher::Bencher;
 use rand::SeedableRng;

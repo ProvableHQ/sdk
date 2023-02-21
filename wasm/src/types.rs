@@ -20,6 +20,7 @@ use snarkvm_wasm::{
     program::{Ciphertext, Identifier, Plaintext, ProgramID, Record},
 };
 
+pub use aleo_rust::Encryptor;
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
 
 // Account types

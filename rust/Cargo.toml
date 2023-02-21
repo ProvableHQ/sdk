@@ -46,15 +46,25 @@ default-features = false
 
 [dependencies.ureq]
 version = "2.6.2"
+features = [ "json" ]
 optional = true
 
 [dependencies.serde_json]
 version = "1.0.91"
 
-[dependencies.snarkvm]
-workspace = true
+[dependencies.snarkvm-console]
+features = [ "parallel", "wasm" ]
+optional = true
+version = "0.9.13"
+
+[dependencies.snarkvm-synthesizer]
 features = [ "parallel" ]
 optional = true
+version = "0.9.13"
+
+[dependencies.snarkvm-utilities]
+features = [ "parallel" ]
+version = "0.9.13"
 
 [dev-dependencies.bencher]
 version = "0.1.5"
@@ -63,6 +73,7 @@ version = "0.1.5"
 version = "0.3.1"
 
 [features]
-default = [ "blocking", "snarkvm" ]
+default = [ "blocking", "snarkvm-synthesizer", "snarkvm-console" ]
 async = [ "reqwest" ]
 blocking = [ "ureq" ]
+wasm = [ "snarkvm-console" ]
