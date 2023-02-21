@@ -4,13 +4,10 @@ import axios from "axios";
 import {CopyButton} from "../../components/CopyButton";
 
 export const GetBlockByHeight = () => {
-    const [height, setHeight] = useState(null);
-    const [block, setBlock] = useState(null);
+    const [blockByHeight, setBlockByHeight] = useState(null);
 
     const onChange = (event) => {
-        setHeight(null);
         try {
-            setHeight(event.target.value);
             tryRequest(event.target.value);
         } catch (error) {
             console.error(error);
@@ -18,11 +15,11 @@ export const GetBlockByHeight = () => {
     }
 
     const tryRequest = (height) => {
-        setBlock(null);
+        setBlockByHeight(null);
         try {
             if (height) {
                 axios.get(`https://vm.aleo.org/api/testnet3/block/${height}`)
-                    .then(response => setBlock(JSON.stringify(response.data, null, 2)));
+                    .then(response => setBlockByHeight(JSON.stringify(response.data, null, 2)));
             }
         } catch (error) {
             console.error(error);
@@ -31,7 +28,7 @@ export const GetBlockByHeight = () => {
 
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
 
-    const blockString = () => block !== null ? block.toString() : "";
+    const blockString = () => blockByHeight !== null ? blockByHeight.toString() : "";
 
     return <Card title="Get Block By Height" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
         <Form {...layout}>
@@ -41,7 +38,7 @@ export const GetBlockByHeight = () => {
             </Form.Item>
         </Form>
         {
-            (block !== null) ?
+            (blockByHeight !== null) ?
                 <Form {...layout}>
                     <Divider/>
                     <Form.Item label="Block" colon={false}>

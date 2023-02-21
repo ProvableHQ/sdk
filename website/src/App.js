@@ -2,11 +2,15 @@ import './App.css';
 import React, {useState} from 'react';
 
 import {Layout, Menu} from 'antd';
-import {NewAccount} from "./tabs/account/NewAccount";
 import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
 import {DecryptRecord} from "./tabs/record/DecryptRecord";
-import {GetBlockByHeight} from "./tabs/rest/GetBlockByHeight";
 import {GetBlockByHash} from "./tabs/rest/GetBlockByHash";
+import {GetBlockByHeight} from "./tabs/rest/GetBlockByHeight";
+import {NewAccount} from "./tabs/account/NewAccount";
+import {GetLatestBlock} from "./tabs/rest/GetLatestBlock";
+import {GetLatestBlockHeight} from "./tabs/rest/GetLatestBlockHeight";
+import {GetProgram} from "./tabs/rest/GetProgram";
+import {GetTransaction} from "./tabs/rest/GetTransaction";
 
 const {Header, Content, Footer} = Layout;
 
@@ -41,9 +45,17 @@ function App() {
                 {
                     menuIndex === 2 &&
                     <>
+                        <GetLatestBlockHeight/>
+                        <br/>
+                        <GetLatestBlock/>
+                        <br/>
                         <GetBlockByHeight/>
                         <br/>
                         <GetBlockByHash/>
+                        <br/>
+                        <GetProgram/>
+                        <br/>
+                        <GetTransaction/>
                     </>
                 }
             </Content>
