@@ -48,7 +48,7 @@ impl Info {
         // Print the results.
         for (function_name, transcript) in results {
             let output = serde_json::to_string_pretty(&transcript).unwrap();
-            println!("\nOutputting the JSON representation for '{}'", function_name.to_string().bold());
+            println!("\nOutputting the transcript for '{}'", function_name.to_string().bold());
             println!("{}\n", output);
         }
 
