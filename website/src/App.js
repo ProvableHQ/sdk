@@ -2,6 +2,7 @@ import './App.css';
 import React, {useState} from 'react';
 import {Layout, Menu} from 'antd';
 import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
+import {DecryptAccount} from "./tabs/account/DecryptAccount";
 import {DecryptRecord} from "./tabs/record/DecryptRecord";
 import {GetBlockByHeight} from "./tabs/rest/GetBlockByHeight";
 import {GetBlockByHash} from "./tabs/rest/GetBlockByHash";
@@ -31,6 +32,8 @@ function App() {
                         <NewAccount/>
                         <br/>
                         <AccountFromPrivateKey/>
+                        <br/>
+                        <DecryptAccount/>
                         <br/>
                         <SignMessage/>
                         <br/>
