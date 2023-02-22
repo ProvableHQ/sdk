@@ -40,6 +40,7 @@ export const NewAccount = () => {
             console.log("encrypted account: " + encryptedPrivateKey());
         }
     }
+
     const privateKey = () => account !== null ? account.to_string() : "";
     const viewKey = () => account !== null ? account.to_view_key().to_string() : "";
     const address = () => account !== null ? account.to_address().to_string() : "";

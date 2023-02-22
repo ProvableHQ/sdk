@@ -4,13 +4,10 @@ import axios from "axios";
 import {CopyButton} from "../../components/CopyButton";
 
 export const GetBlockByHash = () => {
-    const [hash, setHash] = useState(null);
     const [blockByHash, setBlockByHash] = useState(null);
 
     const onChange = (event) => {
-        setHash(null);
         try {
-            setHash(event.target.value);
             tryRequest(event.target.value);
         } catch (error) {
             console.error(error);

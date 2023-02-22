@@ -4,11 +4,15 @@ import {Layout, Menu} from 'antd';
 import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
 import {DecryptAccount} from "./tabs/account/DecryptAccount";
 import {DecryptRecord} from "./tabs/record/DecryptRecord";
-import {GetBlockByHeight} from "./tabs/rest/GetBlockByHeight";
 import {GetBlockByHash} from "./tabs/rest/GetBlockByHash";
+import {GetBlockByHeight} from "./tabs/rest/GetBlockByHeight";
+import {GetLatestBlock} from "./tabs/rest/GetLatestBlock";
+import {GetLatestBlockHeight} from "./tabs/rest/GetLatestBlockHeight";
+import {GetProgram} from "./tabs/rest/GetProgram";
+import {GetTransaction} from "./tabs/rest/GetTransaction";
+import {NewAccount} from "./tabs/account/NewAccount";
 import {SignMessage} from "./tabs/account/SignMessage";
 import {VerifyMessage} from "./tabs/account/VerifyMessage";
-import {NewAccount} from "./tabs/account/NewAccount";
 
 const {Header, Content, Footer} = Layout;
 
@@ -49,9 +53,17 @@ function App() {
                 {
                     menuIndex === 2 &&
                     <>
+                        <GetLatestBlockHeight/>
+                        <br/>
+                        <GetLatestBlock/>
+                        <br/>
                         <GetBlockByHeight/>
                         <br/>
                         <GetBlockByHash/>
+                        <br/>
+                        <GetProgram/>
+                        <br/>
+                        <GetTransaction/>
                     </>
                 }
             </Content>
