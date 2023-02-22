@@ -53,7 +53,7 @@ optional = true
 version = "1.0.91"
 
 [dependencies.snarkvm-console]
-features = [ "parallel", "wasm" ]
+features = [ "parallel" ]
 optional = true
 version = "0.9.13"
 
