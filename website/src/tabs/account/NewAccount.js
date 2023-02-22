@@ -12,6 +12,7 @@ export const NewAccount = () => {
 
     const generateAccount = async () => {
         setLoading(true);
+        setEncryptedAccount(null);
         setTimeout(() => {
             setAccount(new aleo.PrivateKey());
             setLoading(false);

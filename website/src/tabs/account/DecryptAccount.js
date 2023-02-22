@@ -11,7 +11,9 @@ export const DecryptAccount = () => {
 
     const onCiphertextChange = (event) => {
         try {
-            setInputCiphertext(aleo.PrivateKeyCiphertext.fromString(event.target.value));
+            let ciphertext = aleo.PrivateKeyCiphertext.fromString(event.target.value);
+            setInputCiphertext(ciphertext);
+            setAccountFromCiphertext(ciphertext.decryptToPrivateKey(inputPassword));
         } catch (error) {
             setAccountFromCiphertext(null);
             console.error(error);
