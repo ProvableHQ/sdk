@@ -21,6 +21,10 @@ pub use blocking::*;
 
 #[cfg(feature = "async")]
 pub mod asynchronous;
+
+pub mod config;
+pub use config::*;
+
 #[cfg(feature = "async")]
 pub use asynchronous::*;
 
@@ -33,7 +37,7 @@ pub struct AleoAPIClient<N: Network> {
     #[cfg(not(feature = "async"))]
     client: ureq::Agent,
     base_url: String,
-    chain: String,
+    network_id: String,
     _network: PhantomData<N>,
 }
 
@@ -43,13 +47,25 @@ impl<N: Network> AleoAPIClient<N> {
         let client = reqwest::Client::new();
         #[cfg(not(feature = "async"))]
         let client = ureq::Agent::new();
-        AleoAPIClient { client, base_url: base_url.to_string(), chain: chain.to_string(), _network: PhantomData }
+        AleoAPIClient { client, base_url: base_url.to_string(), network_id: chain.to_string(), _network: PhantomData }
     }
 }
 
 impl Default for AleoAPIClient<Testnet3> {
     fn default() -> Self {
         AleoAPIClient::new("https://vm.aleo.org/api/", "testnet3")
+    }
+}
+
+impl<N: Network> From<&NetworkConfig> for AleoAPIClient<N> {
+    fn from(config: &NetworkConfig) -> Self {
+        AleoAPIClient::new(config.node_uri(), config.network_id())
+    }
+}
+
+impl<N: Network> From<NetworkConfig> for AleoAPIClient<N> {
+    fn from(config: NetworkConfig) -> Self {
+        AleoAPIClient::new(config.node_uri(), config.network_id())
     }
 }
 
