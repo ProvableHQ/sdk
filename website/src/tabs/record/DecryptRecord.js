@@ -73,7 +73,11 @@ export const DecryptRecord = () => {
         const viewKeyString = () => viewKey !== null ? viewKey.toString() : "";
         const recordCipherTextString = () => ciphertext !== null ? ciphertext.toString() : "";
 
-        return <Card title="Decrypt Record" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
+        return <Card title="Decrypt Record"
+                     style={{width: "100%", borderRadius: "20px"}}
+                     bordered={false}
+                     extra={<Button type="primary" shape="round" size="middle"
+                                    onClick={populateForm}>Use Sample Record</Button>}>
             <Form {...layout}>
                 <Form.Item label="Record (Ciphertext)" colon={false}>
                     <Input name="recordCiphertext" size="large" placeholder="Record (Ciphertext)" allowClear onChange={onCiphertextChange}
@@ -87,13 +91,10 @@ export const DecryptRecord = () => {
             {
                 (ciphertext || viewKey) ?
                 <Row justify="center">
-                    <Col><Button type="primary" shape="round" size="middle" onClick={clearForm}
+                    <Col><Button shape="round" size="middle" onClick={clearForm}
                     >Clear</Button></Col>
-                </Row> :
-                <Row justify="center">
-                    <Col><Button type="primary" shape="round" size="middle" onClick={populateForm}
-                    >Use Sample Record</Button></Col>
-                </Row>
+                </Row> : null
+
             }
             {
                 (plaintext) ?
@@ -106,21 +107,21 @@ export const DecryptRecord = () => {
                             <CopyButton data={recordPlaintext()}/>
                             <Divider/>
                         </Row>
-                        <Row justify="center">
-                            <Alert message="Record Verified!" description="Given view key owns the record"
-                                   type="success" showIcon closable={true} />
-                        </Row>
+                        {/*<Row justify="center">*/}
+                        {/*    <Alert message="Record Verified!" description="Given view key owns the record"*/}
+                        {/*           type="success" showIcon closable={false} />*/}
+                        {/*</Row>*/}
                     </Form>
-                    :
-                    (isOwner === false) ?
-                        <Row justify="center">
-                            <Divider/>
-                            <Alert message="Record Verification Failed"
-                                   description="The given record ciphertext is valid, but the given view key doesn't own it"
-                                   type="warning" showIcon closable={true} />
-                        </Row>
-                        :
-                        null
+                    : null
+                    // (isOwner === false) ?
+                    //     <Row justify="center">
+                    //         <Divider/>
+                    //         <Alert message="Record Verification Failed"
+                    //                description="The given record ciphertext is valid, but the given view key doesn't own it"
+                    //                type="warning" showIcon closable={false} />
+                    //     </Row>
+                    //     :
+                    //     null
             }
         </Card>
     } else {

@@ -66,11 +66,11 @@ export const DecryptAccount = () => {
                                        addonAfter={<CopyButton data={address()} style={{borderRadius: '20px'}}/>} disabled/>
                             </Form.Item>
                         </Form>
-                        :
-                        <Row justify="center">
-                            <Alert message="Ciphertext Decryption Failed" description="Incorrect ciphertext or password"
-                                   type="warning" showIcon closable={true} />
-                        </Row>
+                        : null
+                        // <Row justify="center">
+                        //     <Alert message="Ciphertext Decryption Failed" description="Incorrect ciphertext or password"
+                        //            type="warning" showIcon closable={true} />
+                        // </Row>
                     : null
             }
         </Card>
