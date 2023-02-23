@@ -1,5 +1,5 @@
-import React, {useState} from "react";
-import {Card, Divider, Form, Input} from "antd";
+import React, {useEffect, useState} from "react";
+import {Alert, Card, Divider, Form, Input, Row} from "antd";
 import {CopyButton} from "../../components/CopyButton";
 import {useAleoWASM} from "../../aleo-wasm-hook";
 
@@ -25,13 +25,12 @@ export const DecryptAccount = () => {
             setAccountFromCiphertext(inputCiphertext.decryptToPrivateKey(event.target.value));
         } catch (error) {
             console.error(error);
-            setInputPassword(null);
             setAccountFromCiphertext(null);
         }
     }
 
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
-
+    useEffect(() => {}, [inputCiphertext, inputPassword]);
     if (aleo !== null) {
         const privateKey = () => accountFromCiphertext !== null ? accountFromCiphertext.to_string() : "";
         const viewKey = () => accountFromCiphertext !== null ? accountFromCiphertext.to_view_key().to_string() : "";
@@ -50,22 +49,28 @@ export const DecryptAccount = () => {
                 </Form.Item>
             </Form>
             {
-                (accountFromCiphertext !== null) ?
-                    <Form {...layout}>
-                        <Divider/>
-                        <Form.Item label="Private Key" colon={false}>
-                            <Input size="large" placeholder="Private Key" value={privateKey()}
-                                   addonAfter={<CopyButton data={privateKey()} style={{borderRadius: '20px'}}/>} disabled/>
-                        </Form.Item>
-                        <Form.Item label="View Key" colon={false}>
-                            <Input size="large" placeholder="View Key" value={viewKey()}
-                                   addonAfter={<CopyButton data={viewKey()} style={{borderRadius: '20px'}}/>} disabled/>
-                        </Form.Item>
-                        <Form.Item label="Address" colon={false}>
-                            <Input size="large" placeholder="Address" value={address()}
-                                   addonAfter={<CopyButton data={address()} style={{borderRadius: '20px'}}/>} disabled/>
-                        </Form.Item>
-                    </Form>
+                (inputCiphertext && inputPassword) ?
+                    (accountFromCiphertext !== null) ?
+                        <Form {...layout}>
+                            <Divider/>
+                            <Form.Item label="Private Key" colon={false}>
+                                <Input size="large" placeholder="Private Key" value={privateKey()}
+                                       addonAfter={<CopyButton data={privateKey()} style={{borderRadius: '20px'}}/>} disabled/>
+                            </Form.Item>
+                            <Form.Item label="View Key" colon={false}>
+                                <Input size="large" placeholder="View Key" value={viewKey()}
+                                       addonAfter={<CopyButton data={viewKey()} style={{borderRadius: '20px'}}/>} disabled/>
+                            </Form.Item>
+                            <Form.Item label="Address" colon={false}>
+                                <Input size="large" placeholder="Address" value={address()}
+                                       addonAfter={<CopyButton data={address()} style={{borderRadius: '20px'}}/>} disabled/>
+                            </Form.Item>
+                        </Form>
+                        :
+                        <Row justify="center">
+                            <Alert message="Ciphertext Decryption Failed" description="Incorrect ciphertext or password"
+                                   type="warning" showIcon closable={true} />
+                        </Row>
                     : null
             }
         </Card>

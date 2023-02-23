@@ -3,26 +3,50 @@ import {Button, Card, Col, Divider, Form, Input, Row} from "antd";
 import {CopyButton} from "../../components/CopyButton";
 import {useAleoWASM} from "../../aleo-wasm-hook";
 
-export const NewAccount = () => {
+export const EncryptAccount = () => {
     const [account, setAccount] = useState(null);
+    const [encryptedAccount, setEncryptedAccount] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [password, setPassword] = useState(null);
     const aleo = useAleoWASM();
 
     const generateAccount = async () => {
         setLoading(true);
+        setEncryptedAccount(null);
         setTimeout(() => {
             setAccount(new aleo.PrivateKey());
             setLoading(false);
         }, 25);
     }
-
+    const encryptAccount = async () => {
+        console.log('password is: ' + password);
+        if (password && account) {
+            try {
+                setEncryptedAccount(account.toCiphertext(passwordString()));
+                setPassword(null);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    }
     const clear = () => {
         setAccount(null);
+        setPassword(null);
+        setEncryptedAccount(null);
+    }
+    const onPasswordChange = (event) => {
+        setPassword(event.target.value);
+        console.log("password input: " + event.target.value);
+        if (encryptedAccount !== null) {
+            console.log("encrypted account: " + encryptedPrivateKey());
+        }
     }
 
     const privateKey = () => account !== null ? account.to_string() : "";
     const viewKey = () => account !== null ? account.to_view_key().to_string() : "";
     const address = () => account !== null ? account.to_address().to_string() : "";
+    const encryptedPrivateKey = () => encryptedAccount !== null ? encryptedAccount.toString() : "";
+    const passwordString = () => password !== null ? password : "";
 
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
 
@@ -49,6 +73,24 @@ export const NewAccount = () => {
                             <Input size="large" placeholder="Address" value={address()}
                                    addonAfter={<CopyButton data={address()}/>} disabled/>
                         </Form.Item>
+                        <Divider/>
+                        <h3>Encrypt Account</h3>
+                        <Divider/>
+                        <Row justify="center">
+                            <Col><Button type="primary" shape="round" size="large" onClick={encryptAccount}
+                                         >Encrypt Account</Button></Col>
+                            <Col offset="1"><Form.Item colon={false}>
+                                <Input size="large" placeholder="Password" value={passwordString()}
+                                       onChange={onPasswordChange} />
+                            </Form.Item></Col>
+                        </Row>
+                        {
+                            encryptedAccount &&
+                            <Form.Item label="Ciphertext" colon={false}>
+                                <Input size="large" placeholder="Password" value={encryptedPrivateKey()}
+                                       addonAfter={<CopyButton data={encryptedPrivateKey()}/>} disabled/>
+                            </Form.Item>
+                        }
                     </Form>
 
             }
