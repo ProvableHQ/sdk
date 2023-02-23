@@ -35,7 +35,11 @@ export const GetProgram = () => {
     const programString = () => program !== null ? program : "";
     const programNameString = () => programName !== null ? programName : "";
 
-    return <Card title="Get Program" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
+    return <Card title="Get Program"
+                 style={{width: "100%", borderRadius: "20px"}}
+                 bordered={false}
+                 extra={<Button type="primary" shape="round" size="middle" onClick={() => {tryRequest("credits.aleo")}}
+    >Demo</Button>}>
         <Form {...layout}>
             <Form.Item label="Program Name" colon={false}>
                 <Input name="id" size="large" placeholder="Program Name" allowClear onChange={onChange}
@@ -58,8 +62,7 @@ export const GetProgram = () => {
                 </Form>
                 :
                 <Row justify="center">
-                    <Col><Button type="primary" shape="round" size="middle" onClick={() => {tryRequest("credits.aleo")}}
-                    >Get credits.aleo</Button></Col>
+                    <Col></Col>
                 </Row>
         }
     </Card>

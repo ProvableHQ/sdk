@@ -77,7 +77,7 @@ export const DecryptRecord = () => {
                      style={{width: "100%", borderRadius: "20px"}}
                      bordered={false}
                      extra={<Button type="primary" shape="round" size="middle"
-                                    onClick={populateForm}>Use Sample Record</Button>}>
+                                    onClick={populateForm}>Demo</Button>}>
             <Form {...layout}>
                 <Form.Item label="Record (Ciphertext)" colon={false}>
                     <Input name="recordCiphertext" size="large" placeholder="Record (Ciphertext)" allowClear onChange={onCiphertextChange}
