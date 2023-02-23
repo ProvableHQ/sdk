@@ -24,7 +24,7 @@ export const GetLatestBlockHeight = () => {
     const latestHeightString = () =>
         latestHeight !== null ? latestHeight.toString() : "";
 
-    return <Card title="Get Block Height" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
+    return <Card title="Get Latest Block Height" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
         <Row justify="center">
             <Col><Button type="primary" shape="round" size="middle" onClick={tryRequest}
                          >Get Latest Block Height</Button></Col>
@@ -34,7 +34,7 @@ export const GetLatestBlockHeight = () => {
                 <Form {...layout}>
                     <Divider/>
                     <Form.Item label="Block" colon={false}>
-                        <Input.TextArea size="large" rows={1} placeholder="Block" value={latestHeightString()}
+                        <Input size="large" rows={1} placeholder="Block" value={latestHeightString()}
                                         addonAfter={<CopyButton data={latestHeightString()} style={{borderRadius: '20px'}}/>}
                                         disabled/>
                     </Form.Item>

@@ -22,7 +22,7 @@ export const GetProgram = () => {
                 axios
                     .get(`https://vm.aleo.org/api/testnet3/program/${id}`)
                     .then((response) =>
-                        setProgram(JSON.stringify(response.data, null, 10))
+                        setProgram(response.data)
                     );
             }
         } catch (error) {
@@ -49,9 +49,12 @@ export const GetProgram = () => {
                     <Form.Item label="Program" colon={false}>
                         <Input.TextArea size="large" rows={15} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
                                         value={programString()}
-                                        addonAfter={<CopyButton data={programString()}
-                                                                style={{borderRadius: '20px'}}/>} disabled/>
+                                        disabled/>
                     </Form.Item>
+                    <Row justify="center">
+                        <CopyButton data={programString()}/>
+                        <Divider/>
+                    </Row>
                 </Form>
                 :
                 <Row justify="center">

@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm::{
-    console::{
-        account::PrivateKey,
-        network::Network,
-        program::{Ciphertext, Identifier, Literal, Plaintext},
-        types::Field,
-    },
-    prelude::Uniform,
+use snarkvm_console::{
+    account::PrivateKey,
+    network::Network,
+    program::{Ciphertext, Identifier, Literal, Plaintext},
+    types::Field,
 };
+use snarkvm_utilities::Uniform;
 
 use anyhow::{anyhow, Result};
 use once_cell::sync::OnceCell;
@@ -97,7 +95,8 @@ impl<N: Network> Encryptor<N> {
 mod tests {
     use super::*;
 
-    use snarkvm::prelude::{TestRng, Testnet3 as CurrentNetwork};
+    use snarkvm_console::network::Testnet3 as CurrentNetwork;
+    use snarkvm_utilities::TestRng;
 
     #[test]
     fn test_encryptor_encrypt_and_decrypt() {

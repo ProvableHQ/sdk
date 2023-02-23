@@ -34,10 +34,12 @@ export const GetLatestBlock = () => {
                 <Form {...layout}>
                     <Divider/>
                     <Form.Item label="Block" colon={false}>
-                        <Input.TextArea size="large" rows={15} placeholder="Block" value={latestBlockString()}
-                                        addonAfter={<CopyButton data={latestBlockString()} style={{borderRadius: '20px'}}/>}
-                                        disabled/>
+                        <Input.TextArea size="large" rows={15} placeholder="Block" value={latestBlockString()} disabled/>
                     </Form.Item>
+                    <Row justify="center">
+                        <CopyButton data={latestBlockString()}/>
+                        <Divider/>
+                    </Row>
                 </Form>
                 : null
         }

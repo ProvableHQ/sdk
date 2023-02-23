@@ -100,9 +100,12 @@ export const DecryptRecord = () => {
                     <Form {...layout}>
                         <Divider/>
                         <Form.Item label="Record (Plaintext)" colon={false}>
-                            <Input size="large" placeholder="Record (Plaintext)" value={recordPlaintext()}
-                                   addonAfter={<CopyButton data={recordPlaintext()} style={{borderRadius: '20px'}}/>} disabled/>
+                            <Input.TextArea size="large"  rows={5} placeholder="Record (Plaintext)" value={recordPlaintext()} disabled/>
                         </Form.Item>
+                        <Row justify="center">
+                            <CopyButton data={recordPlaintext()}/>
+                            <Divider/>
+                        </Row>
                         <Row justify="center">
                             <Alert message="Record Verified!" description="Given view key owns the record"
                                    type="success" showIcon closable={true} />
@@ -112,7 +115,7 @@ export const DecryptRecord = () => {
                     (isOwner === false) ?
                         <Row justify="center">
                             <Divider/>
-                            <Alert message="Record Unverified"
+                            <Alert message="Record Verification Failed"
                                    description="The given record ciphertext is valid, but the given view key doesn't own it"
                                    type="warning" showIcon closable={true} />
                         </Row>

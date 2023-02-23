@@ -1,4 +1,4 @@
-import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext } from "@aleohq/wasm";
+import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "@aleohq/wasm";
 import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignViewKeyString, recordPlaintextString } from './data/account-data';
 
 
@@ -103,61 +103,61 @@ describe('WASM Objects', () => {
             expect(address.to_string()).toMatch(addressString);
         });
 
-        // it('can construct directly to ciphertext and then decrypt to a private key', () => {
-        //     const secret = 'mypassword';
-        //     const ciphertext = PrivateKey.newEncrypted(secret);
-        //     const privateKeyFromCiphertext = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
-        //
-        //     // Ensure the ciphertext is a PrivateKeyCiphertext instance
-        //     expect(ciphertext).toBeInstanceOf(PrivateKeyCiphertext);
-        //     // Ensure the decrypted private key is a PrivateKey instance
-        //     expect(privateKeyFromCiphertext).toBeInstanceOf(PrivateKey);
-        // });
-        //
-        // it('encrypts and decrypts to and from ciphertext', () => {
-        //     const secret = 'mypassword';
-        //     const privateKey = new PrivateKey();
-        //     const ciphertext = privateKey.toCiphertext(secret);
-        //
-        //     // Ensure the ciphertext is a PrivateKeyCiphertext instance
-        //     expect(ciphertext).toBeInstanceOf(PrivateKeyCiphertext);
-        //     const privateKeyFromCiphertext = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
-        //     // Ensure the decrypted private key is a PrivateKey instance
-        //     expect(privateKeyFromCiphertext).toBeInstanceOf(PrivateKey);
-        //     // Ensure the decrypted private key is the same as the original
-        //     expect(privateKeyFromCiphertext.to_string()).toBe(privateKey.to_string());
-        // });
+        it('can construct directly to ciphertext and then decrypt to a private key', () => {
+            const secret = 'mypassword';
+            const ciphertext = PrivateKey.newEncrypted(secret);
+            const privateKeyFromCiphertext = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
 
-        // it('properly assesses equality and inequality', () => {
-        //     const privateKey1 = new PrivateKey();
-        //     const privateKey2 = PrivateKey.from_string(privateKeyString);
-        //     const privateKey3 = PrivateKey.from_string(privateKeyString);
-        //
-        //     // Ensure the different private keys are not equal
-        //     expect((privateKey1 === privateKey2)).toBeFalsy();
-        //     // Ensure the same private keys are equal
-        //     expect((privateKey2 === privateKey2)).toBeTruthy();
-        //     expect(privateKey2.to_string()).toBe(privateKey3.to_string());
-        // });
-        //
-        // it('has different ciphertexts for the same password, but decrypts to the same key', () => {
-        //     const secret = 'mypassword';
-        //     const privateKey = PrivateKey.from_string(privateKeyString);
-        //     const ciphertext = privateKey.toCiphertext(secret);
-        //     const ciphertext2 = privateKey.toCiphertext(secret);
-        //     const decryptedPrivateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
-        //     const decryptedPrivateKey2 = PrivateKey.fromPrivateKeyCiphertext(ciphertext2, secret);
-        //
-        //     // Ensure the ciphertexts are different
-        //     expect(ciphertext).not.toBe(ciphertext2);
-        //     // Ensure the decrypted private keys are both PrivateKey instances
-        //     expect(decryptedPrivateKey).toBeInstanceOf(PrivateKey);
-        //     expect(decryptedPrivateKey2).toBeInstanceOf(PrivateKey);
-        //     // Ensure the decrypted private keys are the same as the original
-        //     expect(decryptedPrivateKey.to_string()).toBe(privateKeyString);
-        //     expect(decryptedPrivateKey2.to_string()).toBe(privateKeyString);
-        //     expect(decryptedPrivateKey.to_string()).toBe(decryptedPrivateKey2.to_string());
-        // });
+            // Ensure the ciphertext is a PrivateKeyCiphertext instance
+            expect(ciphertext).toBeInstanceOf(PrivateKeyCiphertext);
+            // Ensure the decrypted private key is a PrivateKey instance
+            expect(privateKeyFromCiphertext).toBeInstanceOf(PrivateKey);
+        });
+
+        it('encrypts and decrypts to and from ciphertext', () => {
+            const secret = 'mypassword';
+            const privateKey = new PrivateKey();
+            const ciphertext = privateKey.toCiphertext(secret);
+
+            // Ensure the ciphertext is a PrivateKeyCiphertext instance
+            expect(ciphertext).toBeInstanceOf(PrivateKeyCiphertext);
+            const privateKeyFromCiphertext = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
+            // Ensure the decrypted private key is a PrivateKey instance
+            expect(privateKeyFromCiphertext).toBeInstanceOf(PrivateKey);
+            // Ensure the decrypted private key is the same as the original
+            expect(privateKeyFromCiphertext.to_string()).toBe(privateKey.to_string());
+        });
+
+        it('properly assesses equality and inequality', () => {
+            const privateKey1 = new PrivateKey();
+            const privateKey2 = PrivateKey.from_string(privateKeyString);
+            const privateKey3 = PrivateKey.from_string(privateKeyString);
+
+            // Ensure the different private keys are not equal
+            expect((privateKey1 === privateKey2)).toBeFalsy();
+            // Ensure the same private keys are equal
+            expect((privateKey2 === privateKey2)).toBeTruthy();
+            expect(privateKey2.to_string()).toBe(privateKey3.to_string());
+        });
+
+        it('has different ciphertexts for the same password, but decrypts to the same key', () => {
+            const secret = 'mypassword';
+            const privateKey = PrivateKey.from_string(privateKeyString);
+            const ciphertext = privateKey.toCiphertext(secret);
+            const ciphertext2 = privateKey.toCiphertext(secret);
+            const decryptedPrivateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
+            const decryptedPrivateKey2 = PrivateKey.fromPrivateKeyCiphertext(ciphertext2, secret);
+
+            // Ensure the ciphertexts are different
+            expect(ciphertext).not.toBe(ciphertext2);
+            // Ensure the decrypted private keys are both PrivateKey instances
+            expect(decryptedPrivateKey).toBeInstanceOf(PrivateKey);
+            expect(decryptedPrivateKey2).toBeInstanceOf(PrivateKey);
+            // Ensure the decrypted private keys are the same as the original
+            expect(decryptedPrivateKey.to_string()).toBe(privateKeyString);
+            expect(decryptedPrivateKey2.to_string()).toBe(privateKeyString);
+            expect(decryptedPrivateKey.to_string()).toBe(decryptedPrivateKey2.to_string());
+        });
     });
 
     describe('ViewKey', () => {
@@ -239,77 +239,77 @@ describe('WASM Objects', () => {
             expect(signatureFromString.to_string()).toBe(signatureString);
         });
     });
-    //
-    // describe('PrivateKeyCipherText', () => {
-    //     const privateKey = PrivateKey.from_string(privateKeyString);
-    //     const secret = 'mypassword';
-    //     const ciphertext = PrivateKeyCiphertext.encryptPrivateKey(privateKey, secret);
-    //
-    //     it('should encrypt and decrypt a private key to and from ciphertext', () => {
-    //         const decryptedKey = ciphertext.decryptToPrivateKey(secret);
-    //
-    //         // Ensure the decrypted key is a PrivateKey instance and is the same as the original
-    //         expect(decryptedKey).toBeInstanceOf(PrivateKey);
-    //         expect(decryptedKey.to_string()).toBe(privateKeyString);
-    //     });
-    //
-    //     it('should fail to decrypt with a bad secret', () => {
-    //         const badSecret = 'badpassword';
-    //
-    //         try {
-    //             ciphertext.decryptToPrivateKey(badSecret);
-    //             // Should not get here
-    //             expect(true).toBe(false);
-    //         } catch (e) {
-    //             // Should error out
-    //             expect(true).toBe(true);
-    //         }
-    //     });
-    //
-    //     it('should not create ciphertexts that match for the same password, but should decrypt to the same key', () => {
-    //         const ciphertext2 = PrivateKeyCiphertext.encryptPrivateKey(privateKey, secret);
-    //         const decryptedKey = ciphertext.decryptToPrivateKey(secret);
-    //         const decryptedKey2 = ciphertext2.decryptToPrivateKey(secret);
-    //
-    //         // Ensure the ciphertexts are different
-    //         expect(ciphertext).not.toBe(ciphertext2);
-    //         // Ensure the decrypted are both private key instances and have the same key
-    //         expect(decryptedKey).toBeInstanceOf(PrivateKey);
-    //         expect(decryptedKey2).toBeInstanceOf(PrivateKey);
-    //         expect(decryptedKey.to_string()).toBe(privateKeyString);
-    //         expect(decryptedKey2.to_string()).toBe(privateKeyString);
-    //     });
-    //
-    //     it('round trip to and from string for PrivateKeyCiphertext', () => {
-    //         const private_key = new PrivateKey();
-    //         const password = "mypassword";
-    //         const privateKeyCiphertext = PrivateKeyCiphertext.encryptPrivateKey(private_key, password);
-    //         const privateKeyCipherText2 = PrivateKeyCiphertext.fromString(privateKeyCiphertext.toString());
-    //
-    //         // Assert the round trip to and from string journey results in the same key
-    //         expect(privateKeyCiphertext.toString()).toEqual(privateKeyCipherText2.toString());
-    //     });
-    //
-    //     it('decryption of PrivateKeyCiphertext with edge cases', () => {
-    //         const privateKeyString = "APrivateKey1zkpAYS46Dq4rnt9wdohyWMwdmjmTeMJKPZdp5AhvjXZDsVG";
-    //         const privateKey = PrivateKey.from_string(privateKeyString);
-    //         const ciphertext = "ciphertext1qvqg7rgvam3xdcu55pwu6sl8rxwefxaj5gwthk0yzln6jv5fastzup0qn0qftqlqq7jcckyx03fzv9kke0z9puwd7cl7jzyhxfy2f2juplz39dkqs6p24urhxymhv364qm3z8mvyklv5gr52n4fxr2z59jgqytyddj8";
-    //         const bad_ciphertext = "ciphertext1qvqg7rgvam3xdcu55pwu6sl8rxwefxaj5gwthk0yzln6jv5fastzup0qn0qftqlqq7jcckyx03fzv9kke0z9puwd7cl7jzyhxfy2f2juplz39dkqs6p24urhxymhv364qm3z8mvyklv5er52n4fxr2z59jgqytyddj8";
-    //         const privateKeyCiphertext = PrivateKeyCiphertext.fromString(ciphertext);
-    //         const decryptedPrivateKey = privateKeyCiphertext.decryptToPrivateKey("mypassword");
-    //
-    //         // Assert that the private key is the same as the original for a valid ciphertext and secret
-    //         expect(privateKey.to_string()).toEqual(decryptedPrivateKey.to_string());
-    //         // Assert the incorrect secret fails
-    //         expect(() => {
-    //             privateKeyCiphertext.decryptToPrivateKey("badpassword");
-    //         }).toThrow();
-    //         // Ensure invalid ciphertexts fail
-    //         expect(() => {
-    //             PrivateKeyCiphertext.fromString(bad_ciphertext);
-    //         }).toThrow();
-    //     });
-    // });
+
+    describe('PrivateKeyCipherText', () => {
+        const privateKey = PrivateKey.from_string(privateKeyString);
+        const secret = 'mypassword';
+        const ciphertext = PrivateKeyCiphertext.encryptPrivateKey(privateKey, secret);
+
+        it('should encrypt and decrypt a private key to and from ciphertext', () => {
+            const decryptedKey = ciphertext.decryptToPrivateKey(secret);
+
+            // Ensure the decrypted key is a PrivateKey instance and is the same as the original
+            expect(decryptedKey).toBeInstanceOf(PrivateKey);
+            expect(decryptedKey.to_string()).toBe(privateKeyString);
+        });
+
+        it('should fail to decrypt with a bad secret', () => {
+            const badSecret = 'badpassword';
+
+            try {
+                ciphertext.decryptToPrivateKey(badSecret);
+                // Should not get here
+                expect(true).toBe(false);
+            } catch (e) {
+                // Should error out
+                expect(true).toBe(true);
+            }
+        });
+
+        it('should not create ciphertexts that match for the same password, but should decrypt to the same key', () => {
+            const ciphertext2 = PrivateKeyCiphertext.encryptPrivateKey(privateKey, secret);
+            const decryptedKey = ciphertext.decryptToPrivateKey(secret);
+            const decryptedKey2 = ciphertext2.decryptToPrivateKey(secret);
+
+            // Ensure the ciphertexts are different
+            expect(ciphertext).not.toBe(ciphertext2);
+            // Ensure the decrypted are both private key instances and have the same key
+            expect(decryptedKey).toBeInstanceOf(PrivateKey);
+            expect(decryptedKey2).toBeInstanceOf(PrivateKey);
+            expect(decryptedKey.to_string()).toBe(privateKeyString);
+            expect(decryptedKey2.to_string()).toBe(privateKeyString);
+        });
+
+        it('round trip to and from string for PrivateKeyCiphertext', () => {
+            const private_key = new PrivateKey();
+            const password = "mypassword";
+            const privateKeyCiphertext = PrivateKeyCiphertext.encryptPrivateKey(private_key, password);
+            const privateKeyCipherText2 = PrivateKeyCiphertext.fromString(privateKeyCiphertext.toString());
+
+            // Assert the round trip to and from string journey results in the same key
+            expect(privateKeyCiphertext.toString()).toEqual(privateKeyCipherText2.toString());
+        });
+
+        it('decryption of PrivateKeyCiphertext with edge cases', () => {
+            const privateKeyString = "APrivateKey1zkpAYS46Dq4rnt9wdohyWMwdmjmTeMJKPZdp5AhvjXZDsVG";
+            const privateKey = PrivateKey.from_string(privateKeyString);
+            const ciphertext = "ciphertext1qvqg7rgvam3xdcu55pwu6sl8rxwefxaj5gwthk0yzln6jv5fastzup0qn0qftqlqq7jcckyx03fzv9kke0z9puwd7cl7jzyhxfy2f2juplz39dkqs6p24urhxymhv364qm3z8mvyklv5gr52n4fxr2z59jgqytyddj8";
+            const bad_ciphertext = "ciphertext1qvqg7rgvam3xdcu55pwu6sl8rxwefxaj5gwthk0yzln6jv5fastzup0qn0qftqlqq7jcckyx03fzv9kke0z9puwd7cl7jzyhxfy2f2juplz39dkqs6p24urhxymhv364qm3z8mvyklv5er52n4fxr2z59jgqytyddj8";
+            const privateKeyCiphertext = PrivateKeyCiphertext.fromString(ciphertext);
+            const decryptedPrivateKey = privateKeyCiphertext.decryptToPrivateKey("mypassword");
+
+            // Assert that the private key is the same as the original for a valid ciphertext and secret
+            expect(privateKey.to_string()).toEqual(decryptedPrivateKey.to_string());
+            // Assert the incorrect secret fails
+            expect(() => {
+                privateKeyCiphertext.decryptToPrivateKey("badpassword");
+            }).toThrow();
+            // Ensure invalid ciphertexts fail
+            expect(() => {
+                PrivateKeyCiphertext.fromString(bad_ciphertext);
+            }).toThrow();
+        });
+    });
 
     describe('RecordCiphertext', () => {
         const viewKey = ViewKey.from_string(viewKeyString);

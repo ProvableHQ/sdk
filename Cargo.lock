@@ -65,7 +65,9 @@ dependencies = [
  "rand_chacha",
  "reqwest",
  "serde_json",
- "snarkvm",
+ "snarkvm-console",
+ "snarkvm-synthesizer",
+ "snarkvm-utilities",
  "ureq",
 ]
 
@@ -136,6 +138,7 @@ checksum = "7e4f181fc1a372e8ceff89612e5c9b13f72bff5b066da9f8d6827ae65af492c4"
 name = "aleo-wasm"
 version = "0.3.5"
 dependencies = [
+ "aleo-rust",
  "anyhow",
  "console_error_panic_hook",
  "getrandom",

@@ -24,7 +24,7 @@ pub mod asynchronous;
 #[cfg(feature = "async")]
 pub use asynchronous::*;
 
-use snarkvm::{console::program::Network, prelude::Testnet3};
+use snarkvm_console::{network::Testnet3, program::Network};
 use std::marker::PhantomData;
 
 pub struct AleoAPIClient<N: Network> {

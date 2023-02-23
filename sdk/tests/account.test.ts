@@ -60,41 +60,41 @@ describe('Account', () => {
             expect(account.address().to_string()).toEqual(addressString);
             expect(account.toString()).toEqual(addressString);
         });
-        //
-        // test('can encrypt an account and decrypt to the same account', () => {
-        //     const newAccount = new Account();
-        //     const privateKeyCiphertext = newAccount.encryptAccount("mypassword");
-        //     const privateKeyCiphertextString = privateKeyCiphertext.toString();
-        //
-        //     // Generate account from valid private key string
-        //     const accountFromString = Account.fromCiphertext(privateKeyCiphertextString, "mypassword");
-        //     const accountFromObject = Account.fromCiphertext(privateKeyCiphertext, "mypassword");
-        //
-        //     for (const account of [accountFromString, accountFromObject]) {
-        //         // Test that expected output is generated
-        //         expect(account.privateKey().to_string()).toEqual(newAccount.privateKey().to_string());
-        //         expect(account.viewKey().to_string()).toEqual(newAccount.viewKey().to_string());
-        //         expect(account.address().to_string()).toEqual(newAccount.toString());
-        //         expect(account.toString()).toEqual(newAccount.toString());
-        //     }
-        // });
-        //
-        // test('fails to create an account from a bad password', () => {
-        //     const newAccount = new Account();
-        //     const privateKeyCiphertext = newAccount.encryptAccount("mypassword");
-        //     const privateKeyCiphertextString = privateKeyCiphertext.toString();
-        //
-        //     try {
-        //         Account.fromCiphertext(privateKeyCiphertextString, "badpassword");
-        //         Account.fromCiphertext(privateKeyCiphertext, "badpassword");
-        //
-        //         // Should not get here
-        //         expect(true).toBe(false);
-        //     } catch (err) {
-        //         // The account should fail to decrypt
-        //         expect(true).toBe(true);
-        //     }
-        // });
+
+        test('can encrypt an account and decrypt to the same account', () => {
+            const newAccount = new Account();
+            const privateKeyCiphertext = newAccount.encryptAccount("mypassword");
+            const privateKeyCiphertextString = privateKeyCiphertext.toString();
+
+            // Generate account from valid private key string
+            const accountFromString = Account.fromCiphertext(privateKeyCiphertextString, "mypassword");
+            const accountFromObject = Account.fromCiphertext(privateKeyCiphertext, "mypassword");
+
+            for (const account of [accountFromString, accountFromObject]) {
+                // Test that expected output is generated
+                expect(account.privateKey().to_string()).toEqual(newAccount.privateKey().to_string());
+                expect(account.viewKey().to_string()).toEqual(newAccount.viewKey().to_string());
+                expect(account.address().to_string()).toEqual(newAccount.toString());
+                expect(account.toString()).toEqual(newAccount.toString());
+            }
+        });
+
+        test('fails to create an account from a bad password', () => {
+            const newAccount = new Account();
+            const privateKeyCiphertext = newAccount.encryptAccount("mypassword");
+            const privateKeyCiphertextString = privateKeyCiphertext.toString();
+
+            try {
+                Account.fromCiphertext(privateKeyCiphertextString, "badpassword");
+                Account.fromCiphertext(privateKeyCiphertext, "badpassword");
+
+                // Should not get here
+                expect(true).toBe(false);
+            } catch (err) {
+                // The account should fail to decrypt
+                expect(true).toBe(true);
+            }
+        });
     });
 
     describe('View Key Record Decryption', () => {
