@@ -86,7 +86,7 @@ export const VerifyMessage = () => {
                         </Row>
                         :
                         <Row justify="center">
-                            <Alert message="Message Unverified" description="Message and Signature Did Not Match for the Given Address"
+                            <Alert message="Message Verification Failed" description="Message and Signature Did Not Match for the Given Address"
                                    type="warning" showIcon closable={true} />
                         </Row>
                     :

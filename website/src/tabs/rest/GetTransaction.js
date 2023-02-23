@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Card, Divider, Form, Input} from "antd";
+import {Card, Divider, Form, Input, Row} from "antd";
 import axios from "axios";
 import {CopyButton} from "../../components/CopyButton";
 
@@ -47,9 +47,12 @@ export const GetTransaction = () => {
                     <Divider/>
                     <Form.Item label="Transaction" colon={false}>
                         <Input.TextArea size="large" rows={15} placeholder="Block" value={transactionString()}
-                                        addonAfter={<CopyButton data={transactionString()}
-                                                                style={{borderRadius: '20px'}}/>} disabled/>
+                                        disabled/>
                     </Form.Item>
+                    <Row justify="center">
+                        <CopyButton data={blockString()}/>
+                        <Divider/>
+                    </Row>
                 </Form>
                 : null
         }
