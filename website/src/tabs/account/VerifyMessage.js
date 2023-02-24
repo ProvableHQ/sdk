@@ -65,7 +65,11 @@ export const VerifyMessage = () => {
                     <Input name="Message" size="large" placeholder="Message" value={messageString()}
                            style={{borderRadius: '20px'}} onChange={onMessageChange} />
                 </Form.Item>
-                <Form.Item label="Signature" colon={false}>
+                <Form.Item
+                    label="Signature"
+                    colon={false}
+                    validateStatus="error"
+                    hasFeedback help="Should have something">
                     <Input name="Signature" size="large" placeholder="Signature" value={signatureString()}
                            style={{borderRadius: '20px'}} onChange={onSignatureChange}/>
                 </Form.Item>
