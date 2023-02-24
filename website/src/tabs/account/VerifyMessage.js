@@ -44,6 +44,14 @@ export const VerifyMessage = () => {
         setSignatureInput(event.target.value);
     }
 
+    const validateStatusSignature = () => {
+        return signatureInput !== null ?
+            verified ?
+                "success"
+                : "error"
+            : "";
+    }
+
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
     useEffect(() => {
         if ( !didMount.current ) {
@@ -68,27 +76,13 @@ export const VerifyMessage = () => {
                 <Form.Item
                     label="Signature"
                     colon={false}
-                    validateStatus="error"
-                    hasFeedback help="Should have something">
-                    <Input name="Signature" size="large" placeholder="Signature" value={signatureString()}
-                           style={{borderRadius: '20px'}} onChange={onSignatureChange}/>
+                    hasFeedback
+                    validateStatus={validateStatusSignature()}>
+                <Input name="Signature" size="large" placeholder="Signature" value={signatureString()}
+                       style={{borderRadius: '20px'}} onChange={onSignatureChange}/>
                 </Form.Item>
+
             </Form>
-            {
-                (inputAddress && messageInput && signatureInput) ?
-                    (verified) ?
-                        <Row justify="center">
-                            <Alert message="Message Verified" description="Message Was Signed By the Given Address"
-                                   type="success" showIcon closable={false} />
-                        </Row>
-                        :
-                        <Row justify="center">
-                            <Alert message="Message Verification Failed" description="Message and Signature Did Not Match for the Given Address"
-                                   type="error" showIcon closable={false} />
-                        </Row>
-                    :
-                    null
-            }
         </Card>
     } else {
         return <h3>
