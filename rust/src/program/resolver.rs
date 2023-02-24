@@ -15,21 +15,22 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use snarkvm_console::network::Network;
-use snarkvm_synthesizer::{Process, Program};
+use snarkvm_synthesizer::Program;
 
-use crate::{AleoAPIClient, NetworkConfig};
-use anyhow::{bail, ensure, Result};
-use core::str::FromStr;
+use crate::NetworkConfig;
+use anyhow::Result;
+
 use snarkvm_console::program::{Ciphertext, Plaintext, ProgramID, Record};
 use std::path::PathBuf;
 
-/// Trait that allows custom implementations of aleo program resource locators
+/// Trait that allows custom implementations of resource resolution for resources
+/// needed to run Aleo programs such as imports and records.
 pub trait Resolver<N: Network> {
     /// Find and load a program from a resource
-    fn load_program(&mut self, program_id: impl TryInto<ProgramID<N>>) -> Result<Program<N>>;
+    fn load_program(&self, program_id: &ProgramID<N>) -> Result<Program<N>>;
 
     /// Resolve imports for a given program
-    fn resolve_program_imports(&mut self, program_id: impl TryInto<ProgramID<N>>) -> Result<()>;
+    fn resolve_program_imports(&self, program_id: &ProgramID<N>) -> Result<()>;
 
     /// Find records that belong to a user
     fn find_records(&self) -> Result<Vec<Record<N, Ciphertext<N>>>>;
@@ -44,25 +45,47 @@ pub struct FileSystemResolver<N: Network> {
     _phantom: core::marker::PhantomData<N>,
 }
 
-/// Resolver for imports from the Aleo network
-pub struct NetworkResolver<N: Network> {
+impl<N: Network> FileSystemResolver<N> {
+    /// Create a new file system resolver
+    pub fn new(path: PathBuf) -> Self {
+        Self { path, _phantom: core::marker::PhantomData }
+    }
+}
+
+/// Resolver for resources from the Aleo network
+pub struct AleoNetworkResolver<N: Network> {
     network_config: NetworkConfig,
     _phantom: core::marker::PhantomData<N>,
 }
 
+/// Reso
+impl<N: Network> AleoNetworkResolver<N> {
+    /// Create a new network resolver
+    pub fn new(network_config: NetworkConfig) -> Self {
+        Self { network_config, _phantom: core::marker::PhantomData }
+    }
+}
+
 /// Hybrid resolver that uses a combination of local file system and network imports
 pub struct HybridResolver<N: Network> {
-    file_system_resolver: FileSystemResolver<N>,
-    network_resolver: NetworkResolver<N>,
-    local_first: bool,
+    network_config: NetworkConfig,
+    path: PathBuf,
+    _phantom: core::marker::PhantomData<N>,
+}
+
+impl<N: Network> HybridResolver<N> {
+    /// Create a new hybrid resolver
+    pub fn new(network_config: NetworkConfig, path: PathBuf, local_first: bool) -> Self {
+        Self { network_config, path, _phantom: core::marker::PhantomData }
+    }
 }
 
 impl<N: Network> Resolver<N> for FileSystemResolver<N> {
-    fn load_program(&mut self, program_id: impl TryInto<ProgramID<N>>) -> Result<Program<N>> {
+    fn load_program(&self, _program_id: &ProgramID<N>) -> Result<Program<N>> {
         Program::credits()
     }
 
-    fn resolve_program_imports(&self, program_id: &str) -> Result<()> {
+    fn resolve_program_imports(&self, _program: &ProgramID<N>) -> Result<()> {
         Ok(())
     }
 
@@ -75,22 +98,13 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
     }
 }
 
-impl<N: Network> Resolver<N> for NetworkResolver<N> {
-    fn load_program(&mut self, program_id: impl TryInto<ProgramID<N>>) -> Result<Program<N>> {
+impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
+    fn load_program(&self, _program_id: &ProgramID<N>) -> Result<Program<N>> {
         Program::credits()
     }
 
-    fn resolve_program_imports(&self, program: Program<N>) -> Result<Process<N>> {
-        let mut process = Process::load()?;
-        program.imports().iter().for_each(|import| {
-            if process.contains_program(import.program_id()) {
-                let program_id = import.program_id();
-                let program =
-                    AleoAPIClient::<N>::new("https://vm.aleo.org/api/", "testnet3").get_program(program_id)?;
-                process.add_program(&program)?;
-            }
-        });
-        Ok(process)
+    fn resolve_program_imports(&self, _program: &ProgramID<N>) -> Result<()> {
+        Ok(())
     }
 
     fn find_records(&self) -> Result<Vec<Record<N, Ciphertext<N>>>> {

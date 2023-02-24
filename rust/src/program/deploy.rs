@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Resolver;
-use anyhow::Result;
+use crate::program::Resolver;
+use anyhow::{anyhow, Result};
 use snarkvm_console::{
     account::PrivateKey,
     program::{Network, Plaintext, ProgramID, Record},
@@ -26,14 +26,18 @@ use super::ProgramManager;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     pub fn deploy_program(&mut self, program_id: impl TryInto<ProgramID<N>>) -> Result<()> {
-        let program_id = program_id.try_into()?;
-        let program = self.resolver.load_program(program_id)?;
+        let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
+        let _program = if let Ok(program) = self.vm.process().read().get_program(&program_id) {
+            program.clone()
+        } else {
+            self.resolver.load_program(&program_id)?
+        };
         Ok(())
     }
 
     /// Create a deploy transaction for a program without instantiating the VM
     pub fn create_deploy_transaction(
-        vm: Option<&VM<N, ConsensusMemory<N>>>,
+        _vm: Option<&VM<N, ConsensusMemory<N>>>,
         private_key: &PrivateKey<N>,
         fee: u64,
         record: Record<N, Plaintext<N>>,

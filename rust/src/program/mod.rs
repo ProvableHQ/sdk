@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::api::AleoAPIClient;
+use crate::{api::AleoAPIClient, program::Resolver};
 use snarkvm_console::{
     account::PrivateKey,
     program::{Ciphertext, Network},
@@ -56,15 +56,19 @@ pub struct ProgramManager<N: Network, R: Resolver<N>> {
 }
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
-    pub fn new(private_key: Option<PrivateKey<N>>, private_key_ciphertext: Option<Ciphertext<N>>) -> Result<Self> {
+    pub fn new(
+        private_key: Option<PrivateKey<N>>,
+        private_key_ciphertext: Option<Ciphertext<N>>,
+        resolver: R,
+    ) -> Result<Self> {
         if private_key.is_some() && private_key_ciphertext.is_some() {
             bail!("Cannot have both private key and private key ciphertext");
         } else if private_key.is_none() && private_key_ciphertext.is_none() {
             bail!("Must have either private key or private key ciphertext");
         }
-        let store = ConsensusStore::<CurrentNetwork, ConsensusMemory<CurrentNetwork>>::open(None)?;
+        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::from(store)?;
-        Ok(Self { vm, private_key, private_key_ciphertext, network_config: None, resolver: R })
+        Ok(Self { vm, private_key, private_key_ciphertext, network_config: None, resolver })
     }
 
     pub fn send_transaction(&self, transaction: Transaction<N>) -> Result<()> {
