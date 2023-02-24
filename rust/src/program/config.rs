@@ -14,31 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+
 use super::ProgramManager;
-use snarkvm_console::program::Network;
+use snarkvm_console::program::{Ciphertext, Network};
 use snarkvm_synthesizer::Program;
 
-use crate::{program::Resolver, NetworkConfig};
+use crate::{program::Resolver};
 use anyhow::{bail, Result};
 
 use std::str::FromStr;
+use snarkvm_console::account::PrivateKey;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
-    /// Add default beacon network config to the program manager
-    pub fn create_remote_network_config(&mut self) -> Result<()> {
-        match N::NAME {
-            "Aleo Testnet 3" => self.network_config = Some(NetworkConfig::testnet3()),
-            _ => bail!("Testnet 3 is the only supported network at this time"),
+    /// Add private key to the program manager
+    pub fn set_private_key(&mut self, private_key: PrivateKey<N>) -> Result<()> {
+        if self.private_key_ciphertext.is_some() {
+            bail!("Private key is already configured, annot have both private key and private key ciphertext");
         }
+        self.private_key = Some(private_key);
         Ok(())
     }
 
-    /// Add local testnet3 network config to the program manager
-    pub fn create_local_network_config(&mut self, port: &str) -> Result<()> {
-        match N::NAME {
-            "Aleo Testnet 3" => self.network_config = Some(NetworkConfig::local_testnet3(port)),
-            _ => bail!("Testnet 3 is the only supported network at this time"),
+    /// Add private key ciphertext to the program manager
+    pub fn set_private_key_ciphertext(&mut self, ciphertext: Ciphertext<N>) -> Result<()> {
+        if self.private_key.is_some() {
+            bail!("Private key is already configured, annot have both private key and private key ciphertext");
         }
+        self.private_key_ciphertext = Some(ciphertext);
         Ok(())
     }
 
@@ -53,5 +55,17 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         let program = Program::<N>::from_str(program)?;
         self.add_program(&program)?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    
+    
+    
+
+    #[test]
+    fn test_additive_configuration_flow() {
+
     }
 }

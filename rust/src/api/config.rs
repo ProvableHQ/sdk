@@ -17,6 +17,7 @@
 use std::ops::Add;
 
 /// Network config for connecting to the Aleo network
+#[derive(Clone, Debug)]
 pub struct NetworkConfig {
     network_id: String,
     node_uri: String,

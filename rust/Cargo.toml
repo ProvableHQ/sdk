@@ -28,7 +28,7 @@ path = "benches/private_key_encryption.rs"
 harness = false
 
 [dependencies.anyhow]
-version = "1.0.69"
+version = "1"
 
 [dependencies.indexmap]
 version = "1.9.2"
@@ -78,7 +78,7 @@ version = "0.1.5"
 version = "0.3.1"
 
 [features]
-default = [ "blocking", "snarkvm-synthesizer", "snarkvm-console" ]
+default = [ "blocking", "snarkvm-synthesizer", "snarkvm-console", "snarkvm" ]
 async = [ "reqwest" ]
 blocking = [ "ureq" ]
 wasm = [ "snarkvm-console" ]

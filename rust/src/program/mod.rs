@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use std::path::PathBuf;
 use crate::{api::AleoAPIClient, program::Resolver};
 use snarkvm_console::{
     account::PrivateKey,
@@ -21,7 +22,7 @@ use snarkvm_console::{
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Transaction, VM};
 
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 
 pub mod build;
 pub use build::*;
@@ -35,8 +36,8 @@ pub use deploy::*;
 pub mod execute;
 pub use execute::*;
 
-pub mod resolver;
-pub use resolver::*;
+pub mod resolvers;
+pub use resolvers::*;
 
 pub mod transfer;
 use crate::NetworkConfig;
@@ -56,9 +57,12 @@ pub struct ProgramManager<N: Network, R: Resolver<N>> {
 }
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
+    /// Create a new program manager by specifying custom options for the
+    /// private key, private key ciphertext, and a resolver
     pub fn new(
         private_key: Option<PrivateKey<N>>,
         private_key_ciphertext: Option<Ciphertext<N>>,
+        network_config: Option<NetworkConfig>,
         resolver: R,
     ) -> Result<Self> {
         if private_key.is_some() && private_key_ciphertext.is_some() {
@@ -68,7 +72,48 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         }
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::from(store)?;
-        Ok(Self { vm, private_key, private_key_ciphertext, network_config: None, resolver })
+        Ok(Self { vm, private_key, private_key_ciphertext, network_config, resolver })
+    }
+
+    pub fn program_manager_with_local_resource_resolution(
+        private_key: Option<PrivateKey<N>>,
+        private_key_ciphertext: Option<Ciphertext<N>>,
+        local_directory: impl TryInto<PathBuf>,
+        network_config: Option<NetworkConfig>,
+    ) -> Result<ProgramManager<N, FileSystemResolver<N>>> {
+        let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
+        let resolver = FileSystemResolver::new(&local_directory)?;
+        ProgramManager::<N, FileSystemResolver<N>>::new(private_key, private_key_ciphertext, network_config, resolver)
+    }
+
+    pub fn program_manager_with_network_resolution(
+        private_key: Option<PrivateKey<N>>,
+        private_key_ciphertext: Option<Ciphertext<N>>,
+        network_config: NetworkConfig,
+    ) -> Result<ProgramManager<N, AleoNetworkResolver<N>>> {
+        let resolver = AleoNetworkResolver::new(&network_config);
+        ProgramManager::<N, AleoNetworkResolver<N>>::new(
+            private_key,
+            private_key_ciphertext,
+            Some(network_config),
+            resolver,
+        )
+    }
+
+    pub fn program_manager_with_hybrid_resolution(
+        private_key: Option<PrivateKey<N>>,
+        private_key_ciphertext: Option<Ciphertext<N>>,
+        local_directory: impl TryInto<PathBuf>,
+        network_config: NetworkConfig,
+    ) -> Result<ProgramManager<N, HybridResolver<N>>> {
+        let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
+        let resolver = HybridResolver::new(&network_config, &local_directory)?;
+        ProgramManager::<N, HybridResolver<N>>::new(
+            private_key,
+            private_key_ciphertext,
+            Some(network_config),
+            resolver,
+        )
     }
 
     pub fn send_transaction(&self, transaction: Transaction<N>) -> Result<()> {
