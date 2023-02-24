@@ -50,20 +50,20 @@ export const GetProgram = () => {
             (program !== null) ?
                 <Form {...layout}>
                     <Divider/>
-                    <Form.Item label="Program" colon={false}>
-                        <Input.TextArea size="large" rows={15} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
-                                        value={programString()}
-                                        disabled/>
-                    </Form.Item>
-                    <Row justify="center">
-                        <CopyButton data={programString()}/>
-                        <Divider/>
+                    <Row align="middle">
+                        <Col span={23}>
+                            <Form.Item label="Program" colon={false}>
+                                <Input.TextArea size="large" rows={15} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
+                                                value={programString()}
+                                                disabled/>
+                            </Form.Item>
+                        </Col>
+                        <Col span={1} align="middle">
+                            <CopyButton data={programString()}/>
+                        </Col>
                     </Row>
                 </Form>
-                :
-                <Row justify="center">
-                    <Col></Col>
-                </Row>
+                : null
         }
     </Card>
 }
