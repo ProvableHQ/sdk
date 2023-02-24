@@ -18,48 +18,40 @@ use super::ProgramManager;
 use snarkvm_console::{account::PrivateKey, program::Network};
 use snarkvm_synthesizer::Program;
 
-use crate::NetworkConfig;
+use crate::{NetworkConfig, Resolver};
 use anyhow::{bail, Result};
 use snarkvm_console::program::Ciphertext;
 use std::str::FromStr;
 
-impl<N: Network> ProgramManager<N> {
-    /// Add private key to the program manager
-    pub fn add_private_key(&mut self, private_key: PrivateKey<N>) -> Result<&mut Self> {
-        if self.private_key_ciphertext.is_some() {
-            bail!("Cannot add private key to program manager when private key ciphertext is already present")
-        };
-        self.private_key = Some(private_key);
-        Ok(self)
-    }
-
-    /// Add private key ciphertext to the program manager
-    pub fn add_private_key_ciphertext(&mut self, private_key_ciphertext: Ciphertext<N>) -> Result<&mut Self> {
-        if self.private_key.is_some() {
-            bail!("Cannot add private key ciphertext to program manager when private key is already present")
-        };
-        self.private_key_ciphertext = Some(private_key_ciphertext);
-        Ok(self)
-    }
-
-    /// Add program to the program manager
-    pub fn add_network_config(&mut self, network_config: NetworkConfig) -> &mut Self {
-        self.network_config = Some(network_config);
-        self
-    }
-
-    /// Add testnet3 network config to the program manager
-    pub fn add_testnet3_network_config(&mut self) -> &mut Self {
-        self.add_network_config(NetworkConfig::testnet3())
+impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
+    /// Add default beacon network config to the program manager
+    pub fn create_remote_network_config(&mut self) -> Result<()> {
+        match N::NAME {
+            "Aleo Testnet 3" => self.add_network_config(NetworkConfig::testnet3()),
+            _ => bail!("Testnet 3 is the only supported network at this time"),
+        }
+        Ok(())
     }
 
     /// Add local testnet3 network config to the program manager
-    pub fn add_local_testnet3_network_config(&mut self, port: &str) -> &mut Self {
-        self.add_network_config(NetworkConfig::local_testnet3(port))
+    pub fn create_local_network_config(&mut self, port: &str) -> Result<()> {
+        match N::NAME {
+            "Aleo Testnet 3" => self.add_network_config(NetworkConfig::local_testnet3(port)),
+            _ => bail!("Testnet 3 is the only supported network at this time"),
+        }
+        Ok(())
     }
 
-    pub fn load_program_from_str(&self, program: &str) -> Result<()> {
-        let _ = Program::<N>::from_str(program)?;
+    /// Manually add a program to the program manager
+    pub fn add_program(&mut self, program: Program<N>) -> Result<()> {
+        self.vm.process().add_program(program)?;
+        Ok(())
+    }
+
+    /// Manually add a program to the program manager from a string representation
+    pub fn add_program_from_string(&mut self, program: &str) -> Result<()> {
+        let program = Program::<N>::from_str(program)?;
+        self.add_program(program)?;
         Ok(())
     }
 }

@@ -66,6 +66,11 @@ version = "0.9.13"
 features = [ "parallel" ]
 version = "0.9.13"
 
+[dependencies.snarkvm]
+features = [ "cli" ]
+version = "0.9.13"
+optional = true
+
 [dev-dependencies.bencher]
 version = "0.1.5"
 

@@ -19,7 +19,9 @@ use snarkvm_console::{
     account::PrivateKey,
     program::{Ciphertext, Network},
 };
-use snarkvm_synthesizer::Transaction;
+use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Transaction, VM};
+
+use anyhow::{bail, Result};
 
 pub mod build;
 pub use build::*;
@@ -45,20 +47,33 @@ pub use transfer::*;
 /// This object is meant to be a software abstraction that can be consumed by software like
 /// CLI tools, IDE plugins, Server-side stack components and other software that needs to
 /// interact with the Aleo network.
-pub struct ProgramManager<N: Network> {
+pub struct ProgramManager<N: Network, R: Resolver<N>> {
+    pub(crate) vm: VM<N, ConsensusMemory<N>>,
     pub(crate) private_key: Option<PrivateKey<N>>,
     pub(crate) private_key_ciphertext: Option<Ciphertext<N>>,
     pub(crate) network_config: Option<NetworkConfig>,
+    pub(crate) resolver: R,
 }
 
-impl<N: Network> ProgramManager<N> {
-    pub fn send_transaction(&self, transaction: Transaction<N>) -> anyhow::Result<()> {
+impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
+    pub fn new(private_key: Option<PrivateKey<N>>, private_key_ciphertext: Option<Ciphertext<N>>) -> Result<Self> {
+        if private_key.is_some() && private_key_ciphertext.is_some() {
+            bail!("Cannot have both private key and private key ciphertext");
+        } else if private_key.is_none() && private_key_ciphertext.is_none() {
+            bail!("Must have either private key or private key ciphertext");
+        }
+        let store = ConsensusStore::<CurrentNetwork, ConsensusMemory<CurrentNetwork>>::open(None)?;
+        let vm = VM::from(store)?;
+        Ok(Self { vm, private_key, private_key_ciphertext, network_config: None, resolver: R })
+    }
+
+    pub fn send_transaction(&self, transaction: Transaction<N>) -> Result<()> {
         if let Some(config) = &self.network_config {
             let api_client = AleoAPIClient::<N>::from(config);
             api_client.transaction_broadcast(transaction)?;
             Ok(())
         } else {
-            anyhow::bail!("No API client found")
+            bail!("No API client found")
         }
     }
 }
