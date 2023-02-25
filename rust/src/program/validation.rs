@@ -17,11 +17,12 @@
 use super::ProgramManager;
 use snarkvm_console::program::Network;
 
-use crate::program::Resolver;
+use crate::{api::AleoAPIClient, program::Resolver};
 use anyhow::{anyhow, bail, Result};
 
 use crate::Encryptor;
 use snarkvm_console::account::PrivateKey;
+use snarkvm_synthesizer::Program;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     /// Get a checked private key
@@ -46,5 +47,11 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             return Encryptor::<N>::decrypt_private_key_with_secret(ciphertext, &password);
         };
         bail!("Private key configuration error")
+    }
+
+    pub fn program_exists_on_chain(&self, program: &Program<N>, api_client: &AleoAPIClient<N>) -> bool {
+        let program_id = program.id();
+        let chain_program = api_client.get_program(program_id);
+        if let Ok(chain_program) = chain_program { program.eq(&chain_program) } else { false }
     }
 }

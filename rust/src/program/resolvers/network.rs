@@ -17,7 +17,7 @@
 use snarkvm_console::network::Network;
 use snarkvm_synthesizer::Program;
 
-use crate::NetworkConfig;
+use crate::{api::AleoAPIClient, NetworkConfig};
 use anyhow::{bail, Result};
 
 use snarkvm_console::program::{Ciphertext, Plaintext, ProgramID, Record};
@@ -42,12 +42,21 @@ impl<N: Network> AleoNetworkResolver<N> {
 impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
     const NAME: &'static str = "AleoNetworkResolver";
 
-    fn load_program(&self, _program_id: &ProgramID<N>) -> Result<Program<N>> {
-        bail!("Not implemented")
+    fn load_program(&self, program_id: &ProgramID<N>) -> Result<Program<N>> {
+        AleoAPIClient::<N>::from(&self.network_config).get_program(program_id)
     }
 
-    fn resolve_program_imports(&self, _program: &Program<N>) -> Result<Vec<(ProgramID<N>, Result<Program<N>>)>> {
-        bail!("Not implemented")
+    fn resolve_program_imports(&self, program: &Program<N>) -> Result<Vec<(ProgramID<N>, Result<Program<N>>)>> {
+        let api_client = AleoAPIClient::<N>::from(&self.network_config);
+        program
+            .imports()
+            .keys()
+            .map(|program_id| {
+                // Open the Aleo program file.
+                let program = api_client.get_program(program_id);
+                Ok((program_id.clone(), program))
+            })
+            .collect::<Result<Vec<(ProgramID<N>, Result<Program<N>>)>>>()
     }
 
     fn find_records(&self) -> Result<Vec<Record<N, Ciphertext<N>>>> {
