@@ -47,4 +47,8 @@ impl NetworkConfig {
     pub fn node_uri(&self) -> &str {
         &self.node_uri
     }
+
+    pub fn get_url(&self) -> String {
+        self.node_uri().to_string().add("/").add(self.network_id())
+    }
 }

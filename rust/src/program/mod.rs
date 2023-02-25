@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use std::path::PathBuf;
 use crate::{api::AleoAPIClient, program::Resolver};
 use snarkvm_console::{
     account::PrivateKey,
     program::{Ciphertext, Network},
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Transaction, VM};
+use std::path::PathBuf;
 
 use anyhow::{anyhow, bail, Result};
 
@@ -40,8 +40,11 @@ pub mod resolvers;
 pub use resolvers::*;
 
 pub mod transfer;
-use crate::NetworkConfig;
 pub use transfer::*;
+
+mod validation;
+
+use crate::NetworkConfig;
 
 /// Program management object for loading programs for building, execution, and deployment
 ///
@@ -108,15 +111,10 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     ) -> Result<ProgramManager<N, HybridResolver<N>>> {
         let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
         let resolver = HybridResolver::new(&network_config, &local_directory)?;
-        ProgramManager::<N, HybridResolver<N>>::new(
-            private_key,
-            private_key_ciphertext,
-            Some(network_config),
-            resolver,
-        )
+        ProgramManager::<N, HybridResolver<N>>::new(private_key, private_key_ciphertext, Some(network_config), resolver)
     }
 
-    pub fn send_transaction(&self, transaction: Transaction<N>) -> Result<()> {
+    pub fn broadcast_transaction(&self, transaction: Transaction<N>) -> Result<()> {
         if let Some(config) = &self.network_config {
             let api_client = AleoAPIClient::<N>::from(config);
             api_client.transaction_broadcast(transaction)?;

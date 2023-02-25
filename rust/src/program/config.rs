@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::ProgramManager;
 use snarkvm_console::program::{Ciphertext, Network};
 use snarkvm_synthesizer::Program;
 
-use crate::{program::Resolver};
+use crate::program::Resolver;
 use anyhow::{bail, Result};
 
-use std::str::FromStr;
 use snarkvm_console::account::PrivateKey;
+use std::str::FromStr;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     /// Add private key to the program manager
@@ -60,12 +59,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
 
 #[cfg(test)]
 mod tests {
-    
-    
-    
 
     #[test]
-    fn test_additive_configuration_flow() {
-
-    }
+    fn test_additive_configuration_flow() {}
 }
