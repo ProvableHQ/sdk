@@ -77,12 +77,12 @@ export const EncryptAccount = () => {
                         <h3>Encrypt Account</h3>
                         <Divider/>
                         <Row justify="center">
-                            <Col><Button type="primary" shape="round" size="large" onClick={encryptAccount}
-                                         >Encrypt Account</Button></Col>
                             <Col offset="1"><Form.Item colon={false}>
                                 <Input size="large" placeholder="Password" value={passwordString()}
                                        onChange={onPasswordChange} />
                             </Form.Item></Col>
+                            <Col><Button type="primary" shape="round" size="large" onClick={encryptAccount}
+                                         >Encrypt Account</Button></Col>
                         </Row>
                         {
                             encryptedAccount &&

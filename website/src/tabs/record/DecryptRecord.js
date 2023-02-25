@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Alert, Button, Card, Col, Divider, Form, Input, Row} from "antd";
+import {Button, Card, Col, Divider, Form, Input, Row, Skeleton} from "antd";
 import {CopyButton} from "../../components/CopyButton";
 import {useAleoWASM} from "../../aleo-wasm-hook";
 
@@ -7,7 +7,7 @@ export const DecryptRecord = () => {
     const [ciphertext, setCiphertext] = useState(null);
     const [viewKey, setViewKey] = useState(null);
     const [plaintext, setPlaintext] = useState(null);
-    const [isOwner, setIsOwner] = useState(null);
+    const [_isOwner, setIsOwner] = useState(null);
     const aleo = useAleoWASM();
 
     const onCiphertextChange = (event) => {
@@ -73,7 +73,11 @@ export const DecryptRecord = () => {
         const viewKeyString = () => viewKey !== null ? viewKey.toString() : "";
         const recordCipherTextString = () => ciphertext !== null ? ciphertext.toString() : "";
 
-        return <Card title="Decrypt Record" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
+        return <Card title="Decrypt Record"
+                     style={{width: "100%", borderRadius: "20px"}}
+                     bordered={false}
+                     extra={<Button type="primary" shape="round" size="middle"
+                                    onClick={populateForm}>Demo</Button>}>
             <Form {...layout}>
                 <Form.Item label="Record (Ciphertext)" colon={false}>
                     <Input name="recordCiphertext" size="large" placeholder="Record (Ciphertext)" allowClear onChange={onCiphertextChange}
@@ -87,41 +91,31 @@ export const DecryptRecord = () => {
             {
                 (ciphertext || viewKey) ?
                 <Row justify="center">
-                    <Col><Button type="primary" shape="round" size="middle" onClick={clearForm}
+                    <Col><Button shape="round" size="middle" onClick={clearForm}
                     >Clear</Button></Col>
-                </Row> :
-                <Row justify="center">
-                    <Col><Button type="primary" shape="round" size="middle" onClick={populateForm}
-                    >Use Sample Record</Button></Col>
-                </Row>
+                </Row> : null
+
             }
             {
-                (plaintext) ?
-                    <Form {...layout}>
-                        <Divider/>
-                        <Form.Item label="Record (Plaintext)" colon={false}>
-                            <Input.TextArea size="large"  rows={5} placeholder="Record (Plaintext)" value={recordPlaintext()} disabled/>
-                        </Form.Item>
-                        <Row justify="center">
-                            <CopyButton data={recordPlaintext()}/>
-                            <Divider/>
-                        </Row>
-                        <Row justify="center">
-                            <Alert message="Record Verified!" description="Given view key owns the record"
-                                   type="success" showIcon closable={true} />
-                        </Row>
-                    </Form>
-                    :
-                    (isOwner === false) ?
-                        <Row justify="center">
-                            <Divider/>
-                            <Alert message="Record Verification Failed"
-                                   description="The given record ciphertext is valid, but the given view key doesn't own it"
-                                   type="warning" showIcon closable={true} />
-                        </Row>
-                        :
-                        null
-            }
+                <Form {...layout}>
+                    <Divider/>
+                    <Form.Item label="Record (Plaintext)" colon={false}>
+                        {
+                            (plaintext) ?
+                                    <Row align="middle">
+                                        <Col span={23}>
+                                            <Input.TextArea size="large"  rows={10} placeholder="Record (Plaintext)"
+                                                            value={recordPlaintext()} disabled/>
+                                        </Col>
+                                        <Col span={1} align="middle">
+                                            <CopyButton data={recordPlaintext()}/>
+                                        </Col>
+                                    </Row>
+                                : <Skeleton active/>
+                        }
+                    </Form.Item>
+                </Form>
+        }
         </Card>
     } else {
         return <h3>

@@ -44,6 +44,14 @@ export const VerifyMessage = () => {
         setSignatureInput(event.target.value);
     }
 
+    const validateStatusSignature = () => {
+        return signatureInput !== null ?
+            verified ?
+                "success"
+                : "error"
+            : "";
+    }
+
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
     useEffect(() => {
         if ( !didMount.current ) {
@@ -54,44 +62,27 @@ export const VerifyMessage = () => {
     if (aleo !== null) {
         const messageString = () => messageInput !== null ? messageInput.toString() : "";
         const signatureString = () => signatureInput !== null ? signatureInput.toString() : "";
-        return <Card title="Verify Message from Address" style={{width: "100%", borderRadius: "20px"}}
+        return <Card title="Verify a Message" style={{width: "100%", borderRadius: "20px"}}
                      bordered={false}>
             <Form {...layout}>
                 <Form.Item label="Address" colon={false}>
                     <Input name="address" size="large" placeholder="Address" allowClear onChange={onAddressChange}
                            style={{borderRadius: '20px'}}/>
                 </Form.Item>
+                <Form.Item label="Message" colon={false}>
+                    <Input name="Message" size="large" placeholder="Message" value={messageString()}
+                           style={{borderRadius: '20px'}} onChange={onMessageChange} />
+                </Form.Item>
+                <Form.Item
+                    label="Signature"
+                    colon={false}
+                    hasFeedback
+                    validateStatus={validateStatusSignature()}>
+                <Input name="Signature" size="large" placeholder="Signature" value={signatureString()}
+                       style={{borderRadius: '20px'}} onChange={onSignatureChange}/>
+                </Form.Item>
+
             </Form>
-            {
-                (inputAddress) ?
-                    <Form {...layout}>
-                        <Divider/>
-                        <Form.Item label="Message" colon={false}>
-                            <Input name="Message" size="large" placeholder="Message" value={messageString()}
-                                   style={{borderRadius: '20px'}} onChange={onMessageChange} />
-                        </Form.Item>
-                        <Form.Item label="Signature" colon={false}>
-                            <Input name="Signature" size="large" placeholder="Signature" value={signatureString()}
-                                   style={{borderRadius: '20px'}} onChange={onSignatureChange}/>
-                        </Form.Item>
-                    </Form> :
-                    null
-            }
-            {
-                (inputAddress && messageInput && signatureInput) ?
-                    (verified) ?
-                        <Row justify="center">
-                            <Alert message="Message Verified!" description="Message Was Signed By the Given Address"
-                                   type="success" showIcon closable={true} />
-                        </Row>
-                        :
-                        <Row justify="center">
-                            <Alert message="Message Verification Failed" description="Message and Signature Did Not Match for the Given Address"
-                                   type="warning" showIcon closable={true} />
-                        </Row>
-                    :
-                    null
-            }
         </Card>
     } else {
         return <h3>

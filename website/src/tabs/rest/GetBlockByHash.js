@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Card, Divider, Form, Input, Row} from "antd";
+import {Card, Divider, Form, Input, Row, Col} from "antd";
 import axios from "axios";
 import {CopyButton} from "../../components/CopyButton";
 
@@ -41,12 +41,15 @@ export const GetBlockByHash = () => {
             (blockByHash !== null) ?
                 <Form {...layout}>
                     <Divider/>
-                    <Form.Item label="Block" colon={false}>
-                        <Input.TextArea size="large" rows={15} placeholder="Block" value={blockString()} disabled/>
-                    </Form.Item>
-                    <Row justify="center">
-                        <CopyButton data={blockString()}/>
-                        <Divider/>
+                    <Row align="middle">
+                        <Col span={23}>
+                            <Form.Item label="Block" colon={false}>
+                                <Input.TextArea size="large" rows={15} placeholder="Block" value={blockString()} disabled/>
+                            </Form.Item>
+                        </Col>
+                        <Col span={1} align="middle">
+                            <CopyButton data={blockString()}/>
+                        </Col>
                     </Row>
                 </Form>
                 : null

@@ -35,7 +35,11 @@ export const GetProgram = () => {
     const programString = () => program !== null ? program : "";
     const programNameString = () => programName !== null ? programName : "";
 
-    return <Card title="Get Program" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
+    return <Card title="Get Program"
+                 style={{width: "100%", borderRadius: "20px"}}
+                 bordered={false}
+                 extra={<Button type="primary" shape="round" size="middle" onClick={() => {tryRequest("credits.aleo")}}
+    >Demo</Button>}>
         <Form {...layout}>
             <Form.Item label="Program Name" colon={false}>
                 <Input name="id" size="large" placeholder="Program Name" allowClear onChange={onChange}
@@ -46,21 +50,20 @@ export const GetProgram = () => {
             (program !== null) ?
                 <Form {...layout}>
                     <Divider/>
-                    <Form.Item label="Program" colon={false}>
-                        <Input.TextArea size="large" rows={15} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
-                                        value={programString()}
-                                        disabled/>
-                    </Form.Item>
-                    <Row justify="center">
-                        <CopyButton data={programString()}/>
-                        <Divider/>
+                    <Row align="middle">
+                        <Col span={23}>
+                            <Form.Item label="Program" colon={false}>
+                                <Input.TextArea size="large" rows={15} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
+                                                value={programString()}
+                                                disabled/>
+                            </Form.Item>
+                        </Col>
+                        <Col span={1} align="middle">
+                            <CopyButton data={programString()}/>
+                        </Col>
                     </Row>
                 </Form>
-                :
-                <Row justify="center">
-                    <Col><Button type="primary" shape="round" size="middle" onClick={() => {tryRequest("credits.aleo")}}
-                    >Get credits.aleo</Button></Col>
-                </Row>
+                : null
         }
     </Card>
 }

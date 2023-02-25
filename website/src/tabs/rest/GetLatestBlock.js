@@ -33,12 +33,15 @@ export const GetLatestBlock = () => {
             (latestBlock !== null) ?
                 <Form {...layout}>
                     <Divider/>
-                    <Form.Item label="Block" colon={false}>
-                        <Input.TextArea size="large" rows={15} placeholder="Block" value={latestBlockString()} disabled/>
-                    </Form.Item>
-                    <Row justify="center">
-                        <CopyButton data={latestBlockString()}/>
-                        <Divider/>
+                    <Row align="middle">
+                        <Col span={23}>
+                            <Form.Item label="Block" colon={false}>
+                                <Input.TextArea size="large" rows={15} placeholder="Block" value={latestBlockString()} disabled/>
+                            </Form.Item>
+                        </Col>
+                        <Col span={1} align="middle">
+                            <CopyButton data={latestBlockString()}/>
+                        </Col>
                     </Row>
                 </Form>
                 : null
