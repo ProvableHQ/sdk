@@ -25,6 +25,7 @@ use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Trans
 use super::ProgramManager;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
+    /// Deploy a program to the network
     pub fn deploy_program(
         &mut self,
         program_id: impl TryInto<ProgramID<N>>,

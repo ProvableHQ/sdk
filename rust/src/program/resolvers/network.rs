@@ -27,6 +27,7 @@ use anyhow::{bail, Result};
 use std::ops::Range;
 
 /// Resolver for resources from the Aleo network
+#[derive(Clone, Debug)]
 pub struct AleoNetworkResolver<N: Network> {
     network_config: NetworkConfig,
     _phantom: core::marker::PhantomData<N>,

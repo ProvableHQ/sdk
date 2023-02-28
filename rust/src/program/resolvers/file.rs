@@ -34,6 +34,7 @@ use std::{
 };
 
 /// Resolver for imports from the local file system
+#[derive(Clone, Debug)]
 pub struct FileSystemResolver<N: Network> {
     local_config: PathBuf,
     _phantom: core::marker::PhantomData<N>,

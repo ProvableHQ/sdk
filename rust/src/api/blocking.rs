@@ -269,7 +269,7 @@ mod tests {
         let view_key = ViewKey::<N>::try_from(&private_key).unwrap();
 
         // Scan the ledger at this range.
-        let records = client.scan(private_key, 14200..14250).unwrap();
+        let records = client.scan(private_key, 14200..14250, None).unwrap();
         assert_eq!(records.len(), 1);
 
         // Check the commitment.

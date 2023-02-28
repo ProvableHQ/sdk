@@ -30,6 +30,7 @@ use std::path::Path;
 ///
 /// The default behavior is to first attempt to load a program from the local file system,
 /// and if that fails, to attempt to load it from programs stored on the aleo network.
+#[derive(Clone, Debug)]
 pub struct HybridResolver<N: Network> {
     file_system_resolver: FileSystemResolver<N>,
     network_resolver: AleoNetworkResolver<N>,

@@ -71,6 +71,7 @@ pub trait Resolver<N: Network> {
 
 /// Noop resolver that does not resolve any imports and assumes the user of the program
 /// manager will manually provide the necessary resources.
+#[derive(Clone, Debug)]
 pub struct NoOpResolver<N: Network> {
     _phantom: core::marker::PhantomData<N>,
 }

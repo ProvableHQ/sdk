@@ -32,6 +32,7 @@ use snarkvm_console::{network::Testnet3, program::Network};
 use std::marker::PhantomData;
 
 /// Aleo API client for interacting with the Aleo Beacon API
+#[derive(Clone, Debug)]
 pub struct AleoAPIClient<N: Network> {
     #[cfg(feature = "async")]
     client: reqwest::Client,

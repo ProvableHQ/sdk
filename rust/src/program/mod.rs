@@ -49,6 +49,7 @@ mod validation;
 /// This object is meant to be a software abstraction that can be consumed by software like
 /// CLI tools, IDE plugins, Server-side stack components and other software that needs to
 /// interact with the Aleo network.
+#[derive(Clone)]
 pub struct ProgramManager<N: Network, R: Resolver<N>> {
     pub(crate) vm: VM<N, ConsensusMemory<N>>,
     pub(crate) private_key: Option<PrivateKey<N>>,
