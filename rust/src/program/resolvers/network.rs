@@ -165,7 +165,7 @@ function main:
     }
 
     #[test]
-    fn test_non_existent_program_doesnt_load() {
+    fn test_network_resolver_doesnt_load_programs_not_on_chain() {
         let random_program = random_string(16);
         let testnet_3 = NetworkConfig::testnet3();
         let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
@@ -174,7 +174,7 @@ function main:
     }
 
     #[test]
-    fn test_bad_imports_cause_error() {
+    fn test_network_resolver_produces_resolution_errors_for_bad_imports() {
         // Create a bad program with a bad import
         let testnet_3 = NetworkConfig::testnet3();
         let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
@@ -201,7 +201,7 @@ function main:
     }
 
     #[test]
-    fn test_programs_with_no_imports_dont_resolve() {
+    fn test_network_resolver_doesnt_resolve_imports_for_programs_with_no_imports() {
         let testnet_3 = NetworkConfig::testnet3();
         let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
         let credits = Program::<Testnet3>::credits().unwrap();

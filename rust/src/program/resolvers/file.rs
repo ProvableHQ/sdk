@@ -49,11 +49,11 @@ impl<N: Network> FileSystemResolver<N> {
     }
 
     pub fn import_directory(&self) -> PathBuf {
-        self.local_config.join("/imports")
+        self.local_config.join("imports")
     }
 
     pub fn inputs_directory(&self) -> PathBuf {
-        self.local_config.join("/inputs")
+        self.local_config.join("inputs")
     }
 }
 
@@ -132,5 +132,150 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
             }
         }
         Ok(records)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use snarkvm_console::network::Testnet3;
+    use std::{fs::File, io::Write, ops::Add, panic::catch_unwind, str::FromStr};
+
+    const ALEO_PROGRAM: &str = "import hello.aleo;
+import credits.aleo;
+program aleo_test.aleo;
+
+function test:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+";
+
+    const HELLO_PROGRAM: &str = "program hello.aleo;
+
+function main:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+";
+
+    fn random_string(len: usize) -> String {
+        use rand::Rng;
+        const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
+        let mut rng = rand::thread_rng();
+
+        let program: String = (0..len)
+            .map(|_| {
+                let idx = rng.gen_range(0..CHARSET.len());
+                CHARSET[idx] as char
+            })
+            .collect();
+        program.add(".aleo")
+    }
+
+    // Create temp directory with test data
+    fn setup_directory() -> Result<PathBuf> {
+        // Crate a temporary directory for the test.
+        let directory = std::env::temp_dir().join("aleo_test");
+        println!("Directory: {}", directory.display());
+
+        catch_unwind(|| {
+            let _ = &directory.exists().then(|| fs::remove_dir_all(&directory).unwrap());
+            fs::create_dir(&directory).unwrap();
+
+            let imports_directory = directory.join("imports");
+            fs::create_dir(&directory.join("imports")).unwrap();
+            let program_id = ProgramID::<Testnet3>::from_str(&format!("{}.aleo", "aleo_test")).unwrap();
+
+            // Create the manifest file.
+            Manifest::create(&directory, &program_id).unwrap();
+
+            let mut main = File::create(&directory.join("main.aleo")).unwrap();
+            main.write_all(ALEO_PROGRAM.as_bytes()).unwrap();
+
+            let mut credits = File::create(imports_directory.join("credits.aleo")).unwrap();
+            credits.write_all(&Program::<Testnet3>::credits().unwrap().to_string().as_bytes()).unwrap();
+
+            let mut hello = File::create(imports_directory.join("hello.aleo")).unwrap();
+            hello.write_all(HELLO_PROGRAM.as_bytes()).unwrap();
+        })
+        .map_err(|_| anyhow::anyhow!("Failed to create test directory"))?;
+        Ok(directory)
+    }
+
+    // Teardown temp directory
+    fn teardown_directory(directory: &PathBuf) {
+        if directory.exists() {
+            fs::remove_dir_all(directory).unwrap();
+        }
+    }
+
+    #[test]
+    fn test_file_resolver_loading_and_imports() {
+        let test_path = setup_directory().unwrap();
+        let result = catch_unwind(|| {
+            // TEST 1: Test that the file resolver can load a program.
+            println!("Test path: {}", test_path.display());
+            let resolver = FileSystemResolver::<Testnet3>::new(&test_path).unwrap();
+            let program_id = ProgramID::<Testnet3>::from_str("aleo_test.aleo").unwrap();
+            let expected_program = Program::<Testnet3>::from_str(ALEO_PROGRAM).unwrap();
+            let found_program = resolver.load_program(&program_id).unwrap();
+            assert_eq!(expected_program, found_program);
+
+            // TEST 2: Test that the file resolver can resolve imports.
+            let test_program = Program::<Testnet3>::from_str(ALEO_PROGRAM).unwrap();
+            let hello_program = Program::<Testnet3>::from_str(HELLO_PROGRAM).unwrap();
+            let credits_program = Program::<Testnet3>::credits().unwrap();
+            let imports = resolver.resolve_program_imports(&test_program).unwrap();
+            assert_eq!(imports.len(), 2);
+
+            let (hello_id, local_hello_program) = &imports[0];
+            let (credits_id, local_credits_program) = &imports[1];
+            let (local_hello_program, local_credits_program) =
+                (local_hello_program.as_ref().unwrap(), local_credits_program.as_ref().unwrap());
+            assert_eq!(hello_id.to_string(), "hello.aleo");
+            assert_eq!(credits_id.to_string(), "credits.aleo");
+            assert_eq!(&hello_program, local_hello_program);
+            assert_eq!(&credits_program, local_credits_program);
+
+            // TEST 3: Test that the file resolver doesn't load a non-existent program.
+            let random_program = random_string(16);
+            let program_id = ProgramID::<Testnet3>::from_str(&random_program).unwrap();
+            assert!(resolver.load_program(&program_id).is_err());
+
+            // TEST 4: Test that the file resolver throws an error when a program has a bad import, but can still resolve the other imports.
+            // Create a bad program with a bad import
+            let bad_import_code = String::from("import ").add(&random_string(16)).add(";").add(ALEO_PROGRAM);
+            let bad_import_program = Program::<Testnet3>::from_str(&bad_import_code).unwrap();
+            let imports = resolver.resolve_program_imports(&bad_import_program).unwrap();
+
+            // Ensure that the bad import is the only one that failed
+            let (_, local_bad_import_program) = &imports[0];
+            let (hello_id, local_hello_program) = &imports[1];
+            let (credits_id, local_credits_program) = &imports[2];
+            assert!(local_bad_import_program.is_err());
+            assert_eq!(hello_id.to_string(), "hello.aleo");
+            assert_eq!(credits_id.to_string(), "credits.aleo");
+
+            // Make sure the other imports are still resolved correctly
+            let hello_program = Program::<Testnet3>::from_str(HELLO_PROGRAM).unwrap();
+            let credits_program = Program::<Testnet3>::credits().unwrap();
+            let (local_hello_program, local_credits_program) =
+                (local_hello_program.as_ref().unwrap(), local_credits_program.as_ref().unwrap());
+
+            assert_eq!(&hello_program, local_hello_program);
+            assert_eq!(&credits_program, local_credits_program);
+
+            // TEST 5: Ensure the file resolver doesn't resolve imports for a program that doesn't have any.
+            let credits = Program::<Testnet3>::credits().unwrap();
+            let imports = resolver.resolve_program_imports(&credits).unwrap();
+            assert_eq!(imports.len(), 0);
+        });
+        teardown_directory(&test_path);
+        // Ensure the test directory was deleted
+        assert!(!test_path.exists());
+        result.unwrap();
     }
 }

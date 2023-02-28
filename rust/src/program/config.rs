@@ -56,7 +56,6 @@ mod tests {
 
     use crate::{HybridResolver, NetworkConfig};
     use snarkvm_console::{account::PrivateKey, network::Testnet3};
-    use std::fs;
 
     const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
     const ALEO_PROGRAM: &str = "
@@ -74,8 +73,6 @@ function hello:
         let private_key = PrivateKey::<Testnet3>::from_str(ALEO_PRIVATE_KEY).unwrap();
         let network_config = NetworkConfig::new("http://localhost:3030".to_string(), "testnet3".to_string());
         let temp_dir = std::env::temp_dir();
-        let _ = fs::remove_file(temp_dir.join("account-plaintext.json"));
-        let _ = fs::remove_file(temp_dir.join("account-ciphertext.json"));
         std::env::set_current_dir(&temp_dir).unwrap();
         let mut program_manager =
             ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
