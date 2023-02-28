@@ -24,6 +24,7 @@ use snarkvm_console::{
 };
 use snarkvm_synthesizer::{Block, Program, Transaction};
 use std::{convert::TryInto, ops::Range};
+use snarkvm_console::account::PrivateKey;
 
 #[cfg(not(feature = "async"))]
 #[allow(clippy::type_complexity)]
@@ -125,6 +126,7 @@ impl<N: Network> AleoAPIClient<N> {
         &self,
         view_key: impl TryInto<ViewKey<N>>,
         block_heights: Range<u32>,
+        max_records: Option<usize>,
     ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
         // Prepare the view key.
         let view_key = view_key.try_into().map_err(|_| anyhow!("Invalid view key"))?;
@@ -153,6 +155,64 @@ impl<N: Network> AleoAPIClient<N> {
                     false => None,
                 }
             }));
+
+            if records.len() >= max_records.unwrap_or(usize::MAX) {
+                break;
+            }
+        }
+
+        Ok(records)
+    }
+
+    pub fn get_unspent_records(
+        &self,
+        private_key: impl TryInto<PrivateKey<N>>,
+        block_heights: Range<u32>,
+        max_records: Option<usize>,
+        max_gates: Option<u64>,
+    ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
+        let private_key = private_key.try_into().map_err(|_| anyhow!("Invalid private key"))?;
+        let view_key = private_key.view_key();
+
+        // Prepare the starting block height, by rounding down to the nearest step of 50.
+        let start_block_height = block_heights.start - (block_heights.start % 50);
+        // Prepare the ending block height, by rounding up to the nearest step of 50.
+        let end_block_height = block_heights.end + (50 - (block_heights.end % 50));
+
+        // Initialize a vector for the records.
+        let mut records = Vec::new();
+
+        let mut total_gates = 0u64;
+
+        for start_height in (start_block_height..end_block_height).step_by(50) {
+            let end_height = start_height + 50;
+
+            // Prepare the URL.
+            let records_iter =
+                self.get_blocks(start_height, end_height)?.into_iter().flat_map(|block| block.into_records());
+
+            // Filter the records by the view key.
+            records.extend(records_iter.filter_map(|(commitment, record)| {
+                match record.is_owner_with_address_x_coordinate(&view_key, &address_x_coordinate) {
+                    true => {
+                        let sn = Record::<N, Ciphertext<N>>::serial_number(*private_key, *commitment)?;
+                        if self.find_transition_id(sn).is_err() {
+                            if let Some(max_gates) = max_gates {
+                                total_gates += ***record.gates();
+                                if total_gates > max_gates {
+                                    return None;
+                                }
+                            }
+                        } else {
+                            None
+                        }
+                    },
+                    false => None,
+                }
+            }));
+            if records.len() >= max_records.unwrap_or(usize::MAX) {
+                break;
+            }
         }
 
         Ok(records)

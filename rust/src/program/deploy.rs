@@ -15,12 +15,13 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::program::Resolver;
-use anyhow::{anyhow, Error, Result};
+use anyhow::{anyhow, bail, Error, Result};
 use snarkvm_console::{
     account::PrivateKey,
     program::{Network, Plaintext, ProgramID, Record},
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
+use crate::RecordQuery;
 
 use super::ProgramManager;
 
@@ -31,15 +32,31 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         fee_record: Option<Record<N, Plaintext<N>>>,
         fee: u64,
         password: Option<String>,
+        record_query: Option<RecordQuery>,
     ) -> Result<()> {
-        let network_config = self.network_config.as_ref().ok_or_else(|| anyhow!("Network config not set"))?;
-        let private_key = self.get_private_key(password)?;
+        // Ensure network config is set, otherwise deployment is not possible
+        self.api_client.is_none().then(|| anyhow!("Network config not set"))?;
+
+        // Check program has a legal name
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
+
+        // Get the program if it already exists, otherwise load it from the specified resolver
         let program = if let Ok(program) = self.vm.process().write().get_program(&program_id) {
             program.clone()
         } else {
             self.resolver.load_program(&program_id)?
         };
+
+        // Check if program is already deployed on chain, cancel deployment if so
+        match self.program_matches_on_chain_version(program) {
+            Ok(_) => bail!("Program already deployed"),
+            Err(message) => {
+                if message != "Program not found on chain" {
+                    bail!(message);
+                }
+            },
+        };
+
         if program.imports().len() > 0 {
             let imports = self.resolver.resolve_program_imports(&program)?;
             imports.iter().try_for_each(|(program_id, program)| {
@@ -51,17 +68,33 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                 Ok::<_, Error>(())
             })?;
         }
-        let rng = &mut rand::thread_rng();
 
-        let query = Query::from(network_config.get_url());
+        // Try to get the private key
+        let private_key = self.get_private_key(password)?;
+
+        // Attempt to construct the transaction
+        let rng = &mut rand::thread_rng();
+        let query = Query::from(self.api_client.as_ref().unwrap().base_url());
+
+        // If a fee record is not provided, find one
         let fee_record = if let Some(fee_record) = fee_record {
             fee_record
         } else {
-            self.resolver.find_unspent_records()?.first().ok_or(anyhow!("No unspent records found"))?.clone()
+            // If an explicit record query is provided, use it, otherwise use a default query
+            if let Some(record_query) = record_query {
+                self.resolver.find_owned_records(&private_key, &record_query)?
+            } else {
+                let record_query = RecordQuery::Options { max_records: None, max_gates: Some(fee), unspent_only: true };
+                self.resolver.find_owned_records(&private_key, &record_query)?
+            }
         };
+
+        // Create & broadcast a deploy transaction for a program
         let transaction =
             Transaction::<N>::deploy(&self.vm, &private_key, &program, (fee_record, fee), Some(query), rng)?;
         self.broadcast_transaction(transaction)?;
+
+        // Return okay if it's successful
         Ok(())
     }
 

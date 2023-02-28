@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use std::fs;
 use snarkvm_console::network::Network;
 use snarkvm_synthesizer::Program;
 
@@ -21,7 +22,7 @@ use super::Resolver;
 
 use anyhow::{ensure, Result};
 
-use snarkvm_console::program::{Ciphertext, Plaintext, ProgramID, Record};
+use snarkvm_console::program::{Ciphertext, Field, Plaintext, ProgramID, Record};
 
 use std::path::PathBuf;
 
@@ -29,6 +30,9 @@ use snarkvm::{
     file::{AleoFile, Manifest},
     package::Package,
 };
+use snarkvm::prelude::{PrivateKey, ViewKey};
+use snarkvm::prelude::Owner::Public;
+use crate::RecordQuery;
 
 /// Resolver for imports from the local file system
 pub struct FileSystemResolver<N: Network> {
@@ -46,6 +50,10 @@ impl<N: Network> FileSystemResolver<N> {
 
     pub fn import_directory(&self) -> PathBuf {
         self.local_config.join("/imports")
+    }
+
+    pub fn inputs_directory(&self) -> PathBuf {
+        self.local_config.join("/inputs")
     }
 }
 
@@ -90,11 +98,36 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
             .collect::<Result<Vec<(ProgramID<N>, Result<Program<N>>)>>>()
     }
 
-    fn find_records(&self) -> Result<Vec<Record<N, Ciphertext<N>>>> {
-        Ok(vec![])
-    }
-
-    fn find_unspent_records(&self) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        Ok(vec![])
+    fn find_owned_records(&self, private_key: &PrivateKey<N>, record_query: &RecordQuery) -> Result<Vec<Record<N, Plaintext<N>>>> {
+        let mut records = vec![];
+        let address = private_key.address();
+        for entry in fs::read_dir(&self.inputs_directory())? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(extension) = path.extension() {
+                    if extension == "json" {
+                        fs::read_to_string(path)
+                            .map_err(|err| anyhow::anyhow!(err.to_string()))
+                            .and_then(|json| {
+                                serde_json::from_str::<Record<N, Plaintext<N>>>(&json)
+                                    .map_err(|err| anyhow::anyhow!(err.to_string()))
+                            })
+                            .and_then(|record| {
+                                let record_owner = record.owner();
+                                if let Public(address) = record_owner {
+                                    if address == address {
+                                        records.push(record.clone());
+                                    }
+                                }
+                                Ok(())
+                            })
+                    } else {
+                        continue;
+                    }
+                }
+            }
+        }
+        Ok(records)
     }
 }

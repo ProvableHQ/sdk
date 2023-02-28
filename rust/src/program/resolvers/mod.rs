@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use std::str::FromStr;
 use snarkvm_console::network::Network;
 use snarkvm_synthesizer::Program;
 
 use anyhow::{bail, Result};
 
-use snarkvm_console::program::{Ciphertext, Plaintext, ProgramID, Record};
+use snarkvm_console::{
+    account::{PrivateKey, ViewKey},
+    program::{Ciphertext, Plaintext, ProgramID, Record}
+};
+use snarkvm_console::program::{Field, Identifier};
 
 pub mod file;
 pub use file::*;
@@ -29,6 +34,17 @@ pub use hybrid::*;
 
 pub mod network;
 pub use network::*;
+
+pub enum RecordQuery {
+    /// Find records that belong to a user within a certain block range
+    BlockRange { start: u32, end: u32, max_records: Option<usize>, max_gates: Option<u64>, unspent_only: bool },
+    /// Find records that belong to a user at a specified resource uri (e.g. a file path, database uri, etc.)
+    ResourceUri { resource: String, query: Option<String>, max_records: Option<usize>, max_gates: Option<u64>, unspent_only: bool },
+    /// Specify options only
+    Options { max_records: Option<usize>, max_gates: Option<u64>, unspent_only: bool },
+    /// No-Op query for resolvers that do not support record queries
+    None
+}
 
 /// Trait that allows custom implementations of resource resolution for resources
 /// needed to run Aleo programs such as imports and records.
@@ -42,10 +58,7 @@ pub trait Resolver<N: Network> {
     fn resolve_program_imports(&self, program: &Program<N>) -> Result<Vec<(ProgramID<N>, Result<Program<N>>)>>;
 
     /// Find records that belong to a user
-    fn find_records(&self) -> Result<Vec<Record<N, Ciphertext<N>>>>;
-
-    /// Find unspent records that belong to a user
-    fn find_unspent_records(&self) -> Result<Vec<Record<N, Plaintext<N>>>>;
+    fn find_owned_records(&self, private_key: &PrivateKey<N>, record_query: &RecordQuery) -> Result<Vec<Record<N, Plaintext<N>>>>;
 }
 
 /// Noop resolver that does not resolve any imports and assumes the user of the program
@@ -71,11 +84,7 @@ impl<N: Network> Resolver<N> for NoOpResolver<N> {
         bail!("A functional resolver is required to resolve imports, please configure one");
     }
 
-    fn find_records(&self) -> Result<Vec<Record<N, Ciphertext<N>>>> {
-        bail!("A functional resolver is required to find records, please configure one");
-    }
-
-    fn find_unspent_records(&self) -> Result<Vec<Record<N, Plaintext<N>>>> {
+    fn find_owned_records(&self, private_key: &PrivateKey<N>, record_query: &RecordQuery) -> Result<Vec<Record<N, Plaintext<N>>>> {
         bail!("A functional resolver is required to find records, please configure one");
     }
 }

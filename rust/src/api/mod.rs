@@ -31,6 +31,7 @@ pub use asynchronous::*;
 use snarkvm_console::{network::Testnet3, program::Network};
 use std::marker::PhantomData;
 
+/// Aleo API client for interacting with the Aleo Beacon API
 pub struct AleoAPIClient<N: Network> {
     #[cfg(feature = "async")]
     client: reqwest::Client,
@@ -48,6 +49,21 @@ impl<N: Network> AleoAPIClient<N> {
         #[cfg(not(feature = "async"))]
         let client = ureq::Agent::new();
         AleoAPIClient { client, base_url: base_url.to_string(), network_id: chain.to_string(), _network: PhantomData }
+    }
+
+    /// Get base URL
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
+    /// Get network ID being interacted with
+    pub fn network_id(&self) -> &str {
+        &self.network_id
+    }
+
+    /// Get a network config object representing the API client's configuration
+    pub fn network_config(&self) -> NetworkConfig {
+        NetworkConfig::new(self.base_url.to_string(), self.network_id.to_string())
     }
 }
 

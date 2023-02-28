@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{api::AleoAPIClient, program::Resolver};
+use super::{AleoNetworkResolver, HybridResolver, FileSystemResolver};
+use crate::{
+    api::{AleoAPIClient, config::NetworkConfig},
+};
 use snarkvm_console::{
     account::PrivateKey,
-    program::{Ciphertext, Network},
+    program::{Ciphertext, Network, Plaintext, Record},
 };
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Transaction, VM};
-use std::path::PathBuf;
+use snarkvm_synthesizer::{Block, ConsensusMemory, ConsensusStore, Transaction, VM};
 
 use anyhow::{anyhow, bail, Result};
+use std::path::PathBuf;
+
 
 pub mod build;
 pub use build::*;
@@ -44,8 +48,6 @@ pub use transfer::*;
 
 mod validation;
 
-use crate::NetworkConfig;
-
 /// Program management object for loading programs for building, execution, and deployment
 ///
 /// This object is meant to be a software abstraction that can be consumed by software like
@@ -55,7 +57,8 @@ pub struct ProgramManager<N: Network, R: Resolver<N>> {
     pub(crate) vm: VM<N, ConsensusMemory<N>>,
     pub(crate) private_key: Option<PrivateKey<N>>,
     pub(crate) private_key_ciphertext: Option<Ciphertext<N>>,
-    pub(crate) network_config: Option<NetworkConfig>,
+    pub(crate) records: Vec<Record<N, Plaintext<N>>>,
+    pub(crate) api_client: Option<AleoAPIClient<N>>,
     pub(crate) resolver: R,
 }
 
@@ -65,6 +68,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     pub fn new(
         private_key: Option<PrivateKey<N>>,
         private_key_ciphertext: Option<Ciphertext<N>>,
+        records: Vec<Record<N, Plaintext<N>>>,
         network_config: Option<NetworkConfig>,
         resolver: R,
     ) -> Result<Self> {
@@ -73,9 +77,10 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         } else if private_key.is_none() && private_key_ciphertext.is_none() {
             bail!("Must have either private key or private key ciphertext");
         }
+        let api_client = network_config.map(|config| AleoAPIClient::<N>::from(&config));
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::from(store)?;
-        Ok(Self { vm, private_key, private_key_ciphertext, network_config, resolver })
+        Ok(Self { vm, private_key, private_key_ciphertext, records, api_client, resolver })
     }
 
     pub fn program_manager_with_local_resource_resolution(
@@ -86,7 +91,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     ) -> Result<ProgramManager<N, FileSystemResolver<N>>> {
         let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
         let resolver = FileSystemResolver::new(&local_directory)?;
-        ProgramManager::<N, FileSystemResolver<N>>::new(private_key, private_key_ciphertext, network_config, resolver)
+        ProgramManager::<N, FileSystemResolver<N>>::new(private_key, private_key_ciphertext, vec![], network_config, resolver)
     }
 
     pub fn program_manager_with_network_resolution(
@@ -98,6 +103,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         ProgramManager::<N, AleoNetworkResolver<N>>::new(
             private_key,
             private_key_ciphertext,
+            vec![],
             Some(network_config),
             resolver,
         )
@@ -111,16 +117,16 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     ) -> Result<ProgramManager<N, HybridResolver<N>>> {
         let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
         let resolver = HybridResolver::new(&network_config, &local_directory)?;
-        ProgramManager::<N, HybridResolver<N>>::new(private_key, private_key_ciphertext, Some(network_config), resolver)
+        ProgramManager::<N, HybridResolver<N>>::new(private_key, private_key_ciphertext, vec![], Some(network_config), resolver)
     }
 
-    pub fn broadcast_transaction(&self, transaction: Transaction<N>) -> Result<()> {
-        if let Some(config) = &self.network_config {
-            let api_client = AleoAPIClient::<N>::from(config);
-            api_client.transaction_broadcast(transaction)?;
-            Ok(())
-        } else {
-            bail!("No API client found")
-        }
+    /// Broadcast a transaction to the network
+    pub fn broadcast_transaction(&self, transaction: Transaction<N>) -> Result<Block<N>> {
+        self.api_client()?.transaction_broadcast(transaction)
+    }
+
+    /// Get API client
+    pub fn api_client(&self) -> Result<&AleoAPIClient<N>> {
+        self.api_client.as_ref().ok_or_else(|| anyhow!("No API client found"))
     }
 }

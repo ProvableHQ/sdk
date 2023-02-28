@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use std::ops::Range;
 use snarkvm_console::network::Network;
 use snarkvm_synthesizer::Program;
 
-use crate::{api::AleoAPIClient, NetworkConfig};
+use crate::{api::AleoAPIClient, NetworkConfig, RecordQuery};
 use anyhow::{bail, Result};
+use snarkvm::prelude::ViewKey;
+use snarkvm_console::account::PrivateKey;
 
-use snarkvm_console::program::{Ciphertext, Plaintext, ProgramID, Record};
+use snarkvm_console::program::{Ciphertext, Field, Plaintext, ProgramID, Record};
 
 use super::Resolver;
 
@@ -59,11 +62,32 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
             .collect::<Result<Vec<(ProgramID<N>, Result<Program<N>>)>>>()
     }
 
-    fn find_records(&self) -> Result<Vec<Record<N, Ciphertext<N>>>> {
-        Ok(vec![])
+    fn find_owned_records(&self, private_key: &PrivateKey<N>, record_query: &RecordQuery) -> Result<Vec<Record<N, Plaintext<N>>>> {
+        let (block_range, max_records, max_gates, unspent_only) = match record_query {
+            RecordQuery::BlockRange { start, end, max_records, max_gates, unspent_only } => {
+                if start > end {
+                    bail!("Invalid block range");
+                }
+                (Range { start: *start, end: *end }, max_records, max_gates, *unspent_only)
+            },
+            RecordQuery::Options { max_records, max_gates, unspent_only } => {
+                (Range { start: 0, end: u32::MAX }, max_records, max_gates, *unspent_only)
+            },
+            _ => bail!("Network resolver only supports block range queries"),
+        };
+
+        let api_client = AleoAPIClient::<N>::from(&self.network_config);
+        let view_key = private_key.view_key();
+
+        let records = if unspent_only {
+            api_client.get_unspent_records(private_key, block_range, *max_records, *max_gates)?
+        } else {
+            api_client.scan(view_key, block_range, *max_records)?
+        };
+
+        records.into_iter().map(|(field, record)| {
+            (Some(field), record.decrypt_symmetric(&view_key)?)
+        }).collect()
     }
 
-    fn find_unspent_records(&self) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        Ok(vec![])
-    }
 }
