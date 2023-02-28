@@ -178,7 +178,7 @@ function main:
     // Create temp directory with test data
     fn setup_directory() -> Result<PathBuf> {
         // Crate a temporary directory for the test.
-        let directory = std::env::temp_dir().join("aleo_test");
+        let directory = std::env::temp_dir().join("aleo_test_file_system_resolver");
         println!("Directory: {}", directory.display());
 
         catch_unwind(|| {
