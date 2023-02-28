@@ -5,10 +5,12 @@ import {CopyButton} from "../../components/CopyButton";
 
 export const GetBlockByHash = () => {
     const [blockByHash, setBlockByHash] = useState(null);
+    const [responseReceived, setResponseReceived] = useState(false);
 
-    const onChange = (event) => {
+    // Calls `tryRequest` when the search bar input is entered.
+    const onSearch = (value) => {
         try {
-            tryRequest(event.target.value);
+            tryRequest(value);
         } catch (error) {
             console.error(error);
         }
@@ -19,11 +21,29 @@ export const GetBlockByHash = () => {
         try {
             if (hash) {
                 axios.get(`https://vm.aleo.org/api/testnet3/block/${hash}`)
-                    .then(response => setBlockByHash(JSON.stringify(response.data, null, 2)));
+                    .then(response => {
+                        setBlockByHash(JSON.stringify(response.data, null, 2));
+                        setResponseReceived(true);
+                    });
+            } else {
+                // If the search bar is empty set the response flag to false.
+                setResponseReceived(false);
             }
         } catch (error) {
             console.error(error);
         }
+    }
+
+    // Returns the `validateStatus` string to set the highlighting around the search bar.
+    // ""        = grey
+    // "success" = green
+    // "error"   = red
+    const validateStatusBlock = () => {
+        return responseReceived ?
+            blockByHash !== null ?
+                "success"
+                : "error"
+            : "";
     }
 
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
@@ -32,8 +52,14 @@ export const GetBlockByHash = () => {
 
     return <Card title="Get Block By Hash" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
         <Form {...layout}>
-            <Form.Item label="Block Hash" colon={false}>
-                <Input name="hash" size="large" placeholder="Block Hash" allowClear onChange={onChange}
+            <Form.Item label="Block Hash"
+                       colon={false}
+                       validateStatus={validateStatusBlock()}>
+                <Input.Search name="hash"
+                       size="large"
+                       placeholder="Block Hash"
+                       allowClear
+                       onSearch={onSearch}
                        style={{borderRadius: '20px'}}/>
             </Form.Item>
         </Form>

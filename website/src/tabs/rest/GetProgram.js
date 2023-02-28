@@ -6,7 +6,7 @@ import { CopyButton } from "../../components/CopyButton";
 export const GetProgram = () => {
     const [program, setProgram] = useState(null);
     const [programID, setProgramID] = useState(null);
-    const [programExists, setProgramExists] = useState(false);
+    const [responseReceived, setResponseReceived] = useState(false);
 
     // Returns the program id if the user changes it or the "Demo" button is clicked.
     const onChange = (event) => {
@@ -16,7 +16,7 @@ export const GetProgram = () => {
         return programID;
     }
 
-    // Calls `tryRequest` when the search bar is triggered.
+    // Calls `tryRequest` when the search bar input is entered.
     const onSearch = (value) => {
         try {
             tryRequest(value);
@@ -33,7 +33,7 @@ export const GetProgram = () => {
                 axios
                     .get(`https://vm.aleo.org/api/testnet3/program/${id}`)
                     .then((response) => {
-                        setProgramExists(true);
+                        setResponseReceived(true);
                         setProgram(response.data);
                     })
                     .catch((error) => {
@@ -56,7 +56,7 @@ export const GetProgram = () => {
     // "success" = green
     // "error"   = red
     const validateStatusProgram = () => {
-        return programExists ?
+        return responseReceived ?
             program !== null ?
                 "success"
                 : "error"
