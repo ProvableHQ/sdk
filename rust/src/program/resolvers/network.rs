@@ -50,13 +50,12 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
     }
 
     fn resolve_program_imports(&self, program: &Program<N>) -> Result<Vec<(ProgramID<N>, Result<Program<N>>)>> {
-        let api_client = AleoAPIClient::<N>::from(&self.network_config);
         program
             .imports()
             .keys()
             .map(|program_id| {
                 // Open the Aleo program file.
-                let program = api_client.get_program(program_id);
+                let program = self.load_program(program_id);
                 Ok((*program_id, program))
             })
             .collect::<Result<Vec<(ProgramID<N>, Result<Program<N>>)>>>()
@@ -90,5 +89,123 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
         };
 
         Ok(records.into_iter().filter_map(|(_, record)| record.decrypt(&view_key).ok()).collect())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use snarkvm_console::network::Testnet3;
+    use std::{ops::Add, str::FromStr};
+
+    const ALEO_PROGRAM: &str = "
+import hello.aleo;
+import credits.aleo;
+program test.aleo;
+
+function test:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+";
+
+    const HELLO_PROGRAM: &str = "
+program hello.aleo;
+
+function main:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+";
+
+    fn random_string(len: usize) -> String {
+        use rand::Rng;
+        const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
+        let mut rng = rand::thread_rng();
+
+        let program: String = (0..len)
+            .map(|_| {
+                let idx = rng.gen_range(0..CHARSET.len());
+                CHARSET[idx] as char
+            })
+            .collect();
+        program.add(".aleo")
+    }
+
+    #[test]
+    fn test_network_resolver_program_resolution() {
+        let testnet_3 = NetworkConfig::testnet3();
+        let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
+        let program_id = ProgramID::<Testnet3>::from_str("credits.aleo").unwrap();
+        let credits_off_the_chain = Program::<Testnet3>::credits().unwrap();
+        let credits_on_the_chain = resolver.load_program(&program_id).unwrap();
+        assert_eq!(credits_off_the_chain, credits_on_the_chain);
+    }
+
+    #[test]
+    fn test_network_resolver_program_imports_are_resolved_correctly() {
+        let testnet_3 = NetworkConfig::testnet3();
+        let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
+        let test_program = Program::<Testnet3>::from_str(ALEO_PROGRAM).unwrap();
+        let hello_program = Program::<Testnet3>::from_str(HELLO_PROGRAM).unwrap();
+        let credits_program = Program::<Testnet3>::credits().unwrap();
+        let imports = resolver.resolve_program_imports(&test_program).unwrap();
+        assert_eq!(imports.len(), 2);
+
+        let (hello_id, hello_program_on_chain) = &imports[0];
+        let (credits_id, online_credits_on_chain) = &imports[1];
+        let (hello_program_on_chain, online_credits_on_chain) =
+            (hello_program_on_chain.as_ref().unwrap(), online_credits_on_chain.as_ref().unwrap());
+        assert_eq!(hello_id.to_string(), "hello.aleo");
+        assert_eq!(credits_id.to_string(), "credits.aleo");
+        assert_eq!(&hello_program, hello_program_on_chain);
+        assert_eq!(&credits_program, online_credits_on_chain);
+    }
+
+    #[test]
+    fn test_non_existent_program_doesnt_load() {
+        let random_program = random_string(16);
+        let testnet_3 = NetworkConfig::testnet3();
+        let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
+        let program_id = ProgramID::<Testnet3>::from_str(&random_program).unwrap();
+        assert!(resolver.load_program(&program_id).is_err())
+    }
+
+    #[test]
+    fn test_bad_imports_cause_error() {
+        // Create a bad program with a bad import
+        let testnet_3 = NetworkConfig::testnet3();
+        let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
+        let bad_import_code = String::from("import ").add(&random_string(16)).add(";").add(ALEO_PROGRAM);
+        let bad_import_program = Program::<Testnet3>::from_str(&bad_import_code).unwrap();
+        let imports = resolver.resolve_program_imports(&bad_import_program).unwrap();
+
+        // Ensure that the bad import is the only one that failed
+        let (_, bad_import_program_on_chain) = &imports[0];
+        let (hello_id, hello_program_on_chain) = &imports[1];
+        let (credits_id, online_credits_on_chain) = &imports[2];
+        assert!(bad_import_program_on_chain.is_err());
+        assert_eq!(hello_id.to_string(), "hello.aleo");
+        assert_eq!(credits_id.to_string(), "credits.aleo");
+
+        // Make sure the other imports are still resolved correctly
+        let hello_program = Program::<Testnet3>::from_str(HELLO_PROGRAM).unwrap();
+        let credits_program = Program::<Testnet3>::credits().unwrap();
+        let (hello_program_on_chain, online_credits_on_chain) =
+            (hello_program_on_chain.as_ref().unwrap(), online_credits_on_chain.as_ref().unwrap());
+
+        assert_eq!(&hello_program, hello_program_on_chain);
+        assert_eq!(&credits_program, online_credits_on_chain);
+    }
+
+    #[test]
+    fn test_programs_with_no_imports_dont_resolve() {
+        let testnet_3 = NetworkConfig::testnet3();
+        let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
+        let credits = Program::<Testnet3>::credits().unwrap();
+        let imports = resolver.resolve_program_imports(&credits).unwrap();
+        assert_eq!(imports.len(), 0);
     }
 }
