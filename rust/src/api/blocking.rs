@@ -18,13 +18,12 @@ use crate::AleoAPIClient;
 
 use anyhow::{anyhow, bail, Result};
 use snarkvm_console::{
-    account::ViewKey,
+    account::{PrivateKey, ViewKey},
     program::{Ciphertext, Network, ProgramID, Record},
     types::Field,
 };
 use snarkvm_synthesizer::{Block, Program, Transaction};
 use std::{convert::TryInto, ops::Range};
-use snarkvm_console::account::PrivateKey;
 
 #[cfg(not(feature = "async"))]
 #[allow(clippy::type_complexity)]
@@ -166,13 +165,13 @@ impl<N: Network> AleoAPIClient<N> {
 
     pub fn get_unspent_records(
         &self,
-        private_key: impl TryInto<PrivateKey<N>>,
+        private_key: &PrivateKey<N>,
         block_heights: Range<u32>,
         max_records: Option<usize>,
         max_gates: Option<u64>,
     ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
-        let private_key = private_key.try_into().map_err(|_| anyhow!("Invalid private key"))?;
-        let view_key = private_key.view_key();
+        let view_key = ViewKey::try_from(private_key)?;
+        let address_x_coordinate = view_key.to_address().to_x_coordinate();
 
         // Prepare the starting block height, by rounding down to the nearest step of 50.
         let start_block_height = block_heights.start - (block_heights.start % 50);
@@ -195,18 +194,25 @@ impl<N: Network> AleoAPIClient<N> {
             records.extend(records_iter.filter_map(|(commitment, record)| {
                 match record.is_owner_with_address_x_coordinate(&view_key, &address_x_coordinate) {
                     true => {
-                        let sn = Record::<N, Ciphertext<N>>::serial_number(*private_key, *commitment)?;
+                        let sn = Record::<N, Ciphertext<N>>::serial_number(*private_key, commitment).ok()?;
                         if self.find_transition_id(sn).is_err() {
                             if let Some(max_gates) = max_gates {
-                                total_gates += ***record.gates();
+                                let _ = record
+                                    .decrypt(&view_key)
+                                    .map(|record| {
+                                        total_gates += ***record.gates();
+                                        record
+                                    })
+                                    .ok();
                                 if total_gates > max_gates {
                                     return None;
                                 }
                             }
+                            Some((commitment, record))
                         } else {
                             None
                         }
-                    },
+                    }
                     false => None,
                 }
             }));

@@ -15,14 +15,11 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::ProgramManager;
-use snarkvm_console::program::{Network, Plaintext, Record};
-
-use crate::{api::AleoAPIClient, program::Resolver};
-use anyhow::{anyhow, bail, Result};
-
-use crate::Encryptor;
-use snarkvm_console::account::PrivateKey;
+use crate::{Encryptor, Resolver};
+use snarkvm_console::{account::PrivateKey, program::Network};
 use snarkvm_synthesizer::Program;
+
+use anyhow::{anyhow, bail, Result};
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     /// Get a checked private key
@@ -51,8 +48,10 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
 
     pub fn program_matches_on_chain(&self, program: &Program<N>) -> Result<()> {
         let program_id = program.id();
-        self.api_client?.get_program(program_id)
-            .map(|chain_program| chain_program.eq(program).then(|| bail!("Program version mismatch")))
-            .map_err(|_| anyhow!("Program not found on chain")).and(Ok(()))
+        self.api_client()?
+            .get_program(program_id)
+            .map(|chain_program| chain_program.eq(program).then(|| anyhow!("Program version mismatch")))
+            .map_err(|_| anyhow!("Program not found on chain"))
+            .and(Ok(()))
     }
 }

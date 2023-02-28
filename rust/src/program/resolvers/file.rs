@@ -14,25 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use std::fs;
-use snarkvm_console::network::Network;
-use snarkvm_synthesizer::Program;
-
-use super::Resolver;
-
-use anyhow::{ensure, Result};
-
-use snarkvm_console::program::{Ciphertext, Field, Plaintext, ProgramID, Record};
-
-use std::path::PathBuf;
-
+use super::{RecordQuery, Resolver};
 use snarkvm::{
     file::{AleoFile, Manifest},
     package::Package,
 };
-use snarkvm::prelude::{PrivateKey, ViewKey};
-use snarkvm::prelude::Owner::Public;
-use crate::RecordQuery;
+use snarkvm_console::{
+    account::PrivateKey,
+    network::Network,
+    program::{Owner::Public, Plaintext, ProgramID, Record},
+};
+use snarkvm_synthesizer::Program;
+
+use anyhow::{ensure, Result};
+use snarkvm_console::program::Address;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 /// Resolver for imports from the local file system
 pub struct FileSystemResolver<N: Network> {
@@ -42,10 +41,10 @@ pub struct FileSystemResolver<N: Network> {
 
 impl<N: Network> FileSystemResolver<N> {
     /// Create a new file system resolver
-    pub fn new(local_config: &PathBuf) -> Result<Self> {
+    pub fn new(local_config: &Path) -> Result<Self> {
         ensure!(local_config.exists(), "Path does not exist");
         ensure!(local_config.is_dir(), "Path is not a directory");
-        Ok(Self { local_config: local_config.clone(), _phantom: core::marker::PhantomData })
+        Ok(Self { local_config: local_config.to_path_buf(), _phantom: core::marker::PhantomData })
     }
 
     pub fn import_directory(&self) -> PathBuf {
@@ -91,16 +90,20 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
             .map(|program_id| {
                 // Open the Aleo program file.
                 let program = AleoFile::open(&self.import_directory(), program_id, false)
-                    .and_then(|aleo_file| Ok(aleo_file.program().clone()))
+                    .map(|aleo_file| aleo_file.program().clone())
                     .map_err(|err| anyhow::anyhow!(err.to_string()));
-                Ok((program_id.clone(), program))
+                Ok((*program_id, program))
             })
             .collect::<Result<Vec<(ProgramID<N>, Result<Program<N>>)>>>()
     }
 
-    fn find_owned_records(&self, private_key: &PrivateKey<N>, record_query: &RecordQuery) -> Result<Vec<Record<N, Plaintext<N>>>> {
+    fn find_owned_records(
+        &self,
+        private_key: &PrivateKey<N>,
+        _record_query: &RecordQuery,
+    ) -> Result<Vec<Record<N, Plaintext<N>>>> {
         let mut records = vec![];
-        let address = private_key.address();
+        let address = Address::try_from(private_key)?;
         for entry in fs::read_dir(&self.inputs_directory())? {
             let entry = entry?;
             let path = entry.path();
@@ -113,15 +116,14 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
                                 serde_json::from_str::<Record<N, Plaintext<N>>>(&json)
                                     .map_err(|err| anyhow::anyhow!(err.to_string()))
                             })
-                            .and_then(|record| {
+                            .map(|record| {
                                 let record_owner = record.owner();
-                                if let Public(address) = record_owner {
-                                    if address == address {
+                                if let Public(record_owner) = record_owner {
+                                    if &address == record_owner {
                                         records.push(record.clone());
                                     }
                                 }
-                                Ok(())
-                            })
+                            })?;
                     } else {
                         continue;
                     }

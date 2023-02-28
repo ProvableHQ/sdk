@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{AleoNetworkResolver, HybridResolver, FileSystemResolver};
-use crate::{
-    api::{AleoAPIClient, config::NetworkConfig},
-};
+use crate::api::{config::NetworkConfig, AleoAPIClient};
 use snarkvm_console::{
     account::PrivateKey,
-    program::{Ciphertext, Network, Plaintext, Record},
+    program::{Ciphertext, Network},
 };
 use snarkvm_synthesizer::{Block, ConsensusMemory, ConsensusStore, Transaction, VM};
 
 use anyhow::{anyhow, bail, Result};
 use std::path::PathBuf;
-
 
 pub mod build;
 pub use build::*;
@@ -57,7 +53,6 @@ pub struct ProgramManager<N: Network, R: Resolver<N>> {
     pub(crate) vm: VM<N, ConsensusMemory<N>>,
     pub(crate) private_key: Option<PrivateKey<N>>,
     pub(crate) private_key_ciphertext: Option<Ciphertext<N>>,
-    pub(crate) records: Vec<Record<N, Plaintext<N>>>,
     pub(crate) api_client: Option<AleoAPIClient<N>>,
     pub(crate) resolver: R,
 }
@@ -68,7 +63,6 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     pub fn new(
         private_key: Option<PrivateKey<N>>,
         private_key_ciphertext: Option<Ciphertext<N>>,
-        records: Vec<Record<N, Plaintext<N>>>,
         network_config: Option<NetworkConfig>,
         resolver: R,
     ) -> Result<Self> {
@@ -80,7 +74,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         let api_client = network_config.map(|config| AleoAPIClient::<N>::from(&config));
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::from(store)?;
-        Ok(Self { vm, private_key, private_key_ciphertext, records, api_client, resolver })
+        Ok(Self { vm, private_key, private_key_ciphertext, api_client, resolver })
     }
 
     pub fn program_manager_with_local_resource_resolution(
@@ -91,7 +85,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     ) -> Result<ProgramManager<N, FileSystemResolver<N>>> {
         let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
         let resolver = FileSystemResolver::new(&local_directory)?;
-        ProgramManager::<N, FileSystemResolver<N>>::new(private_key, private_key_ciphertext, vec![], network_config, resolver)
+        ProgramManager::<N, FileSystemResolver<N>>::new(private_key, private_key_ciphertext, network_config, resolver)
     }
 
     pub fn program_manager_with_network_resolution(
@@ -103,7 +97,6 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         ProgramManager::<N, AleoNetworkResolver<N>>::new(
             private_key,
             private_key_ciphertext,
-            vec![],
             Some(network_config),
             resolver,
         )
@@ -117,7 +110,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     ) -> Result<ProgramManager<N, HybridResolver<N>>> {
         let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
         let resolver = HybridResolver::new(&network_config, &local_directory)?;
-        ProgramManager::<N, HybridResolver<N>>::new(private_key, private_key_ciphertext, vec![], Some(network_config), resolver)
+        ProgramManager::<N, HybridResolver<N>>::new(private_key, private_key_ciphertext, Some(network_config), resolver)
     }
 
     /// Broadcast a transaction to the network

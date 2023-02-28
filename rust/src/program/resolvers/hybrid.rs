@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::Resolver;
-use snarkvm_console::network::Network;
+use super::{AleoNetworkResolver, FileSystemResolver, RecordQuery, Resolver};
+use crate::NetworkConfig;
+use snarkvm_console::{
+    account::PrivateKey,
+    network::Network,
+    program::{Plaintext, ProgramID, Record},
+};
 use snarkvm_synthesizer::Program;
 
-use crate::{AleoNetworkResolver, FileSystemResolver, NetworkConfig, RecordQuery};
-use anyhow::{bail, ensure, Result};
-
-use snarkvm_console::program::{Ciphertext, Plaintext, ProgramID, Record};
-use std::path::PathBuf;
-use snarkvm::file::Manifest;
-use snarkvm::package::Package;
-use snarkvm::prelude::{PrivateKey, ViewKey};
+use anyhow::{ensure, Result};
+use std::path::Path;
 
 /// Hybrid resolver that uses a combination of local file system and network imports
 ///
@@ -38,25 +37,12 @@ pub struct HybridResolver<N: Network> {
 
 impl<N: Network> HybridResolver<N> {
     /// Create a new hybrid resolver
-    pub fn new(network_config: &NetworkConfig, local_config: &PathBuf) -> Result<Self> {
+    pub fn new(network_config: &NetworkConfig, local_config: &Path) -> Result<Self> {
         ensure!(local_config.exists(), "Path does not exist");
         ensure!(local_config.is_dir(), "Path is not a directory");
         let file_system_resolver = FileSystemResolver::new(local_config)?;
-        let network_resolver = AleoNetworkResolver::new(network_config)?;
-        Ok(Self {
-            file_system_resolver,
-            network_resolver,
-        })
-    }
-
-    pub fn import_directory(&mut self) -> PathBuf {
-        let mut import_directory = self.local_config.clone();
-        import_directory.push("/imports");
-        import_directory
-    }
-
-    pub fn inputs_directory(&self) -> PathBuf {
-        self.local_config.join("/inputs")
+        let network_resolver = AleoNetworkResolver::new(network_config);
+        Ok(Self { file_system_resolver, network_resolver })
     }
 }
 
@@ -69,19 +55,23 @@ impl<N: Network> Resolver<N> for HybridResolver<N> {
 
     fn resolve_program_imports(&self, program: &Program<N>) -> Result<Vec<(ProgramID<N>, Result<Program<N>>)>> {
         let results = self.file_system_resolver.resolve_program_imports(program)?;
-        let mut results = results
+        Ok(results
             .into_iter()
             .map(|(program_id, result)| {
                 if result.is_err() {
-                    (program_id, self.network_resolver.load_program(&program_id)?)
+                    (program_id, self.network_resolver.load_program(&program_id))
                 } else {
                     (program_id, result)
                 }
             })
-            .collect::<Vec<_>>();
+            .collect::<Vec<_>>())
     }
 
-    fn find_owned_records(&self, private_key: &PrivateKey<N>, record_query: &RecordQuery) -> Result<Vec<Record<N, Plaintext<N>>>> {
+    fn find_owned_records(
+        &self,
+        private_key: &PrivateKey<N>,
+        record_query: &RecordQuery,
+    ) -> Result<Vec<Record<N, Plaintext<N>>>> {
         self.network_resolver.find_owned_records(private_key, record_query)
     }
 }

@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::program::Resolver;
-use anyhow::{anyhow, bail, Error, Result};
+use crate::{program::Resolver, RecordQuery};
+use anyhow::{anyhow, ensure, Error, Result};
 use snarkvm_console::{
     account::PrivateKey,
     program::{Network, Plaintext, ProgramID, Record},
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
-use crate::RecordQuery;
 
 use super::ProgramManager;
 
@@ -35,39 +34,36 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         record_query: Option<RecordQuery>,
     ) -> Result<()> {
         // Ensure network config is set, otherwise deployment is not possible
-        self.api_client.is_none().then(|| anyhow!("Network config not set"))?;
+        ensure!(self.api_client.is_none(), "Network config not set, cannot deploy");
 
         // Check program has a legal name
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
 
         // Get the program if it already exists, otherwise load it from the specified resolver
-        let program = if let Ok(program) = self.vm.process().write().get_program(&program_id) {
+        let program = if let Ok(program) = self.vm.process().write().get_program(program_id) {
             program.clone()
         } else {
             self.resolver.load_program(&program_id)?
         };
 
         // Check if program is already deployed on chain, cancel deployment if so
-        match self.program_matches_on_chain_version(program) {
-            Ok(_) => bail!("Program already deployed"),
-            Err(message) => {
-                if message != "Program not found on chain" {
-                    bail!(message);
-                }
-            },
-        };
+        ensure!(
+            self.api_client()?.get_program(program_id).is_err(),
+            "Program {:?} already deployed on chain",
+            program_id
+        );
 
-        if program.imports().len() > 0 {
-            let imports = self.resolver.resolve_program_imports(&program)?;
-            imports.iter().try_for_each(|(program_id, program)| {
-                if !self.vm.process().read().contains_program(program_id) {
-                    if let Ok(program) = program {
-                        self.vm.process().write().add_program(program)?;
-                    }
-                }
-                Ok::<_, Error>(())
-            })?;
-        }
+        // Check if program imports are deployed on chain and add them to the VM, cancel otherwise
+        program.imports().keys().try_for_each(|program_id| {
+            if let Ok(program) = self.vm.process().read().get_program(program_id) {
+                self.program_matches_on_chain(program)?;
+            } else {
+                let program = self.resolver.load_program(program_id)?;
+                self.program_matches_on_chain(&program)?;
+                self.vm.process().write().add_program(&program)?;
+            };
+            Ok::<_, Error>(())
+        })?;
 
         // Try to get the private key
         let private_key = self.get_private_key(password)?;
@@ -81,12 +77,13 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             fee_record
         } else {
             // If an explicit record query is provided, use it, otherwise use a default query
-            if let Some(record_query) = record_query {
+            let records = if let Some(record_query) = record_query {
                 self.resolver.find_owned_records(&private_key, &record_query)?
             } else {
                 let record_query = RecordQuery::Options { max_records: None, max_gates: Some(fee), unspent_only: true };
                 self.resolver.find_owned_records(&private_key, &record_query)?
-            }
+            };
+            records.into_iter().find(|record| ***record.gates() >= fee).ok_or_else(|| anyhow!("Insufficient funds"))?
         };
 
         // Create & broadcast a deploy transaction for a program
