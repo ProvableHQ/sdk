@@ -33,16 +33,11 @@ pub use config::*;
 pub mod deploy;
 pub use deploy::*;
 
-pub mod execute;
-pub use execute::*;
-
 pub mod resolvers;
 pub use resolvers::*;
 
-pub mod transfer;
-pub use transfer::*;
-
-mod validation;
+pub mod validation;
+pub use validation::*;
 
 /// Program management object for loading programs for building, execution, and deployment
 ///
