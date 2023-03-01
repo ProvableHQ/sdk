@@ -5,10 +5,12 @@ import {CopyButton} from "../../components/CopyButton";
 
 export const GetTransaction = () => {
     const [transaction, setTransaction] = useState(null);
+    const [status, setStatus] = useState("");
 
-    const onChange = (event) => {
+    // Calls `tryRequest` when the search bar input is entered.
+    const onSearch = (value) => {
         try {
-            tryRequest(event.target.value);
+            tryRequest(value);
         } catch (error) {
             console.error(error);
         }
@@ -20,9 +22,17 @@ export const GetTransaction = () => {
             if (id) {
                 axios
                     .get(`https://vm.aleo.org/api/testnet3/transaction/${id}`)
-                    .then((response) =>
-                        setTransaction(JSON.stringify(response.data, null, 2))
-                    );
+                    .then((response) => {
+                        setTransaction(JSON.stringify(response.data, null, 2));
+                        setStatus("success");
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        setStatus("error");
+                    });
+            } else {
+                // If the search bar is empty reset the status to "".
+                setStatus("")
             }
         } catch (error) {
             console.error(error);
@@ -36,9 +46,15 @@ export const GetTransaction = () => {
 
     return <Card title="Get Transaction" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
         <Form {...layout}>
-            <Form.Item label="Transaction ID" colon={false}>
-                <Input name="id" size="large" placeholder="Transaction ID" allowClear onChange={onChange}
-                       style={{borderRadius: '20px'}}/>
+            <Form.Item label="Transaction ID"
+                       colon={false}
+                       validateStatus={status}>
+                <Input.Search name="id"
+                              size="large"
+                              placeholder="Transaction ID"
+                              allowClear
+                              onSearch={onSearch}
+                              style={{borderRadius: '20px'}}/>
             </Form.Item>
         </Form>
         {
