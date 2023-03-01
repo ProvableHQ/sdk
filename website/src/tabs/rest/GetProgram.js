@@ -6,7 +6,7 @@ import { CopyButton } from "../../components/CopyButton";
 export const GetProgram = () => {
     const [program, setProgram] = useState(null);
     const [programID, setProgramID] = useState(null);
-    const [responseReceived, setResponseReceived] = useState(false);
+    const [status, setStatus] = useState("");
 
     // Returns the program id if the user changes it or the "Demo" button is clicked.
     const onChange = (event) => {
@@ -33,35 +33,26 @@ export const GetProgram = () => {
                 axios
                     .get(`https://vm.aleo.org/api/testnet3/program/${id}`)
                     .then((response) => {
-                        setResponseReceived(true);
+                        setStatus("success");
                         setProgram(response.data);
                     })
                     .catch((error) => {
                         // Reset the program text to `null` if the program id does not exist.
                         setProgram(null);
+                        setStatus("error");
                         console.error(error);
                     });
 
             } else {
                 // Reset the program text if the user clears the search bar.
                 setProgram(null);
+                // If the search bar is empty reset the status to "".
+                setStatus("");
             }
         } catch (error) {
             console.error(error);
         }
     };
-
-    // Returns the `validateStatus` string to set the highlighting around the search bar.
-    // ""        = grey
-    // "success" = green
-    // "error"   = red
-    const validateStatusProgram = () => {
-        return responseReceived ?
-            program !== null ?
-                "success"
-                : "error"
-            : "";
-    }
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
     const programString = () => program !== null ? program : "";
@@ -75,7 +66,7 @@ export const GetProgram = () => {
         <Form {...layout}>
             <Form.Item label="Program ID"
                        colon={false}
-                       validateStatus={validateStatusProgram()}
+                       validateStatus={status}
             >
                 <Input.Search name="id"
                               size="large"

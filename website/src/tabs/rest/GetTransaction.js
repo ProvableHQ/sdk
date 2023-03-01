@@ -5,7 +5,7 @@ import {CopyButton} from "../../components/CopyButton";
 
 export const GetTransaction = () => {
     const [transaction, setTransaction] = useState(null);
-    const [responseReceived, setResponseReceived] = useState(false);
+    const [status, setStatus] = useState("");
 
     // Calls `tryRequest` when the search bar input is entered.
     const onSearch = (value) => {
@@ -24,29 +24,20 @@ export const GetTransaction = () => {
                     .get(`https://vm.aleo.org/api/testnet3/transaction/${id}`)
                     .then((response) => {
                         setTransaction(JSON.stringify(response.data, null, 2));
-                        setResponseReceived(false);
+                        setStatus("success");
                     })
-                    .catch((_error) => setResponseReceived(false));
+                    .catch(error => {
+                        console.error(error);
+                        setStatus("error");
+                    });
             } else {
-                // If the search bar is empty set the response flag to false.
-                setResponseReceived(false);
+                // If the search bar is empty reset the status to "".
+                setStatus("")
             }
         } catch (error) {
             console.error(error);
         }
     };
-
-    // Returns the `validateStatus` string to set the highlighting around the search bar.
-    // ""        = grey
-    // "success" = green
-    // "error"   = red
-    const validateStatusTransaction = () => {
-        return responseReceived ?
-            transaction !== null ?
-                "success"
-                : "error"
-            : "";
-    }
 
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
 
@@ -57,7 +48,7 @@ export const GetTransaction = () => {
         <Form {...layout}>
             <Form.Item label="Transaction ID"
                        colon={false}
-                       validateStatus={validateStatusTransaction()}>
+                       validateStatus={status}>
                 <Input.Search name="id"
                               size="large"
                               placeholder="Transaction ID"

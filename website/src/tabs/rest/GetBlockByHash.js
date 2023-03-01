@@ -5,7 +5,7 @@ import {CopyButton} from "../../components/CopyButton";
 
 export const GetBlockByHash = () => {
     const [blockByHash, setBlockByHash] = useState(null);
-    const [responseReceived, setResponseReceived] = useState(false);
+    const [status, setStatus] = useState("");
 
     // Calls `tryRequest` when the search bar input is entered.
     const onSearch = (value) => {
@@ -23,27 +23,19 @@ export const GetBlockByHash = () => {
                 axios.get(`https://vm.aleo.org/api/testnet3/block/${hash}`)
                     .then(response => {
                         setBlockByHash(JSON.stringify(response.data, null, 2));
-                        setResponseReceived(true);
+                        setStatus("success");
+                    })
+                    .catch( error => {
+                        setStatus("error");
+                        console.error(error);
                     });
             } else {
-                // If the search bar is empty set the response flag to false.
-                setResponseReceived(false);
+                // If the search bar is empty reset the status to "".
+                setStatus("");
             }
         } catch (error) {
             console.error(error);
         }
-    }
-
-    // Returns the `validateStatus` string to set the highlighting around the search bar.
-    // ""        = grey
-    // "success" = green
-    // "error"   = red
-    const validateStatusBlock = () => {
-        return responseReceived ?
-            blockByHash !== null ?
-                "success"
-                : "error"
-            : "";
     }
 
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
@@ -54,7 +46,7 @@ export const GetBlockByHash = () => {
         <Form {...layout}>
             <Form.Item label="Block Hash"
                        colon={false}
-                       validateStatus={validateStatusBlock()}>
+                       validateStatus={status}>
                 <Input.Search name="hash"
                        size="large"
                        placeholder="Block Hash"
