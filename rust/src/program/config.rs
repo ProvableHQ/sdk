@@ -54,19 +54,12 @@ mod tests {
 
     use super::*;
 
-    use crate::{HybridResolver, NetworkConfig};
+    use crate::{
+        test_utils::{ALEO_PRIVATE_KEY, HELLO_PROGRAM},
+        HybridResolver,
+        NetworkConfig,
+    };
     use snarkvm_console::{account::PrivateKey, network::Testnet3};
-
-    const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
-    const ALEO_PROGRAM: &str = "
-program hello.aleo;
-
-function hello:
-    input r0 as u32.public;
-    input r1 as u32.private;
-    add r0 r1 into r2;
-    output r2 as u32.private;
-";
 
     #[test]
     fn test_program_addition() {
@@ -83,17 +76,8 @@ function hello:
             )
             .unwrap();
 
-        let mut program_manager_2 =
-            ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
-                Some(private_key),
-                None,
-                temp_dir.clone(),
-                network_config,
-            )
-            .unwrap();
-
         // Test program addition
-        let program = Program::<Testnet3>::from_str(ALEO_PROGRAM).unwrap();
+        let program = Program::<Testnet3>::from_str(HELLO_PROGRAM).unwrap();
         assert!(!program_manager.contains_program(program.id()).unwrap());
         program_manager.add_program(&program).unwrap();
         assert!(program_manager.contains_program(program.id()).unwrap());
@@ -101,11 +85,26 @@ function hello:
         assert_eq!(program_manager.get_program("hello.aleo").unwrap(), program);
         assert!(program_manager.contains_program("hello.aleo").unwrap());
         assert!(program_manager.add_program(&program).is_err());
+    }
 
-        // Ensure program can be added from string
-        program_manager_2.add_program_from_string(ALEO_PROGRAM).unwrap();
-        assert!(program_manager_2.contains_program(program.id()).unwrap());
-        let recovered_program = program_manager_2.get_program(program.id()).unwrap();
-        assert_eq!(recovered_program, program);
+    #[test]
+    fn test_program_can_be_added_from_string() {
+        let private_key = PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap();
+        let temp_dir = std::env::temp_dir();
+        let network_config = NetworkConfig::testnet3();
+        let mut program_manager =
+            ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
+                Some(private_key),
+                None,
+                temp_dir,
+                network_config,
+            )
+            .unwrap();
+
+        program_manager.add_program_from_string(HELLO_PROGRAM).unwrap();
+        let contains_program = program_manager.contains_program("hello.aleo").unwrap();
+        assert!(contains_program);
+        let recovered_program = program_manager.get_program("hello.aleo").unwrap();
+        assert_eq!(recovered_program, Program::from_str(HELLO_PROGRAM).unwrap());
     }
 }

@@ -95,44 +95,9 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::{random_string, ALEO_PROGRAM, HELLO_PROGRAM};
     use snarkvm_console::network::Testnet3;
     use std::{ops::Add, str::FromStr};
-
-    const ALEO_PROGRAM: &str = "
-import hello.aleo;
-import credits.aleo;
-program test.aleo;
-
-function test:
-    input r0 as u32.public;
-    input r1 as u32.private;
-    add r0 r1 into r2;
-    output r2 as u32.private;
-";
-
-    const HELLO_PROGRAM: &str = "
-program hello.aleo;
-
-function main:
-    input r0 as u32.public;
-    input r1 as u32.private;
-    add r0 r1 into r2;
-    output r2 as u32.private;
-";
-
-    fn random_string(len: usize) -> String {
-        use rand::Rng;
-        const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
-        let mut rng = rand::thread_rng();
-
-        let program: String = (0..len)
-            .map(|_| {
-                let idx = rng.gen_range(0..CHARSET.len());
-                CHARSET[idx] as char
-            })
-            .collect();
-        program.add(".aleo")
-    }
 
     #[test]
     fn test_network_resolver_program_resolution() {

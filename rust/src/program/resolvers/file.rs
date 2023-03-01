@@ -138,83 +138,15 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::{random_string, setup_directory, teardown_directory, ALEO_PROGRAM, HELLO_PROGRAM};
     use snarkvm_console::network::Testnet3;
-    use std::{fs::File, io::Write, ops::Add, panic::catch_unwind, str::FromStr};
-
-    const ALEO_PROGRAM: &str = "import hello.aleo;
-import credits.aleo;
-program aleo_test.aleo;
-
-function test:
-    input r0 as u32.public;
-    input r1 as u32.private;
-    add r0 r1 into r2;
-    output r2 as u32.private;
-";
-
-    const HELLO_PROGRAM: &str = "program hello.aleo;
-
-function main:
-    input r0 as u32.public;
-    input r1 as u32.private;
-    add r0 r1 into r2;
-    output r2 as u32.private;
-";
-
-    fn random_string(len: usize) -> String {
-        use rand::Rng;
-        const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
-        let mut rng = rand::thread_rng();
-
-        let program: String = (0..len)
-            .map(|_| {
-                let idx = rng.gen_range(0..CHARSET.len());
-                CHARSET[idx] as char
-            })
-            .collect();
-        program.add(".aleo")
-    }
-
-    // Create temp directory with test data
-    fn setup_directory() -> Result<PathBuf> {
-        // Crate a temporary directory for the test.
-        let directory = std::env::temp_dir().join("aleo_test_file_system_resolver");
-        println!("Directory: {}", directory.display());
-
-        catch_unwind(|| {
-            let _ = &directory.exists().then(|| fs::remove_dir_all(&directory).unwrap());
-            fs::create_dir(&directory).unwrap();
-
-            let imports_directory = directory.join("imports");
-            fs::create_dir(&directory.join("imports")).unwrap();
-            let program_id = ProgramID::<Testnet3>::from_str(&format!("{}.aleo", "aleo_test")).unwrap();
-
-            // Create the manifest file.
-            Manifest::create(&directory, &program_id).unwrap();
-
-            let mut main = File::create(&directory.join("main.aleo")).unwrap();
-            main.write_all(ALEO_PROGRAM.as_bytes()).unwrap();
-
-            let mut credits = File::create(imports_directory.join("credits.aleo")).unwrap();
-            credits.write_all(&Program::<Testnet3>::credits().unwrap().to_string().as_bytes()).unwrap();
-
-            let mut hello = File::create(imports_directory.join("hello.aleo")).unwrap();
-            hello.write_all(HELLO_PROGRAM.as_bytes()).unwrap();
-        })
-        .map_err(|_| anyhow::anyhow!("Failed to create test directory"))?;
-        Ok(directory)
-    }
-
-    // Teardown temp directory
-    fn teardown_directory(directory: &PathBuf) {
-        if directory.exists() {
-            fs::remove_dir_all(directory).unwrap();
-        }
-    }
+    use std::{ops::Add, panic::catch_unwind, str::FromStr};
 
     #[test]
     fn test_file_resolver_loading_and_imports() {
-        let test_path = setup_directory().unwrap();
+        let credits = Program::<Testnet3>::credits().unwrap().to_string();
+        let imports = vec![("credits.aleo", credits.as_str()), ("hello.aleo", HELLO_PROGRAM)];
+        let test_path = setup_directory("aleo_test_file_resolver", ALEO_PROGRAM, imports).unwrap();
         let result = catch_unwind(|| {
             // TEST 1: Test that the file resolver can load a program.
             println!("Test path: {}", test_path.display());

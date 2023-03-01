@@ -77,89 +77,43 @@ impl<N: Network> Resolver<N> for HybridResolver<N> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
-    use snarkvm::file::Manifest;
+    use crate::{
+        test_utils::{
+            random_string,
+            setup_directory,
+            teardown_directory,
+            ALEO_PRIVATE_KEY,
+            ALEO_PROGRAM,
+            HELLO_PROGRAM,
+        },
+        ProgramManager,
+    };
+
     use snarkvm_console::network::Testnet3;
-    use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf, str::FromStr};
-
-    const ALEO_PROGRAM: &str = "import hello.aleo;
-import credits.aleo;
-program aleo_test.aleo;
-
-function test:
-    input r0 as u32.public;
-    input r1 as u32.private;
-    add r0 r1 into r2;
-    output r2 as u32.private;
-";
-
-    const HELLO_PROGRAM: &str = "program hello.aleo;
-
-function main:
-    input r0 as u32.public;
-    input r1 as u32.private;
-    add r0 r1 into r2;
-    output r2 as u32.private;
-";
-
-    fn random_string(len: usize) -> String {
-        use rand::Rng;
-        const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
-        let mut rng = rand::thread_rng();
-
-        let program: String = (0..len)
-            .map(|_| {
-                let idx = rng.gen_range(0..CHARSET.len());
-                CHARSET[idx] as char
-            })
-            .collect();
-        program.add(".aleo")
-    }
-
-    // Create temp directory with test data
-    fn setup_directory() -> Result<PathBuf> {
-        // Crate a temporary directory for the test.
-        let directory = std::env::temp_dir().join("aleo_test_hybrid_resolver");
-        println!("Directory: {}", directory.display());
-
-        catch_unwind(|| {
-            let _ = &directory.exists().then(|| fs::remove_dir_all(&directory).unwrap());
-            fs::create_dir(&directory).unwrap();
-
-            let imports_directory = directory.join("imports");
-            fs::create_dir(&directory.join("imports")).unwrap();
-            let program_id = ProgramID::<Testnet3>::from_str(&format!("{}.aleo", "aleo_test")).unwrap();
-
-            // Create the manifest file.
-            Manifest::create(&directory, &program_id).unwrap();
-
-            let mut main = File::create(&directory.join("main.aleo")).unwrap();
-            main.write_all(ALEO_PROGRAM.as_bytes()).unwrap();
-
-            let mut credits = File::create(imports_directory.join("credits.aleo")).unwrap();
-            credits.write_all(&Program::<Testnet3>::credits().unwrap().to_string().as_bytes()).unwrap();
-        })
-        .map_err(|_| anyhow::anyhow!("Failed to create test directory"))?;
-        Ok(directory)
-    }
-
-    // Teardown temp directory
-    fn teardown_directory(directory: &PathBuf) {
-        if directory.exists() {
-            fs::remove_dir_all(directory).unwrap();
-        }
-    }
+    use std::{ops::Add, panic::catch_unwind, str::FromStr};
 
     #[test]
     fn test_hybrid_resolver_loading_and_imports() {
-        let test_path = setup_directory().unwrap();
+        let credits_program_string = Program::<Testnet3>::credits().unwrap().to_string();
+        let imports = vec![("credits.aleo", credits_program_string.as_str())];
+        let test_path = setup_directory("aleo_test_hybrid_resolver", ALEO_PROGRAM, imports).unwrap();
         let network_config = NetworkConfig::testnet3();
+        let private_key = PrivateKey::<Testnet3>::from_str(ALEO_PRIVATE_KEY).unwrap();
 
         let result = catch_unwind(|| {
             // TEST 1: Test that the hybrid resolver can load a program on disk that can't be found online
-            println!("Test path: {}", test_path.display());
-            let resolver = HybridResolver::<Testnet3>::new(&network_config, &test_path).unwrap();
+            let program_manager =
+                ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
+                    Some(private_key),
+                    None,
+                    &test_path.clone(),
+                    network_config,
+                )
+                .unwrap();
+            let resolver = program_manager.resolver();
             let program_id = ProgramID::<Testnet3>::from_str("aleo_test.aleo").unwrap();
             let expected_program = Program::<Testnet3>::from_str(ALEO_PROGRAM).unwrap();
             let found_program = resolver.load_program(&program_id).unwrap();

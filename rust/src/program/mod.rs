@@ -123,4 +123,9 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     pub fn api_client(&self) -> Result<&AleoAPIClient<N>> {
         self.api_client.as_ref().ok_or_else(|| anyhow!("No API client found"))
     }
+
+    /// Get the resolver
+    pub fn resolver(&self) -> &R {
+        &self.resolver
+    }
 }

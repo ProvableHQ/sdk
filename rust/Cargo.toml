@@ -77,6 +77,10 @@ version = "0.1.5"
 [dev-dependencies.rand_chacha]
 version = "0.3.1"
 
+[[test]]
+name = "deploy"
+path = "tests/deploy.rs"
+
 [features]
 default = [ "blocking", "snarkvm-synthesizer", "snarkvm-console", "snarkvm" ]
 async = [ "reqwest" ]
