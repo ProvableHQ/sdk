@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::ProgramManager;
-use crate::{Encryptor, Resolver, OnChainProgramState};
+use crate::{Encryptor, OnChainProgramState, Resolver};
 use snarkvm_console::{account::PrivateKey, program::Network};
 use snarkvm_synthesizer::Program;
 
@@ -48,14 +48,12 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
 
     pub fn program_matches_on_chain(&self, program: &Program<N>) -> Result<OnChainProgramState> {
         let program_id = program.id();
-        Ok(self.api_client()?
+        Ok(self
+            .api_client()?
             .get_program(program_id)
-            .map(|chain_program|
-                chain_program
-                    .eq(program)
-                    .then(|| OnChainProgramState::Same)
-                    .unwrap_or(OnChainProgramState::Different))
+            .map(|chain_program| {
+                chain_program.eq(program).then(|| OnChainProgramState::Same).unwrap_or(OnChainProgramState::Different)
+            })
             .unwrap_or(OnChainProgramState::NotDeployed))
-
     }
 }

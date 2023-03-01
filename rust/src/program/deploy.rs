@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{OnChainProgramState, program::Resolver, RecordQuery};
+use crate::{program::Resolver, OnChainProgramState, RecordQuery};
 use anyhow::{anyhow, bail, ensure, Error, Result};
 use snarkvm_console::{
     account::PrivateKey,
@@ -68,7 +68,10 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                         bail!("Imported program {:?} has a circular dependency", program_id)
                     }
                     OnChainProgramState::Different => {
-                        bail!("Imported program {:?} is already deployed on chain and did not match local import", program_id);
+                        bail!(
+                            "Imported program {:?} is already deployed on chain and did not match local import",
+                            program_id
+                        );
                     }
                     OnChainProgramState::Same => (),
                 };
@@ -85,7 +88,10 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                         }
                     }
                     OnChainProgramState::Different => {
-                        bail!("Imported program {:?} is already deployed on chain and did not match local import", program_id);
+                        bail!(
+                            "Imported program {:?} is already deployed on chain and did not match local import",
+                            program_id
+                        );
                     }
                     OnChainProgramState::Same => (),
                 };
@@ -122,7 +128,11 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         println!("Building transaction..");
         let transaction =
             Transaction::<N>::deploy(&self.vm, &private_key, &program, (fee_record, fee), Some(query), rng)?;
-        println!("Attempting to broadcast a deploy transaction for program {:?} to node {:?}", program_id, self.api_client().unwrap().base_url());
+        println!(
+            "Attempting to broadcast a deploy transaction for program {:?} to node {:?}",
+            program_id,
+            self.api_client().unwrap().base_url()
+        );
         self.broadcast_transaction(transaction)?;
 
         // Return okay if it's successful
@@ -152,25 +162,31 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
-    use std::thread;
     #[cfg(not(feature = "wasm"))]
     use crate::{
         api::NetworkConfig,
         program::ProgramManager,
         resolvers::HybridResolver,
-        test_utils::{ALEO_PRIVATE_KEY, ALEO_PROGRAM, HELLO_PROGRAM, teardown_directory, random_string, setup_directory},
+        test_utils::{
+            random_string,
+            setup_directory,
+            teardown_directory,
+            ALEO_PRIVATE_KEY,
+            ALEO_PROGRAM,
+            HELLO_PROGRAM,
+        },
     };
     #[cfg(not(feature = "wasm"))]
     use snarkvm_console::{account::PrivateKey, network::Testnet3};
     use snarkvm_synthesizer::Program;
-
+    use std::{str::FromStr, thread};
 
     #[test]
     #[cfg(not(feature = "wasm"))]
     #[ignore]
     fn test_deploy() {
-        let private_key = PrivateKey::<Testnet3>::from_str("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH").unwrap();
+        let private_key =
+            PrivateKey::<Testnet3>::from_str("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH").unwrap();
         let imports = vec![("hello.aleo", HELLO_PROGRAM)];
         let temp_dir = setup_directory("aleo_test_deploy", ALEO_PROGRAM, imports).unwrap();
         let network_config = NetworkConfig::local_testnet3("3030");
@@ -182,7 +198,7 @@ mod tests {
                 temp_dir,
                 network_config,
             )
-                .unwrap();
+            .unwrap();
 
         program_manager.deploy_program("aleo_test.aleo", None, 1000000, None, None, true).unwrap();
         thread::sleep(std::time::Duration::from_secs(10));

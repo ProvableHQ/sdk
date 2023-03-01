@@ -20,5 +20,5 @@ pub enum OnChainProgramState {
     /// Program deployed and matches the local program
     Same,
     /// Program not deployed,
-    NotDeployed
+    NotDeployed,
 }

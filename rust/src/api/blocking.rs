@@ -146,11 +146,7 @@ impl<N: Network> AleoAPIClient<N> {
                 break;
             }
             let end = start_height + 50;
-            let end_height = if end > block_heights.end {
-                block_heights.end
-            } else {
-                end
-            };
+            let end_height = if end > block_heights.end { block_heights.end } else { end };
 
             // Prepare the URL.
             let records_iter =
@@ -189,7 +185,6 @@ impl<N: Network> AleoAPIClient<N> {
 
         println!("searching for unspent records in block range {}-{}", start_block_height, end_block_height);
 
-
         // Initialize a vector for the records.
         let mut records = Vec::new();
 
@@ -200,11 +195,7 @@ impl<N: Network> AleoAPIClient<N> {
                 break;
             }
             let end = start_height + 50;
-            let end_height = if end > block_heights.end {
-                block_heights.end
-            } else {
-                end
-            };
+            let end_height = if end > block_heights.end { block_heights.end } else { end };
 
             // Prepare the URL.
             let records_iter =
@@ -245,12 +236,10 @@ impl<N: Network> AleoAPIClient<N> {
     pub fn transaction_broadcast(&self, transaction: Transaction<N>) -> Result<String> {
         let url = format!("{}/{}/transaction/broadcast", self.base_url, self.network_id);
         match self.client.post(&url).send_json(&transaction) {
-            Ok(response) => {
-                match response.into_string() {
-                    Ok(block) => Ok(block),
-                    Err(error) => bail!("❌ Transaction response was malformed {}", error),
-                }
-            }
+            Ok(response) => match response.into_string() {
+                Ok(block) => Ok(block),
+                Err(error) => bail!("❌ Transaction response was malformed {}", error),
+            },
             Err(error) => {
                 let error_message = match error {
                     ureq::Error::Status(code, response) => {
@@ -264,11 +253,7 @@ impl<N: Network> AleoAPIClient<N> {
                         bail!("❌ Failed to deploy program to {}: {}", &url, error_message)
                     }
                     Transaction::Execute(..) => {
-                        bail!(
-                                "❌ Failed to broadcast execution to {}: {}",
-                                &url,
-                                error_message
-                            )
+                        bail!("❌ Failed to broadcast execution to {}: {}", &url, error_message)
                     }
                 }
             }

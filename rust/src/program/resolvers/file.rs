@@ -30,11 +30,11 @@ use anyhow::{ensure, Result};
 use snarkvm_console::program::Address;
 use std::{
     fs,
+    fs::File,
+    io::Read,
     path::{Path, PathBuf},
+    str::FromStr,
 };
-use std::fs::File;
-use std::io::Read;
-use std::str::FromStr;
 
 /// Resolver for imports from the local file system
 #[derive(Clone, Debug)]
@@ -96,8 +96,7 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
             println!("Attempting to load program {:?} at {:?}", program_id, import_file.display());
             let mut program_file = File::open(import_file)?;
             let mut program_string = String::new();
-            program_file.read_to_string(&mut program_string)
-                .map_err(|err| anyhow::anyhow!(err.to_string()))?;
+            program_file.read_to_string(&mut program_string).map_err(|err| anyhow::anyhow!(err.to_string()))?;
             let program = Program::from_str(&program_string)?;
             println!("Loaded program {:?} successfully!", program_id);
             Ok(program)
