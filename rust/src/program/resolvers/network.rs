@@ -74,7 +74,9 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
                 (Range { start: *start, end: *end }, max_records, max_gates, *unspent_only)
             }
             RecordQuery::Options { max_records, max_gates, unspent_only } => {
-                (Range { start: 0, end: u32::MAX }, max_records, max_gates, *unspent_only)
+                let latest_height = AleoAPIClient::<N>::from(&self.network_config).latest_height()?;
+                println!("Searching block range 0-{} for spendable records", latest_height);
+                (Range { start: 0, end: latest_height }, max_records, max_gates, *unspent_only)
             }
             _ => bail!("Network resolver only supports block range queries"),
         };

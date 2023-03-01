@@ -160,6 +160,26 @@ jobs:
       - clear_environment:
           cache_key: aleo-clippy-cache
 
+  aleo-deploy:
+    docker:
+      - image: cimg/rust:1.67
+    resource_class: xlarge
+    steps:
+      - checkout
+      - setup_environment:
+          cache_key: aleo-executable-cache
+      - run:
+          name: Build and install Aleo CLI
+          no_output_timeout: 30m
+          command: |
+            sudo apt install git-all
+            git checkout https://github.com/AleoHQ/snarkOS.git
+            cd snarkOS
+            cargo install --path . --root . --locked
+            cd ..
+            export SNARKOS=/home/circleci/project/snarkos/bin/snarkos
+            cargo test -- --ignored --nocapture
+
   aleo-executable:
     docker:
       - image: cimg/rust:1.67

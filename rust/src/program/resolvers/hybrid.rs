@@ -51,6 +51,7 @@ impl<N: Network> Resolver<N> for HybridResolver<N> {
     const NAME: &'static str = "FileSystemResolver";
 
     fn load_program(&self, program_id: &ProgramID<N>) -> Result<Program<N>> {
+        println!("Loading program: {} with hybrid resolver", program_id);
         self.file_system_resolver.load_program(program_id).or_else(|_| self.network_resolver.load_program(program_id))
     }
 
@@ -104,7 +105,7 @@ mod tests {
         let private_key = PrivateKey::<Testnet3>::from_str(ALEO_PRIVATE_KEY).unwrap();
 
         let result = catch_unwind(|| {
-            // TEST 1: Test that the hybrid resolver can load a program on disk that can't be found online
+            // TEST 1: Test that the hybrid rsesolver can load a program on disk that can't be found online
             let program_manager =
                 ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
                     Some(private_key),

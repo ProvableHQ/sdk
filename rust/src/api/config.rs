@@ -35,7 +35,7 @@ impl NetworkConfig {
 
     /// Create a new local testnet3 network config with a specified port
     pub fn local_testnet3(port: &str) -> Self {
-        Self { network_id: "testnet3".to_string(), node_uri: "http://localhost:".to_string().add(port).add("/api") }
+        Self { network_id: "testnet3".to_string(), node_uri: "http://localhost:".to_string().add(port) }
     }
 
     /// Get network ID

@@ -39,6 +39,9 @@ pub use resolvers::*;
 pub mod validation;
 pub use validation::*;
 
+pub mod helpers;
+pub use helpers::*;
+
 /// Program management object for loading programs for building, execution, and deployment
 ///
 /// This object is meant to be a software abstraction that can be consumed by software like
@@ -110,7 +113,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     }
 
     /// Broadcast a transaction to the network
-    pub fn broadcast_transaction(&self, transaction: Transaction<N>) -> Result<Block<N>> {
+    pub fn broadcast_transaction(&self, transaction: Transaction<N>) -> Result<String> {
         self.api_client()?.transaction_broadcast(transaction)
     }
 

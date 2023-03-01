@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::ProgramManager;
-use crate::{Encryptor, Resolver};
+use crate::{Encryptor, Resolver, OnChainProgramState};
 use snarkvm_console::{account::PrivateKey, program::Network};
 use snarkvm_synthesizer::Program;
 
@@ -37,7 +37,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         };
         if let Some(ciphertext) = &self.private_key_ciphertext {
             if self.private_key.is_some() {
-                bail!("Private key is already configured, annot have both private key and private key ciphertext");
+                bail!("Private key is already configured, cannot have both private key and private key ciphertext");
             }
 
             let password = password.ok_or_else(|| anyhow!("Private key is encrypted, password is required"))?;
@@ -46,12 +46,16 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         bail!("Private key configuration error")
     }
 
-    pub fn program_matches_on_chain(&self, program: &Program<N>) -> Result<()> {
+    pub fn program_matches_on_chain(&self, program: &Program<N>) -> Result<OnChainProgramState> {
         let program_id = program.id();
-        self.api_client()?
+        Ok(self.api_client()?
             .get_program(program_id)
-            .map(|chain_program| chain_program.eq(program).then(|| anyhow!("Program version mismatch")))
-            .map_err(|_| anyhow!("Program not found on chain"))
-            .and(Ok(()))
+            .map(|chain_program|
+                chain_program
+                    .eq(program)
+                    .then(|| OnChainProgramState::Same)
+                    .unwrap_or(OnChainProgramState::Different))
+            .unwrap_or(OnChainProgramState::NotDeployed))
+
     }
 }

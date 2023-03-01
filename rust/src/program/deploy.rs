@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{program::Resolver, RecordQuery};
-use anyhow::{anyhow, ensure, Error, Result};
+use crate::{OnChainProgramState, program::Resolver, RecordQuery};
+use anyhow::{anyhow, bail, ensure, Error, Result};
 use snarkvm_console::{
     account::PrivateKey,
     program::{Network, Plaintext, ProgramID, Record},
@@ -33,19 +33,22 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         fee: u64,
         password: Option<String>,
         record_query: Option<RecordQuery>,
+        deploy_imports: bool,
     ) -> Result<()> {
         // Ensure network config is set, otherwise deployment is not possible
-        ensure!(self.api_client.is_none(), "Network config not set, cannot deploy");
+        ensure!(self.api_client.is_some(), "Network config not set, cannot deploy");
 
         // Check program has a legal name
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
 
+        println!("Loading program {:?} from resolver", program_id);
         // Get the program if it already exists, otherwise load it from the specified resolver
         let program = if let Ok(program) = self.vm.process().write().get_program(program_id) {
             program.clone()
         } else {
             self.resolver.load_program(&program_id)?
         };
+        println!("Loaded program {:?} from resolver", program_id);
 
         // Check if program is already deployed on chain, cancel deployment if so
         ensure!(
@@ -56,11 +59,36 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
 
         // Check if program imports are deployed on chain and add them to the VM, cancel otherwise
         program.imports().keys().try_for_each(|program_id| {
-            if let Ok(program) = self.vm.process().read().get_program(program_id) {
-                self.program_matches_on_chain(program)?;
+            let contains_program = self.vm.process().read().contains_program(program_id);
+            let on_chain_status = if contains_program {
+                println!("Imported program {:?} found locally", program_id);
+                let program = self.vm.process().read().get_program(program_id)?.clone();
+                match self.program_matches_on_chain(&program)? {
+                    OnChainProgramState::NotDeployed => {
+                        bail!("Imported program {:?} has a circular dependency", program_id)
+                    }
+                    OnChainProgramState::Different => {
+                        bail!("Imported program {:?} is already deployed on chain and did not match local import", program_id);
+                    }
+                    OnChainProgramState::Same => (),
+                };
             } else {
+                println!("Attempting to loading imported program {:?} from resolver", program_id);
                 let program = self.resolver.load_program(program_id)?;
-                self.program_matches_on_chain(&program)?;
+                match self.program_matches_on_chain(&program)? {
+                    OnChainProgramState::NotDeployed => {
+                        if deploy_imports {
+                            println!("Imported program {:?} not deployed, attempting to deploy now", program_id);
+                            self.deploy_program(program_id, None, fee, password.clone(), None, false)?;
+                        } else {
+                            bail!("Imported program {:?} could not be found", program_id)
+                        }
+                    }
+                    OnChainProgramState::Different => {
+                        bail!("Imported program {:?} is already deployed on chain and did not match local import", program_id);
+                    }
+                    OnChainProgramState::Same => (),
+                };
                 self.vm.process().write().add_program(&program)?;
             };
             Ok::<_, Error>(())
@@ -73,6 +101,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         let rng = &mut rand::thread_rng();
         let query = Query::from(self.api_client.as_ref().unwrap().base_url());
 
+        println!("Attempting to find a record with appropriate balance to pay the deployment fee");
         // If a fee record is not provided, find one
         let fee_record = if let Some(fee_record) = fee_record {
             fee_record
@@ -84,12 +113,16 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                 let record_query = RecordQuery::Options { max_records: None, max_gates: Some(fee), unspent_only: true };
                 self.resolver.find_owned_records(&private_key, &record_query)?
             };
+            // If records are found, find the first one with enough gates, otherwise return an error
+            println!("Found {} records with sufficient balance", records.len());
             records.into_iter().find(|record| ***record.gates() >= fee).ok_or_else(|| anyhow!("Insufficient funds"))?
         };
 
         // Create & broadcast a deploy transaction for a program
+        println!("Building transaction..");
         let transaction =
             Transaction::<N>::deploy(&self.vm, &private_key, &program, (fee_record, fee), Some(query), rng)?;
+        println!("Attempting to broadcast a deploy transaction for program {:?} to node {:?}", program_id, self.api_client().unwrap().base_url());
         self.broadcast_transaction(transaction)?;
 
         // Return okay if it's successful
@@ -113,5 +146,47 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
 
         // Create the transaction
         Transaction::<N>::deploy(&vm, private_key, program, (fee_record, fee), Some(query), rng)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+    use std::thread;
+    #[cfg(not(feature = "wasm"))]
+    use crate::{
+        api::NetworkConfig,
+        program::ProgramManager,
+        resolvers::HybridResolver,
+        test_utils::{ALEO_PRIVATE_KEY, ALEO_PROGRAM, HELLO_PROGRAM, teardown_directory, random_string, setup_directory},
+    };
+    #[cfg(not(feature = "wasm"))]
+    use snarkvm_console::{account::PrivateKey, network::Testnet3};
+    use snarkvm_synthesizer::Program;
+
+
+    #[test]
+    #[cfg(not(feature = "wasm"))]
+    #[ignore]
+    fn test_deploy() {
+        let private_key = PrivateKey::<Testnet3>::from_str("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH").unwrap();
+        let imports = vec![("hello.aleo", HELLO_PROGRAM)];
+        let temp_dir = setup_directory("aleo_test_deploy", ALEO_PROGRAM, imports).unwrap();
+        let network_config = NetworkConfig::local_testnet3("3030");
+
+        let mut program_manager =
+            ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
+                Some(private_key),
+                None,
+                temp_dir,
+                network_config,
+            )
+                .unwrap();
+
+        program_manager.deploy_program("aleo_test.aleo", None, 1000000, None, None, true).unwrap();
+        thread::sleep(std::time::Duration::from_secs(10));
+        let on_chain_program = program_manager.api_client().unwrap().get_program("aleo_test.aleo").unwrap();
+        assert_eq!(on_chain_program, Program::from_str(ALEO_PROGRAM).unwrap());
     }
 }

@@ -16,7 +16,7 @@
 
 use crate::AleoAPIClient;
 
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, bail, ensure, Result};
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
     program::{Ciphertext, Network, ProgramID, Record},
@@ -24,6 +24,7 @@ use snarkvm_console::{
 };
 use snarkvm_synthesizer::{Block, Program, Transaction};
 use std::{convert::TryInto, ops::Range};
+use ureq::Error;
 
 #[cfg(not(feature = "async"))]
 #[allow(clippy::type_complexity)]
@@ -141,7 +142,15 @@ impl<N: Network> AleoAPIClient<N> {
         let mut records = Vec::new();
 
         for start_height in (start_block_height..end_block_height).step_by(50) {
-            let end_height = start_height + 50;
+            if start_height > block_heights.end {
+                break;
+            }
+            let end = start_height + 50;
+            let end_height = if end > block_heights.end {
+                block_heights.end
+            } else {
+                end
+            };
 
             // Prepare the URL.
             let records_iter =
@@ -178,13 +187,24 @@ impl<N: Network> AleoAPIClient<N> {
         // Prepare the ending block height, by rounding up to the nearest step of 50.
         let end_block_height = block_heights.end + (50 - (block_heights.end % 50));
 
+        println!("searching for unspent records in block range {}-{}", start_block_height, end_block_height);
+
+
         // Initialize a vector for the records.
         let mut records = Vec::new();
 
         let mut total_gates = 0u64;
 
         for start_height in (start_block_height..end_block_height).step_by(50) {
-            let end_height = start_height + 50;
+            if start_height > block_heights.end {
+                break;
+            }
+            let end = start_height + 50;
+            let end_height = if end > block_heights.end {
+                block_heights.end
+            } else {
+                end
+            };
 
             // Prepare the URL.
             let records_iter =
@@ -196,7 +216,7 @@ impl<N: Network> AleoAPIClient<N> {
                     true => {
                         let sn = Record::<N, Ciphertext<N>>::serial_number(*private_key, commitment).ok()?;
                         if self.find_transition_id(sn).is_err() {
-                            if let Some(max_gates) = max_gates {
+                            if max_gates.is_some() {
                                 let _ = record
                                     .decrypt(&view_key)
                                     .map(|record| {
@@ -204,9 +224,6 @@ impl<N: Network> AleoAPIClient<N> {
                                         record
                                     })
                                     .ok();
-                                if total_gates > max_gates {
-                                    return None;
-                                }
                             }
                             Some((commitment, record))
                         } else {
@@ -216,7 +233,8 @@ impl<N: Network> AleoAPIClient<N> {
                     false => None,
                 }
             }));
-            if records.len() >= max_records.unwrap_or(usize::MAX) {
+            if max_gates.is_some() && total_gates > max_gates.unwrap() {
+                println!("total_gates {}", total_gates);
                 break;
             }
         }
@@ -224,11 +242,36 @@ impl<N: Network> AleoAPIClient<N> {
         Ok(records)
     }
 
-    pub fn transaction_broadcast(&self, transaction: Transaction<N>) -> Result<Block<N>> {
+    pub fn transaction_broadcast(&self, transaction: Transaction<N>) -> Result<String> {
         let url = format!("{}/{}/transaction/broadcast", self.base_url, self.network_id);
-        match self.client.post(&url).send_json(&transaction)?.into_json() {
-            Ok(block) => Ok(block),
-            Err(error) => bail!("Failed to parse memory pool transactions: {error}"),
+        match self.client.post(&url).send_json(&transaction) {
+            Ok(response) => {
+                match response.into_string() {
+                    Ok(block) => Ok(block),
+                    Err(error) => bail!("❌ Transaction response was malformed {}", error),
+                }
+            }
+            Err(error) => {
+                let error_message = match error {
+                    ureq::Error::Status(code, response) => {
+                        format!("(status code {code}: {:?})", response.into_string()?)
+                    }
+                    ureq::Error::Transport(err) => format!("({err})"),
+                };
+
+                match transaction {
+                    Transaction::Deploy(..) => {
+                        bail!("❌ Failed to deploy program to {}: {}", &url, error_message)
+                    }
+                    Transaction::Execute(..) => {
+                        bail!(
+                                "❌ Failed to broadcast execution to {}: {}",
+                                &url,
+                                error_message
+                            )
+                    }
+                }
+            }
         }
     }
 }

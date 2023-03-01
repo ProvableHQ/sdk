@@ -32,6 +32,9 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
+use std::fs::File;
+use std::io::Read;
+use std::str::FromStr;
 
 /// Resolver for imports from the local file system
 #[derive(Clone, Debug)]
@@ -64,6 +67,8 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
         // Ensure the directory path exists.
         ensure!(self.local_config.exists(), "The program directory does not exist");
 
+        ensure!(!Program::is_reserved_keyword(program_id.name()), "Program name is invalid (reserved): {program_id}");
+
         ensure!(
             Manifest::<N>::exists_at(&self.local_config),
             "Please ensure that the manifest file exists in the Aleo program directory (missing '{}' at '{}')",
@@ -73,15 +78,30 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
 
         // Open the manifest file.
         let manifest = Manifest::<N>::open(&self.local_config)?;
-        ensure!(
-            manifest.program_id() == program_id,
-            "The program name in the manifest file does not match the specified program name"
-        );
 
-        // Load the package.
-        let package = Package::open(&self.local_config)?;
-        // Load the main program.
-        Ok(package.program().clone())
+        // Ensure the program ID matches the manifest program ID, or that the program is a local import
+        if manifest.program_id() == program_id {
+            // Load the package.
+            let package = Package::open(&self.local_config)?;
+            // Load the main program.
+            Ok(package.program().clone())
+        } else {
+            let import_file = self.import_directory().join(program_id.to_string());
+            ensure!(
+                import_file.exists(),
+                "No program named {:?} found at {:?}",
+                program_id,
+                self.local_config.display()
+            );
+            println!("Attempting to load program {:?} at {:?}", program_id, import_file.display());
+            let mut program_file = File::open(import_file)?;
+            let mut program_string = String::new();
+            program_file.read_to_string(&mut program_string)
+                .map_err(|err| anyhow::anyhow!(err.to_string()))?;
+            let program = Program::from_str(&program_string)?;
+            println!("Loaded program {:?} successfully!", program_id);
+            Ok(program)
+        }
     }
 
     fn resolve_program_imports(&self, program: &Program<N>) -> Result<Vec<(ProgramID<N>, Result<Program<N>>)>> {
