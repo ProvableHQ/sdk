@@ -174,7 +174,6 @@ jobs:
           command: |
             sudo apt install git-all
             git clone https://github.com/AleoHQ/snarkOS.git
-            cd snarkOS
             cargo install --path snarkOS --root . --locked
             rm -rf snarkOS
             ./bin/snarkos start --dev 0 --beacon --nodisplay
