@@ -83,6 +83,8 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                         if deploy_imports {
                             println!("Imported program {:?} not deployed, attempting to deploy now", program_id);
                             self.deploy_program(program_id, None, fee, password.clone(), None, false)?;
+                            // Wait for the program import to show up on chain
+                            std::thread::sleep(std::time::Duration::from_secs(10));
                         } else {
                             bail!("Imported program {:?} could not be found", program_id)
                         }

@@ -24,7 +24,6 @@ use snarkvm_console::{
 };
 use snarkvm_synthesizer::{Block, Program, Transaction};
 use std::{convert::TryInto, ops::Range};
-use ureq::Error;
 
 #[cfg(not(feature = "async"))]
 #[allow(clippy::type_complexity)]
@@ -237,7 +236,10 @@ impl<N: Network> AleoAPIClient<N> {
         let url = format!("{}/{}/transaction/broadcast", self.base_url, self.network_id);
         match self.client.post(&url).send_json(&transaction) {
             Ok(response) => match response.into_string() {
-                Ok(block) => Ok(block),
+                Ok(success_response) => {
+                    println!("✅ Deployment Transaction {} successfully posted to {}", success_response, &url);
+                    Ok(success_response)
+                }
                 Err(error) => bail!("❌ Transaction response was malformed {}", error),
             },
             Err(error) => {
