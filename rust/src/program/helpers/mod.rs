@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub enum OnChainProgramState {
-    /// Program deployed but does not match the the local program
-    Different,
-    /// Program deployed and matches the local program
-    Same,
-    /// Program not deployed,
-    NotDeployed,
-}
+pub mod program_state;
+pub use program_state::*;
+
+pub mod record_query;
+pub use record_query::*;

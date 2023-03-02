@@ -28,6 +28,8 @@ pub mod program;
 pub use program::*;
 
 #[cfg(test)]
+#[cfg(not(feature = "wasm"))]
 pub mod test_utils;
 #[cfg(test)]
+#[cfg(not(feature = "wasm"))]
 pub use test_utils::*;

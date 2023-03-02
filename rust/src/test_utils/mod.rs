@@ -18,9 +18,15 @@ use anyhow::Result;
 use snarkvm::file::Manifest;
 use snarkvm_console::{network::Testnet3, program::ProgramID};
 
-use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf, str::FromStr};
+use crate::{AleoAPIClient, AleoNetworkResolver, NetworkConfig, ProgramManager};
+use snarkvm_console::{
+    account::{Address, PrivateKey, ViewKey},
+    program::{Plaintext, Record},
+};
+use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf, str::FromStr, thread::sleep};
 
-pub const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
+pub const RECIPIENT_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
+pub const BEACON_PRIVATE_KEY: &str = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
 
 pub const ALEO_PROGRAM: &str = "import hello.aleo;
 import credits.aleo;
@@ -85,9 +91,59 @@ pub fn setup_directory(name: &str, main_program: &str, imports: Vec<(&str, &str)
     Ok(directory)
 }
 
-// Teardown temp directory
+/// Teardown temp directory
 pub fn teardown_directory(directory: &PathBuf) {
     if directory.exists() {
         fs::remove_dir_all(directory).unwrap();
     }
+}
+
+/// Make transfers to the test account and return the records
+///
+/// This function assumes that a local snarkos beacon node is running on port 3030
+pub fn transfer_to_test_account(
+    amount: u64,
+    num_transactions: usize,
+    recipient_private_key: PrivateKey<Testnet3>,
+    port: &str,
+) -> Result<Vec<Record<Testnet3, Plaintext<Testnet3>>>> {
+    let network_config = NetworkConfig::local_testnet3(port);
+    let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY)?;
+
+    let recipient_view_key = ViewKey::<Testnet3>::try_from(&recipient_private_key)?;
+    let recipient_address = recipient_view_key.to_address();
+
+    let mut program_manager =
+        ProgramManager::<Testnet3, AleoNetworkResolver<Testnet3>>::program_manager_with_network_resolution(
+            Some(beacon_private_key),
+            None,
+            network_config,
+        )?;
+
+    let mut transfer_successes = 0;
+    let mut retries = 0;
+    loop {
+        let result = program_manager.transfer(amount, 100000, recipient_address, None);
+        if result.is_ok() {
+            println!("Transfer succeeded");
+            transfer_successes += 1;
+        } else {
+            println!("Transfer failed with error {:?}, retrying", result);
+            retries += 1;
+        }
+        if transfer_successes > num_transactions {
+            println!("{} transfers succeeded exiting", transfer_successes);
+            break;
+        }
+        if retries > 10 {
+            println!("exceeded 10 retries, exiting with found records");
+            break;
+        }
+        sleep(std::time::Duration::from_secs(2));
+    }
+
+    let client = program_manager.api_client()?;
+    let latest_height = client.latest_height()?;
+    let records = client.get_unspent_records(&recipient_private_key, 0..latest_height, None, None, None)?;
+    Ok(records.iter().map(|(cm, record)| record.decrypt(&recipient_view_key).unwrap()).collect())
 }

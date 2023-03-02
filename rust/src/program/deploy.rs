@@ -31,10 +31,12 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         program_id: impl TryInto<ProgramID<N>>,
         fee_record: Option<Record<N, Plaintext<N>>>,
         fee: u64,
-        password: Option<String>,
-        record_query: Option<RecordQuery>,
+        password: Option<&str>,
+        record_query: &RecordQuery,
         deploy_imports: bool,
     ) -> Result<()> {
+        ensure!(fee > 0, "Fee must be greater than 0");
+
         // Ensure network config is set, otherwise deployment is not possible
         ensure!(self.api_client.is_some(), "Network config not set, cannot deploy");
 
@@ -82,7 +84,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                     OnChainProgramState::NotDeployed => {
                         if deploy_imports {
                             println!("Imported program {:?} not deployed, attempting to deploy now", program_id);
-                            self.deploy_program(program_id, None, fee, password.clone(), None, false)?;
+                            self.deploy_program(program_id, None, fee, password.clone(), record_query, false)?;
                             // Wait for the program import to show up on chain
                             std::thread::sleep(std::time::Duration::from_secs(10));
                         } else {
@@ -114,16 +116,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         let fee_record = if let Some(fee_record) = fee_record {
             fee_record
         } else {
-            // If an explicit record query is provided, use it, otherwise use a default query
-            let records = if let Some(record_query) = record_query {
-                self.resolver.find_owned_records(&private_key, &record_query)?
-            } else {
-                let record_query = RecordQuery::Options { max_records: None, max_gates: Some(fee), unspent_only: true };
-                self.resolver.find_owned_records(&private_key, &record_query)?
-            };
-            // If records are found, find the first one with enough gates, otherwise return an error
-            println!("Found {} records with sufficient balance", records.len());
-            records.into_iter().find(|record| ***record.gates() >= fee).ok_or_else(|| anyhow!("Insufficient funds"))?
+            self.resolve_one_record_above_amount(&private_key, fee, record_query)?
         };
 
         // Create & broadcast a deploy transaction for a program
@@ -173,9 +166,10 @@ mod tests {
             random_string,
             setup_directory,
             teardown_directory,
-            ALEO_PRIVATE_KEY,
+            transfer_to_test_account,
             ALEO_PROGRAM,
             HELLO_PROGRAM,
+            RECIPIENT_PRIVATE_KEY,
         },
     };
     #[cfg(not(feature = "wasm"))]
@@ -187,8 +181,9 @@ mod tests {
     #[cfg(not(feature = "wasm"))]
     #[ignore]
     fn test_deploy() {
-        let private_key =
-            PrivateKey::<Testnet3>::from_str("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH").unwrap();
+        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        transfer_to_test_account(1000000000, 4, private_key, "3030").unwrap();
+
         let imports = vec![("hello.aleo", HELLO_PROGRAM)];
         let temp_dir = setup_directory("aleo_test_deploy", ALEO_PROGRAM, imports).unwrap();
         let network_config = NetworkConfig::local_testnet3("3030");
@@ -202,7 +197,9 @@ mod tests {
             )
             .unwrap();
 
-        program_manager.deploy_program("aleo_test.aleo", None, 1000000, None, None, true).unwrap();
+        let record_query =
+            RecordQuery::Options { amounts: None, max_records: None, max_gates: Some(10000000000), unspent_only: true };
+        program_manager.deploy_program("aleo_test.aleo", None, 1000000, None, &record_query, true).unwrap();
         thread::sleep(std::time::Duration::from_secs(10));
         let on_chain_program = program_manager.api_client().unwrap().get_program("aleo_test.aleo").unwrap();
         assert_eq!(on_chain_program, Program::from_str(ALEO_PROGRAM).unwrap());

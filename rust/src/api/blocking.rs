@@ -141,11 +141,12 @@ impl<N: Network> AleoAPIClient<N> {
         let mut records = Vec::new();
 
         for start_height in (start_block_height..end_block_height).step_by(50) {
-            if start_height > block_heights.end {
+            if start_height >= block_heights.end {
                 break;
             }
             let end = start_height + 50;
             let end_height = if end > block_heights.end { block_heights.end } else { end };
+            println!("start_height: {}, end_height: {}", start_height, end_height);
 
             // Prepare the URL.
             let records_iter =
@@ -173,6 +174,7 @@ impl<N: Network> AleoAPIClient<N> {
         block_heights: Range<u32>,
         max_records: Option<usize>,
         max_gates: Option<u64>,
+        specified_amounts: Option<Vec<u64>>,
     ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
         let view_key = ViewKey::try_from(private_key)?;
         let address_x_coordinate = view_key.to_address().to_x_coordinate();
@@ -190,7 +192,7 @@ impl<N: Network> AleoAPIClient<N> {
         let mut total_gates = 0u64;
 
         for start_height in (start_block_height..end_block_height).step_by(50) {
-            if start_height > block_heights.end {
+            if start_height >= block_heights.end {
                 break;
             }
             let end = start_height + 50;
@@ -226,6 +228,31 @@ impl<N: Network> AleoAPIClient<N> {
             if max_gates.is_some() && total_gates > max_gates.unwrap() {
                 println!("total_gates {}", total_gates);
                 break;
+            }
+            if max_records.is_some() && records.len() >= max_records.unwrap() {
+                break;
+            }
+            if let Some(specified_amounts) = specified_amounts.as_ref() {
+                let found_records = specified_amounts
+                    .iter()
+                    .filter_map(|amount| {
+                        records
+                            .iter()
+                            .filter_map(|(commitment, record)| {
+                                let decrypted_record = record.decrypt(&view_key).ok()?;
+                                if ***decrypted_record.gates() > *amount { Some((commitment, record)) } else { None }
+                            })
+                            .take(1)
+                            .collect::<Vec<_>>()
+                            .pop()
+                    })
+                    .collect::<Vec<_>>();
+                if found_records.len() >= specified_amounts.len() {
+                    return Ok(found_records
+                        .into_iter()
+                        .map(|(commitment, record)| (*commitment, record.clone()))
+                        .collect());
+                }
             }
         }
 

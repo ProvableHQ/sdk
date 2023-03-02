@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::RecordQuery;
 use snarkvm_console::{
     account::PrivateKey,
     network::Network,
@@ -26,28 +27,14 @@ use anyhow::{bail, Result};
 pub mod file;
 pub use file::*;
 
+pub mod filters;
+pub use filters::*;
+
 pub mod hybrid;
 pub use hybrid::*;
 
 pub mod network;
 pub use network::*;
-
-pub enum RecordQuery {
-    /// Find records that belong to a user within a certain block range
-    BlockRange { start: u32, end: u32, max_records: Option<usize>, max_gates: Option<u64>, unspent_only: bool },
-    /// Find records that belong to a user at a specified resource uri (e.g. a file path, database uri, etc.)
-    ResourceUri {
-        resource: String,
-        query: Option<String>,
-        max_records: Option<usize>,
-        max_gates: Option<u64>,
-        unspent_only: bool,
-    },
-    /// Specify options only
-    Options { max_records: Option<usize>, max_gates: Option<u64>, unspent_only: bool },
-    /// No-Op query for resolvers that do not support record queries
-    None,
-}
 
 /// Trait that allows custom implementations of resource resolution for resources
 /// needed to run Aleo programs such as imports and records.

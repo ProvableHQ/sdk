@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{RecordQuery, Resolver};
+use super::Resolver;
+use crate::RecordQuery;
 use snarkvm::{
     file::{AleoFile, Manifest},
     package::Package,

@@ -33,14 +33,20 @@ pub use config::*;
 pub mod deploy;
 pub use deploy::*;
 
+pub mod helpers;
+pub use helpers::*;
+
+pub mod network;
+pub use network::*;
+
 pub mod resolvers;
 pub use resolvers::*;
 
+pub mod transfer;
+pub use transfer::*;
+
 pub mod validation;
 pub use validation::*;
-
-pub mod helpers;
-pub use helpers::*;
 
 /// Program management object for loading programs for building, execution, and deployment
 ///
@@ -110,20 +116,5 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
         let resolver = HybridResolver::new(&network_config, &local_directory)?;
         ProgramManager::<N, HybridResolver<N>>::new(private_key, private_key_ciphertext, Some(network_config), resolver)
-    }
-
-    /// Broadcast a transaction to the network
-    pub fn broadcast_transaction(&self, transaction: Transaction<N>) -> Result<String> {
-        self.api_client()?.transaction_broadcast(transaction)
-    }
-
-    /// Get API client
-    pub fn api_client(&self) -> Result<&AleoAPIClient<N>> {
-        self.api_client.as_ref().ok_or_else(|| anyhow!("No API client found"))
-    }
-
-    /// Get the resolver
-    pub fn resolver(&self) -> &R {
-        &self.resolver
     }
 }

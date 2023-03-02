@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{AleoNetworkResolver, FileSystemResolver, RecordQuery, Resolver};
-use crate::NetworkConfig;
+use super::{AleoNetworkResolver, FileSystemResolver, Resolver};
+use crate::{NetworkConfig, RecordQuery};
 use snarkvm_console::{
     account::PrivateKey,
     network::Network,
@@ -86,9 +86,9 @@ mod tests {
             random_string,
             setup_directory,
             teardown_directory,
-            ALEO_PRIVATE_KEY,
             ALEO_PROGRAM,
             HELLO_PROGRAM,
+            RECIPIENT_PRIVATE_KEY,
         },
         ProgramManager,
     };
@@ -102,7 +102,7 @@ mod tests {
         let imports = vec![("credits.aleo", credits_program_string.as_str())];
         let test_path = setup_directory("aleo_test_hybrid_resolver", ALEO_PROGRAM, imports).unwrap();
         let network_config = NetworkConfig::testnet3();
-        let private_key = PrivateKey::<Testnet3>::from_str(ALEO_PRIVATE_KEY).unwrap();
+        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
 
         let result = catch_unwind(|| {
             // TEST 1: Test that the hybrid rsesolver can load a program on disk that can't be found online

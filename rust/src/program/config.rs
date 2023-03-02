@@ -55,7 +55,7 @@ mod tests {
     use super::*;
 
     use crate::{
-        test_utils::{ALEO_PRIVATE_KEY, HELLO_PROGRAM},
+        test_utils::{HELLO_PROGRAM, RECIPIENT_PRIVATE_KEY},
         HybridResolver,
         NetworkConfig,
     };
@@ -63,7 +63,7 @@ mod tests {
 
     #[test]
     fn test_program_addition() {
-        let private_key = PrivateKey::<Testnet3>::from_str(ALEO_PRIVATE_KEY).unwrap();
+        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
         let network_config = NetworkConfig::new("http://localhost:3030".to_string(), "testnet3".to_string());
         let temp_dir = std::env::temp_dir();
         std::env::set_current_dir(&temp_dir).unwrap();
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_program_can_be_added_from_string() {
-        let private_key = PrivateKey::from_str(ALEO_PRIVATE_KEY).unwrap();
+        let private_key = PrivateKey::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
         let temp_dir = std::env::temp_dir();
         let network_config = NetworkConfig::testnet3();
         let mut program_manager =

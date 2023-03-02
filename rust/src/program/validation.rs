@@ -23,7 +23,7 @@ use anyhow::{anyhow, bail, Result};
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     /// Get a checked private key
-    pub(super) fn get_private_key(&self, password: Option<String>) -> Result<PrivateKey<N>> {
+    pub(super) fn get_private_key(&self, password: Option<&str>) -> Result<PrivateKey<N>> {
         if self.private_key.is_none() && self.private_key_ciphertext.is_none() {
             bail!("Private key is not configured");
         };
@@ -41,7 +41,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             }
 
             let password = password.ok_or_else(|| anyhow!("Private key is encrypted, password is required"))?;
-            return Encryptor::<N>::decrypt_private_key_with_secret(ciphertext, &password);
+            return Encryptor::<N>::decrypt_private_key_with_secret(ciphertext, password);
         };
         bail!("Private key configuration error")
     }

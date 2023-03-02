@@ -66,17 +66,17 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
         private_key: &PrivateKey<N>,
         record_query: &RecordQuery,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        let (block_range, max_records, max_gates, unspent_only) = match record_query {
-            RecordQuery::BlockRange { start, end, max_records, max_gates, unspent_only } => {
+        let (amounts, block_range, max_records, max_gates, unspent_only) = match record_query {
+            RecordQuery::BlockRange { amounts, start, end, max_records, max_gates, unspent_only } => {
                 if start > end {
                     bail!("Invalid block range");
                 }
-                (Range { start: *start, end: *end }, max_records, max_gates, *unspent_only)
+                (amounts, Range { start: *start, end: *end }, max_records, max_gates, *unspent_only)
             }
-            RecordQuery::Options { max_records, max_gates, unspent_only } => {
+            RecordQuery::Options { amounts, max_records, max_gates, unspent_only } => {
                 let latest_height = AleoAPIClient::<N>::from(&self.network_config).latest_height()?;
                 println!("Searching block range 0-{} for spendable records", latest_height);
-                (Range { start: 0, end: latest_height }, max_records, max_gates, *unspent_only)
+                (amounts, Range { start: 0, end: latest_height }, max_records, max_gates, *unspent_only)
             }
             _ => bail!("Network resolver only supports block range queries"),
         };
@@ -85,7 +85,7 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
         let view_key = ViewKey::try_from(private_key)?;
 
         let records = if unspent_only {
-            api_client.get_unspent_records(private_key, block_range, *max_records, *max_gates)?
+            api_client.get_unspent_records(private_key, block_range, *max_records, *max_gates, amounts.clone())?
         } else {
             api_client.scan(view_key, block_range, *max_records)?
         };
