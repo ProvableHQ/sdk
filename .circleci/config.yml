@@ -176,7 +176,7 @@ jobs:
             git clone https://github.com/AleoHQ/snarkOS.git
             cargo install --path snarkOS --root . --locked
             rm -rf snarkOS
-            ./bin/snarkos start --dev 0 --beacon --nodisplay
+            ./bin/snarkos start --dev 0 --beacon APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --nodisplay
             cd rust && cargo test -- --ignored --nocapture
 
   aleo-executable:
