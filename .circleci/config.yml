@@ -177,7 +177,7 @@ jobs:
             cargo install --path snarkOS --root . --locked
             rm -rf snarkOS
             ./bin/snarkos start --dev 0 --beacon --nodisplay
-            cargo test -- --ignored --nocapture
+            cd rust && cargo test -- --ignored --nocapture
 
   aleo-executable:
     docker:
