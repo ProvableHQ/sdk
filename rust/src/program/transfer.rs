@@ -26,6 +26,7 @@ use std::str::FromStr;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     /// Create a transfer transaction with specified records or record resolution queries.
+    #[allow(clippy::too_many_arguments)]
     pub fn transfer_with_config(
         &self,
         amount: u64,
@@ -42,7 +43,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         let query = Query::from(self.api_client.as_ref().unwrap().base_url());
 
         // Retrieve the private key.
-        let private_key = self.get_private_key(password.clone())?;
+        let private_key = self.get_private_key(password)?;
 
         // Generate the execution transaction
         let execution = {
@@ -141,7 +142,6 @@ mod tests {
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
             } else {
-                println!("Transfer was a success!");
                 break;
             }
 
@@ -150,7 +150,7 @@ mod tests {
         }
 
         // Wait for the chain to update blocks
-        thread::sleep(std::time::Duration::from_secs(40));
+        thread::sleep(std::time::Duration::from_secs(45));
 
         // Check the balance of the recipient
         let api_client = program_manager.api_client().unwrap();

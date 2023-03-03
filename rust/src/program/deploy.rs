@@ -61,7 +61,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         // Check if program imports are deployed on chain and add them to the VM, cancel otherwise
         program.imports().keys().try_for_each(|program_id| {
             let contains_program = self.vm.process().read().contains_program(program_id);
-            let _on_chain_status = if contains_program {
+            if contains_program {
                 println!("Imported program {:?} found locally", program_id);
                 let program = self.vm.process().read().get_program(program_id)?.clone();
                 match self.program_matches_on_chain(&program)? {
@@ -83,7 +83,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                     OnChainProgramState::NotDeployed => {
                         if deploy_imports {
                             println!("Imported program {:?} not deployed, attempting to deploy now", program_id);
-                            self.deploy_program(program_id, None, fee, password.clone(), record_query, false)?;
+                            self.deploy_program(program_id, None, fee, password, record_query, false)?;
                             // Wait for the program import to show up on chain
                             std::thread::sleep(std::time::Duration::from_secs(25));
                         } else {
@@ -161,7 +161,7 @@ mod tests {
         api::NetworkConfig,
         program::ProgramManager,
         resolvers::HybridResolver,
-        test_utils::{setup_directory, transfer_to_test_account, ALEO_PROGRAM, HELLO_PROGRAM, RECIPIENT_PRIVATE_KEY},
+        test_utils::{setup_directory, transfer_to_test_account, ALEO_PROGRAM, HELLO_PROGRAM},
     };
     #[cfg(not(feature = "wasm"))]
     use snarkvm_console::{account::PrivateKey, network::Testnet3};

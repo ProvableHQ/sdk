@@ -204,11 +204,13 @@ impl<N: Network> AleoAPIClient<N> {
                 match record.is_owner_with_address_x_coordinate(&view_key, &address_x_coordinate) {
                     true => {
                         let sn = Record::<N, Ciphertext<N>>::serial_number(*private_key, commitment).ok()?;
+                        println!("found owned record with sn {:?}", sn);
                         if self.find_transition_id(sn).is_err() {
                             if max_gates.is_some() {
                                 let _ = record
                                     .decrypt(&view_key)
                                     .map(|record| {
+                                        println!("gates in record {}", ***record.gates());
                                         total_gates += ***record.gates();
                                         record
                                     })

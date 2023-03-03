@@ -63,6 +63,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     }
 
     /// Resolve record for a transfer amount and fee
+    #[allow(clippy::type_complexity)]
     pub fn resolve_amount_and_fee(
         &self,
         amount: u64,
@@ -75,6 +76,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     }
 
     /// Resolve records for a transfer amount and fee based on passed options
+    #[allow(clippy::type_complexity)]
     pub fn resolve_amount_and_fee_from_parameters(
         &self,
         amount: u64,
@@ -88,22 +90,22 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             (Some(input_record), Some(fee_record)) => (input_record, Some((fee_record, fee))),
             (Some(input_record), None) => {
                 if fee > 0 {
-                    let fee_record = self.resolve_one_record_above_amount(&private_key, fee, record_query)?;
+                    let fee_record = self.resolve_one_record_above_amount(private_key, fee, record_query)?;
                     (input_record, Some((fee_record, fee)))
                 } else {
                     (input_record, None)
                 }
             }
             (None, Some(fee_record)) => {
-                (self.resolve_one_record_above_amount(&private_key, amount, record_query)?, Some((fee_record, fee)))
+                (self.resolve_one_record_above_amount(private_key, amount, record_query)?, Some((fee_record, fee)))
             }
             (None, None) => {
                 if fee > 0 {
                     let (input_record, fee_record) =
-                        self.resolve_amount_and_fee(amount, fee, &private_key, record_query)?;
+                        self.resolve_amount_and_fee(amount, fee, private_key, record_query)?;
                     (input_record, Some((fee_record, fee)))
                 } else {
-                    (self.resolve_one_record_above_amount(&private_key, amount, record_query)?, None)
+                    (self.resolve_one_record_above_amount(private_key, amount, record_query)?, None)
                 }
             }
         };

@@ -51,7 +51,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             .api_client()?
             .get_program(program_id)
             .map(|chain_program| {
-                chain_program.eq(program).then(|| OnChainProgramState::Same).unwrap_or(OnChainProgramState::Different)
+                chain_program.eq(program).then_some(OnChainProgramState::Same).unwrap_or(OnChainProgramState::Different)
             })
             .unwrap_or(OnChainProgramState::NotDeployed))
     }
