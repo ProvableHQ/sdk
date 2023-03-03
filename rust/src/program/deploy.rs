@@ -85,7 +85,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                             println!("Imported program {:?} not deployed, attempting to deploy now", program_id);
                             self.deploy_program(program_id, None, fee, password, record_query, false)?;
                             // Wait for the program import to show up on chain
-                            std::thread::sleep(std::time::Duration::from_secs(25));
+                            std::thread::sleep(std::time::Duration::from_secs(45));
                         } else {
                             bail!("Imported program {:?} could not be found", program_id)
                         }
@@ -191,8 +191,12 @@ mod tests {
             )
             .unwrap();
 
-        let record_query =
-            RecordQuery::Options { amounts: None, max_records: None, max_gates: Some(50000000000), unspent_only: true };
+        let record_query = RecordQuery::Options {
+            amounts: Some(vec![50000000000]),
+            max_records: None,
+            max_gates: None,
+            unspent_only: true,
+        };
         program_manager.deploy_program("aleo_test.aleo", None, 1000000, None, &record_query, true).unwrap();
 
         // Wait for the program to show up on chain
