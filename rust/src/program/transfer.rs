@@ -104,10 +104,7 @@ mod tests {
     use super::*;
     use crate::AleoNetworkResolver;
     #[cfg(not(feature = "wasm"))]
-    use crate::{
-        api::NetworkConfig,
-        test_utils::{BEACON_PRIVATE_KEY, RECIPIENT_PRIVATE_KEY},
-    };
+    use crate::{api::NetworkConfig, test_utils::BEACON_PRIVATE_KEY};
     use snarkvm_console::account::ViewKey;
     #[cfg(not(feature = "wasm"))]
     use snarkvm_console::{

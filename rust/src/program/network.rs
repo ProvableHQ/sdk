@@ -17,7 +17,6 @@
 use crate::{AleoAPIClient, ProgramManager, Resolver};
 use snarkvm_console::program::Network;
 use snarkvm_synthesizer::Transaction;
-use std::any::Any;
 
 use anyhow::{anyhow, Result};
 
