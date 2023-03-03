@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{program::Resolver, OnChainProgramState, RecordQuery};
-use anyhow::{anyhow, bail, ensure, Error, Result};
+use crate::{program::Resolver, OnChainProgramState, ProgramManager, RecordQuery};
 use snarkvm_console::{
     account::PrivateKey,
     program::{Network, Plaintext, ProgramID, Record},
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
 
-use super::ProgramManager;
+use anyhow::{anyhow, bail, ensure, Error, Result};
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     /// Deploy a program to the network
@@ -62,7 +61,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         // Check if program imports are deployed on chain and add them to the VM, cancel otherwise
         program.imports().keys().try_for_each(|program_id| {
             let contains_program = self.vm.process().read().contains_program(program_id);
-            let on_chain_status = if contains_program {
+            let _on_chain_status = if contains_program {
                 println!("Imported program {:?} found locally", program_id);
                 let program = self.vm.process().read().get_program(program_id)?.clone();
                 match self.program_matches_on_chain(&program)? {
@@ -163,9 +162,7 @@ mod tests {
         program::ProgramManager,
         resolvers::HybridResolver,
         test_utils::{
-            random_string,
             setup_directory,
-            teardown_directory,
             transfer_to_test_account,
             ALEO_PROGRAM,
             HELLO_PROGRAM,
@@ -200,8 +197,13 @@ mod tests {
         let record_query =
             RecordQuery::Options { amounts: None, max_records: None, max_gates: Some(10000000000), unspent_only: true };
         program_manager.deploy_program("aleo_test.aleo", None, 1000000, None, &record_query, true).unwrap();
-        thread::sleep(std::time::Duration::from_secs(10));
+
+        // Wait for the program to show up on chain
+        thread::sleep(std::time::Duration::from_secs(25));
+        let on_chain_program = program_manager.api_client().unwrap().get_program("hello.aleo").unwrap();
         let on_chain_program = program_manager.api_client().unwrap().get_program("aleo_test.aleo").unwrap();
         assert_eq!(on_chain_program, Program::from_str(ALEO_PROGRAM).unwrap());
+        assert_eq!(on_chain_program, Program::from_str(HELLO_PROGRAM).unwrap());
+
     }
 }

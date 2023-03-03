@@ -29,6 +29,7 @@ pub use config::*;
 pub use asynchronous::*;
 
 use snarkvm_console::{network::Testnet3, program::Network};
+
 use std::marker::PhantomData;
 
 /// Aleo API client for interacting with the Aleo Beacon API

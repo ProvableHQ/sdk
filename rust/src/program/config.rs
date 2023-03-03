@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::ProgramManager;
+use crate::{ProgramManager, Resolver};
 use snarkvm_console::program::{Network, ProgramID};
 use snarkvm_synthesizer::Program;
 
-use crate::program::Resolver;
 use anyhow::{anyhow, Result};
-
 use std::str::FromStr;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {

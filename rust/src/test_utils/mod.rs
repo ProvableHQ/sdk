@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use anyhow::Result;
+use crate::{AleoNetworkResolver, NetworkConfig, ProgramManager};
 use snarkvm::file::Manifest;
-use snarkvm_console::{network::Testnet3, program::ProgramID};
-
-use crate::{AleoAPIClient, AleoNetworkResolver, NetworkConfig, ProgramManager};
 use snarkvm_console::{
-    account::{Address, PrivateKey, ViewKey},
-    program::{Plaintext, Record},
+    account::{PrivateKey, ViewKey},
+    network::Testnet3,
+    program::{Plaintext, Record, ProgramID},
 };
+
+use anyhow::Result;
 use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf, str::FromStr, thread::sleep};
 
 pub const RECIPIENT_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
@@ -113,7 +113,7 @@ pub fn transfer_to_test_account(
     let recipient_view_key = ViewKey::<Testnet3>::try_from(&recipient_private_key)?;
     let recipient_address = recipient_view_key.to_address();
 
-    let mut program_manager =
+    let program_manager =
         ProgramManager::<Testnet3, AleoNetworkResolver<Testnet3>>::program_manager_with_network_resolution(
             Some(beacon_private_key),
             None,
@@ -123,7 +123,7 @@ pub fn transfer_to_test_account(
     let mut transfer_successes = 0;
     let mut retries = 0;
     loop {
-        let result = program_manager.transfer(amount, 100000, recipient_address, None);
+        let result = program_manager.transfer(amount, 0, recipient_address, None);
         if result.is_ok() {
             println!("Transfer succeeded");
             transfer_successes += 1;
@@ -145,5 +145,5 @@ pub fn transfer_to_test_account(
     let client = program_manager.api_client()?;
     let latest_height = client.latest_height()?;
     let records = client.get_unspent_records(&recipient_private_key, 0..latest_height, None, None, None)?;
-    Ok(records.iter().map(|(cm, record)| record.decrypt(&recipient_view_key).unwrap()).collect())
+    Ok(records.iter().map(|(_cm, record)| record.decrypt(&recipient_view_key).unwrap()).collect())
 }

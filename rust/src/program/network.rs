@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::ProgramManager;
-use snarkvm_console::program::{Network, Plaintext, ProgramID, Record};
-use snarkvm_synthesizer::{Program, Transaction};
+use crate::{AleoAPIClient, Resolver, ProgramManager};
+use snarkvm_console::program::{Network};
+use snarkvm_synthesizer::{Transaction};
 
-use crate::program::Resolver;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 
-use crate::{AleoAPIClient, RecordQuery};
-use std::str::FromStr;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     /// Broadcast a transaction to the network

@@ -15,14 +15,12 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ProgramManager, RecordQuery, Resolver};
-use anyhow::{anyhow, bail, ensure, Result};
-use snarkvm::prelude::ViewKey;
 use snarkvm_console::{
-    account::{Address, PrivateKey},
-    program::{Network, Plaintext, ProgramID, Record, Value},
+    account::{PrivateKey},
+    program::{Network, Plaintext, Record},
 };
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
-use std::str::FromStr;
+use anyhow::{anyhow, bail, Result};
+
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
     /// Resolve a record with a specific value.

@@ -15,12 +15,13 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ProgramManager, RecordQuery, Resolver};
-use anyhow::{anyhow, ensure, Result};
 use snarkvm_console::{
-    account::{Address, PrivateKey},
-    program::{Network, Plaintext, ProgramID, Record, Value},
+    account::{Address},
+    program::{Network, Plaintext, Record, Value},
 };
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
+use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Query, Transaction, VM};
+
+use anyhow::{ensure, Result};
 use std::str::FromStr;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
@@ -92,7 +93,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             amounts: Some(vec![amount, fee]),
             max_records: None,
             max_gates: None,
-            unspent_only: false,
+            unspent_only: true,
         };
         self.transfer_with_config(amount, fee, recipient_address, password, None, None, &record_query)
     }
@@ -104,25 +105,19 @@ mod tests {
     #[cfg(not(feature = "wasm"))]
     use crate::{
         api::NetworkConfig,
-        resolvers::HybridResolver,
         test_utils::{
-            random_string,
-            setup_directory,
-            teardown_directory,
-            ALEO_PROGRAM,
             BEACON_PRIVATE_KEY,
-            HELLO_PROGRAM,
             RECIPIENT_PRIVATE_KEY,
         },
     };
-    use crate::{AleoAPIClient, AleoNetworkResolver};
+    use crate::{AleoNetworkResolver};
     use snarkvm_console::account::ViewKey;
     #[cfg(not(feature = "wasm"))]
     use snarkvm_console::{
         account::{Address, PrivateKey},
         network::Testnet3,
     };
-    use snarkvm_synthesizer::Program;
+    
     use std::{str::FromStr, thread};
 
     #[test]
@@ -132,7 +127,7 @@ mod tests {
         let network_config = NetworkConfig::local_testnet3("3030");
         let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY).unwrap();
 
-        let mut program_manager =
+        let program_manager =
             ProgramManager::<Testnet3, AleoNetworkResolver<Testnet3>>::program_manager_with_network_resolution(
                 Some(beacon_private_key),
                 None,
@@ -162,7 +157,7 @@ mod tests {
         // Check the balance of the recipient
         let api_client = program_manager.api_client().unwrap();
         let height = api_client.latest_height().unwrap();
-        let records = api_client.get_unspent_records(&recipient_private_key, (0..height), None, None, None).unwrap();
+        let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None, None).unwrap();
         assert_eq!(records.len(), 1);
         let (_, record) = &records[0];
         let record_plaintext = record.decrypt(&recipient_view_key).unwrap();

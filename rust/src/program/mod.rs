@@ -19,13 +19,10 @@ use snarkvm_console::{
     account::PrivateKey,
     program::{Ciphertext, Network},
 };
-use snarkvm_synthesizer::{Block, ConsensusMemory, ConsensusStore, Transaction, VM};
+use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, VM};
 
 use anyhow::{anyhow, bail, Result};
 use std::path::PathBuf;
-
-pub mod build;
-pub use build::*;
 
 pub mod config;
 pub use config::*;

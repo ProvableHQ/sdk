@@ -15,14 +15,14 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::AleoAPIClient;
-
-use anyhow::{anyhow, bail, ensure, Result};
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
     program::{Ciphertext, Network, ProgramID, Record},
     types::Field,
 };
 use snarkvm_synthesizer::{Block, Program, Transaction};
+
+use anyhow::{anyhow, bail, Result};
 use std::{convert::TryInto, ops::Range};
 
 #[cfg(not(feature = "async"))]
@@ -146,7 +146,6 @@ impl<N: Network> AleoAPIClient<N> {
             }
             let end = start_height + 50;
             let end_height = if end > block_heights.end { block_heights.end } else { end };
-            println!("start_height: {}, end_height: {}", start_height, end_height);
 
             // Prepare the URL.
             let records_iter =
@@ -183,8 +182,6 @@ impl<N: Network> AleoAPIClient<N> {
         let start_block_height = block_heights.start - (block_heights.start % 50);
         // Prepare the ending block height, by rounding up to the nearest step of 50.
         let end_block_height = block_heights.end + (50 - (block_heights.end % 50));
-
-        println!("searching for unspent records in block range {}-{}", start_block_height, end_block_height);
 
         // Initialize a vector for the records.
         let mut records = Vec::new();

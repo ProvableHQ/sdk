@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::ProgramManager;
-use crate::{Encryptor, OnChainProgramState, Resolver};
+use crate::{Encryptor, OnChainProgramState, ProgramManager, Resolver};
 use snarkvm_console::{account::PrivateKey, program::Network};
 use snarkvm_synthesizer::Program;
 

@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::Resolver;
-use crate::{api::AleoAPIClient, NetworkConfig, RecordQuery};
+use crate::{api::AleoAPIClient, NetworkConfig, RecordQuery, Resolver};
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
     network::Network,
@@ -78,7 +77,7 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
                 println!("Searching block range 0-{} for spendable records", latest_height);
                 (amounts, Range { start: 0, end: latest_height }, max_records, max_gates, *unspent_only)
             }
-            _ => bail!("Network resolver only supports block range queries"),
+            _ => bail!("Network resolver only supports block range and option queries"),
         };
 
         let api_client = AleoAPIClient::<N>::from(&self.network_config);

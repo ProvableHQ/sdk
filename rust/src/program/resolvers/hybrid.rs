@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{AleoNetworkResolver, FileSystemResolver, Resolver};
-use crate::{NetworkConfig, RecordQuery};
+use crate::{AleoNetworkResolver, FileSystemResolver, NetworkConfig, Resolver, RecordQuery};
 use snarkvm_console::{
     account::PrivateKey,
     network::Network,

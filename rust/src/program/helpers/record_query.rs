@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use anyhow::{bail, Result};
-
 pub enum RecordQuery {
     /// Find records that belong to a user within a certain block range
     BlockRange {
