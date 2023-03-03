@@ -96,7 +96,7 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{random_string, ALEO_PROGRAM, HELLO_PROGRAM};
+    use crate::test_utils::{random_program_id, ALEO_PROGRAM, HELLO_PROGRAM};
     use snarkvm_console::network::Testnet3;
     use std::{ops::Add, str::FromStr};
 
@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn test_network_resolver_doesnt_load_programs_not_on_chain() {
-        let random_program = random_string(16);
+        let random_program = random_program_id(16);
         let testnet_3 = NetworkConfig::testnet3();
         let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
         let program_id = ProgramID::<Testnet3>::from_str(&random_program).unwrap();
@@ -144,7 +144,7 @@ mod tests {
         // Create a bad program with a bad import
         let testnet_3 = NetworkConfig::testnet3();
         let resolver = AleoNetworkResolver::<Testnet3>::new(&testnet_3);
-        let bad_import_code = String::from("import ").add(&random_string(16)).add(";").add(ALEO_PROGRAM);
+        let bad_import_code = String::from("import ").add(&random_program_id(16)).add(";").add(ALEO_PROGRAM);
         let bad_import_program = Program::<Testnet3>::from_str(&bad_import_code).unwrap();
         let imports = resolver.resolve_program_imports(&bad_import_program).unwrap();
 

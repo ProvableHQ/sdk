@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{ProgramManager, Resolver};
-use snarkvm_console::program::{Network, ProgramID};
+use crate::{Encryptor, ProgramManager, Resolver};
+use snarkvm_console::{
+    account::PrivateKey,
+    program::{Network, ProgramID},
+};
 use snarkvm_synthesizer::Program;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use std::str::FromStr;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
@@ -44,6 +47,30 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         let program = Program::<N>::from_str(program)?;
         self.add_program(&program)?;
         Ok(())
+    }
+
+    /// Get a checked private key
+    pub(super) fn get_private_key(&self, password: Option<&str>) -> Result<PrivateKey<N>> {
+        if self.private_key.is_none() && self.private_key_ciphertext.is_none() {
+            bail!("Private key is not configured");
+        };
+        if let Some(private_key) = &self.private_key {
+            if self.private_key_ciphertext.is_some() {
+                bail!(
+                    "Private key ciphertext is also configured, cannot have both private key and private key ciphertext"
+                );
+            }
+            return Ok(*private_key);
+        };
+        if let Some(ciphertext) = &self.private_key_ciphertext {
+            if self.private_key.is_some() {
+                bail!("Private key is already configured, cannot have both private key and private key ciphertext");
+            }
+
+            let password = password.ok_or_else(|| anyhow!("Private key is encrypted, password is required"))?;
+            return Encryptor::<N>::decrypt_private_key_with_secret(ciphertext, password);
+        };
+        bail!("Private key configuration error")
     }
 }
 
@@ -104,5 +131,58 @@ mod tests {
         assert!(contains_program);
         let recovered_program = program_manager.get_program("hello.aleo").unwrap();
         assert_eq!(recovered_program, Program::from_str(HELLO_PROGRAM).unwrap());
+    }
+
+    #[test]
+    fn test_private_key_retrieval_from_ciphertext() {
+        let private_key = PrivateKey::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let temp_dir = std::env::temp_dir();
+        let network_config = NetworkConfig::testnet3();
+
+        let private_key_ciphertext =
+            Encryptor::<Testnet3>::encrypt_private_key_with_secret(&private_key, "password").unwrap();
+        let program_manager =
+            ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
+                None,
+                Some(private_key_ciphertext),
+                temp_dir,
+                network_config,
+            )
+            .unwrap();
+
+        // Assert private key recovers correctly
+        let recovered_private_key = program_manager.get_private_key(Some("password")).unwrap();
+        assert_eq!(recovered_private_key, private_key);
+
+        // Assert error is thrown if password is incorrect
+        let recovered_private_key = program_manager.get_private_key(Some("wrong_password"));
+        assert!(recovered_private_key.is_err());
+
+        // Assert error is thrown if password is not provided
+        let recoverd_private_key = program_manager.get_private_key(None);
+        assert!(recoverd_private_key.is_err());
+    }
+
+    #[test]
+    fn test_private_key_retrieval_from_plaintext() {
+        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let temp_dir = std::env::temp_dir();
+        let network_config = NetworkConfig::testnet3();
+
+        let program_manager =
+            ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
+                Some(private_key),
+                None,
+                temp_dir,
+                network_config,
+            )
+            .unwrap();
+
+        // Assert private key recovers correctly regardless of password
+        let recovered_private_key = program_manager.get_private_key(Some("password")).unwrap();
+        assert_eq!(recovered_private_key, private_key);
+
+        let recovered_private_key = program_manager.get_private_key(Some("wrong_password")).unwrap();
+        assert_eq!(recovered_private_key, private_key);
     }
 }

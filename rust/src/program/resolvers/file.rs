@@ -157,7 +157,7 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{random_string, setup_directory, teardown_directory, ALEO_PROGRAM, HELLO_PROGRAM};
+    use crate::test_utils::{random_program_id, setup_directory, teardown_directory, ALEO_PROGRAM, HELLO_PROGRAM};
     use snarkvm_console::network::Testnet3;
     use std::{ops::Add, panic::catch_unwind, str::FromStr};
 
@@ -192,13 +192,13 @@ mod tests {
             assert_eq!(&credits_program, local_credits_program);
 
             // TEST 3: Test that the file resolver doesn't load a non-existent program.
-            let random_program = random_string(16);
+            let random_program = random_program_id(16);
             let program_id = ProgramID::<Testnet3>::from_str(&random_program).unwrap();
             assert!(resolver.load_program(&program_id).is_err());
 
             // TEST 4: Test that the file resolver throws an error when a program has a bad import, but can still resolve the other imports.
             // Create a bad program with a bad import
-            let bad_import_code = String::from("import ").add(&random_string(16)).add(";").add(ALEO_PROGRAM);
+            let bad_import_code = String::from("import ").add(&random_program_id(16)).add(";").add(ALEO_PROGRAM);
             let bad_import_program = Program::<Testnet3>::from_str(&bad_import_code).unwrap();
             let imports = resolver.resolve_program_imports(&bad_import_program).unwrap();
 

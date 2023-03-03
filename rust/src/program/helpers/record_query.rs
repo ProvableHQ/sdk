@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RecordQuery {
     /// Find records that belong to a user within a certain block range
     BlockRange {
@@ -74,9 +75,5 @@ impl RecordQuery {
             RecordQuery::Options { amounts, .. } => amounts.as_ref(),
             RecordQuery::None => None,
         }
-    }
-
-    pub fn query_searches_for_valid_unspent_records(&self) -> bool {
-        self.max_gates().unwrap_or(0) > 0 && self.unspent_only()
     }
 }

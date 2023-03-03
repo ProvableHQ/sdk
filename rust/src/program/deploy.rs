@@ -64,7 +64,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             if contains_program {
                 println!("Imported program {:?} found locally", program_id);
                 let program = self.vm.process().read().get_program(program_id)?.clone();
-                match self.program_matches_on_chain(&program)? {
+                match self.on_chain_program_state(&program)? {
                     OnChainProgramState::NotDeployed => {
                         bail!("Imported program {:?} has a circular dependency", program_id)
                     }
@@ -79,7 +79,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             } else {
                 println!("Attempting to loading imported program {:?} from resolver", program_id);
                 let program = self.resolver.load_program(program_id)?;
-                match self.program_matches_on_chain(&program)? {
+                match self.on_chain_program_state(&program)? {
                     OnChainProgramState::NotDeployed => {
                         if deploy_imports {
                             println!("Imported program {:?} not deployed, attempting to deploy now", program_id);

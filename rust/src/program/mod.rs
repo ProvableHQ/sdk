@@ -42,9 +42,6 @@ pub use resolvers::*;
 pub mod transfer;
 pub use transfer::*;
 
-pub mod validation;
-pub use validation::*;
-
 /// Program management object for loading programs for building, execution, and deployment
 ///
 /// This object is meant to be a software abstraction that can be consumed by software like
@@ -113,5 +110,83 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
         let resolver = HybridResolver::new(&network_config, &local_directory)?;
         ProgramManager::<N, HybridResolver<N>>::new(private_key, private_key_ciphertext, Some(network_config), resolver)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use crate::{Encryptor, RECIPIENT_PRIVATE_KEY};
+    use snarkvm_console::network::Testnet3;
+
+    use std::str::FromStr;
+
+    #[test]
+    fn test_constructors_fail_with_multiple_keys_or_no_keys() {
+        let network_config = NetworkConfig::testnet3();
+        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let private_key_ciphertext =
+            Encryptor::<Testnet3>::encrypt_private_key_with_secret(&private_key, "password").unwrap();
+        // Create a temp dir without proper programs to test that the hybrid client works even if the local resource directory doesn't exist
+        let temp_dir = std::env::temp_dir();
+
+        let file_program_manager =
+            ProgramManager::<Testnet3, FileSystemResolver<Testnet3>>::program_manager_with_local_resource_resolution(
+                None,
+                None,
+                temp_dir.clone(),
+                Some(network_config.clone()),
+            );
+
+        assert!(file_program_manager.is_err());
+
+        let hybrid_program_manager =
+            ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
+                None,
+                None,
+                temp_dir.clone(),
+                network_config.clone(),
+            );
+
+        assert!(hybrid_program_manager.is_err());
+
+        let network_program_manager =
+            ProgramManager::<Testnet3, AleoNetworkResolver<Testnet3>>::program_manager_with_network_resolution(
+                None,
+                None,
+                network_config.clone(),
+            );
+
+        assert!(network_program_manager.is_err());
+
+        let file_program_manager =
+            ProgramManager::<Testnet3, FileSystemResolver<Testnet3>>::program_manager_with_local_resource_resolution(
+                Some(private_key.clone()),
+                Some(private_key_ciphertext.clone()),
+                temp_dir.clone(),
+                Some(network_config.clone()),
+            );
+
+        assert!(file_program_manager.is_err());
+
+        let hybrid_program_manager =
+            ProgramManager::<Testnet3, HybridResolver<Testnet3>>::program_manager_with_hybrid_resolution(
+                Some(private_key.clone()),
+                Some(private_key_ciphertext.clone()),
+                temp_dir.clone(),
+                network_config.clone(),
+            );
+
+        assert!(hybrid_program_manager.is_err());
+
+        let network_program_manager =
+            ProgramManager::<Testnet3, AleoNetworkResolver<Testnet3>>::program_manager_with_network_resolution(
+                Some(private_key.clone()),
+                Some(private_key_ciphertext.clone()),
+                network_config.clone(),
+            );
+
+        assert!(network_program_manager.is_err());
     }
 }

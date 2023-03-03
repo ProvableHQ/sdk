@@ -23,6 +23,7 @@ use snarkvm_console::{
 };
 
 use anyhow::Result;
+use snarkvm_synthesizer::Program;
 use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf, str::FromStr, thread::sleep};
 
 pub const RECIPIENT_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
@@ -48,7 +49,16 @@ function main:
     output r2 as u32.private;
 ";
 
-pub fn random_string(len: usize) -> String {
+pub const GENERIC_PROGRAM_BODY: &str = "
+
+function fabulous:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+";
+
+pub fn random_program_id(len: usize) -> String {
     use rand::Rng;
     const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
     let mut rng = rand::thread_rng();
@@ -60,6 +70,12 @@ pub fn random_string(len: usize) -> String {
         })
         .collect();
     program.add(".aleo")
+}
+
+pub fn random_program() -> Program<Testnet3> {
+    let random_program = String::from("program ").add(&random_program_id(15)).add(";").add(GENERIC_PROGRAM_BODY);
+    println!("Random program:\n{}", random_program);
+    Program::<Testnet3>::from_str(&random_program).unwrap()
 }
 
 // Create temp directory with test data
