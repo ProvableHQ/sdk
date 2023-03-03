@@ -29,6 +29,14 @@ export const DecryptAccount = () => {
         }
     }
 
+    const validateStatusAccount = () => {
+        return inputPassword !== null ?
+            accountFromCiphertext !== null ?
+                "success"
+                : "error"
+            : "";
+    }
+
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
     useEffect(() => {}, [inputCiphertext, inputPassword]);
     if (aleo !== null) {
@@ -43,34 +51,31 @@ export const DecryptAccount = () => {
                     <Input name="privateKeyCiphertext" size="large" placeholder="Private Key Ciphertext" allowClear
                            onChange={onCiphertextChange} style={{borderRadius: '20px'}}/>
                 </Form.Item>
-                <Form.Item label="Password" colon={false}>
-                    <Input name="password" size="large" placeholder="Password" allowClear onChange={onPasswordChange}
+                <Form.Item label="Password"
+                           colon={false}
+                           hasFeedback
+                           validateStatus={validateStatusAccount()}>
+                    <Input name="password" size="large" placeholder="Password" onChange={onPasswordChange}
                            style={{borderRadius: '20px'}}/>
                 </Form.Item>
             </Form>
             {
-                (inputCiphertext && inputPassword) ?
-                    (accountFromCiphertext !== null) ?
-                        <Form {...layout}>
-                            <Divider/>
-                            <Form.Item label="Private Key" colon={false}>
-                                <Input size="large" placeholder="Private Key" value={privateKey()}
-                                       addonAfter={<CopyButton data={privateKey()} style={{borderRadius: '20px'}}/>} disabled/>
-                            </Form.Item>
-                            <Form.Item label="View Key" colon={false}>
-                                <Input size="large" placeholder="View Key" value={viewKey()}
-                                       addonAfter={<CopyButton data={viewKey()} style={{borderRadius: '20px'}}/>} disabled/>
-                            </Form.Item>
-                            <Form.Item label="Address" colon={false}>
-                                <Input size="large" placeholder="Address" value={address()}
-                                       addonAfter={<CopyButton data={address()} style={{borderRadius: '20px'}}/>} disabled/>
-                            </Form.Item>
-                        </Form>
-                        :
-                        <Row justify="center">
-                            <Alert message="Ciphertext Decryption Failed" description="Incorrect ciphertext or password"
-                                   type="warning" showIcon closable={true} />
-                        </Row>
+                (accountFromCiphertext !== null) ?
+                    <Form {...layout}>
+                        <Divider/>
+                        <Form.Item label="Private Key" colon={false}>
+                            <Input size="large" placeholder="Private Key" value={privateKey()}
+                                   addonAfter={<CopyButton data={privateKey()} style={{borderRadius: '20px'}}/>} disabled/>
+                        </Form.Item>
+                        <Form.Item label="View Key" colon={false}>
+                            <Input size="large" placeholder="View Key" value={viewKey()}
+                                   addonAfter={<CopyButton data={viewKey()} style={{borderRadius: '20px'}}/>} disabled/>
+                        </Form.Item>
+                        <Form.Item label="Address" colon={false}>
+                            <Input size="large" placeholder="Address" value={address()}
+                                   addonAfter={<CopyButton data={address()} style={{borderRadius: '20px'}}/>} disabled/>
+                        </Form.Item>
+                    </Form>
                     : null
             }
         </Card>

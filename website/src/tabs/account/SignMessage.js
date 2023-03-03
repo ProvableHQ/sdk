@@ -42,21 +42,22 @@ export const SignMessage = () => {
         const signatureString = () => signingKey !== null ? signingKey : "";
         const messageString = () => message !== null ? message : "";
 
-        return <Card title="Sign Message with a Private Key" style={{width: "100%", borderRadius: "20px"}}
+        return <Card title="Sign a Message" style={{width: "100%", borderRadius: "20px"}}
                      bordered={false}>
             <Form {...layout}>
                 <Form.Item label="Private Key" colon={false}>
                     <Input name="privateKey" size="large" placeholder="Private Key" allowClear onChange={onKeyChange}
                            style={{borderRadius: '20px'}}/>
                 </Form.Item>
+                <Form.Item label="Message" colon={false}>
+                    <Input name="Message" size="large" placeholder="Message" value = {messageString()}
+                           allowClear = {true} style={{borderRadius: '20px'}} onChange={onMessageChange}/>
+                </Form.Item>
             </Form>
             {
                 (signingAccount) ?
                     <Form {...layout}>
-                        <Form.Item label="Message" colon={false}>
-                            <Input name="Message" size="large" placeholder="Message" value = {messageString()}
-                                   allowClear = {true} style={{borderRadius: '20px'}} onChange={onMessageChange}/>
-                        </Form.Item>
+                        <Divider/>
                         <Form.Item label="Signature" colon={false}>
                             <Input size="large" placeholder="Signature" value={signatureString()}
                                    addonAfter={<CopyButton data={signatureString()}/>} disabled/>

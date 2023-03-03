@@ -5,62 +5,97 @@ import { CopyButton } from "../../components/CopyButton";
 
 export const GetProgram = () => {
     const [program, setProgram] = useState(null);
-    const [programName, setProgramName] = useState(null);
+    const [programID, setProgramID] = useState(null);
+    const [status, setStatus] = useState("");
 
+    // Returns the program id if the user changes it or the "Demo" button is clicked.
     const onChange = (event) => {
+        if (event.target.value !== null) {
+            setProgramID(event.target.value);
+        }
+        return programID;
+    }
+
+    // Calls `tryRequest` when the search bar input is entered.
+    const onSearch = (value) => {
         try {
-            tryRequest(event.target.value);
+            tryRequest(value);
         } catch (error) {
             console.error(error);
         }
     };
 
+    // Attempts to request the program bytecode with the given program id.
     const tryRequest = (id) => {
-        setProgramName(id);
+        setProgramID(id);
         try {
             if (id) {
                 axios
                     .get(`https://vm.aleo.org/api/testnet3/program/${id}`)
-                    .then((response) =>
-                        setProgram(response.data)
-                    );
+                    .then((response) => {
+                        setStatus("success");
+                        setProgram(response.data);
+                    })
+                    .catch((error) => {
+                        // Reset the program text to `null` if the program id does not exist.
+                        setProgram(null);
+                        setStatus("error");
+                        console.error(error);
+                    });
+
+            } else {
+                // Reset the program text if the user clears the search bar.
+                setProgram(null);
+                // If the search bar is empty reset the status to "".
+                setStatus("");
             }
         } catch (error) {
             console.error(error);
         }
     };
 
-
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
     const programString = () => program !== null ? program : "";
-    const programNameString = () => programName !== null ? programName : "";
+    const programIDString = () => programID !== null ? programID : "";
 
-    return <Card title="Get Program" style={{width: "100%", borderRadius: "20px"}} bordered={false}>
+    return <Card title="Get Program"
+                 style={{width: "100%", borderRadius: "20px"}}
+                 bordered={false}
+                 extra={<Button type="primary" shape="round" size="middle" onClick={() => {tryRequest("credits.aleo")}}
+    >Demo</Button>}>
         <Form {...layout}>
-            <Form.Item label="Program Name" colon={false}>
-                <Input name="id" size="large" placeholder="Program Name" allowClear onChange={onChange}
-                       value={programNameString()} style={{borderRadius: '20px'}}/>
+            <Form.Item label="Program ID"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.Search name="id"
+                              size="large"
+                              placeholder="Program ID"
+                              allowClear
+                              onSearch={onSearch}
+                              onChange={onChange}
+                              value={programIDString()}
+                              style={{borderRadius: '20px'}}/>
             </Form.Item>
         </Form>
         {
             (program !== null) ?
                 <Form {...layout}>
                     <Divider/>
-                    <Form.Item label="Program" colon={false}>
-                        <Input.TextArea size="large" rows={15} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
-                                        value={programString()}
-                                        disabled/>
-                    </Form.Item>
-                    <Row justify="center">
-                        <CopyButton data={programString()}/>
-                        <Divider/>
+                    <Row align="middle">
+                        <Col span={23}>
+                            <Form.Item label="Program Bytecode" colon={false}>
+                                <Input.TextArea size="large" rows={15} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
+                                                value={programString()}
+                                                disabled/>
+                            </Form.Item>
+                        </Col>
+                        <Col span={1} align="middle">
+                            <CopyButton data={programString()}/>
+                        </Col>
                     </Row>
                 </Form>
-                :
-                <Row justify="center">
-                    <Col><Button type="primary" shape="round" size="middle" onClick={() => {tryRequest("credits.aleo")}}
-                    >Get credits.aleo</Button></Col>
-                </Row>
+                : null
         }
     </Card>
 }
