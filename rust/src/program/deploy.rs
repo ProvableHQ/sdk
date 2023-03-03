@@ -85,7 +85,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                             println!("Imported program {:?} not deployed, attempting to deploy now", program_id);
                             self.deploy_program(program_id, None, fee, password.clone(), record_query, false)?;
                             // Wait for the program import to show up on chain
-                            std::thread::sleep(std::time::Duration::from_secs(10));
+                            std::thread::sleep(std::time::Duration::from_secs(25));
                         } else {
                             bail!("Imported program {:?} could not be found", program_id)
                         }
@@ -172,10 +172,11 @@ mod tests {
     #[cfg(not(feature = "wasm"))]
     #[ignore]
     fn test_deploy() {
-        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let rng = &mut rand::thread_rng();
+        let private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
         // Wait for the node to bootup (rust is fast)
-        thread::sleep(std::time::Duration::from_secs(13));
-        transfer_to_test_account(10000000001, 4, private_key, "3030").unwrap();
+        thread::sleep(std::time::Duration::from_secs(25));
+        transfer_to_test_account(200000000001, 4, private_key, "3030").unwrap();
 
         let imports = vec![("hello.aleo", HELLO_PROGRAM)];
         let temp_dir = setup_directory("aleo_test_deploy", ALEO_PROGRAM, imports).unwrap();
@@ -191,11 +192,11 @@ mod tests {
             .unwrap();
 
         let record_query =
-            RecordQuery::Options { amounts: None, max_records: None, max_gates: Some(10000000000), unspent_only: true };
+            RecordQuery::Options { amounts: None, max_records: None, max_gates: Some(50000000000), unspent_only: true };
         program_manager.deploy_program("aleo_test.aleo", None, 1000000, None, &record_query, true).unwrap();
 
         // Wait for the program to show up on chain
-        thread::sleep(std::time::Duration::from_secs(25));
+        thread::sleep(std::time::Duration::from_secs(40));
         let hello_program = program_manager.api_client().unwrap().get_program("hello.aleo").unwrap();
         let aleo_test_program = program_manager.api_client().unwrap().get_program("aleo_test.aleo").unwrap();
         assert_eq!(hello_program, Program::from_str(HELLO_PROGRAM).unwrap());

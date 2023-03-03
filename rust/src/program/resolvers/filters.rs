@@ -32,7 +32,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         self.resolver
             .find_owned_records(private_key, record_query)?
             .into_iter()
-            .find(|record| ***record.gates() > amount)
+            .find(|record| ***record.gates() >= amount)
             .ok_or_else(|| anyhow!("Insufficient funds"))
     }
 
@@ -49,7 +49,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             .filter_map(|amount| {
                 records
                     .iter()
-                    .filter_map(|record| if ***record.gates() > *amount { Some(record) } else { None })
+                    .filter_map(|record| if ***record.gates() >= *amount { Some(record) } else { None })
                     .take(1)
                     .collect::<Vec<_>>()
                     .pop()

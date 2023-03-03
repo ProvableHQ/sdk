@@ -150,7 +150,7 @@ mod tests {
         }
 
         // Wait for the chain to update blocks
-        thread::sleep(std::time::Duration::from_secs(25));
+        thread::sleep(std::time::Duration::from_secs(40));
 
         // Check the balance of the recipient
         let api_client = program_manager.api_client().unwrap();
