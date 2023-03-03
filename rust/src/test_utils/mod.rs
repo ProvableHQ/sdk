@@ -19,7 +19,7 @@ use snarkvm::file::Manifest;
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
     network::Testnet3,
-    program::{Plaintext, Record, ProgramID},
+    program::{Plaintext, ProgramID, Record},
 };
 
 use anyhow::Result;
@@ -139,7 +139,7 @@ pub fn transfer_to_test_account(
             println!("exceeded 10 retries, exiting with found records");
             break;
         }
-        sleep(std::time::Duration::from_secs(2));
+        sleep(std::time::Duration::from_secs(3));
     }
 
     let client = program_manager.api_client()?;

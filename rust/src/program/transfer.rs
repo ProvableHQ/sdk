@@ -16,7 +16,7 @@
 
 use crate::{ProgramManager, RecordQuery, Resolver};
 use snarkvm_console::{
-    account::{Address},
+    account::Address,
     program::{Network, Plaintext, Record, Value},
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Query, Transaction, VM};
@@ -102,22 +102,19 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::AleoNetworkResolver;
     #[cfg(not(feature = "wasm"))]
     use crate::{
         api::NetworkConfig,
-        test_utils::{
-            BEACON_PRIVATE_KEY,
-            RECIPIENT_PRIVATE_KEY,
-        },
+        test_utils::{BEACON_PRIVATE_KEY, RECIPIENT_PRIVATE_KEY},
     };
-    use crate::{AleoNetworkResolver};
     use snarkvm_console::account::ViewKey;
     #[cfg(not(feature = "wasm"))]
     use snarkvm_console::{
         account::{Address, PrivateKey},
         network::Testnet3,
     };
-    
+
     use std::{str::FromStr, thread};
 
     #[test]
@@ -135,9 +132,13 @@ mod tests {
             )
             .unwrap();
 
-        let recipient_private_key = PrivateKey::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let rng = &mut rand::thread_rng();
+        let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
         let recipient_view_key = ViewKey::try_from(&recipient_private_key).unwrap();
         let recipient_address = Address::try_from(&recipient_view_key).unwrap();
+
+        // Wait for the chain to to start
+        thread::sleep(std::time::Duration::from_secs(25));
         for _ in 0..10 {
             let result = program_manager.transfer(100, 0, recipient_address, None);
             if result.is_err() {
@@ -148,7 +149,7 @@ mod tests {
             }
 
             // Wait 2 seconds before trying again
-            thread::sleep(std::time::Duration::from_secs(2));
+            thread::sleep(std::time::Duration::from_secs(3));
         }
 
         // Wait for the chain to update blocks

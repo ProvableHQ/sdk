@@ -16,8 +16,10 @@
 
 #[cfg(not(feature = "async"))]
 pub mod blocking;
+
 #[cfg(not(feature = "async"))]
 pub use blocking::*;
+use std::fmt::{Display, Formatter};
 
 #[cfg(feature = "async")]
 pub mod asynchronous;
@@ -30,7 +32,7 @@ pub use asynchronous::*;
 
 use snarkvm_console::{network::Testnet3, program::Network};
 
-use std::marker::PhantomData;
+use std::{marker::PhantomData, ops::Add};
 
 /// Aleo API client for interacting with the Aleo Beacon API
 #[derive(Clone, Debug)]

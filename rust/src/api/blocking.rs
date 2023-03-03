@@ -260,10 +260,7 @@ impl<N: Network> AleoAPIClient<N> {
         let url = format!("{}/{}/transaction/broadcast", self.base_url, self.network_id);
         match self.client.post(&url).send_json(&transaction) {
             Ok(response) => match response.into_string() {
-                Ok(success_response) => {
-                    println!("✅ Deployment Transaction {} successfully posted to {}", success_response, &url);
-                    Ok(success_response)
-                }
+                Ok(success_response) => Ok(success_response),
                 Err(error) => bail!("❌ Transaction response was malformed {}", error),
             },
             Err(error) => {

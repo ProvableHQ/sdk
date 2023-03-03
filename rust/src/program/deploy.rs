@@ -161,13 +161,7 @@ mod tests {
         api::NetworkConfig,
         program::ProgramManager,
         resolvers::HybridResolver,
-        test_utils::{
-            setup_directory,
-            transfer_to_test_account,
-            ALEO_PROGRAM,
-            HELLO_PROGRAM,
-            RECIPIENT_PRIVATE_KEY,
-        },
+        test_utils::{setup_directory, transfer_to_test_account, ALEO_PROGRAM, HELLO_PROGRAM, RECIPIENT_PRIVATE_KEY},
     };
     #[cfg(not(feature = "wasm"))]
     use snarkvm_console::{account::PrivateKey, network::Testnet3};
@@ -179,7 +173,9 @@ mod tests {
     #[ignore]
     fn test_deploy() {
         let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
-        transfer_to_test_account(1000000000, 4, private_key, "3030").unwrap();
+        // Wait for the node to bootup (rust is fast)
+        thread::sleep(std::time::Duration::from_secs(13));
+        transfer_to_test_account(10000000001, 4, private_key, "3030").unwrap();
 
         let imports = vec![("hello.aleo", HELLO_PROGRAM)];
         let temp_dir = setup_directory("aleo_test_deploy", ALEO_PROGRAM, imports).unwrap();
@@ -200,10 +196,9 @@ mod tests {
 
         // Wait for the program to show up on chain
         thread::sleep(std::time::Duration::from_secs(25));
-        let on_chain_program = program_manager.api_client().unwrap().get_program("hello.aleo").unwrap();
-        let on_chain_program = program_manager.api_client().unwrap().get_program("aleo_test.aleo").unwrap();
-        assert_eq!(on_chain_program, Program::from_str(ALEO_PROGRAM).unwrap());
-        assert_eq!(on_chain_program, Program::from_str(HELLO_PROGRAM).unwrap());
-
+        let hello_program = program_manager.api_client().unwrap().get_program("hello.aleo").unwrap();
+        let aleo_test_program = program_manager.api_client().unwrap().get_program("aleo_test.aleo").unwrap();
+        assert_eq!(hello_program, Program::from_str(HELLO_PROGRAM).unwrap());
+        assert_eq!(aleo_test_program, Program::from_str(ALEO_PROGRAM).unwrap());
     }
 }

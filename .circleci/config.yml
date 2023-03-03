@@ -178,7 +178,7 @@ jobs:
             rm -rf snarkOS
             ./bin/snarkos start --dev 0 --beacon APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --nodisplay 1> /dev/null &
             sleep 10
-            cd rust && cargo test -- --ignored --nocapture
+            cd rust && cargo test -- --ignored --nocapture --test-threads=1
 
   aleo-executable:
     docker:
