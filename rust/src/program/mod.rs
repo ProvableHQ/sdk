@@ -27,9 +27,6 @@ use std::path::PathBuf;
 pub mod config;
 pub use config::*;
 
-pub mod deploy;
-pub use deploy::*;
-
 pub mod helpers;
 pub use helpers::*;
 

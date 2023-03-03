@@ -137,12 +137,17 @@ mod tests {
 
         // Wait for the chain to to start
         thread::sleep(std::time::Duration::from_secs(25));
-        for _ in 0..10 {
+
+        // Make several transactions from the genesis account since the genesis account keeps spending records,
+        // it may take a few tries to transfer successfully
+        for i in 0..10 {
             let result = program_manager.transfer(100, 0, recipient_address, None);
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
             } else {
-                break;
+                if i > 4 {
+                    break;
+                }
             }
 
             // Wait 2 seconds before trying again
@@ -156,7 +161,6 @@ mod tests {
         let api_client = program_manager.api_client().unwrap();
         let height = api_client.latest_height().unwrap();
         let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None, None).unwrap();
-        assert_eq!(records.len(), 1);
         let (_, record) = &records[0];
         let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
         assert_eq!(***record_plaintext.gates(), 100);
