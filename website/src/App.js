@@ -1,6 +1,6 @@
 import './App.css';
 import React, {useState} from 'react';
-import {Divider, Layout, Menu} from 'antd';
+import {Layout, Menu} from 'antd';
 import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
 import {DecryptAccount} from "./tabs/advanced/DecryptAccount";
 import {DecryptRecord} from "./tabs/record/DecryptRecord";
