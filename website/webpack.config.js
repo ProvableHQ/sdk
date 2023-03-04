@@ -1,5 +1,6 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
     mode: 'production',
@@ -25,7 +26,16 @@ module.exports = {
             }
         ]
     },
-    plugins: [new HtmlWebpackPlugin({ template: './public/index.html' })],
+    plugins: [
+        new CopyPlugin({
+            patterns: [
+                { from: "public", to: "public" }
+            ]
+        }),
+        new HtmlWebpackPlugin(
+        {
+            template: './public/index.html'
+        })],
     performance: {
         maxEntrypointSize: 8388608,
         maxAssetSize: 8388608
