@@ -139,7 +139,6 @@ mod tests {
         let retrieved_program = program_manager.get_program(program.id()).unwrap();
         assert_eq!(replaced_program, program_2);
         assert_eq!(retrieved_program, program);
-
     }
 
     #[test]

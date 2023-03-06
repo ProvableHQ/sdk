@@ -103,9 +103,9 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AleoNetworkResolver, Encryptor};
     #[cfg(not(feature = "wasm"))]
     use crate::{api::NetworkConfig, test_utils::BEACON_PRIVATE_KEY};
+    use crate::{AleoNetworkResolver, Encryptor};
     use snarkvm_console::account::ViewKey;
     #[cfg(not(feature = "wasm"))]
     use snarkvm_console::{
@@ -121,7 +121,8 @@ mod tests {
     fn test_transfer() {
         let network_config = NetworkConfig::local_testnet3("3030");
         let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY).unwrap();
-        let encrypted_private_key = Encryptor::encrypt_private_key_with_secret(&beacon_private_key,"password").unwrap();
+        let encrypted_private_key =
+            Encryptor::encrypt_private_key_with_secret(&beacon_private_key, "password").unwrap();
 
         let program_manager =
             ProgramManager::<Testnet3, AleoNetworkResolver<Testnet3>>::program_manager_with_network_resolution(

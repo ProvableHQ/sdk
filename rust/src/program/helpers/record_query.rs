@@ -51,14 +51,7 @@ impl RecordQuery {
         max_gates: Option<u64>,
         unspent_only: bool,
     ) -> Self {
-        Self::BlockRange {
-            start,
-            end,
-            amounts,
-            max_records,
-            max_gates,
-            unspent_only,
-        }
+        Self::BlockRange { start, end, amounts, max_records, max_gates, unspent_only }
     }
 
     /// Create a new resource uri query. Convenience method to be used with sources that have a resource
@@ -79,14 +72,7 @@ impl RecordQuery {
         resource: String,
         unspent_only: bool,
     ) -> Self {
-        Self::ResourceUri {
-            amounts,
-            max_records,
-            max_gates,
-            query,
-            resource,
-            unspent_only,
-        }
+        Self::ResourceUri { amounts, max_records, max_gates, query, resource, unspent_only }
     }
 
     /// Create a new options query. Convenience method to query for blocks with specific options only.
@@ -98,12 +84,7 @@ impl RecordQuery {
         max_gates: Option<u64>,
         unspent_only: bool,
     ) -> Self {
-        Self::Options {
-            amounts,
-            max_records,
-            max_gates,
-            unspent_only,
-        }
+        Self::Options { amounts, max_records, max_gates, unspent_only }
     }
 
     /// Add a blank resolver
