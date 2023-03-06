@@ -17,11 +17,12 @@
 use crate::api::{config::NetworkConfig, AleoAPIClient};
 use snarkvm_console::{
     account::PrivateKey,
-    program::{Ciphertext, Network},
+    program::{Ciphertext, Network, ProgramID},
 };
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, VM};
+use snarkvm_synthesizer::Program;
 
 use anyhow::{anyhow, bail, Result};
+use indexmap::IndexMap;
 use std::path::PathBuf;
 
 pub mod config;
@@ -46,7 +47,7 @@ pub use transfer::*;
 /// interact with the Aleo network.
 #[derive(Clone)]
 pub struct ProgramManager<N: Network, R: Resolver<N>> {
-    pub(crate) vm: VM<N, ConsensusMemory<N>>,
+    pub(crate) programs: IndexMap<ProgramID<N>, Program<N>>,
     pub(crate) private_key: Option<PrivateKey<N>>,
     pub(crate) private_key_ciphertext: Option<Ciphertext<N>>,
     pub(crate) api_client: Option<AleoAPIClient<N>>,
@@ -68,9 +69,8 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             bail!("Must have either private key or private key ciphertext");
         }
         let api_client = network_config.map(|config| AleoAPIClient::<N>::from(&config));
-        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
-        let vm = VM::from(store)?;
-        Ok(Self { vm, private_key, private_key_ciphertext, api_client, resolver })
+        let programs = IndexMap::new();
+        Ok(Self { programs, private_key, private_key_ciphertext, api_client, resolver })
     }
 
     pub fn program_manager_with_local_resource_resolution(

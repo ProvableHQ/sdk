@@ -49,6 +49,15 @@ function main:
     output r2 as u32.private;
 ";
 
+pub const HELLO_PROGRAM_2: &str = "program hello.aleo;
+
+function main:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    mul r0 r1 into r2;
+    output r2 as u32.private;
+";
+
 pub const GENERIC_PROGRAM_BODY: &str = "
 
 function fabulous:

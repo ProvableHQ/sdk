@@ -41,6 +41,77 @@ pub enum RecordQuery {
 }
 
 impl RecordQuery {
+    /// Create a new block range query. Convenience method to be to query sources that have access
+    /// to the aleo ledger (such as the Aleo API)
+    pub fn new_block_range_query(
+        start: u32,
+        end: u32,
+        amounts: Option<Vec<u64>>,
+        max_records: Option<usize>,
+        max_gates: Option<u64>,
+        unspent_only: bool,
+    ) -> Self {
+        Self::BlockRange {
+            start,
+            end,
+            amounts,
+            max_records,
+            max_gates,
+            unspent_only,
+        }
+    }
+
+    /// Create a new resource uri query. Convenience method to be used with sources that have a resource
+    /// uri (e.g. a file path, database uri, etc.) and a potential query string.
+    ///
+    /// HTTPS Example:
+    /// resource: "https://vm.aleo.org/api/testnet3/"
+    /// query: "block/1234"
+    ///
+    /// Postgres Example:
+    /// resource: "postgres://user:password@localhost:5432/aleo"
+    /// query: "SELECT * FROM records WHERE block_number = 1234"
+    pub fn new_resource_uri_query(
+        amounts: Option<Vec<u64>>,
+        max_records: Option<usize>,
+        max_gates: Option<u64>,
+        query: Option<String>,
+        resource: String,
+        unspent_only: bool,
+    ) -> Self {
+        Self::ResourceUri {
+            amounts,
+            max_records,
+            max_gates,
+            query,
+            resource,
+            unspent_only,
+        }
+    }
+
+    /// Create a new options query. Convenience method to query for blocks with specific options only.
+    /// This is useful for resolvers that do not extra information such as specific block ranges
+    /// or specific queries to search for records.
+    pub fn new_options_query(
+        amounts: Option<Vec<u64>>,
+        max_records: Option<usize>,
+        max_gates: Option<u64>,
+        unspent_only: bool,
+    ) -> Self {
+        Self::Options {
+            amounts,
+            max_records,
+            max_gates,
+            unspent_only,
+        }
+    }
+
+    /// Add a blank resolver
+    pub fn new_none_query() -> Self {
+        Self::None
+    }
+
+    /// Get the max records specified in the query
     pub fn max_records(&self) -> Option<usize> {
         match self {
             RecordQuery::BlockRange { max_records, .. } => *max_records,
@@ -50,6 +121,7 @@ impl RecordQuery {
         }
     }
 
+    /// Determine whether or not the query is searching for unspent records only
     pub fn unspent_only(&self) -> bool {
         match self {
             RecordQuery::BlockRange { unspent_only, .. } => *unspent_only,
@@ -59,6 +131,7 @@ impl RecordQuery {
         }
     }
 
+    /// Get the max gates specified in the query
     pub fn max_gates(&self) -> Option<u64> {
         match self {
             RecordQuery::BlockRange { max_gates, .. } => *max_gates,
@@ -68,6 +141,7 @@ impl RecordQuery {
         }
     }
 
+    /// Get the list of amounts specified in the query
     pub fn amounts(&self) -> Option<&Vec<u64>> {
         match self {
             RecordQuery::BlockRange { amounts, .. } => amounts.as_ref(),

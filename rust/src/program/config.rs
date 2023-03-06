@@ -25,21 +25,14 @@ use anyhow::{anyhow, bail, Result};
 use std::str::FromStr;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
-    /// Manually add a program to the program manager
+    // Program addition and retrieval methods. These methods are not currently thread-safe
+    /// Manually add a program to the program manager if it does not already exist
     pub fn add_program(&mut self, program: &Program<N>) -> Result<()> {
-        self.vm.process().write().add_program(program)
-    }
-
-    /// Retrieve a program from the program manager
-    pub fn get_program(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Program<N>> {
-        let program_id = program_id.try_into().map_err(|_| anyhow!("invalid program id"))?;
-        Ok(self.vm.process().read().get_program(program_id)?.clone())
-    }
-
-    /// Contains program
-    pub fn contains_program(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<bool> {
-        let program_id = program_id.try_into().map_err(|_| anyhow!("invalid program id"))?;
-        Ok(self.vm.process().read().contains_program(&program_id))
+        if self.contains_program(program.id())? {
+            bail!("program already exists")
+        };
+        self.programs.entry(*program.id()).or_insert(program.clone());
+        Ok(())
     }
 
     /// Manually add a program to the program manager from a string representation
@@ -47,6 +40,31 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         let program = Program::<N>::from_str(program)?;
         self.add_program(&program)?;
         Ok(())
+    }
+
+    /// Manually add a program to the program manager if it does not already exist or update
+    /// it if it does
+    pub fn add_or_update_program(&mut self, program: &Program<N>) -> Option<Program<N>> {
+        self.programs.insert(*program.id(), program.clone())
+    }
+
+    /// Manually add a program to the program manager if it does not already exist or update
+    /// it if it does
+    pub fn add_or_update_program_from_string(&mut self, program: &str) -> Result<Option<Program<N>>> {
+        let program = Program::<N>::from_str(program)?;
+        Ok(self.add_or_update_program(&program))
+    }
+
+    /// Retrieve a program from the program manager
+    pub fn get_program(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Program<N>> {
+        let program_id = program_id.try_into().map_err(|_| anyhow!("invalid program id"))?;
+        self.programs.get(&program_id).map_or(Err(anyhow!("program not found")), |program| Ok(program.clone()))
+    }
+
+    /// Determine if a program exists in the program manager
+    pub fn contains_program(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<bool> {
+        let program_id = program_id.try_into().map_err(|_| anyhow!("invalid program id"))?;
+        Ok(self.programs.contains_key(&program_id))
     }
 
     /// Get a checked private key
@@ -80,7 +98,7 @@ mod tests {
     use super::*;
 
     use crate::{
-        test_utils::{HELLO_PROGRAM, RECIPIENT_PRIVATE_KEY},
+        test_utils::{HELLO_PROGRAM, HELLO_PROGRAM_2, RECIPIENT_PRIVATE_KEY},
         HybridResolver,
         NetworkConfig,
     };
@@ -110,6 +128,18 @@ mod tests {
         assert_eq!(program_manager.get_program("hello.aleo").unwrap(), program);
         assert!(program_manager.contains_program("hello.aleo").unwrap());
         assert!(program_manager.add_program(&program).is_err());
+
+        // Test program update methods
+        let program_2 = Program::<Testnet3>::from_str(HELLO_PROGRAM_2).unwrap();
+        let replaced_program = program_manager.add_or_update_program(&program_2).unwrap();
+        let retrieved_program = program_manager.get_program(program.id()).unwrap();
+        assert_eq!(replaced_program, program);
+        assert_eq!(retrieved_program, program_2);
+        let replaced_program = program_manager.add_or_update_program_from_string(HELLO_PROGRAM).unwrap().unwrap();
+        let retrieved_program = program_manager.get_program(program.id()).unwrap();
+        assert_eq!(replaced_program, program_2);
+        assert_eq!(retrieved_program, program);
+
     }
 
     #[test]

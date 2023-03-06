@@ -103,7 +103,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::AleoNetworkResolver;
+    use crate::{AleoNetworkResolver, Encryptor};
     #[cfg(not(feature = "wasm"))]
     use crate::{api::NetworkConfig, test_utils::BEACON_PRIVATE_KEY};
     use snarkvm_console::account::ViewKey;
@@ -121,11 +121,12 @@ mod tests {
     fn test_transfer() {
         let network_config = NetworkConfig::local_testnet3("3030");
         let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY).unwrap();
+        let encrypted_private_key = Encryptor::encrypt_private_key_with_secret(&beacon_private_key,"password").unwrap();
 
         let program_manager =
             ProgramManager::<Testnet3, AleoNetworkResolver<Testnet3>>::program_manager_with_network_resolution(
-                Some(beacon_private_key),
                 None,
+                Some(encrypted_private_key),
                 network_config,
             )
             .unwrap();
@@ -141,7 +142,7 @@ mod tests {
         // Make several transactions from the genesis account since the genesis account keeps spending records,
         // it may take a few tries to transfer successfully
         for i in 0..10 {
-            let result = program_manager.transfer(100, 0, recipient_address, None);
+            let result = program_manager.transfer(100, 0, recipient_address, Some("password"));
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
             } else {
