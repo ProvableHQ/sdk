@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{RecordQuery, Resolver};
+use crate::Resolver;
 use snarkvm::{
     file::{AleoFile, Manifest},
     package::Package,
@@ -40,15 +40,15 @@ use std::{
 #[derive(Clone, Debug)]
 pub struct FileSystemResolver<N: Network> {
     local_config: PathBuf,
-    _phantom: core::marker::PhantomData<N>,
+    address: Option<Address<N>>,
 }
 
 impl<N: Network> FileSystemResolver<N> {
     /// Create a new file system resolver
-    pub fn new(local_config: &Path) -> Result<Self> {
+    pub fn new(local_config: &Path, address: Option<Address<N>>) -> Result<Self> {
         ensure!(local_config.exists(), "Path does not exist");
         ensure!(local_config.is_dir(), "Path is not a directory");
-        Ok(Self { local_config: local_config.to_path_buf(), _phantom: core::marker::PhantomData })
+        Ok(Self { local_config: local_config.to_path_buf(), address })
     }
 
     pub fn import_directory(&self) -> PathBuf {
@@ -119,11 +119,12 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
 
     fn find_owned_records(
         &self,
-        private_key: &PrivateKey<N>,
-        _record_query: &RecordQuery,
+        _amounts: Option<&Vec<u64>>,
+        _private_key: Option<&PrivateKey<N>>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
+        let address =
+            self.address.as_ref().ok_or_else(|| anyhow::anyhow!("No address found, cannot identify records"))?;
         let mut records = vec![];
-        let address = Address::try_from(private_key)?;
         for entry in fs::read_dir(&self.inputs_directory())? {
             let entry = entry?;
             let path = entry.path();
@@ -139,7 +140,7 @@ impl<N: Network> Resolver<N> for FileSystemResolver<N> {
                             .map(|record| {
                                 let record_owner = record.owner();
                                 if let Public(record_owner) = record_owner {
-                                    if &address == record_owner {
+                                    if address == record_owner {
                                         records.push(record.clone());
                                     }
                                 }
@@ -163,13 +164,15 @@ mod tests {
 
     #[test]
     fn test_file_resolver_loading_and_imports() {
+        let private_key = PrivateKey::<Testnet3>::new(&mut rand::thread_rng()).unwrap();
+        let address = Address::<Testnet3>::try_from(&private_key).unwrap();
         let credits = Program::<Testnet3>::credits().unwrap().to_string();
         let imports = vec![("credits.aleo", credits.as_str()), ("hello.aleo", HELLO_PROGRAM)];
         let test_path = setup_directory("aleo_test_file_resolver", ALEO_PROGRAM, imports).unwrap();
         let result = catch_unwind(|| {
             // TEST 1: Test that the file resolver can load a program.
             println!("Test path: {}", test_path.display());
-            let resolver = FileSystemResolver::<Testnet3>::new(&test_path).unwrap();
+            let resolver = FileSystemResolver::<Testnet3>::new(&test_path, Some(address)).unwrap();
             let program_id = ProgramID::<Testnet3>::from_str("aleo_test.aleo").unwrap();
             let expected_program = Program::<Testnet3>::from_str(ALEO_PROGRAM).unwrap();
             let found_program = resolver.load_program(&program_id).unwrap();

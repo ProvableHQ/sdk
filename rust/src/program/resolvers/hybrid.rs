@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AleoNetworkResolver, FileSystemResolver, NetworkConfig, RecordQuery, Resolver};
+use crate::{AleoNetworkResolver, FileSystemResolver, NetworkConfig, Resolver};
 use snarkvm_console::{
     account::PrivateKey,
     network::Network,
@@ -40,7 +40,7 @@ impl<N: Network> HybridResolver<N> {
     pub fn new(network_config: &NetworkConfig, local_config: &Path) -> Result<Self> {
         ensure!(local_config.exists(), "Path does not exist");
         ensure!(local_config.is_dir(), "Path is not a directory");
-        let file_system_resolver = FileSystemResolver::new(local_config)?;
+        let file_system_resolver = FileSystemResolver::new(local_config, None)?;
         let network_resolver = AleoNetworkResolver::new(network_config);
         Ok(Self { file_system_resolver, network_resolver })
     }
@@ -70,10 +70,10 @@ impl<N: Network> Resolver<N> for HybridResolver<N> {
 
     fn find_owned_records(
         &self,
-        private_key: &PrivateKey<N>,
-        record_query: &RecordQuery,
+        amounts: Option<&Vec<u64>>,
+        private_key: Option<&PrivateKey<N>>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        self.network_resolver.find_owned_records(private_key, record_query)
+        self.network_resolver.find_owned_records(amounts, private_key)
     }
 }
 

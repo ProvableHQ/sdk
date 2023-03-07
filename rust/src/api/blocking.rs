@@ -22,7 +22,7 @@ use snarkvm_console::{
 };
 use snarkvm_synthesizer::{Block, Program, Transaction};
 
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, bail, ensure, Result};
 use std::{convert::TryInto, ops::Range};
 
 #[cfg(not(feature = "async"))]
@@ -167,37 +167,40 @@ impl<N: Network> AleoAPIClient<N> {
         Ok(records)
     }
 
+    /// Search for unspent records in the ledger
     pub fn get_unspent_records(
         &self,
         private_key: &PrivateKey<N>,
         block_heights: Range<u32>,
-        max_records: Option<usize>,
         max_gates: Option<u64>,
-        specified_amounts: Option<Vec<u64>>,
+        specified_amounts: Option<&Vec<u64>>,
     ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
         let view_key = ViewKey::try_from(private_key)?;
         let address_x_coordinate = view_key.to_address().to_x_coordinate();
 
-        // Prepare the starting block height, by rounding down to the nearest step of 50.
-        let start_block_height = block_heights.start - (block_heights.start % 50);
-        // Prepare the ending block height, by rounding up to the nearest step of 50.
-        let end_block_height = block_heights.end + (50 - (block_heights.end % 50));
+        ensure!(
+            block_heights.start < block_heights.end,
+            "The start block height must be less than the end block height"
+        );
 
         // Initialize a vector for the records.
         let mut records = Vec::new();
 
         let mut total_gates = 0u64;
+        let mut end_height = block_heights.end;
+        let mut start_height = block_heights.end.saturating_sub(50);
 
-        for start_height in (start_block_height..end_block_height).step_by(50) {
-            if start_height >= block_heights.end {
-                break;
-            }
-            let end = start_height + 50;
-            let end_height = if end > block_heights.end { block_heights.end } else { end };
-
-            // Prepare the URL.
+        for _ in (block_heights.start..block_heights.end).step_by(50) {
+            // Get blocks
             let records_iter =
                 self.get_blocks(start_height, end_height)?.into_iter().flat_map(|block| block.into_records());
+
+            // Search in reverse order from the latest block to the earliest block
+            end_height = start_height;
+            start_height = start_height.saturating_sub(50);
+            if start_height < block_heights.start {
+                start_height = block_heights.start
+            };
 
             // Filter the records by the view key.
             records.extend(records_iter.filter_map(|(commitment, record)| {
@@ -223,14 +226,15 @@ impl<N: Network> AleoAPIClient<N> {
                     false => None,
                 }
             }));
+            // If a maximum number of gates is specified, stop searching when the total gates
+            // exceeds the specified limit
             if max_gates.is_some() && total_gates > max_gates.unwrap() {
                 println!("total_gates {}", total_gates);
                 break;
             }
-            if max_records.is_some() && records.len() >= max_records.unwrap() {
-                break;
-            }
-            if let Some(specified_amounts) = specified_amounts.as_ref() {
+            // If a list of specified amounts is specified, stop searching when records matching
+            // those amounts are found
+            if let Some(specified_amounts) = specified_amounts {
                 let found_records = specified_amounts
                     .iter()
                     .filter_map(|amount| {

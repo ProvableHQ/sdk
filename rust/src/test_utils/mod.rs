@@ -67,6 +67,7 @@ function fabulous:
     output r2 as u32.private;
 ";
 
+/// Get a random program id
 pub fn random_program_id(len: usize) -> String {
     use rand::Rng;
     const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
@@ -81,13 +82,14 @@ pub fn random_program_id(len: usize) -> String {
     program.add(".aleo")
 }
 
+/// Get a random program
 pub fn random_program() -> Program<Testnet3> {
     let random_program = String::from("program ").add(&random_program_id(15)).add(";").add(GENERIC_PROGRAM_BODY);
     println!("Random program:\n{}", random_program);
     Program::<Testnet3>::from_str(&random_program).unwrap()
 }
 
-// Create temp directory with test data
+/// Create temp directory with test data
 pub fn setup_directory(name: &str, main_program: &str, imports: Vec<(&str, &str)>) -> Result<PathBuf> {
     // Crate a temporary directory for the test.
     let directory = std::env::temp_dir().join(name);
@@ -169,6 +171,6 @@ pub fn transfer_to_test_account(
 
     let client = program_manager.api_client()?;
     let latest_height = client.latest_height()?;
-    let records = client.get_unspent_records(&recipient_private_key, 0..latest_height, None, None, None)?;
+    let records = client.get_unspent_records(&recipient_private_key, 0..latest_height, None, None)?;
     Ok(records.iter().map(|(_cm, record)| record.decrypt(&recipient_view_key).unwrap()).collect())
 }

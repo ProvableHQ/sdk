@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::RecordQuery;
 use snarkvm_console::{
     account::PrivateKey,
     network::Network,
@@ -51,12 +50,12 @@ pub trait Resolver<N: Network> {
     /// Find records that belong to a user
     fn find_owned_records(
         &self,
-        private_key: &PrivateKey<N>,
-        record_query: &RecordQuery,
+        amounts: Option<&Vec<u64>>,
+        private_key: Option<&PrivateKey<N>>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>>;
 }
 
-/// Noop resolver that does not resolve any imports and assumes the user of the program
+/// Resolver that does not resolve any imports and assumes the user of the program
 /// manager will manually provide the necessary resources.
 #[derive(Clone, Debug)]
 pub struct NoOpResolver<N: Network> {
@@ -70,7 +69,7 @@ impl<N: Network> Default for NoOpResolver<N> {
 }
 
 impl<N: Network> Resolver<N> for NoOpResolver<N> {
-    const NAME: &'static str = "FileSystemResolver";
+    const NAME: &'static str = "NoOpResolver";
 
     fn load_program(&self, _program_id: &ProgramID<N>) -> Result<Program<N>> {
         bail!("A functional resolver is required to load programs, please configure one");
@@ -82,8 +81,8 @@ impl<N: Network> Resolver<N> for NoOpResolver<N> {
 
     fn find_owned_records(
         &self,
-        _private_key: &PrivateKey<N>,
-        _record_query: &RecordQuery,
+        _amounts: Option<&Vec<u64>>,
+        _private_key: Option<&PrivateKey<N>>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
         bail!("A functional resolver is required to find records, please configure one");
     }

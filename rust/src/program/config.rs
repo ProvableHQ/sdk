@@ -35,7 +35,8 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         Ok(())
     }
 
-    /// Manually add a program to the program manager from a string representation
+    /// Manually add a program to the program manager from a string representation of the program
+    /// if it does not already exist
     pub fn add_program_from_string(&mut self, program: &str) -> Result<()> {
         let program = Program::<N>::from_str(program)?;
         self.add_program(&program)?;
@@ -48,14 +49,14 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         self.programs.insert(*program.id(), program.clone())
     }
 
-    /// Manually add a program to the program manager if it does not already exist or update
-    /// it if it does
+    /// Manually add a program to the program manager from a string representation of a program
+    /// if it does not already exist or update it if it does
     pub fn add_or_update_program_from_string(&mut self, program: &str) -> Result<Option<Program<N>>> {
         let program = Program::<N>::from_str(program)?;
         Ok(self.add_or_update_program(&program))
     }
 
-    /// Retrieve a program from the program manager
+    /// Retrieve a program from the program manager if it exists
     pub fn get_program(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Program<N>> {
         let program_id = program_id.try_into().map_err(|_| anyhow!("invalid program id"))?;
         self.programs.get(&program_id).map_or(Err(anyhow!("program not found")), |program| Ok(program.clone()))
@@ -67,7 +68,8 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         Ok(self.programs.contains_key(&program_id))
     }
 
-    /// Get a checked private key
+    /// Get the private key from the program manager. If the key is stored as ciphertext, a
+    /// password must be provided to decrypt it
     pub(super) fn get_private_key(&self, password: Option<&str>) -> Result<PrivateKey<N>> {
         if self.private_key.is_none() && self.private_key_ciphertext.is_none() {
             bail!("Private key is not configured");

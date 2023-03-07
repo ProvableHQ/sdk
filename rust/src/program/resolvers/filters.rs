@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{ProgramManager, RecordQuery, Resolver};
+use crate::{ProgramManager, Resolver};
 use anyhow::{anyhow, bail, Result};
 use snarkvm_console::{
     account::PrivateKey,
@@ -22,28 +22,32 @@ use snarkvm_console::{
 };
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
-    /// Resolve a record with a specific value.
+    /// Resolve a record with a specific value. If successful it will return a record with a gate
+    /// value equal to or greater than the specified amount.
     pub fn resolve_one_record_above_amount(
         &self,
-        private_key: &PrivateKey<N>,
+        private_key: Option<&PrivateKey<N>>,
         amount: u64,
-        record_query: &RecordQuery,
     ) -> Result<Record<N, Plaintext<N>>> {
+        let amounts = vec![amount];
         self.resolver
-            .find_owned_records(private_key, record_query)?
+            .find_owned_records(Some(&amounts), private_key)?
             .into_iter()
             .find(|record| ***record.gates() >= amount)
             .ok_or_else(|| anyhow!("Insufficient funds"))
     }
 
-    /// Resolve a record with specific values
+    /// Attempt to resolve records with specific gate values specified as a vector of u64s. If the
+    /// function is successful at resolving the records, it will return a vector of records with
+    /// gates equal to or greater than the specified amounts. If it cannot resolve records
+    /// with the specified amounts, it will return an error.
+    #[allow(clippy::unnecessary_filter_map)]
     pub fn resolve_specific_record_amounts(
         &self,
         amounts: Vec<u64>,
-        private_key: &PrivateKey<N>,
-        record_query: &RecordQuery,
+        private_key: Option<&PrivateKey<N>>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        let records = self.resolver.find_owned_records(private_key, record_query)?;
+        let records = self.resolver.find_owned_records(Some(&amounts), private_key)?;
         let found_records = amounts
             .iter()
             .filter_map(|amount| {
@@ -56,59 +60,64 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             })
             .collect::<Vec<_>>();
         if records.len() >= amounts.len() {
-            Ok(found_records.into_iter().map(|record| record.clone()).collect())
+            Ok(found_records.into_iter().cloned().collect())
         } else {
             bail!("Insufficient funds")
         }
     }
 
-    /// Resolve record for a transfer amount and fee
+    /// Resolve two records for a transfer amount and fee respectively
+    ///
+    /// Basic Usage:
+    /// let (amount_record, fee_record) = self.resolve_amount_and_fee(amount, fee, private_key);
     #[allow(clippy::type_complexity)]
     pub fn resolve_amount_and_fee(
         &self,
         amount: u64,
         fee: u64,
-        private_key: &PrivateKey<N>,
-        record_query: &RecordQuery,
+        private_key: Option<&PrivateKey<N>>,
     ) -> Result<(Record<N, Plaintext<N>>, Record<N, Plaintext<N>>)> {
-        self.resolve_specific_record_amounts(vec![amount, fee], private_key, record_query)
+        self.resolve_specific_record_amounts(vec![amount, fee], private_key)
             .map(|records| (records[0].clone(), records[1].clone()))
     }
 
-    /// Resolve records for a transfer amount and fee based on passed options
+    // Internal convenience method to resolve fees and amounts from parameters
     #[allow(clippy::type_complexity)]
-    pub fn resolve_amount_and_fee_from_parameters(
+    pub(crate) fn resolve_amount_and_fee_from_parameters(
         &self,
         amount: u64,
         fee: u64,
-        input_record: Option<Record<N, Plaintext<N>>>,
+        transfer_amount_record: Option<Record<N, Plaintext<N>>>,
         fee_record: Option<Record<N, Plaintext<N>>>,
         private_key: &PrivateKey<N>,
-        record_query: &RecordQuery,
     ) -> Result<(Record<N, Plaintext<N>>, Option<(Record<N, Plaintext<N>>, u64)>)> {
-        let (input_record, fee_record) = match (input_record, fee_record) {
-            (Some(input_record), Some(fee_record)) => (input_record, Some((fee_record, fee))),
-            (Some(input_record), None) => {
+        let (transfer_amount_record, fee_record) = match (transfer_amount_record, fee_record) {
+            // If both records are provided, return them
+            (Some(transfer_amount_record), Some(fee_record)) => (transfer_amount_record, Some((fee_record, fee))),
+            // If only the transfer amount record is provided, resolve the fee record
+            (Some(transfer_amount_record), None) => {
                 if fee > 0 {
-                    let fee_record = self.resolve_one_record_above_amount(private_key, fee, record_query)?;
-                    (input_record, Some((fee_record, fee)))
+                    let fee_record = self.resolve_one_record_above_amount(Some(private_key), fee)?;
+                    (transfer_amount_record, Some((fee_record, fee)))
                 } else {
-                    (input_record, None)
+                    (transfer_amount_record, None)
                 }
             }
+            // If only the fee record is provided, resolve the transfer amount record
             (None, Some(fee_record)) => {
-                (self.resolve_one_record_above_amount(private_key, amount, record_query)?, Some((fee_record, fee)))
+                (self.resolve_one_record_above_amount(Some(private_key), amount)?, Some((fee_record, fee)))
             }
+            // If neither record is provided, resolve both
             (None, None) => {
                 if fee > 0 {
-                    let (input_record, fee_record) =
-                        self.resolve_amount_and_fee(amount, fee, private_key, record_query)?;
-                    (input_record, Some((fee_record, fee)))
+                    let (transfer_amount_record, fee_record) =
+                        self.resolve_amount_and_fee(amount, fee, Some(private_key))?;
+                    (transfer_amount_record, Some((fee_record, fee)))
                 } else {
-                    (self.resolve_one_record_above_amount(private_key, amount, record_query)?, None)
+                    (self.resolve_one_record_above_amount(Some(private_key), amount)?, None)
                 }
             }
         };
-        Ok((input_record, fee_record))
+        Ok((transfer_amount_record, fee_record))
     }
 }

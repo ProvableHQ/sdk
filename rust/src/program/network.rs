@@ -34,24 +34,28 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         result
     }
 
-    /// Get API client
+    /// Get a reference to the configured API client
     pub fn api_client(&self) -> Result<&AleoAPIClient<N>> {
         self.api_client.as_ref().ok_or_else(|| anyhow!("No API client found"))
     }
 
-    /// Get the resolver
+    /// Get a reference to the configured resource resolver
     pub fn resolver(&self) -> &R {
         &self.resolver
     }
 
+    /// Check the on-chain version of a program to determine if it is deployed, and if so,
+    /// if it is the same as the local version
     pub fn on_chain_program_state(&self, program: &Program<N>) -> Result<OnChainProgramState> {
         let program_id = program.id();
         Ok(self
             .api_client()?
             .get_program(program_id)
-            .map(|chain_program| {
-                chain_program.eq(program).then_some(OnChainProgramState::Same).unwrap_or(OnChainProgramState::Different)
-            })
+            .map(
+                |chain_program| {
+                    if chain_program.eq(program) { OnChainProgramState::Same } else { OnChainProgramState::Different }
+                },
+            )
             .unwrap_or(OnChainProgramState::NotDeployed))
     }
 }
@@ -70,7 +74,10 @@ mod tests {
         HELLO_PROGRAM,
         RECIPIENT_PRIVATE_KEY,
     };
-    use snarkvm_console::{account::PrivateKey, network::Testnet3};
+    use snarkvm_console::{
+        account::{Address, PrivateKey},
+        network::Testnet3,
+    };
 
     use std::{ops::Add, str::FromStr};
 
@@ -78,6 +85,7 @@ mod tests {
     fn test_network_functionality_works_as_expected_for_all_default_concrete_resolver_types() {
         let network_config = NetworkConfig::testnet3();
         let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let address = Address::<Testnet3>::try_from(&private_key).unwrap();
         // Create a temp dir without proper programs to test that the hybrid client works even if the local resource directory doesn't exist
         let temp_dir = std::env::temp_dir().join("no_op");
         let _ = std::fs::create_dir(&temp_dir);
@@ -86,6 +94,7 @@ mod tests {
             ProgramManager::<Testnet3, FileSystemResolver<Testnet3>>::program_manager_with_local_resource_resolution(
                 Some(private_key),
                 None,
+                &address,
                 temp_dir.clone(),
                 Some(network_config.clone()),
             )

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+/// The possible states of a program on chain as compared to the local program of the same name
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum OnChainProgramState {
     /// Program deployed but does not match the the local program

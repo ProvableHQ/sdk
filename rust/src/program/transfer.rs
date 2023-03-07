@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{ProgramManager, RecordQuery, Resolver};
+use crate::{ProgramManager, Resolver};
 use snarkvm_console::{
     account::Address,
     program::{Network, Plaintext, Record, Value},
@@ -25,9 +25,10 @@ use anyhow::{ensure, Result};
 use std::str::FromStr;
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
-    /// Create a transfer transaction with specified records or record resolution queries.
-    #[allow(clippy::too_many_arguments)]
-    pub fn transfer_with_config(
+    /// Executes a transfer of funds from the current account to the recipient address with
+    /// optionally specified records as inputs. If these records are left unspecified, the
+    /// program will attempt to find them using the configured resolver.
+    pub fn transfer_with_fee_record(
         &self,
         amount: u64,
         fee: u64,
@@ -35,7 +36,6 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         password: Option<&str>,
         input_record: Option<Record<N, Plaintext<N>>>,
         fee_record: Option<Record<N, Plaintext<N>>>,
-        record_query: &RecordQuery,
     ) -> Result<()> {
         ensure!(amount > 0, "Amount must be greater than 0");
 
@@ -54,14 +54,8 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             let vm = VM::from(store)?;
 
             // Prepare the records for the transfer and fee amounts
-            let (input_record, fee_record) = self.resolve_amount_and_fee_from_parameters(
-                amount,
-                fee,
-                input_record,
-                fee_record,
-                &private_key,
-                record_query,
-            )?;
+            let (input_record, fee_record) =
+                self.resolve_amount_and_fee_from_parameters(amount, fee, input_record, fee_record, &private_key)?;
 
             // Prepare the inputs for a transfer.
             let inputs = vec![
@@ -87,16 +81,13 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         Ok(())
     }
 
-    /// Executes an Aleo program function with the provided inputs.
-    #[allow(clippy::format_in_format_args)]
+    /// Executes a transfer to the specified recipient_address with the specified amount and fee.
+    /// Specify 0 for no fee.
+    ///
+    /// This method will attempt to resolve the records via a specified resolver. If the records
+    /// cannot be resolved, the transaction will fail
     pub fn transfer(&self, amount: u64, fee: u64, recipient_address: Address<N>, password: Option<&str>) -> Result<()> {
-        let record_query = RecordQuery::Options {
-            amounts: Some(vec![amount, fee]),
-            max_records: None,
-            max_gates: None,
-            unspent_only: true,
-        };
-        self.transfer_with_config(amount, fee, recipient_address, password, None, None, &record_query)
+        self.transfer_with_fee_record(amount, fee, recipient_address, password, None, None)
     }
 }
 
@@ -135,7 +126,7 @@ mod tests {
         let recipient_address = Address::try_from(&recipient_view_key).unwrap();
 
         // Wait for the chain to to start
-        thread::sleep(std::time::Duration::from_secs(25));
+        thread::sleep(std::time::Duration::from_secs(15));
 
         // Make several transactions from the genesis account since the genesis account keeps spending records,
         // it may take a few tries to transfer successfully
@@ -144,22 +135,22 @@ mod tests {
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
             } else {
-                if i > 4 {
+                if i > 6 {
                     break;
                 }
             }
 
             // Wait 2 seconds before trying again
-            thread::sleep(std::time::Duration::from_secs(3));
+            thread::sleep(std::time::Duration::from_secs(2));
         }
 
         // Wait for the chain to update blocks
-        thread::sleep(std::time::Duration::from_secs(45));
+        thread::sleep(std::time::Duration::from_secs(25));
 
         // Check the balance of the recipient
         let api_client = program_manager.api_client().unwrap();
         let height = api_client.latest_height().unwrap();
-        let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None, None).unwrap();
+        let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
         let (_, record) = &records[0];
         let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
         assert_eq!(***record_plaintext.gates(), 100);

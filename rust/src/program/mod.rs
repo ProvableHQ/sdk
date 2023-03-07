@@ -23,6 +23,7 @@ use snarkvm_synthesizer::Program;
 
 use anyhow::{anyhow, bail, Result};
 use indexmap::IndexMap;
+use snarkvm_console::program::Address;
 use std::path::PathBuf;
 
 pub mod config;
@@ -55,8 +56,9 @@ pub struct ProgramManager<N: Network, R: Resolver<N>> {
 }
 
 impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
-    /// Create a new program manager by specifying custom options for the
-    /// private key, private key ciphertext, and a resolver
+    /// Create a new program manager by specifying custom options for the private key (or private
+    /// key ciphertext) and resolver. Use this method if you want to create a custom resolver
+    /// (i.e. one that searches a local or remote database) for program and record resolution.
     pub fn new(
         private_key: Option<PrivateKey<N>>,
         private_key_ciphertext: Option<Ciphertext<N>>,
@@ -73,17 +75,22 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         Ok(Self { programs, private_key, private_key_ciphertext, api_client, resolver })
     }
 
+    /// Create a program manager with a file resolver that only uses the local file system to
+    /// resolve programs and records
     pub fn program_manager_with_local_resource_resolution(
         private_key: Option<PrivateKey<N>>,
         private_key_ciphertext: Option<Ciphertext<N>>,
+        address: &Address<N>,
         local_directory: impl TryInto<PathBuf>,
         network_config: Option<NetworkConfig>,
     ) -> Result<ProgramManager<N, FileSystemResolver<N>>> {
         let local_directory = local_directory.try_into().map_err(|_| anyhow!("Path specified was not valid"))?;
-        let resolver = FileSystemResolver::new(&local_directory)?;
+        let resolver = FileSystemResolver::new(&local_directory, Some(*address))?;
         ProgramManager::<N, FileSystemResolver<N>>::new(private_key, private_key_ciphertext, network_config, resolver)
     }
 
+    /// Create a program manager configured with a network resolver which only uses the Aleo network
+    /// to resolve programs and records
     pub fn program_manager_with_network_resolution(
         private_key: Option<PrivateKey<N>>,
         private_key_ciphertext: Option<Ciphertext<N>>,
@@ -98,6 +105,13 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         )
     }
 
+    /// Create a hybrid program manager which has the following behavior
+    ///
+    /// 1. Programs will first be searched for on the local file system, if a program or its imports
+    /// cannot be found within the specified directory, the resolver will attempt to resolve the
+    /// missing programs from the Aleo network
+    /// 2. The resolver will always attempt to resolve records on the Aleo network (and not within
+    /// the local file system)
     pub fn program_manager_with_hybrid_resolution(
         private_key: Option<PrivateKey<N>>,
         private_key_ciphertext: Option<Ciphertext<N>>,
@@ -123,6 +137,7 @@ mod tests {
     fn test_constructors_fail_with_multiple_keys_or_no_keys() {
         let network_config = NetworkConfig::testnet3();
         let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let address = Address::<Testnet3>::try_from(&private_key).unwrap();
         let private_key_ciphertext =
             Encryptor::<Testnet3>::encrypt_private_key_with_secret(&private_key, "password").unwrap();
         // Create a temp dir without proper programs to test that the hybrid client works even if the local resource directory doesn't exist
@@ -132,6 +147,7 @@ mod tests {
             ProgramManager::<Testnet3, FileSystemResolver<Testnet3>>::program_manager_with_local_resource_resolution(
                 None,
                 None,
+                &address,
                 temp_dir.clone(),
                 Some(network_config.clone()),
             );
@@ -161,6 +177,7 @@ mod tests {
             ProgramManager::<Testnet3, FileSystemResolver<Testnet3>>::program_manager_with_local_resource_resolution(
                 Some(private_key.clone()),
                 Some(private_key_ciphertext.clone()),
+                &address,
                 temp_dir.clone(),
                 Some(network_config.clone()),
             );

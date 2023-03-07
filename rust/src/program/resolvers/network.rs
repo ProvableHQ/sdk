@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{api::AleoAPIClient, NetworkConfig, RecordQuery, Resolver};
+use crate::{api::AleoAPIClient, NetworkConfig, Resolver};
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
     network::Network,
@@ -22,21 +22,18 @@ use snarkvm_console::{
 };
 use snarkvm_synthesizer::Program;
 
-use anyhow::{bail, Result};
-use std::ops::Range;
+use anyhow::{anyhow, Result};
 
-/// Resolver for resources from the Aleo network
+/// Resolver that searches for programs and records from the Aleo network
 #[derive(Clone, Debug)]
 pub struct AleoNetworkResolver<N: Network> {
     network_config: NetworkConfig,
     _phantom: core::marker::PhantomData<N>,
 }
 
-/// Reso
 impl<N: Network> AleoNetworkResolver<N> {
     /// Create a new network resolver
     pub fn new(network_config: &NetworkConfig) -> Self {
-        let _config = network_config.clone();
         Self { network_config: network_config.clone(), _phantom: core::marker::PhantomData }
     }
 }
@@ -62,33 +59,14 @@ impl<N: Network> Resolver<N> for AleoNetworkResolver<N> {
 
     fn find_owned_records(
         &self,
-        private_key: &PrivateKey<N>,
-        record_query: &RecordQuery,
+        amounts: Option<&Vec<u64>>,
+        private_key: Option<&PrivateKey<N>>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        let (amounts, block_range, max_records, max_gates, unspent_only) = match record_query {
-            RecordQuery::BlockRange { amounts, start, end, max_records, max_gates, unspent_only } => {
-                if start > end {
-                    bail!("Invalid block range");
-                }
-                (amounts, Range { start: *start, end: *end }, max_records, max_gates, *unspent_only)
-            }
-            RecordQuery::Options { amounts, max_records, max_gates, unspent_only } => {
-                let latest_height = AleoAPIClient::<N>::from(&self.network_config).latest_height()?;
-                println!("Searching block range 0-{} for spendable records", latest_height);
-                (amounts, Range { start: 0, end: latest_height }, max_records, max_gates, *unspent_only)
-            }
-            _ => bail!("Network resolver only supports block range and option queries"),
-        };
-
         let api_client = AleoAPIClient::<N>::from(&self.network_config);
+        let private_key = private_key.ok_or_else(|| anyhow!("Private key must be provided to the network resolver"))?;
         let view_key = ViewKey::try_from(private_key)?;
-
-        let records = if unspent_only {
-            api_client.get_unspent_records(private_key, block_range, *max_records, *max_gates, amounts.clone())?
-        } else {
-            api_client.scan(view_key, block_range, *max_records)?
-        };
-
+        let latest_height = api_client.latest_height()?;
+        let records = api_client.get_unspent_records(private_key, 0..latest_height, None, amounts)?;
         Ok(records.into_iter().filter_map(|(_, record)| record.decrypt(&view_key).ok()).collect())
     }
 }
