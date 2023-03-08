@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::AleoAPIClient;
+use crate::{AleoAPIClient, Encryptor};
 use snarkvm_console::{
     account::PrivateKey,
     program::{Ciphertext, Network, ProgramID},
@@ -35,7 +35,6 @@ pub mod resolver;
 pub use resolver::*;
 
 pub mod transfer;
-use crate::Encryptor;
 pub use transfer::*;
 
 /// Program management object for loading programs for building, execution, and deployment
