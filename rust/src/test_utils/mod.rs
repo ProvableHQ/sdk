@@ -127,7 +127,7 @@ pub fn teardown_directory(directory: &PathBuf) {
 
 /// Make transfers to the test account and return the records
 ///
-/// This function assumes that a local snarkos beacon node is running on port 3030
+/// This function assumes that a local snarkos beacon node is running on the specified port
 pub fn transfer_to_test_account(
     amount: u64,
     num_transactions: usize,

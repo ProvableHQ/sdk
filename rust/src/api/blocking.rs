@@ -261,6 +261,7 @@ impl<N: Network> AleoAPIClient<N> {
         Ok(records)
     }
 
+    /// Broadcast a deploy or execute transaction to the Aleo network
     pub fn transaction_broadcast(&self, transaction: Transaction<N>) -> Result<String> {
         let url = format!("{}/{}/transaction/broadcast", self.base_url, self.network_id);
         match self.client.post(&url).send_json(&transaction) {

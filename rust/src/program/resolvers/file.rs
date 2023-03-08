@@ -51,10 +51,12 @@ impl<N: Network> FileSystemResolver<N> {
         Ok(Self { local_config: local_config.to_path_buf(), address })
     }
 
+    /// Get directory holding program imports
     pub fn import_directory(&self) -> PathBuf {
         self.local_config.join("imports")
     }
 
+    /// Get directory holding program inputs
     pub fn inputs_directory(&self) -> PathBuf {
         self.local_config.join("inputs")
     }
