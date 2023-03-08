@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{ProgramManager, Resolver};
+use crate::ProgramManager;
 use snarkvm_console::{
     account::Address,
     program::{Network, Plaintext, Record, Value},
@@ -24,20 +24,29 @@ use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Query, Transaction, V
 use anyhow::{ensure, Result};
 use std::str::FromStr;
 
-impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
-    /// Executes a transfer of funds from the current account to the recipient address with
-    /// optionally specified records as inputs. If these records are left unspecified, the
-    /// program will attempt to find them using the configured resolver.
-    pub fn transfer_with_fee_record(
+impl<N: Network> ProgramManager<N> {
+    /// Executes a transfer to the specified recipient_address with the specified amount and fee.
+    /// Specify 0 for no fee.
+    pub fn transfer(
         &self,
         amount: u64,
         fee: u64,
         recipient_address: Address<N>,
         password: Option<&str>,
-        input_record: Option<Record<N, Plaintext<N>>>,
+        input_record: Record<N, Plaintext<N>>,
         fee_record: Option<Record<N, Plaintext<N>>>,
     ) -> Result<()> {
         ensure!(amount > 0, "Amount must be greater than 0");
+
+        let additional_fee = if fee > 0 {
+            ensure!(fee_record.is_some(), "Fee record must be specified");
+            Some((fee_record.unwrap(), fee))
+        } else {
+            if fee_record.is_some() {
+                println!("⚠️ Warning: Fee record specified but fee is 0, the fee record will not be used");
+            }
+            None
+        };
 
         // Specify the network state query
         let query = Query::from(self.api_client.as_ref().unwrap().base_url());
@@ -53,10 +62,6 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
             let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
             let vm = VM::from(store)?;
 
-            // Prepare the records for the transfer and fee amounts
-            let (input_record, fee_record) =
-                self.resolve_amount_and_fee_from_parameters(amount, fee, input_record, fee_record, &private_key)?;
-
             // Prepare the inputs for a transfer.
             let inputs = vec![
                 Value::Record(input_record),
@@ -71,7 +76,7 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
                 "credits.aleo",
                 "transfer",
                 inputs.iter(),
-                fee_record,
+                additional_fee,
                 Some(query),
                 rng,
             )?
@@ -80,26 +85,15 @@ impl<N: Network, R: Resolver<N>> ProgramManager<N, R> {
         self.broadcast_transaction(execution)?;
         Ok(())
     }
-
-    /// Executes a transfer to the specified recipient_address with the specified amount and fee.
-    /// Specify 0 for no fee.
-    ///
-    /// This method will attempt to resolve the records via a specified resolver. If the records
-    /// cannot be resolved, the transaction will fail
-    pub fn transfer(&self, amount: u64, fee: u64, recipient_address: Address<N>, password: Option<&str>) -> Result<()> {
-        self.transfer_with_fee_record(amount, fee, recipient_address, password, None, None)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[cfg(not(feature = "wasm"))]
-    use crate::{test_utils::BEACON_PRIVATE_KEY, AleoNetworkResolver, NetworkConfig};
-    use snarkvm_console::account::ViewKey;
-    #[cfg(not(feature = "wasm"))]
+    use crate::{test_utils::BEACON_PRIVATE_KEY, AleoAPIClient, RecordFinder};
     use snarkvm_console::{
-        account::{Address, PrivateKey},
+        account::{Address, PrivateKey, ViewKey},
         network::Testnet3,
     };
 
@@ -109,29 +103,29 @@ mod tests {
     #[cfg(not(feature = "wasm"))]
     #[ignore]
     fn test_transfer() {
-        let network_config = NetworkConfig::local_testnet3("3030");
+        let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
         let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY).unwrap();
-
-        let program_manager =
-            ProgramManager::<Testnet3, AleoNetworkResolver<Testnet3>>::program_manager_with_network_resolution(
-                Some(beacon_private_key),
-                None,
-                network_config,
-            )
-            .unwrap();
-
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
         let recipient_view_key = ViewKey::try_from(&recipient_private_key).unwrap();
         let recipient_address = Address::try_from(&recipient_view_key).unwrap();
-
+        let program_manager =
+            ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client.clone()), None).unwrap();
+        let record_finder = RecordFinder::new(api_client);
         // Wait for the chain to to start
         thread::sleep(std::time::Duration::from_secs(15));
 
         // Make several transactions from the genesis account since the genesis account keeps spending records,
         // it may take a few tries to transfer successfully
+
         for i in 0..10 {
-            let result = program_manager.transfer(100, 0, recipient_address, None);
+            let record = record_finder.find_one_record(&beacon_private_key, 100);
+            if record.is_err() {
+                println!("Record not found: {} - retrying", record.unwrap_err());
+                continue;
+            }
+            let input_record = record.unwrap();
+            let result = program_manager.transfer(100, 0, recipient_address, None, input_record, None);
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
             } else {

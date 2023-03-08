@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AleoNetworkResolver, NetworkConfig, ProgramManager};
+use crate::{AleoAPIClient, ProgramManager};
 use snarkvm::file::Manifest;
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
@@ -134,23 +134,20 @@ pub fn transfer_to_test_account(
     recipient_private_key: PrivateKey<Testnet3>,
     port: &str,
 ) -> Result<Vec<Record<Testnet3, Plaintext<Testnet3>>>> {
-    let network_config = NetworkConfig::local_testnet3(port);
+    let api_client = AleoAPIClient::<Testnet3>::local_testnet3(port);
     let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY)?;
 
     let recipient_view_key = ViewKey::<Testnet3>::try_from(&recipient_private_key)?;
     let recipient_address = recipient_view_key.to_address();
 
     let program_manager =
-        ProgramManager::<Testnet3, AleoNetworkResolver<Testnet3>>::program_manager_with_network_resolution(
-            Some(beacon_private_key),
-            None,
-            network_config,
-        )?;
+        ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client), None).unwrap();
 
     let mut transfer_successes = 0;
     let mut retries = 0;
     loop {
-        let result = program_manager.transfer(amount, 0, recipient_address, None);
+        let input_record = Record::from_str("0x000000").unwrap();
+        let result = program_manager.transfer(amount, 0, recipient_address, None, input_record, None);
         if result.is_ok() {
             println!("Transfer succeeded");
             transfer_successes += 1;

@@ -14,5 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod program_state;
-pub use program_state::*;
+pub mod state;
+pub use state::*;
+
+pub mod records;
+pub use records::*;

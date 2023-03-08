@@ -16,20 +16,15 @@
 
 #[cfg(not(feature = "async"))]
 pub mod blocking;
-
 #[cfg(not(feature = "async"))]
 pub use blocking::*;
 
 #[cfg(feature = "async")]
 pub mod asynchronous;
-
-pub mod config;
-pub use config::*;
-
 #[cfg(feature = "async")]
 pub use asynchronous::*;
 
-use snarkvm_console::{network::Testnet3, program::Network};
+use snarkvm_console::program::Network;
 
 use std::marker::PhantomData;
 
@@ -54,6 +49,14 @@ impl<N: Network> AleoAPIClient<N> {
         AleoAPIClient { client, base_url: base_url.to_string(), network_id: chain.to_string(), _network: PhantomData }
     }
 
+    pub fn testnet3() -> Self {
+        Self::new("https://vm.aleo.org/api", "testnet3")
+    }
+
+    pub fn local_testnet3(port: &str) -> Self {
+        Self::new(&format!("http://localhost:{}", port), "testnet3")
+    }
+
     /// Get base URL
     pub fn base_url(&self) -> &str {
         &self.base_url
@@ -63,31 +66,4 @@ impl<N: Network> AleoAPIClient<N> {
     pub fn network_id(&self) -> &str {
         &self.network_id
     }
-
-    /// Get a network config object representing the API client's configuration
-    pub fn network_config(&self) -> NetworkConfig {
-        NetworkConfig::new(self.base_url.to_string(), self.network_id.to_string())
-    }
-}
-
-impl Default for AleoAPIClient<Testnet3> {
-    fn default() -> Self {
-        AleoAPIClient::new("https://vm.aleo.org/api/", "testnet3")
-    }
-}
-
-impl<N: Network> From<&NetworkConfig> for AleoAPIClient<N> {
-    fn from(config: &NetworkConfig) -> Self {
-        AleoAPIClient::new(config.node_uri(), config.network_id())
-    }
-}
-
-impl<N: Network> From<NetworkConfig> for AleoAPIClient<N> {
-    fn from(config: NetworkConfig) -> Self {
-        AleoAPIClient::new(config.node_uri(), config.network_id())
-    }
-}
-
-pub fn testnet3(base_url: &str) -> AleoAPIClient<Testnet3> {
-    AleoAPIClient::new(base_url, "testnet3")
 }

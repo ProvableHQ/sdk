@@ -293,16 +293,15 @@ impl<N: Network> AleoAPIClient<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    use crate::testnet3;
     use snarkvm_console::{account::PrivateKey, network::Testnet3};
+
     use std::{convert::TryFrom, str::FromStr};
 
     type N = Testnet3;
 
     #[test]
     fn test_api_get_blocks() {
-        let client = testnet3("https://vm.aleo.org/api");
+        let client = AleoAPIClient::<Testnet3>::testnet3();
         let blocks = client.get_blocks(0, 3).unwrap();
 
         // Check height matches
@@ -318,7 +317,7 @@ mod tests {
     #[test]
     fn test_scan() {
         // Initialize the api client
-        let client = testnet3("https://vm.aleo.org/api");
+        let client = AleoAPIClient::<Testnet3>::testnet3();
 
         // Derive the view key.
         let private_key =
