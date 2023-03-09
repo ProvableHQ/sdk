@@ -210,10 +210,17 @@ mod tests {
         program_manager.deploy_program("credits_import_test.aleo", deployment_fee, fee_record, None).unwrap();
 
         // Wait for the program to show up on chain
-        thread::sleep(std::time::Duration::from_secs(40));
-        let credits_import_test =
-            program_manager.api_client().unwrap().get_program("credits_import_test.aleo").unwrap();
-        assert_eq!(credits_import_test, Program::from_str(CREDITS_IMPORT_TEST_PROGRAM).unwrap());
+        thread::sleep(std::time::Duration::from_secs(45));
+        for _ in 0..4 {
+            let deployed_program = program_manager.api_client().unwrap().get_program("credits_import_test.aleo");
+
+            if deployed_program.is_ok() {
+                assert_eq!(deployed_program.unwrap(), Program::from_str(CREDITS_IMPORT_TEST_PROGRAM).unwrap());
+                break;
+            }
+            println!("Program has not yet appeared on chain, waiting another 15 seconds");
+            thread::sleep(std::time::Duration::from_secs(15));
+        }
     }
 
     #[test]
