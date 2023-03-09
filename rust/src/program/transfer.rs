@@ -113,7 +113,7 @@ mod tests {
             ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client.clone()), None).unwrap();
         let record_finder = RecordFinder::new(api_client);
         // Wait for the chain to to start
-        thread::sleep(std::time::Duration::from_secs(15));
+        thread::sleep(std::time::Duration::from_secs(45));
 
         // Make several transactions from the genesis account since the genesis account keeps spending records,
         // it may take a few tries to transfer successfully
