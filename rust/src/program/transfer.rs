@@ -117,7 +117,6 @@ mod tests {
 
         // Make several transactions from the genesis account since the genesis account keeps spending records,
         // it may take a few tries to transfer successfully
-
         for i in 0..10 {
             let record = record_finder.find_one_record(&beacon_private_key, 100);
             if record.is_err() {
@@ -139,7 +138,7 @@ mod tests {
         }
 
         // Wait for the chain to update blocks
-        thread::sleep(std::time::Duration::from_secs(25));
+        thread::sleep(std::time::Duration::from_secs(35));
 
         // Check the balance of the recipient
         let api_client = program_manager.api_client().unwrap();
