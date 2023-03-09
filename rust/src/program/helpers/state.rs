@@ -14,22 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod account;
-pub use account::*;
-
-#[cfg(not(feature = "wasm"))]
-pub mod api;
-#[cfg(not(feature = "wasm"))]
-pub use api::*;
-
-#[cfg(not(feature = "wasm"))]
-pub mod program;
-#[cfg(not(feature = "wasm"))]
-pub use program::*;
-
-#[cfg(test)]
-#[cfg(not(feature = "wasm"))]
-pub mod test_utils;
-#[cfg(test)]
-#[cfg(not(feature = "wasm"))]
-pub use test_utils::*;
+/// The possible states of a program on chain as compared to the local program of the same name
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum OnChainProgramState {
+    /// Program deployed but does not match the the local program
+    Different,
+    /// Program deployed and matches the local program
+    Same,
+    /// Program not deployed,
+    NotDeployed,
+}

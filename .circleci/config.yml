@@ -160,6 +160,27 @@ jobs:
       - clear_environment:
           cache_key: aleo-clippy-cache
 
+  aleo-deploy:
+    docker:
+      - image: cimg/rust:1.67
+    resource_class: xlarge
+    steps:
+      - checkout
+      - setup_environment:
+          cache_key: aleo-executable-cache
+      - run:
+          name: Install snarkos and test deploy & execute
+          no_output_timeout: 30m
+          command: |
+            sudo apt install git-all
+            git clone https://github.com/AleoHQ/snarkOS.git
+            cargo install --path snarkOS --root . --locked
+            rm -rf snarkOS
+            ./bin/snarkos start --dev 0 --beacon APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --nodisplay 1> /dev/null &
+            sleep 10
+            cd rust
+            cargo test test_transfer -- --ignored --nocapture --test-threads=1
+
   aleo-executable:
     docker:
       - image: cimg/rust:1.67
@@ -193,3 +214,4 @@ workflows:
       - check-fmt
       - check-clippy
       - aleo-executable
+      - aleo-deploy
