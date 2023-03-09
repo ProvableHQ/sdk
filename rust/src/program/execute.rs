@@ -17,12 +17,11 @@
 use crate::ProgramManager;
 use snarkvm_console::{
     account::PrivateKey,
-    program::{Identifier, Network, Plaintext, ProgramID, Record},
+    program::{Identifier, Network, Plaintext, ProgramID, Record, Value},
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
 
 use anyhow::{anyhow, bail, ensure, Result};
-use snarkvm_console::program::Value;
 
 impl<N: Network> ProgramManager<N> {
     /// Execute a program function on the Aleo Network.
@@ -37,10 +36,10 @@ impl<N: Network> ProgramManager<N> {
         fee_record: Option<Record<N, Plaintext<N>>>,
         password: Option<&str>,
     ) -> Result<String> {
-        // Ensure network config is set, otherwise deployment is not possible
+        // Ensure network config is set, otherwise execution is not possible
         ensure!(
             self.api_client.is_some(),
-            "❌ Network client not set, network config must be set before deployment in order to send transactions to the Aleo network"
+            "❌ Network client not set. A network client must be set before execution in order to send an execution transaction to the Aleo network"
         );
 
         // Check program has a valid name
@@ -52,14 +51,12 @@ impl<N: Network> ProgramManager<N> {
             .get_program(program_id)
             .map_err(|_| anyhow!("Program {program_id:?} does not exist on the Aleo Network, cannot execute it"))?;
 
-        // Try to get the private key
+        // Try to get the private key configured in the program manager
         let private_key = self.get_private_key(password)?;
 
-        // Attempt to construct the transaction
-        let query = self.api_client.as_ref().unwrap().base_url();
-
-        // Create & broadcast a deploy transaction for a program
+        // Attempt to construct the execution transaction
         println!("Building transaction..");
+        let query = self.api_client.as_ref().unwrap().base_url();
         let transaction = Self::create_execute_transaction(
             &private_key,
             fee,
@@ -74,7 +71,7 @@ impl<N: Network> ProgramManager<N> {
         println!("Attempting to broadcast execution transaction for {program_id:?}");
         let execution = self.broadcast_transaction(transaction);
 
-        // Tell the user about the result before returning it
+        // Tell the user about the result of the execution before returning it
         if execution.is_ok() {
             println!("✅ Execution transaction for {program_id:?} broadcast successfully");
         } else {
@@ -84,7 +81,7 @@ impl<N: Network> ProgramManager<N> {
         execution
     }
 
-    /// Create an execute transaction for a program without instantiating the program manager
+    /// Create an execute transaction
     pub fn create_execute_transaction(
         private_key: &PrivateKey<N>,
         fee: u64,
@@ -94,7 +91,7 @@ impl<N: Network> ProgramManager<N> {
         function: impl TryInto<Identifier<N>>,
         query: String,
     ) -> Result<Transaction<N>> {
-        // Initialize an RNG.
+        // Initialize an RNG and query object for the transaction
         let rng = &mut rand::thread_rng();
         let query = Query::from(query);
 
@@ -131,10 +128,9 @@ impl<N: Network> ProgramManager<N> {
             }
         };
 
+        // Create an ephemeral SnarkVM to store the programs
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-
-        // Add the program the program's deployment to an ephemeral SnarkVM
         if &program.id().to_string() != "credits.aleo" {
             let deployment = vm.deploy(program, rng)?;
             vm.process().write().finalize_deployment(vm.program_store(), &deployment)?;
@@ -148,7 +144,7 @@ impl<N: Network> ProgramManager<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{random_program_id, AleoAPIClient, RECORD_5_GATES};
+    use crate::{random_program_id, AleoAPIClient, Encryptor, RECORD_5_GATES};
     use snarkvm_console::network::Testnet3;
     use std::str::FromStr;
 
@@ -157,13 +153,49 @@ mod tests {
     fn test_execution() {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let encrypted_private_key =
+            Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap();
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
         let mut program_manager =
-            ProgramManager::<Testnet3>::new(Some(recipient_private_key), None, Some(api_client), None).unwrap();
+            ProgramManager::<Testnet3>::new(Some(recipient_private_key), None, Some(api_client.clone()), None).unwrap();
 
         // Test execution of a on chain program is successful
-        let execution =
-            program_manager.execute_program("hello.aleo", "main", ["5u32", "6u32"].into_iter(), 0, None, None);
+        let execution = program_manager.execute_program(
+            "hello.aleo",
+            "main",
+            ["1312u32", "62131112u32"].into_iter(),
+            0,
+            None,
+            None,
+        );
+
+        assert!(execution.is_ok());
+
+        // Test execution of a second on chain program is successful
+        let execution = program_manager.execute_program(
+            "compare.aleo",
+            "main",
+            ["1u32", "2u32", "3u32", "4u32", "5u32"].into_iter(),
+            0,
+            None,
+            None,
+        );
+
+        assert!(execution.is_ok());
+
+        // Test programs can be executed with an encrypted private key
+        let mut program_manager =
+            ProgramManager::<Testnet3>::new(None, Some(encrypted_private_key), Some(api_client), None).unwrap();
+
+        // Test execution of an on chain program is successful using an encrypted private key
+        let execution = program_manager.execute_program(
+            "hello.aleo",
+            "main",
+            ["1337u32", "42u32"].into_iter(),
+            0,
+            None,
+            Some("password"),
+        );
 
         assert!(execution.is_ok());
     }
