@@ -20,9 +20,9 @@ use snarkvm_console::{
     program::{Network, Plaintext, ProgramID, Record},
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
+use snarkvm_utilities::ToBytes;
 
 use anyhow::{anyhow, bail, ensure, Error, Result};
-use snarkvm_utilities::ToBytes;
 
 impl<N: Network> ProgramManager<N> {
     /// Deploy a program to the network
@@ -40,11 +40,10 @@ impl<N: Network> ProgramManager<N> {
         );
 
         let record_amount = ***fee_record.gates();
-        ensure!(record_amount >= fee, "❌ The amount supplied in the record is insufficient to pay the fee");
         // Ensure a fee record is set
         ensure!(fee > 0, "❌ Fee must be greater than zero in order to deploy a program");
         ensure!(
-            record_amount > fee,
+            record_amount >= fee,
             "❌ The record supplied has balance of {record_amount:?} gates which is insufficient to pay the specified fee of {fee:?} gates"
         );
 
