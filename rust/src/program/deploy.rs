@@ -32,19 +32,18 @@ impl<N: Network> ProgramManager<N> {
         fee: u64,
         fee_record: Record<N, Plaintext<N>>,
         password: Option<&str>,
-    ) -> Result<()> {
-        // Ensure network config is set, otherwise deployment is not possible
+    ) -> Result<String> {
+        // Ensure a network client is configured, otherwise deployment is not possible
         ensure!(
             self.api_client.is_some(),
             "❌ Network client not set, network config must be set before deployment in order to send transactions to the Aleo network"
         );
 
-        let record_amount = ***fee_record.gates();
-        ensure!(record_amount >= fee, "❌ The amount supplied in the record is insufficient to pay the fee");
-        // Ensure a fee record is set
+        // Ensure a fee is specified and the record has enough balance to pay for it
         ensure!(fee > 0, "❌ Fee must be greater than zero in order to deploy a program");
+        let record_amount = ***fee_record.gates();
         ensure!(
-            record_amount > fee,
+            record_amount >= fee,
             "❌ The record supplied has balance of {record_amount:?} gates which is insufficient to pay the specified fee of {fee:?} gates"
         );
 
@@ -64,43 +63,44 @@ impl<N: Network> ProgramManager<N> {
             println!("Program {:?} already exists in program manager, using existing program", program_id);
             program
         } else {
-            let program = self.find_program_on_disk(&program_id);
-            if program.is_err() {
-                bail!(
-                    "❌ Program {program_id:?} could not be found on disk or in the program manager, please ensure the program is in the correct directory before continuing with deployment"
-                );
+            if let Some(dir) = self.local_program_directory.as_ref() {
+                let program = self.find_program_on_disk(&program_id);
+                if program.is_err() {
+                    bail!(
+                        "❌ Program {program_id:?} could not be found at {dir:?} or in the program manager, please ensure the program is in the correct directory before continuing with deployment"
+                    );
+                }
+                program?
+            } else {
+                bail!("❌ Program {:?} not found in program manager and no local directory was configured", program_id);
             }
-            program?
         };
 
-        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
-        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        // Check if program imports are deployed on chain and add them to program manager, cancel otherwise
+        // Check if program imports are deployed on chain. If so add them to the list of imports
+        // and continue with deployment. If not, cancel deployment.
+        let mut imports = vec![];
         program.imports().keys().try_for_each(|program_id| {
-            let program = if self.contains_program(program_id)? {
+            let imported_program = if self.contains_program(program_id)? {
                 self.get_program(program_id)
             } else {
                 self.find_program(program_id)
-            };
-            let program = match program {
-                Ok(program) => program,
-                Err(err) => bail!("❌ Imported program {program_id:?} could not be found on chain with error: {err:?}, please deploy this program first before continuing with deployment"),
-            };
-            match self.on_chain_program_state(&program)? {
+            }.map_err(|_| anyhow!("❌ Imported program {program_id:?} could not be found locally or on the Aleo Network"))?;
+            let imported_program_id = imported_program.id();
+            match self.on_chain_program_state(&imported_program)? {
                 OnChainProgramState::NotDeployed => {
-                    bail!("❌ Imported program {:?} could not be found, please deploy this program first before continuing with deployment", program_id)
+                    bail!("❌ Imported program {imported_program_id:?} could not be found on the Aleo Network, please deploy this imported program first before continuing with deployment of {program_id:?}");
                 }
                 OnChainProgramState::Different => {
-                    bail!(
-                            "❌ Imported program {:?} is already deployed on chain and did not match local import",
-                            program_id
-                        );
+                    bail!("❌ Imported program {imported_program_id:?} is already deployed on chain and did not match local import");
                 }
                 OnChainProgramState::Same => (),
             };
-            if &program_id.to_string() != "credits.aleo" {
-                vm.process().write().add_program(&program)?;
-            };
+            if imports.contains(&imported_program) {
+                bail!("❌ Imported program {imported_program_id:?} was specified twice by {program_id:?}, remove the duplicated import before trying again");
+            }
+            if imported_program_id.to_string() != "credits.aleo" {
+                imports.push(imported_program);
+            }
             Ok::<_, Error>(())
         })?;
 
@@ -108,12 +108,11 @@ impl<N: Network> ProgramManager<N> {
         let private_key = self.get_private_key(password)?;
 
         // Attempt to construct the transaction
-        let query = self.api_client.as_ref().unwrap().base_url();
-
-        // Create & broadcast a deploy transaction for a program
         println!("Building transaction..");
+        let query = self.api_client.as_ref().unwrap().base_url();
         let transaction =
-            Self::create_deploy_transaction(Some(vm), &private_key, fee, fee_record, &program, query.to_string())?;
+            Self::create_deploy_transaction(&program, &imports, &private_key, fee, fee_record, query.to_string())?;
+
         println!(
             "Attempting to broadcast a deploy transaction for program {:?} to node {:?}",
             program_id,
@@ -122,43 +121,50 @@ impl<N: Network> ProgramManager<N> {
 
         // Ensure the fee is sufficient to pay for the transaction
         let required_fee = transaction.to_bytes_le()?.len();
-        if usize::try_from(fee)? >= required_fee {
-            self.broadcast_transaction(transaction)?;
+        let result = if usize::try_from(fee)? >= required_fee {
+            self.broadcast_transaction(transaction)
         } else {
             bail!(
                 "❌ Insufficient funds to pay for transaction fee, required fee: {}, fee specified in the record: {}",
                 required_fee,
                 fee
             )
-        }
+        };
 
-        println!("✅ Deployment transaction for {program_id:?} broadcast successfully");
-        // Return okay if it's successful
-        Ok(())
+        // Notify the developer of the result
+        if result.is_ok() {
+            println!("✅ Deployment transaction for {program_id:?} broadcast successfully");
+        } else {
+            println!("❌ Deployment transaction for {program_id:?} failed to broadcast");
+        };
+
+        result
     }
 
     /// Create a deploy transaction for a program without instantiating the program manager
     pub fn create_deploy_transaction(
-        vm: Option<VM<N, ConsensusMemory<N>>>,
+        program: &Program<N>,
+        imports: &[Program<N>],
         private_key: &PrivateKey<N>,
         fee: u64,
         fee_record: Record<N, Plaintext<N>>,
-        program: &Program<N>,
         query: String,
     ) -> Result<Transaction<N>> {
         // Initialize an RNG.
         let rng = &mut rand::thread_rng();
         let query = Query::from(query);
 
-        let deployment_vm = if let Some(deployment_vm) = vm {
-            deployment_vm
-        } else {
-            let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
-            VM::<N, ConsensusMemory<N>>::from(store)?
-        };
+        // Attempt to add the programs to a local VM. This will fail if any imports are duplicated.
+        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
+        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
+        imports.into_iter().try_for_each(|imported_program| {
+            if imported_program.id().to_string() != "credits.aleo" {
+                vm.process().write().add_program(imported_program)?;
+            };
+            Ok::<_, Error>(())
+        })?;
 
-        // Create the transaction
-        Transaction::<N>::deploy(&deployment_vm, private_key, program, (fee_record, fee), Some(query), rng)
+        Transaction::<N>::deploy(&vm, private_key, program, (fee_record, fee), Some(query), rng)
     }
 }
 

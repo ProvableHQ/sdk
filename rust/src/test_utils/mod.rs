@@ -173,6 +173,7 @@ pub fn transfer_to_test_account(
         if input_record.is_err() {
             println!("No records found, retrying");
             retries += 1;
+            sleep(std::time::Duration::from_secs(3));
             continue;
         }
         let input_record = input_record.unwrap();
