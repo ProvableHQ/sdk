@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AleoAPIClient, ProgramManager};
+use crate::{AleoAPIClient, ProgramManager, RecordFinder};
 use snarkvm::file::Manifest;
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
     network::Testnet3,
-    program::{Plaintext, ProgramID, Record},
+    program::{Plaintext, Record},
 };
 
 use anyhow::Result;
@@ -29,9 +29,19 @@ use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf,
 pub const RECIPIENT_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
 pub const BEACON_PRIVATE_KEY: &str = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
 
-pub const ALEO_PROGRAM: &str = "import hello.aleo;
+pub const DUAL_IMPORT_PROGRAM: &str = "import hello.aleo;
 import credits.aleo;
 program aleo_test.aleo;
+
+function test:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+";
+
+pub const CREDITS_IMPORT_TEST_PROGRAM: &str = "import credits.aleo;
+program credits_import_test.aleo;
 
 function test:
     input r0 as u32.public;
@@ -67,6 +77,18 @@ function fabulous:
     output r2 as u32.private;
 ";
 
+pub const RECORD_2000000001_GATES: &str = r"{
+  owner: aleo1crhv6td6mr82ams6kvtlfyup866c7vu8xm3uy3r8j0xjm4utmvzqxp888h.private,
+  gates: 2000000001u64.private,
+  _nonce: 203531555240288878851874459727809404436723984555169378819192539433895099097group.public
+}";
+
+pub const RECORD_5_GATES: &str = r"{
+  owner: aleo1pe9hh2eqnnyezs945pjl5ck8ya8tmyx6v49lmsa07pkr6959turqnedugx.private,
+  gates: 5u64.private,
+  _nonce: 5147545248698489716132031289429810645682104673612481324838467895012926021670group.public
+}";
+
 /// Get a random program id
 pub fn random_program_id(len: usize) -> String {
     use rand::Rng;
@@ -85,15 +107,13 @@ pub fn random_program_id(len: usize) -> String {
 /// Get a random program
 pub fn random_program() -> Program<Testnet3> {
     let random_program = String::from("program ").add(&random_program_id(15)).add(";").add(GENERIC_PROGRAM_BODY);
-    println!("Random program:\n{}", random_program);
     Program::<Testnet3>::from_str(&random_program).unwrap()
 }
 
 /// Create temp directory with test data
-pub fn setup_directory(name: &str, main_program: &str, imports: Vec<(&str, &str)>) -> Result<PathBuf> {
+pub fn setup_directory(directory_name: &str, main_program: &str, imports: Vec<(&str, &str)>) -> Result<PathBuf> {
     // Crate a temporary directory for the test.
-    let directory = std::env::temp_dir().join(name);
-    println!("Directory: {}", directory.display());
+    let directory = std::env::temp_dir().join(directory_name);
 
     catch_unwind(|| {
         let _ = &directory.exists().then(|| fs::remove_dir_all(&directory).unwrap());
@@ -101,7 +121,8 @@ pub fn setup_directory(name: &str, main_program: &str, imports: Vec<(&str, &str)
 
         let imports_directory = directory.join("imports");
         fs::create_dir(directory.join("imports")).unwrap();
-        let program_id = ProgramID::<Testnet3>::from_str(&format!("{}.aleo", "aleo_test")).unwrap();
+        let program = Program::<Testnet3>::from_str(main_program).unwrap();
+        let program_id = program.id();
 
         // Create the manifest file.
         Manifest::create(&directory, &program_id).unwrap();
@@ -140,13 +161,22 @@ pub fn transfer_to_test_account(
     let recipient_view_key = ViewKey::<Testnet3>::try_from(&recipient_private_key)?;
     let recipient_address = recipient_view_key.to_address();
 
+    let record_finder = RecordFinder::<Testnet3>::new(api_client.clone());
+
     let program_manager =
         ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client), None).unwrap();
 
     let mut transfer_successes = 0;
     let mut retries = 0;
     loop {
-        let input_record = Record::from_str("0x000000").unwrap();
+        let input_record = record_finder.find_one_record(&beacon_private_key, amount);
+        if input_record.is_err() {
+            println!("No records found, retrying");
+            retries += 1;
+            sleep(std::time::Duration::from_secs(3));
+            continue;
+        }
+        let input_record = input_record.unwrap();
         let result = program_manager.transfer(amount, 0, recipient_address, None, input_record, None);
         if result.is_ok() {
             println!("Transfer succeeded");

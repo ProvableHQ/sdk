@@ -25,6 +25,9 @@ use anyhow::{anyhow, bail, Result};
 use indexmap::IndexMap;
 use std::path::PathBuf;
 
+pub mod deploy;
+pub use deploy::*;
+
 pub mod helpers;
 pub use helpers::*;
 

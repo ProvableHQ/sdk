@@ -39,7 +39,7 @@ impl<N: Network> ProgramManager<N> {
         ensure!(amount > 0, "Amount must be greater than 0");
 
         let additional_fee = if fee > 0 {
-            ensure!(fee_record.is_some(), "Fee record must be specified");
+            ensure!(fee_record.is_some(), "If a fee is specified, a fee record must be specified to pay for it");
             Some((fee_record.unwrap(), fee))
         } else {
             if fee_record.is_some() {
@@ -113,11 +113,10 @@ mod tests {
             ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client.clone()), None).unwrap();
         let record_finder = RecordFinder::new(api_client);
         // Wait for the chain to to start
-        thread::sleep(std::time::Duration::from_secs(15));
+        thread::sleep(std::time::Duration::from_secs(60));
 
         // Make several transactions from the genesis account since the genesis account keeps spending records,
         // it may take a few tries to transfer successfully
-
         for i in 0..10 {
             let record = record_finder.find_one_record(&beacon_private_key, 100);
             if record.is_err() {
@@ -139,7 +138,7 @@ mod tests {
         }
 
         // Wait for the chain to update blocks
-        thread::sleep(std::time::Duration::from_secs(25));
+        thread::sleep(std::time::Duration::from_secs(35));
 
         // Check the balance of the recipient
         let api_client = program_manager.api_client().unwrap();
