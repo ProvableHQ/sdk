@@ -28,6 +28,9 @@ use std::path::PathBuf;
 pub mod deploy;
 pub use deploy::*;
 
+pub mod execute;
+pub use execute::*;
+
 pub mod helpers;
 pub use helpers::*;
 

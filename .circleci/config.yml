@@ -160,7 +160,7 @@ jobs:
       - clear_environment:
           cache_key: aleo-clippy-cache
 
-  aleo-deploy:
+  aleo-deploy-and-execute:
     docker:
       - image: cimg/rust:1.67
     resource_class: xlarge
@@ -215,4 +215,4 @@ workflows:
       - check-fmt
       - check-clippy
       - aleo-executable
-      - aleo-deploy
+      - aleo-deploy-and-execute

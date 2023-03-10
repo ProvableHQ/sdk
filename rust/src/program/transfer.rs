@@ -121,6 +121,7 @@ mod tests {
             let record = record_finder.find_one_record(&beacon_private_key, 100);
             if record.is_err() {
                 println!("Record not found: {} - retrying", record.unwrap_err());
+                thread::sleep(std::time::Duration::from_secs(3));
                 continue;
             }
             let input_record = record.unwrap();
