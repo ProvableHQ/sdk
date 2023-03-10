@@ -22,7 +22,7 @@ function App() {
 
     return (
         <Layout className="layout" style={{minHeight: '100vh'}}>
-            <Header className="header">
+            <Header className="header" style={{height: 67}}>
                 <div className="logo"/>
                 <Menu mode="horizontal" defaultSelectedKeys={['1']}>
                     <Menu.Item key="1" onClick={() => setMenuIndex(0)}>Account</Menu.Item>

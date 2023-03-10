@@ -39,7 +39,7 @@ impl<N: Network> ProgramManager<N> {
         ensure!(amount > 0, "Amount must be greater than 0");
 
         let additional_fee = if fee > 0 {
-            ensure!(fee_record.is_some(), "Fee record must be specified");
+            ensure!(fee_record.is_some(), "If a fee is specified, a fee record must be specified to pay for it");
             Some((fee_record.unwrap(), fee))
         } else {
             if fee_record.is_some() {
@@ -121,7 +121,6 @@ mod tests {
             let record = record_finder.find_one_record(&beacon_private_key, 100);
             if record.is_err() {
                 println!("Record not found: {} - retrying", record.unwrap_err());
-                thread::sleep(std::time::Duration::from_secs(2));
                 continue;
             }
             let input_record = record.unwrap();
