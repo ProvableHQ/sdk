@@ -160,7 +160,7 @@ jobs:
       - clear_environment:
           cache_key: aleo-clippy-cache
 
-  aleo-deploy:
+  aleo-deploy-and-execute:
     docker:
       - image: cimg/rust:1.67
     resource_class: xlarge
@@ -180,6 +180,7 @@ jobs:
             sleep 10
             cd rust
             cargo test test_transfer -- --ignored --nocapture --test-threads=1
+            cargo test test_deploy -- --ignored --nocapture --test-threads=1
 
   aleo-executable:
     docker:
