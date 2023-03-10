@@ -62,18 +62,19 @@ impl<N: Network> ProgramManager<N> {
         let program = if let Ok(program) = self.get_program(program_id) {
             println!("Program {:?} already exists in program manager, using existing program", program_id);
             program
-        } else {
-            if let Some(dir) = self.local_program_directory.as_ref() {
-                let program = self.find_program_on_disk(&program_id);
-                if program.is_err() {
-                    bail!(
-                        "❌ Program {program_id:?} could not be found at {dir:?} or in the program manager, please ensure the program is in the correct directory before continuing with deployment"
-                    );
-                }
-                program?
-            } else {
-                bail!("❌ Program {:?} not found in program manager and no local directory was configured", program_id);
+        } else if let Some(dir) = self.local_program_directory.as_ref() {
+            let program = self.find_program_on_disk(&program_id);
+            if program.is_err() {
+                bail!(
+                    "❌ Program {program_id:?} could not be found at {dir:?} or in the program manager, please ensure the program is in the correct directory before continuing with deployment"
+                );
             }
+            program?
+        } else {
+            bail!(
+                "❌ Program {:?} not found in program manager and no local program directory was configured",
+                program_id
+            );
         };
 
         // Check if program imports are deployed on chain. If so add them to the list of imports
@@ -157,7 +158,7 @@ impl<N: Network> ProgramManager<N> {
         // Attempt to add the programs to a local VM. This will fail if any imports are duplicated.
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        imports.into_iter().try_for_each(|imported_program| {
+        imports.iter().try_for_each(|imported_program| {
             if imported_program.id().to_string() != "credits.aleo" {
                 vm.process().write().add_program(imported_program)?;
             };
