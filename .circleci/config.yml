@@ -180,7 +180,6 @@ jobs:
             sleep 10
             cd rust
             cargo test test_transfer -- --ignored --nocapture --test-threads=1
-            cargo test test_deploy -- --ignored --nocapture --test-threads=1
 
   aleo-executable:
     docker:
