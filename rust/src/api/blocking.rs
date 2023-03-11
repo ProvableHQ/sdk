@@ -141,6 +141,7 @@ impl<N: Network> AleoAPIClient<N> {
         let mut records = Vec::new();
 
         for start_height in (start_block_height..end_block_height).step_by(50) {
+            println!("Searching block {} to {} for records...", start_height, end_block_height);
             if start_height >= block_heights.end {
                 break;
             }
@@ -191,6 +192,7 @@ impl<N: Network> AleoAPIClient<N> {
         let mut start_height = block_heights.end.saturating_sub(50);
 
         for _ in (block_heights.start..block_heights.end).step_by(50) {
+            println!("Searching block {} to {} for records...", start_height, end_height);
             // Get blocks
             let records_iter =
                 self.get_blocks(start_height, end_height)?.into_iter().flat_map(|block| block.into_records());

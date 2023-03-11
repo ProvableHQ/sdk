@@ -36,10 +36,15 @@ mod run;
 pub use run::*;
 
 mod update;
+
+mod transfer;
+pub use transfer::*;
+
 pub use update::*;
 
 use anyhow::Result;
 use clap::Parser;
+use snarkvm::prelude::Testnet3 as CurrentNetwork;
 
 #[derive(Debug, Parser)]
 #[clap(name = "aleo", author = "The Aleo Team <hello@aleo.org>", setting = clap::AppSettings::ColoredHelp)]
@@ -68,6 +73,8 @@ pub enum Command {
     // Node(Node),
     #[clap(name = "run")]
     Run(Run),
+    #[clap(name = "transfer")]
+    Transfer(Transfer),
     #[clap(name = "update")]
     Update(Update),
 }
@@ -83,6 +90,7 @@ impl Command {
             Self::New(command) => command.parse(),
             // Self::Node(command) => command.parse(),
             Self::Run(command) => command.parse(),
+            Self::Transfer(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }
     }

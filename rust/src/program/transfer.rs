@@ -35,7 +35,7 @@ impl<N: Network> ProgramManager<N> {
         password: Option<&str>,
         input_record: Record<N, Plaintext<N>>,
         fee_record: Option<Record<N, Plaintext<N>>>,
-    ) -> Result<()> {
+    ) -> Result<String> {
         ensure!(amount > 0, "Amount must be greater than 0");
 
         let additional_fee = if fee > 0 {
@@ -82,8 +82,7 @@ impl<N: Network> ProgramManager<N> {
             )?
         };
 
-        self.broadcast_transaction(execution)?;
-        Ok(())
+        self.broadcast_transaction(execution)
     }
 }
 
