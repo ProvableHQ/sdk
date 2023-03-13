@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Network;
+use crate::CurrentNetwork;
 use snarkvm::{
     console::program::Ciphertext,
     prelude::{Address, PrivateKey, ViewKey},
@@ -26,11 +26,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AccountModel {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub private_key_ciphertext: Option<Ciphertext<Network>>,
+    pub private_key_ciphertext: Option<Ciphertext<CurrentNetwork>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub private_key: Option<PrivateKey<Network>>,
+    pub private_key: Option<PrivateKey<CurrentNetwork>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub view_key: Option<ViewKey<Network>>,
+    pub view_key: Option<ViewKey<CurrentNetwork>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub address: Option<Address<Network>>,
+    pub address: Option<Address<CurrentNetwork>>,
 }

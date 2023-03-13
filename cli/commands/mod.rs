@@ -44,7 +44,6 @@ pub use update::*;
 
 use anyhow::Result;
 use clap::Parser;
-use snarkvm::prelude::Testnet3 as CurrentNetwork;
 
 #[derive(Debug, Parser)]
 #[clap(name = "aleo", author = "The Aleo Team <hello@aleo.org>", setting = clap::AppSettings::ColoredHelp)]

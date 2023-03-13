@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Aleo, Network};
+use crate::{Aleo, CurrentNetwork};
 use snarkvm::{
     package::Package,
     prelude::{Identifier, Locator, Value},
@@ -33,10 +33,10 @@ pub const LOCALE: &num_format::Locale = &num_format::Locale::en;
 pub struct Run {
     /// The function name.
     #[clap(parse(try_from_str))]
-    function: Identifier<Network>,
+    function: Identifier<CurrentNetwork>,
     /// The function inputs.
     #[clap(parse(try_from_str))]
-    inputs: Vec<Value<Network>>,
+    inputs: Vec<Value<CurrentNetwork>>,
     /// Uses the specified endpoint.
     #[clap(long)]
     endpoint: Option<String>,
@@ -114,7 +114,7 @@ impl Run {
         println!();
 
         // Prepare the locator.
-        let locator = Locator::<Network>::from_str(&format!("{}/{}", package.program_id(), self.function))?;
+        let locator = Locator::<CurrentNetwork>::from_str(&format!("{}/{}", package.program_id(), self.function))?;
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
