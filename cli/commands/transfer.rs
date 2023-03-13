@@ -85,7 +85,7 @@ impl Transfer {
                 private_key
             } else {
                 let ciphertext = self.ciphertext.as_ref().unwrap();
-                Encryptor::decrypt_private_key_with_secret(ciphertext, &self.password.as_ref().unwrap())?
+                Encryptor::decrypt_private_key_with_secret(ciphertext, self.password.as_ref().unwrap())?
             };
 
             // Find records from the chain
