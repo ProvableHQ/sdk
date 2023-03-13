@@ -103,21 +103,14 @@ impl Transfer {
                 "Attempting to transfer {} gates to {} with a fee of {} gates...",
                 self.amount, self.recipient, fee
             );
-            program_manager.transfer(
-                amount,
-                fee,
-                self.recipient,
-                self.password.as_deref().map(|x| x),
-                input_record,
-                fee_record,
-            )
+            program_manager.transfer(amount, fee, self.recipient, self.password.as_deref(), input_record, fee_record)
         } else {
             // Use supplied records to make the transfer
             program_manager.transfer(
                 amount,
                 fee,
                 self.recipient,
-                self.password.as_deref().map(|x| x),
+                self.password.as_deref(),
                 self.input_record.unwrap(),
                 self.fee_record,
             )
