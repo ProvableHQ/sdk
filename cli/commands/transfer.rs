@@ -107,7 +107,7 @@ impl Transfer {
                 amount,
                 fee,
                 self.recipient,
-                self.password.as_ref().map(|x| x.as_str()),
+                self.password.as_deref().map(|x| x),
                 input_record,
                 fee_record,
             )
@@ -117,7 +117,7 @@ impl Transfer {
                 amount,
                 fee,
                 self.recipient,
-                self.password.as_ref().map(|x| x.as_str()),
+                self.password.as_deref().map(|x| x),
                 self.input_record.unwrap(),
                 self.fee_record,
             )
