@@ -49,7 +49,7 @@ impl<N: Network> ProgramManager<N> {
         let program = self
             .api_client()?
             .get_program(program_id)
-            .map_err(|_| anyhow!("Program {program_id:?} does not exist on the Aleo Network, cannot execute it"))?;
+            .map_err(|_| anyhow!("Program {program_id:?} does not exist on the Aleo Network. Try deploying the program first before executing."))?;
 
         // Try to get the private key configured in the program manager
         let private_key = self.get_private_key(password)?;
