@@ -133,9 +133,9 @@ impl Transfer {
 
         // Inform the user of the result of the transfer
         if transfer.is_err() {
-            println!("{}", format!("Transfer failed with error:").red().bold());
+            println!("{}", "Transfer failed with error:".to_string().red().bold());
         } else {
-            println!("{}", format!("Transfer successful!").bright_green().bold());
+            println!("{}", "Transfer successful!".to_string().bright_green().bold());
             println!("Transaction ID:");
         }
         transfer
