@@ -45,6 +45,7 @@ num-format = "0.4.4"
   path = "rust"
   version = "0.3.5"
   optional = true
+  default-features = true
 
   [dependencies.aleo-wasm]
   path = "wasm"
