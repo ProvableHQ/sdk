@@ -125,7 +125,7 @@ pub fn setup_directory(directory_name: &str, main_program: &str, imports: Vec<(&
         let program_id = program.id();
 
         // Create the manifest file.
-        Manifest::create(&directory, &program_id).unwrap();
+        Manifest::create(&directory, program_id).unwrap();
 
         let mut main = File::create(directory.join("main.aleo")).unwrap();
         main.write_all(main_program.as_bytes()).unwrap();

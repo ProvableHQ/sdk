@@ -149,7 +149,6 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     fn test_execution() {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
@@ -201,7 +200,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     fn test_execution_failure_modes() {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();

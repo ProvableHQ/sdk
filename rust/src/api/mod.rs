@@ -14,15 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(not(feature = "async"))]
 pub mod blocking;
-#[cfg(not(feature = "async"))]
 pub use blocking::*;
-
-#[cfg(feature = "async")]
-pub mod asynchronous;
-#[cfg(feature = "async")]
-pub use asynchronous::*;
 
 use snarkvm_console::program::Network;
 
@@ -32,9 +25,6 @@ use std::marker::PhantomData;
 /// Aleo API client for interacting with the Aleo Beacon API
 #[derive(Clone, Debug)]
 pub struct AleoAPIClient<N: Network> {
-    #[cfg(feature = "async")]
-    client: reqwest::Client,
-    #[cfg(not(feature = "async"))]
     client: ureq::Agent,
     base_url: String,
     network_id: String,
@@ -43,9 +33,6 @@ pub struct AleoAPIClient<N: Network> {
 
 impl<N: Network> AleoAPIClient<N> {
     pub fn new(base_url: &str, chain: &str) -> Result<Self> {
-        #[cfg(feature = "async")]
-        let client = reqwest::Client::new();
-        #[cfg(not(feature = "async"))]
         let client = ureq::Agent::new();
         ensure!(
             base_url.starts_with("http://") || base_url.starts_with("https://"),

@@ -172,7 +172,6 @@ impl<N: Network> ProgramManager<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[cfg(not(feature = "wasm"))]
     use crate::{
         test_utils::{
             random_program,
@@ -192,7 +191,6 @@ mod tests {
     use std::{ops::Add, str::FromStr, thread};
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     #[ignore]
     fn test_deploy() {
         let rng = &mut rand::thread_rng();
@@ -231,7 +229,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     fn test_deploy_failure_conditions() {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();

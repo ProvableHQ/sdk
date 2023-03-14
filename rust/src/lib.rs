@@ -17,19 +17,19 @@
 pub mod account;
 pub use account::*;
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "full")]
 pub mod api;
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "full")]
 pub use api::*;
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "full")]
 pub mod program;
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "full")]
 pub use program::*;
 
 #[cfg(test)]
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "full")]
 pub mod test_utils;
 #[cfg(test)]
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "full")]
 pub use test_utils::*;

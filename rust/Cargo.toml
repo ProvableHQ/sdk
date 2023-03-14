@@ -39,12 +39,6 @@ version = "1.13.1"
 [dependencies.rand]
 version = "0.8.5"
 
-[dependencies.reqwest]
-default-features = false
-optional = true
-version = "0.11.14"
-
-
 [dependencies.ureq]
 features = [ "json" ]
 optional = true
@@ -79,7 +73,6 @@ version = "0.1.5"
 version = "0.3.1"
 
 [features]
-default = [ "blocking", "snarkvm-synthesizer", "snarkvm-console", "snarkvm" ]
-async = [ "reqwest" ]
-blocking = [ "ureq" ]
+default = [ "full" ]
+full = [ "ureq", "snarkvm-synthesizer", "snarkvm-console", "snarkvm" ]
 wasm = [ "snarkvm-console" ]
