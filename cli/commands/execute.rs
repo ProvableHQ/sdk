@@ -88,7 +88,7 @@ impl Execute {
             .endpoint
             .map_or_else(
                 || {
-                    println!("Using default peer: {}", "https://vm.aleo.org/api/testnet3");
+                    println!("Using default peer: https://vm.aleo.org/api/testnet3");
                     Ok(AleoAPIClient::<CurrentNetwork>::testnet3())
                 },
                 |peer| AleoAPIClient::<CurrentNetwork>::new(&peer, "testnet3"),
