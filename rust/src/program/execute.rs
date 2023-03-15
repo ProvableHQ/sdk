@@ -42,8 +42,10 @@ impl<N: Network> ProgramManager<N> {
             "❌ Network client not set. A network client must be set before execution in order to send an execution transaction to the Aleo network"
         );
 
-        // Check program has a valid name
+        // Check program and function has a valid name
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
+        let function_id = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
+        let function_name = function_id.to_string();
 
         // Get the program from chain, error if it doesn't exist
         let program = self
@@ -63,7 +65,7 @@ impl<N: Network> ProgramManager<N> {
             inputs,
             fee_record,
             &program,
-            function,
+            function_id,
             query.to_string(),
         )?;
 
@@ -73,9 +75,9 @@ impl<N: Network> ProgramManager<N> {
 
         // Tell the user about the result of the execution before returning it
         if execution.is_ok() {
-            println!("✅ Execution transaction for {program_id:?} broadcast successfully");
+            println!("✅ Execution of function {function_name:?} from program {program_id:?}' broadcast successfully");
         } else {
-            println!("❌ Execution transaction for {program_id:?} failed to broadcast");
+            println!("❌ Execution of function {function_name:?} from program {program_id:?} failed to broadcast");
         }
 
         execution

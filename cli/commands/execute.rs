@@ -21,7 +21,6 @@ use snarkvm::prelude::{Ciphertext, Identifier, Plaintext, PrivateKey, ProgramID,
 use anyhow::{anyhow, ensure, Result};
 use clap::Parser;
 use colored::Colorize;
-use std::path::PathBuf;
 
 /// Executes an Aleo program function
 #[derive(Debug, Parser)]
@@ -41,9 +40,6 @@ pub struct Execute {
     /// Execution fee in credits, defaults to 0
     #[clap(long)]
     fee: Option<f64>,
-    /// Local program directory to use
-    #[clap(short, long)]
-    directory: Option<PathBuf>,
     /// The record to spend the fee from
     #[clap(short, long)]
     record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
@@ -101,7 +97,7 @@ impl Execute {
             self.private_key,
             self.ciphertext.clone(),
             Some(api_client.clone()),
-            self.directory,
+            None,
         )?;
         program_manager.find_program(&self.program_id)?;
 
@@ -125,7 +121,7 @@ impl Execute {
         };
 
         // Execute the program function
-        println!("Executing program: {}", program_string.bright_blue());
+        println!("Executing function {} from program: {}", function_string.bright_blue(), program_string.bright_blue());
         let result = program_manager.execute_program(
             self.program_id,
             self.function,
@@ -145,8 +141,8 @@ impl Execute {
         } else {
             println!(
                 "Execution of function {} from {} successful!",
-                function_string.red().bold(),
-                program_string.red().bold()
+                function_string.green().bold(),
+                program_string.green().bold()
             );
             println!("Transaction ID:");
         }
@@ -221,22 +217,5 @@ mod tests {
         ]);
 
         assert!(execute_bad_peer.unwrap().parse().is_err());
-
-        // Assert execute fails if a bad path is specified
-        let execute_bad_path = Execute::try_parse_from([
-            "aleo",
-            "hello.aleo",
-            "main",
-            "1337u32",
-            "42u32",
-            "-k",
-            &recipient_private_key.to_string(),
-            "-e",
-            "http://localhost:3030",
-            "-d",
-            "/this/path/does/not/exist",
-        ]);
-
-        assert!(execute_bad_path.unwrap().parse().is_err());
     }
 }

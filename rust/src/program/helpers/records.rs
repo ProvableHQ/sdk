@@ -65,9 +65,7 @@ impl<N: Network> RecordFinder<N> {
         amounts: Vec<u64>,
         private_key: &PrivateKey<N>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        let records = self.find_unspent_records_on_chain(Some(&amounts), None, private_key);
-        println!("records: {:?}", records);
-        records
+        self.find_unspent_records_on_chain(Some(&amounts), None, private_key)
     }
 
     pub fn find_unspent_records_on_chain(
