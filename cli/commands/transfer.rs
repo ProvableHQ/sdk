@@ -218,8 +218,8 @@ mod tests {
 
         assert!(transfer_bad_peer.unwrap().parse().is_err());
 
-        // Assert transfer fails if invalid peer is specified
-        let transfer_bad_peer = Transfer::try_parse_from([
+        // Assert transfer fails if a zero amount is specified
+        let transfer_zero_amount = Transfer::try_parse_from([
             "aleo",
             "-r",
             &recipient_address.to_string(),
@@ -230,6 +230,6 @@ mod tests {
             "-e",
             "http://localhost:3030",
         ]);
-        assert!(transfer_bad_peer.unwrap().parse().is_err());
+        assert!(transfer_zero_amount.unwrap().parse().is_err());
     }
 }
