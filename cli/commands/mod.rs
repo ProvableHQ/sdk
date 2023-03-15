@@ -35,11 +35,10 @@ pub use new::*;
 mod run;
 pub use run::*;
 
-mod update;
-
 mod transfer;
 pub use transfer::*;
 
+mod update;
 pub use update::*;
 
 use anyhow::Result;
