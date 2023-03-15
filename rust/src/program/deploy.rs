@@ -170,6 +170,7 @@ impl<N: Network> ProgramManager<N> {
 }
 
 #[cfg(test)]
+#[cfg(not(feature = "wasm"))]
 mod tests {
     use super::*;
     use crate::{

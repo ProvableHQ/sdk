@@ -142,6 +142,7 @@ impl<N: Network> ProgramManager<N> {
 }
 
 #[cfg(test)]
+#[cfg(not(feature = "wasm"))]
 mod tests {
     use super::*;
     use crate::{random_program_id, AleoAPIClient, RECORD_5_GATES};
@@ -149,7 +150,6 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     fn test_execution() {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
