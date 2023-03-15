@@ -49,16 +49,11 @@ version = "1.0.91"
 
 [dependencies.snarkvm-console]
 features = [ "parallel" ]
-optional = true
 version = "0.9.13"
 
 [dependencies.snarkvm-synthesizer]
 features = [ "parallel" ]
 optional = true
-version = "0.9.13"
-
-[dependencies.snarkvm-utilities]
-features = [ "parallel" ]
 version = "0.9.13"
 
 [dependencies.snarkvm]
@@ -74,5 +69,5 @@ version = "0.3.1"
 
 [features]
 default = [ "full" ]
-full = [ "ureq", "snarkvm-synthesizer", "snarkvm-console", "snarkvm" ]
-wasm = [ "snarkvm-console" ]
+full = [ "ureq", "snarkvm-synthesizer", "snarkvm" ]
+wasm = [ ]

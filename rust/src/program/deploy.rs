@@ -17,12 +17,12 @@
 use crate::{OnChainProgramState, ProgramManager};
 use snarkvm_console::{
     account::PrivateKey,
+    prelude::ToBytes,
     program::{Network, Plaintext, ProgramID, Record},
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
 
 use anyhow::{anyhow, bail, ensure, Error, Result};
-use snarkvm_utilities::ToBytes;
 
 impl<N: Network> ProgramManager<N> {
     /// Deploy a program to the network
