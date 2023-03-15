@@ -35,12 +35,13 @@ name = "aleo"
 path = "cli/main.rs"
 
 [features]
+default = [ "aleo-rust" ]
 wasm = [ "aleo-wasm" ]
 
 [dependencies.aleo-rust]
 path = "rust"
 version = "0.3.5"
-default-features = true
+optional = true
 
 [dependencies.aleo-wasm]
 path = "wasm"

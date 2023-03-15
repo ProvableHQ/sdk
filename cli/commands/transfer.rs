@@ -155,12 +155,12 @@ mod tests {
 
         // Assert that the transfer fails without a private key or private key ciphertext
         let transfer_missing_key_material =
-            Transfer::try_parse_from(&["aleo", "-r", &recipient_address.to_string(), "-a", "1.0"]);
+            Transfer::try_parse_from(["aleo", "-r", &recipient_address.to_string(), "-a", "1.0"]);
 
         assert!(transfer_missing_key_material.unwrap().parse().is_err());
 
         // Assert transfer fails if both a private key and ciphertext are provided
-        let transfer_conflicting_inputs = Transfer::try_parse_from(&[
+        let transfer_conflicting_inputs = Transfer::try_parse_from([
             "aleo",
             "-r",
             &recipient_address.to_string(),
@@ -178,7 +178,7 @@ mod tests {
 
         // Assert that the transfer fails if a ciphertext is provided without a password
         let ciphertext = Some(Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap());
-        let transfer_no_password = Transfer::try_parse_from(&[
+        let transfer_no_password = Transfer::try_parse_from([
             "aleo",
             "-r",
             &recipient_address.to_string(),
@@ -191,7 +191,7 @@ mod tests {
         assert_eq!(transfer_no_password.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
 
         // Assert transfer fails if only a password is provided
-        let transfer_password_only = Transfer::try_parse_from(&[
+        let transfer_password_only = Transfer::try_parse_from([
             "aleo",
             "-r",
             &recipient_address.to_string(),
@@ -204,7 +204,7 @@ mod tests {
         assert_eq!(transfer_password_only.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
 
         // Assert transfer fails if invalid peer is specified
-        let transfer_bad_peer = Transfer::try_parse_from(&[
+        let transfer_bad_peer = Transfer::try_parse_from([
             "aleo",
             "-r",
             &recipient_address.to_string(),
@@ -219,7 +219,7 @@ mod tests {
         assert!(transfer_bad_peer.unwrap().parse().is_err());
 
         // Assert transfer fails if invalid peer is specified
-        let transfer_bad_peer = Transfer::try_parse_from(&[
+        let transfer_bad_peer = Transfer::try_parse_from([
             "aleo",
             "-r",
             &recipient_address.to_string(),
