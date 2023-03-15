@@ -237,7 +237,7 @@ mod tests {
             Record::<Testnet3, Plaintext<Testnet3>>::from_str(RECORD_2000000001_GATES).unwrap();
         let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
         let randomized_program = random_program();
-        let randomized_program_id = randomized_program.to_string();
+        let randomized_program_id = randomized_program.id().to_string();
         let randomized_program_string = randomized_program.to_string();
         let temp_dir = setup_directory("aleo_unit_test_fees", &randomized_program.to_string(), vec![]).unwrap();
 
