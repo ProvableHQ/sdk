@@ -22,7 +22,7 @@ use anyhow::{anyhow, ensure, Result};
 use clap::Parser;
 use colored::Colorize;
 
-/// Deploys an Aleo program function
+/// Deploys an Aleo program
 #[derive(Debug, Parser)]
 pub struct Deploy {
     /// The program identifier
