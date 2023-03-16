@@ -21,7 +21,7 @@ edition = "2021"
 members = [ "rust", "wasm" ]
 
 [workspace.dependencies.snarkvm]
-version = "0.9.13"
+version = "0.9.14"
 
 [workspace.dependencies.snarkvm-wasm]
 version = "0.9.13"
@@ -76,7 +76,7 @@ default-features = false
 version = "7.2.0"
 
 [dependencies.self_update]
-version = "0.32"
+version = "0.35"
 
 [dependencies.serde]
 version = "1"
@@ -98,7 +98,7 @@ features = [
 version = "1.0"
 
 [dependencies.tokio]
-version = "1.22"
+version = "1.26"
 features = [ "rt" ]
 
 [dependencies.warp]
