@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{helpers::AccountModel, Network};
+use crate::{helpers::AccountModel, CurrentNetwork};
 use aleo_rust::account::Encryptor;
 use snarkvm::prelude::{Address, Ciphertext, PrivateKey, ViewKey};
 
@@ -46,7 +46,7 @@ pub enum Account {
     /// Derive view key and address from a private key plaintext
     Import {
         /// Private key plaintext
-        private_key: PrivateKey<Network>,
+        private_key: PrivateKey<CurrentNetwork>,
         /// Write key data to disk
         #[clap(short = 'w', long)]
         write: bool,
@@ -55,7 +55,7 @@ pub enum Account {
     Encrypt {
         /// Provide private key plaintext to command line
         #[clap(short = 'k', long)]
-        private_key: Option<PrivateKey<Network>>,
+        private_key: Option<PrivateKey<CurrentNetwork>>,
         /// Get private key plaintext from file
         #[clap(short = 'f', long)]
         file: Option<String>,
@@ -70,7 +70,7 @@ pub enum Account {
     Decrypt {
         /// Provide ciphertext directly to command line
         #[clap(short = 'k', long)]
-        ciphertext: Option<Ciphertext<Network>>,
+        ciphertext: Option<Ciphertext<CurrentNetwork>>,
         /// Get ciphertext from file
         #[clap(short = 'f', long)]
         file: Option<String>,
@@ -89,7 +89,7 @@ impl Account {
             Self::New { seed, encrypt, write, password } => {
                 // Sample a new Aleo account.
                 let private_key = match seed {
-                    Some(seed) => PrivateKey::<Network>::new(&mut ChaChaRng::seed_from_u64(seed))?,
+                    Some(seed) => PrivateKey::<CurrentNetwork>::new(&mut ChaChaRng::seed_from_u64(seed))?,
                     None => PrivateKey::new(&mut rand::thread_rng())?,
                 };
 
@@ -237,9 +237,9 @@ impl Account {
 
     // Encrypt the private key with a password specified at the command line
     fn encrypt_with_password(
-        private_key: &PrivateKey<Network>,
+        private_key: &PrivateKey<CurrentNetwork>,
         password: Option<String>,
-    ) -> Result<Ciphertext<Network>> {
+    ) -> Result<Ciphertext<CurrentNetwork>> {
         if let Some(password) = password {
             Ok(Encryptor::encrypt_private_key_with_secret(private_key, &password)?)
         } else {
@@ -257,10 +257,10 @@ impl Account {
     // Write the account keys to a file or return if write flag is not specified
     fn write_account_to_file(
         write: bool,
-        private_key_ciphertext: Option<Ciphertext<Network>>,
-        private_key: Option<PrivateKey<Network>>,
-        view_key: Option<ViewKey<Network>>,
-        address: Option<Address<Network>>,
+        private_key_ciphertext: Option<Ciphertext<CurrentNetwork>>,
+        private_key: Option<PrivateKey<CurrentNetwork>>,
+        view_key: Option<ViewKey<CurrentNetwork>>,
+        address: Option<Address<CurrentNetwork>>,
     ) -> Result<String> {
         if !write {
             return Ok("".to_string());
@@ -447,9 +447,10 @@ mod tests {
 
         // Ensure we can import an account and write it
         let import_private_key =
-            PrivateKey::<Network>::from_str("APrivateKey1zkp76ubxnPqcYFSiWpRAQQ2yJ9vRtEZB9t2ok2cFa8wTLKq").unwrap();
-        let import_view_key = ViewKey::<Network>::try_from(import_private_key).unwrap();
-        let import_address = Address::<Network>::try_from(import_private_key).unwrap();
+            PrivateKey::<CurrentNetwork>::from_str("APrivateKey1zkp76ubxnPqcYFSiWpRAQQ2yJ9vRtEZB9t2ok2cFa8wTLKq")
+                .unwrap();
+        let import_view_key = ViewKey::<CurrentNetwork>::try_from(import_private_key).unwrap();
+        let import_address = Address::<CurrentNetwork>::try_from(import_private_key).unwrap();
         let import_parse_attempt = Account::Import { private_key: import_private_key, write: true };
         let import_parse_attempt_result = import_parse_attempt.parse().unwrap();
 
@@ -510,7 +511,7 @@ mod tests {
         let account_no_inputs = Account::Encrypt { private_key: None, file: None, write: false, password: None };
         assert!(account_no_inputs.parse().is_err());
 
-        let private_key = Some(PrivateKey::<Network>::new(&mut TestRng::default()).unwrap());
+        let private_key = Some(PrivateKey::<CurrentNetwork>::new(&mut TestRng::default()).unwrap());
         let account_ambiguous_inputs =
             Account::Encrypt { private_key, file: Some("test.json".to_string()), write: false, password: None };
         assert!(account_ambiguous_inputs.parse().is_err());
@@ -521,7 +522,7 @@ mod tests {
         let account_no_inputs = Account::Decrypt { ciphertext: None, file: None, write: false, password: None };
         assert!(account_no_inputs.parse().is_err());
 
-        let private_key = PrivateKey::<Network>::new(&mut ChaChaRng::seed_from_u64(5)).unwrap();
+        let private_key = PrivateKey::<CurrentNetwork>::new(&mut ChaChaRng::seed_from_u64(5)).unwrap();
         let ciphertext = Some(Encryptor::encrypt_private_key_with_secret(&private_key, "password").unwrap());
         let account_ambiguous_inputs =
             Account::Decrypt { ciphertext, file: Some("test.json".to_string()), write: false, password: None };

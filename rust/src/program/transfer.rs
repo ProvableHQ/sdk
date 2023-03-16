@@ -35,7 +35,7 @@ impl<N: Network> ProgramManager<N> {
         password: Option<&str>,
         input_record: Record<N, Plaintext<N>>,
         fee_record: Option<Record<N, Plaintext<N>>>,
-    ) -> Result<()> {
+    ) -> Result<String> {
         ensure!(amount > 0, "Amount must be greater than 0");
 
         let additional_fee = if fee > 0 {
@@ -82,15 +82,13 @@ impl<N: Network> ProgramManager<N> {
             )?
         };
 
-        self.broadcast_transaction(execution)?;
-        Ok(())
+        self.broadcast_transaction(execution)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[cfg(not(feature = "wasm"))]
     use crate::{test_utils::BEACON_PRIVATE_KEY, AleoAPIClient, RecordFinder};
     use snarkvm_console::{
         account::{Address, PrivateKey, ViewKey},
@@ -100,7 +98,6 @@ mod tests {
     use std::{str::FromStr, thread};
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     #[ignore]
     fn test_transfer() {
         let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
@@ -128,10 +125,8 @@ mod tests {
             let result = program_manager.transfer(100, 0, recipient_address, None, input_record, None);
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
-            } else {
-                if i > 6 {
-                    break;
-                }
+            } else if i > 6 {
+                break;
             }
 
             // Wait 2 seconds before trying again

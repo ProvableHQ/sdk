@@ -17,12 +17,12 @@
 use crate::{OnChainProgramState, ProgramManager};
 use snarkvm_console::{
     account::PrivateKey,
+    prelude::ToBytes,
     program::{Network, Plaintext, ProgramID, Record},
 };
 use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
 
 use anyhow::{anyhow, bail, ensure, Error, Result};
-use snarkvm_utilities::ToBytes;
 
 impl<N: Network> ProgramManager<N> {
     /// Deploy a program to the network
@@ -170,9 +170,9 @@ impl<N: Network> ProgramManager<N> {
 }
 
 #[cfg(test)]
+#[cfg(not(feature = "wasm"))]
 mod tests {
     use super::*;
-    #[cfg(not(feature = "wasm"))]
     use crate::{
         test_utils::{
             random_program,
@@ -192,7 +192,6 @@ mod tests {
     use std::{ops::Add, str::FromStr, thread};
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     #[ignore]
     fn test_deploy() {
         let rng = &mut rand::thread_rng();
@@ -231,7 +230,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     fn test_deploy_failure_conditions() {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
@@ -240,7 +238,7 @@ mod tests {
             Record::<Testnet3, Plaintext<Testnet3>>::from_str(RECORD_2000000001_GATES).unwrap();
         let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
         let randomized_program = random_program();
-        let randomized_program_id = randomized_program.to_string();
+        let randomized_program_id = randomized_program.id().to_string();
         let randomized_program_string = randomized_program.to_string();
         let temp_dir = setup_directory("aleo_unit_test_fees", &randomized_program.to_string(), vec![]).unwrap();
 

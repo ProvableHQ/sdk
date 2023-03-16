@@ -58,16 +58,15 @@ impl<N: Network> ProgramManager<N> {
             let import_file = imports_directory.join(program_id.to_string());
             ensure!(
                 import_file.exists(),
-                "No program named {:?} found at {:?}",
-                program_id,
+                "No program named {program_id:?} found at {:?}",
                 local_program_directory.display()
             );
-            println!("Attempting to load program {:?} at {:?}", program_id, import_file.display());
+            println!("Attempting to load program {program_id:?} at {:?}", import_file.display());
             let mut program_file = File::open(import_file)?;
             let mut program_string = String::new();
             program_file.read_to_string(&mut program_string).map_err(|err| anyhow::anyhow!(err.to_string()))?;
             let program = Program::from_str(&program_string)?;
-            println!("Loaded program {:?} successfully!", program_id);
+            println!("Loaded program {program_id:?} successfully!");
             Ok(program)
         }
     }

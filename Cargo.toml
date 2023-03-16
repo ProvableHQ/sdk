@@ -38,71 +38,71 @@ path = "cli/main.rs"
 default = [ "aleo-rust" ]
 wasm = [ "aleo-wasm" ]
 
-[dependencies]
-num-format = "0.4.4"
+[dependencies.aleo-rust]
+path = "rust"
+version = "0.3.5"
+optional = true
 
-  [dependencies.aleo-rust]
-  path = "rust"
-  version = "0.3.5"
-  optional = true
+[dependencies.aleo-wasm]
+path = "wasm"
+version = "0.3.5"
+optional = true
 
-  [dependencies.aleo-wasm]
-  path = "wasm"
-  version = "0.3.5"
-  optional = true
+[dependencies.anyhow]
+version = "1.0"
 
-  [dependencies.anyhow]
-  version = "1.0"
+[dependencies.clap]
+version = "3.2"
+features = [ "derive" ]
 
-  [dependencies.clap]
-  version = "3.2"
-  features = [ "derive" ]
+[dependencies.colored]
+version = "2"
 
-  [dependencies.colored]
-  version = "2"
+[dependencies.num-format]
+version = "0.4.4"
 
-  [dependencies.parking_lot]
-  version = "0.12"
+[dependencies.parking_lot]
+version = "0.12"
 
-  [dependencies.rand]
-  version = "0.8"
-  default-features = false
+[dependencies.rand]
+version = "0.8"
+default-features = false
 
-  [dependencies.rand_chacha]
-  version = "0.3.0"
-  default-features = false
+[dependencies.rand_chacha]
+version = "0.3.0"
+default-features = false
 
-  [dependencies.rpassword]
-  version = "7.2.0"
+[dependencies.rpassword]
+version = "7.2.0"
 
-  [dependencies.self_update]
-  version = "0.32"
+[dependencies.self_update]
+version = "0.32"
 
-  [dependencies.serde]
-  version = "1"
+[dependencies.serde]
+version = "1"
 
-  [dependencies.serde_json]
-  version = "1"
+[dependencies.serde_json]
+version = "1"
 
-  [dependencies.snarkvm]
-  workspace = true
-  features = [
-  "aleo-cli",
-  "circuit",
-  "console",
-  "parallel",
-  "snarkvm-synthesizer"
+[dependencies.snarkvm]
+workspace = true
+features = [
+"aleo-cli",
+"circuit",
+"console",
+"parallel",
+"snarkvm-synthesizer"
 ]
 
-  [dependencies.thiserror]
-  version = "1.0"
+[dependencies.thiserror]
+version = "1.0"
 
-  [dependencies.tokio]
-  version = "1.22"
-  features = [ "rt" ]
+[dependencies.tokio]
+version = "1.22"
+features = [ "rt" ]
 
-  [dependencies.warp]
-  version = "0.3"
+[dependencies.warp]
+version = "0.3"
 
 [dev-dependencies.rusty-hook]
 version = "0.11.2"

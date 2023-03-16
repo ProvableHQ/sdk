@@ -14,26 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(not(feature = "async"))]
 pub mod blocking;
-#[cfg(not(feature = "async"))]
 pub use blocking::*;
-
-#[cfg(feature = "async")]
-pub mod asynchronous;
-#[cfg(feature = "async")]
-pub use asynchronous::*;
 
 use snarkvm_console::program::Network;
 
+use anyhow::{ensure, Result};
 use std::marker::PhantomData;
 
 /// Aleo API client for interacting with the Aleo Beacon API
 #[derive(Clone, Debug)]
 pub struct AleoAPIClient<N: Network> {
-    #[cfg(feature = "async")]
-    client: reqwest::Client,
-    #[cfg(not(feature = "async"))]
     client: ureq::Agent,
     base_url: String,
     network_id: String,
@@ -41,20 +32,26 @@ pub struct AleoAPIClient<N: Network> {
 }
 
 impl<N: Network> AleoAPIClient<N> {
-    pub fn new(base_url: &str, chain: &str) -> Self {
-        #[cfg(feature = "async")]
-        let client = reqwest::Client::new();
-        #[cfg(not(feature = "async"))]
+    pub fn new(base_url: &str, chain: &str) -> Result<Self> {
         let client = ureq::Agent::new();
-        AleoAPIClient { client, base_url: base_url.to_string(), network_id: chain.to_string(), _network: PhantomData }
+        ensure!(
+            base_url.starts_with("http://") || base_url.starts_with("https://"),
+            "specified url {base_url} invalid, the base url must start with or https:// (or http:// if doing local development)"
+        );
+        Ok(AleoAPIClient {
+            client,
+            base_url: base_url.to_string(),
+            network_id: chain.to_string(),
+            _network: PhantomData,
+        })
     }
 
     pub fn testnet3() -> Self {
-        Self::new("https://vm.aleo.org/api", "testnet3")
+        Self::new("https://vm.aleo.org/api", "testnet3").unwrap()
     }
 
     pub fn local_testnet3(port: &str) -> Self {
-        Self::new(&format!("http://localhost:{}", port), "testnet3")
+        Self::new(&format!("http://localhost:{}", port), "testnet3").unwrap()
     }
 
     /// Get base URL

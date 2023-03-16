@@ -35,6 +35,9 @@ pub use new::*;
 mod run;
 pub use run::*;
 
+mod transfer;
+pub use transfer::*;
+
 mod update;
 pub use update::*;
 
@@ -68,6 +71,8 @@ pub enum Command {
     // Node(Node),
     #[clap(name = "run")]
     Run(Run),
+    #[clap(name = "transfer")]
+    Transfer(Transfer),
     #[clap(name = "update")]
     Update(Update),
 }
@@ -83,6 +88,7 @@ impl Command {
             Self::New(command) => command.parse(),
             // Self::Node(command) => command.parse(),
             Self::Run(command) => command.parse(),
+            Self::Transfer(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }
     }
