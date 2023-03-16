@@ -142,19 +142,19 @@ impl<N: Network> ProgramManager<N> {
 }
 
 #[cfg(test)]
+#[cfg(not(feature = "wasm"))]
 mod tests {
     use super::*;
-    use crate::{random_program_id, AleoAPIClient, Encryptor, RECORD_5_GATES};
+    use crate::{random_program_id, AleoAPIClient, RECORD_5_GATES};
     use snarkvm_console::network::Testnet3;
     use std::str::FromStr;
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     fn test_execution() {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
         let encrypted_private_key =
-            Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap();
+            crate::Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap();
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
         let mut program_manager =
             ProgramManager::<Testnet3>::new(Some(recipient_private_key), None, Some(api_client.clone()), None).unwrap();
@@ -201,7 +201,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "wasm"))]
     fn test_execution_failure_modes() {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();

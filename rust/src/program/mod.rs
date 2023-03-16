@@ -211,13 +211,9 @@ mod tests {
         let temp_dir = std::env::temp_dir();
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
 
-        let program_manager = ProgramManager::<Testnet3>::new(
-            None,
-            Some(private_key_ciphertext),
-            Some(api_client),
-            Some(temp_dir.clone()),
-        )
-        .unwrap();
+        let program_manager =
+            ProgramManager::<Testnet3>::new(None, Some(private_key_ciphertext), Some(api_client), Some(temp_dir))
+                .unwrap();
 
         // Assert private key recovers correctly
         let recovered_private_key = program_manager.get_private_key(Some("password")).unwrap();
@@ -239,7 +235,7 @@ mod tests {
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
 
         let program_manager =
-            ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client), Some(temp_dir.clone())).unwrap();
+            ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client), Some(temp_dir)).unwrap();
 
         // Assert private key recovers correctly regardless of password
         let recovered_private_key = program_manager.get_private_key(None).unwrap();

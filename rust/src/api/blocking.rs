@@ -141,6 +141,7 @@ impl<N: Network> AleoAPIClient<N> {
         let mut records = Vec::new();
 
         for start_height in (start_block_height..end_block_height).step_by(50) {
+            println!("Searching blocks {} to {} for records...", start_height, end_block_height);
             if start_height >= block_heights.end {
                 break;
             }
@@ -191,6 +192,7 @@ impl<N: Network> AleoAPIClient<N> {
         let mut start_height = block_heights.end.saturating_sub(50);
 
         for _ in (block_heights.start..block_heights.end).step_by(50) {
+            println!("Searching blocks {} to {} for records...", start_height, end_height);
             // Get blocks
             let records_iter =
                 self.get_blocks(start_height, end_height)?.into_iter().flat_map(|block| block.into_records());
@@ -212,7 +214,6 @@ impl<N: Network> AleoAPIClient<N> {
                                 let _ = record
                                     .decrypt(&view_key)
                                     .map(|record| {
-                                        println!("gates in record {}", ***record.gates());
                                         total_gates += ***record.gates();
                                         record
                                     })
@@ -229,7 +230,6 @@ impl<N: Network> AleoAPIClient<N> {
             // If a maximum number of gates is specified, stop searching when the total gates
             // exceeds the specified limit
             if max_gates.is_some() && total_gates > max_gates.unwrap() {
-                println!("total_gates {}", total_gates);
                 break;
             }
             // If a list of specified amounts is specified, stop searching when records matching
@@ -238,22 +238,18 @@ impl<N: Network> AleoAPIClient<N> {
                 let found_records = specified_amounts
                     .iter()
                     .filter_map(|amount| {
-                        records
-                            .iter()
-                            .filter_map(|(commitment, record)| {
-                                let decrypted_record = record.decrypt(&view_key).ok()?;
-                                if ***decrypted_record.gates() > *amount { Some((commitment, record)) } else { None }
-                            })
-                            .take(1)
-                            .collect::<Vec<_>>()
-                            .pop()
+                        let position = records.iter().position(|(_, record)| {
+                            if let Ok(decrypted_record) = record.decrypt(&view_key) {
+                                ***decrypted_record.gates() > *amount
+                            } else {
+                                false
+                            }
+                        });
+                        position.map(|index| records.remove(index))
                     })
                     .collect::<Vec<_>>();
                 if found_records.len() >= specified_amounts.len() {
-                    return Ok(found_records
-                        .into_iter()
-                        .map(|(commitment, record)| (*commitment, record.clone()))
-                        .collect());
+                    return Ok(found_records);
                 }
             }
         }

@@ -21,7 +21,7 @@ use snarkvm_console::{
     program::{Plaintext, Record},
 };
 
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 
 pub struct RecordFinder<N: Network> {
     api_client: AleoAPIClient<N>,
@@ -50,7 +50,7 @@ impl<N: Network> RecordFinder<N> {
     /// value equal to or greater than the specified amount.
     pub fn find_one_record(&self, private_key: &PrivateKey<N>, amount: u64) -> Result<Record<N, Plaintext<N>>> {
         let amounts = vec![amount];
-        self.find_unspent_records_on_chain(Some(&amounts), private_key)?
+        self.find_unspent_records_on_chain(Some(&amounts), None, private_key)?
             .into_iter()
             .find(|record| ***record.gates() >= amount)
             .ok_or_else(|| anyhow!("Insufficient funds"))
@@ -60,39 +60,25 @@ impl<N: Network> RecordFinder<N> {
     /// function is successful at resolving the records, it will return a vector of records with
     /// gates equal to or greater than the specified amounts. If it cannot resolve records
     /// with the specified amounts, it will return an error.
-    #[allow(clippy::unnecessary_filter_map)]
     pub fn find_record_amounts(
         &self,
         amounts: Vec<u64>,
         private_key: &PrivateKey<N>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        let records = self.find_unspent_records_on_chain(Some(&amounts), private_key)?;
-        let found_records = amounts
-            .iter()
-            .filter_map(|amount| {
-                records
-                    .iter()
-                    .filter_map(|record| if ***record.gates() >= *amount { Some(record) } else { None })
-                    .take(1)
-                    .collect::<Vec<_>>()
-                    .pop()
-            })
-            .collect::<Vec<_>>();
-        if records.len() >= amounts.len() {
-            Ok(found_records.into_iter().cloned().collect())
-        } else {
-            bail!("Insufficient funds")
-        }
+        let records = self.find_unspent_records_on_chain(Some(&amounts), None, private_key);
+        println!("records: {:?}", records);
+        records
     }
 
     pub fn find_unspent_records_on_chain(
         &self,
         amounts: Option<&Vec<u64>>,
+        max_gates: Option<u64>,
         private_key: &PrivateKey<N>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
         let view_key = ViewKey::try_from(private_key)?;
         let latest_height = self.api_client.latest_height()?;
-        let records = self.api_client.get_unspent_records(private_key, 0..latest_height, None, amounts)?;
+        let records = self.api_client.get_unspent_records(private_key, 0..latest_height, max_gates, amounts)?;
         Ok(records.into_iter().filter_map(|(_, record)| record.decrypt(&view_key).ok()).collect())
     }
 }
