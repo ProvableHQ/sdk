@@ -35,5 +35,5 @@ fn main() -> anyhow::Result<()> {
 
 #[cfg(feature = "wasm")]
 fn main() {
-    println!("The rust CLI application and cannot be run when using the wasm feature flag");
+    println!("The rust CLI application cannot be run when using the wasm feature flag");
 }
