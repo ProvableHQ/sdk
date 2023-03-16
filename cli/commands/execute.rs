@@ -50,7 +50,7 @@ pub struct Execute {
     #[clap(short, long, conflicts_with = "private-key", requires = "password")]
     ciphertext: Option<Ciphertext<CurrentNetwork>>,
     /// Password to decrypt the private key
-    #[clap(long, conflicts_with = "private-key", requires = "ciphertext")]
+    #[clap(short, long, conflicts_with = "private-key", requires = "ciphertext")]
     password: Option<String>,
 }
 
