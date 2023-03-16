@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - testnet3
+      - fix/benchmark-fix
 
 jobs:
   deploy:
@@ -71,7 +72,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable
           override: true
 
       - uses: actions/cache@v2
@@ -85,7 +86,7 @@ jobs:
       # Run benchmark and stores the output to a file
       - name: Benchmark
         run: |
-          cargo +nightly bench --all | tee output.txt
+          cargo bench --all | tee output.txt
 
       # Download previous benchmark result from cache (if exists)
       - name: Download previous benchmark data
