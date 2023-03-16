@@ -98,7 +98,7 @@ features = [
 version = "1.0"
 
 [dependencies.tokio]
-version = "1.22"
+version = "1.26"
 features = [ "rt" ]
 
 [dependencies.warp]
