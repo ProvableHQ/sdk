@@ -43,7 +43,7 @@ dependencies = [
  "rand_chacha",
  "rpassword",
  "rusty-hook",
- "self_update 0.32.0",
+ "self_update",
  "serde",
  "serde_json",
  "snarkvm",
@@ -1383,15 +1383,6 @@ checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
 name = "quick-xml"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8533f14c8382aaad0d592c812ac3b826162128b65662331e1127b45c3d18536b"
-dependencies = [
- "memchr",
-]
-
-[[package]]
-name = "quick-xml"
 version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11bafc859c6815fbaffbbbf4229ecb767ac913fecb27f9ad4343662e9ef099ea"
@@ -1722,23 +1713,6 @@ dependencies = [
 
 [[package]]
 name = "self_update"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e08f3ce73aed26096783c26570ba416ff8f4524c89a14bcdf068967dc80daef"
-dependencies = [
- "hyper",
- "indicatif",
- "log",
- "quick-xml 0.22.0",
- "regex",
- "reqwest",
- "semver",
- "serde_json",
- "tempfile",
-]
-
-[[package]]
-name = "self_update"
 version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2e18819cd93c4799f93cd4cf0ac069ed0e615fea3af28ec78df71e0ea890628a"
@@ -1746,7 +1720,7 @@ dependencies = [
  "hyper",
  "indicatif",
  "log",
- "quick-xml 0.23.1",
+ "quick-xml",
  "regex",
  "reqwest",
  "semver",
@@ -1866,7 +1840,7 @@ dependencies = [
  "parking_lot",
  "rand",
  "rayon",
- "self_update 0.35.0",
+ "self_update",
  "serde_json",
  "snarkvm-algorithms",
  "snarkvm-circuit",
