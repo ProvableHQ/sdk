@@ -21,7 +21,7 @@ use snarkvm_console::{
     program::{Plaintext, Record},
 };
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 
 pub struct RecordFinder<N: Network> {
     api_client: AleoAPIClient<N>,
@@ -43,7 +43,8 @@ impl<N: Network> RecordFinder<N> {
         fee: u64,
         private_key: &PrivateKey<N>,
     ) -> Result<(Record<N, Plaintext<N>>, Record<N, Plaintext<N>>)> {
-        self.find_record_amounts(vec![amount, fee], private_key).map(|records| (records[0].clone(), records[1].clone()))
+        let records = self.find_record_amounts(vec![amount, fee], private_key)?;
+        if records.len() < 2 { bail!("Insufficient funds") } else { Ok((records[0].clone(), records[1].clone())) }
     }
 
     /// Resolve a record with a specific value. If successful it will return a record with a gate
