@@ -29,9 +29,9 @@ pub struct Deploy {
     #[clap(parse(try_from_str))]
     program_id: ProgramID<CurrentNetwork>,
     /// Directory containing the program files
-    #[clap(parse(try_from_str))]
+    #[clap(short, long)]
     directory: Option<std::path::PathBuf>,
-    /// Aleo Network peer to broadcast the transaction to
+    /// Aleo Network peer to broadcast the deployment to
     #[clap(short, long)]
     endpoint: Option<String>,
     /// Deployment fee in credits, defaults to 0
@@ -84,14 +84,14 @@ impl Deploy {
             .map_err(|e| anyhow!("{:?}", e))?;
 
         // Verify program is not already deployed
-        println!("Verifying program is not already deployed on the aleo network..");
+        println!("Verifying {} is not already deployed on the aleo network..", program_string.bright_blue());
         ensure!(api_client.get_program(self.program_id).is_err(), "Program is already deployed");
-        println!("Program {} not found on the Aleo Network, continuing deployment..", program_string.bright_blue());
+        println!("{} was not found on the Aleo Network, continuing deployment..", program_string.bright_blue());
 
         // Assume the local directory is the program directory if none is specified
         let program_directory = self
             .directory
-            .ok_or_else(std::env::current_dir)
+            .map_or_else(std::env::current_dir, Ok)
             .map_err(|_| anyhow!("No program directory specified and attempting to use local path failed"))?;
         println!("Using program directory: {program_directory:?}");
 
