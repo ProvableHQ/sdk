@@ -24,7 +24,7 @@ members = [ "rust", "wasm" ]
 version = "0.9.14"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.13"
+version = "0.9.14"
 default-features = false
 
 [lib]

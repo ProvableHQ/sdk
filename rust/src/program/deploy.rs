@@ -210,7 +210,7 @@ mod tests {
                 .unwrap();
 
         // Wait for the transactions to show up on chain
-        thread::sleep(std::time::Duration::from_secs(10));
+        thread::sleep(std::time::Duration::from_secs(30));
         let deployment_fee = 200000001;
         let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();
         program_manager.deploy_program("credits_import_test.aleo", deployment_fee, fee_record, None).unwrap();

@@ -16,7 +16,7 @@
 
 use crate::CurrentNetwork;
 use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
-use snarkvm::prelude::{Address, Ciphertext, Plaintext, PrivateKey, Record, Testnet3};
+use snarkvm::prelude::{Address, Ciphertext, Plaintext, PrivateKey, Record};
 
 use anyhow::{anyhow, ensure, Result};
 use clap::Parser;
@@ -90,8 +90,12 @@ impl Transfer {
             .map_err(|e| anyhow!("{:?}", e))?;
 
         // Create the program manager
-        let program_manager =
-            ProgramManager::<Testnet3>::new(self.private_key, self.ciphertext.clone(), Some(api_client.clone()), None)?;
+        let program_manager = ProgramManager::<CurrentNetwork>::new(
+            self.private_key,
+            self.ciphertext.clone(),
+            Some(api_client.clone()),
+            None,
+        )?;
 
         // Find the input records from the Aleo Network if not provided
         let private_key = if let Some(private_key) = self.private_key {
