@@ -58,7 +58,6 @@ version = "0.9.14"
 
 [dependencies.snarkvm]
 optional = true
-version = "0.9.14"
 workspace = true
 
 [dev-dependencies.bencher]
