@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(not(feature = "wasm"))]
 use aleo::{commands::CLI, helpers::Updater};
-#[cfg(not(feature = "wasm"))]
 use clap::Parser;
 
-#[cfg(not(feature = "wasm"))]
 fn main() -> anyhow::Result<()> {
     // Parse the given arguments.
     let cli = CLI::parse();
@@ -31,9 +28,4 @@ fn main() -> anyhow::Result<()> {
         Err(error) => println!("⚠️  {error}\n"),
     }
     Ok(())
-}
-
-#[cfg(feature = "wasm")]
-fn main() {
-    println!("The rust CLI application cannot be run when using the wasm feature flag");
 }

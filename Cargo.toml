@@ -1,6 +1,6 @@
 [package]
 name = "aleo"
-version = "0.3.5"
+version = "0.3.6"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
@@ -35,18 +35,11 @@ name = "aleo"
 path = "cli/main.rs"
 
 [features]
-default = [ "aleo-rust" ]
-wasm = [ "aleo-wasm" ]
+default = [ ]
 
 [dependencies.aleo-rust]
 path = "rust"
 version = "0.3.5"
-optional = true
-
-[dependencies.aleo-wasm]
-path = "wasm"
-version = "0.3.5"
-optional = true
 
 [dependencies.anyhow]
 version = "1.0"
