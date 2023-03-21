@@ -25,11 +25,14 @@ The key usages of the Aleo API client are:
 ### Example Usage
 ```rust
 use aleo_rust::AleoAPIClient;
-use snarkvm_console::account::PrivateKey;
+use snarkvm_console::{
+    account::PrivateKey,
+    network::Testnet3, 
+};
 use rand::thread_rng;
 
 // Create a client that interacts with the testnet3 program
-let api_client = AleoAPIClient::testnet3();
+let api_client = AleoAPIClient::<Testnet3>testnet3();
 
 // FIND A PROGRAM ON THE ALEO NETWORK
 let hello = api_client.get_program("hello.aleo").unwrap();
@@ -85,7 +88,7 @@ let mut program_manager = ProgramManager::<Testnet3>::new(None, Some(private_key
 
 // Execute the function `main` of the hello.aleo program with the arguments 5u32 and 3u32.
 // Specify 0 for the fee and provide a password to decrypt the private key stored in the program manager
-program_manager.execute_program("hello.aleo", "main", [5u32, 3u32].into_iter(), 0, None, Some("password")).unwrap();
+program_manager.execute_program("hello.aleo", "main", ["5u32", "3u32"].into_iter(), 0, None, Some("password")).unwrap();
 
 // ------------------
 // DEPLOY PROGRAM STEPS
