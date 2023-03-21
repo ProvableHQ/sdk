@@ -7,16 +7,15 @@
 [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
 
 The Aleo Rust SDK provides a set of tools for deploying and executing programs as well as tools for communicating with the Aleo Network.
-Aleo Network Interaction
 
 ## Aleo Network Interaction
-Users of the SDK can interact with the Aleo network via the AleoAPIClient struct. 
+Users of the SDK can interact with the Aleo network via the AleoAPIClient struct.
 
 The Aleo Network has nodes within the network which provide a REST API for interacting with the network. The 
 AleoAPIClient struct provides a 1:1 mapping of those REST API endpoints as well as several convenience methods for 
 interacting with the network.
 
-The key usages of the Aleo API client are:
+Some key usages of the Aleo API client are:
 * Finding records to spend in value transfers, program executions and program deployments
 * Locating programs deployed on the network
 * Sending transactions to the network
@@ -136,5 +135,5 @@ let (amount_record, fee_record) = record_finder.find_amount_and_fee_records(amou
 // Create a transfer
 program_manager.transfer(amount, fee, recipient_address, Some("password"), amount_record, Some(fee_record)).unwrap();
 ```
-This API is currently under active development and is expected to change in order to provide a more streamlined 
+This API is currently under active development and is expected to change in the future in order to provide a more streamlined 
 experience for program execution and deployment.
