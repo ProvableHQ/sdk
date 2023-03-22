@@ -11,4 +11,7 @@ storage*/
 
 ## OS Files
 **.DS_Store
+**.*.DS_Store
+rust/src/.DS_Store
+rust/src/program/.DS_Store
 
