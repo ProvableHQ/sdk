@@ -18,7 +18,7 @@ license = "GPL-3.0"
 edition = "2021"
 
 [workspace]
-members = [ "rust", "wasm" ]
+members = [ "rust", "wasm", "rust/rest" ]
 
 [workspace.dependencies.snarkvm]
 version = "0.9.14"
