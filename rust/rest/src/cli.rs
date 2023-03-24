@@ -42,12 +42,9 @@ pub enum Command {
 }
 
 impl Command {
-    pub fn parse(self) -> Result<()> {
+    pub fn parse(self) -> Result<Rest<Testnet3>> {
         match self {
-            Command::Start { uri, key, peer } => {
-                Rest::start(uri, key, peer)?;
-                Ok(())
-            }
+            Command::Start { uri, key, peer } => Rest::initialize(uri, key, peer),
         }
     }
 }

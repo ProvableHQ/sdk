@@ -20,6 +20,9 @@ use clap::Parser;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = CLI::parse();
-    // Run the servercd
-    cli.command.parse()
+    // Run the server
+    let mut server = cli.command.parse()?;
+
+    server.start().await;
+    Ok(())
 }

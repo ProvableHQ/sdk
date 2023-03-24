@@ -23,6 +23,9 @@ path = "bin/main.rs"
 [dependencies.anyhow]
 version = "1"
 
+[dependencies.colored]
+version = "2.0.0"
+
 [dependencies.clap]
 version = "3.2"
 workspace = true

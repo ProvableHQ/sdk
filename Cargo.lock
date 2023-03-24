@@ -59,6 +59,7 @@ dependencies = [
  "aleo-rust",
  "anyhow",
  "clap",
+ "colored",
  "http",
  "indexmap",
  "jsonwebtoken",
