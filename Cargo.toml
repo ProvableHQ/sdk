@@ -44,9 +44,12 @@ version = "0.3.5"
 [dependencies.anyhow]
 version = "1.0"
 
-[dependencies.clap]
+[workspace.dependencies.clap]
 version = "3.2"
 features = [ "derive" ]
+
+[dependencies.clap]
+workspace = true
 
 [dependencies.colored]
 version = "2"

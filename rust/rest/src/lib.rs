@@ -19,41 +19,55 @@
 #[macro_use]
 extern crate tracing;
 
+mod cli;
+pub use cli::*;
+
 mod helpers;
 pub use helpers::*;
 
 mod routes;
 pub use routes::*;
 
-use aleo_rust::{Encryptor, ProgramManager, RecordFinder};
+use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
 use snarkvm::{
-    console::{account::{Address, PrivateKey}, program::{Ciphertext, ProgramID}, types::Field},
-    prelude::{cfg_into_iter, Network},
-    synthesizer::{ConsensusStorage, Program, Transaction},
+    console::{
+        account::PrivateKey,
+        program::{Ciphertext, Identifier, Plaintext, ProgramID, Record},
+    },
+    prelude::{Network, Testnet3},
 };
 
 use anyhow::Result;
 use http::header::HeaderName;
 use serde::{Deserialize, Serialize};
-use std::{net::SocketAddr, str::FromStr, sync::Arc};
+use std::{net::SocketAddr, sync::Arc};
 use tokio::task::JoinHandle;
 use warp::{reject, reply, Filter, Rejection, Reply};
 
 /// A REST API server for the ledger.
 #[derive(Clone)]
 pub struct Rest<N: Network> {
+    api_client: AleoAPIClient<N>,
     /// The server handles.
     handles: Vec<Arc<JoinHandle<()>>>,
-    phantom: std::marker::PhantomData<N>,
+    /// Private key ciphertext for the account being used with the server
+    private_key_ciphertext: Option<Ciphertext<N>>,
+    /// Record finder for finding records
+    record_finder: RecordFinder<N>,
 }
 
 impl<N: Network> Rest<N> {
     /// Initializes a new instance of the server.
     pub fn start(
         rest_ip: SocketAddr,
+        private_key_ciphertext: Option<Ciphertext<N>>,
+        peer_url: Option<String>,
     ) -> Result<Self> {
+        let peer = peer_url.unwrap_or("https://vm.aleo.org/api".to_string());
+        let api_client = AleoAPIClient::new(&peer, "testnet3")?;
+        let record_finder = RecordFinder::new(api_client.clone());
         // Initialize the server.
-        let mut server = Self { handles: vec![], phantom: std::marker::PhantomData };
+        let mut server = Self { api_client, handles: vec![], private_key_ciphertext, record_finder };
         // Spawn the server.
         server.spawn_server(rest_ip);
         // Return the server.
@@ -84,9 +98,6 @@ impl<N: Network> Rest<N> {
         });
 
         // Spawn the server.
-        self.handles.push(Arc::new(tokio::spawn(async move {
-            // Start the server.
-            warp::serve(routes.with(cors).with(custom_log)).run(rest_ip).await
-        })))
+        self.handles.push(Arc::new(tokio::spawn(warp::serve(routes.with(cors).with(custom_log)).run(rest_ip))))
     }
 }

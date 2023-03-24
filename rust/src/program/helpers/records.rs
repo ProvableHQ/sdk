@@ -23,6 +23,7 @@ use snarkvm_console::{
 
 use anyhow::{anyhow, bail, Result};
 
+#[derive(Clone)]
 pub struct RecordFinder<N: Network> {
     api_client: AleoAPIClient<N>,
 }
