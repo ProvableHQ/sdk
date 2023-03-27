@@ -44,4 +44,11 @@ module.exports = {
         asyncWebAssembly: true
     },
     devtool: false,
+    resolve: {
+        fallback: {
+            util: require.resolve("util/"),
+            path: require.resolve("path-browserify"),
+            fs: false
+        }
+    }
 }

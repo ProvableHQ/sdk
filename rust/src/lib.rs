@@ -84,7 +84,7 @@
 //!       account::{Address, PrivateKey},
 //!       network::Testnet3,
 //!   };
-//!   use snarkvm_synthesizer::Program;
+//!   use snarkvm::synthesizer::Program;
 //!   use rand::thread_rng;
 //!   use std::str::FromStr;
 //!

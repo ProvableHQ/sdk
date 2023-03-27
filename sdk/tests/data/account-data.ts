@@ -18,5 +18,6 @@ const recordPlaintextString = "{\n  owner: aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6m
 const foreignCiphertextString = "record1qqj3a67efazf0awe09grqqg44htnh9vaw7l729vl309c972x7ldquqq2k2cax8s7qsqqyqtpgvqqyqsq4seyrzvfa98fkggzccqr68af8e9m0q8rzeqh8a8aqql3a854v58sgrygdv4jn9s8ckwfd48vujrmv0rtfasqh8ygn88ch34ftck8szspvfpsqqszqzvxx9t8s9g66teeepgxmvnw5ymgapcwt2lpy9d5eus580k08wpq544jcl437wjv206u5pxst6few9ll4yhufwldgpx80rlwq8nhssqywmfsd85skg564vqhm3gxsp8q6r30udmqxrxmxx2v8xycdg8pn5ps3dhfvv"
 // View key string of a different private key
 const foreignViewKeyString = "AViewKey1ghtvuJQQzQ31xSiVh6X1PK8biEVhQBygRGV4KdYmq4JT"
+const helloProgram = 'program hello.aleo;\n\nfunction main:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n';
 
-export { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignCiphertextString, foreignViewKeyString, recordPlaintextString };
+export { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignCiphertextString, foreignViewKeyString, recordPlaintextString, helloProgram };

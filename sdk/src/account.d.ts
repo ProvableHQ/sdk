@@ -1,4 +1,4 @@
-import { Address, PrivateKey, Signature, ViewKey, RecordCiphertext } from "@aleohq/wasm";
+import { Address, PrivateKey, Signature, ViewKey, PrivateKeyCiphertext, RecordCiphertext } from "@aleohq/wasm";
 interface AccountParam {
     privateKey?: string;
     seed?: Uint8Array;
@@ -37,11 +37,32 @@ export declare class Account {
     vk: ViewKey;
     adr: Address;
     constructor(params?: AccountParam);
+    /**
+     * Attempts to create an account from a private key ciphertext
+     * @param {PrivateKeyCiphertext | string} ciphertext
+     * @param {string} password
+     * @returns {PrivateKey | Error}
+     *
+     * @example
+     * let ciphertext = PrivateKey.newEncrypted("password");
+     * let account = Account.fromCiphertext(ciphertext, "password");
+     */
+    static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string): Account;
     private privateKeyFromParams;
     privateKey(): PrivateKey;
     viewKey(): ViewKey;
     address(): Address;
     toString(): string;
+    /**
+     * Encrypt the account's private key with a password
+     * @param {string} ciphertext
+     * @returns {PrivateKeyCiphertext}
+     *
+     * @example
+     * let account = new Account();
+     * let ciphertext = account.encryptAccount("password");
+     */
+    encryptAccount(password: string): PrivateKeyCiphertext;
     /**
      * Decrypts a Record in ciphertext form into plaintext
      * @param {string} ciphertext

@@ -17,7 +17,7 @@
 pub mod blocking;
 pub use blocking::*;
 
-use snarkvm_console::program::Network;
+use snarkvm::console::program::Network;
 
 use anyhow::{ensure, Result};
 use std::marker::PhantomData;

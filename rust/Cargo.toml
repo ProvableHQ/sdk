@@ -48,18 +48,15 @@ version = "2.6.2"
 [dependencies.serde_json]
 version = "1.0.91"
 
-[dependencies.snarkvm-console]
-features = [ "parallel" ]
-version = "0.9.14"
-
-[dependencies.snarkvm-synthesizer]
-features = [ "parallel" ]
-optional = true
-version = "0.9.14"
-
 [dependencies.snarkvm]
 optional = true
 workspace = true
+
+[dependencies.snarkvm-console]
+version = "0.9.14"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "fix/change-inclusion-proof-fetcher"
+features = [ "wasm" ]
 
 [dev-dependencies.bencher]
 version = "0.1.5"
@@ -69,5 +66,5 @@ version = "0.3.1"
 
 [features]
 default = [ "full" ]
-full = [ "ureq", "snarkvm-synthesizer", "snarkvm" ]
+full = [ "ureq", "snarkvm" ]
 wasm = [ ]

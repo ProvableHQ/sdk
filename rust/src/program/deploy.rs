@@ -15,12 +15,14 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{OnChainProgramState, ProgramManager};
-use snarkvm_console::{
-    account::PrivateKey,
-    prelude::ToBytes,
-    program::{Network, Plaintext, ProgramID, Record},
+use snarkvm::{
+    console::{
+        account::PrivateKey,
+        prelude::ToBytes,
+        program::{Network, Plaintext, ProgramID, Record},
+    },
+    synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM},
 };
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
 
 use anyhow::{anyhow, bail, ensure, Error, Result};
 

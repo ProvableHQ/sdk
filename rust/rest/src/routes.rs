@@ -30,7 +30,7 @@ struct DeployRequest<N: Network> {
 #[serde(bound(serialize = "N: Serialize", deserialize = "N: for<'a> Deserialize<'a>"))]
 struct ExecuteRequest<N: Network> {
     pub program_id: ProgramID<N>,
-    pub function: Identifier<N>,
+    pub program_function: Identifier<N>,
     pub inputs: Vec<String>,
     pub private_key: Option<PrivateKey<N>>,
     pub password: Option<String>,
@@ -148,7 +148,7 @@ impl<N: Network> Rest<N> {
             None
         };
         let transaction_id = program_manager
-            .execute_program(request.program_id, request.function, request.inputs.iter(), request.fee, fee_record, None)
+            .execute_program(request.program_id, request.program_function, request.inputs.iter(), request.fee, fee_record, None)
             .or_reject()?;
         Ok(reply::json(&transaction_id))
     }
