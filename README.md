@@ -19,9 +19,9 @@ and broadcast it to the network.
 
 The [Aleo github repository](https://github.com/AleoHQ/aleo) is the home of
 1. [`aleo/`](https://github.com/AleoHQ/aleo) - The Aleo SDK in Rust https://crates.io/crates/aleo
-2. [`aleo/sdk`](https://github.com/AleoHQ/aleo/sdk) - The Aleo SDK in Javascript https://www.npmjs.com/package/@aleohq/sdk
-3. [`aleo/wasm`](https://github.com/AleoHQ/aleo/wasm) - The Aleo Wasm library in Rust https://crates.io/crates/aleo-wasm
-4. [`aleo/wasm/pkg`](https://github.com/AleoHQ/aleo/wasm/pkg) - The Aleo Wasm library in JavaScript https://www.npmjs.com/package/@aleohq/wasm
+2. [`aleo/sdk`](https://github.com/AleoHQ/aleo/tree/testnet3/sdk) - The Aleo SDK in Javascript https://www.npmjs.com/package/@aleohq/sdk
+3. [`aleo/wasm`](https://github.com/AleoHQ/aleo/tree/testnet3/wasm) - The Aleo Wasm library in Rust https://crates.io/crates/aleo-wasm
+4. [`aleo/wasm/pkg`](https://github.com/AleoHQ/aleo/tree/testnet3/wasm) - The Aleo Wasm library in JavaScript https://www.npmjs.com/package/@aleohq/wasm
 
 We recommend developers to use the interfaces provided by the Aleo SDKs (1. and 2.) for their respective languages.
 
