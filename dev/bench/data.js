@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1680034598467,
+  "lastUpdate": 1680034820856,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -53,6 +53,60 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_encryption_decryption_roundtrip",
             "value": 597774,
             "range": "± 1646",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dbdef756a7103fcad64da1f0d690e9e8e0c0b807",
+          "message": "build(deps): bump tokio from 1.26.0 to 1.27.0 (#517)\n\nBumps [tokio](https://github.com/tokio-rs/tokio) from 1.26.0 to 1.27.0.\r\n- [Release notes](https://github.com/tokio-rs/tokio/releases)\r\n- [Commits](https://github.com/tokio-rs/tokio/compare/tokio-1.26.0...tokio-1.27.0)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: tokio\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2023-03-28T13:00:29-07:00",
+          "tree_id": "47b04d5ff8e4da69704d4b6b1eedeae687278605",
+          "url": "https://github.com/AleoHQ/aleo/commit/dbdef756a7103fcad64da1f0d690e9e8e0c0b807"
+        },
+        "date": 1680034815738,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 229521,
+            "range": "± 23629",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 90963,
+            "range": "± 7213",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_decryption",
+            "value": 354290,
+            "range": "± 20447",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption",
+            "value": 254414,
+            "range": "± 14919",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption_decryption_roundtrip",
+            "value": 598298,
+            "range": "± 52970",
             "unit": "ns/iter"
           }
         ]
