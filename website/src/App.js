@@ -14,6 +14,7 @@ import {GetTransaction} from "./tabs/rest/GetTransaction";
 import {NewAccount} from "./tabs/account/NewAccount";
 import {SignMessage} from "./tabs/account/SignMessage";
 import {VerifyMessage} from "./tabs/account/VerifyMessage";
+import {Develop} from "./tabs/develop/Develop";
 
 const {Header, Content, Footer} = Layout;
 
@@ -29,6 +30,7 @@ function App() {
                     <Menu.Item key="2" onClick={() => setMenuIndex(1)}>Record</Menu.Item>
                     <Menu.Item key="3" onClick={() => setMenuIndex(2)}>REST API</Menu.Item>
                     <Menu.Item key="4" onClick={() => setMenuIndex(3)}>Advanced</Menu.Item>
+                    <Menu.Item key="5" onClick={() => setMenuIndex(4)}>Develop</Menu.Item>
                 </Menu>
             </Header>
             <Content style={{padding: '50px 50px'}}>
@@ -72,6 +74,12 @@ function App() {
                         <EncryptAccount/>
                         <br/>
                         <DecryptAccount/>
+                    </>
+                }
+                {
+                    menuIndex === 4 &&
+                    <>
+                        <Develop/>
                     </>
                 }
             </Content>
