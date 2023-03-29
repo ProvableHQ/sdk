@@ -148,7 +148,14 @@ impl<N: Network> Rest<N> {
             None
         };
         let transaction_id = program_manager
-            .execute_program(request.program_id, request.program_function, request.inputs.iter(), request.fee, fee_record, None)
+            .execute_program(
+                request.program_id,
+                request.program_function,
+                request.inputs.iter(),
+                request.fee,
+                fee_record,
+                None,
+            )
             .or_reject()?;
         Ok(reply::json(&transaction_id))
     }
