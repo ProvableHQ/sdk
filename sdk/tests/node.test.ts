@@ -13,18 +13,18 @@ describe('NodeConnection', () => {
             const account = new Account();
             connection.setAccount(account);
             expect(connection.getAccount()).toEqual(account);
-        });
+        }, 60000);
     });
 
     describe('getBlock', () => {
         it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
             expect((block as Block).block_hash).toEqual("ab128sn9ju8r9fp3sc8px9l6m6ceruzzy4ahpnp05rzluygdqn6cqqs4jsf2q");
-        });
+        }, 60000);
 
         it('should throw an error if the request fails', async () => {
             await expect(connection.getBlock(99999999)).rejects.toThrow('Error fetching block.');
-        });
+        }, 60000);
     });
 
     describe('getBlockRange', () => {
@@ -35,44 +35,44 @@ describe('NodeConnection', () => {
             expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab128sn9ju8r9fp3sc8px9l6m6ceruzzy4ahpnp05rzluygdqn6cqqs4jsf2q");
             expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab10jhvxr4hx9488kkv4wz6vt0cu6gnjupk9rcg7djcvw0tsxgdggzq3h4s5j");
 
-        });
+        }, 60000);
 
         it('should throw an error if the request fails', async () => {
             await expect(connection.getBlockRange(999999999, 1000000000)).rejects.toThrow('Error fetching blocks between 999999999 and 1000000000.');
-        });
+        }, 60000);
     });
 
     describe('getProgram', () => {
         it('should return a string', async () => {
             const program = await connection.getProgram('credits.aleo');
             expect(typeof program).toBe('string');
-        });
+        }, 60000);
 
         it('should throw an error if the request fails', async () => {
             const program_id = "a" + (Math.random()).toString(32).substring(2) + ".aleo";
             await expect(connection.getProgram(program_id)).rejects.toThrow('Error fetching program');
-        });
+        }, 60000);
     });
 
     describe('getLatestBlock', () => {
         it('should return a Block object', async () => {
             const latestBlock = await connection.getLatestBlock();
             expect(typeof (latestBlock as Block).block_hash).toBe('string');
-        });
+        }, 60000);
     });
 
     describe('getLatestHash', () => {
         it('should return a string', async () => {
             const latestHash = await connection.getLatestHash();
             expect(typeof latestHash).toBe('string');
-        });
+        }, 60000);
     });
 
     describe('getLatestHeight', () => {
         it('should return a number', async () => {
             const latestHeight = await connection.getLatestHeight();
             expect(typeof latestHeight).toBe('number');
-        });
+        }, 60000);
     });
 
 
@@ -80,18 +80,18 @@ describe('NodeConnection', () => {
         it('should return a string', async () => {
             const stateRoot = await connection.getStateRoot();
             expect(typeof stateRoot).toBe('string');
-        });
+        }, 60000);
     });
 
     describe('getTransaction', () => {
         it('should return a Transaction object', async () => {
             const transaction = await connection.getTransaction('at1z4sgvtmc7mhd3qw2tdzc8mqyg60gx2qgtdzcg6e6k673d3pfz5psfhe3kd');
             expect((transaction as Transaction).type).toBe("execute");
-        });
+        }, 60000);
 
         it('should throw an error if the request fails', async () => {
             await expect(connection.getTransaction('nonexistentid')).rejects.toThrow('Error fetching transaction.');
-        });
+        }, 60000);
     });
 
     describe('getTransactions', () => {
@@ -99,10 +99,10 @@ describe('NodeConnection', () => {
             const transactions = await connection.getTransactions(1);
             expect(Array.isArray(transactions)).toBe(true);
             expect((transactions as Transaction[]).length).toBeGreaterThan(0);
-        });
+        }, 60000);
 
         it('should throw an error if the request fails', async () => {
             await expect(connection.getTransactions(999999999)).rejects.toThrow('Error fetching transactions.');
-        });
+        }, 60000);
     });
 });
