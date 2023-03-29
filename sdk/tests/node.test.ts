@@ -1,11 +1,15 @@
 import {Account, Block, AleoNetworkClient, Transaction} from "../src";
+import {privateKeyString} from "./data/account-data";
+import {RecordCiphertext} from "@aleohq/wasm";
 jest.retryTimes(3);
 
 describe('NodeConnection', () => {
     let connection: AleoNetworkClient;
+    let local_connection: AleoNetworkClient;
 
     beforeEach(() => {
         connection = new AleoNetworkClient("https://vm.aleo.org/api");
+        local_connection = new AleoNetworkClient("http://localhost:3030");
     });
 
     describe('setAccount', () => {
@@ -114,6 +118,23 @@ describe('NodeConnection', () => {
 
         it('should throw an error if the request fails', async () => {
             await expect(connection.getTransitionId("garbage")).rejects.toThrow("Error fetching transition ID.");
+        }, 60000);
+    });
+
+    describe('findUnspentRecords', () => {
+        it('should fail if block heights or private keys are incorrectly specified', async () => {
+            await expect(connection.findUnspentRecords(5, 0, privateKeyString, undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(-5, 5, privateKeyString, undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined)).rejects.toThrow();
+        }, 60000);
+
+        // Integration tests to be run with a local node (run with -s flag)
+        it.skip('should find records', async () => {
+            const records = await local_connection.findUnspentRecords(0, undefined, privateKeyString, undefined, undefined);
+            expect(Array.isArray(records)).toBe(true);
+            if (!(records instanceof Error)) {
+                expect(records.length).toBeGreaterThan(0);
+            }
         }, 60000);
     });
 });

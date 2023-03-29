@@ -329,7 +329,7 @@ export class AleoNetworkClient {
                               if (record.isOwner(vk)) {
                                 // Decrypt the record and get the serial number
                                 const record_plaintext = record.decrypt(vk);
-                                const serial_number = record_plaintext.serialNumberString(pk, transition.function, "credits");
+                                const serial_number = record_plaintext.serialNumberString(pk, "credits.aleo", "credits");
                                 // Attempt to see if the serial number is spent
                                 try {
                                   await this.getTransitionId(serial_number);
