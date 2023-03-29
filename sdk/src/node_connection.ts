@@ -1,6 +1,5 @@
 import axios from "axios";
 import { Account, JsBlock, Transaction } from ".";
-import { Block } from "@aleohq/wasm";
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
@@ -65,8 +64,6 @@ export class AleoNetworkClient {
   async getBlock(height: number): Promise<JsBlock | Error> {
     try {
       const block = await this.fetchData<JsBlock>("/block/" + height);
-      console.log("block: ", height, block);
-      console.log("block: ", height, ((block.transactions as Transaction[])[0] as Transaction).execution);
       return block;
     } catch (error) {
       throw new Error("Error fetching block.");
