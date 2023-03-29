@@ -105,4 +105,15 @@ describe('NodeConnection', () => {
             await expect(connection.getTransactions(999999999)).rejects.toThrow('Error fetching transactions.');
         }, 60000);
     });
+
+    describe('getTransition', () => {
+        it('should return a transition id', async () => {
+            const transition = await connection.getTransition('2429232855236830926144356377868449890830704336664550203176918782554219952323field')
+            expect(typeof transition).toBe('string');
+        }, 60000);
+
+        it('should throw an error if the request fails', async () => {
+            await expect(connection.getTransition("garbage")).rejects.toThrow('Error fetching transition.');
+        }, 60000);
+    });
 });
