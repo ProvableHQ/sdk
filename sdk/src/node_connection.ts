@@ -217,6 +217,23 @@ export class AleoNetworkClient {
     }
   }
 
+  /**
+   * Attempts to find unspent records in the Aleo blockchain for a specified private key
+   *
+   * @example
+   * // Find all unspent records
+   * const private_key = "[PRIVATE_KEY]";
+   * let records = connection.findUnspentRecords(0, undefined, private_key);
+   *
+   * // Find specific amounts
+   * const start_height = 500000;
+   * const amounts = [600000, 1000000];
+   * let records = connection.findUnspentRecords(start_height, undefined, private_key, amounts);
+   *
+   * // Find specific amounts with a maximum number of cumulative gates
+   * const max_gates = 100000;
+   * let records = connection.findUnspentRecords(start_height, undefined, private_key, undefined, max_gates);
+   */
   async findUnspentRecords(
     start_height: number,
     end_height: number | undefined,
@@ -224,8 +241,20 @@ export class AleoNetworkClient {
     amounts: number[] | undefined,
     max_gates: number | undefined,
   ): Promise<Array<RecordPlaintext> | Error> {
+    // Ensure start height is not negative
+    if (start_height < 0) {
+        throw new Error("Start height must be greater than or equal to 0");
+    }
+
+    // Initialize search parameters
     const records = new Array<RecordPlaintext>();
+    let start;
+    let end;
     let pk: PrivateKey;
+    let failures = 0;
+    let total_record_value = BigInt(0);
+
+    // Ensure a private key is present to find owned records
     if (typeof private_key === "undefined") {
       if (typeof this.account?.pk === "undefined") {
         throw new Error("Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient");
@@ -233,12 +262,15 @@ export class AleoNetworkClient {
         pk = this.account.pk;
       }
     } else {
+      try {
         pk = PrivateKey.from_string(private_key);
+      } catch (error) {
+        throw new Error("Error parsing private key provided.");
+      }
     }
     const vk = pk.to_view_key();
 
-    const start = start_height;
-    let end;
+    // If no end height is specified, attempt to get the latest block height
     if (typeof end_height === "number") {
       end = end_height
     } else {
@@ -254,28 +286,35 @@ export class AleoNetworkClient {
       }
     }
 
-    let failures = 0;
-    while (end > start) {
-      if (end - 50 >= 0) {
-        end = end - start
+    // If the starting is greater than the ending height, return an error
+    if (start_height > end ) {
+        throw new Error("Start height must be less than or equal to end height.");
+    }
+
+    // Iterate through blocks in reverse order in chunks of 50
+    while (end > start_height) {
+      start = end - 50;
+      if (start < start_height) {
+        start = start_height;
       }
       try {
+        // Get 50 blocks (or the difference between the start and end if less than 50)
         const blocks = await this.getBlockRange(start, end);
-        if (blocks instanceof Error) {
-          console.log("Error fetching block range: " + blocks.message);
-        } else {
+        end = start;
+        if (!(blocks instanceof Error)) {
+          // Iterate through blocks to find unspent records
           for (let i = 0; i < blocks.length; i++) {
             const block = blocks[i];
             const transactions = block.transactions;
-            if (typeof transactions === "undefined") {
-              continue;
-            } else {
+            if (!(typeof transactions === "undefined")) {
               for (let j = 0; j < transactions.length; j++) {
                 const transaction = transactions[j];
+                // Search for unspent records in execute transactions of credits.aleo
                 if (transaction.type == "execute") {
                   if (!(typeof transaction.execution.transitions == "undefined")) {
                     for (let k = 0; k < transaction.execution.transitions.length; k++) {
                       const transition = transaction.execution.transitions[k];
+                      // Only search for unspent records in credits.aleo (for now)
                       if (transition.program !== "credits.aleo") {
                         continue;
                       }
@@ -283,18 +322,47 @@ export class AleoNetworkClient {
                         for (let l = 0; l < transition.outputs.length; l++) {
                           const output = transition.outputs[l];
                           if (output.type === "record") {
-                            const value = output.value;
                             try {
-                              const record = RecordCiphertext.fromString(value);
+                              // Create a wasm record ciphertext object from the found output
+                              const record = RecordCiphertext.fromString(output.value);
+                              // Determine if the record is owned by the specified view key
                               if (record.isOwner(vk)) {
+                                // Decrypt the record and get the serial number
                                 const record_plaintext = record.decrypt(vk);
                                 const serial_number = record_plaintext.serialNumberString(pk, transition.function, "credits");
-                                const transition_id = await this.getTransitionId(serial_number);
-                                if (transition_id instanceof Error) {
+                                // Attempt to see if the serial number is spent
+                                try {
+                                  await this.getTransitionId(serial_number);
+                                } catch (error) {
+                                  // If it's not found, add it to the list of unspent records
                                   records.push(record_plaintext);
+                                  // If the user specified a maximum number of gates, check if the search has found enough
+                                  if (typeof max_gates === "number") {
+                                    total_record_value = record_plaintext.gates();
+                                    // Exit if the search has found the amount specified
+                                    if (total_record_value >= BigInt(max_gates)) {
+                                      return records;
+                                    }
+                                  }
+                                  // If the user specified a list of amounts, check if the search has found them
+                                  if (!(typeof amounts == "undefined")) {
+                                    let amounts_found = 0;
+                                    for (let m = 0; m < amounts.length; m++) {
+                                      for (let n = 0; m < records.length; n++) {
+                                        if (records[n].gates() >= BigInt(amounts[m])) {
+                                          amounts_found++;
+                                          // Exit if the search has found the amounts specified
+                                          if (amounts_found >= amounts.length) {
+                                            return records;
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
                                 }
                               }
                             } catch (error) {
+                              // If the record value is invalid or can't be decrypted, log the error and keep searching
                               console.log(error);
                             }
                           }
@@ -308,19 +376,19 @@ export class AleoNetworkClient {
           }
         }
       } catch (error) {
-        console.log(error);
+        // If there is an error fetching blocks, log it and keep searching
+        console.log("Error fetching blocks in range: " + start.toString() + "-" + end.toString());
+        console.log("Error: ", error);
         failures += 1;
-        if (failures > 5) {
-          console.log("Too many failures fetching blocks. Returning fetched records");
+        if (failures > 10) {
+          console.log("10 failures fetching records reached. Returning records fetched so far");
           return records;
         }
-      }
-      if (end - 50 <= 0) {
-        break;
       }
     }
     return records;
   }
 }
 
-export default AleoNetworkClient;
+
+
