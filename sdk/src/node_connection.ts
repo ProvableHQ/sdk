@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Account, Block, Transaction } from ".";
+import { Account, Block, Transaction, Transition } from ".";
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
@@ -199,6 +199,20 @@ export class AleoNetworkClient {
       return await this.fetchData<Array<Transaction>>("/memoryPool/transactions");
     } catch (error) {
       throw new Error("Error fetching transactions from mempool.");
+    }
+  }
+
+  /**
+   * Returns the transition id by its unique identifier
+   *
+   * @example
+   * let transition = connection.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
+   */
+  async getTransitionId(transition_id: string): Promise<Transition | Error> {
+    try {
+      return await this.fetchData<Transition>("/find/transitionID/" + transition_id);
+    } catch (error) {
+      throw new Error("Error fetching transition ID.");
     }
   }
 }
