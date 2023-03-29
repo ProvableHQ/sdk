@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Account, JsBlock, Transaction } from ".";
+import { Account, Block, Transaction } from ".";
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
@@ -61,9 +61,9 @@ export class AleoNetworkClient {
    * @example
    * let block = connection.getBlock(1234);
    */
-  async getBlock(height: number): Promise<JsBlock | Error> {
+  async getBlock(height: number): Promise<Block | Error> {
     try {
-      const block = await this.fetchData<JsBlock>("/block/" + height);
+      const block = await this.fetchData<Block>("/block/" + height);
       return block;
     } catch (error) {
       throw new Error("Error fetching block.");
@@ -78,9 +78,9 @@ export class AleoNetworkClient {
    * @example
    * let blockRange = connection.getBlockRange(2050, 2100);
    */
-  async getBlockRange(start: number, end: number): Promise<Array<JsBlock> | Error> {
+  async getBlockRange(start: number, end: number): Promise<Array<Block> | Error> {
     try {
-      return await this.fetchData<Array<JsBlock>>("/blocks?start=" + start + "&end=" + end);
+      return await this.fetchData<Array<Block>>("/blocks?start=" + start + "&end=" + end);
     } catch (error) {
       const errorMessage = "Error fetching blocks between " + start + " and " + end + "."
       throw new Error(errorMessage);
@@ -108,9 +108,9 @@ export class AleoNetworkClient {
    * @example
    * let latestHeight = connection.getLatestBlock();
    */
-  async getLatestBlock(): Promise<JsBlock | Error> {
+  async getLatestBlock(): Promise<Block | Error> {
     try {
-      return await this.fetchData<JsBlock>("/latest/block") as JsBlock;
+      return await this.fetchData<Block>("/latest/block") as Block;
     } catch (error) {
       throw new Error("Error fetching latest block.");
     }
