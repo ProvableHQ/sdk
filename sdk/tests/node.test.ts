@@ -106,14 +106,14 @@ describe('NodeConnection', () => {
         }, 60000);
     });
 
-    describe('getTransition', () => {
+    describe('getTransitionId', () => {
         it('should return a transition id', async () => {
-            const transition = await connection.getTransition('2429232855236830926144356377868449890830704336664550203176918782554219952323field')
+            const transition = await connection.getTransitionId('2429232855236830926144356377868449890830704336664550203176918782554219952323field')
             expect(typeof transition).toBe('string');
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
-            await expect(connection.getTransition("garbage")).rejects.toThrow('Error fetching transition.');
+            await expect(connection.getTransitionId("garbage")).rejects.toThrow("Error fetching transition ID.");
         }, 60000);
     });
 });

@@ -204,16 +204,16 @@ export class AleoNetworkClient {
   }
 
   /**
-   * Returns the transition by its unique identifier
+   * Returns the transition id by its unique identifier
    *
    * @example
-   * let transition = connection.getTransition("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
+   * let transition = connection.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
    */
-  async getTransition(transition_id: string): Promise<Transition | Error> {
+  async getTransitionId(transition_id: string): Promise<Transition | Error> {
     try {
       return await this.fetchData<Transition>("/find/transitionID/" + transition_id);
     } catch (error) {
-      throw new Error("Error fetching transition.");
+      throw new Error("Error fetching transition ID.");
     }
   }
 
@@ -289,7 +289,7 @@ export class AleoNetworkClient {
                               if (record.isOwner(vk)) {
                                 const record_plaintext = record.decrypt(vk);
                                 const serial_number = record_plaintext.serialNumberString(pk, transition.function, "credits");
-                                const transition_id = await this.getTransition(serial_number);
+                                const transition_id = await this.getTransitionId(serial_number);
                                 if (transition_id instanceof Error) {
                                   records.push(record_plaintext);
                                 }
