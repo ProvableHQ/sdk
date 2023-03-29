@@ -1,4 +1,4 @@
-import {Account, JsBlock, AleoNetworkClient, Transaction} from "../src";
+import {Account, Block, AleoNetworkClient, Transaction} from "../src";
 jest.retryTimes(3);
 
 describe('NodeConnection', () => {
@@ -19,7 +19,7 @@ describe('NodeConnection', () => {
     describe('getBlock', () => {
         it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as JsBlock).block_hash).toEqual("ab128sn9ju8r9fp3sc8px9l6m6ceruzzy4ahpnp05rzluygdqn6cqqs4jsf2q");
+            expect((block as Block).block_hash).toEqual("ab128sn9ju8r9fp3sc8px9l6m6ceruzzy4ahpnp05rzluygdqn6cqqs4jsf2q");
         });
 
         it('should throw an error if the request fails', async () => {
@@ -31,9 +31,9 @@ describe('NodeConnection', () => {
         it('should return an array of Block objects', async () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
-            expect((blockRange as JsBlock[]).length).toBe(2);
-            expect(((blockRange as JsBlock[])[0] as JsBlock).block_hash).toBe("ab128sn9ju8r9fp3sc8px9l6m6ceruzzy4ahpnp05rzluygdqn6cqqs4jsf2q");
-            expect(((blockRange as JsBlock[])[1] as JsBlock).block_hash).toBe("ab10jhvxr4hx9488kkv4wz6vt0cu6gnjupk9rcg7djcvw0tsxgdggzq3h4s5j");
+            expect((blockRange as Block[]).length).toBe(2);
+            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab128sn9ju8r9fp3sc8px9l6m6ceruzzy4ahpnp05rzluygdqn6cqqs4jsf2q");
+            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab10jhvxr4hx9488kkv4wz6vt0cu6gnjupk9rcg7djcvw0tsxgdggzq3h4s5j");
 
         });
 
@@ -57,7 +57,7 @@ describe('NodeConnection', () => {
     describe('getLatestBlock', () => {
         it('should return a Block object', async () => {
             const latestBlock = await connection.getLatestBlock();
-            expect(typeof (latestBlock as JsBlock).block_hash).toBe('string');
+            expect(typeof (latestBlock as Block).block_hash).toBe('string');
         });
     });
 
