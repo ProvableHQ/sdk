@@ -19,12 +19,13 @@ use crate::{
     types::{IdentifierNative, ProgramIDNative, RecordPlaintextNative},
 };
 
+use serde::{Deserialize, Serialize};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 /// Aleo record plaintext
 #[wasm_bindgen]
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct RecordPlaintext(RecordPlaintextNative);
 
 #[wasm_bindgen]

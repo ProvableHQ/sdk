@@ -14,16 +14,5 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod account;
-pub use account::*;
-
-pub mod blockchain;
-pub use blockchain::*;
-
-pub mod record;
-pub use record::*;
-
-pub mod primitives;
-pub use primitives::*;
-
-pub(crate) mod types;
+pub mod block;
+pub use block::*;

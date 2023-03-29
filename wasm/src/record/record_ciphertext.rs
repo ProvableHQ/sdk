@@ -17,12 +17,13 @@
 use super::RecordPlaintext;
 use crate::{account::ViewKey, types::RecordCiphertextNative};
 
+use serde::{Deserialize, Serialize};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 /// Encrypted Aleo record
 #[wasm_bindgen]
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RecordCiphertext(RecordCiphertextNative);
 
 #[wasm_bindgen]
@@ -51,6 +52,12 @@ impl RecordCiphertext {
     #[wasm_bindgen(js_name = isOwner)]
     pub fn is_owner(&self, view_key: &ViewKey) -> bool {
         self.0.is_owner(view_key)
+    }
+}
+
+impl From<RecordCiphertextNative> for RecordCiphertext {
+    fn from(record: RecordCiphertextNative) -> Self {
+        Self(record)
     }
 }
 

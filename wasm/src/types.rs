@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use snarkvm_synthesizer::Block;
 use snarkvm_wasm::{
     account::{Address, PrivateKey, Signature, ViewKey},
     network::Testnet3,
     program::{Ciphertext, Identifier, Plaintext, ProgramID, Record},
+    types::field::Field,
 };
 
 pub use aleo_rust::Encryptor;
@@ -29,8 +31,14 @@ pub type PrivateKeyNative = PrivateKey<CurrentNetwork>;
 pub type SignatureNative = Signature<CurrentNetwork>;
 pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 
+// Blockchain types
+pub type BlockNative = Block<CurrentNetwork>;
+
 // Network types
 pub type CurrentNetwork = Testnet3;
+
+// Primitive types
+pub type FieldNative = Field<CurrentNetwork>;
 
 // Record types
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;
