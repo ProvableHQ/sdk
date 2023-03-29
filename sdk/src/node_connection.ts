@@ -389,6 +389,3 @@ export class AleoNetworkClient {
     return records;
   }
 }
-
-
-
