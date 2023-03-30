@@ -1,15 +1,12 @@
 import {Account, Block, AleoNetworkClient, Transaction} from "../src";
 import {privateKeyString} from "./data/account-data";
-import {RecordCiphertext} from "@aleohq/wasm";
 jest.retryTimes(3);
 
 describe('NodeConnection', () => {
     let connection: AleoNetworkClient;
-    let local_connection: AleoNetworkClient;
 
     beforeEach(() => {
         connection = new AleoNetworkClient("https://vm.aleo.org/api");
-        local_connection = new AleoNetworkClient("http://localhost:3030");
     });
 
     describe('setAccount', () => {
@@ -126,6 +123,7 @@ describe('NodeConnection', () => {
             await expect(connection.findUnspentRecords(5, 0, privateKeyString, undefined, undefined)).rejects.toThrow();
             await expect(connection.findUnspentRecords(-5, 5, privateKeyString, undefined, undefined)).rejects.toThrow();
             await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined)).rejects.toThrow();
         }, 60000);
 
         it('should search a range correctly and not find records where none exist', async () => {
@@ -135,28 +133,5 @@ describe('NodeConnection', () => {
                 expect(records.length).toBe(0);
             }
         }, 90000);
-
-        // Integration tests to be run with a local node (run with -s flag)
-        it.skip('should find records', async () => {
-            const records = await local_connection.findUnspentRecords(0, undefined, privateKeyString, undefined, undefined);
-            expect(Array.isArray(records)).toBe(true);
-            if (!(records instanceof Error)) {
-                expect(records.length).toBeGreaterThan(0);
-            }
-        }, 60000);
-
-        it.skip('should find records with specified amounts', async () => {
-            let records = await local_connection.findUnspentRecords(0, undefined, privateKeyString, [100, 200], undefined);
-            expect(Array.isArray(records)).toBe(true);
-            if (!(records instanceof Error)) {
-                expect(records.length).toBe(2);
-            }
-
-            records = await local_connection.findUnspentRecords(0, undefined, privateKeyString, undefined, 1000);
-            expect(Array.isArray(records)).toBe(true);
-            if (!(records instanceof Error)) {
-                expect(records.length).toBeGreaterThan(0);
-            }
-        }, 60000);
     });
 });

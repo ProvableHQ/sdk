@@ -253,10 +253,11 @@ export class AleoNetworkClient {
     let pk: PrivateKey;
     let failures = 0;
     let total_record_value = BigInt(0);
+    let latest_height: number;
 
     // Ensure a private key is present to find owned records
     if (typeof private_key === "undefined") {
-      if (typeof this.account?.pk === "undefined") {
+      if (typeof this.account === "undefined") {
         throw new Error("Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient");
       } else {
         pk = this.account.pk;
@@ -270,20 +271,23 @@ export class AleoNetworkClient {
     }
     const vk = pk.to_view_key();
 
-    // If no end height is specified, attempt to get the latest block height
-    if (typeof end_height === "number") {
-      end = end_height
-    } else {
-      try {
-        const latest_height = await this.getLatestHeight();
-        if (typeof latest_height === "number") {
-          end = latest_height
-        } else {
-          throw new Error("Error fetching latest block height.");
-        }
-      } catch (error) {
+    // Get the latest height to ensure the range being searched is valid
+    try {
+      const block_height = await this.getLatestHeight();
+      if (typeof block_height === "number") {
+        latest_height = block_height;
+      } else {
         throw new Error("Error fetching latest block height.");
       }
+    } catch (error) {
+      throw new Error("Error fetching latest block height.");
+    }
+
+    // If no end height is specified or is greater than the latest height, set the end height to the latest height
+    if (typeof end_height === "number" && end_height <= latest_height) {
+      end = end_height
+    } else {
+      end = latest_height;
     }
 
     // If the starting is greater than the ending height, return an error
