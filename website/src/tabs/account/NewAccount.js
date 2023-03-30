@@ -15,7 +15,10 @@ export const NewAccount = () => {
             setLoading(false);
         }, 25);
     }
-    const clear = () => setAccount(null);
+
+    const clear = () => {
+        setAccount(null);
+    }
 
     const privateKey = () => account !== null ? account.to_string() : "";
     const viewKey = () => account !== null ? account.to_view_key().to_string() : "";
@@ -47,6 +50,7 @@ export const NewAccount = () => {
                                    addonAfter={<CopyButton data={address()}/>} disabled/>
                         </Form.Item>
                     </Form>
+
             }
         </Card>
     } else {

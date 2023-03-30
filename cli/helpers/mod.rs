@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -16,6 +16,9 @@
 
 // pub mod ledger;
 // pub use ledger::*;
+
+pub mod serialize;
+pub use serialize::*;
 
 pub mod updater;
 pub use updater::*;

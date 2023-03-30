@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{PrivateKey, Signature, ViewKey};
-use aleo_account::Address as AddressNative;
+use crate::{
+    account::{PrivateKey, Signature, ViewKey},
+    types::AddressNative,
+};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;

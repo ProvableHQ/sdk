@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -23,10 +23,5 @@ pub mod commands;
 pub mod errors;
 pub mod helpers;
 
-pub type Network = snarkvm::prelude::Testnet3;
+pub type CurrentNetwork = snarkvm::prelude::Testnet3;
 pub type Aleo = snarkvm::circuit::AleoV0;
-
-#[cfg(feature = "account")]
-pub use aleo_account as account;
-#[cfg(feature = "wasm")]
-pub use aleo_wasm as wasm;

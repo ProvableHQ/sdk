@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Network;
+use crate::CurrentNetwork;
 use snarkvm::{package::Package, prelude::ProgramID};
 
 use anyhow::Result;
@@ -37,7 +37,7 @@ impl New {
         path.push(&self.name);
 
         // Create the program ID from the name.
-        let id = ProgramID::<Network>::from_str(&format!("{}.aleo", self.name))?;
+        let id = ProgramID::<CurrentNetwork>::from_str(&format!("{}.aleo", self.name))?;
 
         // Create the package.
         Package::create(&path, &id)?;

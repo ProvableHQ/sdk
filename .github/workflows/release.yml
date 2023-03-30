@@ -124,7 +124,7 @@ jobs:
       - name: Zip
         run: |
           mkdir tempdir
-          mv target/aarch64-apple-darwin/release/leo tempdir
+          mv target/aarch64-apple-darwin/release/aleo tempdir
           cd tempdir
           zip -r aleo-${{ steps.get_version.outputs.version }}-aarch64-apple-darwin.zip aleo
           cd ..
@@ -174,7 +174,7 @@ jobs:
 
       - name: Zip
         run: |
-          Compress-Archive target/release/aleo.exe aleo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-msvc.zip
+          Compress-Archive target/release/aleo.exe aleo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu.zip
 
       - name: Release
         uses: softprops/action-gh-release@v1

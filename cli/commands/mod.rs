@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -26,6 +26,9 @@ pub use clean::*;
 mod deploy;
 pub use deploy::*;
 
+mod execute;
+pub use execute::*;
+
 mod new;
 pub use new::*;
 
@@ -34,6 +37,9 @@ pub use new::*;
 
 mod run;
 pub use run::*;
+
+mod transfer;
+pub use transfer::*;
 
 mod update;
 pub use update::*;
@@ -62,13 +68,17 @@ pub enum Command {
     Clean(Clean),
     #[clap(name = "deploy")]
     Deploy(Deploy),
+    #[clap(name = "execute")]
+    Execute(Execute),
     #[clap(name = "new")]
     New(New),
     // #[clap(subcommand)]
     // Node(Node),
     #[clap(name = "run")]
     Run(Run),
-    #[clap(subcommand)]
+    #[clap(name = "transfer")]
+    Transfer(Transfer),
+    #[clap(name = "update")]
     Update(Update),
 }
 
@@ -80,9 +90,11 @@ impl Command {
             Self::Build(command) => command.parse(),
             Self::Clean(command) => command.parse(),
             Self::Deploy(command) => command.parse(),
+            Self::Execute(command) => command.parse(),
             Self::New(command) => command.parse(),
             // Self::Node(command) => command.parse(),
             Self::Run(command) => command.parse(),
+            Self::Transfer(command) => command.parse(),
             Self::Update(command) => command.parse(),
         }
     }

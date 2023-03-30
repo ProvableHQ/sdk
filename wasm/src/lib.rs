@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -15,4 +15,9 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod account;
+pub use account::*;
+
 pub mod record;
+pub use record::*;
+
+pub(crate) mod types;

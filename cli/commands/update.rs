@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -19,48 +19,43 @@ use crate::helpers::Updater;
 use anyhow::Result;
 use clap::Parser;
 
-/// Update Aleo.
+/// Update Aleo to the latest version
 #[derive(Debug, Parser)]
-pub enum Update {
-    /// Update Aleo to the latest version
-    Update {
-        /// Lists all available versions of Aleo
-        #[clap(short = 'l', long)]
-        list: bool,
-        /// Suppress outputs to terminal
-        #[clap(short = 'q', long)]
-        quiet: bool,
-    },
+pub struct Update {
+    /// Lists all available versions of Aleo
+    #[clap(short = 'l', long)]
+    list: bool,
+    /// Suppress outputs to terminal
+    #[clap(short = 'q', long)]
+    quiet: bool,
 }
 
 impl Update {
     pub fn parse(self) -> Result<String> {
-        match self {
-            Self::Update { list, quiet } => match list {
-                true => match Updater::show_available_releases() {
-                    Ok(output) => Ok(output),
-                    Err(error) => Ok(format!("Failed to list the available versions of Aleo\n{error}\n")),
-                },
-                false => {
-                    let result = Updater::update_to_latest_release(!quiet);
-                    if !quiet {
-                        match result {
-                            Ok(status) => {
-                                if status.uptodate() {
-                                    Ok("\nAleo is already on the latest version".to_string())
-                                } else if status.updated() {
-                                    Ok(format!("\nAleo has updated to version {}", status.version()))
-                                } else {
-                                    Ok(String::new())
-                                }
-                            }
-                            Err(e) => Ok(format!("\nFailed to update Aleo to the latest version\n{e}\n")),
-                        }
-                    } else {
-                        Ok(String::new())
-                    }
-                }
+        match self.list {
+            true => match Updater::show_available_releases() {
+                Ok(output) => Ok(output),
+                Err(error) => Ok(format!("Failed to list the available versions of Aleo\n{error}\n")),
             },
+            false => {
+                let result = Updater::update_to_latest_release(!self.quiet);
+                if !self.quiet {
+                    match result {
+                        Ok(status) => {
+                            if status.uptodate() {
+                                Ok("\nAleo is already on the latest version".to_string())
+                            } else if status.updated() {
+                                Ok(format!("\nAleo has updated to version {}", status.version()))
+                            } else {
+                                Ok(String::new())
+                            }
+                        }
+                        Err(e) => Ok(format!("\nFailed to update Aleo to the latest version\n{e}\n")),
+                    }
+                } else {
+                    Ok(String::new())
+                }
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -25,3 +25,6 @@ pub use signature::*;
 
 pub mod view_key;
 pub use view_key::*;
+
+pub mod private_key_ciphertext;
+pub use private_key_ciphertext::*;

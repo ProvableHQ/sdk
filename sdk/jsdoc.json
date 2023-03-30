@@ -1,0 +1,27 @@
+{
+  "source": {
+    "include": ["src/account.ts", "src/node_connection.ts"],
+    "includePattern": ".+\\.ts?$"
+  },
+  "tags": {
+    "allowUnknownTags": ["optional"]
+  },
+  "plugins": ["node_modules/better-docs/typescript"],
+  "opts": {
+    "encoding": "utf8",
+    "readme": "./README.md",
+    "destination": "docs/",
+    "recurse": true,
+    "verbose": true,
+    "template": "./node_modules/clean-jsdoc-theme",
+    "theme_opts": {
+      "default_theme": "dark",
+      "static_dir": ["./public"],
+      "homepageTitle": "Aleo SDK"
+    }
+  },
+  "markdown": {
+    "hardwrap": false,
+    "idInHeadings": true
+  }
+}

@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Network;
+use crate::CurrentNetwork;
 use snarkvm::package::Package;
 
 use anyhow::Result;
@@ -32,7 +32,7 @@ impl Clean {
         let path = std::env::current_dir()?;
 
         // Clean the build directory.
-        Package::<Network>::clean(&path)?;
+        Package::<CurrentNetwork>::clean(&path)?;
 
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.join("build").display());

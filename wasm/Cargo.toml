@@ -1,8 +1,8 @@
 [package]
 name = "aleo-wasm"
-version = "0.3.2"
+version = "0.3.6"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
-description = "Aleo"
+description = "Toolkit for exporting key Aleo functionality and cryptography to WebAssembly"
 homepage = "https://aleo.org"
 repository = "https://github.com/AleoHQ/aleo"
 keywords = [
@@ -12,17 +12,19 @@ keywords = [
   "decentralized",
   "zero-knowledge"
 ]
-categories = [ "cryptography::cryptocurrencies", "operating-systems" ]
+categories = [ "cryptography::cryptocurrencies" ]
 include = [ "Cargo.toml", "src", "README.md", "LICENSE.md" ]
 license = "GPL-3.0"
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = [ "cdylib", "rlib" ]
 
-[dependencies.aleo-account]
-path = "../rust/account"
-version = "0.3.2"
+[dependencies.aleo-rust]
+version = "0.3.6"
+path = "../rust"
+features = [ "wasm" ]
+default-features = false
 
 [dependencies.anyhow]
 version = "1.0"
@@ -39,6 +41,10 @@ version = "0.8"
 
 [dependencies.serde_json]
 version = "1.0"
+
+[dependencies.snarkvm-wasm]
+workspace = true
+features = [ "console", "fields", "utilities" ]
 
 [dependencies.wasm-bindgen]
 version = "0.2"

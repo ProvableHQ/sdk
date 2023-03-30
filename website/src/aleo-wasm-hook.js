@@ -5,7 +5,7 @@ export const useAleoWASM = () => {
 
     useEffect(() => {
         if (aleo === null) {
-            import('aleo-wasm').then(module => setAleo(module));
+            import('@aleohq/wasm').then(module => setAleo(module));
         }
     }, []);  // eslint-disable-line react-hooks/exhaustive-deps
     return aleo;

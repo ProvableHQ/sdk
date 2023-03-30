@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2021 Aleo Systems Inc.
+// Copyright (C) 2019-2023 Aleo Systems Inc.
 // This file is part of the Aleo library.
 
 // The Aleo library is free software: you can redistribute it and/or modify
@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{Address, PrivateKey};
-use aleo_account::Signature as SignatureNative;
+use crate::{
+    account::{Address, PrivateKey},
+    types::SignatureNative,
+};
 
 use core::{fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
