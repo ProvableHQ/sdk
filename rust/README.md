@@ -108,7 +108,7 @@ program_manager.add_program(&program).unwrap();
 // Create a record finder to find records to fund the deployment fee
 let record_finder = RecordFinder::<Testnet3>::new(AleoAPIClient::testnet3());
 // Set the fee for the deployment transaction (in units of gates)
-let fee_gates = 300000;
+let fee_gates = 600000;
 // Find a record to fund the deployment fee (requires an account with a balance)
 let record = record_finder.find_one_record(&private_key, fee_gates).unwrap();
 // Deploy the program to the network
