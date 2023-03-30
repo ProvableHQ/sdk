@@ -174,7 +174,7 @@ jobs:
 
       - name: Zip
         run: |
-          Compress-Archive target/release/aleo.exe aleo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-msvc.zip
+          Compress-Archive target/release/aleo.exe aleo-${{ steps.get_version.outputs.version }}-x86_64-pc-windows-gnu.zip
 
       - name: Release
         uses: softprops/action-gh-release@v1
