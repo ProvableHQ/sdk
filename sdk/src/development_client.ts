@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 interface DeployRequest {
     program: string;
     private_key?: string;
@@ -26,6 +28,13 @@ interface TransferRequest {
     amount_record?: string;
 }
 
+const config = {
+    headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Referrer-Policy": "no-referrer"
+    },
+};
+
 export class DevelopmentClient {
     baseURL: string;
 
@@ -34,17 +43,12 @@ export class DevelopmentClient {
     }
 
     async sendRequest<T>(path: string, request: any): Promise<T> {
-        console.log(JSON.stringify(request));
-        const response = await fetch(`${this.baseURL}/testnet3${path}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(request),
-        });
+        const response = await axios.post(`${this.baseURL}/testnet3${path}`, request, config);
 
-        if (!response.ok) {throw new Error(`Error sending request: ${response.statusText}`);
+        if (!(response.statusText = "200")) {throw new Error(`Error sending request: ${response.statusText}`);
         }
 
-        return await response.json();
+        return await response.data;
     }
 
     async deployProgram(
@@ -106,3 +110,5 @@ export class DevelopmentClient {
         return await this.sendRequest('/transfer', request);
     }
 }
+
+export default DevelopmentClient;

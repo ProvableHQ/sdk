@@ -12,12 +12,12 @@ export const useAleoWASM = () => {
 };
 
 export const useAleoSDK = () => {
-    const [aleo, setAleoSdk] = useState(null);
+    const [aleoSdk, setAleoSdk] = useState(null);
 
     useEffect(() => {
-        if (aleo === null) {
+        if (aleoSdk === null) {
             import('@aleohq/sdk').then(module => setAleoSdk(module));
         }
     }, []);  // eslint-disable-line react-hooks/exhaustive-deps
-    return aleo;
+    return aleoSdk;
 };

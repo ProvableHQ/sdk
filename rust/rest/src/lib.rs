@@ -40,7 +40,6 @@ use snarkvm::{
 
 use anyhow::Result;
 use colored::*;
-use http::header::HeaderName;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use warp::{reject, reply, Filter, Rejection, Reply};
@@ -94,18 +93,31 @@ impl<N: Network> Rest<N> {
 impl<N: Network> Rest<N> {
     /// Initializes the server.
     pub async fn start(&mut self) {
-        let cors = warp::cors()
-            .allow_any_origin()
-            .allow_header(HeaderName::from_static("content-type"))
-            .allow_methods(vec!["GET", "POST", "OPTIONS"]);
+        let cors = warp::cors().allow_any_origin().allow_methods(vec!["GET", "POST", "OPTIONS"]).allow_headers(vec![
+            "access-control-allow-origin",
+            "access-control-request-method",
+            "access-control-request-headers",
+            "referer",
+            "referrer-policy",
+            "user-agent",
+            "origin",
+            "accept",
+            "content-type",
+            "authorization",
+        ]);
 
         // Initialize the routes.
         let routes = self.routes();
 
+        env_logger::init();
+        //fmt::Subscriber::builder()
+        //    .with_env_filter("info")
+        //    .init();
+
         // Add custom logging for each request.
         let custom_log = warp::log::custom(|info| match info.remote_addr() {
-            Some(addr) => debug!("Received '{} {}' from '{addr}' ({})", info.method(), info.path(), info.status()),
-            None => debug!("Received '{} {}' ({})", info.method(), info.path(), info.status()),
+            Some(addr) => info!("Received '{} {}' from '{addr}' ({})", info.method(), info.path(), info.status()),
+            None => info!("Received '{} {}' ({})", info.method(), info.path(), info.status()),
         });
 
         println!("{}", "✅ Launching Aleo Development Server!".bright_blue().bold());

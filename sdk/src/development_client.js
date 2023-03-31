@@ -1,4 +1,11 @@
 import { __awaiter, __generator } from "tslib";
+import axios from 'axios';
+var config = {
+    headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Referrer-Policy": "no-referrer"
+    }
+};
 var DevelopmentClient = /** @class */ (function () {
     function DevelopmentClient(baseURL) {
         this.baseURL = baseURL;
@@ -8,17 +15,13 @@ var DevelopmentClient = /** @class */ (function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch("".concat(this.baseURL, "/testnet3").concat(path), {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(request)
-                        })];
+                    case 0: return [4 /*yield*/, axios.post("".concat(this.baseURL, "/testnet3").concat(path), request, config)];
                     case 1:
                         response = _a.sent();
-                        if (!response.ok) {
+                        if (!(response.statusText = "200")) {
                             throw new Error("Error sending request: ".concat(response.statusText));
                         }
-                        return [4 /*yield*/, response.json()];
+                        return [4 /*yield*/, response.data];
                     case 2: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -32,10 +35,10 @@ var DevelopmentClient = /** @class */ (function () {
                     case 0:
                         request = {
                             program: program,
-                            fee: fee,
-                            privateKey: privateKey,
+                            private_key: privateKey,
                             password: password,
-                            feeRecord: feeRecord
+                            fee: fee,
+                            fee_record: feeRecord
                         };
                         return [4 /*yield*/, this.sendRequest('/deploy', request)];
                     case 1: return [2 /*return*/, _a.sent()];
@@ -50,13 +53,13 @@ var DevelopmentClient = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         request = {
-                            programId: programId,
-                            programFunction: programFunction,
+                            program_id: programId,
+                            program_function: programFunction,
                             inputs: inputs,
-                            privateKey: privateKey,
+                            private_key: privateKey,
                             password: password,
                             fee: fee,
-                            feeRecord: feeRecord
+                            fee_record: feeRecord
                         };
                         return [4 /*yield*/, this.sendRequest('/execute', request)];
                     case 1: return [2 /*return*/, _a.sent()];
@@ -74,10 +77,10 @@ var DevelopmentClient = /** @class */ (function () {
                             amount: amount,
                             fee: fee,
                             recipient: recipient,
-                            privateKey: privateKey,
+                            private_key: privateKey,
                             password: password,
-                            feeRecord: feeRecord,
-                            amountRecord: amountRecord
+                            fee_record: feeRecord,
+                            amount_record: amountRecord
                         };
                         return [4 /*yield*/, this.sendRequest('/transfer', request)];
                     case 1: return [2 /*return*/, _a.sent()];
@@ -87,5 +90,6 @@ var DevelopmentClient = /** @class */ (function () {
     };
     return DevelopmentClient;
 }());
+export { DevelopmentClient };
 export default DevelopmentClient;
 //# sourceMappingURL=development_client.js.map

@@ -1,4 +1,4 @@
-declare class DevelopmentClient {
+export declare class DevelopmentClient {
     baseURL: string;
     constructor(baseURL: string);
     sendRequest<T>(path: string, request: any): Promise<T>;

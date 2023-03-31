@@ -1,4 +1,6 @@
 import { Account } from "./account";
 import { NodeConnection } from "./node_connection";
 import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/wasm";
-export { Account, NodeConnection, PrivateKey, Signature, ViewKey, Address };
+import { DevelopmentClient } from "./development_client";
+import { Transaction } from "./models/transaction";
+export { Account, DevelopmentClient, NodeConnection, PrivateKey, Signature, ViewKey, Address, Transaction };

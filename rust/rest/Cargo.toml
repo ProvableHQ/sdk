@@ -50,6 +50,9 @@ features = [ "derive" ]
 [dependencies.aleo-rust]
 path = "../../rust"
 
+[dependencies.env_logger]
+version = "0.10.0"
+
 [dependencies.rand]
 version = "0.8"
 
@@ -65,6 +68,10 @@ features = [ "full" ]
 
 [dependencies.tracing]
 version = "0.1"
+
+[dependencies.tracing-subscriber]
+version = "0.3.16"
+features = [ "fmt", "env-filter" ]
 
 [dependencies.warp]
 version = "0.3"

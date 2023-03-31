@@ -14,7 +14,9 @@ import {GetTransaction} from "./tabs/rest/GetTransaction";
 import {NewAccount} from "./tabs/account/NewAccount";
 import {SignMessage} from "./tabs/account/SignMessage";
 import {VerifyMessage} from "./tabs/account/VerifyMessage";
-import {Develop} from "./tabs/develop/Develop";
+import {Execute} from "./tabs/develop/Execute";
+import {Deploy} from "./tabs/develop/Deploy";
+
 
 const {Header, Content, Footer} = Layout;
 
@@ -79,7 +81,9 @@ function App() {
                 {
                     menuIndex === 4 &&
                     <>
-                        <Develop/>
+                        <Execute/>
+                        <br/>
+                        <Deploy/>
                     </>
                 }
             </Content>

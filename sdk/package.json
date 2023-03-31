@@ -35,6 +35,7 @@
   "homepage": "https://github.com/AleoHQ/aleo#readme",
   "dependencies": {
     "@aleohq/wasm": "file:../wasm/pkg",
+    "axios": "^1.3.4",
     "jsdoc": "^3.6.11",
     "unfetch": "^4.2.0"
   },
