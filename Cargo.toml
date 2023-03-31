@@ -21,14 +21,10 @@ edition = "2021"
 members = [ "rust", "wasm", "rust/rest" ]
 
 [workspace.dependencies.snarkvm]
-version = "0.9.14"
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "fix/change-inclusion-proof-fetcher"
+version = "0.9.15"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.14"
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "fix/change-inclusion-proof-fetcher"
+version = "0.9.15"
 default-features = false
 
 [lib]

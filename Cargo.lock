@@ -2026,8 +2026,9 @@ checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
 name = "snarkvm"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "addb63b9a19f08086cbc0689088986b11fd8841c623f56a1fc17ff4d727581c2"
 dependencies = [
  "anyhow",
  "clap",
@@ -2053,8 +2054,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-algorithms"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d341622dbbbda834cdd5dbf9b604d6b7cf265334463412dd2183164b5699ceff"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -2079,8 +2081,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5527eb630bb49e874b9a0180aa006f5bb15a532e09cb1121c21fffb51a305f5e"
 dependencies = [
  "snarkvm-circuit-account",
  "snarkvm-circuit-algorithms",
@@ -2093,8 +2096,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-account"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7bea5b88dd9ad2e307ebbbae16180db044a9ea8186d53ad1abed3c274c2f553"
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-network",
@@ -2104,8 +2108,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-algorithms"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1de5a4f3f6816716491a8ef7246ee8a5efde0788beb7437d676842c933c1f028"
 dependencies = [
  "snarkvm-circuit-types",
  "snarkvm-console-algorithms",
@@ -2114,8 +2119,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-collections"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f18250fa47aa1050748688a962891aba6f5d0b34a42644eea752fe4a6ce8a3d9"
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-types",
@@ -2124,8 +2130,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-environment"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5107ba087f3020a37e0b759d9f24a1ce38bda2d83f80d3e8a9cf56c894c76c07"
 dependencies = [
  "indexmap",
  "itertools",
@@ -2142,13 +2149,15 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-environment-witness"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f70504755ab51c305708984e80647cf9ee975bf8005e670f9772260cbe346d2"
 
 [[package]]
 name = "snarkvm-circuit-network"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32e9f480a8ca72631f9daf039d554be304bca33bfa82e2fdde1341d3c066a0f1"
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-collections",
@@ -2158,8 +2167,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-program"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5b8f904b81f2458eb221d07c85ba733106221129014417e61040c893af342c4"
 dependencies = [
  "snarkvm-circuit-account",
  "snarkvm-circuit-collections",
@@ -2171,8 +2181,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-types"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fee73f2ae81b624178ae57c1feacddda795d14689d6847a874992b5449d5b3d2"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-address",
@@ -2186,8 +2197,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-types-address"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26e10ed4b00515fa032edb6a48dc67be917c87a8b109f973c1041a3d76e66d82"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
@@ -2199,8 +2211,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-types-boolean"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b39b449aab3408d2e706659957a82fcb021a0b60e7860cc87da55225f2db8c8"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-console-types-boolean",
@@ -2208,8 +2221,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-types-field"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44a24adba54e373380da4835a6a3f221faf73add0792699d7edd0d5c8ad83400"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
@@ -2218,8 +2232,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-types-group"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a71e4067147eab65de035e43795ea8910d081f1f3e6e2c0ca9bc7cfbe48535f6"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
@@ -2230,8 +2245,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-types-integers"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85c7f7902a7cc786b4c9ba81b3154225ddb76913d681636dca6763c3ee4d9dbb"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
@@ -2241,8 +2257,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-types-scalar"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bf95f7fea6d3695221ed71f8b6fdabeaf99b0635387fbaf4b3adf6d49a7fcbf"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
@@ -2252,8 +2269,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-circuit-types-string"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52512d03700b0f903633b94336b2cd9707f125008e8eab0f47c6379a59c78d62"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
@@ -2264,8 +2282,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "985ecd9a54e3da24230ba8fc3717f4a8164961a110eef740ca0dacc3f83331a6"
 dependencies = [
  "snarkvm-console-account",
  "snarkvm-console-algorithms",
@@ -2277,8 +2296,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-account"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "203638f6d5d10f79a10da3786cb5fd4e4bee740d3144f42d82999eca595002dd"
 dependencies = [
  "bs58",
  "snarkvm-console-network",
@@ -2287,8 +2307,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-algorithms"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89e6d2a87cd8cb7eb7621d76a9d27867ce28ca4b64799d5bcdfc2200d0537f90"
 dependencies = [
  "blake2s_simd",
  "smallvec",
@@ -2299,8 +2320,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-collections"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d431d54df94e8876195b96cd69d2adb07af9567d003c7f721caeab1605602967"
 dependencies = [
  "aleo-std",
  "rayon",
@@ -2310,8 +2332,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-network"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ece226dac8ea76842266f9a663e8b1008370ecd2536f66d156906008c569a12b"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -2333,8 +2356,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-network-environment"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d199a5de2f20a9936fedf08f5a8764fdf5bfe3ea5a2679aab7293debbf69834"
 dependencies = [
  "anyhow",
  "bech32",
@@ -2350,8 +2374,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-program"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd4513a3f721f074911ffe5a8ea1bd1b76fe6a09582ef43151395c207d8fa9a8"
 dependencies = [
  "enum_index",
  "enum_index_derive",
@@ -2369,8 +2394,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-types"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1267354faca349737fd09a9abbb4a1cee10e74201bb0cf11b4241ccd6543940"
 dependencies = [
  "snarkvm-console-network-environment",
  "snarkvm-console-types-address",
@@ -2384,8 +2410,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-types-address"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59413a29e1b91f77f2674224251247942a6f340a01aa33613b1942bdf55286a7"
 dependencies = [
  "snarkvm-console-network-environment",
  "snarkvm-console-types-boolean",
@@ -2395,16 +2422,18 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-types-boolean"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da30d655b1cce9ce1342a12f6d36426d4625e24b96cd860a5b2203fdbea9f0bd"
 dependencies = [
  "snarkvm-console-network-environment",
 ]
 
 [[package]]
 name = "snarkvm-console-types-field"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c61c491be104605984577d5c4455ca016095529388170d2816eb053eb043e673"
 dependencies = [
  "snarkvm-console-network-environment",
  "snarkvm-console-types-boolean",
@@ -2412,8 +2441,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-types-group"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4bb5df7bcef6ebfc9337d58f69e48ad9881f5145f96bfb06d897fabca069b47d"
 dependencies = [
  "snarkvm-console-network-environment",
  "snarkvm-console-types-boolean",
@@ -2423,8 +2453,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-types-integers"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3effc72bb9c40f117f76814e7e667303ecbd370248f4a074e9989c67bcc5e2e8"
 dependencies = [
  "snarkvm-console-network-environment",
  "snarkvm-console-types-boolean",
@@ -2433,8 +2464,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-types-scalar"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b06c156f6d15081af823e08188813900f64f93b3d3d168436eb7b9f0bb6072ed"
 dependencies = [
  "snarkvm-console-network-environment",
  "snarkvm-console-types-boolean",
@@ -2443,8 +2475,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-console-types-string"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcd09921f27524604555ef6f100e11d2177591e4dded85da13faac42f8fe3d8e"
 dependencies = [
  "snarkvm-console-network-environment",
  "snarkvm-console-types-boolean",
@@ -2454,8 +2487,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-curves"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e72e046d3c3ccb2fec0f482cf9e9e41d026abcf5a051d8843636d83e4ffde5d"
 dependencies = [
  "rand",
  "rustc_version",
@@ -2467,8 +2501,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-fields"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ed32eea82858c624bf47ddebf4bba4da4d5565ea99adfeabd5e73bf7adaab55"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -2484,8 +2519,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-parameters"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b58f73405de286cebe54a78b3399c3ea360e7c8d56f20680036b569452827b1"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -2511,8 +2547,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-r1cs"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3be5915996c986fad18dca18d9a1338a242d13b5a1049584935f7fb5c97226af"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -2527,8 +2564,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-synthesizer"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e675314b33cd8eddde22b53b4ef2576827de2b2857f825428df04d556b4e317b"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -2554,8 +2592,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-utilities"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ff2b136115a8ebfb9862f3ebf49db198fefd7ed7c8b1336aa54eb78dd04c2e7"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -2573,8 +2612,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-utilities-derives"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#3448b4810c746478988c93e612188845c1f6304c"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18990f80ea84175cc11f7ac5a458154fb0c9738eaa6e3d26a8779e3e27de3755"
 dependencies = [
  "proc-macro2 1.0.54",
  "quote 1.0.26",
@@ -2583,8 +2623,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-wasm"
-version = "0.9.14"
-source = "git+https://github.com/AleoHQ/snarkVM.git?branch=fix/change-inclusion-proof-fetcher#f37ad460f1c6749bf54986e832d30436df627f7d"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07a064f006cea46c7de9348f02e46c8aad998d669d6a0dc540b09099d84a80f8"
 dependencies = [
  "getrandom",
  "rand",

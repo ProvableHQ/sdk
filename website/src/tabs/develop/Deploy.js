@@ -42,6 +42,14 @@ export const Deploy = () => {
         return fee;
     }
 
+    const onDeployProgramChange = (event) => {
+        if (event.target.value !== null) {
+            setDeployProgram(event.target.value);
+        }
+        setDeployTransactionId(null);
+        return deployProgram;
+    }
+
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
     const deploymentTransactionString = () => deployTransactionId !== null ? deployTransactionId : "";
     const feeString = () => fee !== null ? Number(fee) : 0;
@@ -58,7 +66,7 @@ export const Deploy = () => {
             <Divider/>
                 <Form.Item label="Program Bytecode" colon={false}>
                     <Input.TextArea size="large" rows={10} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
-                                    value={programString()}/>
+                                    value={programString()} onChange={onDeployProgramChange} />
                 </Form.Item>
             <Divider/>
                 <Form.Item label="Fee"

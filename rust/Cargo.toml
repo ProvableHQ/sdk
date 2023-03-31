@@ -53,9 +53,7 @@ optional = true
 workspace = true
 
 [dependencies.snarkvm-console]
-version = "0.9.14"
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "fix/change-inclusion-proof-fetcher"
+version = "0.9.15"
 features = [ "wasm" ]
 
 [dev-dependencies.bencher]
