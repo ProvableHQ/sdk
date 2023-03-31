@@ -1,4 +1,5 @@
 import {Account, Block, AleoNetworkClient, Transaction} from "../src";
+import {privateKeyString} from "./data/account-data";
 jest.retryTimes(3);
 
 describe('NodeConnection', () => {
@@ -115,5 +116,22 @@ describe('NodeConnection', () => {
         it('should throw an error if the request fails', async () => {
             await expect(connection.getTransitionId("garbage")).rejects.toThrow("Error fetching transition ID.");
         }, 60000);
+    });
+
+    describe('findUnspentRecords', () => {
+        it('should fail if block heights or private keys are incorrectly specified', async () => {
+            await expect(connection.findUnspentRecords(5, 0, privateKeyString, undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(-5, 5, privateKeyString, undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined)).rejects.toThrow();
+        }, 60000);
+
+        it('should search a range correctly and not find records where none exist', async () => {
+            const records = await connection.findUnspentRecords(0, 204, privateKeyString, undefined, undefined);
+            expect(Array.isArray(records)).toBe(true);
+            if (!(records instanceof Error)) {
+                expect(records.length).toBe(0);
+            }
+        }, 90000);
     });
 });

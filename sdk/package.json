@@ -17,7 +17,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "jest --config jestconfig.json"
+    "test": "jest --config jest-config.json",
+    "integration": "jest --config jest-integration-config.json"
   },
   "repository": {
     "type": "git",
