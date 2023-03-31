@@ -1,7 +1,5 @@
-import fetch from "unfetch";
-import { Account } from "./account";
-import { Block } from "./models/block";
-import { Transaction } from "./models/transaction";
+import axios from "axios";
+import { Account, Block, Transaction, Transition } from ".";
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
@@ -10,12 +8,12 @@ import { Transaction } from "./models/transaction";
  * @param {string} host
  * @example
  * // Connection to a local node
- * let local_connection = new NodeConnection("localhost:4130");
+ * let local_connection = new NodeConnection("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * let public_connection = new NodeConnection("vm.aleo.org/api");
+ * let public_connection = new NodeConnection("https://vm.aleo.org/api");
  */
-export class NodeConnection {
+export class AleoNetworkClient {
   host: string;
   account: Account | undefined;
 
@@ -47,19 +45,13 @@ export class NodeConnection {
 
   async fetchData<Type>(
     url = "/",
-    method = "GET",
-    body = "",
-    headers: Record<string, string> = { "Content-Type": "application/json" }
   ): Promise<Type> {
-      const response = await fetch(this.host + url, {
-        method: method,
-        body: JSON.stringify(body),
-        headers: headers,
-      });
-      try {
-        if (!response.ok) { throw response }
-        return (await response.json()) as Type;
-      } catch (error) { throw error; }
+     try {
+       const response = await axios.get<Type>(this.host + url);
+       return response.data;
+     } catch (error) {
+       throw new Error("Error fetching data.");
+     }
   }
 
   /**
@@ -71,9 +63,9 @@ export class NodeConnection {
    */
   async getBlock(height: number): Promise<Block | Error> {
     try {
-      return await this.fetchData<Block>("/block/" + height);
+      const block = await this.fetchData<Block>("/block/" + height);
+      return block;
     } catch (error) {
-      console.log("Error - response: ", error);
       throw new Error("Error fetching block.");
     }
   }
@@ -88,10 +80,9 @@ export class NodeConnection {
    */
   async getBlockRange(start: number, end: number): Promise<Array<Block> | Error> {
     try {
-      return await this.fetchData<Array<Block>>("/blocks?start={" + start + "}&end={" + end + "}");
+      return await this.fetchData<Array<Block>>("/blocks?start=" + start + "&end=" + end);
     } catch (error) {
       const errorMessage = "Error fetching blocks between " + start + " and " + end + "."
-      console.log(errorMessage + "- response: ", error);
       throw new Error(errorMessage);
     }
   }
@@ -107,7 +98,6 @@ export class NodeConnection {
     try {
       return await this.fetchData<string>("/program/" + programId)
     } catch (error) {
-      console.log("Error fetching program - response: ", error);
       throw new Error("Error fetching program");
     }
   }
@@ -122,7 +112,6 @@ export class NodeConnection {
     try {
       return await this.fetchData<Block>("/latest/block") as Block;
     } catch (error) {
-      console.log("Error - response: ", error);
       throw new Error("Error fetching latest block.");
     }
   }
@@ -137,7 +126,6 @@ export class NodeConnection {
     try {
       return await this.fetchData<string>("/latest/hash");
     } catch (error) {
-      console.log("Error - response: ", error);
       throw new Error("Error fetching latest hash.");
     }
   }
@@ -152,7 +140,6 @@ export class NodeConnection {
     try {
       return await this.fetchData<number>("/latest/height");
     } catch (error) {
-      console.log("Error - response: ", error);
       throw new Error("Error fetching latest height.");
     }
   }
@@ -165,9 +152,8 @@ export class NodeConnection {
    */
   async getStateRoot(): Promise<string | Error> {
     try {
-      return await this.fetchData<string>("latest/stateRoot");
+      return await this.fetchData<string>("/latest/stateRoot");
     } catch (error) {
-      console.log("Error - response: ", error);
       throw new Error("Error fetching Aleo state root");
     }
   }
@@ -183,7 +169,6 @@ export class NodeConnection {
     try {
       return await this.fetchData<Transaction>("/transaction/" + id);
     } catch (error) {
-      console.log("Error - response: ", error);
       throw new Error("Error fetching transaction.");
     }
   }
@@ -197,9 +182,8 @@ export class NodeConnection {
    */
   async getTransactions(height: number): Promise<Array<Transaction> | Error> {
     try {
-      return await this.fetchData<Array<Transaction>>("/transactions/" + height);
+      return await this.fetchData<Array<Transaction>>("/block/" + height.toString() + "/transactions");
     } catch (error) {
-      console.log("Error - response: ", error);
       throw new Error("Error fetching transactions.");
     }
   }
@@ -214,10 +198,23 @@ export class NodeConnection {
     try {
       return await this.fetchData<Array<Transaction>>("/memoryPool/transactions");
     } catch (error) {
-      console.log("Error - response: ", error);
       throw new Error("Error fetching transactions from mempool.");
+    }
+  }
+
+  /**
+   * Returns the transition id by its unique identifier
+   *
+   * @example
+   * let transition = connection.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
+   */
+  async getTransitionId(transition_id: string): Promise<Transition | Error> {
+    try {
+      return await this.fetchData<Transition>("/find/transitionID/" + transition_id);
+    } catch (error) {
+      throw new Error("Error fetching transition ID.");
     }
   }
 }
 
-export default NodeConnection;
+export default AleoNetworkClient;

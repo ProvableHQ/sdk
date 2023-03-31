@@ -43,7 +43,7 @@ default = [ ]
 
 [dependencies.aleo-rust]
 path = "rust"
-version = "0.3.5"
+version = "0.3.6"
 
 [dependencies.anyhow]
 version = "1.0"
