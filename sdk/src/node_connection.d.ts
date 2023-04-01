@@ -1,6 +1,5 @@
-import { Account } from "./account";
-import { Block } from "./models/block";
-import { Transaction } from "./models/transaction";
+import { Account, Block, Transaction, Transition } from ".";
+import { RecordPlaintext } from "@aleohq/wasm";
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
  * The methods provided in this class provide information on the Aleo Blockchain
@@ -8,12 +7,12 @@ import { Transaction } from "./models/transaction";
  * @param {string} host
  * @example
  * // Connection to a local node
- * let local_connection = new NodeConnection("localhost:4130");
+ * let local_connection = new NodeConnection("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * let public_connection = new NodeConnection("vm.aleo.org/api");
+ * let public_connection = new NodeConnection("https://vm.aleo.org/api");
  */
-export declare class NodeConnection {
+export declare class AleoNetworkClient {
     host: string;
     account: Account | undefined;
     constructor(host: string);
@@ -33,7 +32,7 @@ export declare class NodeConnection {
      * let account = connection.getAccount();
      */
     getAccount(): Account | undefined;
-    fetchData<Type>(url?: string, method?: string, body?: string, headers?: Record<string, string>): Promise<Type>;
+    fetchData<Type>(url?: string): Promise<Type>;
     /**
      * Returns the block contents of the block at the specified block height
      *
@@ -110,5 +109,29 @@ export declare class NodeConnection {
      * let transactions = connection.getTransactionsInMempool();
      */
     getTransactionsInMempool(): Promise<Array<Transaction> | Error>;
+    /**
+     * Returns the transition id by its unique identifier
+     *
+     * @example
+     * let transition = connection.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
+     */
+    getTransitionId(transition_id: string): Promise<Transition | Error>;
+    /**
+     * Attempts to find unspent records in the Aleo blockchain for a specified private key
+     *
+     * @example
+     * // Find all unspent records
+     * const private_key = "[PRIVATE_KEY]";
+     * let records = connection.findUnspentRecords(0, undefined, private_key);
+     *
+     * // Find specific amounts
+     * const start_height = 500000;
+     * const amounts = [600000, 1000000];
+     * let records = connection.findUnspentRecords(start_height, undefined, private_key, amounts);
+     *
+     * // Find specific amounts with a maximum number of cumulative gates
+     * const max_gates = 100000;
+     * let records = connection.findUnspentRecords(start_height, undefined, private_key, undefined, max_gates);
+     */
+    findUnspentRecords(start_height: number, end_height: number | undefined, private_key: string | undefined, amounts: number[] | undefined, max_gates: number | undefined): Promise<Array<RecordPlaintext> | Error>;
 }
-export default NodeConnection;

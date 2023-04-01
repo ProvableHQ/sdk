@@ -1,5 +1,5 @@
+import { DevelopmentClient } from '../src';
 import { addressString, privateKeyString, helloProgram } from './data/account-data';
-import { DevelopmentClient, NodeConnection } from "../src";
 
 function wait(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -7,7 +7,7 @@ function wait(ms: number): Promise<void> {
 
 describe('DevelopmentServer', () => {
     describe('Deploy & Execute', () => {
-        it.only("creates the develop object successfully", async () => {
+        it("creates the develop object successfully", async () => {
             const develop = new DevelopmentClient("http://localhost:4321");
             expect(develop).toBeTruthy();
         });

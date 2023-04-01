@@ -1,19 +1,18 @@
 import React, { useState } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result} from "antd";
-import axios from "axios";
-import DevelopmentClient from "@aleohq/sdk/src/development_client";
+import { DevelopmentClient } from "@aleohq/sdk";
 
 export const Deploy = () => {
-    const [fee, setFee] = useState(null);
+    const client = new DevelopmentClient("http://localhost:4321");
     const [deployPrivateKey, setDeployPrivateKey] = useState(null);
     const [deployProgram, setDeployProgram] = useState(null);
     const [deployTransactionId, setDeployTransactionId] = useState(null);
+    const [fee, setFee] = useState(null);
     const demo_program = 'program hello.aleo;\n\nfunction main:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n'
-    let client = new DevelopmentClient("http://localhost:4321");
 
     const deploy = async (event) => {
         try {
-            let transaction = await client.deployProgram(programString(), feeNumber(), privateKeyString());
+            let transaction = await client.deployProgram(programString(), Number(feeString())*1000000, privateKeyString());
             setDeployTransactionId(transaction);
         } catch (error) {
             setDeployTransactionId("Error");
@@ -52,7 +51,7 @@ export const Deploy = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
     const deploymentTransactionString = () => deployTransactionId !== null ? deployTransactionId : "";
-    const feeString = () => fee !== null ? Number(fee) : 0;
+    const feeString = () => fee !== null ? fee : "";
     const privateKeyString = () => deployPrivateKey !== null ? deployPrivateKey : "";
     const programString = () => deployProgram !== null ? deployProgram : "";
 
@@ -84,7 +83,7 @@ export const Deploy = () => {
                            colon={false}
                 >
                     <Input.TextArea name="private_key"
-                                    size="large"
+                                    size="small"
                                     placeholder="Private Key"
                                     allowClear
                                     onChange={onPrivateKeyChange}
@@ -101,12 +100,12 @@ export const Deploy = () => {
                 (deployTransactionId !== "Error") ?
                 <Result
                     status="success"
-                    title="Deployment Transaction Successful!"
+                    title="Deployment Successful!"
                     subTitle={"Transaction ID: " + deploymentTransactionString()}
                 /> :
                     <Result
                         status="error"
-                        title="Deployment Failed!"
+                        title="Deployment Failed"
                     /> : null
 
         }

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import {Button, Card, Col, Divider, Form, Input, Row, Result} from "antd";
+import {Button, Card, Divider, Form, Input, Row, Result} from "antd";
 import axios from "axios";
-import DevelopmentClient from "@aleohq/sdk/src/development_client";
+import { DevelopmentClient } from "@aleohq/sdk";
 
 export const Execute = () => {
+    const client = new DevelopmentClient("http://localhost:4321");
     const [functionID, setFunctionID] = useState(null);
     const [inputs, setInputs] = useState(null);
     const [privateKey, setPrivateKey] = useState(null);
@@ -11,7 +12,6 @@ export const Execute = () => {
     const [programID, setProgramID] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
-    let client = new DevelopmentClient("http://localhost:4321");
 
     const execute = async (event) => {
         try {
@@ -169,7 +169,7 @@ export const Execute = () => {
                            validateStatus={status}
                 >
                     <Input.TextArea name="private_key"
-                                    size="large"
+                                    size="small"
                                     placeholder="Private Key"
                                     allowClear
                                     onChange={onPrivateKeyChange}
@@ -186,12 +186,12 @@ export const Execute = () => {
                 (transactionID !== "Error") ?
                 <Result
                     status="success"
-                    title="Execution Transaction Successful!"
+                    title="Execution Successful!"
                     subTitle={"Transaction ID: " + transactionIDString()}
                 /> :
                     <Result
                         status="error"
-                        title="Execution Failed!"
+                        title="Execution Failed"
                     /> : null
 
         }
