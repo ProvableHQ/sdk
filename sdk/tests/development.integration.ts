@@ -1,4 +1,4 @@
-import { DevelopmentClient } from '../src';
+import {DevelopmentClient} from '../src';
 import {addressString, privateKeyString, helloProgram, helloProgramId} from './data/account-data';
 
 function wait(ms: number): Promise<void> {
@@ -6,45 +6,65 @@ function wait(ms: number): Promise<void> {
 }
 
 describe('DevelopmentServer', () => {
+    let client: DevelopmentClient;
+
+    beforeEach(() => {
+        client = new DevelopmentClient("http://localhost:4321");
+    });
+
     describe('Deploy & Execute', () => {
-        it("creates the develop object successfully", async () => {
-            const develop = new DevelopmentClient("http://localhost:4321");
-            expect(develop).toBeTruthy();
-        });
 
         it("can make transfers with the aleo development server", async () => {
-            const develop = new DevelopmentClient("http://localhost:4321");
-            for (let i = 0; i < 10; i++) {
+            let transaction_id = "";
+            for (let i = 0; i < 4; i++) {
                 try {
-                    const transfer_transaction_id: string = await develop.transfer(1000, 0, addressString, privateKeyString);
-                    expect(transfer_transaction_id).toBeTruthy();
+                    transaction_id = await client.transfer(1000, 0, addressString, privateKeyString);
                     break;
                 } catch (e) {
                 }
             }
+
+            // If the transaction failed above, try one more time
+            if (transaction_id === "") {
+                transaction_id = await client.transfer(1000, 0, addressString, privateKeyString);
+            }
+            expect(transaction_id).toBeTruthy();
         }, 90000);
 
         it('can run deploy and execute on the aleo development server', async () => {
-            const develop = new DevelopmentClient("http://localhost:4321");
-            for (let i = 0; i < 10; i++) {
+            const client = new DevelopmentClient("http://localhost:4321");
+            let deploy_transaction_id = "";
+            for (let i = 0; i < 4; i++) {
                 try {
-                    await develop.deployProgram(helloProgram, 6000000, privateKeyString);
+                    deploy_transaction_id = await client.deployProgram(helloProgram, 6000000, privateKeyString);
                     break;
                 }
                 catch (e) {
                 }
             }
+            // If the transaction failed above, try one more time
+            if (deploy_transaction_id === "") {
+                deploy_transaction_id = await client.deployProgram(helloProgram, 6000000, privateKeyString);
+            }
+            expect(deploy_transaction_id).toBeTruthy();
+
             await wait(10000);
 
-            for (let i = 0; i < 5; i++) {
+            let execute_transaction_id = "";
+            for (let i = 0; i < 3; i++) {
                 try {
-                    await develop.deployProgram(helloProgram, 6000000, privateKeyString);
-                    const execute_transaction_id: string = await develop.executeProgram(helloProgramId, "main", 0, ["5u32", "5u32"], privateKeyString);
+                    execute_transaction_id = await client.executeProgram(helloProgramId, "main", 0, ["5u32", "5u32"], privateKeyString);
                     expect(execute_transaction_id).toBeTruthy();
                     break;
                 } catch (e) {
                 }
             }
+
+            // If the transaction failed above, try one more time
+            if (execute_transaction_id === "") {
+                execute_transaction_id = await client.deployProgram(helloProgram, 6000000, privateKeyString);
+            }
+            expect(execute_transaction_id).toBeTruthy();
         }, 120000);
     });
 });

@@ -25,6 +25,9 @@ pub use cli::*;
 mod helpers;
 pub use helpers::*;
 
+mod requests;
+use requests::*;
+
 mod routes;
 pub use routes::*;
 
@@ -37,6 +40,7 @@ use snarkvm::{
     prelude::{Network, Testnet3},
     synthesizer::program::Program,
 };
+use tracing_subscriber::fmt;
 
 use anyhow::Result;
 use colored::*;
@@ -109,10 +113,7 @@ impl<N: Network> Rest<N> {
         // Initialize the routes.
         let routes = self.routes();
 
-        env_logger::init();
-        //fmt::Subscriber::builder()
-        //    .with_env_filter("info")
-        //    .init();
+        fmt::Subscriber::builder().with_env_filter("debug").init();
 
         // Add custom logging for each request.
         let custom_log = warp::log::custom(|info| match info.remote_addr() {

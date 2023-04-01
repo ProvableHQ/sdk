@@ -16,40 +16,6 @@
 
 use super::*;
 
-#[derive(Deserialize, Serialize)]
-#[serde(bound(serialize = "N: Serialize", deserialize = "N: for<'a> Deserialize<'a>"))]
-struct DeployRequest<N: Network> {
-    pub program: Program<N>,
-    pub private_key: Option<PrivateKey<N>>,
-    pub password: Option<String>,
-    pub fee: u64,
-    pub fee_record: Option<Record<N, Plaintext<N>>>,
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(bound(serialize = "N: Serialize", deserialize = "N: for<'a> Deserialize<'a>"))]
-struct ExecuteRequest<N: Network> {
-    pub program_id: ProgramID<N>,
-    pub program_function: Identifier<N>,
-    pub inputs: Vec<String>,
-    pub private_key: Option<PrivateKey<N>>,
-    pub password: Option<String>,
-    pub fee: u64,
-    pub fee_record: Option<Record<N, Plaintext<N>>>,
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(bound(serialize = "N: Serialize", deserialize = "N: for<'a> Deserialize<'a>"))]
-struct TransferRequest<N: Network> {
-    pub amount: u64,
-    pub fee: u64,
-    pub recipient: Address<N>,
-    pub private_key: Option<PrivateKey<N>>,
-    pub password: Option<String>,
-    pub fee_record: Option<Record<N, Plaintext<N>>>,
-    pub amount_record: Option<Record<N, Plaintext<N>>>,
-}
-
 impl<N: Network> Rest<N> {
     /// Initializes the routes, given the ledger and ledger sender.
     pub fn routes(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
@@ -88,6 +54,7 @@ impl<N: Network> Rest<N> {
 }
 
 impl<N: Network> Rest<N> {
+    // Get the private key if one is specified in the request or decrypt the local request
     fn get_private_key(
         private_key_ciphertext: Option<Ciphertext<N>>,
         private_key: Option<PrivateKey<N>>,
@@ -109,12 +76,23 @@ impl<N: Network> Rest<N> {
         }
     }
 
+    // If a separate peer url is provided in the request, use that instead of the one in the config
+    fn get_api_client(api_client: AleoAPIClient<N>, peer_url: &Option<String>) -> Result<AleoAPIClient<N>, Rejection> {
+        if let Some(peer_url) = peer_url {
+            AleoAPIClient::new(peer_url, "testnet3").or_reject()
+        } else {
+            Ok(api_client)
+        }
+    }
+
+    // Deploy a program to the network specified
     async fn deploy_program(
         request: DeployRequest<N>,
         record_finder: RecordFinder<N>,
         private_key_ciphertext: Option<Ciphertext<N>>,
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
+        let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         // Error if fee == 0
         if request.fee == 0 {
             return Err(reject::custom(RestError::Request("Fee must be greater than zero".to_string())));
@@ -135,6 +113,7 @@ impl<N: Network> Rest<N> {
         private_key_ciphertext: Option<Ciphertext<N>>,
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
+        let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let mut program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
         let fee_record = if request.fee > 0 {
@@ -166,9 +145,9 @@ impl<N: Network> Rest<N> {
         private_key_ciphertext: Option<Ciphertext<N>>,
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
+        let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
-        let program_manager =
-            ProgramManager::new(Some(private_key), None, Some(api_client.clone()), None).or_reject()?;
+        let program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
         let fee_record = if request.fee > 0 {
             Some(request.fee_record.unwrap_or(record_finder.find_one_record(&private_key, request.fee).or_reject()?))
         } else {
