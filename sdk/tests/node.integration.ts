@@ -7,8 +7,8 @@ describe('NodeConnection', () => {
     let configured_connection: AleoNetworkClient;
 
     beforeEach(() => {
-        local_connection = new AleoNetworkClient("http://localhost:3030");
-        configured_connection = new AleoNetworkClient("http://localhost:3030");
+        local_connection = new AleoNetworkClient("http://0.0.0.0:3030");
+        configured_connection = new AleoNetworkClient("http://0.0.0.0:3030");
         configured_connection.setAccount(new Account({privateKey: privateKeyString}));
     });
 

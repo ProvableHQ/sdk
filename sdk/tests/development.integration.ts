@@ -9,7 +9,7 @@ describe('DevelopmentServer', () => {
     let client: DevelopmentClient;
 
     beforeEach(() => {
-        client = new DevelopmentClient("http://localhost:4321");
+        client = new DevelopmentClient("http://0.0.0.0:4321");
     });
 
     describe('Deploy & Execute', () => {
@@ -29,10 +29,9 @@ describe('DevelopmentServer', () => {
                 transaction_id = await client.transfer(1000, 0, addressString, privateKeyString);
             }
             expect(transaction_id).toBeTruthy();
-        }, 90000);
+        }, 120000);
 
         it('can run deploy and execute on the aleo development server', async () => {
-            const client = new DevelopmentClient("http://localhost:4321");
             let deploy_transaction_id = "";
             for (let i = 0; i < 4; i++) {
                 try {
@@ -65,6 +64,6 @@ describe('DevelopmentServer', () => {
                 execute_transaction_id = await client.deployProgram(helloProgram, 6000000, privateKeyString);
             }
             expect(execute_transaction_id).toBeTruthy();
-        }, 120000);
+        }, 150000);
     });
 });

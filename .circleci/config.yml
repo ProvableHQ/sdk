@@ -187,8 +187,8 @@ jobs:
             rm -rf snarkOS
             ./bin/snarkos start --dev 0 --beacon APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --nodisplay 1> /dev/null &
             cargo install --path rust/rest --root . --locked
-            ./bin/aleo-develop start --uri 0.0.0.0:4321 --peer http://localhost:3030
-            sleep 10
+            ./bin/aleo-develop start --uri 0.0.0.0:4321 --peer http://localhost:3030 1> /dev/null &
+            sleep 15
             cd rust
             cargo test test_transfer -- --ignored --nocapture --test-threads=1
             cargo test test_deploy -- --ignored --nocapture --test-threads=1
