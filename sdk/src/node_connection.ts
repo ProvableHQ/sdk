@@ -48,7 +48,6 @@ export class AleoNetworkClient {
     url = "/",
   ): Promise<Type> {
      try {
-       console.log(this.host + url);
        const response = await axios.get<Type>(this.host + url);
        return response.data;
      } catch (error) {
@@ -142,7 +141,6 @@ export class AleoNetworkClient {
     try {
       return await this.fetchData<number>("/latest/height");
     } catch (error) {
-      console.log(error);
       throw new Error("Error fetching latest height.");
     }
   }
@@ -368,8 +366,6 @@ export class AleoNetworkClient {
                                 }
                               }
                             } catch (error) {
-                              // If the record value is invalid or can't be decrypted, log the error and keep searching
-                              console.log(error);
                             }
                           }
                         }
