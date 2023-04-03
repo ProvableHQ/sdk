@@ -50,12 +50,16 @@ version = "1.0.91"
 
 [dependencies.snarkvm-console]
 features = [ "parallel" ]
-version = "0.9.14"
+# version = "0.9.14"
+git = "https://github.com/AleoHQ/snarkVM"
+rev = "74ff5ed"
 
 [dependencies.snarkvm-synthesizer]
 features = [ "parallel" ]
 optional = true
-version = "0.9.14"
+# version = "0.9.14"
+git = "https://github.com/AleoHQ/snarkVM"
+rev = "74ff5ed"
 
 [dependencies.snarkvm]
 optional = true

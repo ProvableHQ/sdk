@@ -21,10 +21,14 @@ edition = "2021"
 members = [ "rust", "wasm" ]
 
 [workspace.dependencies.snarkvm]
-version = "0.9.14"
+# version = "0.9.14"
+git = "https://github.com/AleoHQ/snarkVM"
+rev = "74ff5ed"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.14"
+# version = "0.9.14"
+git = "https://github.com/AleoHQ/snarkVM"
+rev = "74ff5ed"
 default-features = false
 
 [lib]
