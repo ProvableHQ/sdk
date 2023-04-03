@@ -3,7 +3,7 @@ import {Button, Card, Col, Divider, Form, Input, Row, Result} from "antd";
 import { DevelopmentClient } from "@aleohq/sdk";
 
 export const Transfer = () => {
-    const client = new DevelopmentClient("http://localhost:4321");
+    const client = new DevelopmentClient("http://localhost:4040");
     const [transferTransactionId, setTransferTransactionId] = useState(null);
     const [recipient, setRecipient] = useState(null);
     const [transferAmount, setTransferAmount] = useState(null);

@@ -4,7 +4,7 @@ import axios from "axios";
 import { DevelopmentClient } from "@aleohq/sdk";
 
 export const Execute = () => {
-    const client = new DevelopmentClient("http://localhost:4321");
+    const client = new DevelopmentClient("http://localhost:4040");
     const [functionID, setFunctionID] = useState(null);
     const [inputs, setInputs] = useState(null);
     const [privateKey, setPrivateKey] = useState(null);

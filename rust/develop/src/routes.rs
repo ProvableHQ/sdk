@@ -17,7 +17,7 @@
 use super::*;
 
 impl<N: Network> Rest<N> {
-    /// Initializes the routes, given the ledger and ledger sender.
+    /// Initializes the routes for the development server REST API
     pub fn routes(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
         // POST /deploy
         let deploy = warp::post()
@@ -107,6 +107,7 @@ impl<N: Network> Rest<N> {
         Ok(reply::json(&transaction_id))
     }
 
+    // Execute a program on the network specified
     async fn execute_program(
         request: ExecuteRequest<N>,
         record_finder: RecordFinder<N>,

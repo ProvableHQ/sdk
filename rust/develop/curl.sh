@@ -4,7 +4,7 @@ curl -X POST -H "Content-Type: application/json" \
     "fee": 100000,
     "private_key": "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH"
 }' \
-http://localhost:4321/testnet3/deploy
+http://0.0.0.0:4040/testnet3/deploy
 
 curl -X POST -H "Content-Type: application/json" \
 -d '{
@@ -14,7 +14,7 @@ curl -X POST -H "Content-Type: application/json" \
     "private_key": "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH",
     "fee": 0
 }' \
-http://localhost:4321/testnet3/execute
+http://0.0.0.0:4040/testnet3/execute
 
 curl -X POST -H "Content-Type: application/json" \
 -d '{
@@ -23,4 +23,4 @@ curl -X POST -H "Content-Type: application/json" \
     "recipient": "aleo1trtljxr7rw6cn368v2pslnxgl2vzk9pgfunev59k53x645hvrygs5v4f2e",
     "private_key": "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH"
 }' \
-http://localhost:4321/testnet3/transfer
+http://0.0.0.0:4040/testnet3/transfer
