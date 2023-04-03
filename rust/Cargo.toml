@@ -50,7 +50,7 @@ version = "1.0.91"
 
 [dependencies.snarkvm-console]
 features = [ "parallel" ]
-version = "0.9.14"
+version = "0.9.15"
 
 [dependencies.snarkvm-synthesizer]
 features = [ "parallel" ]
