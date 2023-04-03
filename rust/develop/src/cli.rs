@@ -20,13 +20,14 @@ use clap::Parser;
 /// The Aleo Development Server is a tool to help developers build and deploy Aleo
 /// programs. The server is built in Rust and performs the proving and verification
 /// operations required to deploy and execute Aleo programs. Once it has performed
-/// these operations, the resulting deployments or executions will be posted to the
+/// these operations, the resulting deployments or executions will be broadcast to the
 /// Aleo Network. The server receives the information necessary to deploy and execute
 /// programs from the user via a REST API. Developers can use any language of choice
 /// (javascript, python, etc..) to send RESTful requests to the server. This server is
 /// meant to be used in trusted contexts such as local dev environments or a trusted
 /// private network within a cloud environment, etc. and should not be used to create
-/// a public API.
+/// a public API. A javascript client for this server is available in the Aleo SDK -
+/// <https://www.npmjs.com/package/@aleohq/sdk>
 #[derive(Debug, Parser)]
 #[clap(name = "Aleo Development Server", author = "The Aleo Team <hello@aleo.org>")]
 pub struct CLI {

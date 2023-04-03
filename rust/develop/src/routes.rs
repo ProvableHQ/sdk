@@ -49,7 +49,10 @@ impl<N: Network> Rest<N> {
             .and(with(self.api_client.clone()))
             .and_then(Self::transfer);
 
-        deploy.or(execute).or(transfer)
+        // GET /health
+        let health = warp::get().and(warp::path!("health")).map(reply::reply);
+
+        deploy.or(execute).or(transfer).or(health)
     }
 }
 
@@ -95,7 +98,9 @@ impl<N: Network> Rest<N> {
         let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         // Error if fee == 0
         if request.fee == 0 {
-            return Err(reject::custom(RestError::Request("Fee must be greater than zero".to_string())));
+            return Err(reject::custom(RestError::Request(
+                "Fee must be greater than zero in order to deploy a program to the Aleo Network".to_string(),
+            )));
         }
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let mut program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
@@ -140,6 +145,7 @@ impl<N: Network> Rest<N> {
         Ok(reply::json(&transaction_id))
     }
 
+    // Create a value transfer on the network specified
     async fn transfer(
         request: TransferRequest<N>,
         record_finder: RecordFinder<N>,

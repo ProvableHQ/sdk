@@ -12,7 +12,7 @@
 
 <br/>
 The Aleo Development Server is a REST server that can perform the proving and verification
-operations necessary to create Aleo program deployments/executions and send them to the
+operations necessary to create Aleo program deployments/executions and broadcast them to the
 Aleo network. It is intended to be used within a trusted context such as a local development
 environment, CI/CD pipeline, or a private network within a cloud.
 <br/>

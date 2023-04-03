@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-//! [![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo_development_server/)
+//! [![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo-development-server/)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -22,7 +22,7 @@
 //!
 //! <br/>
 //! The Aleo Development Server is a REST server that can perform the proving and verification
-//! operations necessary to create Aleo program deployments/executions and send them to the
+//! operations necessary to create Aleo program deployments/executions and broadcast them to the
 //! Aleo network. It is intended to be used within a trusted context such as a local development
 //! environment, CI/CD pipeline, or a private network within a cloud.
 //! <br/>
@@ -188,8 +188,13 @@ impl<N: Network> Rest<N> {
         peer_url: Option<String>,
         debug: bool,
     ) -> Result<Self> {
+        // If no socket address was specified, use the default of 0.0.0.0:4040
         let socket_address = socket_address.unwrap_or_else(|| SocketAddr::from(([0, 0, 0, 0], 4040)));
+
+        // If no peer url was specified, use the default of https://vm.aleo.org/api
         let peer = peer_url.unwrap_or("https://vm.aleo.org/api".to_string());
+
+        // Initialize an API client configured for the specified network.
         let api_client = AleoAPIClient::new(&peer, "testnet3")?;
         let record_finder = RecordFinder::new(api_client.clone());
 
@@ -201,8 +206,8 @@ impl<N: Network> Rest<N> {
 
         // Initialize the server.
         let server = Self { api_client, private_key_ciphertext, record_finder, socket_address, debug };
-        // Return the server.
 
+        // Print an initialization message and return the server
         println!("{}", "\nStarting Aleo development server...".bright_blue());
         println!(
             "{}{}{}{}",
@@ -245,6 +250,7 @@ impl<N: Network> Rest<N> {
             None => info!("Received '{} {}' ({})", info.method(), info.path(), info.status()),
         });
 
+        // Start the server
         println!("{}", "✅ Launching Aleo Development Server!".bright_blue().bold());
         warp::serve(routes.with(cors).with(custom_log)).run(self.socket_address).await;
     }

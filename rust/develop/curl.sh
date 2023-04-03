@@ -18,6 +18,16 @@ http://0.0.0.0:4040/testnet3/execute
 
 curl -X POST -H "Content-Type: application/json" \
 -d '{
+    "program_id": "sup.aleo",
+    "program_function": "main",
+    "inputs": ["5u32", "5u32"],
+    "password": "password",
+    "fee": 0
+}' \
+http://0.0.0.0:4040/testnet3/execute
+
+curl -X POST -H "Content-Type: application/json" \
+-d '{
     "amount": 1000,
     "fee": 0,
     "recipient": "aleo1trtljxr7rw6cn368v2pslnxgl2vzk9pgfunev59k53x645hvrygs5v4f2e",

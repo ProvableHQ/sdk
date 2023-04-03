@@ -1,4 +1,4 @@
-import {DevelopmentClient} from '../src';
+import { AleoNetworkClient, DevelopmentClient } from '../src';
 import {addressString, privateKeyString, helloProgram, helloProgramId} from './data/account-data';
 
 function wait(ms: number): Promise<void> {
@@ -6,19 +6,23 @@ function wait(ms: number): Promise<void> {
 }
 
 describe('DevelopmentServer', () => {
-    let client: DevelopmentClient;
+    let devClient: DevelopmentClient;
+    let localApiClient: AleoNetworkClient;
+    let remoteDevClient: DevelopmentClient;
 
     beforeEach(() => {
-        client = new DevelopmentClient("http://0.0.0.0:4040");
+        devClient = new DevelopmentClient("http://0.0.0.0:4040");
+        localApiClient = new AleoNetworkClient("http://0.0.0.0:3030");
+        remoteDevClient = new DevelopmentClient("http://0.0.0.0:5050");
     });
 
     describe('Deploy & Execute', () => {
 
-        it("can make transfers with the aleo development server", async () => {
+        it("can make value transfers with the aleo development server", async () => {
             let transaction_id = "";
             for (let i = 0; i < 4; i++) {
                 try {
-                    transaction_id = await client.transfer(1000, 0, addressString, privateKeyString);
+                    transaction_id = await devClient.transfer(1000, 0, addressString, privateKeyString);
                     break;
                 } catch (e) {
                 }
@@ -26,7 +30,7 @@ describe('DevelopmentServer', () => {
 
             // If the transaction failed above, try one more time
             if (transaction_id === "") {
-                transaction_id = await client.transfer(1000, 0, addressString, privateKeyString);
+                transaction_id = await devClient.transfer(1000, 0, addressString, privateKeyString);
             }
             expect(transaction_id).toBeTruthy();
         }, 120000);
@@ -35,18 +39,25 @@ describe('DevelopmentServer', () => {
             let deploy_transaction_id = "";
             for (let i = 0; i < 4; i++) {
                 try {
-                    console.log("Trying to deploy program");
-                    deploy_transaction_id = await client.deployProgram(helloProgram, 6000000, privateKeyString);
-                    await wait(5000);
+                    console.log("Attempting to deploy sup.aleo");
+                    deploy_transaction_id = await devClient.deployProgram(helloProgram, 6000000, privateKeyString);
+                    await wait(30000);
+                    const program = await localApiClient.getProgram("sup.aleo");
+                    expect(program).toBeTruthy();
                     break;
                 }
                 catch (e) {
+                    console.log("Deployment failed, retrying in 5 seconds");
+                    await wait(5000);
                 }
             }
             // If the transaction failed above, try one more time
             if (deploy_transaction_id === "") {
-                console.log("Trying a final time to deploy program")
-                deploy_transaction_id = await client.deployProgram(helloProgram, 6000000, privateKeyString);
+                console.log("Attempting to deploy sup.aleo one final time")
+                deploy_transaction_id = await devClient.deployProgram(helloProgram, 6000000, privateKeyString);
+                await wait(30000);
+                const program = await localApiClient.getProgram("sup.aleo");
+                expect(program).toBeTruthy();
             }
             expect(deploy_transaction_id).toBeTruthy();
 
@@ -55,20 +66,43 @@ describe('DevelopmentServer', () => {
             let execute_transaction_id = "";
             for (let i = 0; i < 3; i++) {
                 try {
-                    console.log("Trying a final time to to execute program");
-                    execute_transaction_id = await client.executeProgram(helloProgramId, "main", 0, ["5u32", "5u32"], privateKeyString);
+                    console.log("Attempting to execute sup.aleo - main..");
+                    execute_transaction_id = await devClient.executeProgram(helloProgramId, "main", 0, ["5u32", "5u32"], privateKeyString);
                     expect(execute_transaction_id).toBeTruthy();
                     break;
                 } catch (e) {
+                    console.log("Execution failed, retrying in 5 seconds");
+                    await wait(5000);
                 }
             }
 
             // If the transaction failed above, try one more time
             if (execute_transaction_id === "") {
-                console.log("Trying to execute one more time");
-                execute_transaction_id = await client.deployProgram(helloProgram, 6000000, privateKeyString);
+                console.log("Attempting to execute sup.aleo - main one final time..");
+                execute_transaction_id = await devClient.executeProgram(helloProgramId, "main", 0, ["5u32", "5u32"], privateKeyString);
+                expect(execute_transaction_id).toBeTruthy();
             }
-            expect(execute_transaction_id).toBeTruthy();
+        }, 300000);
+
+        it('can execute a program using a server started with a private key ciphertext', async () => {
+            let transaction_id = "";
+            for (let i = 0; i < 3; i++) {
+                try {
+                    console.log("Attempting to execute program hello.aleo - main..");
+                    transaction_id = await remoteDevClient.executeProgram("hello.aleo", "main", 0, ["5u32", "5u32"], undefined, "password");
+                    expect(transaction_id).toBeTruthy();
+                    break;
+                } catch (e) {
+                    console.log("Execution failed, retrying in 5 seconds");
+                }
+            }
+
+            // If the transaction failed above, try one more time
+            if (transaction_id === "") {
+                console.log("Attempting to execute hello.aleo - main one final time..");
+                transaction_id = await remoteDevClient.executeProgram("hello.aleo", "main", 0, ["5u32", "5u32"], undefined, "password");
+            }
+            expect(transaction_id).toBeTruthy();
         }, 150000);
     });
 });
