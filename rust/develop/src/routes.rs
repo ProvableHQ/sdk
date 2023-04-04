@@ -95,53 +95,67 @@ impl<N: Network> Rest<N> {
         private_key_ciphertext: Option<Ciphertext<N>>,
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
-        let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         // Error if fee == 0
         if request.fee == 0 {
             return Err(reject::custom(RestError::Request(
                 "Fee must be greater than zero in order to deploy a program to the Aleo Network".to_string(),
             )));
         }
+
+        // Get API client and private key and create a program manager
+        let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let mut program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
         program_manager.add_program(&request.program).or_reject()?;
-        let fee_record =
-            request.fee_record.unwrap_or(record_finder.find_one_record(&private_key, request.fee).or_reject()?);
+
+        // Get the fee record if it is not provided in the request
+        let fee_record = if request.fee_record.is_none() {
+            spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?
+        } else {
+            request.fee_record.unwrap()
+        };
+
+        // Deploy the program and return the resulting transaction id
         let transaction_id =
-            program_manager.deploy_program(request.program.id(), request.fee, fee_record, None).or_reject()?;
+            spawn_blocking!(program_manager.deploy_program(request.program.id(), request.fee, fee_record, None))?;
+
         Ok(reply::json(&transaction_id))
     }
 
     // Execute a program on the network specified
     async fn execute_program(
-        request: ExecuteRequest<N>,
+        mut request: ExecuteRequest<N>,
         record_finder: RecordFinder<N>,
         private_key_ciphertext: Option<Ciphertext<N>>,
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
+        // Get API client and private key and create a program manager
         let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let mut program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
+
+        // Find a fee record if a fee is specified and a fee record is not provided
         let fee_record = if request.fee > 0 {
-            Some(
-                request
-                    .fee_record
-                    .clone()
-                    .unwrap_or(record_finder.find_one_record(&private_key, request.fee).or_reject()?),
-            )
+            let record = if request.fee_record.is_none() {
+                spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?
+            } else {
+                request.fee_record.take().unwrap()
+            };
+            Some(record)
         } else {
             None
         };
-        let transaction_id = program_manager
-            .execute_program(
-                request.program_id,
-                request.program_function,
-                request.inputs.iter(),
-                request.fee,
-                fee_record,
-                None,
-            )
-            .or_reject()?;
+
+        // Execute the program and return the resulting transaction id
+        let transaction_id = spawn_blocking!(program_manager.execute_program(
+            request.program_id,
+            request.program_function,
+            request.inputs.iter(),
+            request.fee,
+            fee_record,
+            None,
+        ))?;
+
         Ok(reply::json(&transaction_id))
     }
 
@@ -152,30 +166,40 @@ impl<N: Network> Rest<N> {
         private_key_ciphertext: Option<Ciphertext<N>>,
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
+        // Get API client and private key and create a program manager
         let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
+
+        // Find a fee record if a fee is specified and a fee record is not provided
         let fee_record = if request.fee > 0 {
-            Some(request.fee_record.unwrap_or(record_finder.find_one_record(&private_key, request.fee).or_reject()?))
+            let record = if request.fee_record.is_none() {
+                let fee_record_finder = record_finder.clone();
+                spawn_blocking!(fee_record_finder.find_one_record(&private_key, request.fee))?
+            } else {
+                request.fee_record.unwrap()
+            };
+            Some(record)
         } else {
             None
         };
 
+        // Find an amount record if an amount record is not provided
         let amount_record = if let Some(amount_record) = request.amount_record {
             amount_record
         } else {
-            tokio::task::spawn_blocking(move || record_finder.find_one_record(&private_key, request.amount).or_reject())
-                .await
-                .or_reject()??
+            spawn_blocking!(record_finder.find_one_record(&private_key, request.amount))?
         };
 
-        let result = tokio::task::spawn_blocking(move || {
-            program_manager
-                .transfer(request.amount, request.fee, request.recipient, None, amount_record, fee_record)
-                .or_reject()
-        })
-        .await
-        .or_reject()??;
-        Ok(reply::json(&result))
+        // Run the transfer program within credits.aleo and return the resulting transaction id
+        let transaction_id = spawn_blocking!(program_manager.transfer(
+            request.amount,
+            request.fee,
+            request.recipient,
+            None,
+            amount_record,
+            fee_record
+        ))?;
+        Ok(reply::json(&transaction_id))
     }
 }

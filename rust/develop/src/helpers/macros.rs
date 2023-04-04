@@ -14,17 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-mod auth;
-pub use auth::*;
-
-mod error;
-pub use error::*;
-
-mod macros;
-pub use macros::*;
-
-mod middleware;
-pub use middleware::*;
-
-mod or_reject;
-pub use or_reject::*;
+/// Spawn a blocking tokio task and await its result (used for proof computation)
+#[macro_export]
+macro_rules! spawn_blocking {
+    ($($tt:tt)*) => {
+        (tokio::task::spawn_blocking(move || $($tt)*.or_reject())).await.or_reject()?
+    };
+}
