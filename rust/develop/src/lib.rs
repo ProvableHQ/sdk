@@ -68,31 +68,31 @@
 //! #### Endpoints
 //! `\develop`
 //! * `program`: Text representation of the program to be deployed
-//! * `fee`: Fee to be paid for the program deployment (REQUIRED)
+//! * `fee`: Required fee to be paid for the program deployment
 //! * `private_key`: Optional private key of the user who is deploying the program
 //! * `password`: If the development server is started with an encrypted private key, the password will decrypt the private key
 //! * `fee_record`: Optional record in text format to be used for the fee. If not provided, the server will search the network for a suitable record to pay the fee.
-//! * `returns`: The transaction_id of the deployment transaction if successful
+//! * `returns`: The transaction ID of the deployment transaction if successful
 //!
 //! `\execute`
-//! * `program_id` The program_id of the program to be executed (e.g. hello.aleo)
+//! * `program_id` The program ID of the program to be executed (e.g. hello.aleo)
 //! * `program_function` The function to execute within the program (e.g. main)
-//! * `fee` Optional Fee to be paid for the transfer, specify 0 for no fee
+//! * `fee` Optional fee to be paid for the transfer, specify 0 for no fee
 //! * `inputs` Array of inputs to be passed to the program
 //! * `private_key` Optional private key of the user who is executing the program
 //! * `password`: If the development server is started with an encrypted private key, the password will decrypt the private key
 //! * `fee_record`: Optional record in text format to be used for the fee. If not provided, the server will search the network for a suitable record to pay the fee
-//! * `returns`: The transaction_id of the execution transaction if successful
+//! * `returns`: The transaction ID of the execution transaction if successful
 //!
 //! `\transfer`
 //! * `amount` The amount of credits to be sent (e.g. 1.5)
-//! * `fee` Optional Fee to be paid for the transfer, specify 0 for no fee
+//! * `fee` Optional fee to be paid for the transfer, specify 0 for no fee
 //! * `recipient` The recipient of the transfer
 //! * `privateKey` Optional private key of the user who is sending the transfer
 //! * `password`: If the development server is started with an encrypted private key, the password will decrypt the private key
 //! * `amount_record` Optional record in text format to be used to fund the transfer. If not provided, the server will search the network for a suitable record to fund the amount
 //! * `fee_record` Optional record in text format to be used for the fee. If not provided, the server will search the network for a suitable record to pay the fee
-//! @returns {string | Error} The transaction_id of the execution transaction if successful
+//! @returns {string | Error} The transaction ID of the execution transaction if successful
 //!
 //! #### Curl Examples
 //! Example curl requests for the above endpoints:
