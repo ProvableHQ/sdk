@@ -21,10 +21,10 @@ edition = "2021"
 members = [ "rust", "wasm" ]
 
 [workspace.dependencies.snarkvm]
-version = "0.9.15"
+version = "0.9.16"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.14"
+version = "0.9.16"
 default-features = false
 
 [lib]
@@ -83,7 +83,6 @@ features = [
 "aleo-cli",
 "circuit",
 "console",
-"parallel",
 "snarkvm-synthesizer"
 ]
 

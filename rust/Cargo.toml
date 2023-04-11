@@ -49,13 +49,11 @@ version = "2.6.2"
 version = "1.0.91"
 
 [dependencies.snarkvm-console]
-features = [ "parallel" ]
-version = "0.9.15"
+version = "0.9.16"
 
 [dependencies.snarkvm-synthesizer]
-features = [ "parallel" ]
+version = "0.9.16"
 optional = true
-version = "0.9.14"
 
 [dependencies.snarkvm]
 optional = true
