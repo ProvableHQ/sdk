@@ -14,10 +14,46 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-/// Spawn a blocking tokio task and await its result (used for proof computation)
+/// Spawn a blocking tokio task
 #[macro_export]
 macro_rules! spawn_blocking {
+    ($($tt:tt)*) => {
+        tokio::task::spawn_blocking(move || $($tt)*.or_reject())
+    };
+}
+
+/// Spawn a blocking tokio task and await its result (used for proof computation)
+#[macro_export]
+macro_rules! await_task {
     ($($tt:tt)*) => {
         (tokio::task::spawn_blocking(move || $($tt)*.or_reject())).await.or_reject()?
     };
 }
+
+/*
+/// Await a streaming task
+#[macro_export]
+macro_rules! await_task {
+    ($future:expr, $timeout:expr, $message:expr) => {
+        let task = spawn_blocking!($future);
+        while !task.is_finished() {
+            sleep(Duration::from_millis(500)).await;
+            timer += 1;
+            if timer > $timeout {
+                task.abort();
+                tx.send(StreamState::Timeout).await.or_reject()?;
+                return Err(reject::custom(RestError::Request(
+                    format!("{} - {}" , $message, "reason: timeout")
+                )));
+            }
+        }
+        let result = task.await.or_reject()?;
+        if result.is_err() {
+            tx.send(StreamState::Error).await.or_reject()?;
+            return Err(reject::custom(RestError::Request(
+                "Error while finding a fee record".to_string(),
+            )));
+        }
+    };
+}
+*/

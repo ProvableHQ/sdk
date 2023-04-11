@@ -16,6 +16,7 @@
 
 use crate::RestError;
 
+use crate::helpers::StreamState;
 use anyhow::Result;
 use warp::{reject, Rejection};
 
@@ -33,6 +34,27 @@ impl<T> OrReject<T> for anyhow::Result<T> {
 }
 
 impl<T> OrReject<T> for Result<T, tokio::task::JoinError> {
+    /// Returns the result if it is successful, otherwise returns a rejection.
+    fn or_reject(self) -> Result<T, Rejection> {
+        self.map_err(|e| reject::custom(RestError::Request(e.to_string())))
+    }
+}
+
+impl<T> OrReject<T> for std::result::Result<T, tokio::sync::mpsc::error::SendError<StreamState>> {
+    /// Returns the result if it is successful, otherwise returns a rejection.
+    fn or_reject(self) -> Result<T, Rejection> {
+        self.map_err(|e| reject::custom(RestError::Request(e.to_string())))
+    }
+}
+
+impl<T> OrReject<T> for Result<T, StreamState> {
+    /// Returns the result if it is successful, otherwise returns a rejection.
+    fn or_reject(self) -> Result<T, Rejection> {
+        self.map_err(|e| reject::custom(RestError::Request(e.to_string())))
+    }
+}
+
+impl<T> OrReject<T> for Result<T, tokio::sync::mpsc::error::TryRecvError> {
     /// Returns the result if it is successful, otherwise returns a rejection.
     fn or_reject(self) -> Result<T, Rejection> {
         self.map_err(|e| reject::custom(RestError::Request(e.to_string())))

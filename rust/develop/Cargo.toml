@@ -20,15 +20,28 @@ edition = "2021"
 name = "aleo-develop"
 path = "bin/main.rs"
 
+## Workspace Dependencies
+[dependencies.aleo-rust]
+path = "../../rust"
+workspace = true
+features = [ "default" ]
+
+[dependencies.snarkvm]
+workspace = true
+
+## External Dependencies
 [dependencies.anyhow]
 version = "1"
-
-[dependencies.colored]
-version = "2.0.0"
 
 [dependencies.clap]
 version = "3.2"
 workspace = true
+
+[dependencies.colored]
+version = "2.0.0"
+
+[dependencies.futures]
+version = "0.3.28"
 
 [dependencies.http]
 version = "0.2"
@@ -42,29 +55,23 @@ version = "8.2"
 [dependencies.once_cell]
 version = "1.13"
 
+[dependencies.rand]
+version = "0.8"
+
 [dependencies.serde]
 version = "1"
 default-features = false
 features = [ "derive" ]
-
-[dependencies.aleo-rust]
-path = "../../rust"
-
-[dependencies.env_logger]
-version = "0.10.0"
-
-[dependencies.rand]
-version = "0.8"
-
-[dependencies.snarkvm]
-workspace = true
 
 [dependencies.time]
 version = "0.3"
 
 [dependencies.tokio]
 version = "1"
-features = [ "full" ]
+features = [ "full", "time", "sync" ]
+
+[dependencies.tokio-stream]
+version = "0.1.12"
 
 [dependencies.tracing]
 version = "0.1"

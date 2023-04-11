@@ -22,9 +22,9 @@ crate-type = [ "cdylib", "rlib" ]
 
 [dependencies.aleo-rust]
 version = "0.3.6"
-path = "../rust"
 features = [ "wasm" ]
 default-features = false
+workspace = true
 
 [dependencies.anyhow]
 version = "1.0"

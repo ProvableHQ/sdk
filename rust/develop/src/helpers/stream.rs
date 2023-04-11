@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-mod auth;
-pub use auth::*;
+/// Enum tracking the state of a stream
+#[derive(Clone, Debug)]
+pub(crate) enum StreamState {
+    /// Waiting on the request to be computed
+    Processing,
+    /// The computation has returned a successful result
+    Result(String),
+    /// The computation timed out
+    Timeout,
+    /// The computation is finished
+    Finished,
+    /// The computation has returned an error
+    Error,
+}
 
-mod error;
-pub use error::*;
-
-mod macros;
-pub use macros::*;
-
-mod middleware;
-pub use middleware::*;
-
-mod or_reject;
-pub use or_reject::*;
-
-mod stream;
-pub(crate) use stream::*;
+impl std::fmt::Display for StreamState {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}

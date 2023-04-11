@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ResponseType } from "axios";
 
 interface DeployRequest {
     program: string;
@@ -35,6 +36,28 @@ const config = {
     },
 };
 
+async function* readChunks(reader: ReadableStreamDefaultReader<Uint8Array>) {
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+                break;
+            }
+            yield value;
+        }
+    } finally {
+        reader.releaseLock();
+    }
+}
+
+const SSEconfig = {
+    headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Referrer-Policy": "no-referrer",
+    },
+    responseType: 'stream' as ResponseType,
+};
+
 export class DevelopmentClient {
     /**
      * Aleo Development Client for usage with an Aleo Development Server. This client is meant
@@ -61,6 +84,70 @@ export class DevelopmentClient {
         this.baseURL = baseURL;
     }
 
+
+    async sendSSERequest<T>(path: string, request: any): Promise<T> {
+        console.debug("Sending SSE Request");
+        return new Promise<T>(async (resolve, reject) => {
+            try {
+                const response = await fetch(`${this.baseURL}/testnet3${path}`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-type": "application/json; charset=UTF-8",
+                        "Referrer-Policy": "no-referrer",
+                    },
+                    body: JSON.stringify(request),
+                });
+
+                if (!response.ok) {
+                    reject(new Error(`Request failed with status ${response.status}: ${response.statusText}`));
+                    return;
+                }
+
+                if (!response.body) {
+                    reject(new Error('No response body'));
+                    return;
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                let eventType: string | null = null;
+
+                for await (const chunk of readChunks(reader)) {
+                    const decodedChunk = decoder.decode(chunk, { stream: true });
+                    const lines = decodedChunk.split('\n');
+
+                    for (const line of lines) {
+                        console.debug("Line:", line);
+                        if (line.startsWith('event:')) {
+                            eventType = line.slice(6);
+                            console.debug("Event Type:", eventType);
+                        } else if (line.startsWith('data:') && eventType) {
+                            const data = line.slice(6);
+                            if (eventType === 'success') {
+                                resolve(data as T);
+                                return;
+                            } else if (eventType === 'error' || eventType === 'timeout') {
+                                console.debug("Error encountered");
+                                reject(new Error(data));
+                                return;
+                            }
+
+                            eventType = null;
+                        }
+                        if (eventType === 'error' || eventType === 'timeout') {
+                            console.debug("Error encountered");
+                            reject(new Error(eventType));
+                            return;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.debug("Error: ", error);
+                reject(error);
+            }
+        });
+    }
 
     async sendRequest<T>(path: string, request: any): Promise<T> {
         const response = await axios.post(`${this.baseURL}/testnet3${path}`, request, config);
@@ -146,7 +233,7 @@ export class DevelopmentClient {
             fee,
             fee_record: feeRecord
         }
-        return await this.sendRequest('/execute', request);
+        return await this.sendSSERequest('/execute', request);
     }
 
     /**
