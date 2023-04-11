@@ -2388,9 +2388,9 @@ dependencies = [
 
 [[package]]
 name = "snarkvm-wasm"
-version = "0.9.14"
+version = "0.9.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8ae117741aead5d67d7ef5c7a7b60b0df6c7bb0a735563d4a069a2f788b756a"
+checksum = "07a064f006cea46c7de9348f02e46c8aad998d669d6a0dc540b09099d84a80f8"
 dependencies = [
  "getrandom",
  "rand",
