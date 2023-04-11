@@ -15,12 +15,14 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::AleoAPIClient;
-use snarkvm_console::{
-    account::{PrivateKey, ViewKey},
-    program::{Ciphertext, Network, ProgramID, Record},
-    types::Field,
+use snarkvm::{
+    console::{
+        account::{PrivateKey, ViewKey},
+        program::{Ciphertext, Network, ProgramID, Record},
+        types::Field,
+    },
+    synthesizer::{Block, Program, Transaction},
 };
-use snarkvm_synthesizer::{Block, Program, Transaction};
 
 use anyhow::{anyhow, bail, ensure, Result};
 use std::{convert::TryInto, ops::Range};
@@ -289,7 +291,7 @@ impl<N: Network> AleoAPIClient<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use snarkvm_console::{account::PrivateKey, network::Testnet3};
+    use snarkvm::console::{account::PrivateKey, network::Testnet3};
 
     use std::{convert::TryFrom, str::FromStr};
 

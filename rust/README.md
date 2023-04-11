@@ -24,7 +24,7 @@ Some key usages of the Aleo API client are:
 ### Example Usage
 ```rust
 use aleo_rust::AleoAPIClient;
-use snarkvm_console::{
+use snarkvm::console::{
     account::PrivateKey,
     network::Testnet3, 
 };
@@ -60,11 +60,11 @@ The program deployment and execution flow are shown in the example below.
 ### Example Usage
 ```rust
 use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
-use snarkvm_console::{
+use snarkvm::console::{
   account::{Address, PrivateKey},
   network::Testnet3,
 };
-use snarkvm_synthesizer::Program;
+use snarkvm::synthesizer::Program;
 use rand::thread_rng;
 use std::str::FromStr;
 

@@ -15,11 +15,13 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ProgramManager;
-use snarkvm_console::{
-    account::PrivateKey,
-    program::{Identifier, Network, Plaintext, ProgramID, Record, Value},
+use snarkvm::{
+    console::{
+        account::PrivateKey,
+        program::{Identifier, Network, Plaintext, ProgramID, Record, Value},
+    },
+    synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM},
 };
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
 
 use anyhow::{anyhow, bail, ensure, Result};
 
@@ -148,7 +150,7 @@ impl<N: Network> ProgramManager<N> {
 mod tests {
     use super::*;
     use crate::{random_program_id, AleoAPIClient, RECORD_5_GATES};
-    use snarkvm_console::network::Testnet3;
+    use snarkvm::console::network::Testnet3;
     use std::str::FromStr;
 
     #[test]

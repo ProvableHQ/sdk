@@ -64,8 +64,6 @@ dependencies = [
  "rand_chacha",
  "serde_json",
  "snarkvm",
- "snarkvm-console",
- "snarkvm-synthesizer",
  "ureq",
 ]
 

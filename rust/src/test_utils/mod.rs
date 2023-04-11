@@ -15,15 +15,17 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{AleoAPIClient, ProgramManager, RecordFinder};
-use snarkvm::file::Manifest;
-use snarkvm_console::{
-    account::{PrivateKey, ViewKey},
-    network::Testnet3,
-    program::{Plaintext, Record},
+use snarkvm::{
+    console::{
+        account::{PrivateKey, ViewKey},
+        network::Testnet3,
+        program::{Plaintext, Record},
+    },
+    file::Manifest,
+    synthesizer::Program,
 };
 
 use anyhow::Result;
-use snarkvm_synthesizer::Program;
 use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf, str::FromStr, thread::sleep};
 
 pub const RECIPIENT_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";

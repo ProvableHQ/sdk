@@ -41,7 +41,7 @@
 //! ### Example Usage
 //! ```no_run
 //!   use aleo_rust::AleoAPIClient;
-//!   use snarkvm_console::{
+//!   use snarkvm::console::{
 //!       account::PrivateKey,
 //!       network::Testnet3,
 //!   };
@@ -80,11 +80,11 @@
 //! ### Example Usage
 //! ```no_run
 //!   use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
-//!   use snarkvm_console::{
+//!   use snarkvm::console::{
 //!       account::{Address, PrivateKey},
 //!       network::Testnet3,
 //!   };
-//!   use snarkvm_synthesizer::Program;
+//!   use snarkvm::synthesizer::Program;
 //!   use rand::thread_rng;
 //!   use std::str::FromStr;
 //!

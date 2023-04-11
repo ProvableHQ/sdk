@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_console::{
+use snarkvm::console::{
     account::PrivateKey,
     network::Network,
     prelude::Uniform,
@@ -95,7 +95,7 @@ impl<N: Network> Encryptor<N> {
 mod tests {
     use super::*;
 
-    use snarkvm_console::{network::Testnet3 as CurrentNetwork, prelude::TestRng};
+    use snarkvm::console::{network::Testnet3 as CurrentNetwork, prelude::TestRng};
 
     #[test]
     fn test_encryptor_encrypt_and_decrypt() {

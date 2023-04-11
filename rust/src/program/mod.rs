@@ -15,11 +15,13 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{AleoAPIClient, Encryptor};
-use snarkvm_console::{
-    account::PrivateKey,
-    program::{Ciphertext, Network, ProgramID},
+use snarkvm::{
+    console::{
+        account::PrivateKey,
+        program::{Ciphertext, Network, ProgramID},
+    },
+    synthesizer::Program,
 };
-use snarkvm_synthesizer::Program;
 
 use anyhow::{anyhow, bail, Result};
 use indexmap::IndexMap;
@@ -138,7 +140,7 @@ mod tests {
         Encryptor,
         RECIPIENT_PRIVATE_KEY,
     };
-    use snarkvm_console::network::Testnet3;
+    use snarkvm::console::network::Testnet3;
 
     use std::str::FromStr;
 

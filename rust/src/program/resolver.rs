@@ -15,9 +15,12 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ProgramManager;
-use snarkvm::{file::Manifest, package::Package};
-use snarkvm_console::program::{Network, ProgramID};
-use snarkvm_synthesizer::Program;
+use snarkvm::{
+    console::program::{Network, ProgramID},
+    file::Manifest,
+    package::Package,
+    synthesizer::Program,
+};
 
 use anyhow::{anyhow, bail, ensure, Result};
 use std::{fs::File, io::Read, str::FromStr};
@@ -104,7 +107,7 @@ mod tests {
         },
         AleoAPIClient,
     };
-    use snarkvm_console::{account::PrivateKey, network::Testnet3};
+    use snarkvm::console::{account::PrivateKey, network::Testnet3};
 
     use std::{ops::Add, panic::catch_unwind, str::FromStr};
 

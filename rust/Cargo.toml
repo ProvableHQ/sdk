@@ -48,13 +48,6 @@ version = "2.6.2"
 [dependencies.serde_json]
 version = "1.0.91"
 
-[dependencies.snarkvm-console]
-version = "0.9.16"
-
-[dependencies.snarkvm-synthesizer]
-version = "0.9.16"
-optional = true
-
 [dependencies.snarkvm]
 optional = true
 workspace = true
@@ -67,5 +60,5 @@ version = "0.3.1"
 
 [features]
 default = [ "full" ]
-full = [ "ureq", "snarkvm-synthesizer", "snarkvm" ]
+full = [ "ureq", "snarkvm" ]
 wasm = [ ]

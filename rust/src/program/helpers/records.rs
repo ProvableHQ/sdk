@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::AleoAPIClient;
-use snarkvm_console::{
+use snarkvm::console::{
     account::{PrivateKey, ViewKey},
     network::Network,
     program::{Plaintext, Record},
