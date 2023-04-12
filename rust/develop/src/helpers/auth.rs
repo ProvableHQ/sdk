@@ -16,11 +16,12 @@
 
 use crate::RestError;
 
-use snarkvm::prelude::*;
+use snarkvm::prelude::{Address, Network};
 
 use anyhow::{anyhow, Result};
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use once_cell::sync::OnceCell;
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use warp::{reject, Filter, Rejection};
@@ -32,7 +33,7 @@ pub const EXPIRATION: i64 = 10 * 365 * 24 * 60 * 60; // 10 years.
 fn jwt_secret() -> &'static Vec<u8> {
     static SECRET: OnceCell<Vec<u8>> = OnceCell::new();
     SECRET.get_or_init(|| {
-        let seed: [u8; 16] = rand::thread_rng().gen();
+        let seed: [u8; 16] = thread_rng().gen();
         seed.to_vec()
     })
 }

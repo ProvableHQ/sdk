@@ -63,7 +63,7 @@ describe('DevelopmentServer', () => {
                 log("Program: " + program);
                 expect(program).toBeTruthy();
             }
-            await wait(20000);
+            await wait(30000);
 
             let execute_transaction_id = "";
             for (let i = 0; i < 3; i++) {

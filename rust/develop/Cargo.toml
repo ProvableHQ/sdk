@@ -48,7 +48,8 @@ default-features = false
 features = [ "derive" ]
 
 [dependencies.aleo-rust]
-path = "../../rust"
+features = [ "default" ]
+workspace = true
 
 [dependencies.env_logger]
 version = "0.10.0"

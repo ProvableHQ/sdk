@@ -45,7 +45,6 @@ var AleoNetworkClient = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        console.log(this.host + url);
                         return [4 /*yield*/, axios.get(this.host + url)];
                     case 1:
                         response = _a.sent();
@@ -197,7 +196,6 @@ var AleoNetworkClient = /** @class */ (function () {
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
                         error_7 = _a.sent();
-                        console.log(error_7);
                         throw new Error("Error fetching latest height.");
                     case 3: return [2 /*return*/];
                 }
@@ -487,8 +485,6 @@ var AleoNetworkClient = /** @class */ (function () {
                     case 16: return [3 /*break*/, 18];
                     case 17:
                         error_15 = _a.sent();
-                        // If the record value is invalid or can't be decrypted, log the error and keep searching
-                        console.log(error_15);
                         return [3 /*break*/, 18];
                     case 18:
                         l++;

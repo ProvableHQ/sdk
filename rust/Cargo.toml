@@ -53,7 +53,7 @@ optional = true
 workspace = true
 
 [dependencies.snarkvm-console]
-version = "0.9.15"
+workspace = true
 
 [dev-dependencies.bencher]
 version = "0.1.5"
