@@ -28,6 +28,13 @@ name = "private-key-encryption-at-rest"
 path = "benches/private_key_encryption.rs"
 harness = false
 
+[dependencies.snarkvm]
+optional = true
+workspace = true
+
+[dependencies.snarkvm-console]
+workspace = true
+
 [dependencies.anyhow]
 version = "1"
 
@@ -40,20 +47,13 @@ version = "1.13.1"
 [dependencies.rand]
 version = "0.8.5"
 
+[dependencies.serde_json]
+version = "1.0.91"
+
 [dependencies.ureq]
 features = [ "json" ]
 optional = true
 version = "2.6.2"
-
-[dependencies.serde_json]
-version = "1.0.91"
-
-[dependencies.snarkvm]
-optional = true
-workspace = true
-
-[dependencies.snarkvm-console]
-version = "0.9.15"
 
 [dev-dependencies.bencher]
 version = "0.1.5"

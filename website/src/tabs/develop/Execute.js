@@ -4,7 +4,7 @@ import axios from "axios";
 import { DevelopmentClient } from "@aleohq/sdk";
 
 export const Execute = () => {
-    const client = new DevelopmentClient("https://aleo-dev-server.fly.dev");
+    const client = new DevelopmentClient("http://0.0.0.0:4040");
     const [functionID, setFunctionID] = useState(null);
     const [inputs, setInputs] = useState(null);
     const [privateKey, setPrivateKey] = useState(null);
@@ -16,7 +16,7 @@ export const Execute = () => {
     const execute = async (event) => {
         try {
             let inputs = inputsString().split(" ");
-            console.log("Starting transactionnnnn");
+            console.log("Starting execution transaction...");
             let transaction = await client.executeProgram(programIDString(), functionIDString(), 0, inputs, privateKeyString());
             setTransactionID(transaction);
         } catch (error) {

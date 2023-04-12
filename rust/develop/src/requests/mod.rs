@@ -14,23 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-/// Enum tracking the state of a stream
-#[derive(Clone, Debug)]
-pub enum StreamState {
-    /// Waiting on the request to be computed
-    Processing,
-    /// The computation has returned a successful result
-    Result(String),
-    /// The computation timed out
-    Timeout(String),
-    /// The computation is finished
-    Finished,
-    /// The computation has returned an error
-    Error(String),
-}
+use super::*;
 
-impl std::fmt::Display for StreamState {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
+mod deploy;
+pub(crate) use deploy::*;
+
+mod execute;
+pub(crate) use execute::*;
+
+mod request;
+pub(crate) use request::*;
+
+mod transfer;
+pub(crate) use transfer::*;

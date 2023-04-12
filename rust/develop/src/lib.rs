@@ -144,7 +144,7 @@ mod helpers;
 pub use helpers::*;
 
 mod requests;
-use requests::*;
+pub(crate) use requests::*;
 
 mod routes;
 pub use routes::*;
@@ -158,15 +158,17 @@ use snarkvm::{
     prelude::{Network, Testnet3},
     synthesizer::program::Program,
 };
-use tokio::time::{sleep, Duration};
-use tracing_subscriber::fmt;
 
 use anyhow::Result;
+use clap::Parser;
 use colored::*;
-use futures::StreamExt;
+use futures::{Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
-use warp::{reject, reply, Filter, Rejection, Reply};
+use tokio::time::{sleep, Duration};
+use tokio_stream::wrappers::ReceiverStream;
+use tracing_subscriber::fmt;
+use warp::{reject, reply, sse::Event, Filter, Rejection, Reply};
 
 /// Server object for the Aleo Development Server
 #[derive(Clone)]

@@ -26,10 +26,13 @@ path = "rust"
 default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "0.9.15"
+version = "0.9.16"
+
+[workspace.dependencies.snarkvm-console]
+version = "0.9.16"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.15"
+version = "0.9.16"
 default-features = false
 
 [lib]
@@ -43,8 +46,8 @@ path = "cli/main.rs"
 default = [ ]
 
 [dependencies.aleo-rust]
-path = "rust"
-version = "0.3.6"
+features = [ "default" ]
+workspace = true
 
 [dependencies.anyhow]
 version = "1.0"
@@ -88,11 +91,11 @@ version = "1"
 [dependencies.snarkvm]
 workspace = true
 features = [
-"aleo-cli",
-"circuit",
-"console",
-"parallel",
-"snarkvm-synthesizer"
+  "aleo-cli",
+  "circuit",
+  "console",
+  "snarkvm-synthesizer",
+  "snarkvm-utilities",
 ]
 
 [dependencies.thiserror]

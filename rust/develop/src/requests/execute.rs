@@ -16,18 +16,6 @@
 
 use super::*;
 
-/// Request to deploy a new program
-#[derive(Deserialize, Serialize)]
-#[serde(bound(serialize = "N: Serialize", deserialize = "N: for<'a> Deserialize<'a>"))]
-pub(crate) struct DeployRequest<N: Network> {
-    pub program: Program<N>,
-    pub private_key: Option<PrivateKey<N>>,
-    pub password: Option<String>,
-    pub fee: u64,
-    pub fee_record: Option<Record<N, Plaintext<N>>>,
-    pub peer_url: Option<String>,
-}
-
 /// Request to execute a program
 #[derive(Deserialize, Serialize)]
 #[serde(bound(serialize = "N: Serialize", deserialize = "N: for<'a> Deserialize<'a>"))]
@@ -42,16 +30,40 @@ pub(crate) struct ExecuteRequest<N: Network> {
     pub peer_url: Option<String>,
 }
 
-/// Request to make transfer of Aleo credits
-#[derive(Deserialize, Serialize)]
-#[serde(bound(serialize = "N: Serialize", deserialize = "N: for<'a> Deserialize<'a>"))]
-pub(crate) struct TransferRequest<N: Network> {
-    pub amount: u64,
-    pub fee: u64,
-    pub recipient: Address<N>,
-    pub private_key: Option<PrivateKey<N>>,
-    pub password: Option<String>,
-    pub fee_record: Option<Record<N, Plaintext<N>>>,
-    pub amount_record: Option<Record<N, Plaintext<N>>>,
-    pub peer_url: Option<String>,
+impl<N: Network> TransactionRequest<N> for ExecuteRequest<N> {
+    fn fee(&self) -> u64 {
+        self.fee
+    }
+
+    fn fee_record(&mut self) -> Option<Record<N, Plaintext<N>>> {
+        self.fee_record.take()
+    }
+
+    fn inputs(&mut self) -> Option<Vec<String>> {
+        Some(self.inputs.clone())
+    }
+
+    fn password(&mut self) -> Option<String> {
+        self.password.take()
+    }
+
+    fn peer_url(&mut self) -> Option<String> {
+        self.peer_url.take()
+    }
+
+    fn private_key(&mut self) -> Option<PrivateKey<N>> {
+        self.private_key.take()
+    }
+
+    fn program_id(&self) -> Option<ProgramID<N>> {
+        Some(self.program_id)
+    }
+
+    fn program_function(&mut self) -> Option<Identifier<N>> {
+        Some(self.program_function)
+    }
+
+    fn type_of(&self) -> &'static str {
+        "execute"
+    }
 }

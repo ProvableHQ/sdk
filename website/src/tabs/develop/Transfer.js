@@ -3,7 +3,7 @@ import {Button, Card, Col, Divider, Form, Input, Row, Result} from "antd";
 import { DevelopmentClient } from "@aleohq/sdk";
 
 export const Transfer = () => {
-    const client = new DevelopmentClient("https://aleo-dev-server.fly.dev");
+    const client = new DevelopmentClient("http://0.0.0.0:4040");
     const [transferTransactionId, setTransferTransactionId] = useState(null);
     const [recipient, setRecipient] = useState(null);
     const [transferAmount, setTransferAmount] = useState(null);
@@ -11,6 +11,7 @@ export const Transfer = () => {
 
     const transfer = async (event) => {
         try {
+            console.log("Starting transfer...");
             let transaction = await client.transfer(Number(transferAmount), 0, recipientString(), privateKeyString());
             setTransferTransactionId(transaction);
         } catch (error) {

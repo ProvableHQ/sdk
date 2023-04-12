@@ -1,11 +1,4 @@
 import { __asyncGenerator, __asyncValues, __await, __awaiter, __generator } from "tslib";
-import axios from 'axios';
-var config = {
-    headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        "Referrer-Policy": "no-referrer"
-    }
-};
 function readChunks(reader) {
     return __asyncGenerator(this, arguments, function readChunks_1() {
         var _a, done, value;
@@ -36,13 +29,6 @@ function readChunks(reader) {
         });
     });
 }
-var SSEconfig = {
-    headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        "Referrer-Policy": "no-referrer"
-    },
-    responseType: 'stream'
-};
 var DevelopmentClient = /** @class */ (function () {
     /**
      * Creates a new DevelopmentClient to interact with an Aleo Development Server.
@@ -52,7 +38,7 @@ var DevelopmentClient = /** @class */ (function () {
     function DevelopmentClient(baseURL) {
         this.baseURL = baseURL;
     }
-    DevelopmentClient.prototype.sendSSERequest = function (path, request) {
+    DevelopmentClient.prototype.sendRequest = function (path, request) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
@@ -107,22 +93,17 @@ var DevelopmentClient = /** @class */ (function () {
                                                 console.debug("Event Type:", eventType);
                                             }
                                             else if (line.startsWith('data:') && eventType) {
-                                                data = line.slice(6);
+                                                data = line.slice(5);
                                                 if (eventType === 'success') {
                                                     resolve(data);
                                                     return [2 /*return*/];
                                                 }
                                                 else if (eventType === 'error' || eventType === 'timeout') {
-                                                    console.debug("Error encountered");
+                                                    console.debug("Error encountered:", data);
                                                     reject(new Error(data));
                                                     return [2 /*return*/];
                                                 }
                                                 eventType = null;
-                                            }
-                                            if (eventType === 'error' || eventType === 'timeout') {
-                                                console.debug("Error encountered");
-                                                reject(new Error(eventType));
-                                                return [2 /*return*/];
                                             }
                                         }
                                     }
@@ -161,23 +142,6 @@ var DevelopmentClient = /** @class */ (function () {
             });
         });
     };
-    DevelopmentClient.prototype.sendRequest = function (path, request) {
-        return __awaiter(this, void 0, void 0, function () {
-            var response;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, axios.post("".concat(this.baseURL, "/testnet3").concat(path), request, config)];
-                    case 1:
-                        response = _a.sent();
-                        if (!(response.statusText = "200")) {
-                            throw new Error("Error sending request: ".concat(response.statusText));
-                        }
-                        return [4 /*yield*/, response.data];
-                    case 2: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
     /**
      * Deploys a program on the Aleo Network via an Aleo development server.
      * It requires an Aleo Development Server to be running remotely or locally.
@@ -210,7 +174,7 @@ var DevelopmentClient = /** @class */ (function () {
                             fee: fee,
                             fee_record: feeRecord
                         };
-                        return [4 /*yield*/, this.sendSSERequest('/deploy', request)];
+                        return [4 /*yield*/, this.sendRequest('/deploy', request)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -252,7 +216,7 @@ var DevelopmentClient = /** @class */ (function () {
                             fee: fee,
                             fee_record: feeRecord
                         };
-                        return [4 /*yield*/, this.sendSSERequest('/execute', request)];
+                        return [4 /*yield*/, this.sendRequest('/execute', request)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -296,7 +260,7 @@ var DevelopmentClient = /** @class */ (function () {
                             fee_record: feeRecord,
                             amount_record: amountRecord
                         };
-                        return [4 /*yield*/, this.sendSSERequest('/transfer', request)];
+                        return [4 /*yield*/, this.sendRequest('/transfer', request)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });

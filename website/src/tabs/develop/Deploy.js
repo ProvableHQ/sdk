@@ -3,7 +3,7 @@ import {Button, Card, Col, Divider, Form, Input, Row, Result} from "antd";
 import { DevelopmentClient } from "@aleohq/sdk";
 
 export const Deploy = () => {
-    const client = new DevelopmentClient("https://aleo-dev-server.fly.dev");
+    const client = new DevelopmentClient("http://0.0.0.0:4040");
     const [deployPrivateKey, setDeployPrivateKey] = useState(null);
     const [deployProgram, setDeployProgram] = useState(null);
     const [deployTransactionId, setDeployTransactionId] = useState(null);
@@ -12,6 +12,7 @@ export const Deploy = () => {
 
     const deploy = async (event) => {
         try {
+            console.log("Starting deployment transaction...");
             let transaction = await client.deployProgram(programString(), Number(feeString())*1000000, privateKeyString());
             setDeployTransactionId(transaction);
         } catch (error) {
@@ -63,7 +64,7 @@ export const Deploy = () => {
                                 onClick={demo}>Demo</Button>}>
         <Form {...layout}>
             <Divider/>
-                <Form.Item label="Program Bytecode" colon={false}>
+                <Form.Item label="Aleo Instruction" colon={false}>
                     <Input.TextArea size="large" rows={10} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
                                     value={programString()} onChange={onDeployProgramChange} />
                 </Form.Item>

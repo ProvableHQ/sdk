@@ -1,6 +1,3 @@
-import axios from 'axios';
-import { ResponseType } from "axios";
-
 interface DeployRequest {
     program: string;
     private_key?: string;
@@ -29,13 +26,6 @@ interface TransferRequest {
     amount_record?: string;
 }
 
-const config = {
-    headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        "Referrer-Policy": "no-referrer"
-    },
-};
-
 async function* readChunks(reader: ReadableStreamDefaultReader<Uint8Array>) {
     try {
         while (true) {
@@ -49,14 +39,6 @@ async function* readChunks(reader: ReadableStreamDefaultReader<Uint8Array>) {
         reader.releaseLock();
     }
 }
-
-const SSEconfig = {
-    headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        "Referrer-Policy": "no-referrer",
-    },
-    responseType: 'stream' as ResponseType,
-};
 
 export class DevelopmentClient {
     /**
@@ -84,8 +66,7 @@ export class DevelopmentClient {
         this.baseURL = baseURL;
     }
 
-
-    async sendSSERequest<T>(path: string, request: any): Promise<T> {
+    async sendRequest<T>(path: string, request: any): Promise<T> {
         console.debug("Sending SSE Request");
         return new Promise<T>(async (resolve, reject) => {
             try {
@@ -123,22 +104,17 @@ export class DevelopmentClient {
                             eventType = line.slice(6);
                             console.debug("Event Type:", eventType);
                         } else if (line.startsWith('data:') && eventType) {
-                            const data = line.slice(6);
+                            const data = line.slice(5);
                             if (eventType === 'success') {
                                 resolve(data as T);
                                 return;
                             } else if (eventType === 'error' || eventType === 'timeout') {
-                                console.debug("Error encountered");
+                                console.debug("Error encountered:", data);
                                 reject(new Error(data));
                                 return;
                             }
 
                             eventType = null;
-                        }
-                        if (eventType === 'error' || eventType === 'timeout') {
-                            console.debug("Error encountered");
-                            reject(new Error(eventType));
-                            return;
                         }
                     }
                 }
@@ -147,15 +123,6 @@ export class DevelopmentClient {
                 reject(error);
             }
         });
-    }
-
-    async sendRequest<T>(path: string, request: any): Promise<T> {
-        const response = await axios.post(`${this.baseURL}/testnet3${path}`, request, config);
-
-        if (!(response.statusText = "200")) {throw new Error(`Error sending request: ${response.statusText}`);
-        }
-
-        return await response.data;
     }
 
     /**
@@ -191,7 +158,7 @@ export class DevelopmentClient {
             fee,
             fee_record: feeRecord,
         };
-        return await this.sendSSERequest('/deploy', request);
+        return await this.sendRequest('/deploy', request);
     }
 
     /**
@@ -233,7 +200,7 @@ export class DevelopmentClient {
             fee,
             fee_record: feeRecord
         }
-        return await this.sendSSERequest('/execute', request);
+        return await this.sendRequest('/execute', request);
     }
 
     /**
@@ -277,7 +244,7 @@ export class DevelopmentClient {
             fee_record: feeRecord,
             amount_record: amountRecord
         }
-        return await this.sendSSERequest('/transfer', request);
+        return await this.sendRequest('/transfer', request);
     }
 }
 

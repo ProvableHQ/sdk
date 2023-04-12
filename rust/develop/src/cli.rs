@@ -15,7 +15,6 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
-use clap::Parser;
 
 /// The Aleo Development Server is a tool to help developers build and deploy Aleo
 /// programs. The server is built in Rust and performs the proving and verification

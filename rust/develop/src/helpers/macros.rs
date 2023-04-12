@@ -22,15 +22,15 @@ macro_rules! spawn_blocking {
     };
 }
 
-/// Spawn a blocking tokio task and await its result (used for proof computation)
+/// Spawn a blocking tokio task and await its result
 #[macro_export]
-macro_rules! await_task {
+macro_rules! await_blocking_task {
     ($($tt:tt)*) => {
         (tokio::task::spawn_blocking(move || $($tt)*.or_reject())).await.or_reject()?
     };
 }
 
-/// Await a streaming task
+/// Spawn a blocking tokio task, await its result manually, and relay progress messages to the client
 #[macro_export]
 macro_rules! await_streaming_task {
     ($future:expr, $timeout:expr, $message:literal, $tx:expr) => {{
@@ -41,14 +41,16 @@ macro_rules! await_streaming_task {
             timer += 0.5;
             if timer > $timeout {
                 task.abort();
-                $tx.send(StreamState::Timeout).await.or_reject()?;
-                return Err(reject::custom(RestError::Request(format!("{} - {}", $message, "reason: timeout"))));
+                let error_msg = format!("{} - {}", $message, "reason: timeout");
+                $tx.send(StreamState::Timeout(error_msg.clone())).await.or_reject()?;
+                return Err(reject::custom(RestError::Request(error_msg)));
             }
         }
         let result = task.await.or_reject()?;
         if result.is_err() {
-            $tx.send(StreamState::Error).await.or_reject()?;
-            return Err(reject::custom(RestError::Request(format!("{} - {}", $message, "reason: error"))));
+            let error_msg = format!("{} - {} - error: {:?}", $message, "reason: error", result);
+            $tx.send(StreamState::Error(error_msg.clone())).await.or_reject()?;
+            return Err(reject::custom(RestError::Request(error_msg)));
         }
         result
     }};

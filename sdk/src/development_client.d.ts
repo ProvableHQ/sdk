@@ -20,7 +20,6 @@ export declare class DevelopmentClient {
      * @param {string} baseURL The URL of the Aleo Development Server
      */
     constructor(baseURL: string);
-    sendSSERequest<T>(path: string, request: any): Promise<T>;
     sendRequest<T>(path: string, request: any): Promise<T>;
     /**
      * Deploys a program on the Aleo Network via an Aleo development server.

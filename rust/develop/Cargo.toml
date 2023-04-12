@@ -20,16 +20,13 @@ edition = "2021"
 name = "aleo-develop"
 path = "bin/main.rs"
 
-## Workspace Dependencies
 [dependencies.aleo-rust]
-path = "../../rust"
-workspace = true
 features = [ "default" ]
+workspace = true
 
 [dependencies.snarkvm]
 workspace = true
 
-## External Dependencies
 [dependencies.anyhow]
 version = "1"
 
