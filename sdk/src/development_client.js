@@ -210,7 +210,7 @@ var DevelopmentClient = /** @class */ (function () {
                             fee: fee,
                             fee_record: feeRecord
                         };
-                        return [4 /*yield*/, this.sendRequest('/deploy', request)];
+                        return [4 /*yield*/, this.sendSSERequest('/deploy', request)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -296,7 +296,7 @@ var DevelopmentClient = /** @class */ (function () {
                             fee_record: feeRecord,
                             amount_record: amountRecord
                         };
-                        return [4 /*yield*/, this.sendRequest('/transfer', request)];
+                        return [4 /*yield*/, this.sendSSERequest('/transfer', request)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });

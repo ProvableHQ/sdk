@@ -191,7 +191,7 @@ export class DevelopmentClient {
             fee,
             fee_record: feeRecord,
         };
-        return await this.sendRequest('/deploy', request);
+        return await this.sendSSERequest('/deploy', request);
     }
 
     /**
@@ -277,7 +277,7 @@ export class DevelopmentClient {
             fee_record: feeRecord,
             amount_record: amountRecord
         }
-        return await this.sendRequest('/transfer', request);
+        return await this.sendSSERequest('/transfer', request);
     }
 }
 
