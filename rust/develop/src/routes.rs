@@ -19,8 +19,6 @@ use futures::Stream;
 use tokio_stream::wrappers::ReceiverStream;
 use warp::sse::Event;
 
-const TIMEOUT: f32 = 300.0;
-
 impl<N: Network> Rest<N> {
     /// Initializes the routes for the development server REST API
     pub fn routes(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
@@ -121,31 +119,53 @@ impl<N: Network> Rest<N> {
         private_key_ciphertext: Option<Ciphertext<N>>,
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
+        // Get API client and private key and create a program manager
         // Error if fee == 0
         if request.fee == 0 {
             return Err(reject::custom(RestError::Request(
                 "Fee must be greater than zero in order to deploy a program to the Aleo Network".to_string(),
             )));
         }
-
-        // Get API client and private key and create a program manager
         let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let mut program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
         program_manager.add_program(&request.program).or_reject()?;
+        let (tx, rx) = tokio::sync::mpsc::channel(10);
+        let stream = Self::get_stream(rx);
+        let future = Self::streaming_deployment(request, record_finder, private_key, program_manager, tx);
+        tokio::task::spawn(future);
+        Ok(warp::sse::reply(warp::sse::keep_alive().stream(stream)))
+    }
 
+    async fn streaming_deployment(
+        request: DeployRequest<N>,
+        record_finder: RecordFinder<N>,
+        private_key: PrivateKey<N>,
+        mut program_manager: ProgramManager<N>,
+        tx: tokio::sync::mpsc::Sender<StreamState>,
+    ) -> Result<(), Rejection> {
         // Get the fee record if it is not provided in the request
         let fee_record = if request.fee_record.is_none() {
-            await_task!(record_finder.find_one_record(&private_key, request.fee))?
+            await_streaming_task!(
+                record_finder.find_one_record(&private_key, request.fee),
+                300.0,
+                "failed to find fee record",
+                &tx
+            )?
         } else {
             request.fee_record.unwrap()
         };
 
         // Deploy the program and return the resulting transaction id
-        let transaction_id =
-            await_task!(program_manager.deploy_program(request.program.id(), request.fee, fee_record, None))?;
+        let transaction_id = await_streaming_task!(
+            program_manager.deploy_program(request.program.id(), request.fee, fee_record, None),
+            300.0,
+            "failed to deploy program",
+            &tx
+        )?;
 
-        Ok(reply::json(&transaction_id))
+        tx.send(StreamState::Result(transaction_id)).await.or_reject()?;
+        Ok(())
     }
 
     // Execute a program on the network specified
@@ -156,30 +176,16 @@ impl<N: Network> Rest<N> {
         mut program_manager: ProgramManager<N>,
         tx: tokio::sync::mpsc::Sender<StreamState>,
     ) -> Result<(), Rejection> {
-        // Get API client and private key and create a program manager
-
-        let mut timer = 0f32;
         // Find a fee record if a fee is specified and a fee record is not provided
         let fee_record = if request.fee > 0 {
             if request.fee_record.is_none() {
-                let task = spawn_blocking!(record_finder.find_one_record(&private_key, request.fee));
-                while !task.is_finished() {
-                    sleep(Duration::from_millis(500)).await;
-                    timer += 0.5;
-                    if timer > TIMEOUT {
-                        task.abort();
-                        tx.send(StreamState::Timeout).await.or_reject()?;
-                        return Err(reject::custom(RestError::Request(
-                            "Timeout while finding a fee record".to_string(),
-                        )));
-                    }
-                }
-                let result = task.await.or_reject()?;
-                if result.is_err() {
-                    tx.send(StreamState::Error).await.or_reject()?;
-                    return Err(reject::custom(RestError::Request("Error while finding a fee record".to_string())));
-                }
-                Some(result?)
+                let result = await_streaming_task!(
+                    record_finder.find_one_record(&private_key, request.fee),
+                    300.0,
+                    "failed to find fee record",
+                    &tx
+                )?;
+                Some(result)
             } else {
                 request.fee_record.take()
             }
@@ -188,29 +194,71 @@ impl<N: Network> Rest<N> {
         };
 
         // Execute the program and return the resulting transaction id
-        let handle = spawn_blocking!(program_manager.execute_program(
-            request.program_id,
-            request.program_function,
-            request.inputs.iter(),
-            request.fee,
-            fee_record,
-            None,
-        ));
-        timer = 0f32;
-        while !handle.is_finished() {
-            sleep(Duration::from_millis(500)).await;
-            timer += 0.5;
-            if timer > TIMEOUT {
-                handle.abort();
-                tx.send(StreamState::Timeout).await.or_reject()?;
-            }
-        }
-        let result = handle.await.or_reject()?;
-        if result.is_err() {
-            tx.send(StreamState::Error).await.or_reject()?;
+        let transaction_id = await_streaming_task!(
+            program_manager.execute_program(
+                request.program_id,
+                request.program_function,
+                request.inputs.iter(),
+                request.fee,
+                fee_record,
+                None,
+            ),
+            300.0,
+            "failed to execute program",
+            &tx
+        )?;
+
+        tx.send(StreamState::Result(transaction_id)).await.or_reject()?;
+        Ok(())
+    }
+
+    // Execute a program on the network specified
+    async fn streaming_transfer(
+        request: TransferRequest<N>,
+        record_finder: RecordFinder<N>,
+        private_key: PrivateKey<N>,
+        program_manager: ProgramManager<N>,
+        tx: tokio::sync::mpsc::Sender<StreamState>,
+    ) -> Result<(), Rejection> {
+        // Find a fee record if a fee is specified and a fee record is not provided
+        let fee_record = if request.fee > 0 {
+            let record = if request.fee_record.is_none() {
+                let fee_record_finder = record_finder.clone();
+                await_streaming_task!(
+                    fee_record_finder.find_one_record(&private_key, request.fee),
+                    300.0,
+                    "failed to find fee record",
+                    &tx
+                )?
+            } else {
+                request.fee_record.unwrap()
+            };
+            Some(record)
         } else {
-            tx.send(StreamState::Result(result?)).await.or_reject()?;
-        }
+            None
+        };
+
+        // Find an amount record if an amount record is not provided
+        let amount_record = if let Some(amount_record) = request.amount_record {
+            amount_record
+        } else {
+            await_streaming_task!(
+                record_finder.find_one_record(&private_key, request.amount),
+                300.0,
+                "failed to find record to fund transaction",
+                &tx
+            )?
+        };
+
+        // Run the transfer program within credits.aleo and return the resulting transaction id
+        let transaction_id = await_streaming_task!(
+            program_manager.transfer(request.amount, request.fee, request.recipient, None, amount_record, fee_record),
+            300.0,
+            "failed to make transfer",
+            &tx
+        )?;
+
+        tx.send(StreamState::Result(transaction_id)).await.or_reject()?;
         Ok(())
     }
 
@@ -242,36 +290,10 @@ impl<N: Network> Rest<N> {
         let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
-
-        // Find a fee record if a fee is specified and a fee record is not provided
-        let fee_record = if request.fee > 0 {
-            let record = if request.fee_record.is_none() {
-                let fee_record_finder = record_finder.clone();
-                await_task!(fee_record_finder.find_one_record(&private_key, request.fee))?
-            } else {
-                request.fee_record.unwrap()
-            };
-            Some(record)
-        } else {
-            None
-        };
-
-        // Find an amount record if an amount record is not provided
-        let amount_record = if let Some(amount_record) = request.amount_record {
-            amount_record
-        } else {
-            await_task!(record_finder.find_one_record(&private_key, request.amount))?
-        };
-
-        // Run the transfer program within credits.aleo and return the resulting transaction id
-        let transaction_id = await_task!(program_manager.transfer(
-            request.amount,
-            request.fee,
-            request.recipient,
-            None,
-            amount_record,
-            fee_record
-        ))?;
-        Ok(reply::json(&transaction_id))
+        let (tx, rx) = tokio::sync::mpsc::channel(10);
+        let stream = Self::get_stream(rx);
+        let executor = Self::streaming_transfer(request, record_finder, private_key, program_manager, tx);
+        tokio::task::spawn(executor);
+        Ok(warp::sse::reply(warp::sse::keep_alive().stream(stream)))
     }
 }

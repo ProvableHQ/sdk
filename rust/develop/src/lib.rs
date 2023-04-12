@@ -193,8 +193,8 @@ impl<N: Network> Rest<N> {
         // If no socket address was specified, use the default of 0.0.0.0:4040
         let socket_address = socket_address.unwrap_or_else(|| SocketAddr::from(([0, 0, 0, 0], 4040)));
 
-        // If no peer url was specified, use the default of https://vm.aleo.org/api
-        let peer = peer_url.unwrap_or("https://vm.aleo.org/api".to_string());
+        // If no peer url was specified, use the default of https://apiv2.aleo.network
+        let peer = peer_url.unwrap_or("https://apiv2.aleo.network".to_string());
 
         // Initialize an API client configured for the specified network.
         let api_client = AleoAPIClient::new(&peer, "testnet3")?;

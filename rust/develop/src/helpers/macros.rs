@@ -30,30 +30,26 @@ macro_rules! await_task {
     };
 }
 
-/*
 /// Await a streaming task
 #[macro_export]
-macro_rules! await_task {
-    ($future:expr, $timeout:expr, $message:expr) => {
+macro_rules! await_streaming_task {
+    ($future:expr, $timeout:expr, $message:literal, $tx:expr) => {{
         let task = spawn_blocking!($future);
+        let mut timer = 0f32;
         while !task.is_finished() {
             sleep(Duration::from_millis(500)).await;
-            timer += 1;
+            timer += 0.5;
             if timer > $timeout {
                 task.abort();
-                tx.send(StreamState::Timeout).await.or_reject()?;
-                return Err(reject::custom(RestError::Request(
-                    format!("{} - {}" , $message, "reason: timeout")
-                )));
+                $tx.send(StreamState::Timeout).await.or_reject()?;
+                return Err(reject::custom(RestError::Request(format!("{} - {}", $message, "reason: timeout"))));
             }
         }
         let result = task.await.or_reject()?;
         if result.is_err() {
-            tx.send(StreamState::Error).await.or_reject()?;
-            return Err(reject::custom(RestError::Request(
-                "Error while finding a fee record".to_string(),
-            )));
+            $tx.send(StreamState::Error).await.or_reject()?;
+            return Err(reject::custom(RestError::Request(format!("{} - {}", $message, "reason: error"))));
         }
-    };
+        result
+    }};
 }
-*/

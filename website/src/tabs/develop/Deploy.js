@@ -3,7 +3,7 @@ import {Button, Card, Col, Divider, Form, Input, Row, Result} from "antd";
 import { DevelopmentClient } from "@aleohq/sdk";
 
 export const Deploy = () => {
-    const client = new DevelopmentClient("http://localhost:4040");
+    const client = new DevelopmentClient("https://aleo-dev-server.fly.dev");
     const [deployPrivateKey, setDeployPrivateKey] = useState(null);
     const [deployProgram, setDeployProgram] = useState(null);
     const [deployTransactionId, setDeployTransactionId] = useState(null);
