@@ -1,6 +1,6 @@
 {
   "source": {
-    "include": ["src/account.ts", "src/node_connection.ts"],
+    "include": ["src/account.ts", "src/aleo_network_client.ts", "src/development_client.ts"],
     "includePattern": ".+\\.ts?$"
   },
   "tags": {

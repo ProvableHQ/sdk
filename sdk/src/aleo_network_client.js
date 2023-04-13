@@ -519,4 +519,4 @@ var AleoNetworkClient = /** @class */ (function () {
     return AleoNetworkClient;
 }());
 export { AleoNetworkClient };
-//# sourceMappingURL=node_connection.js.map
+//# sourceMappingURL=aleo_network_client.js.map
