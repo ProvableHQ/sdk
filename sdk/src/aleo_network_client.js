@@ -8,10 +8,10 @@ import { RecordCiphertext, PrivateKey } from "@aleohq/wasm";
  * @param {string} host
  * @example
  * // Connection to a local node
- * let local_connection = new NodeConnection("http://localhost:3030");
+ * let local_connection = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * let public_connection = new NodeConnection("https://vm.aleo.org/api");
+ * let public_connection = new AleoNetworkClient("https://vm.aleo.org/api");
  */
 var AleoNetworkClient = /** @class */ (function () {
     function AleoNetworkClient(host) {
@@ -519,4 +519,4 @@ var AleoNetworkClient = /** @class */ (function () {
     return AleoNetworkClient;
 }());
 export { AleoNetworkClient };
-//# sourceMappingURL=node_connection.js.map
+//# sourceMappingURL=aleo_network_client.js.map

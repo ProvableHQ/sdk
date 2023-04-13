@@ -1,5 +1,5 @@
 import { Account } from "./account";
-import { AleoNetworkClient } from "./node_connection";
+import { AleoNetworkClient } from "./aleo_network_client";
 import { Block } from "./models/block";
 import { Execution} from "./models/execution";
 import { Input} from "./models/input";
