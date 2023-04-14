@@ -18,13 +18,21 @@ license = "GPL-3.0"
 edition = "2021"
 
 [workspace]
-members = [ "rust", "wasm" ]
+members = [ "rust", "wasm", "rust/develop"]
+
+[workspace.dependencies.aleo-rust]
+version = "0.3.6"
+path = "rust"
+default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "0.9.15"
+version = "0.9.16"
+
+[workspace.dependencies.snarkvm-console]
+version = "0.9.16"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.14"
+version = "0.9.16"
 default-features = false
 
 [lib]
@@ -38,15 +46,18 @@ path = "cli/main.rs"
 default = [ ]
 
 [dependencies.aleo-rust]
-path = "rust"
-version = "0.3.6"
+features = [ "default" ]
+workspace = true
 
 [dependencies.anyhow]
 version = "1.0"
 
-[dependencies.clap]
+[workspace.dependencies.clap]
 version = "3.2"
 features = [ "derive" ]
+
+[dependencies.clap]
+workspace = true
 
 [dependencies.colored]
 version = "2"
@@ -83,8 +94,8 @@ features = [
 "aleo-cli",
 "circuit",
 "console",
-"parallel",
-"snarkvm-synthesizer"
+"snarkvm-synthesizer",
+"snarkvm-utilities",
 ]
 
 [dependencies.thiserror]

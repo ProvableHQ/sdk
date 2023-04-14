@@ -23,7 +23,7 @@ use snarkvm_console::{
 };
 
 use anyhow::Result;
-use snarkvm_synthesizer::Program;
+use snarkvm::synthesizer::Program;
 use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf, str::FromStr, thread::sleep};
 
 pub const RECIPIENT_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";

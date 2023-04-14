@@ -15,7 +15,7 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::AleoAPIClient;
-use snarkvm_console::{
+use snarkvm::console::{
     account::{PrivateKey, ViewKey},
     network::Network,
     program::{Plaintext, Record},
@@ -23,6 +23,7 @@ use snarkvm_console::{
 
 use anyhow::{anyhow, bail, Result};
 
+#[derive(Clone)]
 pub struct RecordFinder<N: Network> {
     api_client: AleoAPIClient<N>,
 }

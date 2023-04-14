@@ -352,4 +352,6 @@ describe('WASM Objects', () => {
             expect(plaintext.gates()).toEqual(BigInt(550000000000000));
         });
     });
+
+    
 });

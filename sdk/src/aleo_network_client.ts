@@ -9,10 +9,10 @@ import { RecordCiphertext, RecordPlaintext, PrivateKey, ViewKey } from "@aleohq/
  * @param {string} host
  * @example
  * // Connection to a local node
- * let local_connection = new NodeConnection("http://localhost:3030");
+ * let local_connection = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * let public_connection = new NodeConnection("https://vm.aleo.org/api");
+ * let public_connection = new AleoNetworkClient("https://vm.aleo.org/api");
  */
 export class AleoNetworkClient {
   host: string;
@@ -366,8 +366,6 @@ export class AleoNetworkClient {
                                 }
                               }
                             } catch (error) {
-                              // If the record value is invalid or can't be decrypted, log the error and keep searching
-                              console.log(error);
                             }
                           }
                         }

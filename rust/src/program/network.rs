@@ -15,8 +15,10 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{AleoAPIClient, OnChainProgramState, ProgramManager};
-use snarkvm_console::program::Network;
-use snarkvm_synthesizer::{Program, Transaction};
+use snarkvm::{
+    console::program::Network,
+    synthesizer::{Program, Transaction},
+};
 
 use anyhow::{anyhow, Result};
 
