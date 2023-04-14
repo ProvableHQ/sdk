@@ -57,7 +57,7 @@ impl<N: Network> TransactionRequest<N> for DeployRequest<N> {
         Some(*self.program.id())
     }
 
-    fn type_of(&self) -> &'static str {
+    fn transaction_type(&self) -> &'static str {
         "deploy"
     }
 }

@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-//! [![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo-development-server/)
-//!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
 //! [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
@@ -29,14 +27,92 @@
 //! <br/>
 //! It *SHOULD NOT* be used to create a public API.
 //!
-//! # RESTFUL Program Execution & Deployment
+//! # Program Execution & Deployment
 //!
-//! The Aleo Development Server provides REST endpoints that allow developers to send the necessary
+//! The Aleo Development Server provides HTTP endpoints that allow developers to send the necessary
 //! data needed to create program deployments and executions to the Aleo network. Currently there
-//! are three endpoints:
+//! are three `POST` endpoints:
 //! - `/deploy` - Create a program deployment
 //! - `/execute` - Create a program execution
 //! - `/transfer` - Create a transfer of Aleo credits
+//!
+//! Because program executions and deployments require computation of proofs, they often take time
+//! to complete (especially for large programs/functions). To prevent timeout & properly inform the
+//! consuming client about the status of the request, each method returns a Server Sent Event (SSE)
+//! stream which provides state updates on the status of the transaction.
+//!
+//! The SSE stream will emit the following events:
+//! - `processing` - The program execution or deployment request is being processed
+//! - `success` - The execution or deployment proof finished and the transaction was successfully
+//! sent to the Aleo Network
+//! - `error` - The transaction has failed to process successfully (the error message will
+//! be included in the event data)
+//! - `timeout` - The transaction has timed out and was cancelled
+//!
+//! #### Javascript API
+//! Javascript & typescript client for this server are available in the [Aleo SDK](https://www.npmjs.com/package/@aleohq/sdk) via the `DevelopmentClient` class.
+//!
+//! A typescript example of how to consume the SSE stream in a single call is provided below:
+//! ```typescript
+//!     async sendRequest<T>(path: string, request: any): Promise<T> {
+//!         console.debug("Sending SSE Request");
+//!         return new Promise<T>(async (resolve, reject) => {
+//!             try {
+//!                 const response = await fetch(`${this.baseURL}/testnet3${path}`, {
+//!                     method: 'POST',
+//!                     headers: {
+//!                         "Content-type": "application/json; charset=UTF-8",
+//!                         "Referrer-Policy": "no-referrer",
+//!                     },
+//!                     body: JSON.stringify(request),
+//!                 });
+//!
+//!                 if (!response.ok) {
+//!                     reject(new Error(`Request failed with status ${response.status}: ${response.statusText}`));
+//!                     return;
+//!                 }
+//!
+//!                 if (!response.body) {
+//!                     reject(new Error('No response body'));
+//!                     return;
+//!                 }
+//!
+//!                 const reader = response.body.getReader();
+//!                 const decoder = new TextDecoder();
+//!
+//!                 let eventType: string | null = null;
+//!
+//!                 for await (const chunk of readChunks(reader)) {
+//!                     const decodedChunk = decoder.decode(chunk, { stream: true });
+//!                     const lines = decodedChunk.split('\n');
+//!
+//!                     for (const line of lines) {
+//!                         console.debug("Line:", line);
+//!                         if (line.startsWith('event:')) {
+//!                             eventType = line.slice(6);
+//!                             console.debug("Event Type:", eventType);
+//!                         } else if (line.startsWith('data:') && eventType) {
+//!                             const data = line.slice(5);
+//!                             if (eventType === 'success') {
+//!                                 resolve(data as T);
+//!                                 return;
+//!                             } else if (eventType === 'error' || eventType === 'timeout') {
+//!                                 console.debug("Error encountered:", data);
+//!                                 reject(new Error(data));
+//!                                 return;
+//!                             }
+//!
+//!                             eventType = null;
+//!                         }
+//!                     }
+//!                 }
+//!             } catch (error) {
+//!                 console.debug("Error: ", error);
+//!                 reject(error);
+//!             }
+//!         });
+//!     }
+//! ```
 //!
 //! ## Installation & Configuration
 //! The development server can be installed with:
@@ -62,17 +138,13 @@
 //! ## Usage
 //! Once started, the endpoints have the following options. All requests should be sent as a POST request with a json body.
 //!
-//! #### Javascript API
-//! A javascript client for this server is available in the [Aleo SDK](https://www.npmjs.com/package/@aleohq/sdk)
-//!
-//! #### Endpoints
-//! `\develop`
+//! #### POST Endpoints
+//! `\deploy`
 //! * `program`: Text representation of the program to be deployed
 //! * `fee`: Required fee to be paid for the program deployment
 //! * `private_key`: Optional private key of the user who is deploying the program
-//! * `password`: If the development server is started with an encrypted private key, the password will decrypt the private key
+//! * `password`: Optional - If the development server is started with an encrypted private key, the password will decrypt the private key
 //! * `fee_record`: Optional record in text format to be used for the fee. If not provided, the server will search the network for a suitable record to pay the fee.
-//! * `returns`: The transaction ID of the deployment transaction if successful
 //!
 //! `\execute`
 //! * `program_id` The program ID of the program to be executed (e.g. hello.aleo)
@@ -80,19 +152,17 @@
 //! * `fee` Optional fee to be paid for the transfer, specify 0 for no fee
 //! * `inputs` Array of inputs to be passed to the program
 //! * `private_key` Optional private key of the user who is executing the program
-//! * `password`: If the development server is started with an encrypted private key, the password will decrypt the private key
+//! * `password`: Optional - If the development server is started with an encrypted private key, the password will decrypt the private key
 //! * `fee_record`: Optional record in text format to be used for the fee. If not provided, the server will search the network for a suitable record to pay the fee
-//! * `returns`: The transaction ID of the execution transaction if successful
 //!
 //! `\transfer`
 //! * `amount` The amount of credits to be sent (e.g. 1.5)
 //! * `fee` Optional fee to be paid for the transfer, specify 0 for no fee
 //! * `recipient` The recipient of the transfer
 //! * `privateKey` Optional private key of the user who is sending the transfer
-//! * `password`: If the development server is started with an encrypted private key, the password will decrypt the private key
+//! * `password`: Optional - If the development server is started with an encrypted private key, the password will decrypt the private key
 //! * `amount_record` Optional record in text format to be used to fund the transfer. If not provided, the server will search the network for a suitable record to fund the amount
 //! * `fee_record` Optional record in text format to be used for the fee. If not provided, the server will search the network for a suitable record to pay the fee
-//! @returns {string | Error} The transaction ID of the execution transaction if successful
 //!
 //! #### Curl Examples
 //! Example curl requests for the above endpoints:

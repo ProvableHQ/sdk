@@ -16,8 +16,8 @@
 
 use super::*;
 
-/// Accessor trait for all requests that send transactions to the Aleo Network. This trait is used
-/// to allow generalized handling of requests
+/// Accessor trait for all requests that send transactions to the Aleo Network. This trait is allows
+/// generalized handling of requests
 pub(crate) trait TransactionRequest<N: Network>: Send + Sync {
     /// Get the amount of a transfer
     fn amount(&self) -> Option<u64> {
@@ -70,5 +70,5 @@ pub(crate) trait TransactionRequest<N: Network>: Send + Sync {
     }
 
     /// Get the type of request
-    fn type_of(&self) -> &'static str;
+    fn transaction_type(&self) -> &'static str;
 }

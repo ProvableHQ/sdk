@@ -63,7 +63,7 @@ impl<N: Network> TransactionRequest<N> for TransferRequest<N> {
         Some(self.recipient)
     }
 
-    fn type_of(&self) -> &'static str {
+    fn transaction_type(&self) -> &'static str {
         "transfer"
     }
 }

@@ -114,7 +114,7 @@ impl<N: Network> Rest<N> {
 
     // Build a deployment or execution transaction and send it to the network
     //
-    // This method sends a stream of message to the client about the state of the transaction as it
+    // This method sends a stream of messages to the client about the state of the transaction as it
     // is being built. This allows the client to display the progress of the transaction and respond
     // to any errors that may occur.
     async fn build_and_send_transaction(
@@ -143,7 +143,7 @@ impl<N: Network> Rest<N> {
         };
 
         // Determine the type of transaction and build it with the corresponding parameters
-        let transaction_id = match request.type_of() {
+        let transaction_id = match request.transaction_type() {
             "execute" => await_streaming_task!(
                 program_manager.execute_program(
                     request.program_id().or_reject()?,

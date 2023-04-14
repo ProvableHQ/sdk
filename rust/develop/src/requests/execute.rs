@@ -63,7 +63,7 @@ impl<N: Network> TransactionRequest<N> for ExecuteRequest<N> {
         Some(self.program_function)
     }
 
-    fn type_of(&self) -> &'static str {
+    fn transaction_type(&self) -> &'static str {
         "execute"
     }
 }
