@@ -30,12 +30,9 @@ use warp::{reject, Filter, Rejection};
 pub const EXPIRATION: i64 = 10 * 365 * 24 * 60 * 60; // 10 years.
 
 /// Returns the JWT secret for the node instance.
-fn jwt_secret() -> &'static Vec<u8> {
-    static SECRET: OnceCell<Vec<u8>> = OnceCell::new();
-    SECRET.get_or_init(|| {
-        let seed: [u8; 16] = thread_rng().gen();
-        seed.to_vec()
-    })
+fn jwt_secret() -> &'static [u8] {
+    static SECRET: OnceCell<[u8; 16]> = OnceCell::new();
+    SECRET.get_or_init(|| thread_rng().gen()).as_ref()
 }
 
 /// The Json web token claims.
