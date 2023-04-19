@@ -14,14 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::AleoAPIClient;
-use snarkvm::console::{
-    account::{PrivateKey, ViewKey},
-    network::Network,
-    program::{Plaintext, Record},
-};
-
-use anyhow::{anyhow, bail, Result};
+use super::*;
 
 #[derive(Clone)]
 pub struct RecordFinder<N: Network> {
@@ -54,7 +47,7 @@ impl<N: Network> RecordFinder<N> {
         let amounts = vec![amount];
         self.find_unspent_records_on_chain(Some(&amounts), None, private_key)?
             .into_iter()
-            .find(|record| ***record.gates() >= amount)
+            .find(|record| record.microcredits().unwrap_or(0) >= amount)
             .ok_or_else(|| anyhow!("Insufficient funds"))
     }
 

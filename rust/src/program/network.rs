@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AleoAPIClient, OnChainProgramState, ProgramManager};
-use snarkvm::{
-    console::program::Network,
-    synthesizer::{Program, Transaction},
-};
-
-use anyhow::{anyhow, Result};
+use super::*;
 
 impl<N: Network> ProgramManager<N> {
     /// Broadcast a transaction to the network
     pub fn broadcast_transaction(&self, transaction: Transaction<N>) -> Result<String> {
-        let transaction_type = if let Transaction::Deploy(_, _, _) = &transaction { "Deployment" } else { "Execute" };
+        let transaction_type = if let Transaction::Deploy(..) = &transaction { "Deployment" } else { "Execute" };
         let api_client = self.api_client()?;
         let result = api_client.transaction_broadcast(transaction);
         if result.is_ok() {

@@ -19,6 +19,7 @@ use crate::{
     types::{IdentifierNative, ProgramIDNative, RecordPlaintextNative},
 };
 
+use aleo_rust::Credits;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -43,8 +44,8 @@ impl RecordPlaintext {
     }
 
     /// Returns the amount of gates in the record
-    pub fn gates(&self) -> u64 {
-        ***self.0.gates()
+    pub fn microcredits(&self) -> u64 {
+        self.0.microcredits().unwrap_or(0)
     }
 
     /// Attempt to get the serial number of a record to determine whether or not is has been spent
@@ -113,7 +114,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_gates_from_string() {
         let record = RecordPlaintext::from_string(RECORD).unwrap();
-        assert_eq!(record.gates(), 99);
+        assert_eq!(record.microcredits(), 99);
     }
 
     #[wasm_bindgen_test]

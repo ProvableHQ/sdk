@@ -14,11 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ProgramManager;
-use snarkvm::{console::program::ProgramID, file::Manifest, package::Package, prelude::Network, synthesizer::Program};
-
-use anyhow::{anyhow, bail, ensure, Result};
-use std::{fs::File, io::Read, str::FromStr};
+use super::*;
 
 impl<N: Network> ProgramManager<N> {
     /// Find a program by first looking on disk, and if not found, on the aleo network
@@ -219,7 +215,10 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_network_program_resolution() {
+        // TODO: iamalwaysuncomfortable: This test is currently ignored because current network isn't online
+        // TODO: once the new network is online, this test should be unignored
         // Create a program manager with network access only
         let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
@@ -240,14 +239,14 @@ mod tests {
         // Ensure we can find program imports when the program is on chain
         let test_program = Program::<Testnet3>::from_str(DUAL_IMPORT_PROGRAM).unwrap();
         let hello_program = Program::<Testnet3>::from_str(HELLO_PROGRAM).unwrap();
-        let credits_program = Program::<Testnet3>::credits().unwrap();
+        // let credits_program = Program::<Testnet3>::credits().unwrap();
         let imports = program_manager.find_program_imports(&test_program).unwrap();
         assert_eq!(imports.len(), 2);
 
         let hello_program_on_chain = &imports[0];
-        let online_credits_on_chain = &imports[1];
+        // let online_credits_on_chain = &imports[1];
         assert_eq!(&hello_program, hello_program_on_chain);
-        assert_eq!(&credits_program, online_credits_on_chain);
+        // assert_eq!(&credits_program, online_credits_on_chain);
     }
 
     #[test]

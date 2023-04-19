@@ -14,16 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ProgramManager;
-use snarkvm::{
-    console::{
-        account::PrivateKey,
-        program::{Identifier, Network, Plaintext, ProgramID, Record, Value},
-    },
-    synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM},
-};
-
-use anyhow::{anyhow, bail, ensure, Result};
+use super::*;
 
 impl<N: Network> ProgramManager<N> {
     /// Execute a program function on the Aleo Network.
@@ -111,7 +102,7 @@ impl<N: Network> ProgramManager<N> {
         // Check that the fees are valid
         let additional_fee = match fee_record {
             Some(record) => {
-                let record_amount = ***record.gates();
+                let record_amount = record.microcredits()?;
                 // Ensure a fee record is set
                 ensure!(
                     record_amount > fee,
@@ -141,7 +132,7 @@ impl<N: Network> ProgramManager<N> {
         };
 
         // Create a new execution transaction.
-        Transaction::execute(&vm, private_key, program_id, function_name, inputs, additional_fee, Some(query), rng)
+        Transaction::execute(&vm, private_key, (program_id, function_name), inputs, additional_fee, Some(query), rng)
     }
 }
 

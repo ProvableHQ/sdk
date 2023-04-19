@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{OnChainProgramState, ProgramManager};
-use snarkvm::{
-    console::{
-        account::PrivateKey,
-        prelude::ToBytes,
-        program::{Network, Plaintext, ProgramID, Record},
-    },
-    synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM},
-};
-
-use anyhow::{anyhow, bail, ensure, Error, Result};
+use super::*;
 
 impl<N: Network> ProgramManager<N> {
     /// Deploy a program to the network
@@ -43,7 +33,7 @@ impl<N: Network> ProgramManager<N> {
 
         // Ensure a fee is specified and the record has enough balance to pay for it
         ensure!(fee > 0, "❌ Fee must be greater than zero in order to deploy a program");
-        let record_amount = ***fee_record.gates();
+        let record_amount = fee_record.microcredits()?;
         ensure!(
             record_amount >= fee,
             "❌ The record supplied has balance of {record_amount:?} gates which is insufficient to pay the specified fee of {fee:?} gates"

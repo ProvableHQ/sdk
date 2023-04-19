@@ -179,3 +179,43 @@ pub mod test_utils;
 #[cfg(test)]
 #[cfg(feature = "full")]
 pub use test_utils::*;
+
+#[cfg(feature = "full")]
+pub use snarkvm::synthesizer::{Block, ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
+#[cfg(feature = "full")]
+pub use snarkvm::{file::Manifest, package::Package};
+pub use snarkvm_console::{
+    account::{Address, PrivateKey, Signature, ViewKey},
+    network::Testnet3,
+    prelude::{ToBytes, Uniform},
+    program::{Ciphertext, Identifier, Literal, Network, Plaintext, ProgramID, Record, Value},
+    types::Field,
+};
+
+use anyhow::{anyhow, bail, ensure, Error, Result};
+use indexmap::IndexMap;
+use once_cell::sync::OnceCell;
+use snarkvm_console::program::Entry;
+#[cfg(feature = "full")]
+use std::{convert::TryInto, fs::File, io::Read, ops::Range, path::PathBuf};
+use std::{iter::FromIterator, marker::PhantomData, str::FromStr};
+
+pub trait Credits {
+    /// Get the amount of credits in the record if the record possesses Aleo credits
+    fn credits(&self) -> Result<f64> {
+        Ok(self.microcredits()? as f64 / 1_000_000.0)
+    }
+
+    /// Get the amount of microcredits in the record if the record possesses Aleo credits
+    fn microcredits(&self) -> Result<u64>;
+}
+
+impl<N: Network> Credits for Record<N, Plaintext<N>> {
+    fn microcredits(&self) -> Result<u64> {
+        let amount = match self.find(&[Identifier::from_str("microcredits")?])? {
+            Entry::Private(Plaintext::Literal(Literal::<N>::U64(amount), _)) => amount,
+            _ => bail!("The record provided does not contain a microcredits field"),
+        };
+        Ok(*amount)
+    }
+}

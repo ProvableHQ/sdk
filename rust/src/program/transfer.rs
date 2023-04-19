@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ProgramManager;
-use snarkvm::{
-    console::{
-        account::Address,
-        program::{Network, Plaintext, Record, Value},
-    },
-    synthesizer::{ConsensusMemory, ConsensusStore, Query, Transaction, VM},
-};
-
-use anyhow::{ensure, Result};
-use std::str::FromStr;
+use super::*;
 
 impl<N: Network> ProgramManager<N> {
     /// Executes a transfer to the specified recipient_address with the specified amount and fee.
@@ -75,8 +65,7 @@ impl<N: Network> ProgramManager<N> {
             Transaction::execute(
                 &vm,
                 &private_key,
-                "credits.aleo",
-                "transfer",
+                ("credits.aleo", "transfer"),
                 inputs.iter(),
                 additional_fee,
                 Some(query),
@@ -92,10 +81,7 @@ impl<N: Network> ProgramManager<N> {
 mod tests {
     use super::*;
     use crate::{test_utils::BEACON_PRIVATE_KEY, AleoAPIClient, RecordFinder};
-    use snarkvm_console::{
-        account::{Address, PrivateKey, ViewKey},
-        network::Testnet3,
-    };
+    use snarkvm_console::network::Testnet3;
 
     use std::{str::FromStr, thread};
 
@@ -144,6 +130,6 @@ mod tests {
         let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
         let (_, record) = &records[0];
         let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
-        assert_eq!(***record_plaintext.gates(), 100);
+        assert_eq!(record_plaintext.microcredits().unwrap(), 100);
     }
 }

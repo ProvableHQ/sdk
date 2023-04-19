@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_console::{
-    account::PrivateKey,
-    network::Network,
-    prelude::Uniform,
-    program::{Ciphertext, Identifier, Literal, Plaintext},
-    types::Field,
-};
-
-use anyhow::{anyhow, Result};
-use once_cell::sync::OnceCell;
-use std::{iter::FromIterator, str::FromStr};
+use super::*;
 
 /// Tool for encrypting and decrypting Aleo key material into ciphertext
 pub struct Encryptor<N: Network> {

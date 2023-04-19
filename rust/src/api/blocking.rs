@@ -14,18 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::AleoAPIClient;
-use snarkvm::{
-    console::{
-        account::{PrivateKey, ViewKey},
-        program::{Ciphertext, Network, ProgramID, Record},
-        types::Field,
-    },
-    synthesizer::{Block, Program, Transaction},
-};
-
-use anyhow::{anyhow, bail, ensure, Result};
-use std::{convert::TryInto, ops::Range};
+use super::*;
 
 #[cfg(not(feature = "async"))]
 #[allow(clippy::type_complexity)]
@@ -216,7 +205,7 @@ impl<N: Network> AleoAPIClient<N> {
                                 let _ = record
                                     .decrypt(&view_key)
                                     .map(|record| {
-                                        total_gates += ***record.gates();
+                                        total_gates += record.microcredits().unwrap_or(0);
                                         record
                                     })
                                     .ok();
@@ -242,7 +231,7 @@ impl<N: Network> AleoAPIClient<N> {
                     .filter_map(|amount| {
                         let position = records.iter().position(|(_, record)| {
                             if let Ok(decrypted_record) = record.decrypt(&view_key) {
-                                ***decrypted_record.gates() > *amount
+                                decrypted_record.microcredits().unwrap_or(0) > *amount
                             } else {
                                 false
                             }
@@ -291,14 +280,15 @@ impl<N: Network> AleoAPIClient<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use snarkvm_console::{account::PrivateKey, network::Testnet3};
-
-    use std::{convert::TryFrom, str::FromStr};
 
     type N = Testnet3;
 
     #[test]
+    #[ignore]
     fn test_api_get_blocks() {
+        // TODO (imalwaysuncomfortable): This test is currently ignored because there's no live endpoint
+        // TODO (imalwaysuncomfortable): to test against with the correct serialization, once this
+        // TODO (imalwaysuncomfortable): endpoint comes online, this test
         let client = AleoAPIClient::<Testnet3>::testnet3();
         let blocks = client.get_blocks(0, 3).unwrap();
 
@@ -313,7 +303,12 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_scan() {
+        // TODO (imalwaysuncomfortable): This test is currently ignored because there's no live endpoint
+        // TODO (imalwaysuncomfortable): to test against with the correct serialization, once this
+        // TODO (imalwaysuncomfortable): endpoint comes online, this test
+        // should be un-ignored.
         // Initialize the api client
         let client = AleoAPIClient::<Testnet3>::testnet3();
 
