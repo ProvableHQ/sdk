@@ -343,13 +343,13 @@ describe('WASM Objects', () => {
     });
 
     describe('RecordPlaintext', () => {
-        it('can be created from a string gives the correct number of gates, and can export to a string', () => {
+        it('can be created from a string gives the correct number of microcredits, and can export to a string', () => {
             const plaintext = RecordPlaintext.fromString(recordPlaintextString);
 
             // Ensure the string matches the string the record was created from
             expect(plaintext.toString()).toEqual(recordPlaintextString);
-            // Ensure the record has the correct number of gates
-            expect(plaintext.gates()).toEqual(BigInt(550000000000000));
+            // Ensure the record has the correct number of microcredits
+            expect(plaintext.microcredits()).toEqual(BigInt(550000000000000));
         });
     });
 

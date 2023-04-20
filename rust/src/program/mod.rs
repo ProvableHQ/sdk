@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+//! Tools for deploying, executing, and managing programs on the Aleo network
+
 use super::*;
 
 pub mod deploy;

@@ -37,9 +37,9 @@ pub struct Execute {
     /// Aleo Network peer to broadcast the transaction to
     #[clap(short, long)]
     endpoint: Option<String>,
-    /// Execution fee in credits, defaults to 0
+    /// Execution fee in credits
     #[clap(long)]
-    fee: Option<f64>,
+    fee: f64,
     /// The record to spend the fee from
     #[clap(short, long)]
     record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
@@ -61,10 +61,11 @@ impl Execute {
             !(self.private_key.is_none() && self.ciphertext.is_none()),
             "Private key or private key ciphertext required to execute a function"
         );
+        ensure!(self.fee > 0.0, "Fee must be greater than zero to execute a program");
 
-        // Convert execution fee to gates
-        let fee_credits = self.fee.unwrap_or(0f64);
-        let fee_gates = (fee_credits * 1000000.0) as u64;
+        // Convert execution fee to microcredits
+        let fee_credits = self.fee;
+        let fee_microcredits = (fee_credits * 1000000.0) as u64;
 
         // Get strings for the program and function for logging
         let program_string = self.program_id.to_string();
@@ -102,22 +103,18 @@ impl Execute {
         program_manager.find_program(&self.program_id)?;
 
         // Find a fee record to pay the fee if necessary
-        let fee_record = if fee_gates > 0 {
-            if self.record.is_none() {
-                println!("Searching for a record to spend the execution fee from, this may take a while..");
-                let private_key = if let Some(private_key) = self.private_key {
-                    private_key
-                } else {
-                    let ciphertext = self.ciphertext.as_ref().unwrap();
-                    Encryptor::decrypt_private_key_with_secret(ciphertext, self.password.as_ref().unwrap())?
-                };
-                let record_finder = RecordFinder::new(api_client);
-                Some(record_finder.find_one_record(&private_key, fee_gates)?)
+        let fee_record = if self.record.is_none() {
+            println!("Searching for a record to spend the execution fee from, this may take a while..");
+            let private_key = if let Some(private_key) = self.private_key {
+                private_key
             } else {
-                self.record
-            }
+                let ciphertext = self.ciphertext.as_ref().unwrap();
+                Encryptor::decrypt_private_key_with_secret(ciphertext, self.password.as_ref().unwrap())?
+            };
+            let record_finder = RecordFinder::new(api_client);
+            record_finder.find_one_record(&private_key, fee_microcredits)?
         } else {
-            None
+            self.record.unwrap()
         };
 
         // Execute the program function
@@ -126,7 +123,7 @@ impl Execute {
             self.program_id,
             self.function,
             self.inputs.iter(),
-            fee_gates,
+            fee_microcredits,
             fee_record,
             self.password.as_deref(),
         );
@@ -162,7 +159,8 @@ mod tests {
         let ciphertext = Some(Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap());
 
         // Assert execute fails without a private key or private key ciphertext
-        let execute_missing_key_material = Execute::try_parse_from(["aleo", "hello.aleo", "main", "1337u32", "42u32"]);
+        let execute_missing_key_material =
+            Execute::try_parse_from(["aleo", "hello.aleo", "main", "1337u32", "42u32", "--fee", "0.7"]);
 
         assert!(execute_missing_key_material.unwrap().parse().is_err());
 
@@ -175,6 +173,8 @@ mod tests {
             "42u32",
             "-k",
             &recipient_private_key.to_string(),
+            "--fee",
+            "0.7",
             "--ciphertext",
             &ciphertext.as_ref().unwrap().to_string(),
             "--password",
@@ -191,6 +191,8 @@ mod tests {
             "main",
             "1337u32",
             "42u32",
+            "--fee",
+            "0.7",
             "--ciphertext",
             &ciphertext.as_ref().unwrap().to_string(),
         ]);
@@ -212,6 +214,8 @@ mod tests {
             "42u32",
             "-k",
             &recipient_private_key.to_string(),
+            "--fee",
+            "0.7",
             "-e",
             "localhost:3030",
         ]);

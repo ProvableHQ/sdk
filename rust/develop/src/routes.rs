@@ -129,6 +129,11 @@ impl<N: Network> Rest<N> {
         private_key_ciphertext: Option<Ciphertext<N>>,
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
+        if request.fee <= 0 {
+            return Err(reject::custom(RestError::Request(
+                "Fee must be greater than zero in order to execute a program on the Aleo Network".to_string(),
+            )));
+        }
         // Get API client and private key and create a program manager
         let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
@@ -167,6 +172,11 @@ impl<N: Network> Rest<N> {
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
         // Get API client and private key and create a program manager
+        if request.fee <= 0 {
+            return Err(reject::custom(RestError::Request(
+                "Fee must be greater than zero in order to transfer funds on the Aleo Network".to_string(),
+            )));
+        }
         let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;

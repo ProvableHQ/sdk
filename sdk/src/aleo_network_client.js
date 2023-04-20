@@ -332,11 +332,11 @@ var AleoNetworkClient = /** @class */ (function () {
      * const amounts = [600000, 1000000];
      * let records = connection.findUnspentRecords(start_height, undefined, private_key, amounts);
      *
-     * // Find specific amounts with a maximum number of cumulative gates
-     * const max_gates = 100000;
-     * let records = connection.findUnspentRecords(start_height, undefined, private_key, undefined, max_gates);
+     * // Find specific amounts with a maximum number of cumulative microcredits
+     * const max_microcredits = 100000;
+     * let records = connection.findUnspentRecords(start_height, undefined, private_key, undefined, max_microcredits);
      */
-    AleoNetworkClient.prototype.findUnspentRecords = function (start_height, end_height, private_key, amounts, max_gates) {
+    AleoNetworkClient.prototype.findUnspentRecords = function (start_height, end_height, private_key, amounts, max_microcredits) {
         return __awaiter(this, void 0, void 0, function () {
             var records, start, end, pk, failures, total_record_value, latest_height, vk, block_height, error_13, blocks, i, block, transactions, j, transaction, k, transition, l, output, record, record_plaintext, serial_number, error_14, amounts_found, m, n, error_15, error_16;
             return __generator(this, function (_a) {
@@ -458,11 +458,11 @@ var AleoNetworkClient = /** @class */ (function () {
                         error_14 = _a.sent();
                         // If it's not found, add it to the list of unspent records
                         records.push(record_plaintext);
-                        // If the user specified a maximum number of gates, check if the search has found enough
-                        if (typeof max_gates === "number") {
-                            total_record_value = record_plaintext.gates();
+                        // If the user specified a maximum number of microcredits, check if the search has found enough
+                        if (typeof max_microcredits === "number") {
+                            total_record_value = record_plaintext.microcredits();
                             // Exit if the search has found the amount specified
-                            if (total_record_value >= BigInt(max_gates)) {
+                            if (total_record_value >= BigInt(max_microcredits)) {
                                 return [2 /*return*/, records];
                             }
                         }
@@ -471,7 +471,7 @@ var AleoNetworkClient = /** @class */ (function () {
                             amounts_found = 0;
                             for (m = 0; m < amounts.length; m++) {
                                 for (n = 0; m < records.length; n++) {
-                                    if (records[n].gates() >= BigInt(amounts[m])) {
+                                    if (records[n].microcredits() >= BigInt(amounts[m])) {
                                         amounts_found++;
                                         // Exit if the search has found the amounts specified
                                         if (amounts_found >= amounts.length) {

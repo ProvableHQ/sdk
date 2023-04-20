@@ -79,12 +79,10 @@
 //!
 //! ### Example Usage
 //! ```no_run
-//!   use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
-//!   use snarkvm_console::{
-//!       account::{Address, PrivateKey},
-//!       network::Testnet3,
+//!   use aleo_rust::{
+//!     AleoAPIClient, Encryptor, ProgramManager, RecordFinder,
+//!     snarkvm_types::{Address, PrivateKey, Testnet3, Program}
 //!   };
-//!   use snarkvm::synthesizer::Program;
 //!   use rand::thread_rng;
 //!   use std::str::FromStr;
 //!
@@ -105,9 +103,15 @@
 //!   // EXECUTE PROGRAM STEPS
 //!   // ------------------
 //!
+//!   let record_finder = RecordFinder::<Testnet3>::new(AleoAPIClient::testnet3());
+//!   // Set the fee for the deployment transaction (in units of microcredits)
+//!   let fee_microcredits = 300000;
+//!   // Find a record to fund the deployment fee (requires an account with a balance)
+//!   let fee_record = record_finder.find_one_record(&private_key, fee_microcredits).unwrap();
+//!
 //!   // Execute the function `main` of the hello.aleo program with the arguments 5u32 and 3u32.
 //!   // Specify 0 for the fee and provide a password to decrypt the private key stored in the program manager
-//!   program_manager.execute_program("hello.aleo", "main", ["5u32", "3u32"].into_iter(), 0, None, Some("password")).unwrap();
+//!   program_manager.execute_program("hello.aleo", "main", ["5u32", "3u32"].into_iter(), 0, fee_record, Some("password")).unwrap();
 //!
 //!   // ------------------
 //!   // DEPLOY PROGRAM STEPS
@@ -127,12 +131,12 @@
 //!   program_manager.add_program(&program).unwrap();
 //!   // Create a record finder to find records to fund the deployment fee
 //!   let record_finder = RecordFinder::<Testnet3>::new(AleoAPIClient::testnet3());
-//!   // Set the fee for the deployment transaction (in units of gates)
-//!   let fee_gates = 300000;
+//!   // Set the fee for the deployment transaction (in units of microcredits)
+//!   let fee_microcredits = 300000;
 //!   // Find a record to fund the deployment fee (requires an account with a balance)
-//!   let record = record_finder.find_one_record(&private_key, fee_gates).unwrap();
+//!   let fee_record = record_finder.find_one_record(&private_key, fee_microcredits).unwrap();
 //!   // Deploy the program to the network
-//!   program_manager.deploy_program(program_name, fee_gates, record, Some("password")).unwrap();
+//!   program_manager.deploy_program(program_name, fee_microcredits, fee_record, Some("password")).unwrap();
 //!
 //!   // Wait several minutes.. then check the program exists on the network
 //!   let api_client = AleoAPIClient::<Testnet3>::testnet3();
@@ -147,13 +151,13 @@
 //!   // Create a recipient (in practice, the recipient would send their address to the sender)
 //!   let recipient_key = PrivateKey::<Testnet3>::new(&mut rng).unwrap();
 //!   let recipient_address = Address::try_from(recipient_key).unwrap();
-//!   // Create amount and fee (both in units of gates)
+//!   // Create amount and fee (both in units of microcredits)
 //!   let amount = 30000;
 //!   let fee = 100;
 //!   // Find records to fund the transfer
 //!   let (amount_record, fee_record) = record_finder.find_amount_and_fee_records(amount, fee, &private_key).unwrap();
 //!   // Create a transfer
-//!   program_manager.transfer(amount, fee, recipient_address, Some("password"), amount_record, Some(fee_record)).unwrap();
+//!   program_manager.transfer(amount, fee, recipient_address, Some("password"), amount_record, fee_record).unwrap();
 //!
 //!   ```
 //! This API is currently under active development and is expected to change in the future in order
@@ -161,17 +165,20 @@
 //!
 
 pub mod account;
-pub use account::*;
+#[doc(inline)]
+pub use account::Encryptor;
 
 #[cfg(feature = "full")]
 pub mod api;
 #[cfg(feature = "full")]
-pub use api::*;
+#[doc(inline)]
+pub use api::AleoAPIClient;
 
 #[cfg(feature = "full")]
 pub mod program;
 #[cfg(feature = "full")]
-pub use program::*;
+#[doc(inline)]
+pub use program::{OnChainProgramState, ProgramManager, RecordFinder};
 
 #[cfg(test)]
 #[cfg(feature = "full")]
@@ -180,17 +187,22 @@ pub mod test_utils;
 #[cfg(feature = "full")]
 pub use test_utils::*;
 
+pub mod snarkvm_types {
+    //! Re-export of crucial types from the snarkVM crate
+    #[cfg(feature = "full")]
+    pub use snarkvm::synthesizer::{Block, ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
+    pub use snarkvm_console::{
+        account::{Address, PrivateKey, Signature, ViewKey},
+        network::Testnet3,
+        prelude::{ToBytes, Uniform},
+        program::{Ciphertext, Identifier, Literal, Network, Plaintext, ProgramID, Record, Value},
+        types::Field,
+    };
+}
 #[cfg(feature = "full")]
-pub use snarkvm::synthesizer::{Block, ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
-#[cfg(feature = "full")]
-pub use snarkvm::{file::Manifest, package::Package};
-pub use snarkvm_console::{
-    account::{Address, PrivateKey, Signature, ViewKey},
-    network::Testnet3,
-    prelude::{ToBytes, Uniform},
-    program::{Ciphertext, Identifier, Literal, Network, Plaintext, ProgramID, Record, Value},
-    types::Field,
-};
+use snarkvm::{file::Manifest, package::Package};
+
+pub use snarkvm_types::*;
 
 use anyhow::{anyhow, bail, ensure, Error, Result};
 use indexmap::IndexMap;
@@ -200,6 +212,7 @@ use snarkvm_console::program::Entry;
 use std::{convert::TryInto, fs::File, io::Read, ops::Range, path::PathBuf};
 use std::{iter::FromIterator, marker::PhantomData, str::FromStr};
 
+/// A trait providing convenient methods for accessing the amount of Aleo present in a record
 pub trait Credits {
     /// Get the amount of credits in the record if the record possesses Aleo credits
     fn credits(&self) -> Result<f64> {

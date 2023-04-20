@@ -129,9 +129,9 @@ export declare class AleoNetworkClient {
      * const amounts = [600000, 1000000];
      * let records = connection.findUnspentRecords(start_height, undefined, private_key, amounts);
      *
-     * // Find specific amounts with a maximum number of cumulative gates
-     * const max_gates = 100000;
-     * let records = connection.findUnspentRecords(start_height, undefined, private_key, undefined, max_gates);
+     * // Find specific amounts with a maximum number of cumulative microcredits
+     * const max_microcredits = 100000;
+     * let records = connection.findUnspentRecords(start_height, undefined, private_key, undefined, max_microcredits);
      */
-    findUnspentRecords(start_height: number, end_height: number | undefined, private_key: string | undefined, amounts: number[] | undefined, max_gates: number | undefined): Promise<Array<RecordPlaintext> | Error>;
+    findUnspentRecords(start_height: number, end_height: number | undefined, private_key: string | undefined, amounts: number[] | undefined, max_microcredits: number | undefined): Promise<Array<RecordPlaintext> | Error>;
 }

@@ -26,19 +26,10 @@ impl<N: Network> ProgramManager<N> {
         recipient_address: Address<N>,
         password: Option<&str>,
         input_record: Record<N, Plaintext<N>>,
-        fee_record: Option<Record<N, Plaintext<N>>>,
+        fee_record: Record<N, Plaintext<N>>,
     ) -> Result<String> {
         ensure!(amount > 0, "Amount must be greater than 0");
-
-        let additional_fee = if fee > 0 {
-            ensure!(fee_record.is_some(), "If a fee is specified, a fee record must be specified to pay for it");
-            Some((fee_record.unwrap(), fee))
-        } else {
-            if fee_record.is_some() {
-                println!("⚠️ Warning: Fee record specified but fee is 0, the fee record will not be used");
-            }
-            None
-        };
+        ensure!(fee > 0, "Fee must be greater than 0");
 
         // Specify the network state query
         let query = Query::from(self.api_client.as_ref().unwrap().base_url());
@@ -67,7 +58,7 @@ impl<N: Network> ProgramManager<N> {
                 &private_key,
                 ("credits.aleo", "transfer"),
                 inputs.iter(),
-                additional_fee,
+                Some((fee_record, fee)),
                 Some(query),
                 rng,
             )?
@@ -103,14 +94,15 @@ mod tests {
         // Make several transactions from the genesis account since the genesis account keeps spending records,
         // it may take a few tries to transfer successfully
         for i in 0..10 {
-            let record = record_finder.find_one_record(&beacon_private_key, 100);
-            if record.is_err() {
-                println!("Record not found: {} - retrying", record.unwrap_err());
+            let records = record_finder.find_amount_and_fee_records(100, 500_000, &beacon_private_key);
+            if records.is_err() {
+                println!("Record not found: {} - retrying", records.unwrap_err());
                 thread::sleep(std::time::Duration::from_secs(3));
                 continue;
             }
-            let input_record = record.unwrap();
-            let result = program_manager.transfer(100, 0, recipient_address, None, input_record, None);
+
+            let (input_record, fee_record) = records.unwrap();
+            let result = program_manager.transfer(100, 500000, recipient_address, None, input_record, fee_record);
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
             } else if i > 6 {
