@@ -175,19 +175,18 @@ impl<N: Network> Rest<N> {
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
 
-        // Find a fee record if a fee is specified and a fee record is not provided
-        let fee_record = if request.fee_record.is_none() {
-            let fee_record_finder = record_finder.clone();
-            spawn_blocking!(fee_record_finder.find_one_record(&private_key, request.fee))?
-        } else {
-            request.fee_record.unwrap()
-        };
-
-        // Find an amount record if an amount record is not provided
-        let amount_record = if let Some(amount_record) = request.amount_record {
-            amount_record
-        } else {
-            spawn_blocking!(record_finder.find_one_record(&private_key, request.amount))?
+        let (amount_record, fee_record) = match (request.amount_record, request.fee_record) {
+            (Some(amount_record), Some(fee_record)) => (amount_record, fee_record),
+            (Some(amount_record), None) => {
+                // Find a fee record if a fee is specified and a fee record is not provided
+                (amount_record, spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?)
+            }
+            (None, Some(fee_record)) => {
+                (spawn_blocking!(record_finder.find_one_record(&private_key, request.amount))?, fee_record)
+            }
+            (None, None) => {
+                spawn_blocking!(record_finder.find_amount_and_fee_records(request.amount, request.fee, &private_key))?
+            }
         };
 
         // Run the transfer program within credits.aleo and return the resulting transaction id

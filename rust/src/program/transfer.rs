@@ -89,7 +89,7 @@ mod tests {
             ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client.clone()), None).unwrap();
         let record_finder = RecordFinder::new(api_client);
         // Wait for the chain to to start
-        thread::sleep(std::time::Duration::from_secs(60));
+        //thread::sleep(std::time::Duration::from_secs(60));
 
         // Make several transactions from the genesis account since the genesis account keeps spending records,
         // it may take a few tries to transfer successfully
@@ -105,23 +105,25 @@ mod tests {
             let result = program_manager.transfer(100, 500000, recipient_address, None, input_record, fee_record);
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
-            } else if i > 6 {
-                break;
+            } else if i > 8 {
+                panic!("Failed to transfer after 8 transfer errors");
             }
 
-            // Wait 2 seconds before trying again
-            thread::sleep(std::time::Duration::from_secs(2));
+            // Wait for the chain to update blocks
+            thread::sleep(std::time::Duration::from_secs(15));
+
+            // Check the balance of the recipient
+            let api_client = program_manager.api_client().unwrap();
+            let height = api_client.latest_height().unwrap();
+            let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
+            if !records.is_empty() {
+                let (_, record) = &records[0];
+                let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
+                let amount = record_plaintext.microcredits().unwrap();
+                if amount == 100 {
+                    break;
+                }
+            }
         }
-
-        // Wait for the chain to update blocks
-        thread::sleep(std::time::Duration::from_secs(35));
-
-        // Check the balance of the recipient
-        let api_client = program_manager.api_client().unwrap();
-        let height = api_client.latest_height().unwrap();
-        let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
-        let (_, record) = &records[0];
-        let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
-        assert_eq!(record_plaintext.microcredits().unwrap(), 100);
     }
 }

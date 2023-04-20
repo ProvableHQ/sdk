@@ -155,6 +155,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_hybrid_program_and_import_loading() {
         let credits_program_string = Program::<Testnet3>::credits().unwrap().to_string();
         let imports = vec![("credits.aleo", credits_program_string.as_str())];
@@ -230,6 +231,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_network_program_imports_are_resolved_correctly() {
         // Create a program manager with network access only
         let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();

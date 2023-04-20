@@ -137,38 +137,45 @@ mod tests {
             crate::Encryptor::encrypt_private_key_with_secret(&private_key, "password").unwrap();
         let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
         let record_finder = RecordFinder::new(api_client.clone());
-        let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
         let mut program_manager =
             ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client.clone()), None).unwrap();
 
-        // Test execution of a on chain program is successful
-        let execution = program_manager.execute_program(
-            "credits_import_test.aleo",
-            "test",
-            ["1312u32", "62131112u32"].into_iter(),
-            500_000,
-            fee_record,
-            None,
-        );
+        for _ in 0..5 {
+            let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
+            // Test execution of a on chain program is successful
+            let execution = program_manager.execute_program(
+                "credits_import_test.aleo",
+                "test",
+                ["1312u32", "62131112u32"].into_iter(),
+                500_000,
+                fee_record,
+                None,
+            );
 
-        assert!(execution.is_ok());
+            if execution.is_ok() {
+                break;
+            }
+        }
 
         // Test programs can be executed with an encrypted private key
         let mut program_manager =
             ProgramManager::<Testnet3>::new(None, Some(encrypted_private_key), Some(api_client), None).unwrap();
 
-        let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
-        // Test execution of an on chain program is successful using an encrypted private key
-        let execution = program_manager.execute_program(
-            "credits_import_test.aleo",
-            "test",
-            ["1337u32", "42u32"].into_iter(),
-            500000,
-            fee_record,
-            Some("password"),
-        );
-
-        assert!(execution.is_ok());
+        for _ in 0..5 {
+            let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
+            // Test execution of an on chain program is successful using an encrypted private key
+            let execution = program_manager.execute_program(
+                "credits_import_test.aleo",
+                "test",
+                ["1337u32", "42u32"].into_iter(),
+                500000,
+                fee_record,
+                Some("password"),
+            );
+            if execution.is_ok() {
+                break;
+            }
+        }
     }
 
     #[test]

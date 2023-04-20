@@ -9,12 +9,12 @@ function wait(ms: number): Promise<void> {
 describe('DevelopmentServer', () => {
     let devClient: DevelopmentClient;
     let localApiClient: AleoNetworkClient;
-    let remoteDevClient: DevelopmentClient;
+    let privateDevClient: DevelopmentClient;
 
     beforeEach(() => {
         devClient = new DevelopmentClient("http://0.0.0.0:4040");
         localApiClient = new AleoNetworkClient("http://0.0.0.0:3030");
-        remoteDevClient = new DevelopmentClient("http://0.0.0.0:5050");
+        privateDevClient = new DevelopmentClient("http://0.0.0.0:5050");
     });
 
     describe('Deploy & Execute', () => {
@@ -23,6 +23,7 @@ describe('DevelopmentServer', () => {
             let transaction_id = "";
             for (let i = 0; i < 4; i++) {
                 try {
+                    log("Attempting to make a value transfer");
                     transaction_id = await devClient.transfer(1000, 1, fundedAddressString, fundedPrivateKeyString);
                     break;
                 } catch (e) {
@@ -91,8 +92,8 @@ describe('DevelopmentServer', () => {
             let transaction_id = "";
             for (let i = 0; i < 3; i++) {
                 try {
-                    log("Attempting to execute program hello.aleo - main..");
-                    transaction_id = await remoteDevClient.executeProgram("hello.aleo", "main", 1, ["5u32", "5u32"], undefined, "password");
+                    log("Attempting to execute program sup.aleo - main with a server started with a private key ciphertext..");
+                    transaction_id = await privateDevClient.executeProgram("sup.aleo", "main", 1, ["5u32", "5u32"], undefined, "password");
                     log("Execute transaction id: " + transaction_id);
                     expect(transaction_id).toBeTruthy();
                     break;
@@ -103,8 +104,8 @@ describe('DevelopmentServer', () => {
 
             // If the transaction failed above, try one more time
             if (transaction_id === "") {
-                log("Attempting to execute hello.aleo - main one final time..");
-                transaction_id = await remoteDevClient.executeProgram("hello.aleo", "main", 1, ["5u32", "5u32"], undefined, "password");
+                log("Attempting to execute program sup.aleo - main with a server started with a private key ciphertext one final time..");
+                transaction_id = await privateDevClient.executeProgram("sup.aleo", "main", 1, ["5u32", "5u32"], undefined, "password");
             }
             expect(transaction_id).toBeTruthy();
         }, 150000);

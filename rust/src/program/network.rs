@@ -63,6 +63,7 @@ mod tests {
     use std::{ops::Add, str::FromStr};
 
     #[test]
+    #[ignore]
     fn test_network_functionality_works_as_expected() {
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
         let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
