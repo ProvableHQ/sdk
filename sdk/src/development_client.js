@@ -65,7 +65,7 @@ var DevelopmentClient = /** @class */ (function () {
                             fee: fee * 1000000,
                             fee_record: feeRecord
                         };
-                        log("fee is:", fee);
+                        log("fee is:", fee * 1000000);
                         return [4 /*yield*/, this.sendRequest('/deploy', request)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }

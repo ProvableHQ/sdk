@@ -121,17 +121,17 @@ export declare class AleoNetworkClient {
      *
      * @example
      * // Find all unspent records
-     * const private_key = "[PRIVATE_KEY]";
-     * let records = connection.findUnspentRecords(0, undefined, private_key);
+     * const privateKey = "[PRIVATE_KEY]";
+     * let records = connection.findUnspentRecords(0, undefined, privateKey);
      *
      * // Find specific amounts
-     * const start_height = 500000;
+     * const startHeight = 500000;
      * const amounts = [600000, 1000000];
-     * let records = connection.findUnspentRecords(start_height, undefined, private_key, amounts);
+     * let records = connection.findUnspentRecords(startHeight, undefined, privateKey, amounts);
      *
      * // Find specific amounts with a maximum number of cumulative microcredits
-     * const max_microcredits = 100000;
-     * let records = connection.findUnspentRecords(start_height, undefined, private_key, undefined, max_microcredits);
+     * const maxMicrocredits = 100000;
+     * let records = connection.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
      */
-    findUnspentRecords(start_height: number, end_height: number | undefined, private_key: string | undefined, amounts: number[] | undefined, max_microcredits: number | undefined): Promise<Array<RecordPlaintext> | Error>;
+    findUnspentRecords(startHeight: number, endHeight: number | undefined, privateKey: string | undefined, amounts: number[] | undefined, maxMicrocredits: number | undefined): Promise<Array<RecordPlaintext> | Error>;
 }
