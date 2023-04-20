@@ -170,6 +170,8 @@ impl<N: Network> AleoAPIClient<N> {
         let view_key = ViewKey::try_from(private_key)?;
         let address_x_coordinate = view_key.to_address().to_x_coordinate();
 
+        let step_size = 49;
+
         ensure!(
             block_heights.start < block_heights.end,
             "The start block height must be less than the end block height"
@@ -180,9 +182,9 @@ impl<N: Network> AleoAPIClient<N> {
 
         let mut total_gates = 0u64;
         let mut end_height = block_heights.end;
-        let mut start_height = block_heights.end.saturating_sub(50);
+        let mut start_height = block_heights.end.saturating_sub(step_size);
 
-        for _ in (block_heights.start..block_heights.end).step_by(50) {
+        for _ in (block_heights.start..block_heights.end).step_by(step_size as usize) {
             println!("Searching blocks {} to {} for records...", start_height, end_height);
             // Get blocks
             let records_iter =
@@ -190,7 +192,7 @@ impl<N: Network> AleoAPIClient<N> {
 
             // Search in reverse order from the latest block to the earliest block
             end_height = start_height;
-            start_height = start_height.saturating_sub(50);
+            start_height = start_height.saturating_sub(step_size);
             if start_height < block_heights.start {
                 start_height = block_heights.start
             };

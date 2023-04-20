@@ -119,7 +119,11 @@ impl Transfer {
                 // Either the fee is none or the fee record is already provided, so just find the input record
                 (record_finder.find_one_record(&private_key, amount_microcredits)?, self.fee_record.unwrap())
             }
+        } else if self.fee_record.is_none() {
+            // Either the amount is none or the input record is already provided, so just find the fee record
+            (self.input_record.unwrap(), record_finder.find_one_record(&private_key, fee_microcredits)?)
         } else {
+            // Both the amount and fee are already provided, so just use them
             (self.input_record.unwrap(), self.fee_record.unwrap())
         };
 

@@ -61,7 +61,7 @@ impl Execute {
             !(self.private_key.is_none() && self.ciphertext.is_none()),
             "Private key or private key ciphertext required to execute a function"
         );
-        ensure!(self.fee > 0.0, "Fee must be greater than zero to execute a program");
+        ensure!(self.fee > 0.0, "Fee must be greater than 0 to execute a program");
 
         // Convert execution fee to microcredits
         let fee_credits = self.fee;

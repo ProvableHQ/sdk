@@ -34,7 +34,7 @@ pub struct Deploy {
     /// Aleo Network peer to broadcast the deployment to
     #[clap(short, long)]
     endpoint: Option<String>,
-    /// Deployment fee in credits, defaults to 0
+    /// Deployment fee in credits
     #[clap(short, long)]
     fee: f64,
     /// The record to spend the fee from
@@ -57,6 +57,10 @@ impl Deploy {
         ensure!(
             !(self.private_key.is_none() && self.ciphertext.is_none()),
             "Private key or private key ciphertext required to deploy a program"
+        );
+
+        ensure!(
+            self.fee > 0.0, "Deployment fee must be greater than 0"
         );
 
         // Convert deployment fee to microcredits

@@ -355,7 +355,7 @@ var AleoNetworkClient = /** @class */ (function () {
                                 throw new Error("Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient");
                             }
                             else {
-                                pk = this.account.pk;
+                                pk = this.account._privateKey;
                             }
                         }
                         else {

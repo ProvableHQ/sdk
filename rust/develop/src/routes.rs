@@ -101,7 +101,6 @@ impl<N: Network> Rest<N> {
                 "Fee must be greater than zero in order to deploy a program to the Aleo Network".to_string(),
             )));
         }
-
         // Get API client and private key and create a program manager
         let api_client = Self::get_api_client(api_client, &request.peer_url)?;
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
@@ -129,7 +128,7 @@ impl<N: Network> Rest<N> {
         private_key_ciphertext: Option<Ciphertext<N>>,
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
-        if request.fee <= 0 {
+        if request.fee == 0 {
             return Err(reject::custom(RestError::Request(
                 "Fee must be greater than zero in order to execute a program on the Aleo Network".to_string(),
             )));
@@ -140,15 +139,10 @@ impl<N: Network> Rest<N> {
         let mut program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
 
         // Find a fee record if a fee is specified and a fee record is not provided
-        let fee_record = if request.fee > 0 {
-            let record = if request.fee_record.is_none() {
-                spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?
-            } else {
-                request.fee_record.take().unwrap()
-            };
-            Some(record)
+        let fee_record = if request.fee_record.is_none() {
+            spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?
         } else {
-            None
+            request.fee_record.take().unwrap()
         };
 
         // Execute the program and return the resulting transaction id
@@ -172,7 +166,7 @@ impl<N: Network> Rest<N> {
         api_client: AleoAPIClient<N>,
     ) -> Result<impl Reply, Rejection> {
         // Get API client and private key and create a program manager
-        if request.fee <= 0 {
+        if request.fee == 0 {
             return Err(reject::custom(RestError::Request(
                 "Fee must be greater than zero in order to transfer funds on the Aleo Network".to_string(),
             )));
@@ -182,16 +176,11 @@ impl<N: Network> Rest<N> {
         let program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
 
         // Find a fee record if a fee is specified and a fee record is not provided
-        let fee_record = if request.fee > 0 {
-            let record = if request.fee_record.is_none() {
-                let fee_record_finder = record_finder.clone();
-                spawn_blocking!(fee_record_finder.find_one_record(&private_key, request.fee))?
-            } else {
-                request.fee_record.unwrap()
-            };
-            Some(record)
+        let fee_record = if request.fee_record.is_none() {
+            let fee_record_finder = record_finder.clone();
+            spawn_blocking!(fee_record_finder.find_one_record(&private_key, request.fee))?
         } else {
-            None
+            request.fee_record.unwrap()
         };
 
         // Find an amount record if an amount record is not provided

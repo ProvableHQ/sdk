@@ -1,5 +1,6 @@
 import { __awaiter, __generator } from "tslib";
 import axios from 'axios';
+import { log } from 'console';
 var config = {
     headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -61,9 +62,10 @@ var DevelopmentClient = /** @class */ (function () {
                             program: program,
                             private_key: privateKey,
                             password: password,
-                            fee: fee,
+                            fee: fee * 1000000,
                             fee_record: feeRecord
                         };
+                        log("fee is:", fee);
                         return [4 /*yield*/, this.sendRequest('/deploy', request)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
@@ -103,7 +105,7 @@ var DevelopmentClient = /** @class */ (function () {
                             inputs: inputs,
                             private_key: privateKey,
                             password: password,
-                            fee: fee,
+                            fee: fee * 1000000,
                             fee_record: feeRecord
                         };
                         return [4 /*yield*/, this.sendRequest('/execute', request)];
@@ -143,7 +145,7 @@ var DevelopmentClient = /** @class */ (function () {
                     case 0:
                         request = {
                             amount: amount * 1000000,
-                            fee: fee,
+                            fee: fee * 1000000,
                             recipient: recipient,
                             private_key: privateKey,
                             password: password,

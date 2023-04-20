@@ -172,7 +172,6 @@ pub fn transfer_to_test_account(
     loop {
         let input_record = record_finder.find_amount_and_fee_records(amount, fee, &beacon_private_key);
         if input_record.is_err() {
-            input_record.unwrap();
             println!("No records found, retrying");
             retries += 1;
             sleep(std::time::Duration::from_secs(3));

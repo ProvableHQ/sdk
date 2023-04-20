@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { log } from 'console';
 
 interface DeployRequest {
     program: string;
@@ -101,9 +102,10 @@ export class DevelopmentClient {
             program,
             private_key: privateKey,
             password,
-            fee,
+            fee: fee*1000000,
             fee_record: feeRecord,
         };
+        log("fee is:", fee*1000000);
         return await this.sendRequest('/deploy', request);
     }
 
@@ -143,7 +145,7 @@ export class DevelopmentClient {
             inputs,
             private_key: privateKey,
             password,
-            fee,
+            fee: fee*1000000,
             fee_record: feeRecord
         }
         return await this.sendRequest('/execute', request);
@@ -183,7 +185,7 @@ export class DevelopmentClient {
     ): Promise<string> {
         const request: TransferRequest = {
             amount: amount*1000000,
-            fee,
+            fee: fee*1000000,
             recipient,
             private_key: privateKey,
             password,

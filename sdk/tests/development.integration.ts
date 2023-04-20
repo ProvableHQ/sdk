@@ -41,9 +41,9 @@ describe('DevelopmentServer', () => {
             for (let i = 0; i < 4; i++) {
                 try {
                     log("Attempting to deploy sup.aleo");
-                    deploy_transaction_id = await devClient.deployProgram(helloProgram, 6000000, fundedPrivateKeyString);
+                    deploy_transaction_id = await devClient.deployProgram(helloProgram, 8, fundedPrivateKeyString);
                     log("Deploy transaction id: " + deploy_transaction_id);
-                    await wait(30000);
+                    await wait(45000);
                     const program = await localApiClient.getProgram("sup.aleo");
                     log("Program: " + program);
                     expect(program).toBeTruthy();
@@ -57,7 +57,7 @@ describe('DevelopmentServer', () => {
             // If the transaction failed above, try one more time
             if (deploy_transaction_id === "") {
                 log("Attempting to deploy sup.aleo one final time")
-                await devClient.deployProgram(helloProgram, 6000000, fundedPrivateKeyString);
+                await devClient.deployProgram(helloProgram, 8, fundedPrivateKeyString);
                 await wait(30000);
                 const program = await localApiClient.getProgram("sup.aleo");
                 log("Program: " + program);
