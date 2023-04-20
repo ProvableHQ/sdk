@@ -33,8 +33,8 @@ describe('NodeConnection', () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
             expect((blockRange as Block[]).length).toBe(2);
-            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab10675wjtmda2fd889yy95vnq6h9ajhw7xa9dul24t0tj9gxw52czsxey6j3");
-            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1qapyam48ln0y2l027nmuw4wpywg35t7tqhqnqju33xwlaj3y2cgqjwykkt");
+            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1m7h0vydnf2xplp239l2q0y44zknxsa7lkvtrshqtvydvn6djuurqshcmde");
+            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab12alv2p3qyljee0p0qhdxucgwmc7z4ksu6wmuq82pwwyruk8z9gpq4fzral");
 
         }, 60000);
 
@@ -86,7 +86,7 @@ describe('NodeConnection', () => {
 
     describe('getTransaction', () => {
         it('should return a Transaction object', async () => {
-            const transaction = await connection.getTransaction('at19she95tyh9vcc2s9t0hc0ncjpsre3vegy2u8jl7ud98crkcctupq0j3du2');
+            const transaction = await connection.getTransaction('at16sdpnzkfrkt23d0tcc7w70f58v3nlnaaz4enxtgm60jxunzv8u9qkal4jp');
             expect((transaction as Transaction).type).toBe("execute");
         }, 60000);
 
@@ -109,7 +109,7 @@ describe('NodeConnection', () => {
 
     describe('getTransitionId', () => {
         it('should return a transition id', async () => {
-            const transition = await connection.getTransitionId('253828185527375083192728842499755616349007949605329548835718720313298727643field')
+            const transition = await connection.getTransitionId('6866647410757599703329629691709061820633527793044443701602944623822566040683field')
             expect(typeof transition).toBe('string');
         }, 60000);
 
