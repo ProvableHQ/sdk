@@ -1,5 +1,5 @@
 import { AleoNetworkClient, DevelopmentClient } from '../src';
-import {addressString, fundedPrivateKeyString, helloProgram, helloProgramId} from './data/account-data';
+import {fundedAddressString, fundedPrivateKeyString, helloProgram, helloProgramId} from './data/account-data';
 import { log } from 'console';
 
 function wait(ms: number): Promise<void> {
@@ -23,7 +23,7 @@ describe('DevelopmentServer', () => {
             let transaction_id = "";
             for (let i = 0; i < 4; i++) {
                 try {
-                    transaction_id = await devClient.transfer(1000, 1, addressString, fundedPrivateKeyString);
+                    transaction_id = await devClient.transfer(1000, 1, fundedAddressString, fundedPrivateKeyString);
                     break;
                 } catch (e) {
                 }
@@ -31,7 +31,7 @@ describe('DevelopmentServer', () => {
 
             // If the transaction failed above, try one more time
             if (transaction_id === "") {
-                transaction_id = await devClient.transfer(1000, 1, addressString, fundedPrivateKeyString);
+                transaction_id = await devClient.transfer(1000, 1, fundedAddressString, fundedPrivateKeyString);
             }
             expect(transaction_id).toBeTruthy();
         }, 120000);

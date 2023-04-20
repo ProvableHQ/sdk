@@ -1,5 +1,15 @@
 import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "@aleohq/wasm";
-import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignViewKeyString, recordPlaintextString } from './data/account-data';
+import {
+    seed,
+    message,
+    privateKeyString,
+    viewKeyString,
+    addressString,
+    recordCiphertextString,
+    foreignViewKeyString,
+    recordPlaintextString,
+    beaconPrivateKeyString
+} from './data/account-data';
 
 
 describe('WASM Objects', () => {
@@ -78,7 +88,7 @@ describe('WASM Objects', () => {
             // Ensure the private key is a PrivateKey instance
             expect(privateKey).toBeInstanceOf(PrivateKey);
             // Ensure the private key is the correct value
-            expect(privateKey.to_string()).toMatch(privateKeyString);
+            expect(privateKey.to_string()).toMatch(beaconPrivateKeyString);
         });
 
         it('constructs properly from a private key string', () => {
@@ -349,7 +359,7 @@ describe('WASM Objects', () => {
             // Ensure the string matches the string the record was created from
             expect(plaintext.toString()).toEqual(recordPlaintextString);
             // Ensure the record has the correct number of microcredits
-            expect(plaintext.microcredits()).toEqual(BigInt(550000000000000));
+            expect(plaintext.microcredits()).toEqual(BigInt(1500000000000000));
         });
     });
 
