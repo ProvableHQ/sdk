@@ -59,9 +59,7 @@ impl Deploy {
             "Private key or private key ciphertext required to deploy a program"
         );
 
-        ensure!(
-            self.fee > 0.0, "Deployment fee must be greater than 0"
-        );
+        ensure!(self.fee > 0.0, "Deployment fee must be greater than 0");
 
         // Convert deployment fee to microcredits
         let fee_microcredits = (self.fee * 1000000.0) as u64;
