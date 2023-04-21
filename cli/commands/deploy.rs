@@ -34,7 +34,7 @@ pub struct Deploy {
     /// Aleo Network peer to broadcast the deployment to
     #[clap(short, long)]
     endpoint: Option<String>,
-    /// Deployment fee in credits, defaults to 0
+    /// Deployment fee in credits
     #[clap(short, long)]
     fee: f64,
     /// The record to spend the fee from
@@ -59,8 +59,10 @@ impl Deploy {
             "Private key or private key ciphertext required to deploy a program"
         );
 
-        // Convert deployment fee to gates
-        let fee_gates = (self.fee * 1000000.0) as u64;
+        ensure!(self.fee > 0.0, "Deployment fee must be greater than 0");
+
+        // Convert deployment fee to microcredits
+        let fee_microcredits = (self.fee * 1000000.0) as u64;
 
         // Get strings for the program for logging
         let program_string = self.program_id.to_string();
@@ -113,14 +115,15 @@ impl Deploy {
                 Encryptor::decrypt_private_key_with_secret(ciphertext, self.password.as_ref().unwrap())?
             };
             let record_finder = RecordFinder::new(api_client);
-            record_finder.find_one_record(&private_key, fee_gates)?
+            record_finder.find_one_record(&private_key, fee_microcredits)?
         } else {
             self.record.unwrap()
         };
 
         // Deploy the program
         println!("Attempting to deploy program: {}", program_string.bright_blue());
-        let result = program_manager.deploy_program(self.program_id, fee_gates, fee_record, self.password.as_deref());
+        let result =
+            program_manager.deploy_program(self.program_id, fee_microcredits, fee_record, self.password.as_deref());
 
         // Inform the user of the result of the program deployment
         if result.is_err() {

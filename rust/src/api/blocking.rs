@@ -14,18 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::AleoAPIClient;
-use snarkvm::{
-    console::{
-        account::{PrivateKey, ViewKey},
-        program::{Ciphertext, Network, ProgramID, Record},
-        types::Field,
-    },
-    synthesizer::{Block, Program, Transaction},
-};
-
-use anyhow::{anyhow, bail, ensure, Result};
-use std::{convert::TryInto, ops::Range};
+use super::*;
 
 #[cfg(not(feature = "async"))]
 #[allow(clippy::type_complexity)]
@@ -181,6 +170,8 @@ impl<N: Network> AleoAPIClient<N> {
         let view_key = ViewKey::try_from(private_key)?;
         let address_x_coordinate = view_key.to_address().to_x_coordinate();
 
+        let step_size = 49;
+
         ensure!(
             block_heights.start < block_heights.end,
             "The start block height must be less than the end block height"
@@ -191,9 +182,9 @@ impl<N: Network> AleoAPIClient<N> {
 
         let mut total_gates = 0u64;
         let mut end_height = block_heights.end;
-        let mut start_height = block_heights.end.saturating_sub(50);
+        let mut start_height = block_heights.end.saturating_sub(step_size);
 
-        for _ in (block_heights.start..block_heights.end).step_by(50) {
+        for _ in (block_heights.start..block_heights.end).step_by(step_size as usize) {
             println!("Searching blocks {} to {} for records...", start_height, end_height);
             // Get blocks
             let records_iter =
@@ -201,7 +192,7 @@ impl<N: Network> AleoAPIClient<N> {
 
             // Search in reverse order from the latest block to the earliest block
             end_height = start_height;
-            start_height = start_height.saturating_sub(50);
+            start_height = start_height.saturating_sub(step_size);
             if start_height < block_heights.start {
                 start_height = block_heights.start
             };
@@ -216,7 +207,7 @@ impl<N: Network> AleoAPIClient<N> {
                                 let _ = record
                                     .decrypt(&view_key)
                                     .map(|record| {
-                                        total_gates += ***record.gates();
+                                        total_gates += record.microcredits().unwrap_or(0);
                                         record
                                     })
                                     .ok();
@@ -242,7 +233,7 @@ impl<N: Network> AleoAPIClient<N> {
                     .filter_map(|amount| {
                         let position = records.iter().position(|(_, record)| {
                             if let Ok(decrypted_record) = record.decrypt(&view_key) {
-                                ***decrypted_record.gates() > *amount
+                                decrypted_record.microcredits().unwrap_or(0) > *amount
                             } else {
                                 false
                             }
@@ -291,11 +282,6 @@ impl<N: Network> AleoAPIClient<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use snarkvm_console::{account::PrivateKey, network::Testnet3};
-
-    use std::{convert::TryFrom, str::FromStr};
-
-    type N = Testnet3;
 
     #[test]
     fn test_api_get_blocks() {
@@ -310,36 +296,5 @@ mod tests {
         // Check block hashes
         assert_eq!(blocks[1].previous_hash(), blocks[0].hash());
         assert_eq!(blocks[2].previous_hash(), blocks[1].hash());
-    }
-
-    #[test]
-    fn test_scan() {
-        // Initialize the api client
-        let client = AleoAPIClient::<Testnet3>::testnet3();
-
-        // Derive the view key.
-        let private_key =
-            PrivateKey::<N>::from_str("APrivateKey1zkp5fCUVzS9b7my34CdraHBF9XzB58xYiPzFJQvjhmvv7A8").unwrap();
-        let view_key = ViewKey::<N>::try_from(&private_key).unwrap();
-
-        // Scan the ledger at this range.
-        let records = client.scan(private_key, 14200..14250, None).unwrap();
-        assert_eq!(records.len(), 1);
-
-        // Check the commitment.
-        let (commitment, record) = records[0].clone();
-        assert_eq!(
-            commitment.to_string(),
-            "310298409899964034200900546312426933043797406211272306332560156413249565239field"
-        );
-
-        // Decrypt the record.
-        let record = record.decrypt(&view_key).unwrap();
-        let expected = r"{
-  owner: aleo18x0yenrkceapvt85e6aqw2v8hq37hpt4ew6k6cgum6xlpmaxt5xqwnkuja.private,
-  gates: 1099999999999864u64.private,
-  _nonce: 3859911413360468505092363429199432421222291175370483298628506550397056121761group.public
-}";
-        assert_eq!(record.to_string(), expected);
     }
 }

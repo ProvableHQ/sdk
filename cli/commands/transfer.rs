@@ -40,9 +40,9 @@ pub struct Transfer {
     /// Aleo Network peer to broadcast the transaction to
     #[clap(short, long)]
     endpoint: Option<String>,
-    /// Transaction fee in credits, defaults to 0
+    /// Transaction fee in credits
     #[clap(short, long)]
-    fee: Option<f64>,
+    fee: f64,
     /// Private key used to generate the transfer
     #[clap(short='k', long, conflicts_with_all = &["ciphertext", "password"])]
     private_key: Option<PrivateKey<CurrentNetwork>>,
@@ -58,15 +58,17 @@ impl Transfer {
     pub fn parse(self) -> Result<String> {
         // Check for config errors
         ensure!(self.amount > 0f64, "Transfer amount must be greater than 0 credits");
+        ensure!(self.fee > 0f64, "fee must be greater than zero to make a transfer");
+
         ensure!(
             !(self.private_key.is_none() && self.ciphertext.is_none()),
             "Private key or private key ciphertext required"
         );
 
-        // Convert transfer amount and fee to gates
-        let amount_gates = (self.amount * 1000000.0) as u64;
-        let fee_credits = self.fee.unwrap_or(0f64);
-        let fee_gates = (fee_credits * 1000000.0) as u64;
+        // Convert transfer amount and fee to microcredits
+        let amount_microcredits = (self.amount * 1000000.0) as u64;
+        let fee_credits = self.fee;
+        let fee_microcredits = (fee_credits * 1000000.0) as u64;
 
         println!(
             "{}",
@@ -108,27 +110,27 @@ impl Transfer {
 
         let (input_record, fee_record) = if self.input_record.is_none() {
             println!("Finding records to make the requested transfer... (this may take a few minutes)");
-            if self.fee.is_some() && self.fee_record.is_none() {
+            if self.fee_record.is_none() {
                 // An amount and fee were provided without records, so find records for both
                 let (input_record, fee_record) =
-                    record_finder.find_amount_and_fee_records(amount_gates, fee_gates, &private_key)?;
-                (input_record, Some(fee_record))
+                    record_finder.find_amount_and_fee_records(amount_microcredits, fee_microcredits, &private_key)?;
+                (input_record, fee_record)
             } else {
                 // Either the fee is none or the fee record is already provided, so just find the input record
-                (record_finder.find_one_record(&private_key, amount_gates)?, self.fee_record)
+                (record_finder.find_one_record(&private_key, amount_microcredits)?, self.fee_record.unwrap())
             }
-        } else if self.fee.is_some() && self.fee_record.is_none() {
-            println!("Finding records to make the requested transfer... (this may take a few minutes)");
-            // If the input record is provided, but the fee record was not, find a record for the fee
-            (self.input_record.unwrap(), Some(record_finder.find_one_record(&private_key, fee_gates)?))
+        } else if self.fee_record.is_none() {
+            // Either the amount is none or the input record is already provided, so just find the fee record
+            (self.input_record.unwrap(), record_finder.find_one_record(&private_key, fee_microcredits)?)
         } else {
-            (self.input_record.unwrap(), self.fee_record)
+            // Both the amount and fee are already provided, so just use them
+            (self.input_record.unwrap(), self.fee_record.unwrap())
         };
 
         // Execute the transfer
         let transfer = program_manager.transfer(
-            amount_gates,
-            fee_gates,
+            amount_microcredits,
+            fee_microcredits,
             self.recipient,
             self.password.as_deref(),
             input_record,
@@ -159,7 +161,7 @@ mod tests {
 
         // Assert that the transfer fails without a private key or private key ciphertext
         let transfer_missing_key_material =
-            Transfer::try_parse_from(["aleo", "-r", &recipient_address.to_string(), "-a", "1.0"]);
+            Transfer::try_parse_from(["aleo", "-r", &recipient_address.to_string(), "-a", "1.0", "--fee", "0.7"]);
 
         assert!(transfer_missing_key_material.unwrap().parse().is_err());
 
@@ -170,6 +172,8 @@ mod tests {
             &recipient_address.to_string(),
             "-a",
             "2.0",
+            "--fee",
+            "0.7",
             "-k",
             &recipient_private_key.to_string(),
             "--ciphertext",
@@ -188,6 +192,8 @@ mod tests {
             &recipient_address.to_string(),
             "-a",
             "3.0",
+            "--fee",
+            "0.7",
             "--ciphertext",
             &ciphertext.as_ref().unwrap().to_string(),
         ]);
@@ -201,6 +207,8 @@ mod tests {
             &recipient_address.to_string(),
             "-a",
             "4.0",
+            "--fee",
+            "0.7",
             "--password",
             "password",
         ]);
@@ -216,6 +224,8 @@ mod tests {
             &recipient_private_key.to_string(),
             "-a",
             "5.0",
+            "--fee",
+            "0.7",
             "-e",
             "localhost:3030",
         ]);
@@ -231,6 +241,8 @@ mod tests {
             &recipient_private_key.to_string(),
             "-a",
             "0.0",
+            "--fee",
+            "0.7",
             "-e",
             "http://localhost:3030",
         ]);

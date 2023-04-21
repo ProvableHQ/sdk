@@ -14,18 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AleoAPIClient, Encryptor};
-use snarkvm::{
-    console::{
-        account::PrivateKey,
-        program::{Ciphertext, Network, ProgramID},
-    },
-    synthesizer::Program,
-};
+//! Tools for deploying, executing, and managing programs on the Aleo network
 
-use anyhow::{anyhow, bail, Result};
-use indexmap::IndexMap;
-use std::path::PathBuf;
+use super::*;
 
 pub mod deploy;
 pub use deploy::*;
@@ -137,12 +128,8 @@ mod tests {
     use super::*;
     use crate::{
         test_utils::{HELLO_PROGRAM, HELLO_PROGRAM_2},
-        Encryptor,
         RECIPIENT_PRIVATE_KEY,
     };
-    use snarkvm_console::network::Testnet3;
-
-    use std::str::FromStr;
 
     #[test]
     fn test_constructors_fail_with_multiple_keys_or_no_keys() {

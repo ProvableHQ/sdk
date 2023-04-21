@@ -33,9 +33,9 @@ interface AccountParam {
  * myRandomAccount.verify(hello_world, signature)
  */
 export declare class Account {
-    pk: PrivateKey;
-    vk: ViewKey;
-    adr: Address;
+    _privateKey: PrivateKey;
+    _viewKey: ViewKey;
+    _address: Address;
     constructor(params?: AccountParam);
     /**
      * Attempts to create an account from a private key ciphertext

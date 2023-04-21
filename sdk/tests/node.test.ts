@@ -1,5 +1,5 @@
 import {Account, Block, AleoNetworkClient, Transaction} from "../src";
-import {privateKeyString} from "./data/account-data";
+import {beaconPrivateKeyString} from "./data/account-data";
 jest.retryTimes(3);
 
 describe('NodeConnection', () => {
@@ -20,7 +20,7 @@ describe('NodeConnection', () => {
     describe('getBlock', () => {
         it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as Block).block_hash).toEqual("ab128sn9ju8r9fp3sc8px9l6m6ceruzzy4ahpnp05rzluygdqn6cqqs4jsf2q");
+            expect((block as Block).block_hash).toEqual("ab1374zz0tcpwdaw0hfgkkp7l595synv6vhqtdkaywh0rc8utzpeypqqjkrfg");
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
@@ -33,8 +33,8 @@ describe('NodeConnection', () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
             expect((blockRange as Block[]).length).toBe(2);
-            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab128sn9ju8r9fp3sc8px9l6m6ceruzzy4ahpnp05rzluygdqn6cqqs4jsf2q");
-            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab10jhvxr4hx9488kkv4wz6vt0cu6gnjupk9rcg7djcvw0tsxgdggzq3h4s5j");
+            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1374zz0tcpwdaw0hfgkkp7l595synv6vhqtdkaywh0rc8utzpeypqqjkrfg");
+            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1u8nczqlnhmmh6cj9xexxe04kgfggt8dafla5fegraskf8q70fyys6j4vz3");
 
         }, 60000);
 
@@ -86,7 +86,7 @@ describe('NodeConnection', () => {
 
     describe('getTransaction', () => {
         it('should return a Transaction object', async () => {
-            const transaction = await connection.getTransaction('at1z4sgvtmc7mhd3qw2tdzc8mqyg60gx2qgtdzcg6e6k673d3pfz5psfhe3kd');
+            const transaction = await connection.getTransaction('at1tqufajjkv7762dxud7d0mru97nsfg3n03jgvx03y6thx4tt0dv9qd2rmhl');
             expect((transaction as Transaction).type).toBe("execute");
         }, 60000);
 
@@ -109,7 +109,7 @@ describe('NodeConnection', () => {
 
     describe('getTransitionId', () => {
         it('should return a transition id', async () => {
-            const transition = await connection.getTransitionId('2429232855236830926144356377868449890830704336664550203176918782554219952323field')
+            const transition = await connection.getTransitionId('8125007240588954838256938886130543170324930411547396278944058281327781589482field')
             expect(typeof transition).toBe('string');
         }, 60000);
 
@@ -120,14 +120,14 @@ describe('NodeConnection', () => {
 
     describe('findUnspentRecords', () => {
         it('should fail if block heights or private keys are incorrectly specified', async () => {
-            await expect(connection.findUnspentRecords(5, 0, privateKeyString, undefined, undefined)).rejects.toThrow();
-            await expect(connection.findUnspentRecords(-5, 5, privateKeyString, undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined)).rejects.toThrow();
             await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined)).rejects.toThrow();
             await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined)).rejects.toThrow();
         }, 60000);
 
         it('should search a range correctly and not find records where none exist', async () => {
-            const records = await connection.findUnspentRecords(0, 204, privateKeyString, undefined, undefined);
+            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined);
             expect(Array.isArray(records)).toBe(true);
             if (!(records instanceof Error)) {
                 expect(records.length).toBe(0);
