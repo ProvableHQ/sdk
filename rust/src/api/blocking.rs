@@ -283,14 +283,8 @@ impl<N: Network> AleoAPIClient<N> {
 mod tests {
     use super::*;
 
-    type N = Testnet3;
-
     #[test]
-    #[ignore]
     fn test_api_get_blocks() {
-        // TODO (imalwaysuncomfortable): This test is currently ignored because there's no live endpoint
-        // TODO (imalwaysuncomfortable): to test against with the correct serialization, once this
-        // TODO (imalwaysuncomfortable): endpoint comes online, this test
         let client = AleoAPIClient::<Testnet3>::testnet3();
         let blocks = client.get_blocks(0, 3).unwrap();
 
@@ -302,41 +296,5 @@ mod tests {
         // Check block hashes
         assert_eq!(blocks[1].previous_hash(), blocks[0].hash());
         assert_eq!(blocks[2].previous_hash(), blocks[1].hash());
-    }
-
-    #[test]
-    #[ignore]
-    fn test_scan() {
-        // TODO (imalwaysuncomfortable): This test is currently ignored because there's no live endpoint
-        // TODO (imalwaysuncomfortable): to test against with the correct serialization, once this
-        // TODO (imalwaysuncomfortable): endpoint comes online, this test
-        // should be un-ignored.
-        // Initialize the api client
-        let client = AleoAPIClient::<Testnet3>::testnet3();
-
-        // Derive the view key.
-        let private_key =
-            PrivateKey::<N>::from_str("APrivateKey1zkp5fCUVzS9b7my34CdraHBF9XzB58xYiPzFJQvjhmvv7A8").unwrap();
-        let view_key = ViewKey::<N>::try_from(&private_key).unwrap();
-
-        // Scan the ledger at this range.
-        let records = client.scan(private_key, 14200..14250, None).unwrap();
-        assert_eq!(records.len(), 1);
-
-        // Check the commitment.
-        let (commitment, record) = records[0].clone();
-        assert_eq!(
-            commitment.to_string(),
-            "310298409899964034200900546312426933043797406211272306332560156413249565239field"
-        );
-
-        // Decrypt the record.
-        let record = record.decrypt(&view_key).unwrap();
-        let expected = r"{
-  owner: aleo18x0yenrkceapvt85e6aqw2v8hq37hpt4ew6k6cgum6xlpmaxt5xqwnkuja.private,
-  gates: 1099999999999864u64.private,
-  _nonce: 3859911413360468505092363429199432421222291175370483298628506550397056121761group.public
-}";
-        assert_eq!(record.to_string(), expected);
     }
 }

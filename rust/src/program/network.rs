@@ -55,7 +55,7 @@ impl<N: Network> ProgramManager<N> {
 mod tests {
     use super::*;
     use crate::{
-        test_utils::{random_program, GENERIC_PROGRAM_BODY, HELLO_PROGRAM, RECIPIENT_PRIVATE_KEY},
+        test_utils::{random_program, GENERIC_PROGRAM_BODY, RECIPIENT_PRIVATE_KEY},
         AleoAPIClient,
     };
     use snarkvm_console::{account::PrivateKey, network::Testnet3};
@@ -63,8 +63,8 @@ mod tests {
     use std::{ops::Add, str::FromStr};
 
     #[test]
-    #[ignore]
     fn test_network_functionality_works_as_expected() {
+        let credits = snarkvm::synthesizer::Program::<Testnet3>::credits().unwrap();
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
         let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
         // Create a temp dir without proper programs to test that the hybrid client works even if the local resource directory doesn't exist
@@ -76,13 +76,12 @@ mod tests {
 
         // Test that API clients works
         let api_client = program_manager.api_client().unwrap();
-        let hello_program = Program::<Testnet3>::from_str(HELLO_PROGRAM).unwrap();
-        let network_hello_program = api_client.get_program("hello.aleo").unwrap();
-        assert_eq!(network_hello_program, hello_program);
+        let network_credits_program = api_client.get_program("credits.aleo").unwrap();
+        assert_eq!(network_credits_program, credits);
 
         // Test that on_chain_program_state gives a positive ID for a deployed program that matches
         // a local program
-        let program_state = program_manager.on_chain_program_state(&hello_program).unwrap();
+        let program_state = program_manager.on_chain_program_state(&credits).unwrap();
         assert!(matches!(program_state, OnChainProgramState::Same));
 
         // Test on_chain_program_state() identifies when a program is not deployed
@@ -92,7 +91,7 @@ mod tests {
 
         // Test on_chain_program_state() identifies when a program is deployed but different from
         // the local version
-        let wrong_hello_program_string = String::from("program hello.aleo;\n").add(GENERIC_PROGRAM_BODY);
+        let wrong_hello_program_string = String::from("program credits.aleo;\n").add(GENERIC_PROGRAM_BODY);
         let wrong_hello_program = Program::<Testnet3>::from_str(&wrong_hello_program_string).unwrap();
         let state_mismatch = program_manager.on_chain_program_state(&wrong_hello_program).unwrap();
 

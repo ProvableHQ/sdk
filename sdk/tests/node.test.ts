@@ -20,7 +20,7 @@ describe('NodeConnection', () => {
     describe('getBlock', () => {
         it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as Block).block_hash).toEqual("ab1x0kctmspp3m3lnh37r9hlg0wt9r6s8pxgaj62qhx6z5p7apmwy9qltst6p");
+            expect((block as Block).block_hash).toEqual("ab1374zz0tcpwdaw0hfgkkp7l595synv6vhqtdkaywh0rc8utzpeypqqjkrfg");
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
@@ -33,8 +33,8 @@ describe('NodeConnection', () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
             expect((blockRange as Block[]).length).toBe(2);
-            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1m7h0vydnf2xplp239l2q0y44zknxsa7lkvtrshqtvydvn6djuurqshcmde");
-            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab12alv2p3qyljee0p0qhdxucgwmc7z4ksu6wmuq82pwwyruk8z9gpq4fzral");
+            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1374zz0tcpwdaw0hfgkkp7l595synv6vhqtdkaywh0rc8utzpeypqqjkrfg");
+            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1u8nczqlnhmmh6cj9xexxe04kgfggt8dafla5fegraskf8q70fyys6j4vz3");
 
         }, 60000);
 
@@ -86,7 +86,7 @@ describe('NodeConnection', () => {
 
     describe('getTransaction', () => {
         it('should return a Transaction object', async () => {
-            const transaction = await connection.getTransaction('at16sdpnzkfrkt23d0tcc7w70f58v3nlnaaz4enxtgm60jxunzv8u9qkal4jp');
+            const transaction = await connection.getTransaction('at1tqufajjkv7762dxud7d0mru97nsfg3n03jgvx03y6thx4tt0dv9qd2rmhl');
             expect((transaction as Transaction).type).toBe("execute");
         }, 60000);
 
@@ -109,7 +109,7 @@ describe('NodeConnection', () => {
 
     describe('getTransitionId', () => {
         it('should return a transition id', async () => {
-            const transition = await connection.getTransitionId('6866647410757599703329629691709061820633527793044443701602944623822566040683field')
+            const transition = await connection.getTransitionId('8125007240588954838256938886130543170324930411547396278944058281327781589482field')
             expect(typeof transition).toBe('string');
         }, 60000);
 

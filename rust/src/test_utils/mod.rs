@@ -29,7 +29,7 @@ use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf,
 pub const RECIPIENT_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
 pub const BEACON_PRIVATE_KEY: &str = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
 
-pub const DUAL_IMPORT_PROGRAM: &str = "import hello.aleo;
+pub const IMPORT_PROGRAM: &str = "
 import credits.aleo;
 program aleo_test.aleo;
 
