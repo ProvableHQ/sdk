@@ -26,13 +26,13 @@ path = "rust"
 default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "0.9.16"
+version = "0.10.2"
 
 [workspace.dependencies.snarkvm-console]
-version = "0.9.16"
+version = "0.10.2"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.16"
+version = "0.10.2"
 default-features = false
 
 [lib]
@@ -81,6 +81,7 @@ version = "7.2.0"
 
 [dependencies.self_update]
 version = "0.36"
+features = [ "default", "archive-zip", "archive-tar"]
 
 [dependencies.serde]
 version = "1"

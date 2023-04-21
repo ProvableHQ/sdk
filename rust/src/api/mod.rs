@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+//! API clients for interacting with Aleo Network endpoints
+
+use super::*;
+
 pub mod blocking;
 pub use blocking::*;
-
-use snarkvm::console::program::Network;
-
-use anyhow::{ensure, Result};
-use std::marker::PhantomData;
 
 /// Aleo API client for interacting with the Aleo Beacon API
 #[derive(Clone, Debug)]

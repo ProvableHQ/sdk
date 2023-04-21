@@ -32,14 +32,14 @@ var Account = /** @class */ (function () {
     function Account(params) {
         if (params === void 0) { params = {}; }
         try {
-            this.pk = this.privateKeyFromParams(params);
+            this._privateKey = this.privateKeyFromParams(params);
         }
         catch (e) {
             console.error("Wrong parameter", e);
             throw new Error("Wrong Parameter");
         }
-        this.vk = ViewKey.from_private_key(this.pk);
-        this.adr = Address.from_private_key(this.pk);
+        this._viewKey = ViewKey.from_private_key(this._privateKey);
+        this._address = Address.from_private_key(this._privateKey);
     }
     /**
      * Attempts to create an account from a private key ciphertext
@@ -54,8 +54,8 @@ var Account = /** @class */ (function () {
     Account.fromCiphertext = function (ciphertext, password) {
         try {
             ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
-            var pk = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
-            return new Account({ privateKey: pk.to_string() });
+            var _privateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
+            return new Account({ privateKey: _privateKey.to_string() });
         }
         catch (e) {
             throw new Error("Wrong password or invalid ciphertext");
@@ -71,13 +71,13 @@ var Account = /** @class */ (function () {
         return new PrivateKey();
     };
     Account.prototype.privateKey = function () {
-        return this.pk;
+        return this._privateKey;
     };
     Account.prototype.viewKey = function () {
-        return this.vk;
+        return this._viewKey;
     };
     Account.prototype.address = function () {
-        return this.adr;
+        return this._address;
     };
     Account.prototype.toString = function () {
         return this.address().to_string();
@@ -92,7 +92,7 @@ var Account = /** @class */ (function () {
      * let ciphertext = account.encryptAccount("password");
      */
     Account.prototype.encryptAccount = function (password) {
-        return this.pk.toCiphertext(password);
+        return this._privateKey.toCiphertext(password);
     };
     /**
      * Decrypts a Record in ciphertext form into plaintext
@@ -104,7 +104,7 @@ var Account = /** @class */ (function () {
      * let record = account.decryptRecord("record1ciphertext");
      */
     Account.prototype.decryptRecord = function (ciphertext) {
-        return this.vk.decrypt(ciphertext);
+        return this._viewKey.decrypt(ciphertext);
     };
     /**
      * Decrypts an array of Records in ciphertext form into plaintext
@@ -117,7 +117,7 @@ var Account = /** @class */ (function () {
      */
     Account.prototype.decryptRecords = function (ciphertexts) {
         var _this = this;
-        return ciphertexts.map(function (ciphertext) { return _this.vk.decrypt(ciphertext); });
+        return ciphertexts.map(function (ciphertext) { return _this._viewKey.decrypt(ciphertext); });
     };
     /**
      * Determines whether the account owns a ciphertext record
@@ -145,14 +145,14 @@ var Account = /** @class */ (function () {
         if (typeof ciphertext === 'string') {
             try {
                 var ciphertextObject = RecordCiphertext.fromString(ciphertext);
-                return ciphertextObject.isOwner(this.vk);
+                return ciphertextObject.isOwner(this._viewKey);
             }
             catch (e) {
                 return false;
             }
         }
         else {
-            return ciphertext.isOwner(this.vk);
+            return ciphertext.isOwner(this._viewKey);
         }
     };
     /**
@@ -168,7 +168,7 @@ var Account = /** @class */ (function () {
      * account.sign(message);
      */
     Account.prototype.sign = function (message) {
-        return this.pk.sign(message);
+        return this._privateKey.sign(message);
     };
     /**
      * Verifies the Signature on a message.
@@ -184,7 +184,7 @@ var Account = /** @class */ (function () {
      * account.verify(message, signature);
      */
     Account.prototype.verify = function (message, signature) {
-        return this.adr.verify(message, signature);
+        return this._address.verify(message, signature);
     };
     return Account;
 }());

@@ -29,7 +29,7 @@ use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf,
 pub const RECIPIENT_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
 pub const BEACON_PRIVATE_KEY: &str = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
 
-pub const DUAL_IMPORT_PROGRAM: &str = "import hello.aleo;
+pub const IMPORT_PROGRAM: &str = "
 import credits.aleo;
 program aleo_test.aleo;
 
@@ -77,16 +77,16 @@ function fabulous:
     output r2 as u32.private;
 ";
 
-pub const RECORD_2000000001_GATES: &str = r"{
-  owner: aleo1crhv6td6mr82ams6kvtlfyup866c7vu8xm3uy3r8j0xjm4utmvzqxp888h.private,
-  gates: 2000000001u64.private,
-  _nonce: 203531555240288878851874459727809404436723984555169378819192539433895099097group.public
+pub const RECORD_2000000001_MICROCREDITS: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 2000000001u64.private,
+  _nonce: 440655410641037118713377218645355605135385337348439127168929531052605977026group.public
 }";
 
-pub const RECORD_5_GATES: &str = r"{
-  owner: aleo1pe9hh2eqnnyezs945pjl5ck8ya8tmyx6v49lmsa07pkr6959turqnedugx.private,
-  gates: 5u64.private,
-  _nonce: 5147545248698489716132031289429810645682104673612481324838467895012926021670group.public
+pub const RECORD_5_MICROCREDITS: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 5u64.private,
+  _nonce: 3700202890700295811197086261814785945731964545546334348117582517467189701159group.public
 }";
 
 /// Get a random program id
@@ -166,18 +166,19 @@ pub fn transfer_to_test_account(
     let program_manager =
         ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client), None).unwrap();
 
+    let fee = 500_000;
     let mut transfer_successes = 0;
     let mut retries = 0;
     loop {
-        let input_record = record_finder.find_one_record(&beacon_private_key, amount);
+        let input_record = record_finder.find_amount_and_fee_records(amount, fee, &beacon_private_key);
         if input_record.is_err() {
             println!("No records found, retrying");
             retries += 1;
             sleep(std::time::Duration::from_secs(3));
             continue;
         }
-        let input_record = input_record.unwrap();
-        let result = program_manager.transfer(amount, 0, recipient_address, None, input_record, None);
+        let (input_record, fee_record) = input_record.unwrap();
+        let result = program_manager.transfer(amount, 500_000, recipient_address, None, input_record, fee_record);
         if result.is_ok() {
             println!("Transfer succeeded");
             transfer_successes += 1;
@@ -189,7 +190,7 @@ pub fn transfer_to_test_account(
             println!("{} transfers succeeded exiting", transfer_successes);
             break;
         }
-        if retries > 10 {
+        if retries > 15 {
             println!("exceeded 10 retries, exiting with found records");
             break;
         }

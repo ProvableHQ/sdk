@@ -1,6 +1,6 @@
 import { Account } from '../src'
 import { PrivateKey, ViewKey, Address, RecordCiphertext } from '@aleohq/wasm';
-import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from './data/account-data';
+import { seed, message, beaconPrivateKeyString, beaconViewKeyString, beaconAddressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from './data/account-data';
 
 
 describe('Account', () => {
@@ -10,9 +10,9 @@ describe('Account', () => {
             const account = new Account();
 
             // Test object member type consistency
-            expect(account.pk).toBeInstanceOf(PrivateKey);
-            expect(account.vk).toBeInstanceOf(ViewKey);
-            expect(account.adr).toBeInstanceOf(Address);
+            expect(account._privateKey).toBeInstanceOf(PrivateKey);
+            expect(account._viewKey).toBeInstanceOf(ViewKey);
+            expect(account._address).toBeInstanceOf(Address);
             // Test convenience method type consistency
             expect(account.privateKey()).toBeInstanceOf(PrivateKey);
             expect(account.viewKey()).toBeInstanceOf(ViewKey);
@@ -24,18 +24,18 @@ describe('Account', () => {
             const account = new Account({seed: seed});
 
             // Test object member type consistency
-            expect(account.pk).toBeInstanceOf(PrivateKey);
-            expect(account.vk).toBeInstanceOf(ViewKey);
-            expect(account.adr).toBeInstanceOf(Address);
+            expect(account._privateKey).toBeInstanceOf(PrivateKey);
+            expect(account._viewKey).toBeInstanceOf(ViewKey);
+            expect(account._address).toBeInstanceOf(Address);
             // Test convenience method type consistency
             expect(account.privateKey()).toBeInstanceOf(PrivateKey);
             expect(account.viewKey()).toBeInstanceOf(ViewKey);
             expect(account.address()).toBeInstanceOf(Address);
             // Test that expected output is generated
-            expect(account.privateKey().to_string()).toEqual(privateKeyString);
-            expect(account.viewKey().to_string()).toEqual(viewKeyString);
-            expect(account.address().to_string()).toEqual(addressString);
-            expect(account.toString()).toEqual(addressString);
+            expect(account.privateKey().to_string()).toEqual(beaconPrivateKeyString);
+            expect(account.viewKey().to_string()).toEqual(beaconViewKeyString);
+            expect(account.address().to_string()).toEqual(beaconAddressString);
+            expect(account.toString()).toEqual(beaconAddressString);
         });
 
         test('throws an error if parameters are invalid', () => {
@@ -44,21 +44,21 @@ describe('Account', () => {
 
         test('creates an account object from a valid private key string', () => {
             // Generate account from valid private key string
-            const account = new Account( {privateKey: privateKeyString});
+            const account = new Account( {privateKey: beaconPrivateKeyString});
 
             // Test object member type consistency
-            expect(account.pk).toBeInstanceOf(PrivateKey);
-            expect(account.vk).toBeInstanceOf(ViewKey);
-            expect(account.adr).toBeInstanceOf(Address);
+            expect(account._privateKey).toBeInstanceOf(PrivateKey);
+            expect(account._viewKey).toBeInstanceOf(ViewKey);
+            expect(account._address).toBeInstanceOf(Address);
             // Test convenience method type consistency
             expect(account.privateKey()).toBeInstanceOf(PrivateKey);
             expect(account.viewKey()).toBeInstanceOf(ViewKey);
             expect(account.address()).toBeInstanceOf(Address);
             // Test that expected output is generated
-            expect(account.privateKey().to_string()).toEqual(privateKeyString);
-            expect(account.viewKey().to_string()).toEqual(viewKeyString);
-            expect(account.address().to_string()).toEqual(addressString);
-            expect(account.toString()).toEqual(addressString);
+            expect(account.privateKey().to_string()).toEqual(beaconPrivateKeyString);
+            expect(account.viewKey().to_string()).toEqual(beaconViewKeyString);
+            expect(account.address().to_string()).toEqual(beaconAddressString);
+            expect(account.toString()).toEqual(beaconAddressString);
         });
 
         test('can encrypt an account and decrypt to the same account', () => {
@@ -99,8 +99,8 @@ describe('Account', () => {
 
     describe('View Key Record Decryption', () => {
         test('decrypts a record in ciphertext form', () => {
-            const account = new Account({privateKey: privateKeyString});
-            const decrypt_spy = jest.spyOn(account.vk, 'decrypt');
+            const account = new Account({privateKey: "APrivateKey1zkpJkyYRGYtkeHDaFfwsKtUJzia7csiWhfBWPXWhXJzy9Ls"});
+            const decrypt_spy = jest.spyOn(account._viewKey, 'decrypt');
             // Decrypt record the private key owns
             const decryptedRecord = account.decryptRecord(recordCiphertextString);
 
@@ -115,12 +115,11 @@ describe('Account', () => {
                 try {
                     return account.decryptRecord(foreignCiphertextString);
                 } catch (err) {
-                    expect(String(err)).toMatch("RuntimeError: unreachable");
                     throw("Record didn't decrypt")
                 }
             }
-            const account = new Account({privateKey: privateKeyString});
-            const decrypt_spy = jest.spyOn(account.vk, 'decrypt');
+            const account = new Account({privateKey: "APrivateKey1zkpJkyYRGYtkeHDaFfwsKtUJzia7csiWhfBWPXWhXJzy9Ls"});
+            const decrypt_spy = jest.spyOn(account._viewKey, 'decrypt');
             const recordCiphertext = RecordCiphertext.fromString(foreignCiphertextString);
 
             // Ensure a foreign record decryption attempt throws
@@ -134,9 +133,9 @@ describe('Account', () => {
         });
 
         test('decrypts an array of records in ciphertext form', () => {
-            const account = new Account({privateKey: privateKeyString});
+            const account = new Account({privateKey: "APrivateKey1zkpJkyYRGYtkeHDaFfwsKtUJzia7csiWhfBWPXWhXJzy9Ls"});
             const ciphertexts = [recordCiphertextString, recordCiphertextString];
-            const decrypt_spy = jest.spyOn(account.vk, 'decrypt');
+            const decrypt_spy = jest.spyOn(account._viewKey, 'decrypt');
             const decryptedRecords = account.decryptRecords(ciphertexts);
 
             // Ensure the right number of calls were called and right inputs were passed
@@ -153,7 +152,7 @@ describe('Account', () => {
         test("verifies the signature on a message", () => {
             const account = new Account();
             const other_message = Uint8Array.from([104, 101, 108, 108, 111, 32, 120, 121, 114, 108, 99]);
-            const sign_spy = jest.spyOn(account.pk, 'sign');
+            const sign_spy = jest.spyOn(account._privateKey, 'sign');
             const signature = account.sign(message);
 
             // Ensure the signature was called with the right message
@@ -162,7 +161,7 @@ describe('Account', () => {
             // Ensure the signature was called with the right message and the right number of times
             expect(sign_spy).lastCalledWith(other_message);
             expect(sign_spy).toHaveBeenCalledTimes(2);
-            const verify_spy = jest.spyOn(account.adr, 'verify');
+            const verify_spy = jest.spyOn(account._address, 'verify');
             const isValid = account.verify(message, signature);
             expect(verify_spy).lastCalledWith(message, signature);
             const isSigValidForWrongMessage = account.verify(other_message, signature);

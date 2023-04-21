@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_wasm::{
-    account::{Address, PrivateKey, Signature, ViewKey},
-    network::Testnet3,
-    program::{Ciphertext, Identifier, Plaintext, ProgramID, Record},
+pub use aleo_rust::{
+    Address,
+    Ciphertext,
+    Encryptor,
+    Identifier,
+    Plaintext,
+    PrivateKey,
+    ProgramID,
+    Record,
+    Signature,
+    Testnet3,
+    ViewKey,
 };
-
-pub use aleo_rust::Encryptor;
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
 
 // Account types
