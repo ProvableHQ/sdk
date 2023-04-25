@@ -1,5 +1,3 @@
-<img src="./public/aleo.svg" alt="drawing" width="60"/>
-
 # Aleo SDK
 
 [**@aleohq/sdk**](https://www.npmjs.com/package/@aleohq/sdk)
