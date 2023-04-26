@@ -14,16 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-mod macros;
+pub mod execute;
+pub use execute::*;
 
-pub mod manager;
-pub use manager::*;
+use wasm_bindgen::prelude::wasm_bindgen;
 
-pub mod response;
-pub use response::*;
+#[wasm_bindgen]
+#[derive(Clone)]
+pub struct ProgramManager;
 
-pub mod program;
-pub use program::*;
+#[wasm_bindgen]
+impl ProgramManager {
+    #[wasm_bindgen]
+    pub fn new() -> Self {
+        Self
+    }
+}
 
-pub mod transaction;
-pub use transaction::*;
+impl Default for ProgramManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}

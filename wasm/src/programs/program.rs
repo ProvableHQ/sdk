@@ -15,10 +15,13 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::ProgramNative;
+
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
+/// Webassembly Representation of an Aleo program
 #[wasm_bindgen]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Program(ProgramNative);
 
 #[wasm_bindgen]
@@ -63,6 +66,12 @@ impl From<ProgramNative> for Program {
     }
 }
 
+impl From<Program> for ProgramNative {
+    fn from(program: Program) -> Self {
+        program.0
+    }
+}
+
 impl FromStr for Program {
     type Err = String;
 
@@ -79,8 +88,23 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_get_functions() {
-        let program = ProgramNative::credits().unwrap().to_string();
-        let wasm_program = Program::from_string(&program).unwrap();
-        assert_eq!(wasm_program.get_functions().to_vec(), vec!["mint", "transfer", "join", "split", "fee"]);
+        let program_string = ProgramNative::credits().unwrap().to_string();
+        let program = Program::from_string(&program_string).unwrap();
+        assert_eq!(program.get_functions().to_vec(), vec!["mint", "transfer", "join", "split", "fee"]);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_program_from_methods() {
+        // Test the from_string creates a valid object and to_string matches the source string
+        let program_string = ProgramNative::credits().unwrap().to_string();
+        let program = Program::from_string(&program_string).unwrap();
+        assert_eq!(program_string, program.to_string());
+
+        // Test the to and from methods from the native objects work
+        let program_native = ProgramNative::from_str(&program.to_string()).unwrap();
+        let program_from_native = Program::from(program_native.clone());
+        assert_eq!(program, program_from_native);
+        let native_from_program = ProgramNative::from(program);
+        assert_eq!(program_native, native_from_program);
     }
 }
