@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1682541045485,
+  "lastUpdate": 1682541311587,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -161,6 +161,60 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_encryption_decryption_roundtrip",
             "value": 538309,
             "range": "± 3781",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mturner@aleo.org",
+            "name": "Mike Turner",
+            "username": "iamalwaysuncomfortable"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e37aa04d332d485ef139776ffe07221d60807fc5",
+          "message": "chore(sdk): bump snarkvm from 0.10.2 to 0.10.3",
+          "timestamp": "2023-04-26T15:13:27-05:00",
+          "tree_id": "d9edfe3e013f836692886a9a18100bb85def0587",
+          "url": "https://github.com/AleoHQ/aleo/commit/e37aa04d332d485ef139776ffe07221d60807fc5"
+        },
+        "date": 1682541307457,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 277866,
+            "range": "± 24926",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 106633,
+            "range": "± 15281",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_decryption",
+            "value": 385143,
+            "range": "± 48963",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption",
+            "value": 271020,
+            "range": "± 38474",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption_decryption_roundtrip",
+            "value": 666959,
+            "range": "± 172326",
             "unit": "ns/iter"
           }
         ]
