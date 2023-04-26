@@ -26,7 +26,7 @@ path = "rust"
 default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "0.10.2"
+version = "0.10.3"
 
 [workspace.dependencies.snarkvm-console]
 version = "0.10.3"
@@ -103,7 +103,7 @@ features = [
 version = "1.0"
 
 [dependencies.tokio]
-version = "1.27"
+version = "1.28"
 features = [ "rt" ]
 
 [dependencies.warp]
