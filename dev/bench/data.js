@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1682540942952,
+  "lastUpdate": 1682540960620,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -53,6 +53,60 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_encryption_decryption_roundtrip",
             "value": 533864,
             "range": "± 3114",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mturner@aleo.org",
+            "name": "Mike Turner",
+            "username": "iamalwaysuncomfortable"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e01191d9cd887d864270714e2b89a1cce7beaa94",
+          "message": "chore(sdk): bump tracing from 0.1.37 to 0.1.38",
+          "timestamp": "2023-04-26T15:07:41-05:00",
+          "tree_id": "fe26c4e39f871b727e05676ba94a046ca660c807",
+          "url": "https://github.com/AleoHQ/aleo/commit/e01191d9cd887d864270714e2b89a1cce7beaa94"
+        },
+        "date": 1682540956417,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 257997,
+            "range": "± 21484",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 98704,
+            "range": "± 4469",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_decryption",
+            "value": 360187,
+            "range": "± 28032",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption",
+            "value": 262431,
+            "range": "± 7351",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption_decryption_roundtrip",
+            "value": 635142,
+            "range": "± 18713",
             "unit": "ns/iter"
           }
         ]
