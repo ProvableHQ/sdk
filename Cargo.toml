@@ -26,27 +26,27 @@ path = "rust"
 default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "0.10.2"
+version = "0.10.3"
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "fix/wasm-parameter-downloads"
 
 [workspace.dependencies.snarkvm-console]
-version = "0.10.2"
+version = "0.10.3"
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "fix/wasm-parameter-downloads"
 
 [workspace.dependencies.snarkvm-circuit-network]
-version = "0.10.2"
+version = "0.10.3"
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "fix/wasm-parameter-downloads"
 
 [workspace.dependencies.snarkvm-synthesizer]
-version = "0.10.2"
+version = "0.10.3"
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "fix/wasm-parameter-downloads"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.10.2"
+version = "0.10.3"
 default-features = false
 git = "https://github.com/AleoHQ/snarkVM.git"
 branch = "fix/wasm-parameter-downloads"
