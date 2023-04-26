@@ -34,11 +34,26 @@ features = [ "js" ]
 [dependencies.hex]
 version = "0.4.3"
 
+[dependencies.js-sys]
+version = "0.3.52"
+
 [dependencies.rand]
 version = "0.8"
 
+[dependencies.reqwest]
+version = "0.11.16"
+
 [dependencies.serde_json]
 version = "1.0"
+
+[dependencies.snarkvm-synthesizer]
+version = "0.10.2"
+workspace = true
+features = [ "wasm", "serial" ]
+
+[dependencies.snarkvm-circuit-network]
+version = "0.10.2"
+workspace = true
 
 [dependencies.snarkvm-wasm]
 workspace = true
@@ -47,6 +62,12 @@ features = [ "console", "fields", "utilities" ]
 [dependencies.wasm-bindgen]
 version = "0.2"
 features = [ "serde-serialize" ]
+
+[dependencies.wasm-bindgen-futures]
+version = "0.4.24"
+
+[dependencies.wasm-bindgen-test]
+version = "0.3.33"
 
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
