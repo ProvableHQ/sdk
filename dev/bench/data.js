@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1682540960620,
+  "lastUpdate": 1682541045485,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -107,6 +107,60 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_encryption_decryption_roundtrip",
             "value": 635142,
             "range": "± 18713",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mturner@aleo.org",
+            "name": "Mike Turner",
+            "username": "iamalwaysuncomfortable"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "91a774c819b0ea470bac3a73275e71e09b3a5dfe",
+          "message": "Merge pull request #540 from AleoHQ/dependabot/cargo/tracing-subscriber-0.3.17\n\nbuild(deps): bump tracing-subscriber from 0.3.16 to 0.3.17",
+          "timestamp": "2023-04-26T15:11:19-05:00",
+          "tree_id": "06036fe76b855f1eda1922cc41be4de908f6511a",
+          "url": "https://github.com/AleoHQ/aleo/commit/91a774c819b0ea470bac3a73275e71e09b3a5dfe"
+        },
+        "date": 1682541042422,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 223393,
+            "range": "± 4783",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 83038,
+            "range": "± 121",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_decryption",
+            "value": 308078,
+            "range": "± 570",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption",
+            "value": 218081,
+            "range": "± 287",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption_decryption_roundtrip",
+            "value": 538309,
+            "range": "± 3781",
             "unit": "ns/iter"
           }
         ]
