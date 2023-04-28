@@ -47,13 +47,8 @@ version = "0.11.16"
 version = "1.0"
 
 [dependencies.snarkvm-synthesizer]
-version = "0.10.2"
 workspace = true
 features = [ "wasm", "serial" ]
-
-[dependencies.snarkvm-circuit-network]
-version = "0.10.2"
-workspace = true
 
 [dependencies.snarkvm-wasm]
 workspace = true

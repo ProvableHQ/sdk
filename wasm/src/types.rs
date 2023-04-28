@@ -27,8 +27,7 @@ pub use aleo_rust::{
     Testnet3,
     ViewKey,
 };
-use snarkvm_circuit_network::AleoV0;
-use snarkvm_synthesizer::{Fee, Process, Program, Transaction};
+use snarkvm_synthesizer::{Fee, Program, Transaction};
 pub use snarkvm_wasm::{network::Environment, program::Response, FromBytes, PrimeField, ToBytes};
 
 // Account types
@@ -39,7 +38,6 @@ pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 
 // Network types
 pub type CurrentNetwork = Testnet3;
-pub type CurrentAleo = AleoV0;
 
 // Record types
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;
@@ -50,7 +48,6 @@ pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 // Program types
 pub type FeeNative = Fee<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
-pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProgramNative = Program<CurrentNetwork>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;
 pub type ResponseNative = Response<CurrentNetwork>;

@@ -19,9 +19,6 @@ mod macros;
 pub mod fee;
 pub use fee::*;
 
-pub mod manager;
-pub use manager::*;
-
 pub mod response;
 pub use response::*;
 
