@@ -31,6 +31,12 @@ version = "0.10.3"
 [workspace.dependencies.snarkvm-console]
 version = "0.10.3"
 
+[workspace.dependencies.snarkvm-circuit-network]
+version = "0.10.3"
+
+[workspace.dependencies.snarkvm-synthesizer]
+version = "0.10.3"
+
 [workspace.dependencies.snarkvm-wasm]
 version = "0.10.3"
 default-features = false

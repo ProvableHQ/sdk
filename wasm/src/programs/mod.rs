@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod account;
-pub use account::*;
+mod macros;
 
-pub mod programs;
-pub use programs::*;
+pub mod fee;
+pub use fee::*;
 
-pub mod record;
-pub use record::*;
+pub mod response;
+pub use response::*;
 
-pub(crate) mod types;
+pub mod program;
+pub use program::*;
+
+pub mod transaction;
+pub use transaction::*;
