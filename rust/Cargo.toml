@@ -1,6 +1,6 @@
 [package]
 name = "aleo-rust"
-version = "0.3.6"
+version = "0.4.0"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Rust SDK for managing Aleo programs and communicating with the Aleo network"
 homepage = "https://aleo.org"
@@ -48,17 +48,11 @@ version = "2.6.2"
 [dependencies.serde_json]
 version = "1.0.91"
 
-[dependencies.snarkvm-console]
-features = [ "parallel" ]
-version = "0.9.15"
-
-[dependencies.snarkvm-synthesizer]
-features = [ "parallel" ]
-optional = true
-version = "0.9.14"
-
 [dependencies.snarkvm]
 optional = true
+workspace = true
+
+[dependencies.snarkvm-console]
 workspace = true
 
 [dev-dependencies.bencher]
@@ -69,5 +63,5 @@ version = "0.3.1"
 
 [features]
 default = [ "full" ]
-full = [ "ureq", "snarkvm-synthesizer", "snarkvm" ]
+full = [ "ureq", "snarkvm" ]
 wasm = [ ]

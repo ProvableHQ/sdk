@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.3.6"
+version = "0.4.0"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Toolkit for exporting key Aleo functionality and cryptography to WebAssembly"
 homepage = "https://aleo.org"
@@ -21,10 +21,8 @@ edition = "2021"
 crate-type = [ "cdylib", "rlib" ]
 
 [dependencies.aleo-rust]
-version = "0.3.6"
-path = "../rust"
 features = [ "wasm" ]
-default-features = false
+workspace = true
 
 [dependencies.anyhow]
 version = "1.0"

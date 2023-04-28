@@ -1,6 +1,6 @@
 [package]
 name = "aleo"
-version = "0.3.6"
+version = "0.4.0"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
@@ -18,13 +18,21 @@ license = "GPL-3.0"
 edition = "2021"
 
 [workspace]
-members = [ "rust", "wasm" ]
+members = [ "rust", "wasm", "rust/develop"]
+
+[workspace.dependencies.aleo-rust]
+version = "0.4.0"
+path = "rust"
+default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "0.9.15"
+version = "0.10.3"
+
+[workspace.dependencies.snarkvm-console]
+version = "0.10.3"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.14"
+version = "0.10.3"
 default-features = false
 
 [lib]
@@ -38,15 +46,18 @@ path = "cli/main.rs"
 default = [ ]
 
 [dependencies.aleo-rust]
-path = "rust"
-version = "0.3.6"
+features = [ "default" ]
+workspace = true
 
 [dependencies.anyhow]
 version = "1.0"
 
-[dependencies.clap]
+[workspace.dependencies.clap]
 version = "3.2"
 features = [ "derive" ]
+
+[dependencies.clap]
+workspace = true
 
 [dependencies.colored]
 version = "2"
@@ -70,6 +81,7 @@ version = "7.2.0"
 
 [dependencies.self_update]
 version = "0.36"
+features = [ "default", "archive-zip", "archive-tar"]
 
 [dependencies.serde]
 version = "1"
@@ -83,15 +95,15 @@ features = [
 "aleo-cli",
 "circuit",
 "console",
-"parallel",
-"snarkvm-synthesizer"
+"snarkvm-synthesizer",
+"snarkvm-utilities",
 ]
 
 [dependencies.thiserror]
 version = "1.0"
 
 [dependencies.tokio]
-version = "1.27"
+version = "1.28"
 features = [ "rt" ]
 
 [dependencies.warp]

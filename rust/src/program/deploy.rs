@@ -14,15 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{OnChainProgramState, ProgramManager};
-use snarkvm_console::{
-    account::PrivateKey,
-    prelude::ToBytes,
-    program::{Network, Plaintext, ProgramID, Record},
-};
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
-
-use anyhow::{anyhow, bail, ensure, Error, Result};
+use super::*;
 
 impl<N: Network> ProgramManager<N> {
     /// Deploy a program to the network
@@ -41,10 +33,10 @@ impl<N: Network> ProgramManager<N> {
 
         // Ensure a fee is specified and the record has enough balance to pay for it
         ensure!(fee > 0, "❌ Fee must be greater than zero in order to deploy a program");
-        let record_amount = ***fee_record.gates();
+        let record_amount = fee_record.microcredits()?;
         ensure!(
             record_amount >= fee,
-            "❌ The record supplied has balance of {record_amount:?} gates which is insufficient to pay the specified fee of {fee:?} gates"
+            "❌ The record supplied has balance of {record_amount:?} microcredits which is insufficient to pay the specified fee of {fee:?} microcredits"
         );
 
         // Check program has a valid name
@@ -181,8 +173,8 @@ mod tests {
             transfer_to_test_account,
             CREDITS_IMPORT_TEST_PROGRAM,
             HELLO_PROGRAM,
-            RECORD_2000000001_GATES,
-            RECORD_5_GATES,
+            RECORD_2000000001_MICROCREDITS,
+            RECORD_5_MICROCREDITS,
         },
         AleoAPIClient,
         RecordFinder,
@@ -194,12 +186,11 @@ mod tests {
     #[test]
     #[ignore]
     fn test_deploy() {
-        let rng = &mut rand::thread_rng();
-        let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let recipient_private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
 
         // Wait for the node to bootup
         thread::sleep(std::time::Duration::from_secs(5));
-        transfer_to_test_account(2000000001, 4, recipient_private_key, "3030").unwrap();
+        transfer_to_test_account(2000000001, 8, recipient_private_key, "3030").unwrap();
         let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
         let record_finder = RecordFinder::<Testnet3>::new(api_client.clone());
         let temp_dir = setup_directory("aleo_test_deploy", CREDITS_IMPORT_TEST_PROGRAM, vec![]).unwrap();
@@ -233,9 +224,9 @@ mod tests {
     fn test_deploy_failure_conditions() {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
-        let record_5_gates = Record::<Testnet3, Plaintext<Testnet3>>::from_str(RECORD_5_GATES).unwrap();
-        let record_2000000001_gates =
-            Record::<Testnet3, Plaintext<Testnet3>>::from_str(RECORD_2000000001_GATES).unwrap();
+        let record_5_microcredits = Record::<Testnet3, Plaintext<Testnet3>>::from_str(RECORD_5_MICROCREDITS).unwrap();
+        let record_2000000001_microcredits =
+            Record::<Testnet3, Plaintext<Testnet3>>::from_str(RECORD_2000000001_MICROCREDITS).unwrap();
         let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
         let randomized_program = random_program();
         let randomized_program_id = randomized_program.id().to_string();
@@ -253,20 +244,21 @@ mod tests {
 
         let deployment_fee = 200000001;
         // Ensure that deployment fails if the fee is zero
-        let deployment = program_manager.deploy_program(&randomized_program_id, 0, record_5_gates.clone(), None);
+        let deployment = program_manager.deploy_program(&randomized_program_id, 0, record_5_microcredits.clone(), None);
         assert!(deployment.is_err());
 
         // Ensure that deployment fails if the fee is insufficient
-        let deployment = program_manager.deploy_program(&randomized_program_id, 2, record_5_gates.clone(), None);
+        let deployment = program_manager.deploy_program(&randomized_program_id, 2, record_5_microcredits.clone(), None);
         assert!(deployment.is_err());
 
         // Ensure that deployment fails if the record used to pay the fee is insufficient
-        let deployment = program_manager.deploy_program(&randomized_program_id, deployment_fee, record_5_gates, None);
+        let deployment =
+            program_manager.deploy_program(&randomized_program_id, deployment_fee, record_5_microcredits, None);
         assert!(deployment.is_err());
 
         // Ensure that deployment fails if the program is already on chain
         let deployment =
-            program_manager.deploy_program("hello.aleo", deployment_fee, record_2000000001_gates.clone(), None);
+            program_manager.deploy_program("hello.aleo", deployment_fee, record_2000000001_microcredits.clone(), None);
         assert!(deployment.is_err());
 
         // Ensure that deployment fails if import cannot be found on chain
@@ -281,8 +273,12 @@ mod tests {
             ProgramManager::<Testnet3>::new(Some(recipient_private_key), None, Some(api_client), Some(temp_dir_2))
                 .unwrap();
 
-        let deployment =
-            program_manager.deploy_program(&randomized_program_id, deployment_fee, record_2000000001_gates, None);
+        let deployment = program_manager.deploy_program(
+            &randomized_program_id,
+            deployment_fee,
+            record_2000000001_microcredits,
+            None,
+        );
         assert!(deployment.is_err());
     }
 }

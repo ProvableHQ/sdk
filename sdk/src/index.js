@@ -1,5 +1,6 @@
 import { Account } from "./account";
-import { NodeConnection } from "./node_connection";
+import { AleoNetworkClient } from "./aleo_network_client";
+import { DevelopmentClient } from "./development_client";
 import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/wasm";
-export { Account, NodeConnection, PrivateKey, Signature, ViewKey, Address };
+export { Account, Address, AleoNetworkClient, DevelopmentClient, PrivateKey, Signature, ViewKey };
 //# sourceMappingURL=index.js.map

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Account, Block, Transaction, Transition } from ".";
-import { RecordCiphertext, RecordPlaintext, PrivateKey, ViewKey } from "@aleohq/wasm";
+import { RecordCiphertext, RecordPlaintext, PrivateKey } from "@aleohq/wasm";
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
@@ -9,10 +9,10 @@ import { RecordCiphertext, RecordPlaintext, PrivateKey, ViewKey } from "@aleohq/
  * @param {string} host
  * @example
  * // Connection to a local node
- * let local_connection = new NodeConnection("http://localhost:3030");
+ * let local_connection = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * let public_connection = new NodeConnection("https://vm.aleo.org/api");
+ * let public_connection = new AleoNetworkClient("https://vm.aleo.org/api");
  */
 export class AleoNetworkClient {
   host: string;
@@ -222,27 +222,27 @@ export class AleoNetworkClient {
    *
    * @example
    * // Find all unspent records
-   * const private_key = "[PRIVATE_KEY]";
-   * let records = connection.findUnspentRecords(0, undefined, private_key);
+   * const privateKey = "[PRIVATE_KEY]";
+   * let records = connection.findUnspentRecords(0, undefined, privateKey);
    *
    * // Find specific amounts
-   * const start_height = 500000;
+   * const startHeight = 500000;
    * const amounts = [600000, 1000000];
-   * let records = connection.findUnspentRecords(start_height, undefined, private_key, amounts);
+   * let records = connection.findUnspentRecords(startHeight, undefined, privateKey, amounts);
    *
-   * // Find specific amounts with a maximum number of cumulative gates
-   * const max_gates = 100000;
-   * let records = connection.findUnspentRecords(start_height, undefined, private_key, undefined, max_gates);
+   * // Find specific amounts with a maximum number of cumulative microcredits
+   * const maxMicrocredits = 100000;
+   * let records = connection.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
    */
   async findUnspentRecords(
-    start_height: number,
-    end_height: number | undefined,
-    private_key: string | undefined,
+    startHeight: number,
+    endHeight: number | undefined,
+    privateKey: string | undefined,
     amounts: number[] | undefined,
-    max_gates: number | undefined,
+    maxMicrocredits: number | undefined,
   ): Promise<Array<RecordPlaintext> | Error> {
     // Ensure start height is not negative
-    if (start_height < 0) {
+    if (startHeight < 0) {
         throw new Error("Start height must be greater than or equal to 0");
     }
 
@@ -250,32 +250,32 @@ export class AleoNetworkClient {
     const records = new Array<RecordPlaintext>();
     let start;
     let end;
-    let pk: PrivateKey;
+    let resolvedPrivateKey: PrivateKey;
     let failures = 0;
-    let total_record_value = BigInt(0);
-    let latest_height: number;
+    let totalRecordValue = BigInt(0);
+    let latestHeight: number;
 
     // Ensure a private key is present to find owned records
-    if (typeof private_key === "undefined") {
+    if (typeof privateKey === "undefined") {
       if (typeof this.account === "undefined") {
         throw new Error("Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient");
       } else {
-        pk = this.account.pk;
+        resolvedPrivateKey = this.account._privateKey;
       }
     } else {
       try {
-        pk = PrivateKey.from_string(private_key);
+        resolvedPrivateKey = PrivateKey.from_string(privateKey);
       } catch (error) {
         throw new Error("Error parsing private key provided.");
       }
     }
-    const vk = pk.to_view_key();
+    const viewKey = resolvedPrivateKey.to_view_key();
 
     // Get the latest height to ensure the range being searched is valid
     try {
-      const block_height = await this.getLatestHeight();
-      if (typeof block_height === "number") {
-        latest_height = block_height;
+      const blockHeight = await this.getLatestHeight();
+      if (typeof blockHeight === "number") {
+        latestHeight = blockHeight;
       } else {
         throw new Error("Error fetching latest block height.");
       }
@@ -284,22 +284,22 @@ export class AleoNetworkClient {
     }
 
     // If no end height is specified or is greater than the latest height, set the end height to the latest height
-    if (typeof end_height === "number" && end_height <= latest_height) {
-      end = end_height
+    if (typeof endHeight === "number" && endHeight <= latestHeight) {
+      end = endHeight
     } else {
-      end = latest_height;
+      end = latestHeight;
     }
 
     // If the starting is greater than the ending height, return an error
-    if (start_height > end ) {
+    if (startHeight > end ) {
         throw new Error("Start height must be less than or equal to end height.");
     }
 
     // Iterate through blocks in reverse order in chunks of 50
-    while (end > start_height) {
+    while (end > startHeight) {
       start = end - 50;
-      if (start < start_height) {
-        start = start_height;
+      if (start < startHeight) {
+        start = startHeight;
       }
       try {
         // Get 50 blocks (or the difference between the start and end if less than 50)
@@ -330,21 +330,21 @@ export class AleoNetworkClient {
                               // Create a wasm record ciphertext object from the found output
                               const record = RecordCiphertext.fromString(output.value);
                               // Determine if the record is owned by the specified view key
-                              if (record.isOwner(vk)) {
+                              if (record.isOwner(viewKey)) {
                                 // Decrypt the record and get the serial number
-                                const record_plaintext = record.decrypt(vk);
-                                const serial_number = record_plaintext.serialNumberString(pk, "credits.aleo", "credits");
+                                const recordPlaintext = record.decrypt(viewKey);
+                                const serialNumber = recordPlaintext.serialNumberString(resolvedPrivateKey, "credits.aleo", "credits");
                                 // Attempt to see if the serial number is spent
                                 try {
-                                  await this.getTransitionId(serial_number);
+                                  await this.getTransitionId(serialNumber);
                                 } catch (error) {
                                   // If it's not found, add it to the list of unspent records
-                                  records.push(record_plaintext);
-                                  // If the user specified a maximum number of gates, check if the search has found enough
-                                  if (typeof max_gates === "number") {
-                                    total_record_value = record_plaintext.gates();
+                                  records.push(recordPlaintext);
+                                  // If the user specified a maximum number of microcredits, check if the search has found enough
+                                  if (typeof maxMicrocredits === "number") {
+                                    totalRecordValue = recordPlaintext.microcredits();
                                     // Exit if the search has found the amount specified
-                                    if (total_record_value >= BigInt(max_gates)) {
+                                    if (totalRecordValue >= BigInt(maxMicrocredits)) {
                                       return records;
                                     }
                                   }
@@ -353,7 +353,7 @@ export class AleoNetworkClient {
                                     let amounts_found = 0;
                                     for (let m = 0; m < amounts.length; m++) {
                                       for (let n = 0; m < records.length; n++) {
-                                        if (records[n].gates() >= BigInt(amounts[m])) {
+                                        if (records[n].microcredits() >= BigInt(amounts[m])) {
                                           amounts_found++;
                                           // Exit if the search has found the amounts specified
                                           if (amounts_found >= amounts.length) {
@@ -366,8 +366,6 @@ export class AleoNetworkClient {
                                 }
                               }
                             } catch (error) {
-                              // If the record value is invalid or can't be decrypted, log the error and keep searching
-                              console.log(error);
                             }
                           }
                         }

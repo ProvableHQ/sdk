@@ -19,6 +19,7 @@ use crate::{
     types::{IdentifierNative, ProgramIDNative, RecordPlaintextNative},
 };
 
+use aleo_rust::Credits;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -42,9 +43,9 @@ impl RecordPlaintext {
         self.0.to_string()
     }
 
-    /// Returns the amount of gates in the record
-    pub fn gates(&self) -> u64 {
-        ***self.0.gates()
+    /// Returns the amount of microcredits in the record
+    pub fn microcredits(&self) -> u64 {
+        self.0.microcredits().unwrap_or(0)
     }
 
     /// Attempt to get the serial number of a record to determine whether or not is has been spent
@@ -97,32 +98,31 @@ mod tests {
 
     use wasm_bindgen_test::wasm_bindgen_test;
 
-    const RECORD: &str = "{ owner: aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah.private, gates: 99u64.public, _nonce: 0group.public }";
+    const RECORD: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 1500000000000000u64.private,
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
+}";
 
     #[wasm_bindgen_test]
     fn test_to_and_from_string() {
-        let expected_string = "{\n  owner: aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah.private,\n  gates: 99u64.public,\n  _nonce: 0group.public\n}";
         let record = RecordPlaintext::from_string(RECORD).unwrap();
-        assert_eq!(record.to_string(), expected_string);
-
-        // Ensure we can ingest strings with newlines properly
-        let record2 = RecordPlaintext::from_string(expected_string).unwrap();
-        assert_eq!(record2.to_string(), expected_string);
+        assert_eq!(record.to_string(), RECORD);
     }
 
     #[wasm_bindgen_test]
-    fn test_gates_from_string() {
+    fn test_microcredits_from_string() {
         let record = RecordPlaintext::from_string(RECORD).unwrap();
-        assert_eq!(record.gates(), 99);
+        assert_eq!(record.microcredits(), 1500000000000000);
     }
 
     #[wasm_bindgen_test]
     fn test_serial_number() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
         let record = RecordPlaintext::from_string(RECORD).unwrap();
-        let program_id = "token.aleo";
-        let record_name = "token";
-        let expected_sn = "4564977995400415519058823909143155627601970323571971278914520967771079582104field";
+        let program_id = "credits.aleo";
+        let record_name = "credits";
+        let expected_sn = "8170619507075647151199239049653235187042661744691458644751012032123701508940field";
         let result = record.serial_number_string(&pk, program_id, record_name);
         assert_eq!(expected_sn, result.unwrap());
     }
@@ -131,9 +131,9 @@ mod tests {
     fn test_serial_number_can_run_twice_with_same_private_key() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
         let record = RecordPlaintext::from_string(RECORD).unwrap();
-        let program_id = "token.aleo";
-        let record_name = "token";
-        let expected_sn = "4564977995400415519058823909143155627601970323571971278914520967771079582104field";
+        let program_id = "credits.aleo";
+        let record_name = "credits";
+        let expected_sn = "8170619507075647151199239049653235187042661744691458644751012032123701508940field";
         assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name).unwrap());
         assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name).unwrap());
     }
@@ -160,7 +160,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_bad_inputs_to_from_string() {
-        let invalid_bech32 = "{ owner: aleo2d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah.private, gates: 99u64.public, _nonce: 0group.public }";
+        let invalid_bech32 = "{ owner: aleo2d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah.private, microcredits: 99u64.public, _nonce: 0group.public }";
         assert_eq!(
             RecordPlaintext::from_string("string").err(),
             Some("The plaintext string provided was invalid".into())

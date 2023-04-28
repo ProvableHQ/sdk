@@ -6,7 +6,7 @@
 
 ## Build Guide
 
-Follow these steps to install [Package Control](https://packagecontrol.io/installation) and [PackageDev](https://github.com/SublimeText/PackageDev).
+Follow these steps to install [Package Contronpx jsdoc --configure jsdoc.json --verbosel](https://packagecontrol.io/installation) and [PackageDev](https://github.com/SublimeText/PackageDev).
 
 1. Install [Package Control](https://packagecontrol.io/installation)
 2. Install [PackageDev](https://github.com/SublimeText/PackageDev)

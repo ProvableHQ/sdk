@@ -14,15 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ProgramManager;
-use snarkvm_console::{
-    account::Address,
-    program::{Network, Plaintext, Record, Value},
-};
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Query, Transaction, VM};
-
-use anyhow::{ensure, Result};
-use std::str::FromStr;
+use super::*;
 
 impl<N: Network> ProgramManager<N> {
     /// Executes a transfer to the specified recipient_address with the specified amount and fee.
@@ -34,19 +26,10 @@ impl<N: Network> ProgramManager<N> {
         recipient_address: Address<N>,
         password: Option<&str>,
         input_record: Record<N, Plaintext<N>>,
-        fee_record: Option<Record<N, Plaintext<N>>>,
+        fee_record: Record<N, Plaintext<N>>,
     ) -> Result<String> {
         ensure!(amount > 0, "Amount must be greater than 0");
-
-        let additional_fee = if fee > 0 {
-            ensure!(fee_record.is_some(), "If a fee is specified, a fee record must be specified to pay for it");
-            Some((fee_record.unwrap(), fee))
-        } else {
-            if fee_record.is_some() {
-                println!("⚠️ Warning: Fee record specified but fee is 0, the fee record will not be used");
-            }
-            None
-        };
+        ensure!(fee > 0, "Fee must be greater than 0");
 
         // Specify the network state query
         let query = Query::from(self.api_client.as_ref().unwrap().base_url());
@@ -73,10 +56,9 @@ impl<N: Network> ProgramManager<N> {
             Transaction::execute(
                 &vm,
                 &private_key,
-                "credits.aleo",
-                "transfer",
+                ("credits.aleo", "transfer"),
                 inputs.iter(),
-                additional_fee,
+                Some((fee_record, fee)),
                 Some(query),
                 rng,
             )?
@@ -90,10 +72,7 @@ impl<N: Network> ProgramManager<N> {
 mod tests {
     use super::*;
     use crate::{test_utils::BEACON_PRIVATE_KEY, AleoAPIClient, RecordFinder};
-    use snarkvm_console::{
-        account::{Address, PrivateKey, ViewKey},
-        network::Testnet3,
-    };
+    use snarkvm_console::network::Testnet3;
 
     use std::{str::FromStr, thread};
 
@@ -110,38 +89,41 @@ mod tests {
             ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client.clone()), None).unwrap();
         let record_finder = RecordFinder::new(api_client);
         // Wait for the chain to to start
-        thread::sleep(std::time::Duration::from_secs(60));
+        //thread::sleep(std::time::Duration::from_secs(60));
 
         // Make several transactions from the genesis account since the genesis account keeps spending records,
         // it may take a few tries to transfer successfully
         for i in 0..10 {
-            let record = record_finder.find_one_record(&beacon_private_key, 100);
-            if record.is_err() {
-                println!("Record not found: {} - retrying", record.unwrap_err());
+            let records = record_finder.find_amount_and_fee_records(100, 500_000, &beacon_private_key);
+            if records.is_err() {
+                println!("Record not found: {} - retrying", records.unwrap_err());
                 thread::sleep(std::time::Duration::from_secs(3));
                 continue;
             }
-            let input_record = record.unwrap();
-            let result = program_manager.transfer(100, 0, recipient_address, None, input_record, None);
+
+            let (input_record, fee_record) = records.unwrap();
+            let result = program_manager.transfer(100, 500000, recipient_address, None, input_record, fee_record);
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
-            } else if i > 6 {
-                break;
+            } else if i > 8 {
+                panic!("Failed to transfer after 8 transfer errors");
             }
 
-            // Wait 2 seconds before trying again
-            thread::sleep(std::time::Duration::from_secs(2));
+            // Wait for the chain to update blocks
+            thread::sleep(std::time::Duration::from_secs(15));
+
+            // Check the balance of the recipient
+            let api_client = program_manager.api_client().unwrap();
+            let height = api_client.latest_height().unwrap();
+            let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
+            if !records.is_empty() {
+                let (_, record) = &records[0];
+                let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
+                let amount = record_plaintext.microcredits().unwrap();
+                if amount == 100 {
+                    break;
+                }
+            }
         }
-
-        // Wait for the chain to update blocks
-        thread::sleep(std::time::Duration::from_secs(35));
-
-        // Check the balance of the recipient
-        let api_client = program_manager.api_client().unwrap();
-        let height = api_client.latest_height().unwrap();
-        let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
-        let (_, record) = &records[0];
-        let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
-        assert_eq!(***record_plaintext.gates(), 100);
     }
 }

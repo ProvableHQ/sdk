@@ -14,15 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::AleoAPIClient;
-use snarkvm_console::{
-    account::{PrivateKey, ViewKey},
-    network::Network,
-    program::{Plaintext, Record},
-};
+use super::*;
 
-use anyhow::{anyhow, bail, Result};
-
+/// Helper struct for finding records on chain during program development
+#[derive(Clone)]
 pub struct RecordFinder<N: Network> {
     api_client: AleoAPIClient<N>,
 }
@@ -53,13 +48,13 @@ impl<N: Network> RecordFinder<N> {
         let amounts = vec![amount];
         self.find_unspent_records_on_chain(Some(&amounts), None, private_key)?
             .into_iter()
-            .find(|record| ***record.gates() >= amount)
+            .find(|record| record.microcredits().unwrap_or(0) >= amount)
             .ok_or_else(|| anyhow!("Insufficient funds"))
     }
 
     /// Attempt to resolve records with specific gate values specified as a vector of u64s. If the
     /// function is successful at resolving the records, it will return a vector of records with
-    /// gates equal to or greater than the specified amounts. If it cannot resolve records
+    /// microcredits equal to or greater than the specified amounts. If it cannot resolve records
     /// with the specified amounts, it will return an error.
     pub fn find_record_amounts(
         &self,
@@ -72,12 +67,12 @@ impl<N: Network> RecordFinder<N> {
     pub fn find_unspent_records_on_chain(
         &self,
         amounts: Option<&Vec<u64>>,
-        max_gates: Option<u64>,
+        max_microcredits: Option<u64>,
         private_key: &PrivateKey<N>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
         let view_key = ViewKey::try_from(private_key)?;
         let latest_height = self.api_client.latest_height()?;
-        let records = self.api_client.get_unspent_records(private_key, 0..latest_height, max_gates, amounts)?;
+        let records = self.api_client.get_unspent_records(private_key, 0..latest_height, max_microcredits, amounts)?;
         Ok(records.into_iter().filter_map(|(_, record)| record.decrypt(&view_key).ok()).collect())
     }
 }
