@@ -16,6 +16,9 @@
 
 mod macros;
 
+pub mod fee;
+pub use fee::*;
+
 pub mod manager;
 pub use manager::*;
 

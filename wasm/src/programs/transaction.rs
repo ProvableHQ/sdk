@@ -20,6 +20,9 @@ use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Webassembly Representation of an Aleo transaction
+///
+/// This object is created when generating an on-chain function deployment or execution and is the
+/// object that should be submitted to the Aleo Network in order to deploy or execute a function.
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Transaction(TransactionNative);
@@ -32,20 +35,25 @@ impl Transaction {
         Transaction::from_str(transaction)
     }
 
-    /// Get the transaction as a string
+    /// Get the transaction as a string. If you want to submit this transaction to the Aleo Network
+    /// this function will create the string that should be submitted in the `POST` data.
     #[wasm_bindgen(js_name = toString)]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
-    /// Get the id of the transaction
+    /// Get the id of the transaction. This is the merkle root of the transaction's inclusion proof.
+    ///
+    /// This value can be used to query the status of the transaction on the Aleo Network to see
+    /// if it was successful. If successful, the transaction will be included in a block and this
+    /// value can be used to lookup the transaction data on-chain.
     #[wasm_bindgen(js_name = transactionId)]
     pub fn transaction_id(&self) -> String {
         self.0.id().to_string()
     }
 
-    /// Get the type of the transaction
+    /// Get the type of the transaction (will return "deploy" or "execute")
     #[wasm_bindgen(js_name = transactionType)]
     pub fn transaction_type(&self) -> String {
         match &self.0 {

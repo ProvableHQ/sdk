@@ -27,6 +27,7 @@ use crate::{
     Transaction,
 };
 
+use crate::programs::fee::FeeExecution;
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
@@ -119,6 +120,30 @@ impl ProgramManager {
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
 
         Ok(Transaction::from(transaction))
+    }
+
+    /// Execute An aleo fee transaction, if using web workers, this can be called in parallel with
+    /// an execution of the program
+    #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn execute_fee(
+        &self,
+        private_key: PrivateKey,
+        fee_credits: f64,
+        fee_record: RecordPlaintext,
+        url: String,
+    ) -> Result<FeeExecution, String> {
+        if fee_credits < 0.0 {
+            return Err("Fee must be greater than zero".to_string());
+        }
+        let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
+
+        let process = ProcessNative::load_web().unwrap();
+
+        // Execute the call to fee and create the inclusion proof for it
+        let fee_native = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
+
+        Ok(FeeExecution::from(fee_native))
     }
 }
 

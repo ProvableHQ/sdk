@@ -19,13 +19,16 @@ use crate::types::ResponseNative;
 use std::ops::Deref;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
-/// Webassembly Representation of an Aleo response
+/// Webassembly Representation of an Aleo function execution response
+///
+/// This object is returned by the execution of an Aleo function off-chain. It provides methods for
+/// retrieving the outputs of the function execution.
 #[wasm_bindgen]
 pub struct ExecutionResponse(ResponseNative);
 
 #[wasm_bindgen]
 impl ExecutionResponse {
-    /// Get list of functions names in the response
+    /// Get the outputs of the executed function
     #[wasm_bindgen(js_name = "getOutputs")]
     pub fn get_outputs(&self) -> js_sys::Array {
         let array = js_sys::Array::new_with_length(0u32);
