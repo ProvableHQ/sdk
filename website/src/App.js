@@ -5,6 +5,7 @@ import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
 import {DecryptAccount} from "./tabs/advanced/DecryptAccount";
 import {DecryptRecord} from "./tabs/record/DecryptRecord";
 import {EncryptAccount} from "./tabs/advanced/EncryptAccount";
+import {Execute} from "./tabs/develop/Execute";
 import {GetBlockByHash} from "./tabs/rest/GetBlockByHash";
 import {GetBlockByHeight} from "./tabs/rest/GetBlockByHeight";
 import {GetLatestBlock} from "./tabs/rest/GetLatestBlock";
@@ -29,6 +30,7 @@ function App() {
                     <Menu.Item key="2" onClick={() => setMenuIndex(1)}>Record</Menu.Item>
                     <Menu.Item key="3" onClick={() => setMenuIndex(2)}>REST API</Menu.Item>
                     <Menu.Item key="4" onClick={() => setMenuIndex(3)}>Advanced</Menu.Item>
+                    <Menu.Item key="5" onClick={() => setMenuIndex(4)}>Develop</Menu.Item>
                 </Menu>
             </Header>
             <Content style={{padding: '50px 50px'}}>
@@ -72,6 +74,12 @@ function App() {
                         <EncryptAccount/>
                         <br/>
                         <DecryptAccount/>
+                    </>
+                }
+                {
+                    menuIndex === 4 &&
+                    <>
+                        <Execute/>
                     </>
                 }
             </Content>

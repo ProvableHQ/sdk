@@ -19,7 +19,7 @@ macro_rules! execute_program {
     ($inputs:expr, $program:expr, $function:expr, $private_key:expr) => {{
         let mut inputs_native = vec![];
 
-        for input in $inputs.iter() {
+        for input in $inputs.to_vec().iter() {
             if let Some(input) = input.as_string() {
                 inputs_native.push(input);
             } else {

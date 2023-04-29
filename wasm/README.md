@@ -11,9 +11,17 @@ Happy hacking!
 wasm-pack build --target nodejs
 ```
 
+To build with threading enabled
+```bash
+RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' \
+	rustup run nightly-2022-12-12 \
+	wasm-pack build --target web \
+	-- -Z build-std=panic_abort,std
+```
+
 ## Testing
 ```bash
-wasm-pack test
+wasm-pack test --node
 ```
 
 ## Aleo Tools

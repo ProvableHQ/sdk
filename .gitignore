@@ -5,7 +5,7 @@
 **/target
 wasm/Cargo.lock
 **/package-lock.json
-**/build
+wasm/build.rs
 **/dist
 storage*/
 

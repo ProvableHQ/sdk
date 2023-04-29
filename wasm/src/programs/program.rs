@@ -252,6 +252,7 @@ function bump_token_version:
     fn test_get_functions() {
         let program = Program::from(ProgramNative::credits().unwrap());
         assert_eq!(program.get_functions().to_vec(), vec!["mint", "transfer", "join", "split", "fee"]);
+        console_log!("{:?}", TOKEN_ISSUE);
     }
 
     #[wasm_bindgen_test]

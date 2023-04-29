@@ -49,7 +49,7 @@ version = "1.0"
 [dependencies.snarkvm-synthesizer]
 version = "0.10.2"
 workspace = true
-features = [ "wasm", "serial" ]
+features = [ "wasm" ]
 
 [dependencies.snarkvm-circuit-network]
 version = "0.10.2"
@@ -66,6 +66,14 @@ features = [ "serde-serialize" ]
 [dependencies.wasm-bindgen-futures]
 version = "0.4.24"
 
+[dependencies.wasm-bindgen-rayon]
+version = "1.0.3"
+optional = true
+
+[dependencies.rayon]
+version = "1.5"
+optional = true
+
 [dependencies.wasm-bindgen-test]
 version = "0.3.33"
 
@@ -74,3 +82,19 @@ version = "0.1.7"
 
 [dev-dependencies.wasm-bindgen-test]
 version = "0.3.33"
+
+[features]
+default = [ "serial" ]
+serial = [ "snarkvm-synthesizer/serial" ]
+parallel = [ "wasm-bindgen-rayon", "rayon" ]
+
+## Profiles
+[profile.release]
+opt-level = 3
+lto = true
+
+[package.metadata.wasm-pack.profile.debug]
+wasm-opt = ["-O4"]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O4"]

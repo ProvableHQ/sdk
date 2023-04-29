@@ -30,7 +30,7 @@ use crate::{
 use crate::programs::fee::FeeExecution;
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
-use std::str::FromStr;
+use std::{ops::Add, str::FromStr};
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -57,7 +57,6 @@ impl ProgramManager {
         Ok(ExecutionResponse::from(response))
     }
 
-    /*
     /// Execute Aleo function and create an Aleo execution transaction
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
@@ -69,8 +68,7 @@ impl ProgramManager {
         amount_record: RecordPlaintext,
         fee_credits: f64,
         fee_record: RecordPlaintext,
-        submission_url: String,
-        submit: bool,
+        url: String,
     ) -> Result<Transaction, String> {
         if fee_credits < 0.0 {
             return Err("Fee must be greater than zero".to_string());
@@ -78,15 +76,27 @@ impl ProgramManager {
         if amount_credits < 0.0 {
             return Err("Amount to transfer must be greater than zero".to_string());
         }
-        let amount_microcredits = (amount_credits*1_000_000.0f64) as u64;
-        let fee_microcredits = (fee_credits*1_000_000.0f64) as u64;
+        let amount_microcredits = (amount_credits * 1_000_000.0f64) as u64;
+        let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
         let program = ProgramNative::credits().unwrap().to_string();
-        let inputs = vec![amount_record, recipient, amount_record];
+        let inputs = Array::new_with_length(3);
+        inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.to_string()));
+        inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
+        inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
 
-        let ((_, execution, inclusion, _), process) =
-            execute_program!(inputs, program, "transfer.aleo", private_key);
+        let ((_, execution, inclusion, _), process) = execute_program!(inputs, program, "transfer", private_key);
+
+        // Create the inclusion proof for the execution
+        let execution = inclusion_proof!(inclusion, execution, url);
+
+        // Execute the call to fee and create the inclusion proof for it
+        let fee = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
+
+        // Create the transaction
+        let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
+
+        Ok(Transaction::from(transaction))
     }
-    */
 
     /// Execute Aleo function and create an Aleo execution transaction
     #[wasm_bindgen]
@@ -105,10 +115,9 @@ impl ProgramManager {
             return Err("Fee must be greater than zero".to_string());
         }
         let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
-        let inputs_native = inputs.to_vec();
 
         // Create the offline execution of the program
-        let ((_, execution, inclusion, _), process) = execute_program!(inputs_native, program, function, private_key);
+        let ((_, execution, inclusion, _), process) = execute_program!(inputs, program, function, private_key);
 
         // Create the inclusion proof for the execution
         let execution = inclusion_proof!(inclusion, execution, url);
@@ -162,7 +171,7 @@ function main:
 "#;
 
     #[wasm_bindgen_test]
-    fn test_web_program_run() {
+    async fn test_web_program_run() {
         let program_manager = ProgramManager::new();
         let private_key = PrivateKey::new();
         let inputs = js_sys::Array::new_with_length(2);
