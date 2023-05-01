@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin} from "antd";
 import axios from "axios";
-import init, * as aleo from '@aleohq/wasm';
+import init, * as aleo from "@aleohq/wasm";
 
-await init()
+await init();
 
 export const Execute = () => {
     const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
@@ -59,11 +59,22 @@ export const Execute = () => {
         });
     }
 
+    const run = async () => {
+        console.log("---------------------Aleo Private Key from Main Thread:---------------------");
+        let pkey = aleo.PrivateKey.from_string(privateKeyString());
+        console.log(pkey);
+        console.log("---------------------End Main Thread---------------------")
+
+        let pm = aleo.ProgramManager.new();
+        let response = pm.execute_local(programString(), functionIDString(), inputs.split(" "), pkey);
+        return response;
+    }
     const execute_local = async (event) => {
         setLoading(true)
         setProgramResponse(null);
         setTransactionID(null);
         setExecutionError(null);
+
         await postMessagePromise(worker, {
             type: 'ALEO_EXECUTE_PROGRAM_LOCAL',
             localProgram: programString(),
@@ -85,9 +96,9 @@ export const Execute = () => {
             remoteProgram: programString(),
             aleoFunction: functionIDString(),
             inputs: inputs.split(" "),
-            privateKey: aleo.PrivateKey.from_string(privateKeyString()),
+            privateKey: privateKeyString(),
             executionFee: getExecutionFee(),
-            feeRecord: aleo.RecordPlaintext.fromString(feeRecordString()),
+            feeRecord: privateKeyString(),
             url: peerUrl()
         });
     }

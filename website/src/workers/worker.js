@@ -16,12 +16,15 @@ self.addEventListener("message", ev => {
         console.log('Web worker: Executing Local Function...');
         let startTime = performance.now();
         console.log(aleo);
-        const aleoProgramManager = new aleo.ProgramManager();
+        const aleoProgramManager = aleo.ProgramManager.new();
+        console.log("Aleo program manager", aleoProgramManager);
         let key = aleo.PrivateKey.from_string(privateKey);
         console.log(key);
         console.log(localProgram);
         console.log(inputs);
         console.log(privateKey);
+        console.log("return to string", key.to_string());
+        console.log("ciphertext", key.toCiphertext("ass").toString());
         let response = aleoProgramManager.execute_local(
             localProgram,
             aleoFunction,
@@ -45,6 +48,7 @@ self.addEventListener("message", ev => {
         } = ev.data;
 
         console.log('Web worker: Creating execution...');
+
         let startTime = performance.now();
         const aleoProgramManager = new aleo.ProgramManager();
         (async function() {
@@ -52,9 +56,9 @@ self.addEventListener("message", ev => {
                 remoteProgram,
                 aleoFunction,
                 inputs,
-                privateKey,
+                aleo.PrivateKey.from_string(privateKey),
                 fee,
-                feeRecord,
+                aleo.RecordPlaintext.fromString("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50200000u64.private,  _nonce: 4201158309645146813264939404970515915909115816771965551707972399526559622583group.public}"),
                 url
             );
 

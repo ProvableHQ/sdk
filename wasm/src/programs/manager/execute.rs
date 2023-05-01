@@ -31,6 +31,7 @@ use crate::programs::fee::FeeExecution;
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::{ops::Add, str::FromStr};
+use wasm_bindgen_test::console_log;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -44,6 +45,7 @@ impl ProgramManager {
         private_key: PrivateKey,
     ) -> Result<ExecutionResponse, String> {
         let inputs = inputs.to_vec();
+        web_sys::console::log_1(&"execute_local starting".into());
         let ((response, execution, _, _), process) = execute_program!(inputs, program, function, private_key);
 
         process.verify_execution::<false>(&execution).map_err(|_| "Failed to verify execution".to_string())?;

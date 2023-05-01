@@ -18,7 +18,7 @@
 macro_rules! execute_program {
     ($inputs:expr, $program:expr, $function:expr, $private_key:expr) => {{
         let mut inputs_native = vec![];
-
+        web_sys::console::log_1(&"parsing inputs".into());
         for input in $inputs.to_vec().iter() {
             if let Some(input) = input.as_string() {
                 inputs_native.push(input);
@@ -27,15 +27,20 @@ macro_rules! execute_program {
             }
         }
 
+        web_sys::console::log_1(&"loading process".into());
         let mut process = ProcessNative::load_web().map_err(|_| "Failed to load the process".to_string())?;
 
+        web_sys::console::log_1(&"Loading program".into());
         let program =
             ProgramNative::from_str(&$program).map_err(|_| "The program ID provided was invalid".to_string())?;
+        web_sys::console::log_1(&"Loading function".into());
         let function_name =
             IdentifierNative::from_str(&$function).map_err(|_| "The function name provided was invalid".to_string())?;
 
+        web_sys::console::log_1(&"Adding program to the process".into());
         process.add_program(&program).map_err(|_| "Failed to add program".to_string())?;
 
+        web_sys::console::log_1(&"Creating authorization".into());
         let authorization = process
             .authorize::<CurrentAleo, _>(
                 &$private_key,
@@ -45,6 +50,8 @@ macro_rules! execute_program {
                 &mut StdRng::from_entropy(),
             )
             .map_err(|err| err.to_string())?;
+
+        web_sys::console::log_1(&"Creating authorization".into());
 
         (
             process

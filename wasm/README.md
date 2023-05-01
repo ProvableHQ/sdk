@@ -13,10 +13,7 @@ wasm-pack build --target nodejs
 
 To build with threading enabled
 ```bash
-RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' \
-	rustup run nightly-2022-12-12 \
-	wasm-pack build --target web \
-	-- -Z build-std=panic_abort,std
+RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' wasm-pack build --target web --out-dir pkg-parallel -- --features "parallel" --no-default-features
 ```
 
 ## Testing

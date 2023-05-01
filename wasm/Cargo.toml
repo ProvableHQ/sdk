@@ -66,6 +66,10 @@ features = [ "serde-serialize" ]
 [dependencies.wasm-bindgen-futures]
 version = "0.4.24"
 
+[dependencies.web-sys]
+version = "0.3.52"
+features = [ "console" ]
+
 [dependencies.wasm-bindgen-rayon]
 version = "1.0.3"
 optional = true

@@ -175,6 +175,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "wasm-bindgen-rayon",
  "wasm-bindgen-test",
+ "web-sys",
 ]
 
 [[package]]
@@ -2127,6 +2128,8 @@ dependencies = [
  "snarkvm-r1cs",
  "snarkvm-utilities",
  "thiserror",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
@@ -2417,6 +2420,7 @@ dependencies = [
  "snarkvm-console-network",
  "snarkvm-console-types",
  "snarkvm-utilities",
+ "web-sys",
 ]
 
 [[package]]
@@ -2607,6 +2611,7 @@ dependencies = [
  "snarkvm-utilities",
  "tracing",
  "ureq",
+ "web-sys",
 ]
 
 [[package]]
