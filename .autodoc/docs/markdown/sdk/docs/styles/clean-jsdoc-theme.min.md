@@ -1,0 +1,25 @@
+[View code on GitHub](https://github.com/AleoHQ/aleo/sdk/docs/styles/clean-jsdoc-theme.min.css)
+
+This code is a CSS (Cascading Style Sheets) file that defines the styling and layout for the Aleo project's user interface. It is responsible for the visual appearance of the project, including typography, colors, layout, and responsive design for different screen sizes.
+
+The code starts by defining custom font faces for headings, body text, and code elements using the `@font-face` rule. It then sets global styles, such as box-sizing, margin, and padding for all elements. The `html` and `body` elements are styled with a minimum height, width, and line-height.
+
+Typography styles are defined for headings (h1 to h6), paragraphs, lists, and other text elements. The code also includes styles for images, links, and blockquotes. Specific classes are used to style elements like tables, code blocks, and tooltips.
+
+The layout of the user interface is designed using Flexbox, with a sidebar, table of contents, and main content area. The code includes responsive design using media queries to adapt the layout for different screen sizes. For example, the table of contents is hidden on smaller screens, and the sidebar is replaced with a mobile menu.
+
+The code also includes styles for a search feature, including a search input field, search results, and a close button. The search feature is designed to be fixed on the screen and overlay the main content.
+
+In summary, this CSS file is responsible for the visual appearance and layout of the Aleo project's user interface, ensuring a consistent and responsive design across different devices and screen sizes.
+## Questions: 
+ 1. **What are the custom font faces used in this code?**
+
+   The custom font faces used in this code are "heading" (WorkSans-Bold.ttf), "body" (OpenSans-Regular.ttf), and "code" (Inconsolata-Regular.ttf).
+
+2. **How are the different font sizes for headings (h1, h2, h3, h4, h5, h6) defined in this code?**
+
+   The font sizes for headings are defined as follows: h1 (3.5rem), h2 (2.25rem), h3 (1.5rem), h4 (1.25rem), h5 (1rem), and h6 (1rem).
+
+3. **How are the styles for the scrollbar defined in this code?**
+
+   The styles for the scrollbar are defined using the `::-webkit-scrollbar`, `::-webkit-scrollbar-track`, and `::-webkit-scrollbar-thumb` pseudo-elements. The scrollbar width and height are set to 0.3125rem, the track background is set to #333 (dark mode) or #ddd (light mode), and the thumb background is set to #555 (dark mode) or #aaa (light mode) with an outline of the same color.

@@ -1,0 +1,34 @@
+[View code on GitHub](https://github.com/AleoHQ/aleo/sdk/docs/scripts/core.min.js)
+
+This code is responsible for handling various user interface (UI) functionalities in the Aleo project, such as theme toggling, accordions, font size adjustments, and more. The code is organized into several functions that perform specific tasks, and these functions are called at appropriate times to provide a smooth user experience.
+
+1. **Theme Toggling**: The `toggleTheme` function is responsible for switching between dark and light themes. It updates the `data-theme` attribute of the `body` element and the `xlink:href` attribute of the theme icons. The current theme is stored in the local storage using the `updateTheme` function.
+
+   Example usage: `toggleTheme()`
+
+2. **Accordion**: The `initAccordion` function initializes the accordion functionality in the sidebar. It sets up event listeners for the `.sidebar-section-title` elements and toggles the accordion state using the `toggleAccordion` function. The accordion state is stored in the local storage.
+
+3. **Font Size Adjustment**: The `incrementFont`, `decrementFont`, and `updateFontSize` functions handle font size adjustments. Users can increase or decrease the font size within a specified range (10px to 30px). The current font size is stored in the local storage.
+
+   Example usage: `incrementFont()`, `decrementFont()`
+
+4. **Anchor Links**: The `addAnchor` function adds anchor links to headings (h1, h2, h3, h4) within the main content section. The `createAnchorElement` function creates an anchor element with the appropriate event listener for smooth scrolling.
+
+5. **Table of Contents**: The `bringElementIntoView` function is responsible for smooth scrolling to a specific element in the table of contents. It updates the URL hash and the active element in the table of contents.
+
+6. **Tooltips**: The `initTooltip` function initializes tooltips for various UI elements like theme toggle, search button, font size adjustment, and more using the `tippy` library.
+
+7. **Mobile Menu**: The `initMobileMenu` function sets up the event listener for the mobile menu button. The `onMobileMenuClick` function toggles the mobile menu's visibility.
+
+8. **Miscellaneous**: The code also handles other UI tasks like fixing tables, adding href to sidebar titles, and initializing syntax highlighting using the `hljs` library.
+
+The code is executed when the DOM is fully loaded, and event listeners are set up for various UI elements. The current theme and font size are retrieved from the local storage and applied to the page.
+## Questions: 
+ 1. **Question:** What is the purpose of the `toggleTheme` function and how does it work?
+   **Answer:** The `toggleTheme` function is used to switch between dark and light themes. It checks the current theme by getting the `data-theme` attribute of the document body and updates the theme by calling the `updateTheme` function with the opposite theme (dark or light).
+
+2. **Question:** How does the `initAccordion` function work and what is its purpose?
+   **Answer:** The `initAccordion` function initializes the accordion functionality for the sidebar sections. It first checks if the `accordionLocalStorageKey` exists in the local storage and sets it to an empty object if not. Then, it adds click event listeners to all sidebar section titles, which toggle the accordion state (open or closed) and update the local storage accordingly.
+
+3. **Question:** How is the font size adjusted using the `incrementFont`, `decrementFont`, and `updateFontSize` functions?
+   **Answer:** The `incrementFont` and `decrementFont` functions are used to increase or decrease the font size by 1 unit, respectively, within the defined limits (MIN_FONT_SIZE and MAX_FONT_SIZE). The `updateFontSize` function is called with the new font size value, which updates the font size of the HTML element and stores the new value in the local storage.
