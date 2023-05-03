@@ -1,51 +1,60 @@
 import React, { useState, useEffect } from "react";
-import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin} from "antd";
+import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
 import axios from "axios";
-import init, * as aleo from "@aleohq/wasm";
-
-await init();
+import {useAleoWASM} from "../../aleo-wasm-hook";
 
 export const Execute = () => {
-    const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
+    const aleo = useAleoWASM();
+    const [executionFeeRecord, setExecutionFeeRecord] = useState("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50200000u64.private,  _nonce: 4201158309645146813264939404970515915909115816771965551707972399526559622583group.public}");
     const [executeUrl, setExecuteUrl] = useState("http://localhost:3030");
     const [functionID, setFunctionID] = useState(null);
-    const [executionFee, setExecutionFee] = useState(null);
+    const [executionFee, setExecutionFee] = useState("1");
     const [inputs, setInputs] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [privateKey, setPrivateKey] = useState("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH");
+    const [privateKey, setPrivateKey] = useState("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6");
     const [program, setProgram] = useState(null);
     const [programResponse, setProgramResponse] = useState(null);
     const [executionError, setExecutionError] = useState(null);
     const [programID, setProgramID] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
+    const [worker, setWorker] = useState(null);
+    const [executeOnline, setExecuteOnline] = useState(false);
 
-    const worker = new Worker("./worker.js");
-
-    useEffect(() => {
+    function spawnWorker() {
+        let worker = new Worker("./worker.js");
         worker.addEventListener("message", ev => {
-            if (ev.data.type === 'ALEO_EXECUTE_PROGRAM_LOCAL') {
-                setLoading(false)
+            if (ev.data.type == 'OFFLINE_EXECUTION_COMPLETED') {
+                console.log("Response received from worker: ", ev.data.outputs);
+                setLoading(false);
                 setTransactionID(null);
                 setExecutionError(null);
-                setProgramResponse(ev.data.response.getOutputs());
-            } else if (ev.data.type === 'EXECUTION_TRANSACTION_COMPLETED') {
+                setProgramResponse(ev.data.outputs);
+            } else if (ev.data.type == 'EXECUTION_TRANSACTION_COMPLETED') {
                 axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.executeTransaction.toString()).then(
                     (response) => {
-                        setLoading(false)
+                        setLoading(false);
                         setProgramResponse(null);
                         setExecutionError(null);
-                        setTransactionID(response.data);
+                        setTransactionID(response.data.executeTransaction);
                     }
                 )
+            } else if (ev.data.type == "HEALTH_CHECK_COMPLETED") {
+                console.log(ev.data.result);
+                worker.terminate();
             }
         });
+        return worker;
+    }
+
+
+    useEffect(() => {
+        const worker = spawnWorker();
+        setWorker(worker);
     }, []);
 
     function postMessagePromise(worker, message) {
-        setLoading(true)
         return new Promise((resolve, reject) => {
-            worker.postMessage(message);
             worker.onmessage = event => {
                 resolve(event.data);
             };
@@ -56,32 +65,24 @@ export const Execute = () => {
                 setTransactionID(null);
                 reject(error);
             };
+            worker.postMessage(message);
         });
     }
 
-    const run = async () => {
-        console.log("---------------------Aleo Private Key from Main Thread:---------------------");
-        let pkey = aleo.PrivateKey.from_string(privateKeyString());
-        console.log(pkey);
-        console.log("---------------------End Main Thread---------------------")
-
-        let pm = aleo.ProgramManager.new();
-        let response = pm.execute_local(programString(), functionIDString(), inputs.split(" "), pkey);
-        return response;
+    const healthCheck = async (event) => {
+        await postMessagePromise(worker, {
+            type: 'HEALTH_CHECK',
+            message: "Ping"
+        });
     }
-    const execute_local = async (event) => {
-        setLoading(true)
+
+    const executeLocal = async (event) => {
+        setLoading(true);
         setProgramResponse(null);
         setTransactionID(null);
         setExecutionError(null);
 
-        await postMessagePromise(worker, {
-            type: 'ALEO_EXECUTE_PROGRAM_LOCAL',
-            localProgram: programString(),
-            aleoFunction: functionIDString(),
-            inputs: inputs.split(" "),
-            privateKey: privateKeyString(),
-        });
+
     }
 
     const execute = async (event) => {
@@ -90,17 +91,27 @@ export const Execute = () => {
         setTransactionID(null);
         setExecutionError(null);
 
-        // Build transaction
-        await postMessagePromise(worker, {
-            type: 'ALEO_EXECUTE_PROGRAM_ON_CHAIN',
-            remoteProgram: programString(),
-            aleoFunction: functionIDString(),
-            inputs: inputs.split(" "),
-            privateKey: privateKeyString(),
-            executionFee: getExecutionFee(),
-            feeRecord: privateKeyString(),
-            url: peerUrl()
-        });
+        if (executeOnline) {
+            console.log(getExecutionFee())
+            await postMessagePromise(worker, {
+                type: 'ALEO_EXECUTE_PROGRAM_ON_CHAIN',
+                remoteProgram: programString(),
+                aleoFunction: functionIDString(),
+                inputs: inputs.split(" "),
+                privateKey: privateKeyString(),
+                fee: getExecutionFee(),
+                feeRecord: feeRecordString(),
+                url: peerUrl()
+            });
+        } else {
+            await postMessagePromise(worker, {
+                type: 'ALEO_EXECUTE_PROGRAM_LOCAL',
+                localProgram: programString(),
+                aleoFunction: functionIDString(),
+                inputs: inputs.split(" "),
+                privateKey: privateKeyString(),
+            });
+        }
     }
 
     const demo = async (event) => {
@@ -109,7 +120,13 @@ export const Execute = () => {
         setTransactionID(null);
         setExecutionError(null);
         setProgramID("hello.aleo");
-        await tryRequest("hello.aleo");
+        setProgram("program hello.aleo;\n" +
+            "\n" +
+            "function main:\n" +
+            "    input r0 as u32.public;\n" +
+            "    input r1 as u32.private;\n" +
+            "    add r0 r1 into r2;\n" +
+            "    output r2 as u32.private;\n");
         setInputs("5u32 5u32");
         setFunctionID("main");
     }
@@ -139,6 +156,36 @@ export const Execute = () => {
         setProgramResponse(null);
         setExecutionError(null);
         return functionID;
+    }
+
+    const onProgramChange = (event) => {
+        if (event.target.value !== null) {
+            setProgram(event.target.value);
+        }
+        setTransactionID(null);
+        setProgramResponse(null);
+        setExecutionError(null);
+        return program;
+    }
+
+    const onExecutionFeeChange = (event) => {
+        if (event.target.value !== null) {
+            setExecutionFee(event.target.value);
+        }
+        setTransactionID(null);
+        setProgramResponse(null);
+        setExecutionError(null);
+        return executionFee;
+    }
+
+    const onExecutionFeeRecordChange = (event) => {
+        if (event.target.value !== null) {
+            setExecutionFeeRecord(event.target.value);
+        }
+        setTransactionID(null);
+        setProgramResponse(null);
+        setExecutionError(null);
+        return executionFeeRecord;
     }
 
     const onInputsChange = (event) => {
@@ -191,7 +238,6 @@ export const Execute = () => {
                         setStatus("error");
                         console.error(error);
                     });
-
             } else {
                 // Reset the program text if the user clears the search bar.
                 setProgram(null);
@@ -213,7 +259,7 @@ export const Execute = () => {
     const transactionIDString = () => programID !== null ? transactionID : "";
     const executionErrorString = () => executionError.stack !== null ? executionError.stack : "";
     const outputString = () => programResponse !== null ? programResponse.toString() : "";
-    const getExecutionFee = () => executionFee !== null ? fee : 0.0;
+    const getExecutionFee = () => executionFee !== null ? parseFloat(executionFee) : 0;
     const peerUrl = () => executeUrl !== null ? executeUrl : "";
 
 
@@ -241,10 +287,20 @@ export const Execute = () => {
             <Divider/>
             <Form.Item label="Program Bytecode" colon={false}>
                 <Input.TextArea size="large" rows={10} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
-                                value={programString()}
-                                disabled/>
+                                value={programString()} onChange={onProgramChange}/>
             </Form.Item>
             <Divider/>
+            <Form.Item label="Execute On-Chain"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Switch label="Execute Online" onChange={() => {
+                    executeOnline ? setExecuteOnline(false) : setExecuteOnline(true);
+                    setProgramResponse(null);
+                    setTransactionID(null);
+                    setExecutionError(null);
+                }} />
+            </Form.Item>
             <Form.Item label="Function"
                        colon={false}
                        validateStatus={status}
@@ -281,31 +337,61 @@ export const Execute = () => {
                                 value={privateKeyString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
-            <Form.Item label="Peer Url"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Peer URL"
-                                size="middle"
-                                placeholder="Aleo Network Node URL"
-                                allowClear
-                                onChange={onUrlChange}
-                                value={peerUrl()}
-                                style={{borderRadius: '20px'}}/>
-            </Form.Item>
+
+            {
+                (executeOnline === true) &&
+                <Form.Item label="Peer Url"
+                           colon={false}
+                           validateStatus={status}
+                >
+                    <Input.TextArea name="Peer URL"
+                                    size="middle"
+                                    placeholder="Aleo Network Node URL"
+                                    allowClear
+                                    onChange={onUrlChange}
+                                    value={peerUrl()}
+                                    style={{borderRadius: '20px'}}/>
+                </Form.Item>
+            }
+            {
+                (executeOnline === true) &&
+                <Form.Item label="Fee"
+                           colon={false}
+                           validateStatus={status}
+                >
+                    <Input.TextArea name="Fee"
+                                    size="small"
+                                    placeholder="Fee"
+                                    allowClear
+                                    onChange={onExecutionFeeChange}
+                                    value={getExecutionFee()}
+                                    style={{borderRadius: '20px'}}/>
+                </Form.Item>
+            }
+            {
+                (executeOnline === true) &&
+                <Form.Item label="Fee Record"
+                           colon={false}
+                           validateStatus={status}
+                >
+                    <Input.TextArea name="Fee Record"
+                                    size="small"
+                                    placeholder="Record used to pay execution fee"
+                                    allowClear
+                                    onChange={onExecutionFeeRecordChange}
+                                    value={feeRecordString()}
+                                    style={{borderRadius: '20px'}}/>
+                </Form.Item>
+            }
             <Row justify="center">
-                <Col justify="center" span={3}>
-                <Button type="primary" shape="round" size="middle" onClick={execute}
-                >Execute On Chain</Button>
-                </Col>
-                <Col justify="center" span={3}>
-                    <Button type="primary" shape="round" size="middle" onClick={execute_local}
-                    >Execute Locally</Button>
+                <Col justify="center">
+                    <Button type="primary" shape="round" size="middle" onClick={execute}
+                    >Execute</Button>
                 </Col>
             </Row>
         </Form>
-        <Row justify="center" gutter={[16, 32]}>
-        {
+        <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
+            {
             (loading === true) &&
             <Spin tip="Executing Program..." size="large"/>
         }

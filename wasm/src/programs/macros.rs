@@ -32,7 +32,7 @@ macro_rules! execute_program {
 
         web_sys::console::log_1(&"Loading program".into());
         let program =
-            ProgramNative::from_str(&$program).map_err(|_| "The program ID provided was invalid".to_string())?;
+            ProgramNative::from_str(&$program).map_err(|e| format!("The program provided was invalid, error: {:?}", e))?;
         web_sys::console::log_1(&"Loading function".into());
         let function_name =
             IdentifierNative::from_str(&$function).map_err(|_| "The function name provided was invalid".to_string())?;
@@ -65,8 +65,11 @@ macro_rules! execute_program {
 #[macro_export]
 macro_rules! inclusion_proof {
     ($inclusion:expr, $execution:expr, $url:expr) => {{
+        web_sys::console::log_1(&"Preparing execution inclusion proof".into());
+        web_sys::console::log_1(&"Preparing  execution inclusion proof".into());
         let (assignments, global_state_root) =
             $inclusion.prepare_execution_wasm(&$execution, &$url).await.map_err(|err| err.to_string())?;
+        web_sys::console::log_1(&"Creating execution inclusion proof".into());
         let execution = $inclusion
             .prove_execution::<CurrentAleo, _>($execution, &assignments, global_state_root, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
@@ -78,6 +81,8 @@ macro_rules! inclusion_proof {
 #[macro_export]
 macro_rules! fee_inclusion_proof {
     ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr) => {{
+        web_sys::console::log_1(&"Preparing fee inclusion proof".into());
+        web_sys::console::log_1(&"Preparing fee inclusion proof".into());
         let fee_record_native = RecordPlaintextNative::from_str(&$fee_record.to_string()).unwrap();
         let (_, fee_transition, inclusion, _) = $process
             .execute_fee::<CurrentAleo, _>(
@@ -88,6 +93,7 @@ macro_rules! fee_inclusion_proof {
             )
             .map_err(|err| err.to_string())?;
 
+        web_sys::console::log_1(&"Creating fee inclusion proof".into());
         // Prepare the assignments.
         let assignment =
             inclusion.prepare_fee_wasm(&fee_transition, &$submission_url).await.map_err(|err| err.to_string())?;

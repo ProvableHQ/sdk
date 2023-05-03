@@ -44,10 +44,10 @@ const appConfig = {
             template: './public/index.html'
         }),
     ],
-
     performance: {
-        maxEntrypointSize: 16777216,
-        maxAssetSize: 16777216
+        hints: false,
+        maxEntrypointSize: 166777216,
+        maxAssetSize: 166777216
     },
     experiments: {
         asyncWebAssembly: true,

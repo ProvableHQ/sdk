@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@aleohq/ui": "^0.0.9",
-    "@aleohq/wasm": "file:../wasm/pkg-parallel",
+    "@aleohq/wasm": "file:../wasm/pkg-serial",
     "@ant-design/icons": "^4.4.0",
     "antd": "^4.11.2",
     "axios": "^1.1.3",
@@ -31,7 +31,7 @@
     "webpack-dev-server": "^4.7.4"
   },
   "scripts": {
-    "start": "webpack-dev-server",
+    "start": "webpack-dev-server --config webpack.config.js",
     "build": "webpack --config webpack.config.js",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build",
