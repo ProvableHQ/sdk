@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1683156262911,
+  "lastUpdate": 1683156861818,
   "repoUrl": "https://github.com/AleoHQ/aleo",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -107,6 +107,60 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_encryption_decryption_roundtrip",
             "value": 641462,
             "range": "± 2387",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "collin",
+            "username": "collinc97"
+          },
+          "committer": {
+            "email": "16715212+collinc97@users.noreply.github.com",
+            "name": "collin",
+            "username": "collinc97"
+          },
+          "distinct": true,
+          "id": "42d7b8ee375a8099b74bb6b420c7f5fee038f913",
+          "message": "chore(aleo): bump version for new release",
+          "timestamp": "2023-05-03T16:14:09-07:00",
+          "tree_id": "d57cdfedf62c400fd7024c5b6c94e8a0fc37dc28",
+          "url": "https://github.com/AleoHQ/aleo/commit/42d7b8ee375a8099b74bb6b420c7f5fee038f913"
+        },
+        "date": 1683156858615,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 241524,
+            "range": "± 97283",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 96613,
+            "range": "± 405",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_decryption",
+            "value": 346967,
+            "range": "± 1648",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption",
+            "value": 246291,
+            "range": "± 1264",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption_decryption_roundtrip",
+            "value": 597915,
+            "range": "± 2110",
             "unit": "ns/iter"
           }
         ]
