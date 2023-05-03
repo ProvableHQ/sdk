@@ -5,13 +5,13 @@ import {useAleoWASM} from "../../aleo-wasm-hook";
 
 export const Execute = () => {
     const aleo = useAleoWASM();
-    const [executionFeeRecord, setExecutionFeeRecord] = useState("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50200000u64.private,  _nonce: 4201158309645146813264939404970515915909115816771965551707972399526559622583group.public}");
-    const [executeUrl, setExecuteUrl] = useState("http://localhost:3030");
+    const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
+    const [executeUrl, setExecuteUrl] = useState("https://vm.aleo.org/api");
     const [functionID, setFunctionID] = useState(null);
     const [executionFee, setExecutionFee] = useState("1");
     const [inputs, setInputs] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [privateKey, setPrivateKey] = useState("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6");
+    const [privateKey, setPrivateKey] = useState(null);
     const [program, setProgram] = useState(null);
     const [programResponse, setProgramResponse] = useState(null);
     const [executionError, setExecutionError] = useState(null);

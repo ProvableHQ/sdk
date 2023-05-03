@@ -17,6 +17,9 @@ const appConfig = {
             'Cross-Origin-Opener-Policy': 'same-origin',
             'Cross-Origin-Embedder-Policy': 'require-corp'
         },
+        client: {
+            overlay: false
+        }
     },
     module: {
         rules: [
@@ -46,8 +49,11 @@ const appConfig = {
     ],
     performance: {
         hints: false,
-        maxEntrypointSize: 166777216,
-        maxAssetSize: 166777216
+        maxAssetSize: 13 * 1024 * 1024, // 12 MiB
+        maxEntrypointSize: 13 * 1024 * 1024, // 12 MiB
+    },
+    stats: {
+        warnings: false,
     },
     experiments: {
         asyncWebAssembly: true,
