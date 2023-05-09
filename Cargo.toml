@@ -27,19 +27,29 @@ default-features = false
 
 [workspace.dependencies.snarkvm]
 version = "0.10.3"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "b0fb417"
 
 [workspace.dependencies.snarkvm-console]
 version = "0.10.3"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "b0fb417"
 
 [workspace.dependencies.snarkvm-circuit-network]
 version = "0.10.3"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "b0fb417"
 
 [workspace.dependencies.snarkvm-synthesizer]
 version = "0.10.3"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "b0fb417"
 
 [workspace.dependencies.snarkvm-wasm]
 version = "0.10.3"
 default-features = false
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "b0fb417"
 
 [lib]
 path = "cli/lib.rs"
@@ -90,10 +100,10 @@ version = "0.36"
 features = [ "default", "archive-zip", "archive-tar"]
 
 [dependencies.serde]
-version = "1"
+version = "1.0.162"
 
 [dependencies.serde_json]
-version = "1"
+version = "^1"
 
 [dependencies.snarkvm]
 workspace = true

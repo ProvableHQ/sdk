@@ -103,10 +103,6 @@ impl<N: Network> ProgramManager<N> {
         // Create an ephemeral SnarkVM to store the programs
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        if &program.id().to_string() != "credits.aleo" {
-            let deployment = vm.deploy(program, rng)?;
-            vm.process().write().finalize_deployment(vm.program_store(), &deployment)?;
-        };
 
         // Create a new execution transaction.
         Transaction::execute(
