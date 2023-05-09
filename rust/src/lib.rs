@@ -190,7 +190,7 @@ pub use test_utils::*;
 pub mod snarkvm_types {
     //! Re-export of crucial types from the snarkVM crate
     #[cfg(feature = "full")]
-    pub use snarkvm::synthesizer::{Block, ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
+    pub use snarkvm::synthesizer::{Block, store::helpers::memory::ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
     pub use snarkvm_console::{
         account::{Address, PrivateKey, Signature, ViewKey},
         network::Testnet3,
