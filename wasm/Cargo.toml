@@ -62,10 +62,10 @@ features = [ "serde-serialize" ]
 version = "0.4.24"
 
 [dependencies.wasm-bindgen-test]
-version = "0.3.33"
+version = "0.3.35"
 
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
 
 [dev-dependencies.wasm-bindgen-test]
-version = "0.3.33"
+version = "0.3.35"
