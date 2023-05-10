@@ -14,27 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod execute;
-pub use execute::*;
+use snarkvm_wasm::ToBits;
 
-pub mod utils;
-
-use wasm_bindgen::prelude::wasm_bindgen;
-
-#[wasm_bindgen]
-#[derive(Clone)]
-pub struct ProgramManager;
-
-#[wasm_bindgen]
-impl ProgramManager {
-    #[wasm_bindgen]
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-impl Default for ProgramManager {
-    fn default() -> Self {
-        Self::new()
-    }
+pub fn to_bits<T: ToBits>(value: T) -> Vec<bool> {
+    value.to_bits_le()
 }

@@ -2631,6 +2631,7 @@ dependencies = [
  "serde_json",
  "snarkvm-utilities-derives",
  "thiserror",
+ "web-sys",
 ]
 
 [[package]]

@@ -2,48 +2,37 @@ import React, { useState, useEffect } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
 import axios from "axios";
 
-export const Execute = () => {
-    const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
-    const [executeUrl, setExecuteUrl] = useState("https://vm.aleo.org/api");
-    const [functionID, setFunctionID] = useState(null);
-    const [executionFee, setExecutionFee] = useState("1");
+export const Transfer = () => {
+    const [transferFeeRecord, setTransferFeeRecord] = useState(null);
+    const [executeUrl, setTransferUrl] = useState("https://vm.aleo.org/api");
+    const [transferFee, setTransferFee] = useState("1");
     const [inputs, setInputs] = useState(null);
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
-    const [program, setProgram] = useState(null);
-    const [programResponse, setProgramResponse] = useState(null);
-    const [executionError, setExecutionError] = useState(null);
+    const [transferResponse, setTransferResponse] = useState(null);
+    const [transferError, setTransferError] = useState(null);
     const [programID, setProgramID] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
-    const [executeOnline, setExecuteOnline] = useState(false);
+    const [transferOnline, setTransferOnline] = useState(false);
 
     function spawnWorker() {
         let worker = new Worker("./worker.js");
         worker.addEventListener("message", ev => {
-            if (ev.data.type == 'OFFLINE_EXECUTION_COMPLETED') {
-                console.log("Response received from worker: ", ev.data.outputs);
-                setLoading(false);
-                setTransactionID(null);
-                setExecutionError(null);
-                setProgramResponse(ev.data.outputs);
-            } else if (ev.data.type == 'EXECUTION_TRANSACTION_COMPLETED') {
-                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.executeTransaction, {headers: {'Content-Type': 'application/json'}}).then(
+            if (ev.data.type == 'TRANSFER_TRANSACTION_COMPLETED') {
+                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.executeTransaction.toString()).then(
                     (response) => {
                         setLoading(false);
-                        setProgramResponse(null);
-                        setExecutionError(null);
+                        setTransferResponse(null);
+                        setTransferError(null);
                         setTransactionID(response.data.executeTransaction);
                     }
                 )
-            } else if (ev.data.type == "HEALTH_CHECK_COMPLETED") {
-                console.log(ev.data.result);
-                worker.terminate();
-            }
-        });
+            }});
         return worker;
     }
+
 
     useEffect(() => {
         const worker = spawnWorker();
@@ -56,9 +45,9 @@ export const Execute = () => {
                 resolve(event.data);
             };
             worker.onerror = error => {
-                setExecutionError(error);
+                setTransferError(error);
                 setLoading(false);
-                setProgramResponse(null);
+                setTransferResponse(null);
                 setTransactionID(null);
                 reject(error);
             };
@@ -66,81 +55,10 @@ export const Execute = () => {
         });
     }
 
-    const healthCheck = async (event) => {
-        await postMessagePromise(worker, {
-            type: 'HEALTH_CHECK',
-            message: "Ping"
-        });
-    }
-
-    const executeLocal = async (event) => {
-        setLoading(true);
-        setProgramResponse(null);
-        setTransactionID(null);
-        setExecutionError(null);
-
-
-    }
-
-    const execute = async (event) => {
-        setLoading(true)
-        setProgramResponse(null);
-        setTransactionID(null);
-        setExecutionError(null);
-
-        if (executeOnline) {
-            console.log(getExecutionFee())
-            await postMessagePromise(worker, {
-                type: 'ALEO_EXECUTE_PROGRAM_ON_CHAIN',
-                remoteProgram: programString(),
-                aleoFunction: functionIDString(),
-                inputs: inputs.split(" "),
-                privateKey: privateKeyString(),
-                fee: getExecutionFee(),
-                feeRecord: feeRecordString(),
-                url: peerUrl()
-            });
-        } else {
-            await postMessagePromise(worker, {
-                type: 'ALEO_EXECUTE_PROGRAM_LOCAL',
-                localProgram: programString(),
-                aleoFunction: functionIDString(),
-                inputs: inputs.split(" "),
-                privateKey: privateKeyString(),
-            });
-        }
-    }
-
-    const demo = async (event) => {
-        setLoading(false)
-        setProgramResponse(null);
-        setTransactionID(null);
-        setExecutionError(null);
-        setProgramID("hello.aleo");
-        setProgram("program hello.aleo;\n" +
-            "\n" +
-            "function main:\n" +
-            "    input r0 as u32.public;\n" +
-            "    input r1 as u32.private;\n" +
-            "    add r0 r1 into r2;\n" +
-            "    output r2 as u32.private;\n");
-        setInputs("5u32 5u32");
-        setFunctionID("main");
-    }
-
-    // Returns the program id if the user changes it or the "Demo" button is clicked.
-    const onChange = (event) => {
-        if (event.target.value !== null) {
-            setProgramID(event.target.value);
-        }
-        setTransactionID(null);
-        return programID;
-    }
-
     // Returns the program id if the user changes it or the "Demo" button is clicked.
     const onUrlChange = (event) => {
         if (event.target.value !== null) {
-            setExecuteUrl(event.target.value);
+            setTransferUrl(event.target.value);
         }
         return executeUrl;
     }
@@ -150,8 +68,8 @@ export const Execute = () => {
             setFunctionID(event.target.value);
         }
         setTransactionID(null);
-        setProgramResponse(null);
-        setExecutionError(null);
+        setTransferResponse(null);
+        setTransferError(null);
         return functionID;
     }
 
@@ -160,29 +78,29 @@ export const Execute = () => {
             setProgram(event.target.value);
         }
         setTransactionID(null);
-        setProgramResponse(null);
-        setExecutionError(null);
+        setTransferResponse(null);
+        setTransferError(null);
         return program;
     }
 
     const onExecutionFeeChange = (event) => {
         if (event.target.value !== null) {
-            setExecutionFee(event.target.value);
+            setTransferFee(event.target.value);
         }
         setTransactionID(null);
-        setProgramResponse(null);
-        setExecutionError(null);
-        return executionFee;
+        setTransferResponse(null);
+        setTransferError(null);
+        return transferFee;
     }
 
     const onExecutionFeeRecordChange = (event) => {
         if (event.target.value !== null) {
-            setExecutionFeeRecord(event.target.value);
+            setTransferFeeRecord(event.target.value);
         }
         setTransactionID(null);
-        setProgramResponse(null);
-        setExecutionError(null);
-        return executionFeeRecord;
+        setTransferResponse(null);
+        setTransferError(null);
+        return transferFeeRecord;
     }
 
     const onInputsChange = (event) => {
@@ -190,8 +108,8 @@ export const Execute = () => {
             setInputs(event.target.value);
         }
         setTransactionID(null);
-        setProgramResponse(null);
-        setExecutionError(null);
+        setTransferResponse(null);
+        setTransferError(null);
         return inputs;
     }
 
@@ -200,17 +118,17 @@ export const Execute = () => {
             setPrivateKey(event.target.value);
         }
         setTransactionID(null);
-        setProgramResponse(null);
-        setExecutionError(null);
+        setTransferResponse(null);
+        setTransferError(null);
         return privateKey;
     }
 
     // Calls `tryRequest` when the search bar input is entered.
     const onSearch = (value) => {
         setLoading(false);
-        setProgramResponse(null);
+        setTransferResponse(null);
         setTransactionID(null);
-        setExecutionError(null);
+        setTransferError(null);
         try {
             tryRequest(value);
         } catch (error) {
@@ -252,53 +170,21 @@ export const Execute = () => {
     const privateKeyString = () => privateKey !== null ? privateKey : "";
     const programString = () => program !== null ? program : "";
     const programIDString = () => programID !== null ? programID : "";
-    const feeRecordString = () => executionFeeRecord !== null ? executionFeeRecord : "";
+    const feeRecordString = () => transferFeeRecord !== null ? transferFeeRecord : "";
     const transactionIDString = () => programID !== null ? transactionID : "";
-    const executionErrorString = () => executionError.stack !== null ? executionError.stack : "";
-    const outputString = () => programResponse !== null ? programResponse.toString() : "";
-    const getExecutionFee = () => executionFee !== null ? parseFloat(executionFee) : 0;
+    const executionErrorString = () => transferError.stack !== null ? transferError.stack : "";
+    const outputString = () => transferResponse !== null ? transferResponse.toString() : "";
+    const getExecutionFee = () => transferFee !== null ? parseFloat(transferFee) : 0;
     const peerUrl = () => executeUrl !== null ? executeUrl : "";
 
 
-    return <Card title="Execute Program"
+    return <Card title="Transfer"
                  style={{width: "100%", borderRadius: "20px"}}
                  bordered={false}
                  extra={<Button type="primary" shape="round" size="middle"
                                 onClick={demo}>Demo</Button>}>
         <Form {...layout}>
-            <Form.Item label="Program ID"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.Search name="program_id"
-                              size="large"
-                              placeholder="Program ID"
-                              allowClear
-                              onSearch={onSearch}
-                              onChange={onChange}
-                              value={programIDString()}
-                              style={{borderRadius: '20px'}}/>
-            </Form.Item>
-        </Form>
-        <Form {...layout}>
-            <Divider/>
-            <Form.Item label="Program Bytecode" colon={false}>
-                <Input.TextArea size="large" rows={10} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
-                                value={programString()} onChange={onProgramChange}/>
-            </Form.Item>
-            <Divider/>
-            <Form.Item label="Execute On-Chain"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Switch label="Execute Online" onChange={() => {
-                    executeOnline ? setExecuteOnline(false) : setExecuteOnline(true);
-                    setProgramResponse(null);
-                    setTransactionID(null);
-                    setExecutionError(null);
-                }} />
-            </Form.Item>
-            <Form.Item label="Function"
+            <Form.Item label="Amount"
                        colon={false}
                        validateStatus={status}
             >
@@ -310,7 +196,7 @@ export const Execute = () => {
                                 value={functionIDString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
-            <Form.Item label="Inputs"
+            <Form.Item label="Recipient"
                        colon={false}
                        validateStatus={status}
             >
@@ -336,7 +222,7 @@ export const Execute = () => {
             </Form.Item>
 
             {
-                (executeOnline === true) &&
+                (transferOnline === true) &&
                 <Form.Item label="Peer Url"
                            colon={false}
                            validateStatus={status}
@@ -351,7 +237,7 @@ export const Execute = () => {
                 </Form.Item>
             }
             {
-                (executeOnline === true) &&
+                (transferOnline === true) &&
                 <Form.Item label="Fee"
                            colon={false}
                            validateStatus={status}
@@ -366,7 +252,7 @@ export const Execute = () => {
                 </Form.Item>
             }
             {
-                (executeOnline === true) &&
+                (transferOnline === true) &&
                 <Form.Item label="Fee Record"
                            colon={false}
                            validateStatus={status}
@@ -401,7 +287,7 @@ export const Execute = () => {
                 />
             }
             {
-                (programResponse !== null) &&
+                (transferResponse !== null) &&
                 <Result
                     status="success"
                     title="Local Execution Successful!"
@@ -409,7 +295,7 @@ export const Execute = () => {
                 />
             }
             {
-                (executionError !== null) &&
+                (transferError !== null) &&
                 <Result
                     status="error"
                     title="Function Execution Error"

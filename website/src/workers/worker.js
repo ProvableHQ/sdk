@@ -2,10 +2,12 @@ import init, * as aleo from '@aleohq/wasm';
 
 await init();
 
-await aleo.initThreadPool(navigator.hardwareConcurrency);
+await aleo.initThreadPool(10);
+
 
 self.addEventListener("message", ev => {
     if (ev.data.type === 'ALEO_EXECUTE_PROGRAM_LOCAL') {
+        console.log("Web worker: Received message to execute program locally");
         const {
             localProgram,
             aleoFunction,
@@ -33,8 +35,9 @@ self.addEventListener("message", ev => {
         );
 
         console.log(`Web worker: Execution Completed: ${performance.now() - startTime} ms`);
-        console.log(`Function Execution Response: ${response}`);
-        self.postMessage({ type: 'OFFLINE_EXECUTION_COMPLETED', response });
+        let outputs = response.getOutputs();
+        console.log(`Function Execution Response: ${outputs}`);
+        self.postMessage({ type: 'OFFLINE_EXECUTION_COMPLETED',  outputs });
     }
     else if (ev.data.type === 'ALEO_EXECUTE_PROGRAM_ON_CHAIN') {
         const {
@@ -50,7 +53,13 @@ self.addEventListener("message", ev => {
         console.log('Web worker: Creating execution...');
 
         let startTime = performance.now();
-        const aleoProgramManager = new aleo.ProgramManager();
+        const aleoProgramManager = aleo.ProgramManager.new();
+        console.log(remoteProgram);
+        console.log(aleoFunction);
+        console.log(inputs);
+        console.log("fee in gates: ", fee*1000000);
+        console.log(feeRecord);
+        console.log(url);
         (async function() {
             let executeTransaction = await aleoProgramManager.execute(
                 remoteProgram,
@@ -58,13 +67,73 @@ self.addEventListener("message", ev => {
                 inputs,
                 aleo.PrivateKey.from_string(privateKey),
                 fee,
-                aleo.RecordPlaintext.fromString("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50200000u64.private,  _nonce: 4201158309645146813264939404970515915909115816771965551707972399526559622583group.public}"),
+                aleo.RecordPlaintext.fromString(feeRecord),
                 url
             );
 
             console.log(`Web worker: Transaction Verified: ${performance.now() - startTime} ms`);
-            console.log(executeTransaction);
-            self.postMessage({ type: 'EXECUTION_TRANSACTION_COMPLETED', executeTransaction });
+            console.log(executeTransaction.toString());
+            self.postMessage({ type: 'EXECUTION_TRANSACTION_COMPLETED', executeTransaction: executeTransaction.toString() });
+        })();
+    }
+    else if (ev.data.type === 'ALEO_TRANSFER') {
+        const {
+            privateKey,
+            amountCredits,
+            recipient,
+            amountRecord,
+            fee,
+            feeRecord,
+            url
+        } = ev.data;
+
+        console.log('Web worker: Creating execution...');
+
+        let startTime = performance.now();
+        const aleoProgramManager = aleo.ProgramManager.new();
+        (async function() {
+            let transferTransaction = await aleoProgramManager.transfer(
+                privateKey,
+                amountCredits,
+                recipient,
+                amountRecord,
+                fee,
+                feeRecord,
+                url,
+            );
+
+            console.log(`Web worker: Transaction Verified: ${performance.now() - startTime} ms`);
+            console.log(transferTransaction);
+            self.postMessage({ type: 'EXECUTION_TRANSACTION_COMPLETED', transferTransaction: transferTransaction.toString() });
+        })();
+    }
+    else if (ev.data.type === 'ALEO_DEPLOY') {
+        const {
+            program,
+            imports,
+            privateKey,
+            fee,
+            feeRecord,
+            url
+        } = ev.data;
+
+        console.log('Web worker: Creating execution...');
+
+        let startTime = performance.now();
+        const aleoProgramManager = aleo.ProgramManager.new();
+        (async function() {
+            let deployTransaction = await aleoProgramManager.deploy(
+                program,
+                imports,
+                privateKey,
+                fee,
+                feeRecord,
+                url,
+            );
+
+            console.log(`Web worker: Transaction Verified: ${performance.now() - startTime} ms`);
+            console.log(deployTransaction);
+            self.postMessage({ type: 'EXECUTION_TRANSACTION_COMPLETED', deployTransaction: deployTransaction.toString() });
         })();
     }
 });

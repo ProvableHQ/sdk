@@ -97,6 +97,11 @@ parallel = [ "wasm-bindgen-rayon", "rayon" ]
 opt-level = 3
 lto = true
 
+[profile.dev]
+opt-level = 2
+lto = "thin"
+incremental = true
+
 [package.metadata.wasm-pack.profile.debug]
 wasm-opt = ["-O4"]
 

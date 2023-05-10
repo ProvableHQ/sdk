@@ -17,6 +17,9 @@ const appConfig = {
             'Cross-Origin-Opener-Policy': 'same-origin',
             'Cross-Origin-Embedder-Policy': 'require-corp'
         },
+        client: {
+            overlay: false
+        }
     },
     module: {
         rules: [
@@ -40,14 +43,17 @@ const appConfig = {
             ]
         }),
         new HtmlWebpackPlugin(
-        {
-            template: './public/index.html'
-        }),
+            {
+                template: './public/index.html'
+            }),
     ],
-
     performance: {
-        maxEntrypointSize: 16777216,
-        maxAssetSize: 16777216
+        hints: false,
+        maxAssetSize: 13 * 1024 * 1024, // 12 MiB
+        maxEntrypointSize: 13 * 1024 * 1024, // 12 MiB
+    },
+    stats: {
+        warnings: false,
     },
     experiments: {
         asyncWebAssembly: true,
