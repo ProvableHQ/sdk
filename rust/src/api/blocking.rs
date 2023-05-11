@@ -276,7 +276,7 @@ impl<N: Network> AleoAPIClient<N> {
                     Transaction::Fee(..) => {
                         bail!("❌ Failed to broadcast fee execution to {}: {}", &url, error_message)
                     }
-                 }
+                }
             }
         }
     }
