@@ -29,7 +29,6 @@ macro_rules! execute_program {
 
         web_sys::console::log_1(&"loading process".into());
         let mut process = ProcessNative::load_web().map_err(|_| "Failed to load the process".to_string())?;
-
         web_sys::console::log_1(&"Loading program".into());
         let program =
             ProgramNative::from_str(&$program).map_err(|_| "The program ID provided was invalid".to_string())?;
@@ -37,8 +36,10 @@ macro_rules! execute_program {
         let function_name =
             IdentifierNative::from_str(&$function).map_err(|_| "The function name provided was invalid".to_string())?;
 
-        web_sys::console::log_1(&"Adding program to the process".into());
-        process.add_program(&program).map_err(|_| "Failed to add program".to_string())?;
+        if program.id().to_string() != "credits.aleo" {
+            web_sys::console::log_1(&"Adding program to the process".into());
+            process.add_program(&program).map_err(|_| "Failed to add program".to_string())?;
+        }
 
         web_sys::console::log_1(&"Creating authorization".into());
         let authorization = process

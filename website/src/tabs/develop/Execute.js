@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
+import {FormGenerator} from "../../components/InputForm";
 import axios from "axios";
+import init, * as aleo from '@aleohq/wasm';
+
+await init();
 
 export const Execute = () => {
     const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
@@ -18,6 +22,32 @@ export const Execute = () => {
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
     const [executeOnline, setExecuteOnline] = useState(false);
+    const [programInputs, setProgramInputs] = useState(null);
+
+    const getProgramInputs = (event) => {
+        const programManifest = [];
+        if (program) {
+            try {
+                const aleoProgram = aleo.Program.fromString(program);
+                const functions = aleoProgram.getFunctions();
+                for (let i = 0; i < functions.length; i++) {
+                    const functionManifest = {"functionID": functions[i]}
+                    try {
+                        const functionInputs = aleoProgram.getFunctionInputs(functions[i]);
+                        functionManifest["inputs"] = functionInputs;
+                        programManifest.push(functionManifest);
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+                console.log(programManifest);
+                setProgramInputs(programManifest);
+                return programManifest;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    }
 
     function spawnWorker() {
         let worker = new Worker("./worker.js");
@@ -29,7 +59,11 @@ export const Execute = () => {
                 setExecutionError(null);
                 setProgramResponse(ev.data.outputs);
             } else if (ev.data.type == 'EXECUTION_TRANSACTION_COMPLETED') {
-                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.executeTransaction, {headers: {'Content-Type': 'application/json'}}).then(
+                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.executeTransaction, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }).then(
                     (response) => {
                         setLoading(false);
                         setProgramResponse(null);
@@ -37,17 +71,19 @@ export const Execute = () => {
                         setTransactionID(response.data.executeTransaction);
                     }
                 )
-            } else if (ev.data.type == "HEALTH_CHECK_COMPLETED") {
-                console.log(ev.data.result);
-                worker.terminate();
             }
         });
         return worker;
     }
 
     useEffect(() => {
-        const worker = spawnWorker();
-        setWorker(worker);
+        if (worker === null) {
+            const spawnedWorker = spawnWorker();
+            setWorker(spawnedWorker);
+            return () => {
+                spawnedWorker.terminate()
+            };
+        }
     }, []);
 
     function postMessagePromise(worker, message) {
@@ -64,22 +100,6 @@ export const Execute = () => {
             };
             worker.postMessage(message);
         });
-    }
-
-    const healthCheck = async (event) => {
-        await postMessagePromise(worker, {
-            type: 'HEALTH_CHECK',
-            message: "Ping"
-        });
-    }
-
-    const executeLocal = async (event) => {
-        setLoading(true);
-        setProgramResponse(null);
-        setTransactionID(null);
-        setExecutionError(null);
-
-
     }
 
     const execute = async (event) => {
@@ -253,12 +273,11 @@ export const Execute = () => {
     const programString = () => program !== null ? program : "";
     const programIDString = () => programID !== null ? programID : "";
     const feeRecordString = () => executionFeeRecord !== null ? executionFeeRecord : "";
-    const transactionIDString = () => programID !== null ? transactionID : "";
+    const transactionIDString = () => transactionID !== null ? transactionID : "";
     const executionErrorString = () => executionError.stack !== null ? executionError.stack : "";
     const outputString = () => programResponse !== null ? programResponse.toString() : "";
     const getExecutionFee = () => executionFee !== null ? parseFloat(executionFee) : 0;
     const peerUrl = () => executeUrl !== null ? executeUrl : "";
-
 
     return <Card title="Execute Program"
                  style={{width: "100%", borderRadius: "20px"}}
@@ -282,7 +301,7 @@ export const Execute = () => {
         </Form>
         <Form {...layout}>
             <Divider/>
-            <Form.Item label="Program Bytecode" colon={false}>
+            <Form.Item label="Program" colon={false}>
                 <Input.TextArea size="large" rows={10} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
                                 value={programString()} onChange={onProgramChange}/>
             </Form.Item>
@@ -322,6 +341,12 @@ export const Execute = () => {
                                 value={inputsString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
+            {
+                Array.isArray(programInputs) &&
+                <Form.Item label="Input List">
+                    <FormGenerator formData={programInputs} />
+                </Form.Item>
+            }
             <Form.Item label="Private Key"
                        colon={false}
                        validateStatus={status}
@@ -334,7 +359,6 @@ export const Execute = () => {
                                 value={privateKeyString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
-
             {
                 (executeOnline === true) &&
                 <Form.Item label="Peer Url"
@@ -384,6 +408,10 @@ export const Execute = () => {
                 <Col justify="center">
                     <Button type="primary" shape="round" size="middle" onClick={execute}
                     >Execute</Button>
+                </Col>
+                <Col justify="center">
+                    <Button type="primary" shape="round" size="middle" onClick={getProgramInputs}
+                    >Get Inputs</Button>
                 </Col>
             </Row>
         </Form>

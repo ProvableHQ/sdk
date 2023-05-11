@@ -3,41 +3,64 @@ import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from
 import axios from "axios";
 
 export const Transfer = () => {
-    const [transferFeeRecord, setTransferFeeRecord] = useState(null);
-    const [executeUrl, setTransferUrl] = useState("https://vm.aleo.org/api");
-    const [transferFee, setTransferFee] = useState("1");
-    const [inputs, setInputs] = useState(null);
+    const [transferFeeRecord, setTransferFeeRecord] = useState("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50000000u64.private,  _nonce: 618337964773448714748715507227599468041991751082576912298340268563028514242group.public}");
+    const [amountRecord, setAmountRecord] = useState("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50000000u64.private,  _nonce: 2130189445131564131649817149969742331163822924581328039067945953175058428318group.public}");
+    const [transferUrl, setTransferUrl] = useState("http://localhost:3030");
+    const [transferAmount, setTransferAmount] = useState("1.0");
+    const [transferFee, setTransferFee] = useState("1.0");
+    const [recipient, setRecipient] = useState("aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4");
     const [loading, setLoading] = useState(false);
-    const [privateKey, setPrivateKey] = useState(null);
-    const [transferResponse, setTransferResponse] = useState(null);
+    const [privateKey, setPrivateKey] = useState("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6");
     const [transferError, setTransferError] = useState(null);
-    const [programID, setProgramID] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
-    const [transferOnline, setTransferOnline] = useState(false);
 
     function spawnWorker() {
         let worker = new Worker("./worker.js");
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'TRANSFER_TRANSACTION_COMPLETED') {
-                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.executeTransaction.toString()).then(
+                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.transferTransaction, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }).then(
                     (response) => {
                         setLoading(false);
-                        setTransferResponse(null);
                         setTransferError(null);
-                        setTransactionID(response.data.executeTransaction);
+                        setTransactionID(response.data.transferTransaction);
                     }
                 )
             }});
         return worker;
     }
 
-
     useEffect(() => {
-        const worker = spawnWorker();
-        setWorker(worker);
+        if (worker === null) {
+            const spawnedWorker = spawnWorker();
+            setWorker(spawnedWorker);
+            return () => {
+                spawnedWorker.terminate()
+            };
+        }
     }, []);
+
+    const transfer = async (event) => {
+        setLoading(true)
+        setTransactionID(null);
+        setTransferError(null);
+
+        await postMessagePromise(worker, {
+            type: 'ALEO_TRANSFER',
+            privateKey: privateKeyString(),
+            amountCredits: amountNumber(),
+            recipient: recipientString(),
+            amountRecord: feeRecordString(),
+            fee: feeNumber(),
+            feeRecord: feeRecordString(),
+            url: peerUrl(),
+        });
+    }
 
     function postMessagePromise(worker, message) {
         return new Promise((resolve, reject) => {
@@ -47,7 +70,6 @@ export const Transfer = () => {
             worker.onerror = error => {
                 setTransferError(error);
                 setLoading(false);
-                setTransferResponse(null);
                 setTransactionID(null);
                 reject(error);
             };
@@ -55,62 +77,56 @@ export const Transfer = () => {
         });
     }
 
-    // Returns the program id if the user changes it or the "Demo" button is clicked.
     const onUrlChange = (event) => {
         if (event.target.value !== null) {
             setTransferUrl(event.target.value);
         }
-        return executeUrl;
+        return transferUrl;
     }
 
-    const onFunctionChange = (event) => {
+    const onAmountChange = (event) => {
         if (event.target.value !== null) {
-            setFunctionID(event.target.value);
+            setTransferAmount(event.target.value);
         }
         setTransactionID(null);
-        setTransferResponse(null);
         setTransferError(null);
-        return functionID;
+        return transferAmount;
     }
 
-    const onProgramChange = (event) => {
-        if (event.target.value !== null) {
-            setProgram(event.target.value);
-        }
-        setTransactionID(null);
-        setTransferResponse(null);
-        setTransferError(null);
-        return program;
-    }
-
-    const onExecutionFeeChange = (event) => {
+    const onTransferFeeChange = (event) => {
         if (event.target.value !== null) {
             setTransferFee(event.target.value);
         }
         setTransactionID(null);
-        setTransferResponse(null);
         setTransferError(null);
         return transferFee;
     }
 
-    const onExecutionFeeRecordChange = (event) => {
+    const onAmountRecordChange = (event) => {
+        if (event.target.value !== null) {
+            setAmountRecord(event.target.value);
+        }
+        setTransactionID(null);
+        setTransferError(null);
+        return amountRecord;
+    }
+
+    const onTransferFeeRecordChange = (event) => {
         if (event.target.value !== null) {
             setTransferFeeRecord(event.target.value);
         }
         setTransactionID(null);
-        setTransferResponse(null);
         setTransferError(null);
         return transferFeeRecord;
     }
 
-    const onInputsChange = (event) => {
+    const onRecipientChange = (event) => {
         if (event.target.value !== null) {
-            setInputs(event.target.value);
+            setRecipient(event.target.value);
         }
         setTransactionID(null);
-        setTransferResponse(null);
         setTransferError(null);
-        return inputs;
+        return recipient;
     }
 
     const onPrivateKeyChange = (event) => {
@@ -118,94 +134,84 @@ export const Transfer = () => {
             setPrivateKey(event.target.value);
         }
         setTransactionID(null);
-        setTransferResponse(null);
         setTransferError(null);
         return privateKey;
     }
 
-    // Calls `tryRequest` when the search bar input is entered.
-    const onSearch = (value) => {
-        setLoading(false);
-        setTransferResponse(null);
-        setTransactionID(null);
-        setTransferError(null);
-        try {
-            tryRequest(value);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    // Attempts to request the program bytecode with the given program id.
-    const tryRequest = (id) => {
-        setProgramID(id);
-        try {
-            if (id) {
-                axios
-                    .get( `${peerUrl()}/testnet3/program/${id}`)
-                    .then((response) => {
-                        setStatus("success");
-                        setProgram(response.data);
-                    })
-                    .catch((error) => {
-                        // Reset the program text to `null` if the program id does not exist.
-                        setProgram(null);
-                        setStatus("error");
-                        console.error(error);
-                    });
-            } else {
-                // Reset the program text if the user clears the search bar.
-                setProgram(null);
-                // If the search bar is empty reset the status to "".
-                setStatus("");
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const functionIDString = () => functionID !== null ? functionID : "";
-    const inputsString = () => inputs !== null ? inputs : "";
+    const amountNumber = () => transferAmount !== null ? parseFloat(transferAmount) : 0.0;
+    const recipientString = () => recipient !== null ? recipient : "";
     const privateKeyString = () => privateKey !== null ? privateKey : "";
-    const programString = () => program !== null ? program : "";
-    const programIDString = () => programID !== null ? programID : "";
     const feeRecordString = () => transferFeeRecord !== null ? transferFeeRecord : "";
-    const transactionIDString = () => programID !== null ? transactionID : "";
-    const executionErrorString = () => transferError.stack !== null ? transferError.stack : "";
-    const outputString = () => transferResponse !== null ? transferResponse.toString() : "";
-    const getExecutionFee = () => transferFee !== null ? parseFloat(transferFee) : 0;
-    const peerUrl = () => executeUrl !== null ? executeUrl : "";
+    const amountRecordString = () => amountRecord !== null ? amountRecord : "";
+    const transactionIDString = () => transactionID !== null ? transactionID : "";
+    const transferErrorString = () => transferError.stack !== null ? transferError.stack : "";
+    const feeNumber = () => transferFee !== null ? parseFloat(transferFee) : 0.0;
+    const peerUrl = () => transferUrl !== null ? transferUrl : "";
 
 
     return <Card title="Transfer"
                  style={{width: "100%", borderRadius: "20px"}}
-                 bordered={false}
-                 extra={<Button type="primary" shape="round" size="middle"
-                                onClick={demo}>Demo</Button>}>
+                 bordered={false}>
         <Form {...layout}>
+            <Form.Item label="Recipient Address"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="recipient"
+                                size="middle"
+                                placeholder="Transfer recipient address"
+                                allowClear
+                                onChange={onRecipientChange}
+                                value={recipientString()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
             <Form.Item label="Amount"
                        colon={false}
                        validateStatus={status}
             >
-                <Input.TextArea name="function_id"
+                <Input.TextArea name="amount"
                                 size="large"
-                                placeholder="Function ID"
+                                placeholder="Amount"
                                 allowClear
-                                onChange={onFunctionChange}
-                                value={functionIDString()}
+                                onChange={onAmountChange}
+                                value={amountNumber()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
-            <Form.Item label="Recipient"
+            <Form.Item label="Amount Record"
                        colon={false}
                        validateStatus={status}
             >
-                <Input.TextArea name="inputs"
-                                size="middle"
-                                placeholder="Inputs"
+                <Input.TextArea name="Amount Record"
+                                size="small"
+                                placeholder="Record used to pay transfer amount"
                                 allowClear
-                                onChange={onInputsChange}
-                                value={inputsString()}
+                                onChange={onAmountRecordChange}
+                                value={amountRecordString()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
+            <Form.Item label="Fee"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="Fee"
+                                size="small"
+                                placeholder="Fee"
+                                allowClear
+                                onChange={onTransferFeeChange}
+                                value={feeNumber()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
+            <Form.Item label="Fee Record"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="Fee Record"
+                                size="small"
+                                placeholder="Record used to pay transfer fee"
+                                allowClear
+                                onChange={onTransferFeeRecordChange}
+                                value={feeRecordString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
             <Form.Item label="Private Key"
@@ -220,86 +226,44 @@ export const Transfer = () => {
                                 value={privateKeyString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
-
-            {
-                (transferOnline === true) &&
-                <Form.Item label="Peer Url"
-                           colon={false}
-                           validateStatus={status}
-                >
-                    <Input.TextArea name="Peer URL"
-                                    size="middle"
-                                    placeholder="Aleo Network Node URL"
-                                    allowClear
-                                    onChange={onUrlChange}
-                                    value={peerUrl()}
-                                    style={{borderRadius: '20px'}}/>
-                </Form.Item>
-            }
-            {
-                (transferOnline === true) &&
-                <Form.Item label="Fee"
-                           colon={false}
-                           validateStatus={status}
-                >
-                    <Input.TextArea name="Fee"
-                                    size="small"
-                                    placeholder="Fee"
-                                    allowClear
-                                    onChange={onExecutionFeeChange}
-                                    value={getExecutionFee()}
-                                    style={{borderRadius: '20px'}}/>
-                </Form.Item>
-            }
-            {
-                (transferOnline === true) &&
-                <Form.Item label="Fee Record"
-                           colon={false}
-                           validateStatus={status}
-                >
-                    <Input.TextArea name="Fee Record"
-                                    size="small"
-                                    placeholder="Record used to pay execution fee"
-                                    allowClear
-                                    onChange={onExecutionFeeRecordChange}
-                                    value={feeRecordString()}
-                                    style={{borderRadius: '20px'}}/>
-                </Form.Item>
-            }
+            <Form.Item label="Peer Url"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="Peer URL"
+                                size="middle"
+                                placeholder="Aleo Network Node URL"
+                                allowClear
+                                onChange={onUrlChange}
+                                value={peerUrl()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
             <Row justify="center">
                 <Col justify="center">
-                    <Button type="primary" shape="round" size="middle" onClick={execute}
-                    >Execute</Button>
+                    <Button type="primary" shape="round" size="middle" onClick={transfer}
+                    >Transfer</Button>
                 </Col>
             </Row>
         </Form>
         <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
             {
                 (loading === true) &&
-                <Spin tip="Executing Program..." size="large"/>
+                <Spin tip="Creating Transfer..." size="large"/>
             }
             {
                 (transactionID !== null) &&
                 <Result
                     status="success"
-                    title="On Chain Execution Successful!"
+                    title="Transfer Successful!"
                     subTitle={"Transaction ID: " + transactionIDString()}
-                />
-            }
-            {
-                (transferResponse !== null) &&
-                <Result
-                    status="success"
-                    title="Local Execution Successful!"
-                    subTitle={"Outputs: " + outputString()}
                 />
             }
             {
                 (transferError !== null) &&
                 <Result
                     status="error"
-                    title="Function Execution Error"
-                    subTitle={"Error: " + executionErrorString()}
+                    title="Transfer Error"
+                    subTitle={"Error: " + transferErrorString()}
                 />
             }
         </Row>
