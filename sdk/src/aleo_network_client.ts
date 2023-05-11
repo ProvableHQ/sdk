@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Account, Block, Transaction, Transition } from ".";
 import { RecordCiphertext, RecordPlaintext, PrivateKey } from "@aleohq/wasm";
+import { log } from 'console';
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
@@ -303,6 +304,7 @@ export class AleoNetworkClient {
       }
       try {
         // Get 50 blocks (or the difference between the start and end if less than 50)
+        log("start:end", start, end);
         const blocks = await this.getBlockRange(start, end);
         end = start;
         if (!(blocks instanceof Error)) {
@@ -310,12 +312,15 @@ export class AleoNetworkClient {
           for (let i = 0; i < blocks.length; i++) {
             const block = blocks[i];
             const transactions = block.transactions;
+            log(transactions);
             if (!(typeof transactions === "undefined")) {
               for (let j = 0; j < transactions.length; j++) {
                 const transaction = transactions[j];
                 // Search for unspent records in execute transactions of credits.aleo
                 if (transaction.type == "execute") {
+                  log("transaction is:", transaction.execution);
                   if (!(typeof transaction.execution.transitions == "undefined")) {
+                    log(transaction.execution);
                     for (let k = 0; k < transaction.execution.transitions.length; k++) {
                       const transition = transaction.execution.transitions[k];
                       // Only search for unspent records in credits.aleo (for now)
