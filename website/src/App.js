@@ -15,6 +15,7 @@ import {NewAccount} from "./tabs/account/NewAccount";
 import {SignMessage} from "./tabs/account/SignMessage";
 import {VerifyMessage} from "./tabs/account/VerifyMessage";
 import {BrentTest} from "./tabs/brent/BrentTest";
+import {ProgramToForm} from "./tabs/brent/ProgramToForm";
 
 const {Header, Content, Footer} = Layout;
 
@@ -79,7 +80,9 @@ function App() {
                 {
                     menuIndex === 4 &&
                     <>
-                        <BrentTest/>
+                        {/*<BrentTest/>*/}
+                        {/*<br/>*/}
+                        <ProgramToForm/>
                     </>
                 }
             </Content>
