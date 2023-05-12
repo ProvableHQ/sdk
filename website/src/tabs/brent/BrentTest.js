@@ -53,7 +53,7 @@ export const BrentTest = () => {
         "    cast r0.owner r2 into r3 as credits.record;\n" +
         "    output r3 as credits.record;"
 
-    const populateForm = async (event) => {
+    const populateForm = async () => {
         const creditsProgram = aleo.Program.fromString(creditsCode)
         setProgram(creditsProgram);
     }
@@ -65,9 +65,9 @@ export const BrentTest = () => {
                     key={`${inputIndex}-${memberIndex}`}
                     label={`r${inputIndex} as ${member.name}`}
                     name={`r${inputIndex}`}
-                    rules={[{ required: true, message: 'Please input your value!' }]}
+                    rules={[{required: true, message: 'Please input your value!'}]}
                 >
-                    <Input placeholder={`Enter a ${member.type}`} />
+                    <Input placeholder={`Enter a ${member.type}`}/>
                 </Form.Item>
             ));
         } else {
@@ -76,9 +76,9 @@ export const BrentTest = () => {
                     key={inputIndex}
                     label={`r${inputIndex} as ${input.type}.${input.visibility}`}
                     name={`r${inputIndex}`}
-                    rules={[{ required: true, message: 'Please input your value!' }]}
+                    rules={[{required: true, message: 'Please input your value!'}]}
                 >
-                    <Input placeholder={`Enter a ${input.type}`} />
+                    <Input placeholder={`Enter a ${input.type}`}/>
                 </Form.Item>
             );
         }
