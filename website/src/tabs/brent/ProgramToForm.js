@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {Button, Card, Col, Divider, Form, Input, Row} from "antd";
 import axios from "axios";
-import { CopyButton } from "../../components/CopyButton";
+import {CopyButton} from "../../components/CopyButton";
 import {useAleoWASM} from "../../aleo-wasm-hook";
 
 export const ProgramToForm = () => {
@@ -96,8 +96,10 @@ export const ProgramToForm = () => {
     return <Card title="Program To Form"
                  style={{width: "100%", borderRadius: "20px"}}
                  bordered={false}
-                 extra={<Button type="primary" shape="round" size="middle" onClick={() => {tryRequest("credits.aleo")}}
-    >Demo</Button>}>
+                 extra={<Button type="primary" shape="round" size="middle" onClick={() => {
+                     tryRequest("credits.aleo")
+                 }}
+                 >Demo</Button>}>
         <Form {...layout}>
             <Form.Item label="Program ID"
                        colon={false}
@@ -116,32 +118,33 @@ export const ProgramToForm = () => {
         {
             (program !== null) ?
                 <>
-                <Form {...layout}>
-                    <Divider/>
-                    <Row align="middle">
-                        <Col span={23}>
-                            <Form.Item label="Program Bytecode" colon={false}>
-                                <Input.TextArea size="large" rows={15} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
-                                                value={programString()}
-                                                disabled/>
-                            </Form.Item>
-                        </Col>
-                        <Col span={1} align="middle">
-                            <CopyButton data={programString()}/>
-                        </Col>
-                    </Row>
-                </Form>
+                    <Form {...layout}>
+                        <Divider/>
+                        <Row align="middle">
+                            <Col span={23}>
+                                <Form.Item label="Program Bytecode" colon={false}>
+                                    <Input.TextArea size="large" rows={15} placeholder="Program"
+                                                    style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
+                                                    value={programString()}
+                                                    disabled/>
+                                </Form.Item>
+                            </Col>
+                            <Col span={1} align="middle">
+                                <CopyButton data={programString()}/>
+                            </Col>
+                        </Row>
+                    </Form>
                     <>
                         {program.getFunctions().map((func, index) => {
                             const inputs = program.getFunctionInputs(func);
                             console.log(inputs)
                             return (
                                 <>
-                                <Divider/>
+                                    <Divider/>
                                     <Form {...layout} key={index} onFinish={onFinish}>
                                         <h3>{func}</h3>
                                         {inputs.map(renderInput)}
-                                        <Form.Item wrapperCol={{ offset: 6, span: 21 }}>
+                                        <Form.Item wrapperCol={{offset: 6, span: 21}}>
                                             <Button type="primary" htmlType="submit">
                                                 Submit
                                             </Button>
