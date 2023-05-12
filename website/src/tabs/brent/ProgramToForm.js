@@ -58,7 +58,7 @@ export const ProgramToForm = () => {
         }
     };
 
-    const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
+    const layout = {labelCol: {span: 6}, wrapperCol: {span: 21}};
     const programString = () => program !== null ? program : "";
     const programIDString = () => programID !== null ? programID : "";
 
@@ -68,7 +68,7 @@ export const ProgramToForm = () => {
             return input.members.map((member, memberIndex) => (
                 <Form.Item
                     key={`${inputIndex}-${memberIndex}`}
-                    label={`r${inputIndex} as ${member.name}`}
+                    label={`r${inputIndex} as record (${member.name}.${member.visibility})`}
                     name={`r${inputIndex}`}
                     rules={[{required: true, message: 'Please input your value!'}]}
                 >
@@ -115,6 +115,7 @@ export const ProgramToForm = () => {
         </Form>
         {
             (program !== null) ?
+                <>
                 <Form {...layout}>
                     <Divider/>
                     <Row align="middle">
@@ -129,6 +130,7 @@ export const ProgramToForm = () => {
                             <CopyButton data={programString()}/>
                         </Col>
                     </Row>
+                </Form>
                     <>
                         {program.getFunctions().map((func, index) => {
                             const inputs = program.getFunctionInputs(func);
@@ -139,7 +141,7 @@ export const ProgramToForm = () => {
                                     <Form {...layout} key={index} onFinish={onFinish}>
                                         <h3>{func}</h3>
                                         {inputs.map(renderInput)}
-                                        <Form.Item>
+                                        <Form.Item wrapperCol={{ offset: 6, span: 21 }}>
                                             <Button type="primary" htmlType="submit">
                                                 Submit
                                             </Button>
@@ -149,7 +151,7 @@ export const ProgramToForm = () => {
                             );
                         })}
                     </>
-                </Form>
+                </>
                 : null
         }
     </Card>
