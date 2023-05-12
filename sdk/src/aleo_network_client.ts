@@ -314,8 +314,8 @@ export class AleoNetworkClient {
               for (let j = 0; j < transactions.length; j++) {
                 const confirmedTransaction = transactions[j];
                 // Search for unspent records in execute transactions of credits.aleo
-                if (outerTransaction.type == "execute") {
-                  const transaction = outerTransaction.transaction;
+                if (confirmedTransaction.type == "execute") {
+                  const transaction = confirmedTransaction.transaction;
                   if (transaction.execution && !(typeof transaction.execution.transitions == "undefined")) {
                     for (let k = 0; k < transaction.execution.transitions.length; k++) {
                       const transition = transaction.execution.transitions[k];
