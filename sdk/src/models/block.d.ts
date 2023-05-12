@@ -1,9 +1,9 @@
-import { Transaction } from "./transaction";
+import { OuterTransaction } from "./outer_transaction";
 export type Block = {
     block_hash: string;
     previous_hash: string;
     header: Header;
-    transactions?: (Transaction)[];
+    transactions?: (OuterTransaction)[];
     signature: string;
 };
 export type Header = {

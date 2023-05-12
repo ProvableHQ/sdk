@@ -90,7 +90,7 @@ version = "0.36"
 features = [ "default", "archive-zip", "archive-tar"]
 
 [dependencies.serde]
-version = "1.0.162"
+version = "^1"
 
 [dependencies.serde_json]
 version = "^1"

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { log } from 'console';
 
 interface DeployRequest {
     program: string;
@@ -105,7 +104,6 @@ export class DevelopmentClient {
             fee: fee*1000000,
             fee_record: feeRecord,
         };
-        log("fee is:", fee*1000000);
         return await this.sendRequest('/deploy', request);
     }
 
