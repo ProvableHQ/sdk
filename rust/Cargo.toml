@@ -46,7 +46,7 @@ optional = true
 version = "2.6.2"
 
 [dependencies.serde_json]
-version = "1.0.91"
+version = "1"
 
 [dependencies.snarkvm]
 optional = true

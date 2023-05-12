@@ -103,10 +103,7 @@ impl<N: Network> ProgramManager<N> {
         // Create an ephemeral SnarkVM to store the programs
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        if &program.id().to_string() != "credits.aleo" {
-            let deployment = vm.deploy(program, rng)?;
-            vm.process().write().finalize_deployment(vm.program_store(), &deployment)?;
-        };
+        let _ = &vm.process().write().add_program(program);
 
         // Create a new execution transaction.
         Transaction::execute(
@@ -140,7 +137,7 @@ mod tests {
         let mut program_manager =
             ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client.clone()), None).unwrap();
 
-        for _ in 0..5 {
+        for i in 0..5 {
             let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
             // Test execution of a on chain program is successful
             let execution = program_manager.execute_program(
@@ -151,9 +148,12 @@ mod tests {
                 fee_record,
                 None,
             );
+            println!("{:?}", execution);
 
             if execution.is_ok() {
                 break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
             }
         }
 
@@ -161,7 +161,7 @@ mod tests {
         let mut program_manager =
             ProgramManager::<Testnet3>::new(None, Some(encrypted_private_key), Some(api_client), None).unwrap();
 
-        for _ in 0..5 {
+        for i in 0..5 {
             let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
             // Test execution of an on chain program is successful using an encrypted private key
             let execution = program_manager.execute_program(
@@ -174,6 +174,8 @@ mod tests {
             );
             if execution.is_ok() {
                 break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
             }
         }
     }
@@ -194,7 +196,7 @@ mod tests {
         // Assert that execution fails if record's available microcredits are below the fee
         let execution = program_manager.execute_program(
             "hello.aleo",
-            "main",
+            "hello",
             ["5u32", "6u32"].into_iter(),
             500000,
             record_5_microcredits,
@@ -206,7 +208,7 @@ mod tests {
         // Assert that execution fails if a fee is specified but no records are
         let execution = program_manager.execute_program(
             "hello.aleo",
-            "main",
+            "hello",
             ["5u32", "6u32"].into_iter(),
             200,
             record_2000000001_microcredits.clone(),
@@ -219,7 +221,7 @@ mod tests {
         let randomized_program_id = random_program_id(16);
         let execution = program_manager.execute_program(
             &randomized_program_id,
-            "main",
+            "hello",
             ["5u32", "6u32"].into_iter(),
             500000,
             record_2000000001_microcredits.clone(),

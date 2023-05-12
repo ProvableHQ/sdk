@@ -53,7 +53,7 @@ function test:
 
 pub const HELLO_PROGRAM: &str = "program hello.aleo;
 
-function main:
+function hello:
     input r0 as u32.public;
     input r1 as u32.private;
     add r0 r1 into r2;
@@ -62,7 +62,7 @@ function main:
 
 pub const HELLO_PROGRAM_2: &str = "program hello.aleo;
 
-function main:
+function hello:
     input r0 as u32.public;
     input r1 as u32.private;
     mul r0 r1 into r2;

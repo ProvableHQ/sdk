@@ -20,7 +20,7 @@ describe('NodeConnection', () => {
     describe('getBlock', () => {
         it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as Block).block_hash).toEqual("ab1374zz0tcpwdaw0hfgkkp7l595synv6vhqtdkaywh0rc8utzpeypqqjkrfg");
+            expect((block as Block).block_hash).toEqual("ab1lpku7j04u0zgejhvf53j3f22zn8n3xu50tdtr3v0m64wydsxkgrsvahf3p");
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
@@ -33,8 +33,8 @@ describe('NodeConnection', () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
             expect((blockRange as Block[]).length).toBe(2);
-            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1374zz0tcpwdaw0hfgkkp7l595synv6vhqtdkaywh0rc8utzpeypqqjkrfg");
-            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1u8nczqlnhmmh6cj9xexxe04kgfggt8dafla5fegraskf8q70fyys6j4vz3");
+            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1lpku7j04u0zgejhvf53j3f22zn8n3xu50tdtr3v0m64wydsxkgrsvahf3p");
+            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1ffk2v4jpdslg3m8mylsrdp0f8pxpjeqmd6h396mlpyrts3kuzqysjw57ve");
 
         }, 60000);
 
@@ -45,7 +45,7 @@ describe('NodeConnection', () => {
 
     describe('getProgram', () => {
         it('should return a string', async () => {
-            const program = await connection.getProgram('credits.aleo');
+            const program = await connection.getProgram('hello.aleo');
             expect(typeof program).toBe('string');
         }, 60000);
 
@@ -86,7 +86,7 @@ describe('NodeConnection', () => {
 
     describe('getTransaction', () => {
         it('should return a Transaction object', async () => {
-            const transaction = await connection.getTransaction('at1tqufajjkv7762dxud7d0mru97nsfg3n03jgvx03y6thx4tt0dv9qd2rmhl');
+            const transaction = await connection.getTransaction('at1arcqcfz2k5xr5xvdsf8kchusagfh2wfcp9dt4ertmvasftmv9urqeskqmv');
             expect((transaction as Transaction).type).toBe("execute");
         }, 60000);
 
@@ -109,7 +109,7 @@ describe('NodeConnection', () => {
 
     describe('getTransitionId', () => {
         it('should return a transition id', async () => {
-            const transition = await connection.getTransitionId('8125007240588954838256938886130543170324930411547396278944058281327781589482field')
+            const transition = await connection.getTransitionId('5100410941838577086896407843889050454902473880580872189574699659938979554393field')
             expect(typeof transition).toBe('string');
         }, 60000);
 
