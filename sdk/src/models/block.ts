@@ -1,10 +1,10 @@
-import { OuterTransaction } from "./outer_transaction";
+import { ConfirmedTransaction } from "./confirmed_transaction";
 
 export type Block = {
     block_hash: string;
     previous_hash: string;
     header: Header;
-    transactions?: (OuterTransaction)[];
+    transactions?: (ConfirmedTransaction)[];
     signature: string;
 }
 export type Header = {
