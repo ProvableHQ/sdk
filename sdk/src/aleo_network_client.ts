@@ -312,7 +312,7 @@ export class AleoNetworkClient {
             const transactions = block.transactions;
             if (!(typeof transactions === "undefined")) {
               for (let j = 0; j < transactions.length; j++) {
-                const outerTransaction = transactions[j];
+                const confirmedTransaction = transactions[j];
                 // Search for unspent records in execute transactions of credits.aleo
                 if (outerTransaction.type == "execute") {
                   const transaction = outerTransaction.transaction;
