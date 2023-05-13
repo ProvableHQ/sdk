@@ -160,7 +160,7 @@ mod tests {
 
         // Assert execute fails without a private key or private key ciphertext
         let execute_missing_key_material =
-            Execute::try_parse_from(["aleo", "hello.aleo", "main", "1337u32", "42u32", "--fee", "0.7"]);
+            Execute::try_parse_from(["aleo", "hello.aleo", "hello", "1337u32", "42u32", "--fee", "0.7"]);
 
         assert!(execute_missing_key_material.unwrap().parse().is_err());
 
@@ -168,7 +168,7 @@ mod tests {
         let execute_conflicting_inputs = Execute::try_parse_from([
             "aleo",
             "hello.aleo",
-            "main",
+            "hello",
             "1337u32",
             "42u32",
             "-k",
@@ -188,7 +188,7 @@ mod tests {
         let execute_no_password = Execute::try_parse_from([
             "aleo",
             "hello.aleo",
-            "main",
+            "hello",
             "1337u32",
             "42u32",
             "--fee",
@@ -201,7 +201,7 @@ mod tests {
 
         // Assert execute fails if only a password is provided
         let execute_password_only =
-            Execute::try_parse_from(["aleo", "hello.aleo", "main", "1337u32", "42u32", "--password", "password"]);
+            Execute::try_parse_from(["aleo", "hello.aleo", "hello", "1337u32", "42u32", "--password", "password"]);
 
         assert_eq!(execute_password_only.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
 
@@ -209,7 +209,7 @@ mod tests {
         let execute_bad_peer = Execute::try_parse_from([
             "aleo",
             "hello.aleo",
-            "main",
+            "hello",
             "1337u32",
             "42u32",
             "-k",

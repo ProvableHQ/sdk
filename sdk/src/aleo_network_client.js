@@ -338,7 +338,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.findUnspentRecords = function (startHeight, endHeight, privateKey, amounts, maxMicrocredits) {
         return __awaiter(this, void 0, void 0, function () {
-            var records, start, end, resolvedPrivateKey, failures, totalRecordValue, latestHeight, viewKey, blockHeight, error_13, blocks, i, block, transactions, j, transaction, k, transition, l, output, record, recordPlaintext, serialNumber, error_14, amounts_found, m, n, error_15, error_16;
+            var records, start, end, resolvedPrivateKey, failures, totalRecordValue, latestHeight, viewKey, blockHeight, error_13, blocks, i, block, transactions, j, outerTransaction, transaction, k, transition, l, output, record, recordPlaintext, serialNumber, error_14, amounts_found, m, n, error_15, error_16;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -421,9 +421,10 @@ var AleoNetworkClient = /** @class */ (function () {
                         _a.label = 9;
                     case 9:
                         if (!(j < transactions.length)) return [3 /*break*/, 21];
-                        transaction = transactions[j];
-                        if (!(transaction.type == "execute")) return [3 /*break*/, 20];
-                        if (!!(typeof transaction.execution.transitions == "undefined")) return [3 /*break*/, 20];
+                        outerTransaction = transactions[j];
+                        if (!(outerTransaction.type == "execute")) return [3 /*break*/, 20];
+                        transaction = outerTransaction.transaction;
+                        if (!(transaction.execution && !(typeof transaction.execution.transitions == "undefined"))) return [3 /*break*/, 20];
                         k = 0;
                         _a.label = 10;
                     case 10:
