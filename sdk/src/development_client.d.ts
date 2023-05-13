@@ -36,7 +36,7 @@ export declare class DevelopmentClient {
      * @returns {string | Error} The transaction_id of the deployment transaction if successful
      *
      * @example
-     * const Program = 'program yourprogram.aleo;\n\nfunction main:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n';
+     * const Program = 'program yourprogram.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n';
      * const client = new DevelopmentClient("http://0.0.0.0:4040");
      * const transaction_id = await client.deployProgram(Program, 6000000, privateKeyString);
      */
@@ -49,7 +49,7 @@ export declare class DevelopmentClient {
      * Information on how to run an Aleo Development Server can be found here:
      * https://github.com/AleoHQ/aleo/rust/develop/README.md
      * @param {string} programId The program_id of the program to be executed (e.g. hello.aleo)
-     * @param {string} programFunction The function to execute within the program (e.g. main)
+     * @param {string} programFunction The function to execute within the program (e.g. hello)
      * @param {number} fee Optional Fee to be paid for the execution transaction, specify 0 for no fee
      * @param {string[]} inputs Array of inputs to be passed to the program
      * @param {string | undefined} privateKey Optional private key of the user who is executing the program
@@ -60,7 +60,7 @@ export declare class DevelopmentClient {
      * @example
      * const privateKey = "your private key";
      * const client = new DevelopmentClient("http://0.0.0.0:4040");
-     * const transaction_id = await client.executeProgram("hello.aleo", "main", 0, ["5u32", "5u32"], privateKeyString);
+     * const transaction_id = await client.executeProgram("hello.aleo", "hello", 0, ["5u32", "5u32"], privateKeyString);
      */
     executeProgram(programId: string, programFunction: string, fee: number, inputs: string[], privateKey?: string, password?: string, feeRecord?: string): Promise<string>;
     /**

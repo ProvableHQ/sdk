@@ -1,6 +1,6 @@
 [package]
 name = "aleo-development-server"
-version = "0.4.0"
+version = "0.4.1"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A REST API server for local or remote Aleo development"
 homepage = "https://aleo.org"
@@ -71,7 +71,7 @@ features = [ "full" ]
 version = "0.1"
 
 [dependencies.tracing-subscriber]
-version = "0.3.16"
+version = "0.3.17"
 features = [ "fmt", "env-filter" ]
 
 [dependencies.warp]
