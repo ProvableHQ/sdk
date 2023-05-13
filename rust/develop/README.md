@@ -66,7 +66,7 @@ A javascript client for this server is available in the [Aleo SDK](https://www.n
 
 `\execute`
 * `program_id` The program ID of the program to be executed (e.g. hello.aleo)
-* `program_function` The function to execute within the program (e.g. main)
+* `program_function` The function to execute within the program (e.g. hello)
 * `fee` Optional fee to be paid for the transfer, specify 0 for no fee
 * `inputs` Array of inputs to be passed to the program
 * `private_key` Optional private key of the user who is executing the program
@@ -90,7 +90,7 @@ Example curl requests for the above endpoints:
 ## Deploy a program
 curl -X POST -H "Content-Type: application/json" \
 -d '{
-    "program": "program hello.aleo;\n\nfunction main:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n",
+    "program": "program hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n",
     "fee": 100000,
     "private_key": "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH"
 }' \
@@ -100,7 +100,7 @@ http://0.0.0.0:4040/testnet3/deploy
 curl -X POST -H "Content-Type: application/json" \
 -d '{
     "program_id": "hello.aleo",
-    "program_function": "main",
+    "program_function": "hello",
     "inputs": ["5u32", "5u32"],
     "private_key": "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH",
     "fee": 0

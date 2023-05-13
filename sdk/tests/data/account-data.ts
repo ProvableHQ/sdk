@@ -25,6 +25,8 @@ const recordPlaintextString = "{\n  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfy
 const foreignCiphertextString = "record1qyqsq553yxz8ylwqyqfmcfmwz03x6xsxf2h2kypcwhykzgm50ut4susyqyxx66trwfhkxun9v35hguerqqpqzqyjt8kxnp28v83t460knvp0dq86a3r3dyve945u0xqeksq323paqtegslprdc5zypksrja7rmctx90jnpeq5sqkwlfct7ygy990a5pqs7y5pt0"
 // View key string of a different private key
 const foreignViewKeyString = "AViewKey1ghtvuJQQzQ31xSiVh6X1PK8biEVhQBygRGV4KdYmq4JT"
-const helloProgram = 'program sup.aleo;\n\nfunction main:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n';
-const helloProgramId = 'sup.aleo';
-export { addressString, beaconAddressString, beaconPrivateKeyString, beaconViewKeyString, foreignCiphertextString, foreignViewKeyString, fundedAddressString, fundedPrivateKeyString, helloProgram, helloProgramId, message, recordCiphertextString, recordPlaintextString, privateKeyString, seed, viewKeyString };
+const helloProgramId = 'hellothere.aleo';
+const helloProgramMainFunction = 'hello';
+const helloProgram = 'program ' + helloProgramId + ';\n\nfunction ' + helloProgramMainFunction + ':\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n';
+
+export { addressString, beaconAddressString, beaconPrivateKeyString, beaconViewKeyString, foreignCiphertextString, foreignViewKeyString, fundedAddressString, fundedPrivateKeyString, helloProgram, helloProgramId, helloProgramMainFunction, message, recordCiphertextString, recordPlaintextString, privateKeyString, seed, viewKeyString };
