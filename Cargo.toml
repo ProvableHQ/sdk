@@ -27,18 +27,28 @@ default-features = false
 
 [workspace.dependencies.snarkvm]
 version = "0.11.2"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "testnet3"
 
 [workspace.dependencies.snarkvm-console]
 version = "0.11.2"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "testnet3"
 
 [workspace.dependencies.snarkvm-circuit-network]
 version = "0.11.2"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "testnet3"
 
 [workspace.dependencies.snarkvm-synthesizer]
 version = "0.11.2"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "testnet3"
 
 [workspace.dependencies.snarkvm-wasm]
 version = "0.11.2"
+git = "https://github.com/AleoHQ/snarkVM.git"
+branch = "testnet3"
 default-features = false
 
 [lib]

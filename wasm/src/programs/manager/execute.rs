@@ -22,6 +22,7 @@ use crate::{
     inclusion_proof,
     types::{
         CurrentAleo,
+        CurrentBlockMemory,
         IdentifierNative,
         ProcessNative,
         ProgramNative,

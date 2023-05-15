@@ -20,6 +20,7 @@ use crate::{
     fee_inclusion_proof,
     types::{
         CurrentAleo,
+        CurrentBlockMemory,
         CurrentNetwork,
         ProcessNative,
         ProgramIDNative,
@@ -124,7 +125,7 @@ impl ProgramManager {
             })
             .chain(
                 // Add the transaction fee to the leaves.
-                [Ok(TransactionLeafNative::new_deployment_fee(
+                [Ok(TransactionLeafNative::new_fee(
                     program.functions().len() as u16, // The last index.
                     **fee.transition_id(),
                 )

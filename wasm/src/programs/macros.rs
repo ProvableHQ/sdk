@@ -67,7 +67,7 @@ macro_rules! execute_program {
 macro_rules! inclusion_proof {
     ($inclusion:expr, $execution:expr, $url:expr) => {{
         let (assignments, global_state_root) =
-            $inclusion.prepare_execution_wasm(&$execution, &$url).await.map_err(|err| err.to_string())?;
+            $inclusion.prepare_execution_async::<CurrentBlockMemory, _>(&$execution, &$url).await.map_err(|err| err.to_string())?;
         let execution = $inclusion
             .prove_execution::<CurrentAleo, _>($execution, &assignments, global_state_root, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
@@ -91,7 +91,7 @@ macro_rules! fee_inclusion_proof {
 
         // Prepare the assignments.
         let assignment =
-            inclusion.prepare_fee_wasm(&fee_transition, &$submission_url).await.map_err(|err| err.to_string())?;
+            inclusion.prepare_fee_async::<CurrentBlockMemory, _>(&fee_transition, &$submission_url).await.map_err(|err| err.to_string())?;
 
         let fee = inclusion
             .prove_fee::<CurrentAleo, _>(fee_transition, &assignment, &mut StdRng::from_entropy())
