@@ -25,17 +25,27 @@ pub use transfer::*;
 
 pub mod utils;
 
+use snarkvm_synthesizer::{ProvingKey, VerifyingKey};
+use indexmap::IndexMap;
+
 use wasm_bindgen::prelude::wasm_bindgen;
+use crate::types::{CurrentNetwork, IdentifierNative, ProgramIDNative};
 
 #[wasm_bindgen]
 #[derive(Clone)]
-pub struct ProgramManager;
+pub struct ProgramManager {
+    proving_key_cache: IndexMap<String, ProvingKey<CurrentNetwork>>,
+    verifying_key_cache: IndexMap<String, VerifyingKey<CurrentNetwork>>
+}
 
 #[wasm_bindgen]
 impl ProgramManager {
     #[wasm_bindgen]
     pub fn new() -> Self {
-        Self
+        Self {
+            proving_key_cache: IndexMap::new(),
+            verifying_key_cache: IndexMap::new()
+        }
     }
 }
 

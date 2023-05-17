@@ -44,7 +44,7 @@ impl ProgramManager {
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
     pub async fn transfer(
-        &self,
+        &mut self,
         private_key: PrivateKey,
         amount_credits: f64,
         recipient: String,
@@ -52,6 +52,7 @@ impl ProgramManager {
         fee_credits: f64,
         fee_record: RecordPlaintext,
         url: String,
+        cache: bool,
     ) -> Result<Transaction, String> {
         if fee_credits < 0.0 {
             return Err("Fee must be greater than zero".to_string());
@@ -67,7 +68,7 @@ impl ProgramManager {
         inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
         inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
 
-        let ((_, execution, inclusion, _), process) = execute_program!(inputs, program, "transfer", private_key);
+        let ((_, execution, inclusion, _), process) = execute_program!(self, inputs, program, "transfer", private_key, cache);
 
         // Create the inclusion proof for the execution
         let execution = inclusion_proof!(inclusion, execution, url);
@@ -99,13 +100,13 @@ function hello:
 
     #[wasm_bindgen_test]
     async fn test_web_program_run() {
-        let program_manager = ProgramManager::new();
+        let mut program_manager = ProgramManager::new();
         let private_key = PrivateKey::new();
         let inputs = js_sys::Array::new_with_length(2);
         inputs.set(0, wasm_bindgen::JsValue::from_str("5u32"));
         inputs.set(1, wasm_bindgen::JsValue::from_str("5u32"));
         let result =
-            program_manager.execute_local(HELLO_PROGRAM.to_string(), "hello".to_string(), inputs, private_key).unwrap();
+            program_manager.execute_local(HELLO_PROGRAM.to_string(), "hello".to_string(), inputs, private_key,true).unwrap();
         let outputs = result.get_outputs().to_vec();
         console_log!("outputs: {:?}", outputs);
         assert_eq!(outputs.len(), 1);
@@ -115,7 +116,7 @@ function hello:
     #[wasm_bindgen_test]
     async fn test_web_program_execution() {
         let record_str = r#"{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50200000u64.private,  _nonce: 4201158309645146813264939404970515915909115816771965551707972399526559622583group.public}"#;
-        let program_manager = ProgramManager::new();
+        let mut program_manager = ProgramManager::new();
         let private_key =
             PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
         let inputs = js_sys::Array::new_with_length(2);
@@ -126,7 +127,7 @@ function hello:
         let record = RecordPlaintext::from_string(record_str).unwrap();
         let url = "http://0.0.0.0:3030";
         let transaction = program_manager
-            .execute(HELLO_PROGRAM.to_string(), function, inputs, private_key, fee, record, url.to_string())
+            .execute(HELLO_PROGRAM.to_string(), function, inputs, private_key, fee, record, url.to_string(), true)
             .await
             .unwrap();
         // If the transaction unwrap doesn't panic, it's succeeded

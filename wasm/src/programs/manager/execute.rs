@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
+use std::ops::Add;
 use super::*;
 
 use crate::{
@@ -49,17 +50,18 @@ impl ProgramManager {
     /// Run an aleo program locally
     #[wasm_bindgen]
     pub fn execute_local(
-        &self,
+        &mut self,
         program: String,
         function: String,
         inputs: Array,
         private_key: PrivateKey,
+        cache: bool,
     ) -> Result<ExecutionResponse, String> {
         let inputs = inputs.to_vec();
         web_sys::console::log_1(&"execute_local starting".into());
-        let ((response, execution, _, _), process) = execute_program!(inputs, program, function, private_key);
+        let ((response, execution, _, _), process) = execute_program!(self, inputs, program, function, private_key, cache);
 
-        process.verify_execution::<false>(&execution).map_err(|_| "Failed to verify execution".to_string())?;
+        process.verify_execution::<false>(&execution).map_err(|e| e.to_string())?;
 
         let outputs = js_sys::Array::new_with_length(response.outputs().len() as u32);
 
@@ -70,11 +72,16 @@ impl ProgramManager {
         Ok(ExecutionResponse::from(response))
     }
 
+    pub fn clear_cache(&mut self) {
+        self.proving_key_cache.clear();
+        self.verifying_key_cache.clear();
+    }
+
     /// Execute Aleo function and create an Aleo execution transaction
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute(
-        &self,
+        &mut self,
         program: String,
         function: String,
         inputs: Array,
@@ -82,6 +89,7 @@ impl ProgramManager {
         fee_credits: f64,
         fee_record: RecordPlaintext,
         url: String,
+        cache: bool,
     ) -> Result<Transaction, String> {
         let bytes = snarkvm_parameters::testnet3::InclusionProver::load_bytes().map_err(|err| err.to_string())?;
         let b = &bytes[2..4];
@@ -95,7 +103,7 @@ impl ProgramManager {
         }
 
         // Create the offline execution of the program
-        let ((_, execution, inclusion, _), process) = execute_program!(inputs, program, function, private_key);
+        let ((_, execution, inclusion, _), process) = execute_program!(self, inputs, program, function, private_key, cache);
 
         // Create the inclusion proof for the execution
         let execution = inclusion_proof!(inclusion, execution, url);

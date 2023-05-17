@@ -16,7 +16,7 @@
 
 #[macro_export]
 macro_rules! execute_program {
-    ($inputs:expr, $program:expr, $function:expr, $private_key:expr) => {{
+    ($self: expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $cache:expr) => {{
         let mut inputs_native = vec![];
         web_sys::console::log_1(&"parsing inputs".into());
         for input in $inputs.to_vec().iter() {
@@ -31,14 +31,27 @@ macro_rules! execute_program {
         let mut process = ProcessNative::load_web().map_err(|_| "Failed to load the process".to_string())?;
         web_sys::console::log_1(&"Loading program".into());
         let program =
-            ProgramNative::from_str(&$program).map_err(|_| "The program ID provided was invalid".to_string())?;
+            ProgramNative::from_str(&$program_string).map_err(|_| "The program ID provided was invalid".to_string())?;
         web_sys::console::log_1(&"Loading function".into());
         let function_name =
-            IdentifierNative::from_str(&$function).map_err(|_| "The function name provided was invalid".to_string())?;
+            IdentifierNative::from_str(&$function_id_string).map_err(|_| "The function name provided was invalid".to_string())?;
 
-        if program.id().to_string() != "credits.aleo" {
+        let program_id = program.id().to_string();
+
+        if program_id != "credits.aleo" {
             web_sys::console::log_1(&"Adding program to the process".into());
             process.add_program(&program).map_err(|_| "Failed to add program".to_string())?;
+        }
+
+        let cache_id = program_id.add(&$function_id_string);
+
+        if let Some(proving_key) = $self.proving_key_cache.get(&cache_id) {
+            process.insert_proving_key(program.id(), &function_name, proving_key.clone()).map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
+            if let Some(verifying_key) = $self.verifying_key_cache.get(&cache_id) {
+                process.insert_verifying_key(program.id(), &function_name, verifying_key.clone()).map_err(|e| e.to_string())?;
+            } else {
+                return Err("Failed to load verifying key".to_string());
+            }
         }
 
         web_sys::console::log_1(&"Creating authorization".into());
@@ -52,14 +65,21 @@ macro_rules! execute_program {
             )
             .map_err(|err| err.to_string())?;
 
-        web_sys::console::log_1(&"Creating authorization".into());
-
-        (
-            process
+        let result = process
                 .execute::<CurrentAleo, _>(authorization, &mut StdRng::from_entropy())
-                .map_err(|err| err.to_string())?,
-            process,
-        )
+                .map_err(|err| err.to_string())?;
+
+        if $cache {
+                if !$self.proving_key_cache.contains_key(&cache_id) && !$self.verifying_key_cache.contains_key(&cache_id) {
+                    $self.proving_key_cache.insert(cache_id.clone(), process.get_proving_key(program.id(), &function_name).map_err(|e| e.to_string())?);
+                    $self.verifying_key_cache.insert(cache_id, process.get_verifying_key(program.id(), &function_name).map_err(|e| e.to_string())?);
+                } else {
+                    if !($self.proving_key_cache.contains_key(&cache_id) && $self.verifying_key_cache.contains_key(&cache_id)) {
+                        return Err("Proving and verifying keys exist independently, please clear the cache".to_string());
+                    }
+                }
+            }
+        (result,process,)
     }};
 }
 

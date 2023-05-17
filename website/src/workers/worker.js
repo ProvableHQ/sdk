@@ -4,7 +4,7 @@ await init();
 
 await aleo.initThreadPool(10);
 
-
+const aleoProgramManager = aleo.ProgramManager.new();
 self.addEventListener("message", ev => {
     if (ev.data.type === 'ALEO_EXECUTE_PROGRAM_LOCAL') {
         console.log("Web worker: Received message to execute program locally");
@@ -18,7 +18,6 @@ self.addEventListener("message", ev => {
         console.log('Web worker: Executing Local Function...');
         let startTime = performance.now();
         console.log(aleo);
-        const aleoProgramManager = aleo.ProgramManager.new();
         console.log("Aleo program manager", aleoProgramManager);
         let key = aleo.PrivateKey.from_string(privateKey);
         console.log(key);
@@ -31,7 +30,8 @@ self.addEventListener("message", ev => {
             localProgram,
             aleoFunction,
             inputs,
-            key
+            key,
+            true
         );
 
         console.log(`Web worker: Execution Completed: ${performance.now() - startTime} ms`);
@@ -53,7 +53,6 @@ self.addEventListener("message", ev => {
         console.log('Web worker: Creating execution...');
 
         let startTime = performance.now();
-        const aleoProgramManager = aleo.ProgramManager.new();
         console.log(remoteProgram);
         console.log(aleoFunction);
         console.log(inputs);
@@ -90,7 +89,6 @@ self.addEventListener("message", ev => {
         console.log('Web worker: Creating transfer...');
 
         let startTime = performance.now();
-        const aleoProgramManager = aleo.ProgramManager.new();
         (async function() {
             let transferTransaction = await aleoProgramManager.transfer(
                 aleo.PrivateKey.from_string(privateKey),
@@ -119,7 +117,6 @@ self.addEventListener("message", ev => {
         console.log('Web worker: Creating deployment...');
 
         let startTime = performance.now();
-        const aleoProgramManager = aleo.ProgramManager.new();
         (async function() {
             let deployTransaction = await aleoProgramManager.deploy(
                 program,

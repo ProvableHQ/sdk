@@ -409,10 +409,6 @@ export const Execute = () => {
                     <Button type="primary" shape="round" size="middle" onClick={execute}
                     >Execute</Button>
                 </Col>
-                <Col justify="center">
-                    <Button type="primary" shape="round" size="middle" onClick={getProgramInputs}
-                    >Get Inputs</Button>
-                </Col>
             </Row>
         </Form>
         <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
@@ -432,7 +428,7 @@ export const Execute = () => {
                 (programResponse !== null) &&
                 <Result
                     status="success"
-                    title="Local Execution Successful!"
+                    title="Execution Successful!"
                     subTitle={"Outputs: " + outputString()}
                 />
             }
