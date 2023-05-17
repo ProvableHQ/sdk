@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.4.1"
+version = "0.4.2"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Toolkit for exporting key Aleo functionality and cryptography to WebAssembly"
 homepage = "https://aleo.org"
