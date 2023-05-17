@@ -7,13 +7,13 @@ import init, * as aleo from '@aleohq/wasm';
 await init();
 
 export const Execute = () => {
-    const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
+    const [executionFeeRecord, setExecutionFeeRecord] = useState("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50000000u64.private,  _nonce: 2985213323853535321153616477125394689219162532772027636427723536080845286305group.public}");
     const [executeUrl, setExecuteUrl] = useState("https://vm.aleo.org/api");
     const [functionID, setFunctionID] = useState(null);
     const [executionFee, setExecutionFee] = useState("1");
     const [inputs, setInputs] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [privateKey, setPrivateKey] = useState(null);
+    const [privateKey, setPrivateKey] = useState("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6");
     const [program, setProgram] = useState(null);
     const [programResponse, setProgramResponse] = useState(null);
     const [executionError, setExecutionError] = useState(null);
@@ -139,13 +139,13 @@ export const Execute = () => {
         setProgramID("hello.aleo");
         setProgram("program hello.aleo;\n" +
             "\n" +
-            "function main:\n" +
+            "function hello:\n" +
             "    input r0 as u32.public;\n" +
             "    input r1 as u32.private;\n" +
             "    add r0 r1 into r2;\n" +
             "    output r2 as u32.private;\n");
         setInputs("5u32 5u32");
-        setFunctionID("main");
+        setFunctionID("hello");
     }
 
     // Returns the program id if the user changes it or the "Demo" button is clicked.

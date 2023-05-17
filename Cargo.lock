@@ -164,11 +164,14 @@ dependencies = [
  "getrandom",
  "hex",
  "js-sys",
+ "lazy_static",
  "rand",
  "rayon",
  "reqwest",
  "serde_json",
  "snarkvm-circuit-network",
+ "snarkvm-console-network",
+ "snarkvm-parameters",
  "snarkvm-synthesizer",
  "snarkvm-wasm",
  "wasm-bindgen",
@@ -2385,6 +2388,7 @@ dependencies = [
  "snarkvm-fields",
  "snarkvm-parameters",
  "snarkvm-utilities",
+ "web-sys",
 ]
 
 [[package]]
@@ -2628,6 +2632,7 @@ dependencies = [
  "snarkvm-utilities",
  "tracing",
  "ureq",
+ "web-sys",
 ]
 
 [[package]]

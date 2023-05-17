@@ -39,6 +39,10 @@ use crate::programs::fee::FeeExecution;
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
+use std::sync::Arc;
+use snarkvm_console_network::Console;
+use snarkvm_wasm::network::Network;
+use aleo_rust::Testnet3;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -79,6 +83,9 @@ impl ProgramManager {
         fee_record: RecordPlaintext,
         url: String,
     ) -> Result<Transaction, String> {
+        let bytes = snarkvm_parameters::testnet3::InclusionProver::load_bytes().map_err(|err| err.to_string())?;
+        let b = &bytes[2..4];
+
         if fee_credits < 0.0 {
             return Err("Fee must be greater than zero to execute a program".to_string());
         }
@@ -97,6 +104,7 @@ impl ProgramManager {
         let fee = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
 
         // Create the transaction
+        web_sys::console::log_1(&"Creating execution transaction".into());
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
 
         Ok(Transaction::from(transaction))

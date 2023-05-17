@@ -66,8 +66,11 @@ macro_rules! execute_program {
 #[macro_export]
 macro_rules! inclusion_proof {
     ($inclusion:expr, $execution:expr, $url:expr) => {{
+        web_sys::console::log_1(&"Preparing execution inclusion proof".into());
         let (assignments, global_state_root) =
             $inclusion.prepare_execution_async::<CurrentBlockMemory, _>(&$execution, &$url).await.map_err(|err| err.to_string())?;
+
+        web_sys::console::log_1(&"Proving execution inclusion proof".into());
         let execution = $inclusion
             .prove_execution::<CurrentAleo, _>($execution, &assignments, global_state_root, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
@@ -79,6 +82,7 @@ macro_rules! inclusion_proof {
 #[macro_export]
 macro_rules! fee_inclusion_proof {
     ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr) => {{
+        web_sys::console::log_1(&"Preparing fee inclusion proof".into());
         let fee_record_native = RecordPlaintextNative::from_str(&$fee_record.to_string()).unwrap();
         let (_, fee_transition, inclusion, _) = $process
             .execute_fee::<CurrentAleo, _>(
@@ -93,6 +97,7 @@ macro_rules! fee_inclusion_proof {
         let assignment =
             inclusion.prepare_fee_async::<CurrentBlockMemory, _>(&fee_transition, &$submission_url).await.map_err(|err| err.to_string())?;
 
+        web_sys::console::log_1(&"Proving fee inclusion proof".into());
         let fee = inclusion
             .prove_fee::<CurrentAleo, _>(fee_transition, &assignment, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
