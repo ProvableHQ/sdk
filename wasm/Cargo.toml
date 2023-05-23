@@ -35,7 +35,7 @@ features = [ "js" ]
 version = "0.4.3"
 
 [dependencies.js-sys]
-version = "0.3.62"
+version = "0.3.63"
 
 [dependencies.rand]
 version = "0.8"
