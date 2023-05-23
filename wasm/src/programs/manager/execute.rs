@@ -43,6 +43,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use snarkvm_console_network::Console;
 use snarkvm_wasm::network::Network;
+use snarkvm_parameters;
 use aleo_rust::Testnet3;
 
 #[wasm_bindgen]
@@ -91,6 +92,7 @@ impl ProgramManager {
         url: String,
         cache: bool,
     ) -> Result<Transaction, String> {
+        let bytes3 = snarkvm_parameters::testnet3::Degree16::load_bytes().map_err(|err| err.to_string())?;
         let bytes = snarkvm_parameters::testnet3::InclusionProver::load_bytes().map_err(|err| err.to_string())?;
         let b = &bytes[2..4];
 
@@ -177,7 +179,7 @@ function main:
     #[wasm_bindgen_test]
     async fn test_web_program_execution() {
         let record_str = r#"{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50200000u64.private,  _nonce: 4201158309645146813264939404970515915909115816771965551707972399526559622583group.public}"#;
-        let program_manager = ProgramManager::new();
+        let mut program_manager = ProgramManager::new();
         let private_key =
             PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
         let inputs = js_sys::Array::new_with_length(2);

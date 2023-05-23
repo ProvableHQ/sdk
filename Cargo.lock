@@ -2573,6 +2573,7 @@ dependencies = [
  "colored",
  "curl",
  "encoding",
+ "getrandom",
  "hex",
  "indexmap",
  "itertools",

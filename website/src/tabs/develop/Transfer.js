@@ -3,14 +3,14 @@ import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from
 import axios from "axios";
 
 export const Transfer = () => {
-    const [transferFeeRecord, setTransferFeeRecord] = useState("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50000000u64.private,  _nonce: 618337964773448714748715507227599468041991751082576912298340268563028514242group.public}");
-    const [amountRecord, setAmountRecord] = useState("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50000000u64.private,  _nonce: 2130189445131564131649817149969742331163822924581328039067945953175058428318group.public}");
-    const [transferUrl, setTransferUrl] = useState("http://localhost:3030");
-    const [transferAmount, setTransferAmount] = useState("1.0");
+    const [transferFeeRecord, setTransferFeeRecord] = useState(null);
+    const [amountRecord, setAmountRecord] = useState(null);
+    const [transferUrl, setTransferUrl] = useState("https://vm.aleo.org/api");
+    const [transferAmount, setTransferAmount] = useState(null);
     const [transferFee, setTransferFee] = useState("1.0");
-    const [recipient, setRecipient] = useState("aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4");
+    const [recipient, setRecipient] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [privateKey, setPrivateKey] = useState("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6");
+    const [privateKey, setPrivateKey] = useState(null);
     const [transferError, setTransferError] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
@@ -28,7 +28,7 @@ export const Transfer = () => {
                     (response) => {
                         setLoading(false);
                         setTransferError(null);
-                        setTransactionID(response.data.transferTransaction);
+                        setTransactionID(response.data);
                     }
                 )
             }});
@@ -55,7 +55,7 @@ export const Transfer = () => {
             privateKey: privateKeyString(),
             amountCredits: amountNumber(),
             recipient: recipientString(),
-            amountRecord: feeRecordString(),
+            amountRecord: amountRecordString(),
             fee: feeNumber(),
             feeRecord: feeRecordString(),
             url: peerUrl(),

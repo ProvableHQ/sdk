@@ -29,7 +29,7 @@ export const Deploy = () => {
                     (response) => {
                         setLoading(false);
                         setDeploymentError(null);
-                        setTransactionID(response.data.deployTransaction);
+                        setTransactionID(response.data);
                     }
                 )
             }});

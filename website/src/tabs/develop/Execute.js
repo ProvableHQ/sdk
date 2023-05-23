@@ -7,13 +7,13 @@ import init, * as aleo from '@aleohq/wasm';
 await init();
 
 export const Execute = () => {
-    const [executionFeeRecord, setExecutionFeeRecord] = useState("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50000000u64.private,  _nonce: 2985213323853535321153616477125394689219162532772027636427723536080845286305group.public}");
+    const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
     const [executeUrl, setExecuteUrl] = useState("https://vm.aleo.org/api");
     const [functionID, setFunctionID] = useState(null);
     const [executionFee, setExecutionFee] = useState("1");
     const [inputs, setInputs] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [privateKey, setPrivateKey] = useState("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6");
+    const [privateKey, setPrivateKey] = useState(null);
     const [program, setProgram] = useState(null);
     const [programResponse, setProgramResponse] = useState(null);
     const [executionError, setExecutionError] = useState(null);
@@ -59,6 +59,7 @@ export const Execute = () => {
                 setExecutionError(null);
                 setProgramResponse(ev.data.outputs);
             } else if (ev.data.type == 'EXECUTION_TRANSACTION_COMPLETED') {
+                let object = JSON.parse(ev.data.executeTransaction);
                 axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.executeTransaction, {
                     headers: {
                         'Content-Type': 'application/json',
@@ -68,7 +69,7 @@ export const Execute = () => {
                         setLoading(false);
                         setProgramResponse(null);
                         setExecutionError(null);
-                        setTransactionID(response.data.executeTransaction);
+                        setTransactionID(response.data);
                     }
                 )
             }
