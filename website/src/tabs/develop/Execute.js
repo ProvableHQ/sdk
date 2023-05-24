@@ -72,6 +72,11 @@ export const Execute = () => {
                         setTransactionID(response.data);
                     }
                 )
+            } else if (ev.data.type == 'ERROR') {
+                setLoading(false);
+                setProgramResponse(null);
+                setTransactionID(null);
+                setExecutionError(ev.data.errorMessage);
             }
         });
         return worker;
@@ -275,7 +280,7 @@ export const Execute = () => {
     const programIDString = () => programID !== null ? programID : "";
     const feeRecordString = () => executionFeeRecord !== null ? executionFeeRecord : "";
     const transactionIDString = () => transactionID !== null ? transactionID : "";
-    const executionErrorString = () => executionError.stack !== null ? executionError.stack : "";
+    const executionErrorString = () => executionError !== null ? executionError : "";
     const outputString = () => programResponse !== null ? programResponse.toString() : "";
     const getExecutionFee = () => executionFee !== null ? parseFloat(executionFee) : 0;
     const peerUrl = () => executeUrl !== null ? executeUrl : "";

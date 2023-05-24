@@ -17,6 +17,8 @@ import {NewAccount} from "./tabs/account/NewAccount";
 import {SignMessage} from "./tabs/account/SignMessage";
 import {Transfer} from "./tabs/develop/Transfer";
 import {VerifyMessage} from "./tabs/account/VerifyMessage";
+import {Join} from "./tabs/develop/Join";
+import {Split} from "./tabs/develop/Split";
 
 const {Header, Content, Footer} = Layout;
 
@@ -91,6 +93,10 @@ function App() {
                     menuIndex === 5 &&
                     <>
                         <Transfer/>
+                        <br/>
+                        <Split/>
+                        <br/>
+                        <Join/>
                     </>
                 }
             </Content>

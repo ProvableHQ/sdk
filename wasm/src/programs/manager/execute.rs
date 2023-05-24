@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use std::ops::Add;
 use super::*;
+use std::ops::Add;
 
 use crate::{
     execute_program,
     fee_inclusion_proof,
     inclusion_proof,
+    programs::fee::FeeExecution,
     types::{
         CurrentAleo,
         CurrentBlockMemory,
@@ -36,15 +37,9 @@ use crate::{
     Transaction,
 };
 
-use crate::programs::fee::FeeExecution;
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
-use std::sync::Arc;
-use snarkvm_console_network::Console;
-use snarkvm_wasm::network::Network;
-use snarkvm_parameters;
-use aleo_rust::Testnet3;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -58,9 +53,10 @@ impl ProgramManager {
         private_key: PrivateKey,
         cache: bool,
     ) -> Result<ExecutionResponse, String> {
+        web_sys::console::log_1(&format!("executing local function: {function}").into());
         let inputs = inputs.to_vec();
-        web_sys::console::log_1(&"execute_local starting".into());
-        let ((response, execution, _, _), process) = execute_program!(self, inputs, program, function, private_key, cache);
+        let ((response, execution, _, _), process) =
+            execute_program!(self, inputs, program, function, private_key, cache);
 
         process.verify_execution::<false>(&execution).map_err(|e| e.to_string())?;
 
@@ -92,11 +88,8 @@ impl ProgramManager {
         url: String,
         cache: bool,
     ) -> Result<Transaction, String> {
-        let bytes3 = snarkvm_parameters::testnet3::Degree16::load_bytes().map_err(|err| err.to_string())?;
-        let bytes = snarkvm_parameters::testnet3::InclusionProver::load_bytes().map_err(|err| err.to_string())?;
-        let b = &bytes[2..4];
-
-        if fee_credits < 0.0 {
+        web_sys::console::log_1(&format!("executing function: {function} on-chain").into());
+        if fee_credits <= 0.0 {
             return Err("Fee must be greater than zero to execute a program".to_string());
         }
         let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
@@ -104,14 +97,21 @@ impl ProgramManager {
             return Err("Fee record does not have enough credits to pay the specified fee".to_string());
         }
 
-        // Create the offline execution of the program
-        let ((_, execution, inclusion, _), process) = execute_program!(self, inputs, program, function, private_key, cache);
+        // Execute the program
+        let ((_, execution, inclusion, _), process) =
+            execute_program!(self, inputs, program, function, private_key, cache);
 
         // Create the inclusion proof for the execution
         let execution = inclusion_proof!(inclusion, execution, url);
 
+        // Verify the execution
+        process.verify_execution::<true>(&execution).map_err(|e| e.to_string())?;
+
         // Execute the call to fee and create the inclusion proof for it
         let fee = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
+
+        // Verify the fee
+        process.verify_fee(&fee).map_err(|e| e.to_string())?;
 
         // Create the transaction
         web_sys::console::log_1(&"Creating execution transaction".into());
@@ -130,9 +130,12 @@ impl ProgramManager {
         fee_record: RecordPlaintext,
         url: String,
     ) -> Result<FeeExecution, String> {
-        if fee_credits < 0.0 {
+        web_sys::console::log_1(&"Creating fee execution".into());
+        if fee_credits <= 0.0 {
             return Err("Fee must be greater than zero".to_string());
         }
+
+        // Convert fee to microcredits and check that the fee record has enough credits to pay it
         let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
         if fee_record.microcredits() < fee_microcredits {
             return Err("Fee record does not have enough credits to pay the specified fee".to_string());
@@ -163,13 +166,14 @@ function main:
 
     #[wasm_bindgen_test]
     async fn test_web_program_run() {
-        let program_manager = ProgramManager::new();
+        let mut program_manager = ProgramManager::new();
         let private_key = PrivateKey::new();
         let inputs = js_sys::Array::new_with_length(2);
         inputs.set(0, wasm_bindgen::JsValue::from_str("5u32"));
         inputs.set(1, wasm_bindgen::JsValue::from_str("5u32"));
-        let result =
-            program_manager.execute_local(HELLO_PROGRAM.to_string(), "main".to_string(), inputs, private_key).unwrap();
+        let result = program_manager
+            .execute_local(HELLO_PROGRAM.to_string(), "main".to_string(), inputs, private_key, false)
+            .unwrap();
         let outputs = result.get_outputs().to_vec();
         console_log!("outputs: {:?}", outputs);
         assert_eq!(outputs.len(), 1);
@@ -190,7 +194,7 @@ function main:
         let record = RecordPlaintext::from_string(record_str).unwrap();
         let url = "http://0.0.0.0:3030";
         let transaction = program_manager
-            .execute(HELLO_PROGRAM.to_string(), function, inputs, private_key, fee, record, url.to_string())
+            .execute(HELLO_PROGRAM.to_string(), function, inputs, private_key, fee, record, url.to_string(), false)
             .await
             .unwrap();
         // If the transaction unwrap doesn't panic, it's succeeded

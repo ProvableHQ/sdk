@@ -32,7 +32,12 @@ export const Deploy = () => {
                         setTransactionID(response.data);
                     }
                 )
-            }});
+            } else if (ev.data.type == 'ERROR') {
+                setDeploymentError(ev.data.errorMessage);
+                setLoading(false);
+                setTransactionID(null);
+            }
+        });
         return worker;
     }
 
@@ -138,7 +143,7 @@ export const Deploy = () => {
     const programString = () => program !== null ? program : "";
     const feeRecordString = () => deploymentFeeRecord !== null ? deploymentFeeRecord : "";
     const transactionIDString = () => transactionID !== null ? transactionID : "";
-    const deploymentErrorString = () => deploymentError.stack !== null ? deploymentError.stack : "";
+    const deploymentErrorString = () => deploymentError !== null ? deploymentError : "";
     const feeNumber = () => deploymentFee !== null ? parseFloat(deploymentFee) : 0.0;
     const peerUrl = () => deployUrl !== null ? deployUrl : "";
 

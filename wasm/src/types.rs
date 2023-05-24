@@ -28,7 +28,7 @@ pub use aleo_rust::{
     ViewKey,
 };
 use snarkvm_circuit_network::AleoV0;
-use snarkvm_synthesizer::{Fee, Process, Program, Transaction, helpers::memory::BlockMemory};
+use snarkvm_synthesizer::{helpers::memory::BlockMemory, Fee, Process, Program, Transaction};
 use snarkvm_wasm::program::{ProgramOwner, TransactionLeaf};
 pub use snarkvm_wasm::{
     network::Environment,

@@ -38,10 +38,11 @@ use crate::{
 };
 
 use aleo_rust::{Network, ToBytes};
+use snarkvm_wasm::program::ToBits;
+
 use js_sys::{Object, Reflect};
 use rand::{rngs::StdRng, SeedableRng};
-use snarkvm_wasm::program::ToBits;
-use std::{str::FromStr};
+use std::str::FromStr;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -56,10 +57,12 @@ impl ProgramManager {
         fee_record: RecordPlaintext,
         url: String,
     ) -> Result<Transaction, String> {
+        web_sys::console::log_1(&"Creating deployment transaction".into());
         // Ensure a fee is specified and the record has enough balance to pay for it
         if fee_credits <= 0f64 {
             return Err("Fee must be greater than zero in order to deploy a program".to_string());
         };
+        // Convert fee to microcredits and check that the fee record has enough credits to pay it
         let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
         if fee_record.microcredits() < fee_microcredits {
             return Err("Fee record does not have enough credits to pay the specified fee".to_string());
@@ -110,7 +113,16 @@ impl ProgramManager {
             return Err("Fee is not sufficient to pay for the deployment transaction".to_string());
         }
 
+        // Verify the deployment
+        process
+            .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
+            .map_err(|err| err.to_string())?;
+
+        // Execute the call to fee and create the inclusion proof for it
         let fee = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
+
+        // Verify the fee
+        process.verify_fee(&fee).map_err(|e| e.to_string())?;
 
         // Create the transaction
         TransactionNative::check_deployment_size(&deployment).map_err(|err| err.to_string())?;
@@ -129,16 +141,18 @@ impl ProgramManager {
                     program.functions().len() as u16, // The last index.
                     **fee.transition_id(),
                 )
-                    .to_bits_le())]
-                    .into_iter(),
+                .to_bits_le())]
+                .into_iter(),
             );
 
         let id = CurrentNetwork::merkle_tree_bhp::<TRANSACTION_DEPTH>(
             &leaves.collect::<anyhow::Result<Vec<_>>>().map_err(|err| err.to_string())?,
         )
-            .map_err(|err| err.to_string())?;
+        .map_err(|err| err.to_string())?;
         let owner = ProgramOwnerNative::new(&private_key, (*id.root()).into(), &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
+
+        web_sys::console::log_1(&"Creating deployment transaction".into());
         Ok(Transaction::from(
             TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
         ))

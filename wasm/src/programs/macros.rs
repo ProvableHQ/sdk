@@ -33,8 +33,8 @@ macro_rules! execute_program {
         let program =
             ProgramNative::from_str(&$program_string).map_err(|_| "The program ID provided was invalid".to_string())?;
         web_sys::console::log_1(&"Loading function".into());
-        let function_name =
-            IdentifierNative::from_str(&$function_id_string).map_err(|_| "The function name provided was invalid".to_string())?;
+        let function_name = IdentifierNative::from_str(&$function_id_string)
+            .map_err(|_| "The function name provided was invalid".to_string())?;
 
         let program_id = program.id().to_string();
 
@@ -46,9 +46,15 @@ macro_rules! execute_program {
         let cache_id = program_id.add(&$function_id_string);
 
         if let Some(proving_key) = $self.proving_key_cache.get(&cache_id) {
-            process.insert_proving_key(program.id(), &function_name, proving_key.clone()).map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
+            web_sys::console::log_1(&"Loading key from webassembly cache".into());
+            process
+                .insert_proving_key(program.id(), &function_name, proving_key.clone())
+                .map_err(|e| e.to_string())
+                .map_err(|e| e.to_string())?;
             if let Some(verifying_key) = $self.verifying_key_cache.get(&cache_id) {
-                process.insert_verifying_key(program.id(), &function_name, verifying_key.clone()).map_err(|e| e.to_string())?;
+                process
+                    .insert_verifying_key(program.id(), &function_name, verifying_key.clone())
+                    .map_err(|e| e.to_string())?;
             } else {
                 return Err("Failed to load verifying key".to_string());
             }
@@ -66,20 +72,28 @@ macro_rules! execute_program {
             .map_err(|err| err.to_string())?;
 
         let result = process
-                .execute::<CurrentAleo, _>(authorization, &mut StdRng::from_entropy())
-                .map_err(|err| err.to_string())?;
+            .execute::<CurrentAleo, _>(authorization, &mut StdRng::from_entropy())
+            .map_err(|err| err.to_string())?;
 
         if $cache {
-                if !$self.proving_key_cache.contains_key(&cache_id) && !$self.verifying_key_cache.contains_key(&cache_id) {
-                    $self.proving_key_cache.insert(cache_id.clone(), process.get_proving_key(program.id(), &function_name).map_err(|e| e.to_string())?);
-                    $self.verifying_key_cache.insert(cache_id, process.get_verifying_key(program.id(), &function_name).map_err(|e| e.to_string())?);
-                } else {
-                    if !($self.proving_key_cache.contains_key(&cache_id) && $self.verifying_key_cache.contains_key(&cache_id)) {
-                        return Err("Proving and verifying keys exist independently, please clear the cache".to_string());
-                    }
+            if !$self.proving_key_cache.contains_key(&cache_id) && !$self.verifying_key_cache.contains_key(&cache_id) {
+                $self.proving_key_cache.insert(
+                    cache_id.clone(),
+                    process.get_proving_key(program.id(), &function_name).map_err(|e| e.to_string())?,
+                );
+                $self.verifying_key_cache.insert(
+                    cache_id,
+                    process.get_verifying_key(program.id(), &function_name).map_err(|e| e.to_string())?,
+                );
+            } else {
+                if !($self.proving_key_cache.contains_key(&cache_id)
+                    && $self.verifying_key_cache.contains_key(&cache_id))
+                {
+                    return Err("Proving and verifying keys exist independently, please clear the cache".to_string());
                 }
             }
-        (result,process,)
+        }
+        (result, process)
     }};
 }
 
@@ -87,8 +101,10 @@ macro_rules! execute_program {
 macro_rules! inclusion_proof {
     ($inclusion:expr, $execution:expr, $url:expr) => {{
         web_sys::console::log_1(&"Preparing execution inclusion proof".into());
-        let (assignments, global_state_root) =
-            $inclusion.prepare_execution_async::<CurrentBlockMemory, _>(&$execution, &$url).await.map_err(|err| err.to_string())?;
+        let (assignments, global_state_root) = $inclusion
+            .prepare_execution_async::<CurrentBlockMemory, _>(&$execution, &$url)
+            .await
+            .map_err(|err| err.to_string())?;
 
         web_sys::console::log_1(&"Proving execution inclusion proof".into());
         let execution = $inclusion
@@ -114,8 +130,10 @@ macro_rules! fee_inclusion_proof {
             .map_err(|err| err.to_string())?;
 
         // Prepare the assignments.
-        let assignment =
-            inclusion.prepare_fee_async::<CurrentBlockMemory, _>(&fee_transition, &$submission_url).await.map_err(|err| err.to_string())?;
+        let assignment = inclusion
+            .prepare_fee_async::<CurrentBlockMemory, _>(&fee_transition, &$submission_url)
+            .await
+            .map_err(|err| err.to_string())?;
 
         web_sys::console::log_1(&"Proving fee inclusion proof".into());
         let fee = inclusion

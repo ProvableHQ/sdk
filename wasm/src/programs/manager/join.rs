@@ -43,39 +43,36 @@ impl ProgramManager {
     /// Create an aleo transaction
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
-    pub async fn transfer(
+    pub async fn join(
         &mut self,
         private_key: PrivateKey,
-        amount_credits: f64,
-        recipient: String,
-        amount_record: RecordPlaintext,
+        record_1: RecordPlaintext,
+        record_2: RecordPlaintext,
         fee_credits: f64,
         fee_record: RecordPlaintext,
         url: String,
         cache: bool,
     ) -> Result<Transaction, String> {
-        web_sys::console::log_1(&"Creating transfer transaction".into());
+        web_sys::console::log_1(&"Creating join transaction".into());
         if fee_credits <= 0.0 {
             return Err("Fee must be greater than zero".to_string());
         }
-        if amount_credits <= 0.0 {
-            return Err("Amount to transfer must be greater than zero".to_string());
-        }
 
-        // Convert the amount and fee to microcredits
-        let amount_microcredits = (amount_credits * 1_000_000.0f64) as u64;
+        // Convert fee to microcredits and check that the fee record has enough credits to pay it
         let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
+        if fee_record.microcredits() < fee_microcredits {
+            return Err("Fee record does not have enough credits to pay the specified fee".to_string());
+        }
 
         // Setup the program and inputs
         let program = ProgramNative::credits().unwrap().to_string();
-        let inputs = Array::new_with_length(3);
-        inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.to_string()));
-        inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
-        inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+        let inputs = Array::new_with_length(2);
+        inputs.set(0u32, wasm_bindgen::JsValue::from_str(&record_1.to_string()));
+        inputs.set(1u32, wasm_bindgen::JsValue::from_str(&record_2.to_string()));
 
         // Execute the program
         let ((_, execution, inclusion, _), process) =
-            execute_program!(self, inputs, program, "transfer", private_key, cache);
+            execute_program!(self, inputs, program, "join", private_key, cache);
 
         // Create the inclusion proof for the execution
         let execution = inclusion_proof!(inclusion, execution, url);
@@ -90,7 +87,7 @@ impl ProgramManager {
         process.verify_fee(&fee).map_err(|e| e.to_string())?;
 
         // Create the transaction
-        web_sys::console::log_1(&"Creating execution transaction for transfer".into());
+        web_sys::console::log_1(&"Creating execution transaction for join".into());
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
 
         Ok(Transaction::from(transaction))

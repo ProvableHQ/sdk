@@ -20,32 +20,36 @@ pub use deploy::*;
 pub mod execute;
 pub use execute::*;
 
+pub mod join;
+pub use join::*;
+
+pub mod split;
+pub use split::*;
+
 pub mod transfer;
 pub use transfer::*;
 
 pub mod utils;
 
-use snarkvm_synthesizer::{ProvingKey, VerifyingKey};
-use indexmap::IndexMap;
+use crate::types::CurrentNetwork;
 
+use snarkvm_synthesizer::{ProvingKey, VerifyingKey};
+
+use indexmap::IndexMap;
 use wasm_bindgen::prelude::wasm_bindgen;
-use crate::types::{CurrentNetwork, IdentifierNative, ProgramIDNative};
 
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct ProgramManager {
     proving_key_cache: IndexMap<String, ProvingKey<CurrentNetwork>>,
-    verifying_key_cache: IndexMap<String, VerifyingKey<CurrentNetwork>>
+    verifying_key_cache: IndexMap<String, VerifyingKey<CurrentNetwork>>,
 }
 
 #[wasm_bindgen]
 impl ProgramManager {
     #[wasm_bindgen]
     pub fn new() -> Self {
-        Self {
-            proving_key_cache: IndexMap::new(),
-            verifying_key_cache: IndexMap::new()
-        }
+        Self { proving_key_cache: IndexMap::new(), verifying_key_cache: IndexMap::new() }
     }
 }
 

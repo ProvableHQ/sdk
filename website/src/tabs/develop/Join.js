@@ -2,16 +2,15 @@ import React, { useState, useEffect } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
 import axios from "axios";
 
-export const Transfer = () => {
-    const [transferFeeRecord, setTransferFeeRecord] = useState(null);
-    const [amountRecord, setAmountRecord] = useState(null);
-    const [transferUrl, setTransferUrl] = useState("https://vm.aleo.org/api");
-    const [transferAmount, setTransferAmount] = useState(null);
-    const [transferFee, setTransferFee] = useState("1.0");
-    const [recipient, setRecipient] = useState(null);
+export const Join = () => {
+    const [joinFeeRecord, setJoinFeeRecord] = useState(null);
+    const [recordOne, setRecordOne] = useState(null);
+    const [recordTwo, setRecordTwo] = useState(null);
+    const [joinUrl, setJoinUrl] = useState("https://vm.aleo.org/api");
+    const [joinFee, setJoinFee] = useState("1.0");
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
-    const [transferError, setTransferError] = useState(null);
+    const [joinError, setJoinError] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
@@ -19,20 +18,20 @@ export const Transfer = () => {
     function spawnWorker() {
         let worker = new Worker("./worker.js");
         worker.addEventListener("message", ev => {
-            if (ev.data.type == 'TRANSFER_TRANSACTION_COMPLETED') {
-                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.transferTransaction, {
+            if (ev.data.type == 'JOIN_TRANSACTION_COMPLETED') {
+                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.joinTransaction, {
                     headers: {
                         'Content-Type': 'application/json',
                     }
                 }).then(
                     (response) => {
                         setLoading(false);
-                        setTransferError(null);
+                        setJoinError(null);
                         setTransactionID(response.data);
                     }
                 )
             } else if (ev.data.type == 'ERROR') {
-                setTransferError(ev.data.errorMessage);
+                setJoinError(ev.data.errorMessage);
                 setLoading(false);
                 setTransactionID(null);
             }
@@ -50,19 +49,18 @@ export const Transfer = () => {
         }
     }, []);
 
-    const transfer = async (event) => {
+    const join = async (event) => {
         setLoading(true)
         setTransactionID(null);
-        setTransferError(null);
+        setJoinError(null);
 
         await postMessagePromise(worker, {
-            type: 'ALEO_TRANSFER',
-            privateKey: privateKeyString(),
-            amountCredits: amountNumber(),
-            recipient: recipientString(),
-            amountRecord: amountRecordString(),
+            type: 'ALEO_JOIN',
+            recordOne: recordOneString(),
+            recordTwo: recordTwoString(),
             fee: feeNumber(),
             feeRecord: feeRecordString(),
+            privateKey: privateKeyString(),
             url: peerUrl(),
         });
     }
@@ -73,7 +71,7 @@ export const Transfer = () => {
                 resolve(event.data);
             };
             worker.onerror = error => {
-                setTransferError(error);
+                setJoinError(error);
                 setLoading(false);
                 setTransactionID(null);
                 reject(error);
@@ -84,54 +82,45 @@ export const Transfer = () => {
 
     const onUrlChange = (event) => {
         if (event.target.value !== null) {
-            setTransferUrl(event.target.value);
+            setJoinUrl(event.target.value);
         }
-        return transferUrl;
+        return joinUrl;
     }
 
-    const onAmountChange = (event) => {
+    const onJoinFeeChange = (event) => {
         if (event.target.value !== null) {
-            setTransferAmount(event.target.value);
+            setJoinFee(event.target.value);
         }
         setTransactionID(null);
-        setTransferError(null);
-        return transferAmount;
+        setJoinError(null);
+        return joinFee;
     }
 
-    const onTransferFeeChange = (event) => {
+    const onRecordOneChange = (event) => {
         if (event.target.value !== null) {
-            setTransferFee(event.target.value);
+            setRecordOne(event.target.value);
         }
         setTransactionID(null);
-        setTransferError(null);
-        return transferFee;
+        setJoinError(null);
+        return recordOne;
     }
 
-    const onAmountRecordChange = (event) => {
+    const onRecordTwoChange = (event) => {
         if (event.target.value !== null) {
-            setAmountRecord(event.target.value);
+            setRecordTwo(event.target.value);
         }
         setTransactionID(null);
-        setTransferError(null);
-        return amountRecord;
+        setJoinError(null);
+        return recordTwo;
     }
 
-    const onTransferFeeRecordChange = (event) => {
+    const onJoinFeeRecordChange = (event) => {
         if (event.target.value !== null) {
-            setTransferFeeRecord(event.target.value);
+            setJoinFeeRecord(event.target.value);
         }
         setTransactionID(null);
-        setTransferError(null);
-        return transferFeeRecord;
-    }
-
-    const onRecipientChange = (event) => {
-        if (event.target.value !== null) {
-            setRecipient(event.target.value);
-        }
-        setTransactionID(null);
-        setTransferError(null);
-        return recipient;
+        setJoinError(null);
+        return joinFeeRecord;
     }
 
     const onPrivateKeyChange = (event) => {
@@ -139,60 +128,46 @@ export const Transfer = () => {
             setPrivateKey(event.target.value);
         }
         setTransactionID(null);
-        setTransferError(null);
+        setJoinError(null);
         return privateKey;
     }
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const amountNumber = () => transferAmount !== null ? parseFloat(transferAmount) : 0.0;
-    const recipientString = () => recipient !== null ? recipient : "";
     const privateKeyString = () => privateKey !== null ? privateKey : "";
-    const feeRecordString = () => transferFeeRecord !== null ? transferFeeRecord : "";
-    const amountRecordString = () => amountRecord !== null ? amountRecord : "";
+    const feeRecordString = () => joinFeeRecord !== null ? joinFeeRecord : "";
+    const recordOneString = () => recordOne !== null ? recordOne : "";
+    const recordTwoString = () => recordTwo !== null ? recordTwo : "";
     const transactionIDString = () => transactionID !== null ? transactionID : "";
-    const transferErrorString = () => transferError !== null ? transferError : "";
-    const feeNumber = () => transferFee !== null ? parseFloat(transferFee) : 0.0;
-    const peerUrl = () => transferUrl !== null ? transferUrl : "";
+    const joinErrorString = () => joinError !== null ? joinError : "";
+    const feeNumber = () => joinFee !== null ? parseFloat(joinFee) : 0.0;
+    const peerUrl = () => joinUrl !== null ? joinUrl : "";
 
-
-    return <Card title="Transfer"
+    return <Card title="Join Records"
                  style={{width: "100%", borderRadius: "20px"}}
                  bordered={false}>
         <Form {...layout}>
-            <Form.Item label="Recipient Address"
+            <Form.Item label="Record One"
                        colon={false}
                        validateStatus={status}
             >
-                <Input.TextArea name="recipient"
-                                size="middle"
-                                placeholder="Transfer recipient address"
-                                allowClear
-                                onChange={onRecipientChange}
-                                value={recipientString()}
-                                style={{borderRadius: '20px'}}/>
-            </Form.Item>
-            <Form.Item label="Amount"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="amount"
-                                size="large"
-                                placeholder="Amount"
-                                allowClear
-                                onChange={onAmountChange}
-                                value={amountNumber()}
-                                style={{borderRadius: '20px'}}/>
-            </Form.Item>
-            <Form.Item label="Amount Record"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Amount Record"
+                <Input.TextArea name="Record One"
                                 size="small"
-                                placeholder="Record used to pay transfer amount"
+                                placeholder="First Record to Join"
                                 allowClear
-                                onChange={onAmountRecordChange}
-                                value={amountRecordString()}
+                                onChange={onRecordOneChange}
+                                value={recordOneString()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
+            <Form.Item label="Record Two"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="Record Two"
+                                size="small"
+                                placeholder="Second Record to Join"
+                                allowClear
+                                onChange={onRecordTwoChange}
+                                value={recordTwoString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
             <Form.Item label="Fee"
@@ -203,7 +178,7 @@ export const Transfer = () => {
                                 size="small"
                                 placeholder="Fee"
                                 allowClear
-                                onChange={onTransferFeeChange}
+                                onChange={onJoinFeeChange}
                                 value={feeNumber()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
@@ -213,9 +188,9 @@ export const Transfer = () => {
             >
                 <Input.TextArea name="Fee Record"
                                 size="small"
-                                placeholder="Record used to pay transfer fee"
+                                placeholder="Record used to pay join fee"
                                 allowClear
-                                onChange={onTransferFeeRecordChange}
+                                onChange={onJoinFeeRecordChange}
                                 value={feeRecordString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
@@ -245,30 +220,30 @@ export const Transfer = () => {
             </Form.Item>
             <Row justify="center">
                 <Col justify="center">
-                    <Button type="primary" shape="round" size="middle" onClick={transfer}
-                    >Transfer</Button>
+                    <Button type="primary" shape="round" size="middle" onClick={join}
+                    >Join</Button>
                 </Col>
             </Row>
         </Form>
         <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
             {
                 (loading === true) &&
-                <Spin tip="Creating Transfer..." size="large"/>
+                <Spin tip="Creating Join..." size="large"/>
             }
             {
                 (transactionID !== null) &&
                 <Result
                     status="success"
-                    title="Transfer Successful!"
+                    title="Join Successful!"
                     subTitle={"Transaction ID: " + transactionIDString()}
                 />
             }
             {
-                (transferError !== null) &&
+                (joinError !== null) &&
                 <Result
                     status="error"
-                    title="Transfer Error"
-                    subTitle={"Error: " + transferErrorString()}
+                    title="Join Error"
+                    subTitle={"Error: " + joinErrorString()}
                 />
             }
         </Row>
