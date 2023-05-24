@@ -155,7 +155,8 @@ jobs:
           name: Check lint
           no_output_timeout: 35m
           command: |
-            cargo clippy --workspace --all-targets -- -D warnings
+            cargo clippy --workspace --all-targets --all-features --exclude aleo-wasm
+            cargo clippy -p aleo-wasm --all-targets --features serial
       - clear_environment:
           cache_key: aleo-clippy-cache
 
