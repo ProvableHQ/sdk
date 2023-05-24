@@ -59,7 +59,7 @@ version = "0.2"
 features = [ "serde-serialize" ]
 
 [dependencies.wasm-bindgen-futures]
-version = "0.4.35"
+version = "0.4.36"
 
 [dependencies.wasm-bindgen-test]
 version = "0.3.35"
