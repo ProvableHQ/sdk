@@ -53,8 +53,7 @@ impl<N: Network> ProgramManager<N> {
             ];
 
             // Create a new transaction.
-            Transaction::execute(
-                &vm,
+            vm.execute(
                 &private_key,
                 ("credits.aleo", "transfer"),
                 inputs.iter(),

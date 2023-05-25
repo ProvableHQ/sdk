@@ -157,7 +157,7 @@ impl<N: Network> ProgramManager<N> {
             Ok::<_, Error>(())
         })?;
 
-        Transaction::<N>::deploy(&vm, private_key, program, (fee_record, fee), Some(query), rng)
+        vm.deploy(private_key, program, (fee_record, fee), Some(query), rng)
     }
 }
 

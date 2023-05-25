@@ -33,7 +33,7 @@ pub mod utils;
 
 use crate::types::CurrentNetwork;
 
-use snarkvm_synthesizer::{ProvingKey, VerifyingKey};
+use snarkvm_synthesizer::snark::{ProvingKey, VerifyingKey};
 
 use indexmap::IndexMap;
 use wasm_bindgen::prelude::wasm_bindgen;

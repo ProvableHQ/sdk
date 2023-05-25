@@ -19,6 +19,7 @@ edition = "2021"
 
 [lib]
 crate-type = [ "cdylib", "rlib" ]
+doctest = false
 
 [dependencies.aleo-rust]
 features = [ "wasm" ]
@@ -41,7 +42,7 @@ version = "1.4.0"
 version = "0.4.3"
 
 [dependencies.js-sys]
-version = "0.3.63"
+version = "0.3"
 
 [dependencies.rand]
 version = "0.8"
@@ -85,9 +86,6 @@ version = "0.4.36"
 [dependencies.wasm-bindgen-rayon]
 version = "1.0.3"
 optional = true
-
-[dependencies.wasm-bindgen-test]
-version = "0.3.35"
 
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
