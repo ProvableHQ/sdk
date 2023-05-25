@@ -37,6 +37,7 @@ jobs:
 
       - name: Install and Build
         run: |
+          rustup install nightly
           cd website
           yarn install
           yarn build
