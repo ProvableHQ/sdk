@@ -1,10 +1,10 @@
 # Aleo Development Server
 
-[![Crates.io](https://img.shields.io/crates/v/snarkos-node-rest.svg?color=neon)](https://crates.io/crates/snarkos-node-rest)
+[![Crates.io](https://img.shields.io/crates/v/aleo-development-server.svg?color=neon)](https://crates.io/crates/aleo-development-server)
 [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 
-[![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo_development_server/)
+[![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-development-server/latest/aleo_development_server/)
 
 [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust

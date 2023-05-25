@@ -17,25 +17,15 @@
 use super::*;
 use std::ops::Add;
 
-use crate::{
-    execute_program,
-    fee_inclusion_proof,
-    inclusion_proof,
-    programs::fee::FeeExecution,
-    types::{
-        CurrentAleo,
-        CurrentBlockMemory,
-        IdentifierNative,
-        ProcessNative,
-        ProgramNative,
-        RecordPlaintextNative,
-        TransactionNative,
-    },
-    ExecutionResponse,
-    PrivateKey,
-    RecordPlaintext,
-    Transaction,
-};
+use crate::{execute_program, fee_inclusion_proof, inclusion_proof, programs::fee::FeeExecution, types::{
+    CurrentAleo,
+    CurrentBlockMemory,
+    IdentifierNative,
+    ProcessNative,
+    ProgramNative,
+    RecordPlaintextNative,
+    TransactionNative,
+}, ExecutionResponse, PrivateKey, RecordPlaintext, Transaction, log};
 
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
@@ -53,7 +43,7 @@ impl ProgramManager {
         private_key: PrivateKey,
         cache: bool,
     ) -> Result<ExecutionResponse, String> {
-        web_sys::console::log_1(&format!("executing local function: {function}").into());
+        log(&format!("executing local function: {function}"));
         let inputs = inputs.to_vec();
         let ((response, execution, _, _), process) =
             execute_program!(self, inputs, program, function, private_key, cache);
@@ -88,7 +78,7 @@ impl ProgramManager {
         url: String,
         cache: bool,
     ) -> Result<Transaction, String> {
-        web_sys::console::log_1(&format!("executing function: {function} on-chain").into());
+        log(&format!("executing function: {function} on-chain"));
         if fee_credits <= 0.0 {
             return Err("Fee must be greater than zero to execute a program".to_string());
         }
@@ -114,7 +104,7 @@ impl ProgramManager {
         process.verify_fee(&fee).map_err(|e| e.to_string())?;
 
         // Create the transaction
-        web_sys::console::log_1(&"Creating execution transaction".into());
+        log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
 
         Ok(Transaction::from(transaction))
@@ -130,7 +120,7 @@ impl ProgramManager {
         fee_record: RecordPlaintext,
         url: String,
     ) -> Result<FeeExecution, String> {
-        web_sys::console::log_1(&"Creating fee execution".into());
+        log("Creating fee execution");
         if fee_credits <= 0.0 {
             return Err("Fee must be greater than zero".to_string());
         }

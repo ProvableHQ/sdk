@@ -18,7 +18,7 @@
 macro_rules! execute_program {
     ($self: expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $cache:expr) => {{
         let mut inputs_native = vec![];
-        web_sys::console::log_1(&"parsing inputs".into());
+        log("parsing inputs");
         for input in $inputs.to_vec().iter() {
             if let Some(input) = input.as_string() {
                 inputs_native.push(input);
@@ -27,26 +27,26 @@ macro_rules! execute_program {
             }
         }
 
-        web_sys::console::log_1(&"loading process".into());
+        log("loading process");
         let mut process = ProcessNative::load_web().map_err(|_| "Failed to load the process".to_string())?;
-        web_sys::console::log_1(&"Loading program".into());
+        log("Loading program");
         let program =
             ProgramNative::from_str(&$program_string).map_err(|_| "The program ID provided was invalid".to_string())?;
-        web_sys::console::log_1(&"Loading function".into());
+        log("Loading function");
         let function_name = IdentifierNative::from_str(&$function_id_string)
             .map_err(|_| "The function name provided was invalid".to_string())?;
 
         let program_id = program.id().to_string();
 
         if program_id != "credits.aleo" {
-            web_sys::console::log_1(&"Adding program to the process".into());
+            log("Adding program to the process");
             process.add_program(&program).map_err(|_| "Failed to add program".to_string())?;
         }
 
         let cache_id = program_id.add(&$function_id_string);
 
         if let Some(proving_key) = $self.proving_key_cache.get(&cache_id) {
-            web_sys::console::log_1(&"Loading key from webassembly cache".into());
+            log("Loading key from webassembly cache");
             process
                 .insert_proving_key(program.id(), &function_name, proving_key.clone())
                 .map_err(|e| e.to_string())
@@ -60,7 +60,7 @@ macro_rules! execute_program {
             }
         }
 
-        web_sys::console::log_1(&"Creating authorization".into());
+        log("Creating authorization");
         let authorization = process
             .authorize::<CurrentAleo, _>(
                 &$private_key,
@@ -100,13 +100,13 @@ macro_rules! execute_program {
 #[macro_export]
 macro_rules! inclusion_proof {
     ($inclusion:expr, $execution:expr, $url:expr) => {{
-        web_sys::console::log_1(&"Preparing execution inclusion proof".into());
+        log("Preparing execution inclusion proof");
         let (assignments, global_state_root) = $inclusion
             .prepare_execution_async::<CurrentBlockMemory, _>(&$execution, &$url)
             .await
             .map_err(|err| err.to_string())?;
 
-        web_sys::console::log_1(&"Proving execution inclusion proof".into());
+        log("Proving execution inclusion proof");
         let execution = $inclusion
             .prove_execution::<CurrentAleo, _>($execution, &assignments, global_state_root, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
@@ -118,7 +118,7 @@ macro_rules! inclusion_proof {
 #[macro_export]
 macro_rules! fee_inclusion_proof {
     ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr) => {{
-        web_sys::console::log_1(&"Preparing fee inclusion proof".into());
+        log("Preparing fee inclusion proof");
         let fee_record_native = RecordPlaintextNative::from_str(&$fee_record.to_string()).unwrap();
         let (_, fee_transition, inclusion, _) = $process
             .execute_fee::<CurrentAleo, _>(
@@ -135,7 +135,7 @@ macro_rules! fee_inclusion_proof {
             .await
             .map_err(|err| err.to_string())?;
 
-        web_sys::console::log_1(&"Proving fee inclusion proof".into());
+        log("Proving fee inclusion proof");
         let fee = inclusion
             .prove_fee::<CurrentAleo, _>(fee_transition, &assignment, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;

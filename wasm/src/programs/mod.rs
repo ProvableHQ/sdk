@@ -19,7 +19,9 @@ mod macros;
 pub mod fee;
 pub use fee::*;
 
+#[cfg(feature = "browser")]
 pub mod manager;
+#[cfg(feature = "browser")]
 pub use manager::*;
 
 pub mod response;

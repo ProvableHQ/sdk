@@ -1,4 +1,7 @@
 # Aleo Rust SDK
+[![Crates.io](https://img.shields.io/crates/v/aleo-rust.svg?color=neon)](https://crates.io/crates/aleo-rust)
+[![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 
 [![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-rust)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo_rust/)
 

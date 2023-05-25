@@ -82,10 +82,6 @@ features = [ "serde-serialize" ]
 [dependencies.wasm-bindgen-futures]
 version = "0.4.35"
 
-[dependencies.web-sys]
-version = "0.3.52"
-features = [ "console" ]
-
 [dependencies.wasm-bindgen-rayon]
 version = "1.0.3"
 optional = true
@@ -100,9 +96,10 @@ version = "0.1.7"
 version = "0.3.33"
 
 [features]
-default = [ "serial" ]
+default = [ "serial", "browser" ]
 serial = [ "snarkvm-synthesizer/serial" ]
 parallel = [ "wasm-bindgen-rayon", "rayon" ]
+browser = [ ]
 
 ## Profiles
 [profile.release]

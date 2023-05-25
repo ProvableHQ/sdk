@@ -19,6 +19,7 @@ use super::*;
 use crate::{
     execute_program,
     inclusion_proof,
+    log,
     types::{CurrentAleo, CurrentBlockMemory, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
     PrivateKey,
     RecordPlaintext,
@@ -41,7 +42,7 @@ impl ProgramManager {
         url: String,
         cache: bool,
     ) -> Result<Transaction, String> {
-        web_sys::console::log_1(&"Creating split transaction".into());
+        log("Creating split transaction");
         if split_amount < 0.0 {
             return Err("Split amount must be greater than zero".to_string());
         }
@@ -69,7 +70,7 @@ impl ProgramManager {
         process.verify_execution::<true>(&execution).map_err(|e| e.to_string())?;
 
         // Create the transaction
-        web_sys::console::log_1(&"Creating execution transaction for split".into());
+        log("Creating execution transaction for split");
         let transaction = TransactionNative::from_execution(execution, None).map_err(|err| err.to_string())?;
 
         Ok(Transaction::from(transaction))

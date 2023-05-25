@@ -18,6 +18,7 @@ use super::*;
 
 use crate::{
     fee_inclusion_proof,
+    log,
     types::{
         CurrentAleo,
         CurrentBlockMemory,
@@ -57,7 +58,7 @@ impl ProgramManager {
         fee_record: RecordPlaintext,
         url: String,
     ) -> Result<Transaction, String> {
-        web_sys::console::log_1(&"Creating deployment transaction".into());
+        log("Creating deployment transaction");
         // Ensure a fee is specified and the record has enough balance to pay for it
         if fee_credits <= 0f64 {
             return Err("Fee must be greater than zero in order to deploy a program".to_string());
@@ -152,7 +153,7 @@ impl ProgramManager {
         let owner = ProgramOwnerNative::new(&private_key, (*id.root()).into(), &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
 
-        web_sys::console::log_1(&"Creating deployment transaction".into());
+        log("Creating deployment transaction");
         Ok(Transaction::from(
             TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
         ))

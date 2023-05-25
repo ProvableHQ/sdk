@@ -20,6 +20,7 @@ use crate::{
     execute_program,
     fee_inclusion_proof,
     inclusion_proof,
+    log,
     types::{
         CurrentAleo,
         CurrentBlockMemory,
@@ -53,7 +54,7 @@ impl ProgramManager {
         url: String,
         cache: bool,
     ) -> Result<Transaction, String> {
-        web_sys::console::log_1(&"Creating join transaction".into());
+        log("Creating join transaction");
         if fee_credits <= 0.0 {
             return Err("Fee must be greater than zero".to_string());
         }
@@ -87,7 +88,7 @@ impl ProgramManager {
         process.verify_fee(&fee).map_err(|e| e.to_string())?;
 
         // Create the transaction
-        web_sys::console::log_1(&"Creating execution transaction for join".into());
+        log("Creating execution transaction for join");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
 
         Ok(Transaction::from(transaction))
