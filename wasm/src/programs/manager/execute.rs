@@ -17,15 +17,26 @@
 use super::*;
 use std::ops::Add;
 
-use crate::{execute_program, fee_inclusion_proof, inclusion_proof, programs::fee::FeeExecution, types::{
-    CurrentAleo,
-    CurrentBlockMemory,
-    IdentifierNative,
-    ProcessNative,
-    ProgramNative,
-    RecordPlaintextNative,
-    TransactionNative,
-}, ExecutionResponse, PrivateKey, RecordPlaintext, Transaction, log};
+use crate::{
+    execute_program,
+    fee_inclusion_proof,
+    inclusion_proof,
+    log,
+    programs::fee::FeeExecution,
+    types::{
+        CurrentAleo,
+        CurrentBlockMemory,
+        IdentifierNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        TransactionNative,
+    },
+    ExecutionResponse,
+    PrivateKey,
+    RecordPlaintext,
+    Transaction,
+};
 
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
