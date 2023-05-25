@@ -19,7 +19,7 @@
 //! [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
 //! [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 //!
-//! [![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)
+//! [![github]](https://github.com/AleoHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust

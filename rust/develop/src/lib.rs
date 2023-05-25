@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-//! [![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo-development-server/)
+//! [![github]](https://github.com/AleoHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo-development-server/)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust

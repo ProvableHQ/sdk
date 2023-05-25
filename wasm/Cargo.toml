@@ -4,7 +4,7 @@ version = "0.4.2"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Toolkit for exporting key Aleo functionality and cryptography to WebAssembly"
 homepage = "https://aleo.org"
-repository = "https://github.com/AleoHQ/aleo"
+repository = "https://github.com/AleoHQ/sdk"
 keywords = [
   "aleo",
   "cryptography",
