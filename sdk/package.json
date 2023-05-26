@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AleoHQ/aleo.git"
+    "url": "git+https://github.com/AleoHQ/sdk.git"
   },
   "keywords": [
     "Aleo",
@@ -31,9 +31,9 @@
     "ZK"
   ],
   "bugs": {
-    "url": "https://github.com/AleoHQ/aleo/issues"
+    "url": "https://github.com/AleoHQ/sdk/issues"
   },
-  "homepage": "https://github.com/AleoHQ/aleo#readme",
+  "homepage": "https://github.com/AleoHQ/sdk#readme",
   "dependencies": {
     "@aleohq/wasm": "0.4.1",
     "axios": "^1.1.3",
