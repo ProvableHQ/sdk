@@ -15,7 +15,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable
           override: true
           components: rustfmt
 
@@ -34,7 +34,6 @@ jobs:
 
       - name: Install and Build
         run: |
-          rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
           cd website
           yarn install
           yarn build
