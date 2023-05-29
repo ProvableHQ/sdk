@@ -29,7 +29,7 @@ default-features = false
 version = "0.11.2"
 
 [workspace.dependencies.snarkvm-console]
-version = "0.11.2"
+version = "0.11.4"
 
 [workspace.dependencies.snarkvm-circuit-network]
 version = "0.11.2"
