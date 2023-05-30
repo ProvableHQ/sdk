@@ -29,22 +29,19 @@ default-features = false
 version = "0.11.3"
 
 [workspace.dependencies.snarkvm-console]
-version = "0.11.3"
+version = "0.11.4"
 
 [workspace.dependencies.snarkvm-circuit-network]
-version = "0.11.3"
+version = "0.11.4"
 
 [workspace.dependencies.snarkvm-console-network]
-version = "0.11.3"
+version = "0.11.4"
 
 [workspace.dependencies.snarkvm-synthesizer]
-version = "0.11.3"
+version = "0.11.4"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.11.3"
-
-[workspace.dependencies.snarkvm-parameters]
-version = "0.11.3"
+version = "0.11.4"
 
 [lib]
 path = "cli/lib.rs"
