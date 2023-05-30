@@ -38,7 +38,7 @@ var DevelopmentClient = /** @class */ (function () {
      * If one is not running, this function will throw an error.
      *
      * Information on how to run an Aleo Development Server can be found here:
-     * https://github.com/AleoHQ/aleo/rust/develop/README.md
+     * https://github.com/AleoHQ/sdk/rust/develop/README.md
      * @param {string} program Text representation of the program to be deployed
      * @param {number} fee Fee to be paid for the program deployment (REQUIRED)
      * @param {string | undefined} privateKey Optional private key of the user who is deploying the program
@@ -76,7 +76,7 @@ var DevelopmentClient = /** @class */ (function () {
      * If one is not running, this function will throw an error.
      *
      * Information on how to run an Aleo Development Server can be found here:
-     * https://github.com/AleoHQ/aleo/rust/develop/README.md
+     * https://github.com/AleoHQ/sdk/rust/develop/README.md
      * @param {string} programId The program_id of the program to be executed (e.g. hello.aleo)
      * @param {string} programFunction The function to execute within the program (e.g. hello)
      * @param {number} fee Optional Fee to be paid for the execution transaction, specify 0 for no fee
@@ -119,7 +119,7 @@ var DevelopmentClient = /** @class */ (function () {
      * will throw an error.
      *
      * Information on how to run an Aleo Development Server can be found here:
-     * https://github.com/AleoHQ/aleo/rust/develop/README.md
+     * https://github.com/AleoHQ/sdk/rust/develop/README.md
      * @param {string} amount The amount of credits to be sent (e.g. 1.5)
      * @param {number} fee Optional Fee to be paid for the transfer, specify 0 for no fee
      * @param {string} recipient The recipient of the transfer
