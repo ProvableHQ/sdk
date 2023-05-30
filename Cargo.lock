@@ -172,7 +172,6 @@ dependencies = [
  "serde_json",
  "snarkvm-circuit-network",
  "snarkvm-console-network",
- "snarkvm-parameters",
  "snarkvm-synthesizer",
  "snarkvm-wasm",
  "wasm-bindgen",
