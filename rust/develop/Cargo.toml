@@ -27,7 +27,7 @@ version = "1"
 version = "2.0.0"
 
 [dependencies.clap]
-version = "3.2"
+version = "4.3"
 workspace = true
 
 [dependencies.http]
