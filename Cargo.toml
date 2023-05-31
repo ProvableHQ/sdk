@@ -26,16 +26,16 @@ path = "rust"
 default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "0.11.4"
+version = "=0.11.4"
 
 [workspace.dependencies.snarkvm-console]
-version = "0.11.4"
+version = "=0.11.4"
 
 [workspace.dependencies.snarkvm-synthesizer]
-version = "0.11.4"
+version = "=0.11.4"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.11.4"
+version = "=0.11.4"
 default-features = false
 
 [lib]
