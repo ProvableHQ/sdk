@@ -5,7 +5,7 @@ authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Rust SDK for managing Aleo programs and communicating with the Aleo network"
 homepage = "https://aleo.org"
 readme = "README.md"
-repository = "https://github.com/AleoHQ/aleo"
+repository = "https://github.com/AleoHQ/sdk"
 keywords = [
   "aleo",
   "cryptography",
