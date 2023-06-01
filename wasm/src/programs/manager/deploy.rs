@@ -30,7 +30,6 @@ use crate::{
         RecordPlaintextNative,
         TransactionLeafNative,
         TransactionNative,
-        TRANSACTION_DEPTH,
     },
     utils::to_bits,
     PrivateKey,
@@ -39,7 +38,7 @@ use crate::{
 };
 
 use aleo_rust::{Network, ToBytes};
-use snarkvm_wasm::program::ToBits;
+use snarkvm_console::program::{ToBits, TRANSACTION_DEPTH};
 
 use js_sys::{Object, Reflect};
 use rand::{rngs::StdRng, SeedableRng};
@@ -48,38 +47,44 @@ use std::str::FromStr;
 #[wasm_bindgen]
 impl ProgramManager {
     /// Deploy an Aleo program
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being deployed
+    /// @param imports A javascript object holding the source code of any imported programs in the
+    /// form {"program_name1": "program_source_code", "program_name2": "program_source_code", ..}.
+    /// Note that all imported programs must be deployed on chain before the main program in order
+    /// for the deployment to succeed
+    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
     pub async fn deploy(
         &self,
+        private_key: PrivateKey,
         program: String,
         imports: Option<Object>,
-        private_key: PrivateKey,
         fee_credits: f64,
         fee_record: RecordPlaintext,
         url: String,
+        fee_proving_key: Option<ProvingKey>,
+        fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
-        // Ensure a fee is specified and the record has enough balance to pay for it
-        if fee_credits <= 0f64 {
-            return Err("Fee must be greater than zero in order to deploy a program".to_string());
-        };
         // Convert fee to microcredits and check that the fee record has enough credits to pay it
-        let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
+        let fee_microcredits = Self::validate_amount(fee_credits, &fee_record, true)?;
         if fee_record.microcredits() < fee_microcredits {
             return Err("Fee record does not have enough credits to pay the specified fee".to_string());
         }
 
         let mut process = ProcessNative::load_web().map_err(|err| err.to_string())?;
 
-        // Check program has a valid name
+        log("Check program has a valid name");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
 
-        // If imports are provided, attempt to add them. For this to succeed, the imports must be
-        // valid programs and they must already be deployed on chain if the imports are to succeed.
-        // To ensure this function is as stateless as possible, this function does not check if
-        // imports are deployed on chain, or if they are whether they match programs with the same
-        // name which are already deployed on chain. This is left to the caller to ensure. However
-        // this is trivial to check via an Aleo block explorer or the Aleo API.
+        log("Check program imports are valid");
         if let Some(imports) = imports {
             program
                 .imports()
@@ -99,33 +104,35 @@ impl ProgramManager {
                 .map_err(|_| "Import resolution failed".to_string())?;
         }
 
-        // Create a deployment
+        log("Create and validate deployment");
         let deployment =
             process.deploy::<CurrentAleo, _>(&program, &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
-
-        // Ensure the deployment is not empty
         if deployment.program().functions().is_empty() {
             return Err("Attempted to create an empty transaction deployment".to_string());
         }
 
-        // Check the fee is sufficient to pay for the deployment
+        log("Ensure the fee is sufficient to pay for the deployment");
         let deployment_fee = deployment.to_bytes_le().map_err(|err| err.to_string())?.len();
         if fee_microcredits < deployment_fee as u64 {
             return Err("Fee is not sufficient to pay for the deployment transaction".to_string());
         }
 
-        // Verify the deployment
+        log("Verify the deployment and fees");
         process
             .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
-
-        // Execute the call to fee and create the inclusion proof for it
-        let fee = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
-
-        // Verify the fee
+        let fee = fee_inclusion_proof!(
+            process,
+            private_key,
+            fee_record,
+            fee_microcredits,
+            url,
+            fee_proving_key,
+            fee_verifying_key
+        );
         process.verify_fee(&fee).map_err(|e| e.to_string())?;
 
-        // Create the transaction
+        log("Create the deployment transaction");
         TransactionNative::check_deployment_size(&deployment).map_err(|err| err.to_string())?;
         let leaves = program
             .functions()

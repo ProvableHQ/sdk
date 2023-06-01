@@ -18,6 +18,7 @@ use super::*;
 
 use crate::{
     execute_program,
+    get_process,
     inclusion_proof,
     log,
     types::{CurrentAleo, CurrentBlockMemory, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
@@ -32,8 +33,22 @@ use std::{ops::Add, str::FromStr};
 
 #[wasm_bindgen]
 impl ProgramManager {
-    /// Split an Aleo record into two separate records. This function does not require a fee.
+    /// Split an Aleo credits record into two separate records. This function does not require a fee.
+    ///
+    /// @param private_key The private key of the sender
+    /// @param split_amount The amount of the credit split. This amount will be subtracted from the
+    /// value of the record and two new records will be created with the split amount and the remainder
+    /// @param amount_record The record to split
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param cache Cache the proving and verifying keys in the ProgramManager memory. If this is
+    /// set to `true` the keys synthesized (or passed in as optional parameters via the
+    /// `split_proving_key` and `split_verifying_key` arguments) will be stored in the
+    /// ProgramManager's memory and used for subsequent transactions. If this is set to `false` the
+    /// proving and verifying keys will be deallocated from memory after the transaction is executed
+    /// @param split_proving_key (optional) Provide a proving key to use for the split function
+    /// @param split_verifying_key (optional) Provide a verifying key to use for the split function
     #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
     pub async fn split(
         &mut self,
         private_key: PrivateKey,
@@ -41,38 +56,27 @@ impl ProgramManager {
         amount_record: RecordPlaintext,
         url: String,
         cache: bool,
+        split_proving_key: Option<ProvingKey>,
+        split_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
-        log("Creating split transaction");
-        if split_amount < 0.0 {
-            return Err("Split amount must be greater than zero".to_string());
-        }
-        if split_amount as u64 >= amount_record.microcredits() {
-            return Err("Split amount cannot be more than the amount in the record".to_string());
-        }
+        log("Executing split program");
+        let amount_microcredits = Self::validate_amount(split_amount, &amount_record, false)?;
 
-        // Convert the amount to microcredits
-        let amount_microcredits = (split_amount * 1_000_000.0) as u64;
-
-        // Setup the program and inputs
+        log("Setup the program and inputs");
         let program = ProgramNative::credits().unwrap().to_string();
         let inputs = Array::new_with_length(2u32);
         inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.to_string()));
         inputs.set(1u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
 
-        // Execute the program
-        let ((_, execution, inclusion, _), process) =
-            execute_program!(self, inputs, program, "split", private_key, cache);
+        let mut new_process;
+        let process = get_process!(self, cache, new_process);
 
-        // Create the inclusion proof for the execution
-        let execution = inclusion_proof!(inclusion, execution, url);
+        let (_, execution, inclusion, _) =
+            execute_program!(process, inputs, program, "split", private_key, split_proving_key, split_verifying_key);
+        let execution = inclusion_proof!(process, inclusion, execution, url);
 
-        // Verify the execution
-        process.verify_execution::<true>(&execution).map_err(|e| e.to_string())?;
-
-        // Create the transaction
         log("Creating execution transaction for split");
         let transaction = TransactionNative::from_execution(execution, None).map_err(|err| err.to_string())?;
-
         Ok(Transaction::from(transaction))
     }
 }

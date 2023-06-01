@@ -15,14 +15,13 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
-use std::ops::Add;
 
 use crate::{
     execute_program,
     fee_inclusion_proof,
+    get_process,
     inclusion_proof,
     log,
-    programs::fee::FeeExecution,
     types::{
         CurrentAleo,
         CurrentBlockMemory,
@@ -44,110 +43,112 @@ use std::str::FromStr;
 
 #[wasm_bindgen]
 impl ProgramManager {
-    /// Run an aleo program locally
+    /// Execute an arbitrary function locally
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being executed
+    /// @param function The name of the function to execute
+    /// @param inputs A javascript array of inputs to the function
+    /// @param amount_record The record to fund the amount from
+    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
+    /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
+    /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
+    /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
+    /// keys will be deallocated from memory after the transaction is executed.
+    /// @param proving_key (optional) Provide a verifying key to use for the function execution
+    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
     pub fn execute_local(
         &mut self,
+        private_key: PrivateKey,
         program: String,
         function: String,
         inputs: Array,
-        private_key: PrivateKey,
         cache: bool,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
     ) -> Result<ExecutionResponse, String> {
-        log(&format!("executing local function: {function}"));
+        log(&format!("Executing local function: {function}"));
         let inputs = inputs.to_vec();
-        let ((response, execution, _, _), process) =
-            execute_program!(self, inputs, program, function, private_key, cache);
 
+        let mut new_process;
+        let process: &mut ProcessNative = get_process!(self, cache, new_process);
+
+        let (response, execution, _, _) =
+            execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
+
+        log(&format!("Verifying execution for local function: {function}"));
         process.verify_execution::<false>(&execution).map_err(|e| e.to_string())?;
 
+        log("Creating execution response");
         let outputs = js_sys::Array::new_with_length(response.outputs().len() as u32);
-
         for (i, output) in response.outputs().iter().enumerate() {
             outputs.set(i as u32, wasm_bindgen::JsValue::from_str(&output.to_string()));
         }
-
         Ok(ExecutionResponse::from(response))
     }
 
-    pub fn clear_cache(&mut self) {
-        self.proving_key_cache.clear();
-        self.verifying_key_cache.clear();
-    }
-
     /// Execute Aleo function and create an Aleo execution transaction
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being executed
+    /// @param function The name of the function to execute
+    /// @param inputs A javascript array of inputs to the function
+    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
+    /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
+    /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
+    /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
+    /// keys will be deallocated from memory after the transaction is executed.
+    /// @param proving_key (optional) Provide a verifying key to use for the function execution
+    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute(
         &mut self,
+        private_key: PrivateKey,
         program: String,
         function: String,
         inputs: Array,
-        private_key: PrivateKey,
         fee_credits: f64,
         fee_record: RecordPlaintext,
         url: String,
         cache: bool,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
+        fee_proving_key: Option<ProvingKey>,
+        fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
-        log(&format!("executing function: {function} on-chain"));
-        if fee_credits <= 0.0 {
-            return Err("Fee must be greater than zero to execute a program".to_string());
-        }
-        let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
-        if fee_record.microcredits() < fee_microcredits {
-            return Err("Fee record does not have enough credits to pay the specified fee".to_string());
-        }
+        log(&format!("Executing function: {function} on-chain"));
+        let fee_microcredits = Self::validate_amount(fee_credits, &fee_record, true)?;
 
-        // Execute the program
-        let ((_, execution, inclusion, _), process) =
-            execute_program!(self, inputs, program, function, private_key, cache);
+        let mut new_process;
+        let process = get_process!(self, cache, new_process);
 
-        // Create the inclusion proof for the execution
-        let execution = inclusion_proof!(inclusion, execution, url);
+        let (_, execution, inclusion, _) =
+            execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
+        let execution = inclusion_proof!(process, inclusion, execution, url);
+        let fee = fee_inclusion_proof!(
+            process,
+            private_key,
+            fee_record,
+            fee_microcredits,
+            url,
+            fee_proving_key,
+            fee_verifying_key
+        );
 
-        // Verify the execution
-        process.verify_execution::<true>(&execution).map_err(|e| e.to_string())?;
-
-        // Execute the call to fee and create the inclusion proof for it
-        let fee = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
-
-        // Verify the fee
-        process.verify_fee(&fee).map_err(|e| e.to_string())?;
-
-        // Create the transaction
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
-
         Ok(Transaction::from(transaction))
-    }
-
-    /// Execute An aleo fee transaction, if using web workers, this can be called in parallel with
-    /// an execution of the program
-    #[wasm_bindgen]
-    pub async fn execute_fee(
-        &self,
-        private_key: PrivateKey,
-        fee_credits: f64,
-        fee_record: RecordPlaintext,
-        url: String,
-    ) -> Result<FeeExecution, String> {
-        log("Creating fee execution");
-        if fee_credits <= 0.0 {
-            return Err("Fee must be greater than zero".to_string());
-        }
-
-        // Convert fee to microcredits and check that the fee record has enough credits to pay it
-        let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
-        if fee_record.microcredits() < fee_microcredits {
-            return Err("Fee record does not have enough credits to pay the specified fee".to_string());
-        }
-
-        let process = ProcessNative::load_web().unwrap();
-
-        // Execute the call to fee and create the inclusion proof for it
-        let fee_native = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
-
-        Ok(FeeExecution::from(fee_native))
     }
 }
 
@@ -173,7 +174,7 @@ function main:
         inputs.set(0, wasm_bindgen::JsValue::from_str("5u32"));
         inputs.set(1, wasm_bindgen::JsValue::from_str("5u32"));
         let result = program_manager
-            .execute_local(HELLO_PROGRAM.to_string(), "main".to_string(), inputs, private_key, false)
+            .execute_local(private_key, HELLO_PROGRAM.to_string(), "main".to_string(), inputs, false, None, None)
             .unwrap();
         let outputs = result.get_outputs().to_vec();
         console_log!("outputs: {:?}", outputs);
@@ -195,7 +196,20 @@ function main:
         let record = RecordPlaintext::from_string(record_str).unwrap();
         let url = "http://0.0.0.0:3030";
         let transaction = program_manager
-            .execute(HELLO_PROGRAM.to_string(), function, inputs, private_key, fee, record, url.to_string(), false)
+            .execute(
+                private_key,
+                HELLO_PROGRAM.to_string(),
+                function,
+                inputs,
+                fee,
+                record,
+                url.to_string(),
+                false,
+                None,
+                None,
+                None,
+                None,
+            )
             .await
             .unwrap();
         // If the transaction unwrap doesn't panic, it's succeeded
