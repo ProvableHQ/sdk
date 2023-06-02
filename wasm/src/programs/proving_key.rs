@@ -57,3 +57,25 @@ impl From<ProvingKeyNative> for ProvingKey {
         ProvingKey(proving_key)
     }
 }
+
+impl PartialEq for ProvingKey {
+    fn eq(&self, other: &Self) -> bool {
+        *self.0 == *other.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wasm_bindgen_test::*;
+
+    const FEE_PROVER_URL: &str = "https://testnet3.parameters.aleo.org/fee.prover.0bfc24f";
+
+    #[wasm_bindgen_test]
+    async fn test_proving_key_roundtrip() {
+        let fee_proving_key_bytes = reqwest::get(FEE_PROVER_URL).await.unwrap().bytes().await.unwrap().to_vec();
+        let fee_proving_key = ProvingKey::from_bytes(&fee_proving_key_bytes).unwrap();
+        let bytes = fee_proving_key.to_bytes().unwrap();
+        assert_eq!(bytes, fee_proving_key_bytes);
+    }
+}

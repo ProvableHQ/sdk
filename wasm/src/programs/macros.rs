@@ -47,18 +47,25 @@ macro_rules! execute_program {
 
         if program_id != "credits.aleo" {
             log("Adding program to the process");
-            $process.add_program(&program).map_err(|_| "Failed to add program".to_string())?;
+            if let Ok(stored_program) = $process.get_program(program.id()) {
+                if stored_program != &program {
+                    return Err("The program provided does not match the program stored in the cache, please clear the cache before proceeding".to_string());
+                }
+            } else {
+                $process.add_program(&program).map_err(|e| e.to_string())?;
+            }
         }
 
         if let Some(proving_key) = $proving_key {
-            log("Loading key from input");
-            $process
-                .insert_proving_key(program.id(), &function_name, ProvingKeyNative::from(proving_key))
-                .map_err(|e| e.to_string())?;
-            if let Some(verifying_key) = $verifying_key {
+            if Self::contains_key($process, program.id(), &function_name) {
+                log(&format!("Proving & verifying keys were specified for {program_id} - {function_name:?} but a key already exists in the cache. Using cached keys"));
+            } else {
                 $process
-                    .insert_verifying_key(program.id(), &function_name, VerifyingKeyNative::from(verifying_key))
+                    .insert_proving_key(program.id(), &function_name, ProvingKeyNative::from(proving_key))
                     .map_err(|e| e.to_string())?;
+                if let Some(verifying_key) = $verifying_key {
+                    $process.insert_verifying_key(program.id(), &function_name, VerifyingKeyNative::from(verifying_key)).map_err(|e| e.to_string())?;
+                }
             }
         };
 
@@ -110,23 +117,26 @@ macro_rules! fee_inclusion_proof {
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
             return Err(
-                "If specifying a key for a fee execution, both the proving and verifying key must be specified"
+                 "Missing key - both the proving and verifying key must be specified for a program execution"
                     .to_string(),
             );
         }
 
         if let Some(fee_proving_key) = $fee_proving_key {
-            log("Loading fee proving key from input");
             let credits = ProgramIDNative::from_str("credits.aleo").unwrap();
             let fee = IdentifierNative::from_str("fee").unwrap();
-            $process
-                .insert_proving_key(&credits, &fee, ProvingKeyNative::from(fee_proving_key))
-                .map_err(|e| e.to_string())?;
-            if let Some(fee_verifying_key) = $fee_verifying_key {
+            if Self::contains_key($process, &credits, &fee) {
+                log("Fee proving & verifying keys were specified but a key already exists in the cache. Using cached keys");
+            } else {
                 $process
-                    .insert_verifying_key(&credits, &fee, VerifyingKeyNative::from(fee_verifying_key))
-                    .map_err(|e| e.to_string())?;
+                    .insert_proving_key(&credits, &fee, ProvingKeyNative::from(fee_proving_key)).map_err(|e| e.to_string())?;
+                if let Some(fee_verifying_key) = $fee_verifying_key {
+                    $process
+                        .insert_verifying_key(&credits, &fee, VerifyingKeyNative::from(fee_verifying_key))
+                        .map_err(|e| e.to_string())?;
+                }
             }
+
         };
 
         log("Executing the fee and fee inclusion proof");

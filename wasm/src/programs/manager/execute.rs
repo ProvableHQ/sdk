@@ -167,52 +167,63 @@ function main:
 "#;
 
     #[wasm_bindgen_test]
-    async fn test_web_program_run() {
+    async fn test_program_execution_with_cache_and_external_keys() {
+        // Run program locally with cache enabled
         let mut program_manager = ProgramManager::new();
         let private_key = PrivateKey::new();
         let inputs = js_sys::Array::new_with_length(2);
         inputs.set(0, wasm_bindgen::JsValue::from_str("5u32"));
         inputs.set(1, wasm_bindgen::JsValue::from_str("5u32"));
         let result = program_manager
-            .execute_local(private_key, HELLO_PROGRAM.to_string(), "main".to_string(), inputs, false, None, None)
+            .execute_local(private_key.clone(), HELLO_PROGRAM.to_string(), "main".to_string(), inputs, true, None, None)
             .unwrap();
         let outputs = result.get_outputs().to_vec();
         console_log!("outputs: {:?}", outputs);
         assert_eq!(outputs.len(), 1);
         assert_eq!(outputs[0], "10u32");
-    }
 
-    #[wasm_bindgen_test]
-    async fn test_web_program_execution() {
-        let record_str = r#"{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50200000u64.private,  _nonce: 4201158309645146813264939404970515915909115816771965551707972399526559622583group.public}"#;
-        let mut program_manager = ProgramManager::new();
-        let private_key =
-            PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
+        // Ensure the keys were synthesized in the program run and are in the cache
+        let mut keypair = program_manager.get_cached_keypair("hello.aleo", "main").unwrap();
+
+        // Assert cached keys are used in future program executions
         let inputs = js_sys::Array::new_with_length(2);
-        inputs.set(0, wasm_bindgen::JsValue::from_str("5u32"));
+        inputs.set(0, wasm_bindgen::JsValue::from_str("15u32"));
         inputs.set(1, wasm_bindgen::JsValue::from_str("5u32"));
-        let function = "main".to_string();
-        let fee = 2.0f64;
-        let record = RecordPlaintext::from_string(record_str).unwrap();
-        let url = "http://0.0.0.0:3030";
-        let transaction = program_manager
-            .execute(
+        let result = program_manager
+            .execute_local(private_key.clone(), HELLO_PROGRAM.to_string(), "main".to_string(), inputs, true, None, None)
+            .unwrap();
+
+        // Ensure the output using cached keys is correct
+        let outputs = result.get_outputs().to_vec();
+        console_log!("outputs: {:?}", outputs);
+        assert_eq!(outputs.len(), 1);
+        assert_eq!(outputs[0], "20u32");
+
+        // Assert cached keys are used in future transactions
+        let inputs = js_sys::Array::new_with_length(2);
+        inputs.set(0, wasm_bindgen::JsValue::from_str("15u32"));
+        inputs.set(1, wasm_bindgen::JsValue::from_str("15u32"));
+
+        // Ensure a function execution can be completed via passing external keys to the execute
+        // function
+        let retrieved_proving_key = keypair.proving_key().unwrap();
+        let retrieved_verifying_key = keypair.verifying_key().unwrap();
+        let result = program_manager
+            .execute_local(
                 private_key,
                 HELLO_PROGRAM.to_string(),
-                function,
+                "main".to_string(),
                 inputs,
-                fee,
-                record,
-                url.to_string(),
                 false,
-                None,
-                None,
-                None,
-                None,
+                Some(retrieved_proving_key),
+                Some(retrieved_verifying_key),
             )
-            .await
             .unwrap();
-        // If the transaction unwrap doesn't panic, it's succeeded
-        console_log!("transaction: {:?}", transaction);
+
+        // Ensure the output is correct
+        let outputs = result.get_outputs().to_vec();
+        console_log!("outputs: {:?}", outputs);
+        assert_eq!(outputs.len(), 1);
+        assert_eq!(outputs[0], "30u32");
     }
 }

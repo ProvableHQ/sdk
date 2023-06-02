@@ -121,8 +121,9 @@ impl ProgramManager {
         process
             .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
+
         let fee = fee_inclusion_proof!(
-            process,
+            &process,
             private_key,
             fee_record,
             fee_microcredits,

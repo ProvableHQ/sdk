@@ -86,6 +86,9 @@ optional = true
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
 
+[dependencies.serde]
+version = "1.0.163"
+
 [dev-dependencies.wasm-bindgen-test]
 version = "0.3.33"
 
