@@ -51,8 +51,8 @@ We recommend installing `aleo` this way. In your terminal, run:
 # Download the source code
 git clone https://github.com/AleoHQ/sdk.git
 
-# Enter the 'aleo' directory
-cd aleo
+# Enter the 'sdk' directory
+cd sdk
 
 # Install 'aleo'
 cargo install --path .
