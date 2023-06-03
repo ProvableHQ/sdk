@@ -1,28 +1,27 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
-use std::ops::Add;
 
 use crate::{
     execute_program,
     fee_inclusion_proof,
+    get_process,
     inclusion_proof,
     log,
-    programs::fee::FeeExecution,
     types::{
         CurrentAleo,
         CurrentBlockMemory,
@@ -44,110 +43,112 @@ use std::str::FromStr;
 
 #[wasm_bindgen]
 impl ProgramManager {
-    /// Run an aleo program locally
+    /// Execute an arbitrary function locally
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being executed
+    /// @param function The name of the function to execute
+    /// @param inputs A javascript array of inputs to the function
+    /// @param amount_record The record to fund the amount from
+    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
+    /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
+    /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
+    /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
+    /// keys will be deallocated from memory after the transaction is executed.
+    /// @param proving_key (optional) Provide a verifying key to use for the function execution
+    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
     pub fn execute_local(
         &mut self,
+        private_key: PrivateKey,
         program: String,
         function: String,
         inputs: Array,
-        private_key: PrivateKey,
         cache: bool,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
     ) -> Result<ExecutionResponse, String> {
-        log(&format!("executing local function: {function}"));
+        log(&format!("Executing local function: {function}"));
         let inputs = inputs.to_vec();
-        let ((response, execution, _, _), process) =
-            execute_program!(self, inputs, program, function, private_key, cache);
 
+        let mut new_process;
+        let process: &mut ProcessNative = get_process!(self, cache, new_process);
+
+        let (response, execution, _, _) =
+            execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
+
+        log(&format!("Verifying execution for local function: {function}"));
         process.verify_execution::<false>(&execution).map_err(|e| e.to_string())?;
 
+        log("Creating execution response");
         let outputs = js_sys::Array::new_with_length(response.outputs().len() as u32);
-
         for (i, output) in response.outputs().iter().enumerate() {
             outputs.set(i as u32, wasm_bindgen::JsValue::from_str(&output.to_string()));
         }
-
         Ok(ExecutionResponse::from(response))
     }
 
-    pub fn clear_cache(&mut self) {
-        self.proving_key_cache.clear();
-        self.verifying_key_cache.clear();
-    }
-
     /// Execute Aleo function and create an Aleo execution transaction
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being executed
+    /// @param function The name of the function to execute
+    /// @param inputs A javascript array of inputs to the function
+    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
+    /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
+    /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
+    /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
+    /// keys will be deallocated from memory after the transaction is executed.
+    /// @param proving_key (optional) Provide a verifying key to use for the function execution
+    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute(
         &mut self,
+        private_key: PrivateKey,
         program: String,
         function: String,
         inputs: Array,
-        private_key: PrivateKey,
         fee_credits: f64,
         fee_record: RecordPlaintext,
         url: String,
         cache: bool,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
+        fee_proving_key: Option<ProvingKey>,
+        fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
-        log(&format!("executing function: {function} on-chain"));
-        if fee_credits <= 0.0 {
-            return Err("Fee must be greater than zero to execute a program".to_string());
-        }
-        let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
-        if fee_record.microcredits() < fee_microcredits {
-            return Err("Fee record does not have enough credits to pay the specified fee".to_string());
-        }
+        log(&format!("Executing function: {function} on-chain"));
+        let fee_microcredits = Self::validate_amount(fee_credits, &fee_record, true)?;
 
-        // Execute the program
-        let ((_, execution, inclusion, _), process) =
-            execute_program!(self, inputs, program, function, private_key, cache);
+        let mut new_process;
+        let process = get_process!(self, cache, new_process);
 
-        // Create the inclusion proof for the execution
-        let execution = inclusion_proof!(inclusion, execution, url);
+        let (_, execution, inclusion, _) =
+            execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
+        let execution = inclusion_proof!(process, inclusion, execution, url);
+        let fee = fee_inclusion_proof!(
+            process,
+            private_key,
+            fee_record,
+            fee_microcredits,
+            url,
+            fee_proving_key,
+            fee_verifying_key
+        );
 
-        // Verify the execution
-        process.verify_execution::<true>(&execution).map_err(|e| e.to_string())?;
-
-        // Execute the call to fee and create the inclusion proof for it
-        let fee = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
-
-        // Verify the fee
-        process.verify_fee(&fee).map_err(|e| e.to_string())?;
-
-        // Create the transaction
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
-
         Ok(Transaction::from(transaction))
-    }
-
-    /// Execute An aleo fee transaction, if using web workers, this can be called in parallel with
-    /// an execution of the program
-    #[wasm_bindgen]
-    pub async fn execute_fee(
-        &self,
-        private_key: PrivateKey,
-        fee_credits: f64,
-        fee_record: RecordPlaintext,
-        url: String,
-    ) -> Result<FeeExecution, String> {
-        log("Creating fee execution");
-        if fee_credits <= 0.0 {
-            return Err("Fee must be greater than zero".to_string());
-        }
-
-        // Convert fee to microcredits and check that the fee record has enough credits to pay it
-        let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
-        if fee_record.microcredits() < fee_microcredits {
-            return Err("Fee record does not have enough credits to pay the specified fee".to_string());
-        }
-
-        let process = ProcessNative::load_web().unwrap();
-
-        // Execute the call to fee and create the inclusion proof for it
-        let fee_native = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
-
-        Ok(FeeExecution::from(fee_native))
     }
 }
 
@@ -166,39 +167,63 @@ function main:
 "#;
 
     #[wasm_bindgen_test]
-    async fn test_web_program_run() {
+    async fn test_program_execution_with_cache_and_external_keys() {
+        // Run program locally with cache enabled
         let mut program_manager = ProgramManager::new();
         let private_key = PrivateKey::new();
         let inputs = js_sys::Array::new_with_length(2);
         inputs.set(0, wasm_bindgen::JsValue::from_str("5u32"));
         inputs.set(1, wasm_bindgen::JsValue::from_str("5u32"));
         let result = program_manager
-            .execute_local(HELLO_PROGRAM.to_string(), "main".to_string(), inputs, private_key, false)
+            .execute_local(private_key.clone(), HELLO_PROGRAM.to_string(), "main".to_string(), inputs, true, None, None)
             .unwrap();
         let outputs = result.get_outputs().to_vec();
         console_log!("outputs: {:?}", outputs);
         assert_eq!(outputs.len(), 1);
         assert_eq!(outputs[0], "10u32");
-    }
 
-    #[wasm_bindgen_test]
-    async fn test_web_program_execution() {
-        let record_str = r#"{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 50200000u64.private,  _nonce: 4201158309645146813264939404970515915909115816771965551707972399526559622583group.public}"#;
-        let mut program_manager = ProgramManager::new();
-        let private_key =
-            PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
+        // Ensure the keys were synthesized in the program run and are in the cache
+        let mut keypair = program_manager.get_cached_keypair("hello.aleo", "main").unwrap();
+
+        // Assert cached keys are used in future program executions
         let inputs = js_sys::Array::new_with_length(2);
-        inputs.set(0, wasm_bindgen::JsValue::from_str("5u32"));
+        inputs.set(0, wasm_bindgen::JsValue::from_str("15u32"));
         inputs.set(1, wasm_bindgen::JsValue::from_str("5u32"));
-        let function = "main".to_string();
-        let fee = 2.0f64;
-        let record = RecordPlaintext::from_string(record_str).unwrap();
-        let url = "http://0.0.0.0:3030";
-        let transaction = program_manager
-            .execute(HELLO_PROGRAM.to_string(), function, inputs, private_key, fee, record, url.to_string(), false)
-            .await
+        let result = program_manager
+            .execute_local(private_key.clone(), HELLO_PROGRAM.to_string(), "main".to_string(), inputs, true, None, None)
             .unwrap();
-        // If the transaction unwrap doesn't panic, it's succeeded
-        console_log!("transaction: {:?}", transaction);
+
+        // Ensure the output using cached keys is correct
+        let outputs = result.get_outputs().to_vec();
+        console_log!("outputs: {:?}", outputs);
+        assert_eq!(outputs.len(), 1);
+        assert_eq!(outputs[0], "20u32");
+
+        // Assert cached keys are used in future transactions
+        let inputs = js_sys::Array::new_with_length(2);
+        inputs.set(0, wasm_bindgen::JsValue::from_str("15u32"));
+        inputs.set(1, wasm_bindgen::JsValue::from_str("15u32"));
+
+        // Ensure a function execution can be completed via passing external keys to the execute
+        // function
+        let retrieved_proving_key = keypair.proving_key().unwrap();
+        let retrieved_verifying_key = keypair.verifying_key().unwrap();
+        let result = program_manager
+            .execute_local(
+                private_key,
+                HELLO_PROGRAM.to_string(),
+                "main".to_string(),
+                inputs,
+                false,
+                Some(retrieved_proving_key),
+                Some(retrieved_verifying_key),
+            )
+            .unwrap();
+
+        // Ensure the output is correct
+        let outputs = result.get_outputs().to_vec();
+        console_log!("outputs: {:?}", outputs);
+        assert_eq!(outputs.len(), 1);
+        assert_eq!(outputs[0], "30u32");
     }
 }

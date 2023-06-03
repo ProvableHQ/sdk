@@ -1,23 +1,23 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::{CurrentNetwork, IdentifierNative, ProgramNative};
 
 use js_sys::{Array, Object, Reflect};
-use snarkvm_wasm::program::{EntryType, PlaintextType, ValueType};
+use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -47,8 +47,8 @@ impl Program {
 
     /// Get javascript array of functions names in the program
     #[wasm_bindgen(js_name = "getFunctions")]
-    pub fn get_functions(&self) -> js_sys::Array {
-        let array = js_sys::Array::new_with_length(self.0.functions().len() as u32);
+    pub fn get_functions(&self) -> Array {
+        let array = Array::new_with_length(self.0.functions().len() as u32);
         let mut index = 0u32;
         self.0.functions().values().for_each(|function| {
             array.set(index, JsValue::from_str(&function.name().to_string()));
@@ -60,14 +60,14 @@ impl Program {
     /// Get a javascript object representation of the function inputs and types. This can be used
     /// to generate a webform to capture user inputs for an execution of a function.
     #[wasm_bindgen(js_name = "getFunctionInputs")]
-    pub fn get_function_inputs(&self, function_name: String) -> Result<js_sys::Array, String> {
+    pub fn get_function_inputs(&self, function_name: String) -> Result<Array, String> {
         let function_id = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
         let function = self
             .0
             .functions()
             .get(&function_id)
             .ok_or_else(|| format!("function {} not found in {}", function_name, self.0.id()))?;
-        let function_inputs = js_sys::Array::new_with_length(function.inputs().len() as u32);
+        let function_inputs = Array::new_with_length(function.inputs().len() as u32);
         for (index, input) in function.inputs().iter().enumerate() {
             match input.value_type() {
                 ValueType::Constant(plaintext) => {
@@ -252,7 +252,6 @@ function bump_token_version:
     fn test_get_functions() {
         let program = Program::from(ProgramNative::credits().unwrap());
         assert_eq!(program.get_functions().to_vec(), vec!["mint", "transfer", "join", "split", "fee"]);
-        console_log!("{:?}", TOKEN_ISSUE);
     }
 
     #[wasm_bindgen_test]

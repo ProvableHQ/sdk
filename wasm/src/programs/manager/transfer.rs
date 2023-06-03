@@ -1,24 +1,25 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
 
 use crate::{
     execute_program,
     fee_inclusion_proof,
+    get_process,
     inclusion_proof,
     log,
     types::{
@@ -41,7 +42,26 @@ use std::{ops::Add, str::FromStr};
 
 #[wasm_bindgen]
 impl ProgramManager {
-    /// Create an aleo transaction
+    /// Send credits from one Aleo account to another
+    ///
+    /// @param private_key The private key of the sender
+    /// @param amount_credits The amount of credits to send
+    /// @param recipient The recipient of the transaction
+    /// @param amount_record The record to fund the amount from
+    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param cache Cache the proving and verifying keys in the ProgramManager memory. If this is
+    /// set to `true` the keys synthesized (or passed in as optional parameters via the
+    /// `transfer_proving_key` and `transfer_verifying_key` arguments) will be stored in the
+    /// ProgramManager's memory and used for subsequent transactions. If this is set to `false` the
+    /// proving and verifying keys will be deallocated from memory after the transaction is executed
+    /// @param transfer_proving_key (optional) Provide a proving key to use for the transfer
+    /// function
+    /// @param transfer_verifying_key (optional) Provide a verifying key to use for the transfer
+    /// function
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
     pub async fn transfer(
@@ -54,46 +74,47 @@ impl ProgramManager {
         fee_record: RecordPlaintext,
         url: String,
         cache: bool,
+        transfer_proving_key: Option<ProvingKey>,
+        transfer_verifying_key: Option<VerifyingKey>,
+        fee_proving_key: Option<ProvingKey>,
+        fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
-        log("Creating transfer transaction");
-        if fee_credits <= 0.0 {
-            return Err("Fee must be greater than zero".to_string());
-        }
-        if amount_credits <= 0.0 {
-            return Err("Amount to transfer must be greater than zero".to_string());
-        }
+        log("Executing transfer program");
+        let fee_microcredits = Self::validate_amount(fee_credits, &fee_record, true)?;
+        let amount_microcredits = Self::validate_amount(amount_credits, &amount_record, true)?;
 
-        // Convert the amount and fee to microcredits
-        let amount_microcredits = (amount_credits * 1_000_000.0f64) as u64;
-        let fee_microcredits = (fee_credits * 1_000_000.0f64) as u64;
-
-        // Setup the program and inputs
+        log("Setup the program and inputs");
         let program = ProgramNative::credits().unwrap().to_string();
         let inputs = Array::new_with_length(3);
         inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.to_string()));
         inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
         inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
 
-        // Execute the program
-        let ((_, execution, inclusion, _), process) =
-            execute_program!(self, inputs, program, "transfer", private_key, cache);
+        let mut new_process;
+        let process = get_process!(self, cache, new_process);
 
-        // Create the inclusion proof for the execution
-        let execution = inclusion_proof!(inclusion, execution, url);
+        let (_, execution, inclusion, _) = execute_program!(
+            process,
+            inputs,
+            program,
+            "transfer",
+            private_key,
+            transfer_proving_key,
+            transfer_verifying_key
+        );
+        let execution = inclusion_proof!(process, inclusion, execution, url);
+        let fee = fee_inclusion_proof!(
+            process,
+            private_key,
+            fee_record,
+            fee_microcredits,
+            url,
+            fee_proving_key,
+            fee_verifying_key
+        );
 
-        // Verify the execution
-        process.verify_execution::<true>(&execution).map_err(|e| e.to_string())?;
-
-        // Execute the call to fee and create the inclusion proof for it
-        let fee = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
-
-        // Verify the fee
-        process.verify_fee(&fee).map_err(|e| e.to_string())?;
-
-        // Create the transaction
         log("Creating execution transaction for transfer");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
-
         Ok(Transaction::from(transaction))
     }
 }
