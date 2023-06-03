@@ -106,7 +106,7 @@ impl<N: Network> ProgramManager<N> {
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
         let _ = &vm.process().write().add_program(program);
 
-        // Create the execution transaction
+        // Create an execution transaction
         vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, fee)), Some(query), rng)
     }
 }
