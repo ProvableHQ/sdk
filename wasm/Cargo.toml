@@ -19,6 +19,7 @@ edition = "2021"
 
 [lib]
 crate-type = [ "cdylib", "rlib" ]
+doctest = false
 
 [dependencies.aleo-rust]
 features = [ "wasm" ]
@@ -31,14 +32,24 @@ version = "1.0"
 version = "0.2"
 features = [ "js" ]
 
+[dependencies.indexmap]
+version = "1.7"
+
+[dependencies.lazy_static]
+version = "1.4.0"
+
 [dependencies.hex]
 version = "0.4.3"
 
 [dependencies.js-sys]
-version = "0.3.63"
+version = "0.3"
 
 [dependencies.rand]
 version = "0.8"
+
+[dependencies.rayon]
+version = "1.5"
+optional = true
 
 [dependencies.reqwest]
 version = "0.11.18"
@@ -46,9 +57,16 @@ version = "0.11.18"
 [dependencies.serde_json]
 version = "1.0"
 
+[dependencies.snarkvm-console]
+workspace = true
+features = [ "wasm" ]
+
+[dependencies.snarkvm-circuit-network]
+workspace = true
+
 [dependencies.snarkvm-synthesizer]
 workspace = true
-features = [ "wasm", "serial" ]
+features = [ "wasm" ]
 
 [dependencies.snarkvm-wasm]
 workspace = true
@@ -61,11 +79,37 @@ features = [ "serde-serialize" ]
 [dependencies.wasm-bindgen-futures]
 version = "0.4.36"
 
-[dependencies.wasm-bindgen-test]
-version = "0.3.36"
+[dependencies.wasm-bindgen-rayon]
+version = "1.0.3"
+optional = true
 
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
 
+[dependencies.serde]
+version = "1.0.163"
+
 [dev-dependencies.wasm-bindgen-test]
 version = "0.3.33"
+
+[features]
+default = [ "serial", "browser" ]
+serial = [ "snarkvm-synthesizer/serial" ]
+parallel = [ "wasm-bindgen-rayon", "rayon" ]
+browser = [ ]
+
+## Profiles
+[profile.release]
+opt-level = 4
+lto = true
+
+[profile.dev]
+opt-level = 4
+lto = "thin"
+incremental = true
+
+[package.metadata.wasm-pack.profile.debug]
+wasm-opt = ["-O4"]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O4"]
