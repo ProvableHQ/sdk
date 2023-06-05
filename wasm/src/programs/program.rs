@@ -184,6 +184,12 @@ impl Program {
 
         Ok(struct_members)
     }
+
+    /// Get the credits.aleo program
+    #[wasm_bindgen(js_name = "getCreditsProgram")]
+    pub fn get_credits_program() -> Program {
+        Program::from(ProgramNative::credits().unwrap())
+    }
 }
 
 impl Deref for Program {
