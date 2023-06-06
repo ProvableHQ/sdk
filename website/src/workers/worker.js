@@ -1,10 +1,19 @@
 import init, * as aleo from '@aleohq/wasm';
+import { FEE_PROVER_URL, FEE_VERIFIER_URL, JOIN_PROVER_URL, JOIN_VERIFIER_URL, SPLIT_PROVER_URL, SPLIT_VERIFIER_URL, TRANSFER_PROVER_URL, TRANSFER_VERIFIER_URL, getFunctionKeys } from './keys';
+
+let feeProvingKey = null;
+let feeVerifyingKey = null;
+let joinProvingKey = null;
+let joinVerifyingKey = null;
+let splitProvingKey = null;
+let splitVerifyingKey = null;
+let transferProvingKey = null;
+let transferVerifyingKey = null;
 
 await init();
+await aleo.initThreadPool(8);
+const aleoProgramManager = new aleo.ProgramManager();
 
-aleo.initThreadPool(8);
-
-const aleoProgramManager = aleo.ProgramManager.new();
 self.addEventListener("message", ev => {
     if (ev.data.type === 'ALEO_EXECUTE_PROGRAM_LOCAL') {
         const {
@@ -19,10 +28,10 @@ self.addEventListener("message", ev => {
 
         try {
             let response = aleoProgramManager.execute_local(
+                aleo.PrivateKey.from_string(privateKey),
                 localProgram,
                 aleoFunction,
                 inputs,
-                aleo.PrivateKey.from_string(privateKey),
                 true
             );
 
@@ -51,14 +60,26 @@ self.addEventListener("message", ev => {
 
         (async function() {
             try {
+                if (feeProvingKey === null || feeVerifyingKey === null) {
+                    [feeProvingKey, feeVerifyingKey] = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL);
+                    console.log("provingKey is: ", feeProvingKey);
+                    console.log("verifyingKey is: ", feeVerifyingKey);
+                }
+
+                if (!aleoProgramManager.keyExists("credits.aleo", "fee")) {
+                    console.log("fee_proving_key", feeProvingKey);
+                    aleoProgramManager.cacheKeypairInWasmMemory("credits.aleo", "fee", feeProvingKey, feeVerifyingKey);
+                }
+
                 let executeTransaction = await aleoProgramManager.execute(
+                    aleo.PrivateKey.from_string(privateKey),
                     remoteProgram,
                     aleoFunction,
                     inputs,
-                    aleo.PrivateKey.from_string(privateKey),
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
-                    url
+                    url,
+                    true
                 );
 
                 console.log(`Web worker: On-chain execution transaction created in ${performance.now() - startTime} ms`);
@@ -87,6 +108,14 @@ self.addEventListener("message", ev => {
 
         (async function() {
             try {
+                if (transferProvingKey === null || transferVerifyingKey === null) {
+                    ({transferProvingKey, transferVerifyingKey} = await getFunctionKeys(TRANSFER_PROVER_URL, TRANSFER_VERIFIER_URL));
+                }
+                if (feeProvingKey === null || feeVerifyingKey === null) {
+                    ({feeProvingKey, feeVerifyingKey} = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL));
+                    aleoProgramManager.cacheKeypairInWasmMemory("credits.aleo", "fee", feeProvingKey, feeVerifyingKey);
+                }
+
                 let transferTransaction = await aleoProgramManager.transfer(
                     aleo.PrivateKey.from_string(privateKey),
                     amountCredits,
@@ -94,7 +123,12 @@ self.addEventListener("message", ev => {
                     aleo.RecordPlaintext.fromString(amountRecord),
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
-                    url
+                    url,
+                    false,
+                    transferProvingKey,
+                    transferVerifyingKey,
+                    feeProvingKey,
+                    feeVerifyingKey
                 );
 
                 console.log(`Web worker: Transfer transaction created in ${performance.now() - startTime} ms`);
@@ -121,13 +155,22 @@ self.addEventListener("message", ev => {
         let startTime = performance.now();
         (async function() {
             try {
+                if (feeProvingKey === null || feeVerifyingKey === null) {
+                    ({feeProvingKey, feeVerifyingKey} = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL));
+                }
+
+                if (!aleoProgramManager.keyExists("credits.aleo", "fee")) {
+                    aleoProgramManager.cacheKeypairInWasmMemory("credits.aleo", "fee", feeProvingKey, feeVerifyingKey);
+                }
+
                 let deployTransaction = await aleoProgramManager.deploy(
+                    aleo.PrivateKey.from_string(privateKey),
                     program,
                     undefined,
-                    aleo.PrivateKey.from_string(privateKey),
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
+                    true
                 );
 
                 console.log(`Web worker: Deployment transaction created in ${performance.now() - startTime} ms`);
@@ -153,12 +196,17 @@ self.addEventListener("message", ev => {
         let startTime = performance.now();
         (async function() {
             try {
+                if (splitProvingKey === null || splitVerifyingKey === null) {
+                    ({splitProvingKey, splitVerifyingKey} = await getFunctionKeys(SPLIT_PROVER_URL, SPLIT_VERIFIER_URL));
+                }
                 let splitTransaction = await aleoProgramManager.split(
                     aleo.PrivateKey.from_string(privateKey),
                     splitAmount,
                     aleo.RecordPlaintext.fromString(record),
                     url,
-                    true
+                    false,
+                    splitProvingKey,
+                    splitVerifyingKey
                 );
 
                 console.log(`Web worker: Split transaction created in ${performance.now() - startTime} ms`);
@@ -185,15 +233,24 @@ self.addEventListener("message", ev => {
 
         let startTime = performance.now();
         (async function() {
+            if (feeProvingKey === null || feeVerifyingKey === null) {
+                ({feeProvingKey, feeVerifyingKey} = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL));
+            }
+            if (joinProvingKey === null || joinVerifyingKey === null) {
+                ({joinProvingKey, joinVerifyingKey} = await getFunctionKeys(JOIN_PROVER_URL, JOIN_VERIFIER_URL));
+            }
+
             try {
                 let joinTransaction = await aleoProgramManager.join(
                     aleo.PrivateKey.from_string(privateKey),
                     aleo.RecordPlaintext.fromString(recordOne),
                     aleo.RecordPlaintext.fromString(recordTwo),
-                    0,
+                    fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
-                    true
+                    false,
+                    joinProvingKey,
+                    joinVerifyingKey,
                 );
 
                 console.log(`Web worker: Join transaction created in ${performance.now() - startTime} ms`);

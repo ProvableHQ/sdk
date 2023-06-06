@@ -18,6 +18,7 @@ use super::*;
 
 use crate::{
     fee_inclusion_proof,
+    get_process,
     log,
     types::{
         CurrentAleo,
@@ -62,13 +63,14 @@ impl ProgramManager {
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
     pub async fn deploy(
-        &self,
+        &mut self,
         private_key: PrivateKey,
         program: String,
         imports: Option<Object>,
         fee_credits: f64,
         fee_record: RecordPlaintext,
         url: String,
+        cache: bool,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
@@ -79,7 +81,8 @@ impl ProgramManager {
             return Err("Fee record does not have enough credits to pay the specified fee".to_string());
         }
 
-        let mut process = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let mut new_process;
+        let process = get_process!(self, cache, new_process);
 
         log("Check program has a valid name");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;

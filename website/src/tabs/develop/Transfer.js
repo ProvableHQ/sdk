@@ -15,6 +15,7 @@ export const Transfer = () => {
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
+    const [provingKey, setProvingKey] = useState(null);
 
     function spawnWorker() {
         let worker = new Worker("./worker.js");
@@ -54,6 +55,8 @@ export const Transfer = () => {
         setLoading(true)
         setTransactionID(null);
         setTransferError(null);
+
+        const provingKey = await getProvingKey();
 
         await postMessagePromise(worker, {
             type: 'ALEO_TRANSFER',
