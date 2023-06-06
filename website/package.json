@@ -30,6 +30,7 @@
     "webpack-dev-server": "^4.7.4"
   },
   "scripts": {
+    "preinstall": "cd ../wasm && export RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--max-memory=4294967296' && rustup run nightly wasm-pack build --release --target web --out-dir pkg-parallel -- --features \"parallel, browser\" --no-default-features -Z build-std=panic_abort,std",
     "start": "webpack-dev-server",
     "build": "webpack --config webpack.config.js",
     "predeploy": "yarn build",
