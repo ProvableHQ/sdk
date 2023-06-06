@@ -6,7 +6,7 @@ export const Transfer = () => {
     const [transferFeeRecord, setTransferFeeRecord] = useState(null);
     const [amountRecord, setAmountRecord] = useState(null);
     const [transferUrl, setTransferUrl] = useState("https://vm.aleo.org/api");
-    const [transferAmount, setTransferAmount] = useState(null);
+    const [transferAmount, setTransferAmount] = useState("1.0");
     const [transferFee, setTransferFee] = useState("1.0");
     const [recipient, setRecipient] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -56,13 +56,35 @@ export const Transfer = () => {
         setTransactionID(null);
         setTransferError(null);
 
+        const feeAmount = parseFloat(feeString());
+        if (isNaN(feeAmount)) {
+            setTransferError("Fee is not a valid number");
+            setLoading(false);
+            return;
+        } else if (feeAmount <= 0) {
+            setTransferError("Fee must be greater than 0");
+            setLoading(false);
+            return;
+        }
+
+        const amount = parseFloat(amountString());
+        if (isNaN(amount)) {
+            setTransferError("Amount is not a valid number");
+            setLoading(false);
+            return;
+        } else if (amount <= 0) {
+            setTransferError("Amount must be greater than 0");
+            setLoading(false);
+            return;
+        }
+
         await postMessagePromise(worker, {
             type: 'ALEO_TRANSFER',
             privateKey: privateKeyString(),
-            amountCredits: amountNumber(),
+            amountCredits: amount,
             recipient: recipientString(),
             amountRecord: amountRecordString(),
-            fee: feeNumber(),
+            fee: feeAmount,
             feeRecord: feeRecordString(),
             url: peerUrl(),
         });
@@ -145,14 +167,14 @@ export const Transfer = () => {
     }
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const amountNumber = () => transferAmount !== null ? parseFloat(transferAmount) : 0.0;
+    const feeString = () => transferFee !== null ? transferFee : "";
+    const amountString = () => transferAmount !== null ? transferAmount : "";
     const recipientString = () => recipient !== null ? recipient : "";
     const privateKeyString = () => privateKey !== null ? privateKey : "";
     const feeRecordString = () => transferFeeRecord !== null ? transferFeeRecord : "";
     const amountRecordString = () => amountRecord !== null ? amountRecord : "";
     const transactionIDString = () => transactionID !== null ? transactionID : "";
     const transferErrorString = () => transferError !== null ? transferError : "";
-    const feeNumber = () => transferFee !== null ? parseFloat(transferFee) : 0.0;
     const peerUrl = () => transferUrl !== null ? transferUrl : "";
 
 
@@ -181,7 +203,7 @@ export const Transfer = () => {
                                 placeholder="Amount"
                                 allowClear
                                 onChange={onAmountChange}
-                                value={amountNumber()}
+                                value={amountString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
             <Form.Item label="Amount Record"
@@ -205,7 +227,7 @@ export const Transfer = () => {
                                 placeholder="Fee"
                                 allowClear
                                 onChange={onTransferFeeChange}
-                                value={feeNumber()}
+                                value={feeString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
             <Form.Item label="Fee Record"

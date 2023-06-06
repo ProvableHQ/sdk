@@ -71,11 +71,22 @@ export const Deploy = () => {
         setTransactionID(null);
         setDeploymentError(null);
 
+        const feeAmount = parseFloat(feeString());
+        if (isNaN(feeAmount)) {
+            setDeploymentError("Fee is not a valid number");
+            setLoading(false);
+            return;
+        } else if (feeAmount <= 0) {
+            setDeploymentError("Fee must be greater than 0");
+            setLoading(false);
+            return;
+        }
+
         await postMessagePromise(worker, {
             type: "ALEO_DEPLOY",
             program: programString(),
             privateKey: privateKeyString(),
-            fee: feeNumber(),
+            fee: feeAmount,
             feeRecord: feeRecordString(),
             url: peerUrl(),
         });
@@ -143,7 +154,7 @@ export const Deploy = () => {
     const feeRecordString = () => deploymentFeeRecord !== null ? deploymentFeeRecord : "";
     const transactionIDString = () => transactionID !== null ? transactionID : "";
     const deploymentErrorString = () => deploymentError !== null ? deploymentError : "";
-    const feeNumber = () => deploymentFee !== null ? parseFloat(deploymentFee) : 0.0;
+    const feeString = () => deploymentFee !== null ? deploymentFee : "";
     const peerUrl = () => deployUrl !== null ? deployUrl : "";
 
     return <Card title="Deploy Program"
@@ -191,7 +202,7 @@ export const Deploy = () => {
                                 placeholder="Fee"
                                 allowClear
                                 onChange={onDeploymentFeeChange}
-                                value={feeNumber()}
+                                value={feeString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
             <Form.Item label="Fee Record"

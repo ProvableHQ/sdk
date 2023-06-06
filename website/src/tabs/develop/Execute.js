@@ -112,14 +112,34 @@ export const Execute = () => {
         setTransactionID(null);
         setExecutionError(null);
 
+        const feeAmount = parseFloat(feeString());
+        if (isNaN(feeAmount)) {
+            setExecutionError("Fee is not a valid number");
+            setLoading(false);
+            return;
+        } else if (feeAmount <= 0) {
+            setExecutionError("Fee must be greater than 0");
+            setLoading(false);
+            return;
+        }
+
+        let functionInputs = []
+        try {
+            functionInputs = inputs.split(" ");
+        } catch (e) {
+            setExecutionError("Inputs are not valid");
+            setLoading(false);
+            return;
+        }
+
         if (executeOnline) {
             await postMessagePromise(worker, {
                 type: 'ALEO_EXECUTE_PROGRAM_ON_CHAIN',
                 remoteProgram: programString(),
                 aleoFunction: functionIDString(),
-                inputs: inputs.split(" "),
+                inputs: functionInputs,
                 privateKey: privateKeyString(),
-                fee: getExecutionFee(),
+                fee: feeAmount,
                 feeRecord: feeRecordString(),
                 url: peerUrl()
             });
@@ -128,7 +148,7 @@ export const Execute = () => {
                 type: 'ALEO_EXECUTE_PROGRAM_LOCAL',
                 localProgram: programString(),
                 aleoFunction: functionIDString(),
-                inputs: inputs.split(" "),
+                inputs: functionInputs,
                 privateKey: privateKeyString(),
             });
         }
@@ -279,7 +299,7 @@ export const Execute = () => {
     const transactionIDString = () => transactionID !== null ? transactionID : "";
     const executionErrorString = () => executionError !== null ? executionError : "";
     const outputString = () => programResponse !== null ? programResponse.toString() : "";
-    const getExecutionFee = () => executionFee !== null ? parseFloat(executionFee) : 0;
+    const feeString = () => executionFee !== null ? executionFee : "";
     const peerUrl = () => executeUrl !== null ? executeUrl : "";
 
     return <Card title="Execute Program"
@@ -388,7 +408,7 @@ export const Execute = () => {
                                     placeholder="Fee"
                                     allowClear
                                     onChange={onExecutionFeeChange}
-                                    value={getExecutionFee()}
+                                    value={feeString()}
                                     style={{borderRadius: '20px'}}/>
                 </Form.Item>
             }

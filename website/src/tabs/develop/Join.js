@@ -54,11 +54,22 @@ export const Join = () => {
         setTransactionID(null);
         setJoinError(null);
 
+        const feeAmount = parseFloat(feeString());
+        if (isNaN(feeAmount)) {
+            setJoinError("Fee is not a valid number");
+            setLoading(false);
+            return;
+        } else if (feeAmount <= 0) {
+            setJoinError("Fee must be greater than 0");
+            setLoading(false);
+            return;
+        }
+
         await postMessagePromise(worker, {
             type: 'ALEO_JOIN',
             recordOne: recordOneString(),
             recordTwo: recordTwoString(),
-            fee: feeNumber(),
+            fee: feeAmount,
             feeRecord: feeRecordString(),
             privateKey: privateKeyString(),
             url: peerUrl(),
@@ -139,7 +150,7 @@ export const Join = () => {
     const recordTwoString = () => recordTwo !== null ? recordTwo : "";
     const transactionIDString = () => transactionID !== null ? transactionID : "";
     const joinErrorString = () => joinError !== null ? joinError : "";
-    const feeNumber = () => joinFee !== null ? parseFloat(joinFee) : 0.0;
+    const feeString = () => joinFee !== null ? joinFee : "";
     const peerUrl = () => joinUrl !== null ? joinUrl : "";
 
     return <Card title="Join Records"
@@ -179,7 +190,7 @@ export const Join = () => {
                                 placeholder="Fee"
                                 allowClear
                                 onChange={onJoinFeeChange}
-                                value={feeNumber()}
+                                value={feeString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
             <Form.Item label="Fee Record"

@@ -5,7 +5,7 @@ import axios from "axios";
 export const Split = () => {
     const [amountRecord, setAmountRecord] = useState(null);
     const [splitUrl, setSplitUrl] = useState("https://vm.aleo.org/api");
-    const [splitAmount, setSplitAmount] = useState(null);
+    const [splitAmount, setSplitAmount] = useState("1.0");
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
     const [splitError, setSplitError] = useState(null);
@@ -51,6 +51,17 @@ export const Split = () => {
         setLoading(true)
         setTransactionID(null);
         setSplitError(null);
+
+        const amount = parseFloat(amountString());
+        if (isNaN(amount)) {
+            setSplitError("Amount is not a valid number");
+            setLoading(false);
+            return;
+        } else if (amount <= 0) {
+            setSplitError("Amount must be greater than 0");
+            setLoading(false);
+            return;
+        }
 
         await postMessagePromise(worker, {
             type: 'ALEO_SPLIT',
@@ -111,7 +122,7 @@ export const Split = () => {
     }
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const amountNumber = () => splitAmount !== null ? parseFloat(splitAmount) : 0.0;
+    const amountString = () => splitAmount !== null ? splitAmount : "";
     const privateKeyString = () => privateKey !== null ? privateKey : "";
     const amountRecordString = () => amountRecord !== null ? amountRecord : "";
     const transactionIDString = () => transactionID !== null ? transactionID : "";
@@ -132,7 +143,7 @@ export const Split = () => {
                                 placeholder="Amount to split record into"
                                 allowClear
                                 onChange={onAmountChange}
-                                value={amountNumber()}
+                                value={amountString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
             <Form.Item label="Record"
