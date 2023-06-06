@@ -40,7 +40,6 @@ export const Execute = () => {
                         console.error(e);
                     }
                 }
-                console.log(programManifest);
                 setProgramInputs(programManifest);
                 return programManifest;
             } catch (e) {
@@ -53,7 +52,6 @@ export const Execute = () => {
         let worker = new Worker("./worker.js");
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'OFFLINE_EXECUTION_COMPLETED') {
-                console.log("Response received from worker: ", ev.data.outputs);
                 setLoading(false);
                 setTransactionID(null);
                 setExecutionError(null);
@@ -115,7 +113,6 @@ export const Execute = () => {
         setExecutionError(null);
 
         if (executeOnline) {
-            console.log(getExecutionFee())
             await postMessagePromise(worker, {
                 type: 'ALEO_EXECUTE_PROGRAM_ON_CHAIN',
                 remoteProgram: programString(),

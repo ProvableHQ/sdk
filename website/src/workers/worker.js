@@ -1,5 +1,5 @@
 import init, * as aleo from '@aleohq/wasm';
-import { FEE_PROVER_URL, FEE_VERIFIER_URL, JOIN_PROVER_URL, JOIN_VERIFIER_URL, SPLIT_PROVER_URL, SPLIT_VERIFIER_URL, TRANSFER_PROVER_URL, TRANSFER_VERIFIER_URL, getFunctionKeys } from './keys';
+import { FEE_PROVER_URL, FEE_VERIFIER_URL, JOIN_PROVER_URL, JOIN_VERIFIER_URL, SPLIT_PROVER_URL, SPLIT_VERIFIER_URL, TRANSFER_PROVER_URL, TRANSFER_VERIFIER_URL } from './keys';
 
 let feeProvingKey = null;
 let feeVerifyingKey = null;
@@ -11,8 +11,51 @@ let transferProvingKey = null;
 let transferVerifyingKey = null;
 
 await init();
-await aleo.initThreadPool(8);
+await aleo.initThreadPool(10);
 const aleoProgramManager = new aleo.ProgramManager();
+
+const getFunctionKeys = async (proverUrl, verifierUrl) => {
+    console.log("Downloading proving and verifying keys from: ", proverUrl, verifierUrl);
+    let proofResponse = await fetch(proverUrl);
+    let proofBuffer = await proofResponse.arrayBuffer();
+    let verificationResponse = await fetch(verifierUrl);
+    let verificationBuffer = await verificationResponse.arrayBuffer();
+    let provingKey = aleo.ProvingKey.fromBytes(new Uint8Array(proofBuffer));
+    let verifyingKey = aleo.VerifyingKey.fromBytes(new Uint8Array(verificationBuffer));
+    return [provingKey, verifyingKey];
+}
+
+const validateProgram = (programString) => {
+    try {
+        return aleo.Program.fromString(programString);
+    } catch (error) {
+        console.log(error);
+        throw (`Program input is not a valid Aleo program`);
+    }
+}
+
+const programMatchesOnChain = async (programString) => {
+    const program = validateProgram(programString);
+    let onlineProgramText;
+    try {
+        const program_id = program.id();
+        const program_url = `https://vm.aleo.org/api/testnet3/program/${program_id}`;
+        const programResponse = await fetch(program_url);
+        onlineProgramText = await programResponse.json();
+    } catch (error) {
+        console.log(error);
+        throw (`Program does not exist on chain`);
+    }
+
+    try {
+        const onlineProgram = aleo.Program.fromString(onlineProgramText);
+        return program.isEqual(onlineProgram);
+    } catch (error) {
+        console.log(error);
+        throw (`Could not parse program from chain`);
+    }
+}
+let lastLocalProgram = null;
 
 self.addEventListener("message", ev => {
     if (ev.data.type === 'ALEO_EXECUTE_PROGRAM_LOCAL') {
@@ -27,6 +70,15 @@ self.addEventListener("message", ev => {
         let startTime = performance.now();
 
         try {
+            validateProgram(localProgram);
+
+            if (lastLocalProgram === null) {
+                lastLocalProgram = localProgram;
+            } else if (lastLocalProgram !== localProgram) {
+                aleoProgramManager.clearKeyCache();
+                lastLocalProgram = localProgram;
+            }
+
             let response = aleoProgramManager.execute_local(
                 aleo.PrivateKey.from_string(privateKey),
                 localProgram,
@@ -60,15 +112,17 @@ self.addEventListener("message", ev => {
 
         (async function() {
             try {
+                const programMatches = await programMatchesOnChain(remoteProgram);
+                if (!programMatches) {
+                    throw (`Program does not match the program deployed on the Aleo Network, cannot execute`);
+                }
+
                 if (feeProvingKey === null || feeVerifyingKey === null) {
                     [feeProvingKey, feeVerifyingKey] = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL);
-                    console.log("provingKey is: ", feeProvingKey);
-                    console.log("verifyingKey is: ", feeVerifyingKey);
                 }
 
                 if (!aleoProgramManager.keyExists("credits.aleo", "fee")) {
-                    console.log("fee_proving_key", feeProvingKey);
-                    aleoProgramManager.cacheKeypairInWasmMemory("credits.aleo", "fee", feeProvingKey, feeVerifyingKey);
+                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "fee", feeProvingKey, feeVerifyingKey);
                 }
 
                 let executeTransaction = await aleoProgramManager.execute(
@@ -109,11 +163,16 @@ self.addEventListener("message", ev => {
         (async function() {
             try {
                 if (transferProvingKey === null || transferVerifyingKey === null) {
-                    ({transferProvingKey, transferVerifyingKey} = await getFunctionKeys(TRANSFER_PROVER_URL, TRANSFER_VERIFIER_URL));
+                    [transferProvingKey, transferVerifyingKey] = await getFunctionKeys(TRANSFER_PROVER_URL, TRANSFER_VERIFIER_URL);
+                }
+                if (!aleoProgramManager.keyExists("credits.aleo", "transfer")) {
+                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer", transferProvingKey, transferVerifyingKey);
                 }
                 if (feeProvingKey === null || feeVerifyingKey === null) {
-                    ({feeProvingKey, feeVerifyingKey} = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL));
-                    aleoProgramManager.cacheKeypairInWasmMemory("credits.aleo", "fee", feeProvingKey, feeVerifyingKey);
+                    [feeProvingKey, feeVerifyingKey] = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL);
+                }
+                if (!aleoProgramManager.keyExists("credits.aleo", "fee")) {
+                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "fee", feeProvingKey, feeVerifyingKey);
                 }
 
                 let transferTransaction = await aleoProgramManager.transfer(
@@ -124,11 +183,7 @@ self.addEventListener("message", ev => {
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
-                    false,
-                    transferProvingKey,
-                    transferVerifyingKey,
-                    feeProvingKey,
-                    feeVerifyingKey
+                    true
                 );
 
                 console.log(`Web worker: Transfer transaction created in ${performance.now() - startTime} ms`);
@@ -155,12 +210,21 @@ self.addEventListener("message", ev => {
         let startTime = performance.now();
         (async function() {
             try {
-                if (feeProvingKey === null || feeVerifyingKey === null) {
-                    ({feeProvingKey, feeVerifyingKey} = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL));
+                try {
+                    await programMatchesOnChain(program);
+                    throw (`A program with the same name already exists on the Aleo Network, cannot deploy`);
+                } catch (e) {
+                    if (e !== `Program does not exist on chain`) {
+                        throw e;
+                    }
+                    console.log(`Program not found on the Aleo Network - proceeding with deployment...`);
                 }
 
+                if (feeProvingKey === null || feeVerifyingKey === null) {
+                    [feeProvingKey, feeVerifyingKey] = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL);
+                }
                 if (!aleoProgramManager.keyExists("credits.aleo", "fee")) {
-                    aleoProgramManager.cacheKeypairInWasmMemory("credits.aleo", "fee", feeProvingKey, feeVerifyingKey);
+                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "fee", feeProvingKey, feeVerifyingKey);
                 }
 
                 let deployTransaction = await aleoProgramManager.deploy(
@@ -197,16 +261,17 @@ self.addEventListener("message", ev => {
         (async function() {
             try {
                 if (splitProvingKey === null || splitVerifyingKey === null) {
-                    ({splitProvingKey, splitVerifyingKey} = await getFunctionKeys(SPLIT_PROVER_URL, SPLIT_VERIFIER_URL));
+                    [splitProvingKey, splitVerifyingKey] = await getFunctionKeys(SPLIT_PROVER_URL, SPLIT_VERIFIER_URL);
+                }
+                if (!aleoProgramManager.keyExists("credits.aleo", "split")) {
+                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "split", splitProvingKey, splitProvingKey);
                 }
                 let splitTransaction = await aleoProgramManager.split(
                     aleo.PrivateKey.from_string(privateKey),
                     splitAmount,
                     aleo.RecordPlaintext.fromString(record),
                     url,
-                    false,
-                    splitProvingKey,
-                    splitVerifyingKey
+                    true
                 );
 
                 console.log(`Web worker: Split transaction created in ${performance.now() - startTime} ms`);
@@ -233,11 +298,17 @@ self.addEventListener("message", ev => {
 
         let startTime = performance.now();
         (async function() {
-            if (feeProvingKey === null || feeVerifyingKey === null) {
-                ({feeProvingKey, feeVerifyingKey} = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL));
-            }
             if (joinProvingKey === null || joinVerifyingKey === null) {
-                ({joinProvingKey, joinVerifyingKey} = await getFunctionKeys(JOIN_PROVER_URL, JOIN_VERIFIER_URL));
+                [joinProvingKey, joinVerifyingKey] = await getFunctionKeys(JOIN_PROVER_URL, JOIN_VERIFIER_URL);
+            }
+            if (!aleoProgramManager.keyExists("credits.aleo", "join")) {
+                aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "join", joinProvingKey, joinVerifyingKey);
+            }
+            if (feeProvingKey === null || feeVerifyingKey === null) {
+                [feeProvingKey, feeVerifyingKey] = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL);
+            }
+            if (!aleoProgramManager.keyExists("credits.aleo", "fee")) {
+                aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "fee", feeProvingKey, feeVerifyingKey);
             }
 
             try {
@@ -248,9 +319,7 @@ self.addEventListener("message", ev => {
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
-                    false,
-                    joinProvingKey,
-                    joinVerifyingKey,
+                    true
                 );
 
                 console.log(`Web worker: Join transaction created in ${performance.now() - startTime} ms`);

@@ -71,7 +71,6 @@ export const Deploy = () => {
         setTransactionID(null);
         setDeploymentError(null);
 
-        console.log(feeNumber())
         await postMessagePromise(worker, {
             type: "ALEO_DEPLOY",
             program: programString(),

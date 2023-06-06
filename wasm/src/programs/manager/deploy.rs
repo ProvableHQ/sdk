@@ -126,7 +126,7 @@ impl ProgramManager {
             .map_err(|err| err.to_string())?;
 
         let fee = fee_inclusion_proof!(
-            &process,
+            process,
             private_key,
             fee_record,
             fee_microcredits,

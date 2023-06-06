@@ -56,8 +56,6 @@ export const Transfer = () => {
         setTransactionID(null);
         setTransferError(null);
 
-        const provingKey = await getProvingKey();
-
         await postMessagePromise(worker, {
             type: 'ALEO_TRANSFER',
             privateKey: privateKeyString(),
