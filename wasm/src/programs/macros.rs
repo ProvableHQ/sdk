@@ -60,6 +60,7 @@ macro_rules! execute_program {
             if Self::contains_key($process, program.id(), &function_name) {
                 log(&format!("Proving & verifying keys were specified for {program_id} - {function_name:?} but a key already exists in the cache. Using cached keys"));
             } else {
+                log(&format!("Inserting externally provided proving and verifying keys for {program_id} - {function_name:?}"));
                 $process
                     .insert_proving_key(program.id(), &function_name, ProvingKeyNative::from(proving_key))
                     .map_err(|e| e.to_string())?;
@@ -128,6 +129,7 @@ macro_rules! fee_inclusion_proof {
             if Self::contains_key($process, &credits, &fee) {
                 log("Fee proving & verifying keys were specified but a key already exists in the cache. Using cached keys");
             } else {
+                log("Inserting externally provided fee proving and verifying keys");
                 $process
                     .insert_proving_key(&credits, &fee, ProvingKeyNative::from(fee_proving_key)).map_err(|e| e.to_string())?;
                 if let Some(fee_verifying_key) = $fee_verifying_key {
@@ -139,7 +141,7 @@ macro_rules! fee_inclusion_proof {
 
         };
 
-        log("Executing the fee and fee inclusion proof");
+        log("Executing fee program");
         let fee_record_native = RecordPlaintextNative::from_str(&$fee_record.to_string()).unwrap();
         let (_, fee_transition, inclusion, _) = $process
             .execute_fee::<CurrentAleo, _>(
@@ -150,7 +152,7 @@ macro_rules! fee_inclusion_proof {
             )
             .map_err(|err| err.to_string())?;
 
-        // Prepare the assignments.
+        log("Preparing fee inclusion proof");
         let assignment = inclusion
             .prepare_fee_async::<CurrentBlockMemory, _>(&fee_transition, &$submission_url)
             .await
@@ -161,7 +163,7 @@ macro_rules! fee_inclusion_proof {
             .prove_fee::<CurrentAleo, _>(fee_transition, &assignment, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
 
-        log("Verifying fee");
+        log("Verifying fee execution");
         $process.verify_fee(&fee).map_err(|e| e.to_string())?;
 
         fee

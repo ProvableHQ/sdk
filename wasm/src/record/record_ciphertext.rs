@@ -30,7 +30,7 @@ impl RecordCiphertext {
     /// Return a record ciphertext from a string.
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordCiphertext, String> {
-        Self::from_str(record).map_err(|_| "The ciphertext string provided was invalid".to_string())
+        Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
     }
 
     /// Return the record ciphertext string.
@@ -100,7 +100,7 @@ mod tests {
         let invalid_bech32 = "record2qqj3a67efazf0awe09grqqg44htnh9vaw7l729vl309c972x7ldquqq2k2cax8s7qsqqyqtpgvqqyqsq4seyrzvfa98fkggzccqr68af8e9m0q8rzeqh8a8aqql3a854v58sgrygdv4jn9s8ckwfd48vujrmv0rtfasqh8ygn88ch34ftck8szspvfpsqqszqzvxx9t8s9g66teeepgxmvnw5ymgapcwt2lpy9d5eus580k08wpq544jcl437wjv206u5pxst6few9ll4yhufwldgpx80rlwq8nhssqywmfsd85skg564vqhm3gxsp8q6r30udmqxrxmxx2v8xycdg8pn5ps3dhfvv";
         assert_eq!(
             RecordCiphertext::from_string("garbage").err(),
-            Some("The ciphertext string provided was invalid".to_string())
+            Some("The record ciphertext string provided was invalid".to_string())
         );
         assert!(RecordCiphertext::from_string(invalid_bech32).is_err());
     }

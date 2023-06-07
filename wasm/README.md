@@ -113,7 +113,7 @@ rustup run nightly \
 # and include necessary unstable options
 # using -Z
 wasm-pack build --release --target web --out-dir pkg-parallel \
--- --features "parallel, browser" -Z build-std=panic_abort,std
+-- --features "parallel, browser" --no-default-features -Z build-std=panic_abort,std
 ```
 
 ## Testing

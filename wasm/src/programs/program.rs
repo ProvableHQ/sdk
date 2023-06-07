@@ -190,6 +190,18 @@ impl Program {
     pub fn get_credits_program() -> Program {
         Program::from(ProgramNative::credits().unwrap())
     }
+
+    /// Get the id of the program
+    #[wasm_bindgen]
+    pub fn id(&self) -> String {
+        self.0.id().to_string()
+    }
+
+    /// Determine equality with another program
+    #[wasm_bindgen(js_name = "isEqual")]
+    pub fn is_equal(&self, other: &Program) -> bool {
+        self == other
+    }
 }
 
 impl Deref for Program {

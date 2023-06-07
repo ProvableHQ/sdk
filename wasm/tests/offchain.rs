@@ -183,6 +183,7 @@ async fn test_fee_validation() {
             100.0,
             fee_record.clone(),
             "https://vm.aleo.org/api".to_string(),
+            false,
             None,
             None,
         )
