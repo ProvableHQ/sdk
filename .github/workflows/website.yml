@@ -41,6 +41,7 @@ jobs:
           cd website
           yarn install
           yarn build
+          cp _headers dist/_headers
         env:
           CI: ""
 
