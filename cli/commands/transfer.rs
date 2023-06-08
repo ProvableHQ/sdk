@@ -15,8 +15,18 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::CurrentNetwork;
-use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
-use snarkvm::prelude::{Address, Ciphertext, Plaintext, PrivateKey, Record};
+use aleo_rust::{
+    Address,
+    AleoAPIClient,
+    Ciphertext,
+    Encryptor,
+    Plaintext,
+    PrivateKey,
+    ProgramManager,
+    Record,
+    RecordFinder,
+    TransferType,
+};
 
 use anyhow::{anyhow, ensure, Result};
 use clap::Parser;
@@ -30,7 +40,7 @@ pub struct Transfer {
     recipient: Address<CurrentNetwork>,
     /// Record used to fund the transfer
     #[clap(short, long)]
-    input_record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
+    amount_record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
     /// Record to spend the fee from
     #[clap(long)]
     fee_record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
@@ -46,6 +56,9 @@ pub struct Transfer {
     /// Private key used to generate the transfer
     #[clap(short='k', long, conflicts_with_all = &["ciphertext", "password"])]
     private_key: Option<PrivateKey<CurrentNetwork>>,
+    /// Transfer type
+    #[clap(value_enum, short, long)]
+    transfer_type: TransferType,
     /// Private key ciphertext used to generate the transfer (requires password to decrypt)
     #[clap(short, long, conflicts_with = "private-key", requires = "password")]
     ciphertext: Option<Ciphertext<CurrentNetwork>>,
@@ -108,7 +121,7 @@ impl Transfer {
         };
         let record_finder = RecordFinder::new(api_client);
 
-        let (input_record, fee_record) = if self.input_record.is_none() {
+        let (input_record, fee_record) = if self.amount_record.is_none() {
             println!("Finding records to make the requested transfer... (this may take a few minutes)");
             if self.fee_record.is_none() {
                 // An amount and fee were provided without records, so find records for both
@@ -121,10 +134,10 @@ impl Transfer {
             }
         } else if self.fee_record.is_none() {
             // Either the amount is none or the input record is already provided, so just find the fee record
-            (self.input_record.unwrap(), record_finder.find_one_record(&private_key, fee_microcredits)?)
+            (self.amount_record.unwrap(), record_finder.find_one_record(&private_key, fee_microcredits)?)
         } else {
             // Both the amount and fee are already provided, so just use them
-            (self.input_record.unwrap(), self.fee_record.unwrap())
+            (self.amount_record.unwrap(), self.fee_record.unwrap())
         };
 
         // Execute the transfer
@@ -132,8 +145,9 @@ impl Transfer {
             amount_microcredits,
             fee_microcredits,
             self.recipient,
+            self.transfer_type,
             self.password.as_deref(),
-            input_record,
+            Some(input_record),
             fee_record,
         );
 

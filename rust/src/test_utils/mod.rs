@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AleoAPIClient, ProgramManager, RecordFinder};
+use crate::{AleoAPIClient, ProgramManager, RecordFinder, TransferType};
 use snarkvm::file::Manifest;
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
@@ -39,6 +39,24 @@ function test:
     input r1 as u32.private;
     add r0 r1 into r2;
     output r2 as u32.private;
+";
+
+pub const FINALIZE_TEST_PROGRAM: &str = "program finalize_test.aleo;
+
+mapping monotonic_counter:
+    key id as u32;
+    value counter as u32;
+
+function increase_counter:
+    input r0 as u32.private;
+    input r1 as u32.private;
+    finalize r0 r1;
+
+finalize finalize_test.aleo;
+    input r1 as u32;
+    input r2 as u32;
+    increment monotonic_counter[r1] by r2;
+
 ";
 
 pub const CREDITS_IMPORT_TEST_PROGRAM: &str = "import credits.aleo;
@@ -179,7 +197,15 @@ pub fn transfer_to_test_account(
             continue;
         }
         let (input_record, fee_record) = input_record.unwrap();
-        let result = program_manager.transfer(amount, 500_000, recipient_address, None, input_record, fee_record);
+        let result = program_manager.transfer(
+            amount,
+            500_000,
+            recipient_address,
+            TransferType::Private,
+            None,
+            Some(input_record),
+            fee_record,
+        );
         if result.is_ok() {
             println!("Transfer succeeded");
             transfer_successes += 1;

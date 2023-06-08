@@ -202,7 +202,7 @@ mod tests {
 
         // Wait for the transactions to show up on chain
         thread::sleep(std::time::Duration::from_secs(30));
-        let deployment_fee = 200000001;
+        let deployment_fee = 200_000_001;
         let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();
         program_manager.deploy_program("credits_import_test.aleo", deployment_fee, fee_record, None).unwrap();
 
@@ -213,6 +213,26 @@ mod tests {
 
             if deployed_program.is_ok() {
                 assert_eq!(deployed_program.unwrap(), Program::from_str(CREDITS_IMPORT_TEST_PROGRAM).unwrap());
+                break;
+            }
+            println!("Program has not yet appeared on chain, waiting another 15 seconds");
+            thread::sleep(std::time::Duration::from_secs(15));
+        }
+
+        // Deploy a program with a finalize scope
+        let finalize_program = Program::<Testnet3>::from_str(FINALIZE_TEST_PROGRAM).unwrap();
+        program_manager.add_program(&finalize_program).unwrap();
+
+        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();
+        program_manager.deploy_program("finalize_test.aleo", deployment_fee, fee_record, None).unwrap();
+
+        // Wait for the program to show up on chain
+        thread::sleep(std::time::Duration::from_secs(45));
+        for _ in 0..4 {
+            let deployed_program = program_manager.api_client().unwrap().get_program("finalize_test.aleo");
+
+            if deployed_program.is_ok() {
+                assert_eq!(deployed_program.unwrap(), Program::from_str(FINALIZE_TEST_PROGRAM).unwrap());
                 break;
             }
             println!("Program has not yet appeared on chain, waiting another 15 seconds");

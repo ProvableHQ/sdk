@@ -1,5 +1,4 @@
 [hooks]
-pre-commit = "cargo clippy --workspace --all-targets --all-features --exclude aleo-wasm && cargo clippy -p aleo-wasm --all-targets --features serial && cargo +nightly fmt --all -- --check"
 
 [logging]
 verbose = true

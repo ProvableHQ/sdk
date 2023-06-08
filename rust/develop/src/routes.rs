@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
+use aleo_rust::TransferType;
 use super::*;
 
 impl<N: Network> Rest<N> {
@@ -194,8 +195,9 @@ impl<N: Network> Rest<N> {
             request.amount,
             request.fee,
             request.recipient,
+            TransferType::Private,
             None,
-            amount_record,
+            Some(amount_record),
             fee_record
         ))?;
         Ok(reply::json(&transaction_id))

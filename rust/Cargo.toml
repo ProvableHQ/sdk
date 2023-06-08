@@ -31,6 +31,9 @@ harness = false
 [dependencies.anyhow]
 version = "1"
 
+[dependencies.clap]
+workspace = true
+
 [dependencies.indexmap]
 version = "1.9.3"
 

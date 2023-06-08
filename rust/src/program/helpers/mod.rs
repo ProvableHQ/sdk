@@ -21,3 +21,11 @@ pub use state::*;
 
 pub mod records;
 pub use records::*;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TransferType {
+    Public,
+    Private,
+    PublicToPrivate,
+    PrivateToPublic,
+}
