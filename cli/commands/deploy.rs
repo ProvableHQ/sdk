@@ -26,7 +26,6 @@ use colored::Colorize;
 #[derive(Debug, Parser)]
 pub struct Deploy {
     /// The program identifier
-    #[clap(parse(try_from_str))]
     program_id: ProgramID<CurrentNetwork>,
     /// Directory containing the program files
     #[clap(short, long)]

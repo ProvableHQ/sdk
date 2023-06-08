@@ -22,10 +22,15 @@ pub use state::*;
 pub mod records;
 pub use records::*;
 
+/// Transfer Type to Perform
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TransferType {
-    Public,
+    /// Private credit transfer done via records associated with the account
     Private,
-    PublicToPrivate,
+    /// Transfer credits from a record to the public account mapping for an Aleo account
     PrivateToPublic,
+    /// Public credit transfer done via the account mapping
+    Public,
+    /// Transfer credits from the public account mapping to a record for an Aleo account
+    PublicToPrivate,
 }

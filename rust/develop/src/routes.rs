@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_rust::TransferType;
 use super::*;
 
 impl<N: Network> Rest<N> {
@@ -176,17 +175,44 @@ impl<N: Network> Rest<N> {
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
 
-        let (amount_record, fee_record) = match (request.amount_record, request.fee_record) {
-            (Some(amount_record), Some(fee_record)) => (amount_record, fee_record),
-            (Some(amount_record), None) => {
-                // Find a fee record if a fee is specified and a fee record is not provided
-                (amount_record, spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?)
+        let transfer_type = match request.transfer_type.as_str() {
+            "private" => { TransferType::Private },
+            "public" => { TransferType::Public },
+            "private-to-public" => { TransferType::PrivateToPublic },
+            "public-to-private" => { TransferType::PublicToPrivate },
+            _ => Err(anyhow!("Invalid transfer type specified, type must be one of the following: private, public, private-to-public, public-to-private")).or_reject()?,
+        };
+
+        let (amount_record, fee_record) = match transfer_type {
+            TransferType::Public => {
+                if let Some(fee_record) = request.fee_record {
+                    (None, fee_record)
+                } else {
+                    (None, spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?)
+                }
             }
-            (None, Some(fee_record)) => {
-                (spawn_blocking!(record_finder.find_one_record(&private_key, request.amount))?, fee_record)
+            TransferType::PublicToPrivate => {
+                if let Some(fee_record) = request.fee_record {
+                    (None, fee_record)
+                } else {
+                    (None, spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?)
+                }
             }
-            (None, None) => {
-                spawn_blocking!(record_finder.find_amount_and_fee_records(request.amount, request.fee, &private_key))?
+            _ => {
+                match (request.amount_record, request.fee_record) {
+                    (Some(amount_record), Some(fee_record)) => (Some(amount_record), fee_record),
+                    (Some(amount_record), None) => {
+                        // Find a fee record if a fee is specified and a fee record is not provided
+                        (Some(amount_record), spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?)
+                    }
+                    (None, Some(fee_record)) => {
+                        (Some(spawn_blocking!(record_finder.find_one_record(&private_key, request.amount))?), fee_record)
+                    }
+                    (None, None) => {
+                        let (amount_record, fee_record) = spawn_blocking!(record_finder.find_amount_and_fee_records(request.amount, request.fee, &private_key))?;
+                        (Some(amount_record), fee_record)
+                    }
+                }
             }
         };
 
@@ -195,9 +221,9 @@ impl<N: Network> Rest<N> {
             request.amount,
             request.fee,
             request.recipient,
-            TransferType::Private,
+            transfer_type,
             None,
-            Some(amount_record),
+            amount_record,
             fee_record
         ))?;
         Ok(reply::json(&transaction_id))

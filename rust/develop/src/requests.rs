@@ -48,6 +48,7 @@ pub(crate) struct ExecuteRequest<N: Network> {
 pub(crate) struct TransferRequest<N: Network> {
     pub amount: u64,
     pub fee: u64,
+    pub transfer_type: String,
     pub recipient: Address<N>,
     pub private_key: Option<PrivateKey<N>>,
     pub password: Option<String>,

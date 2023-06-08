@@ -26,13 +26,10 @@ use colored::Colorize;
 #[derive(Debug, Parser)]
 pub struct Execute {
     /// The program identifier
-    #[clap(parse(try_from_str))]
     program_id: ProgramID<CurrentNetwork>,
     /// The function name
-    #[clap(parse(try_from_str))]
     function: Identifier<CurrentNetwork>,
     /// The function inputs
-    #[clap(parse(try_from_str))]
     inputs: Vec<Value<CurrentNetwork>>,
     /// Aleo Network peer to broadcast the transaction to
     #[clap(short, long)]

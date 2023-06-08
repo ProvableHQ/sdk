@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::CurrentNetwork;
+use crate::{CurrentNetwork, helpers::TransferTypeArg};
 use aleo_rust::{
     Address,
     AleoAPIClient,
     Ciphertext,
+    Credits,
     Encryptor,
     Plaintext,
     PrivateKey,
@@ -57,8 +58,8 @@ pub struct Transfer {
     #[clap(short='k', long, conflicts_with_all = &["ciphertext", "password"])]
     private_key: Option<PrivateKey<CurrentNetwork>>,
     /// Transfer type
-    #[clap(value_enum, short, long)]
-    transfer_type: TransferType,
+    #[clap(short, long, value_enum, default_value_t=TransferTypeArg::Private)]
+    transfer_type: TransferTypeArg,
     /// Private key ciphertext used to generate the transfer (requires password to decrypt)
     #[clap(short, long, conflicts_with = "private-key", requires = "password")]
     ciphertext: Option<Ciphertext<CurrentNetwork>>,
@@ -72,6 +73,8 @@ impl Transfer {
         // Check for config errors
         ensure!(self.amount > 0f64, "Transfer amount must be greater than 0 credits");
         ensure!(self.fee > 0f64, "fee must be greater than zero to make a transfer");
+
+        let transfer_type = TransferType::from(self.transfer_type);
 
         ensure!(
             !(self.private_key.is_none() && self.ciphertext.is_none()),
@@ -121,23 +124,53 @@ impl Transfer {
         };
         let record_finder = RecordFinder::new(api_client);
 
-        let (input_record, fee_record) = if self.amount_record.is_none() {
-            println!("Finding records to make the requested transfer... (this may take a few minutes)");
-            if self.fee_record.is_none() {
-                // An amount and fee were provided without records, so find records for both
-                let (input_record, fee_record) =
-                    record_finder.find_amount_and_fee_records(amount_microcredits, fee_microcredits, &private_key)?;
-                (input_record, fee_record)
-            } else {
-                // Either the fee is none or the fee record is already provided, so just find the input record
-                (record_finder.find_one_record(&private_key, amount_microcredits)?, self.fee_record.unwrap())
+        let (amount_record, fee_record) =  if self.fee_record.is_none() {
+            match transfer_type {
+                TransferType::Public => {
+                    // The transfer is drawing from a public account balance, so only a fee record is needed
+                    (None, record_finder.find_one_record(&private_key, fee_microcredits)?)
+                }
+                TransferType::PublicToPrivate => {
+                    // The transfer is drawing from a public account balance, so only a fee record is needed
+                    (None, record_finder.find_one_record(&private_key, fee_microcredits)?)
+                }
+                _ => {
+                    // The transfer is drawing being funded by a record, so an input record and fee record are both needed
+                    if self.amount_record.is_none() {
+                        let (amount_record, fee_record) =
+                            record_finder.find_amount_and_fee_records(amount_microcredits, fee_microcredits, &private_key)?;
+                        (Some(amount_record), fee_record)
+                    } else {
+                        let amount_record = self.amount_record.unwrap();
+                        ensure!(amount_record.microcredits()? > amount_microcredits, "Amount record must have more microcredits than the transfer amount specified");
+                        (Some(amount_record), record_finder.find_one_record(&private_key, fee_microcredits)?)
+                    }
+                }
             }
-        } else if self.fee_record.is_none() {
-            // Either the amount is none or the input record is already provided, so just find the fee record
-            (self.amount_record.unwrap(), record_finder.find_one_record(&private_key, fee_microcredits)?)
         } else {
-            // Both the amount and fee are already provided, so just use them
-            (self.amount_record.unwrap(), self.fee_record.unwrap())
+            let fee_record = self.fee_record.unwrap();
+            // Check the specified record has enough credits
+            ensure!(fee_record.microcredits()? > fee_microcredits, "Fee record must have more microcredits than the fee");
+            match transfer_type {
+                TransferType::Public => {
+                    // The transfer is drawing from a public account balance, so only a fee record is needed
+                    (None, fee_record)
+                }
+                TransferType::PublicToPrivate => {
+                    // The transfer is drawing from a public account balance, so only a fee record is needed
+                    (None, fee_record)
+                }
+                _ => {
+                    // The transfer is drawing being funded by a record, so an input record and fee record are both needed
+                    if self.amount_record.is_none() {
+                        (Some(record_finder.find_one_record(&private_key, amount_microcredits)?), fee_record)
+                    } else {
+                        let amount_record = self.amount_record.unwrap();
+                        ensure!(amount_record.microcredits()? > amount_microcredits, "Amount record must have more microcredits than the transfer amount specified");
+                        (Some(amount_record), fee_record)
+                    }
+                }
+            }
         };
 
         // Execute the transfer
@@ -145,9 +178,9 @@ impl Transfer {
             amount_microcredits,
             fee_microcredits,
             self.recipient,
-            self.transfer_type,
+            transfer_type,
             self.password.as_deref(),
-            Some(input_record),
+            amount_record,
             fee_record,
         );
 

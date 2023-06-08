@@ -149,7 +149,7 @@ use requests::*;
 mod routes;
 pub use routes::*;
 
-use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
+use aleo_rust::{AleoAPIClient, Credits, Encryptor, ProgramManager, RecordFinder, TransferType};
 use snarkvm::{
     console::{
         account::{Address, PrivateKey},
@@ -160,7 +160,7 @@ use snarkvm::{
 };
 use tracing_subscriber::fmt;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use colored::*;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;

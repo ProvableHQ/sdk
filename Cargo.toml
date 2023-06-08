@@ -67,8 +67,8 @@ workspace = true
 version = "1.0"
 
 [workspace.dependencies.clap]
-version = "3"
-features = [ "derive" ]
+version = "4.3.2"
+features = [ "derive", "string" ]
 
 [dependencies.clap]
 workspace = true

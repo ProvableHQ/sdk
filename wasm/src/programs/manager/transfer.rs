@@ -69,6 +69,7 @@ impl ProgramManager {
         private_key: PrivateKey,
         amount_credits: f64,
         recipient: String,
+        transfer_type: String,
         amount_record: RecordPlaintext,
         fee_credits: f64,
         fee_record: RecordPlaintext,
@@ -86,9 +87,33 @@ impl ProgramManager {
         log("Setup the program and inputs");
         let program = ProgramNative::credits().unwrap().to_string();
         let inputs = Array::new_with_length(3);
-        inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.to_string()));
-        inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
-        inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+
+
+        let transfer_type = match transfer_type.as_str() {
+            "transfer_private" => {
+                inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.to_string()));
+                inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
+                inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                transfer_type
+            },
+            "transfer_private_to_public" => {
+                inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.to_string()));
+                inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
+                inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                transfer_type
+            },
+            "transfer_public" => {
+                inputs.set(0u32, wasm_bindgen::JsValue::from_str(&recipient));
+                inputs.set(1u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                transfer_type
+            },
+            "transfer_public_to_private" => {
+                inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
+                inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                transfer_type
+            },
+            _ => return Err("Invalid transfer type".to_string())
+        };
 
         let mut new_process;
         let process = get_process!(self, cache, new_process);
@@ -97,7 +122,7 @@ impl ProgramManager {
             process,
             inputs,
             program,
-            "transfer",
+            &transfer_type,
             private_key,
             transfer_proving_key,
             transfer_verifying_key
