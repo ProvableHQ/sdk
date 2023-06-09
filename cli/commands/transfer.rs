@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{CurrentNetwork, helpers::TransferTypeArg};
+use crate::{helpers::TransferTypeArg, CurrentNetwork};
 use aleo_rust::{
     Address,
     AleoAPIClient,
@@ -124,7 +124,7 @@ impl Transfer {
         };
         let record_finder = RecordFinder::new(api_client);
 
-        let (amount_record, fee_record) =  if self.fee_record.is_none() {
+        let (amount_record, fee_record) = if self.fee_record.is_none() {
             match transfer_type {
                 TransferType::Public => {
                     // The transfer is drawing from a public account balance, so only a fee record is needed
@@ -137,12 +137,18 @@ impl Transfer {
                 _ => {
                     // The transfer is drawing being funded by a record, so an input record and fee record are both needed
                     if self.amount_record.is_none() {
-                        let (amount_record, fee_record) =
-                            record_finder.find_amount_and_fee_records(amount_microcredits, fee_microcredits, &private_key)?;
+                        let (amount_record, fee_record) = record_finder.find_amount_and_fee_records(
+                            amount_microcredits,
+                            fee_microcredits,
+                            &private_key,
+                        )?;
                         (Some(amount_record), fee_record)
                     } else {
                         let amount_record = self.amount_record.unwrap();
-                        ensure!(amount_record.microcredits()? > amount_microcredits, "Amount record must have more microcredits than the transfer amount specified");
+                        ensure!(
+                            amount_record.microcredits()? > amount_microcredits,
+                            "Amount record must have more microcredits than the transfer amount specified"
+                        );
                         (Some(amount_record), record_finder.find_one_record(&private_key, fee_microcredits)?)
                     }
                 }
@@ -150,7 +156,10 @@ impl Transfer {
         } else {
             let fee_record = self.fee_record.unwrap();
             // Check the specified record has enough credits
-            ensure!(fee_record.microcredits()? > fee_microcredits, "Fee record must have more microcredits than the fee");
+            ensure!(
+                fee_record.microcredits()? > fee_microcredits,
+                "Fee record must have more microcredits than the fee"
+            );
             match transfer_type {
                 TransferType::Public => {
                     // The transfer is drawing from a public account balance, so only a fee record is needed
@@ -166,7 +175,10 @@ impl Transfer {
                         (Some(record_finder.find_one_record(&private_key, amount_microcredits)?), fee_record)
                     } else {
                         let amount_record = self.amount_record.unwrap();
-                        ensure!(amount_record.microcredits()? > amount_microcredits, "Amount record must have more microcredits than the transfer amount specified");
+                        ensure!(
+                            amount_record.microcredits()? > amount_microcredits,
+                            "Amount record must have more microcredits than the transfer amount specified"
+                        );
                         (Some(amount_record), fee_record)
                     }
                 }
@@ -229,7 +241,7 @@ mod tests {
             "password",
         ]);
 
-        assert_eq!(transfer_conflicting_inputs.unwrap_err().kind(), clap::ErrorKind::ArgumentConflict);
+        assert_eq!(transfer_conflicting_inputs.unwrap_err().kind(), clap::error::ErrorKind::ArgumentConflict);
 
         // Assert that the transfer fails if a ciphertext is provided without a password
         let ciphertext = Some(Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap());
@@ -245,7 +257,7 @@ mod tests {
             &ciphertext.as_ref().unwrap().to_string(),
         ]);
 
-        assert_eq!(transfer_no_password.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
+        assert_eq!(transfer_no_password.unwrap_err().kind(), clap::error::ErrorKind::MissingRequiredArgument);
 
         // Assert transfer fails if only a password is provided
         let transfer_password_only = Transfer::try_parse_from([
@@ -260,7 +272,7 @@ mod tests {
             "password",
         ]);
 
-        assert_eq!(transfer_password_only.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
+        assert_eq!(transfer_password_only.unwrap_err().kind(), clap::error::ErrorKind::MissingRequiredArgument);
 
         // Assert transfer fails if invalid peer is specified
         let transfer_bad_peer = Transfer::try_parse_from([

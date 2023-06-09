@@ -179,6 +179,7 @@ self.addEventListener("message", ev => {
                     aleo.PrivateKey.from_string(privateKey),
                     amountCredits,
                     recipient,
+                    "transfer_private",
                     aleo.RecordPlaintext.fromString(amountRecord),
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),

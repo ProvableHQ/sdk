@@ -22,6 +22,7 @@ interface TransferRequest {
     amount: number;
     fee: number;
     recipient: string;
+    transfer_type: string;
     private_key?: string;
     password?: string;
     fee_record?: string;
@@ -160,6 +161,7 @@ export class DevelopmentClient {
      * @param {string} amount The amount of credits to be sent (e.g. 1.5)
      * @param {number} fee Optional Fee to be paid for the transfer, specify 0 for no fee
      * @param {string} recipient The recipient of the transfer
+     * @param {string} transfer_type The type of the transfer (possible values are "private", "public", "private_to_public", "public_to_private")
      * @param {string | undefined} privateKey Optional private key of the user who is sending the transfer
      * @param {string | undefined} password If the development server is started with an encrypted private key, the password is required
      * @param {string | undefined} feeRecord Optional record in text format to be used for the fee. If not provided, the server will search the network for a suitable record to pay the fee.
@@ -176,14 +178,17 @@ export class DevelopmentClient {
         amount: number,
         fee: number,
         recipient: string,
+        transfer_type: string,
         privateKey?: string,
         password?: string,
         feeRecord?: string,
         amountRecord?: string
     ): Promise<string> {
+        transfer_type = "transfer_" + transfer_type;
         const request: TransferRequest = {
             amount: amount*1000000,
             fee: fee*1000000,
+            transfer_type,
             recipient,
             private_key: privateKey,
             password,

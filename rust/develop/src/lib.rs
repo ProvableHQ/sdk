@@ -149,7 +149,7 @@ use requests::*;
 mod routes;
 pub use routes::*;
 
-use aleo_rust::{AleoAPIClient, Credits, Encryptor, ProgramManager, RecordFinder, TransferType};
+use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder, TransferType};
 use snarkvm::{
     console::{
         account::{Address, PrivateKey},

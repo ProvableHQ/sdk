@@ -20,8 +20,8 @@ use snarkvm::{
     prelude::{Address, PrivateKey, ViewKey},
 };
 
-use serde::{Deserialize, Serialize};
 use aleo_rust::TransferType;
+use serde::{Deserialize, Serialize};
 
 /// Serialization model for writing Aleo key material to disk
 #[derive(Debug, Serialize, Deserialize)]

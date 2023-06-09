@@ -165,7 +165,7 @@ mod tests {
             "password",
         ]);
 
-        assert_eq!(deploy_conflicting_inputs.unwrap_err().kind(), clap::ErrorKind::ArgumentConflict);
+        assert_eq!(deploy_conflicting_inputs.unwrap_err().kind(), clap::error::ErrorKind::ArgumentConflict);
 
         // Assert deploy fails if a ciphertext is provided without a password
         let ciphertext = Some(Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap());
@@ -178,13 +178,13 @@ mod tests {
             &ciphertext.as_ref().unwrap().to_string(),
         ]);
 
-        assert_eq!(deploy_no_password.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
+        assert_eq!(deploy_no_password.unwrap_err().kind(), clap::error::ErrorKind::MissingRequiredArgument);
 
         // Assert deploy fails if only a password is provided
         let deploy_password_only =
             Deploy::try_parse_from(["aleo", "hello.aleo", "-f", "0.5", "--password", "password"]);
 
-        assert_eq!(deploy_password_only.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
+        assert_eq!(deploy_password_only.unwrap_err().kind(), clap::error::ErrorKind::MissingRequiredArgument);
 
         // Assert deploy fails if invalid peer is specified
         let deploy_bad_peer = Deploy::try_parse_from([
