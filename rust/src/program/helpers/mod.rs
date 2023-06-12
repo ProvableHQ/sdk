@@ -23,7 +23,7 @@ pub mod records;
 pub use records::*;
 
 /// Transfer Type to Perform
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TransferType {
     /// Private credit transfer done via records associated with the account
     Private,

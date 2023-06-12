@@ -19,6 +19,7 @@ use super::*;
 impl<N: Network> ProgramManager<N> {
     /// Executes a transfer to the specified recipient_address with the specified amount and fee.
     /// Specify 0 for no fee.
+    #[allow(clippy::too_many_arguments)]
     pub fn transfer(
         &self,
         amount: u64,
@@ -111,164 +112,148 @@ mod tests {
 
     use std::{str::FromStr, thread};
 
+    // Attempt to transfer the specified amount from the sender to the recipient.
+    fn try_transfer(
+        sender: &PrivateKey<Testnet3>,
+        recipient: &Address<Testnet3>,
+        amount: u64,
+        visibility: TransferType,
+    ) {
+        let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
+        let program_manager =
+            ProgramManager::<Testnet3>::new(Some(*sender), None, Some(api_client.clone()), None).unwrap();
+        let record_finder = RecordFinder::new(api_client);
+        let fee = 2_000_000;
+        for i in 0..10 {
+            let (amount_record, fee_record) = match &visibility {
+                TransferType::Public => {
+                    let fee_record = record_finder.find_one_record(sender, fee);
+                    if fee_record.is_err() {
+                        println!("Record not found: {} - retrying", fee_record.unwrap_err());
+                        thread::sleep(std::time::Duration::from_secs(3));
+                        continue;
+                    }
+                    (None, fee_record.unwrap())
+                }
+                TransferType::PublicToPrivate => {
+                    let fee_record = record_finder.find_one_record(sender, fee);
+                    if fee_record.is_err() {
+                        println!("Record not found: {} - retrying", fee_record.unwrap_err());
+                        thread::sleep(std::time::Duration::from_secs(3));
+                        continue;
+                    }
+                    (None, fee_record.unwrap())
+                }
+                _ => {
+                    let record = record_finder.find_amount_and_fee_records(amount, fee, sender);
+                    if record.is_err() {
+                        println!("Record not found: {} - retrying", record.unwrap_err());
+                        thread::sleep(std::time::Duration::from_secs(3));
+                        continue;
+                    }
+                    let (amount_record, fee_record) = record.unwrap();
+                    (Some(amount_record), fee_record)
+                }
+            };
+
+            let result =
+                program_manager.transfer(amount, 1_000_000, *recipient, visibility, None, amount_record, fee_record);
+            if result.is_err() {
+                println!("Transfer error: {} - retrying", result.unwrap_err());
+                if i == 9 {
+                    panic!("Transfer failed after 10 attempts");
+                }
+            }
+        }
+    }
+
+    // Check that the specified amount has been transferred from the sender to the recipient.
+    fn verify_transfer(
+        amount: u64,
+        api_client: &AleoAPIClient<Testnet3>,
+        recipient_private_key: &PrivateKey<Testnet3>,
+        visibility: TransferType,
+    ) {
+        for i in 0..10 {
+            let height = api_client.latest_height().unwrap();
+            let records = api_client.get_unspent_records(recipient_private_key, 0..height, None, None).unwrap();
+            let recipient_view_key = ViewKey::try_from(recipient_private_key).unwrap();
+            if !records.is_empty() {
+                let (_, record) = &records[0];
+                let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
+                let record_amount = record_plaintext.microcredits().unwrap();
+                if amount == record_amount {
+                    break;
+                }
+            }
+            thread::sleep(std::time::Duration::from_secs(3));
+            if i > 8 {
+                let error = format!("Failed to verify transfer of visibility: {visibility:?} after 8 transfer errors");
+                panic!("{error}");
+            }
+        }
+    }
+
     #[test]
     #[ignore]
     fn test_private_transfer() {
-        let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
+        // Initialize necessary key material
+        // Use the beacon private key to make the initial transfer
         let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY).unwrap();
         let rng = &mut rand::thread_rng();
-        let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
-        let recipient_view_key = ViewKey::try_from(&recipient_private_key).unwrap();
-        let recipient_address = Address::try_from(&recipient_view_key).unwrap();
-        let program_manager =
-            ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client.clone()), None).unwrap();
-        let record_finder = RecordFinder::new(api_client);
-        // Wait for the chain to to start
-        //thread::sleep(std::time::Duration::from_secs(60));
+        // Create a unique recipient for each transfer type so we can unique identify each transfer
+        let private_recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let private_recipient_view_key = ViewKey::try_from(&private_recipient_private_key).unwrap();
+        let private_recipient_address = Address::try_from(&private_recipient_view_key).unwrap();
+        let private_to_public_recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let private_to_public_recipient_view_key = ViewKey::try_from(&private_to_public_recipient_private_key).unwrap();
+        let private_to_public_recipient_address = Address::try_from(&private_to_public_recipient_view_key).unwrap();
+        let public_recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let public_recipient_view_key = ViewKey::try_from(&public_recipient_private_key).unwrap();
+        let public_recipient_address = Address::try_from(&public_recipient_view_key).unwrap();
+        let public_to_private_recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let public_to_private_recipient_view_key = ViewKey::try_from(&public_to_private_recipient_private_key).unwrap();
+        let public_to_private_recipient_address = Address::try_from(&public_to_private_recipient_view_key).unwrap();
+        let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
 
-        // Make several transactions from the genesis account since the genesis account keeps spending records,
-        // it may take a few tries to transfer successfully
-        for i in 0..10 {
-            let records = record_finder.find_amount_and_fee_records(2_000_000, 2_000_000, &beacon_private_key);
-            if records.is_err() {
-                println!("Record not found: {} - retrying", records.unwrap_err());
-                thread::sleep(std::time::Duration::from_secs(3));
-                continue;
-            }
+        // Transfer funds to the private recipient and confirm that the transaction is on chain
+        try_transfer(&beacon_private_key, &private_recipient_address, 10_000_000, TransferType::Private);
+        thread::sleep(std::time::Duration::from_secs(20));
+        verify_transfer(10_000_000, &api_client, &private_recipient_private_key, TransferType::Private);
 
-            let (input_record, fee_record) = records.unwrap();
-            let result = program_manager.transfer(
-                1_000_000,
-                1_000_000,
-                recipient_address,
-                TransferType::Private,
-                None,
-                Some(input_record),
-                fee_record,
-            );
-            if result.is_err() {
-                println!("Transfer error: {} - retrying", result.unwrap_err());
-            } else if i > 8 {
-                panic!("Failed to transfer after 8 transfer errors");
-            }
+        // Transfer funds to the private_to_public recipient
+        try_transfer(
+            &private_recipient_private_key,
+            &private_to_public_recipient_address,
+            5_000_000,
+            TransferType::PrivateToPublic,
+        );
+        thread::sleep(std::time::Duration::from_secs(20));
+        // TODO: when a snarkOS api is available for finalize, verify the transfer is on chain
 
-            // Wait for the chain to update blocks
-            thread::sleep(std::time::Duration::from_secs(25));
+        // Transfer funds to the public recipient
+        try_transfer(
+            &private_to_public_recipient_private_key,
+            &public_recipient_address,
+            5_000_000,
+            TransferType::Public,
+        );
+        thread::sleep(std::time::Duration::from_secs(20));
+        // TODO: when a snarkOS api is available for finalize, verify the transfer is on chain
 
-            // Check the balance of the recipient
-            let api_client = program_manager.api_client().unwrap();
-            let height = api_client.latest_height().unwrap();
-            let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
-            if !records.is_empty() {
-                let (_, record) = &records[0];
-                let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
-                let amount = record_plaintext.microcredits().unwrap();
-                if amount == 100 {
-                    break;
-                }
-            }
-        }
-
-        // Execute transfer_private_to_public until the desired transaction shows up on chain
-        for i in 0..10 {
-            let records = record_finder.find_amount_and_fee_records(5_000_000, 3_000_000, &beacon_private_key);
-            if records.is_err() {
-                println!("Record not found: {} - retrying", records.unwrap_err());
-                thread::sleep(std::time::Duration::from_secs(3));
-                continue;
-            }
-
-            let (input_record, fee_record) = records.unwrap();
-            let result = program_manager.transfer(
-                4_000_000,
-                2_000_000,
-                recipient_address,
-                TransferType::PrivateToPublic,
-                None,
-                Some(input_record),
-                fee_record,
-            );
-            if result.is_err() {
-                println!("Transfer error: {} - retrying", result.unwrap_err());
-            } else if i > 8 {
-                panic!("Failed to execute transfer_private_to_public after 8 transfer errors");
-            }
-
-            // Wait for the chain to update blocks
-            thread::sleep(std::time::Duration::from_secs(25));
-            // TODO (iamalwaysuncomfortable): Check that the balance of the recipient is correct
-        }
-
-        // Execute transfer_public until the desired transaction shows up on chain
-        for i in 0..10 {
-            let record = record_finder.find_one_record(&beacon_private_key, 2_000_000);
-            if record.is_err() {
-                println!("Record not found: {} - retrying", record.unwrap_err());
-                thread::sleep(std::time::Duration::from_secs(3));
-                continue;
-            }
-
-            let fee_record = record.unwrap();
-            let result = program_manager.transfer(
-                2_500_000,
-                1_000_000,
-                recipient_address,
-                TransferType::Public,
-                None,
-                None,
-                fee_record,
-            );
-            if result.is_err() {
-                println!("Transfer error: {} - retrying", result.unwrap_err());
-            } else if i > 8 {
-                panic!("Failed to execute transfer_private_to_public after 8 transfer errors");
-            }
-
-            // Wait for the chain to update blocks
-            thread::sleep(std::time::Duration::from_secs(25));
-            // TODO (iamalwaysuncomfortable): Check that the balance of the recipient is correct
-        }
-
-        // Execute transfer_public_to_private until the desired transaction shows up on chain
-        for i in 0..10 {
-            let record = record_finder.find_one_record(&beacon_private_key, 2_000_000);
-            if record.is_err() {
-                println!("Record not found: {} - retrying", record.unwrap_err());
-                thread::sleep(std::time::Duration::from_secs(3));
-                continue;
-            }
-
-            let fee_record = record.unwrap();
-            let result = program_manager.transfer(
-                1_500_000,
-                1_000_000,
-                recipient_address,
-                TransferType::Public,
-                None,
-                None,
-                fee_record,
-            );
-            if result.is_err() {
-                println!("Transfer error: {} - retrying", result.unwrap_err());
-            } else if i > 8 {
-                panic!("Failed to execute transfer_private_to_public after 8 transfer errors");
-            }
-
-            // Wait for the chain to update blocks
-            thread::sleep(std::time::Duration::from_secs(25));
-
-            // Check the balance of the recipient
-            let api_client = program_manager.api_client().unwrap();
-            let height = api_client.latest_height().unwrap();
-            let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
-            if !records.is_empty() {
-                let (_, record) = &records[0];
-                let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
-                let amount = record_plaintext.microcredits().unwrap();
-                if amount == 1_500_000 {
-                    break;
-                }
-            }
-        }
+        // Transfer funds to the public_to_private recipient and ensure the funds made the entire journey
+        try_transfer(
+            &public_recipient_private_key,
+            &public_to_private_recipient_address,
+            5_000_000,
+            TransferType::PublicToPrivate,
+        );
+        thread::sleep(std::time::Duration::from_secs(20));
+        verify_transfer(
+            5_000_000,
+            &api_client,
+            &public_to_private_recipient_private_key,
+            TransferType::PublicToPrivate,
+        );
     }
 }
