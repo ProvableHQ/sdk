@@ -1,5 +1,8 @@
 import init, * as aleo from '@aleohq/wasm';
-import { FEE_PROVER_URL, FEE_VERIFIER_URL, JOIN_PROVER_URL, JOIN_VERIFIER_URL, SPLIT_PROVER_URL, SPLIT_VERIFIER_URL, TRANSFER_PROVER_URL, TRANSFER_VERIFIER_URL } from './keys';
+import { FEE_PROVER_URL, FEE_VERIFIER_URL, JOIN_PROVER_URL, JOIN_VERIFIER_URL, SPLIT_PROVER_URL, SPLIT_VERIFIER_URL,
+    TRANSFER_PRIVATE_PROVER_URL, TRANSFER_PRIVATE_VERIFIER_URL, TRANSFER_PRIVATE_TO_PUBLIC_PROVER_URL,
+TRANSFER_PRIVATE_TO_PUBLIC_VERIFIER_URL, TRANSFER_PUBLIC_PROVER_URL, TRANSFER_PUBLIC_VERIFIER_URL,
+    TRANSFER_PUBLIC_TO_PRIVATE_PROVER_URL, TRANSFER_PUBLIC_TO_PRIVATE_VERIFIER_URL} from './keys';
 
 let feeProvingKey = null;
 let feeVerifyingKey = null;
@@ -7,8 +10,14 @@ let joinProvingKey = null;
 let joinVerifyingKey = null;
 let splitProvingKey = null;
 let splitVerifyingKey = null;
-let transferProvingKey = null;
-let transferVerifyingKey = null;
+let transferPrivateProvingKey = null;
+let transferPrivateVerifyingKey = null;
+let transferPrivateToPublicProvingKey = null;
+let transferPrivateToPublicVerifyingKey = null;
+let transferPublicProvingKey = null;
+let transferPublicVerifyingKey = null;
+let transferPublicToPrivateProvingKey = null;
+let transferPublicToPrivateVerifyingKey = null;
 
 await init();
 await aleo.initThreadPool(10);
@@ -151,6 +160,7 @@ self.addEventListener("message", ev => {
             privateKey,
             amountCredits,
             recipient,
+            transfer_type,
             amountRecord,
             fee,
             feeRecord,
@@ -162,11 +172,27 @@ self.addEventListener("message", ev => {
 
         (async function() {
             try {
-                if (transferProvingKey === null || transferVerifyingKey === null) {
-                    [transferProvingKey, transferVerifyingKey] = await getFunctionKeys(TRANSFER_PROVER_URL, TRANSFER_VERIFIER_URL);
+                if (transfer_type === "public") {
+                    if (transferPublicProvingKey === null || transferPublicVerifyingKey === null) {
+                        [transferPublicProvingKey, transferPublicVerifyingKey] = await getFunctionKeys(TRANSFER_PUBLIC_PROVER_URL, TRANSFER_PUBLIC_VERIFIER_URL);
+                    }
+                } else if (transfer_type === "private") {
+                    if (transferPrivateProvingKey === null || transferPrivateVerifyingKey === null) {
+                        [transferPrivateProvingKey, transferPrivateVerifyingKey] = await getFunctionKeys(TRANSFER_PRIVATE_PROVER_URL, TRANSFER_PRIVATE_VERIFIER_URL);
+                    }
+                } else if (transfer_type === "publicToPrivate") {
+                    if (transferPublicToPrivateProvingKey === null || transferPublicToPrivateVerifyingKey === null) {
+                        [transferPublicToPrivateProvingKey, transferPublicToPrivateVerifyingKey] = await getFunctionKeys(TRANSFER_PUBLIC_TO_PRIVATE_PROVER_URL, TRANSFER_PUBLIC_TO_PRIVATE_VERIFIER_URL);
+                    }
+                } else if (transfer_type === "privateToPublic") {
+                    if (transferPrivateToPublicProvingKey === null || transferPrivateToPublicVerifyingKey === null) {
+                        [transferPrivateToPublicProvingKey, transferPrivateToPublicVerifyingKey] = await getFunctionKeys(TRANSFER_PRIVATE_TO_PUBLIC_PROVER_URL, TRANSFER_PRIVATE_TO_PUBLIC_VERIFIER_URL);
+                    }
+                } else {
+                    throw (`Invalid transfer type`);
                 }
                 if (!aleoProgramManager.keyExists("credits.aleo", "transfer")) {
-                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer", transferProvingKey, transferVerifyingKey);
+                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer", transferPrivateProvingKey, transferPrivateVerifyingKey);
                 }
                 if (feeProvingKey === null || feeVerifyingKey === null) {
                     [feeProvingKey, feeVerifyingKey] = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL);
