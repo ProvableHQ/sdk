@@ -65,7 +65,7 @@ export const Split = () => {
 
         await postMessagePromise(worker, {
             type: 'ALEO_SPLIT',
-            splitAmount: amountNumber(),
+            splitAmount: amount,
             record: amountRecordString(),
             privateKey: privateKeyString(),
             url: peerUrl(),
