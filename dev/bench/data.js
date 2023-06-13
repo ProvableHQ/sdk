@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1686668495860,
+  "lastUpdate": 1686668508299,
   "repoUrl": "https://github.com/AleoHQ/sdk",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -107,6 +107,60 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_encryption_decryption_roundtrip",
             "value": 561224,
             "range": "± 2224",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mturner@aleo.org",
+            "name": "Mike Turner",
+            "username": "iamalwaysuncomfortable"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "aea3740e7dc2dfb6132c51ed0426abe596410a22",
+          "message": "[chore] bump wasm-bindgen-futures from 0.4.36 to 0.4.37",
+          "timestamp": "2023-06-13T10:39:28-04:00",
+          "tree_id": "f26b685c77671fe9144f49cd39f8a0808970623e",
+          "url": "https://github.com/AleoHQ/sdk/commit/aea3740e7dc2dfb6132c51ed0426abe596410a22"
+        },
+        "date": 1686668502909,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 226073,
+            "range": "± 430",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 86970,
+            "range": "± 266",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_decryption",
+            "value": 324760,
+            "range": "± 777",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption",
+            "value": 231976,
+            "range": "± 446",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption_decryption_roundtrip",
+            "value": 562320,
+            "range": "± 3851",
             "unit": "ns/iter"
           }
         ]
