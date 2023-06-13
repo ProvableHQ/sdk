@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Alert, Card, Divider, Form, Input, Row} from "antd";
+import {Card, Form, Input} from "antd";
 import {useAleoWASM} from "../../aleo-wasm-hook";
-import {stringToUint8Array} from "../../utils/Utils";
 
 export const VerifyMessage = () => {
     const [inputAddress, setInputAddress] = useState(null);
@@ -10,11 +9,12 @@ export const VerifyMessage = () => {
     const [messageInput, setMessageInput] = useState(null);
     const didMount = useRef(false);
     const aleo = useAleoWASM();
+    const textEncoder = new TextEncoder();
 
     const attemptVerify = () => {
         if (messageInput !== null && signatureInput !== null && inputAddress !== null) {
             try {
-                let messageBytes = stringToUint8Array(messageInput);
+                let messageBytes = textEncoder.encode(messageInput);
                 let signature = aleo.Signature.from_string(signatureInput);
                 let isVerified = inputAddress.verify(messageBytes, signature);
                 setVerified(isVerified);
