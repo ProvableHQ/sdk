@@ -39,27 +39,27 @@ pub struct Transfer {
     /// Recipient address
     #[clap(short, long)]
     recipient: Address<CurrentNetwork>,
-    /// Record used to fund the transfer
-    #[clap(short, long)]
-    amount_record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
-    /// Record to spend the fee from
-    #[clap(long)]
-    fee_record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
+    /// Transfer type
+    #[clap(short, long, value_enum, default_value_t=TransferTypeArg::Private)]
+    transfer_type: TransferTypeArg,
     /// Number of credits to transfer
     #[clap(short, long)]
     amount: f64,
-    /// Aleo Network peer to broadcast the transaction to
-    #[clap(short, long)]
-    endpoint: Option<String>,
     /// Transaction fee in credits
     #[clap(short, long)]
     fee: f64,
     /// Private key used to generate the transfer
     #[clap(short='k', long, conflicts_with_all = &["ciphertext", "password"])]
     private_key: Option<PrivateKey<CurrentNetwork>>,
-    /// Transfer type
-    #[clap(short, long, value_enum, default_value_t=TransferTypeArg::Private)]
-    transfer_type: TransferTypeArg,
+    /// Record used to fund the transfer
+    #[clap(long)]
+    amount_record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
+    /// Record to spend the fee from
+    #[clap(long)]
+    fee_record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
+    /// Aleo Network peer to broadcast the transaction to
+    #[clap(short, long)]
+    endpoint: Option<String>,
     /// Private key ciphertext used to generate the transfer (requires password to decrypt)
     #[clap(short, long, conflicts_with = "private-key", requires = "password")]
     ciphertext: Option<Ciphertext<CurrentNetwork>>,
