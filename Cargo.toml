@@ -26,28 +26,22 @@ path = "rust"
 default-features = false
 
 [workspace.dependencies.snarkvm]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet3"
+version = "=0.12.0"
 
 [workspace.dependencies.snarkvm-circuit-network]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet3"
+version = "=0.12.0"
 
 [workspace.dependencies.snarkvm-console]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet3"
+version = "=0.12.0"
 
 [workspace.dependencies.snarkvm-console-network]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet3"
+version = "=0.12.0"
 
 [workspace.dependencies.snarkvm-synthesizer]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet3"
+version = "=0.12.0"
 
 [workspace.dependencies.snarkvm-wasm]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet3"
+version = "=0.12.0"
 
 [lib]
 path = "cli/lib.rs"
