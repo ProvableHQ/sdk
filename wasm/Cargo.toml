@@ -1,8 +1,8 @@
 [package]
 name = "aleo-wasm"
-version = "0.4.2"
+version = "0.4.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
-description = "Toolkit for exporting key Aleo functionality and cryptography to WebAssembly"
+description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"
 repository = "https://github.com/AleoHQ/sdk"
 keywords = [
@@ -77,7 +77,7 @@ version = "0.2"
 features = [ "serde-serialize" ]
 
 [dependencies.wasm-bindgen-futures]
-version = "0.4.36"
+version = "0.4.37"
 
 [dependencies.wasm-bindgen-rayon]
 version = "1.0.3"
@@ -87,10 +87,10 @@ optional = true
 version = "0.1.7"
 
 [dependencies.serde]
-version = "1.0.163"
+version = "1.0.164"
 
 [dev-dependencies.wasm-bindgen-test]
-version = "0.3.33"
+version = "0.3.37"
 
 [features]
 default = [ "serial", "browser" ]
