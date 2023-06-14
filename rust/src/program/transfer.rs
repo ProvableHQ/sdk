@@ -196,7 +196,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn test_private_transfer() {
+    fn test_transfer_roundtrip() {
         // Initialize necessary key material
         // Use the beacon private key to make the initial transfer
         let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY).unwrap();
