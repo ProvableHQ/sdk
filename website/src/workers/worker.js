@@ -264,7 +264,7 @@ self.addEventListener("message", ev => {
                     [splitProvingKey, splitVerifyingKey] = await getFunctionKeys(SPLIT_PROVER_URL, SPLIT_VERIFIER_URL);
                 }
                 if (!aleoProgramManager.keyExists("credits.aleo", "split")) {
-                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "split", splitProvingKey, splitProvingKey);
+                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "split", splitProvingKey, splitVerifyingKey);
                 }
                 let splitTransaction = await aleoProgramManager.split(
                     aleo.PrivateKey.from_string(privateKey),
