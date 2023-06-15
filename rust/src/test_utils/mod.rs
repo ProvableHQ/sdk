@@ -44,19 +44,29 @@ function test:
 pub const FINALIZE_TEST_PROGRAM: &str = "program finalize_test.aleo;
 
 mapping monotonic_counter:
-    key id as u32;
-    value counter as u32;
+    // Counter key
+    key id as u32.public;
+    // Counter value
+    value counter as u32.public;
 
 function increase_counter:
-    input r0 as u32.private;
-    input r1 as u32.private;
+    // Counter index
+    input r0 as u32.public;
+    // Value to increment by
+    input r1 as u32.public;
     finalize r0 r1;
 
-finalize finalize_test.aleo;
-    input r1 as u32;
-    input r2 as u32;
-    increment monotonic_counter[r1] by r2;
-
+finalize increase_counter:
+    // Counter index
+    input r0 as u32.public;
+    // Value to increment by
+    input r1 as u32.public;
+    // Get or initialize counter key
+    get.or_use monotonic_counter[r0] 0u32 into r2;
+    // Add r1 to into the existing counter value
+    add r1 r2 into r3;
+    // Set r3 into account[r0];
+    set r3 into monotonic_counter[r0];
 ";
 
 pub const CREDITS_IMPORT_TEST_PROGRAM: &str = "import credits.aleo;
@@ -218,7 +228,7 @@ pub fn transfer_to_test_account(
             break;
         }
         if retries > 15 {
-            println!("exceeded 10 retries, exiting with found records");
+            println!("exceeded 15 retries, exiting with found records");
             break;
         }
         sleep(std::time::Duration::from_secs(3));

@@ -187,10 +187,11 @@ mod tests {
     #[ignore]
     fn test_deploy() {
         let recipient_private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let finalize_program = Program::<Testnet3>::from_str(FINALIZE_TEST_PROGRAM).unwrap();
 
         // Wait for the node to bootup
         thread::sleep(std::time::Duration::from_secs(5));
-        transfer_to_test_account(2000000001, 8, recipient_private_key, "3030").unwrap();
+        transfer_to_test_account(2000000001, 14, recipient_private_key, "3030").unwrap();
         let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
         let record_finder = RecordFinder::<Testnet3>::new(api_client.clone());
         let temp_dir = setup_directory("aleo_test_deploy", CREDITS_IMPORT_TEST_PROGRAM, vec![]).unwrap();
@@ -220,7 +221,6 @@ mod tests {
         }
 
         // Deploy a program with a finalize scope
-        let finalize_program = Program::<Testnet3>::from_str(FINALIZE_TEST_PROGRAM).unwrap();
         program_manager.add_program(&finalize_program).unwrap();
 
         let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();

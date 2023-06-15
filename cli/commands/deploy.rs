@@ -43,10 +43,10 @@ pub struct Deploy {
     #[clap(short='k', long, conflicts_with_all = &["ciphertext", "password"])]
     private_key: Option<PrivateKey<CurrentNetwork>>,
     /// Private key ciphertext used to generate the deployment (requires password to decrypt)
-    #[clap(short, long, conflicts_with = "private-key", requires = "password")]
+    #[clap(short, long, conflicts_with = "private_key", requires = "password")]
     ciphertext: Option<Ciphertext<CurrentNetwork>>,
     /// Password to decrypt the private key
-    #[clap(short, long, conflicts_with = "private-key", requires = "ciphertext")]
+    #[clap(short, long, conflicts_with = "private_key", requires = "ciphertext")]
     password: Option<String>,
 }
 

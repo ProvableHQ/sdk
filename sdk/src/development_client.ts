@@ -184,7 +184,6 @@ export class DevelopmentClient {
         feeRecord?: string,
         amountRecord?: string
     ): Promise<string> {
-        transfer_type = "transfer_" + transfer_type;
         const request: TransferRequest = {
             amount: amount*1000000,
             fee: fee*1000000,

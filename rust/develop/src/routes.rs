@@ -175,7 +175,9 @@ impl<N: Network> Rest<N> {
         let private_key = Self::get_private_key(private_key_ciphertext, request.private_key, request.password.clone())?;
         let program_manager = ProgramManager::new(Some(private_key), None, Some(api_client), None).or_reject()?;
 
-        let transfer_type = match request.transfer_type.as_str() {
+        let specified_transfer_type = request.transfer_type.as_str();
+        info!("Transfer type specified: {specified_transfer_type}");
+        let transfer_type = match specified_transfer_type {
             "private" => { TransferType::Private },
             "public" => { TransferType::Public },
             "private_to_public" => { TransferType::PrivateToPublic },

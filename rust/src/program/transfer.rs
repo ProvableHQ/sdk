@@ -163,8 +163,7 @@ mod tests {
                 }
             };
 
-            let result =
-                program_manager.transfer(amount, fee, *recipient, visibility, None, amount_record, fee_record);
+            let result = program_manager.transfer(amount, fee, *recipient, visibility, None, amount_record, fee_record);
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
                 if i == 9 {
@@ -207,7 +206,8 @@ mod tests {
             }
             thread::sleep(std::time::Duration::from_secs(3));
             if i > 8 {
-                let error = format!("❌ Failed to verify transfer of visibility: {visibility:?} after 8 transfer errors");
+                let error =
+                    format!("❌ Failed to verify transfer of visibility: {visibility:?} after 8 transfer errors");
                 panic!("{error}");
             }
         }
@@ -255,7 +255,6 @@ mod tests {
         // Verify private transfer
         verify_transfer(amount, &api_client, &private_recipient_private_key, TransferType::Private);
 
-
         // Transfer funds to the private_to_public recipient
         try_transfer(
             &private_recipient_private_key,
@@ -266,12 +265,7 @@ mod tests {
         thread::sleep(std::time::Duration::from_secs(20));
         // TODO: when a snarkOS api is available for finalize, verify the transfer is on chain
 
-        try_transfer(
-            &private_to_public_recipient_private_key,
-            &public_recipient_address,
-            amount,
-            TransferType::Public,
-        );
+        try_transfer(&private_to_public_recipient_private_key, &public_recipient_address, amount, TransferType::Public);
         thread::sleep(std::time::Duration::from_secs(20));
         // TODO: when a snarkOS api is available for finalize, verify the transfer is on chain
 
@@ -284,11 +278,6 @@ mod tests {
         );
         thread::sleep(std::time::Duration::from_secs(20));
 
-        verify_transfer(
-            amount,
-            &api_client,
-            &public_to_private_recipient_private_key,
-            TransferType::PublicToPrivate,
-        );
+        verify_transfer(amount, &api_client, &public_to_private_recipient_private_key, TransferType::PublicToPrivate);
     }
 }

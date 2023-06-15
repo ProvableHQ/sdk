@@ -36,42 +36,42 @@ function hello:
     output r2 as u32.private;
 "#;
 
-const FEE_PROVER_URL: &str = "https://testnet3.parameters.aleo.org/fee.prover.0bfc24f";
-const FEE_VERIFIER_URL: &str = "https://testnet3.parameters.aleo.org/fee.verifier.44783e8";
+const SPLIT_PROVER_URL: &str = "https://testnet3.parameters.aleo.org/split.prover.8c585f2";
+const SPLIT_VERIFIER_URL: &str = "https://testnet3.parameters.aleo.org/split.verifier.8281688";
 
 const RECORD: &str = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 2000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}";
 
 #[wasm_bindgen_test]
 async fn test_cache_functionality() {
-    // Get the fee proving and verifying keys from the official Aleo parameters server
-    let fee_proving_key_bytes = reqwest::get(FEE_PROVER_URL).await.unwrap().bytes().await.unwrap().to_vec();
-    let fee_verifying_key_bytes = reqwest::get(FEE_VERIFIER_URL).await.unwrap().bytes().await.unwrap().to_vec();
-    let fee_proving_key = ProvingKey::from_bytes(&fee_proving_key_bytes).unwrap();
-    let fee_proving_key_clone = fee_proving_key.clone();
-    let fee_verifying_key = VerifyingKey::from_bytes(&fee_verifying_key_bytes).unwrap();
-    let fee_verifying_key_clone = fee_verifying_key.clone();
+    // Get the split proving and verifying keys from the official Aleo parameters server
+    let split_proving_key_bytes = reqwest::get(SPLIT_PROVER_URL).await.unwrap().bytes().await.unwrap().to_vec();
+    let split_verifying_key_bytes = reqwest::get(SPLIT_VERIFIER_URL).await.unwrap().bytes().await.unwrap().to_vec();
+    let split_proving_key = ProvingKey::from_bytes(&split_proving_key_bytes).unwrap();
+    let split_proving_key_clone = split_proving_key.clone();
+    let split_verifying_key = VerifyingKey::from_bytes(&split_verifying_key_bytes).unwrap();
+    let split_verifying_key_clone = split_verifying_key.clone();
     let mut program_manager = ProgramManager::new();
 
     // Ensure the keypair is not in wasm memory if it has not been cached
-    assert!(program_manager.get_cached_keypair("credits.aleo", "fee").is_err());
-    assert!(!program_manager.key_exists("credits.aleo", "fee").unwrap());
+    assert!(program_manager.get_cached_keypair("credits.aleo", "split").is_err());
+    assert!(!program_manager.key_exists("credits.aleo", "split").unwrap());
 
     // Cache the keypair in wasm memory
     program_manager
         .cache_keypair_in_wasm_memory(
             &Program::get_credits_program().to_string(),
-            "fee",
-            fee_proving_key,
-            fee_verifying_key,
+            "split",
+            split_proving_key,
+            split_verifying_key,
         )
         .unwrap();
 
     // Ensure the keypair is in wasm memory and can be retrieved
-    let mut key_pair = program_manager.get_cached_keypair("credits.aleo", "fee").unwrap();
+    let mut key_pair = program_manager.get_cached_keypair("credits.aleo", "split").unwrap();
     let retrieved_proving_key = key_pair.proving_key().unwrap();
     let retreived_verifying_key = key_pair.verifying_key().unwrap();
-    assert_eq!(fee_proving_key_clone, retrieved_proving_key);
-    assert_eq!(fee_verifying_key_clone, retreived_verifying_key);
+    assert_eq!(split_proving_key_clone, retrieved_proving_key);
+    assert_eq!(split_verifying_key_clone, retreived_verifying_key);
 
     let inputs = Array::new();
     inputs.set(0u32, JsValue::from_str("{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 2000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"));
@@ -82,7 +82,7 @@ async fn test_cache_functionality() {
         .execute_local(
             PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap(),
             Program::get_credits_program().to_string(),
-            "fee".to_string(),
+            "split".to_string(),
             inputs,
             true,
             None,
@@ -94,33 +94,33 @@ async fn test_cache_functionality() {
     assert_eq!(record.microcredits(), 1000000u64);
 
     // Ensure the 'key_exists' function can find the keys
-    assert!(program_manager.key_exists("credits.aleo", "fee").unwrap());
+    assert!(program_manager.key_exists("credits.aleo", "split").unwrap());
 
     // Ensure the keypair can't be overwritten
     assert!(
         program_manager
-            .cache_keypair_in_wasm_memory("credits.aleo", "fee", fee_proving_key_clone, fee_verifying_key_clone)
+            .cache_keypair_in_wasm_memory("credits.aleo", "split", split_proving_key_clone, split_verifying_key_clone)
             .is_err()
     );
 
     // Ensure the cache clears correctly
     program_manager.clear_key_cache();
-    assert!(program_manager.get_cached_keypair("credits.aleo", "fee").is_err());
-    assert!(!program_manager.key_exists("credits.aleo", "fee").unwrap());
+    assert!(program_manager.get_cached_keypair("credits.aleo", "split").is_err());
+    assert!(!program_manager.key_exists("credits.aleo", "split").unwrap());
 }
 
 #[wasm_bindgen_test]
 async fn test_key_synthesis() {
-    // Synthesize a keypair for the fee program
+    // Synthesize a keypair for the split program
     let mut program_manager = ProgramManager::new();
     let credits = Program::get_credits_program();
-    let mut key_pair = program_manager.synthesize_keypair(&credits.to_string(), "fee").unwrap();
+    let mut key_pair = program_manager.synthesize_keypair(&credits.to_string(), "split").unwrap();
     let retrieved_proving_key = key_pair.proving_key().unwrap();
     let retreived_verifying_key = key_pair.verifying_key().unwrap();
 
-    // Cache the keypair for the fee program in wasm memory
+    // Cache the keypair for the split program in wasm memory
     program_manager
-        .cache_keypair_in_wasm_memory(&credits.to_string(), "fee", retrieved_proving_key, retreived_verifying_key)
+        .cache_keypair_in_wasm_memory(&credits.to_string(), "split", retrieved_proving_key, retreived_verifying_key)
         .unwrap();
 
     // Ensure program can be executed with the synthesized keypair stored in wasm memory
@@ -132,7 +132,7 @@ async fn test_key_synthesis() {
         .execute_local(
             PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap(),
             credits.to_string(),
-            "fee".to_string(),
+            "split".to_string(),
             inputs,
             true,
             None,
@@ -160,7 +160,7 @@ async fn test_fee_validation() {
         .execute(
             private_key.clone(),
             Program::get_credits_program().to_string(),
-            "fee".to_string(),
+            "split".to_string(),
             inputs,
             100.0,
             fee_record.clone(),

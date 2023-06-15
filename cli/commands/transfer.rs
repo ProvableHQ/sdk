@@ -61,10 +61,10 @@ pub struct Transfer {
     #[clap(short, long)]
     endpoint: Option<String>,
     /// Private key ciphertext used to generate the transfer (requires password to decrypt)
-    #[clap(short, long, conflicts_with = "private-key", requires = "password")]
+    #[clap(short, long, conflicts_with = "private_key", requires = "password")]
     ciphertext: Option<Ciphertext<CurrentNetwork>>,
     /// Password to decrypt the private key
-    #[clap(short = 'p', long, conflicts_with = "private-key", requires = "ciphertext")]
+    #[clap(short = 'p', long, conflicts_with = "private_key", requires = "ciphertext")]
     password: Option<String>,
 }
 

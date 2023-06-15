@@ -69,7 +69,7 @@ mod tests {
     use super::*;
     use wasm_bindgen_test::*;
 
-    const FEE_PROVER_URL: &str = "https://testnet3.parameters.aleo.org/fee.prover.0bfc24f";
+    const FEE_PROVER_URL: &str = "https://testnet3.parameters.aleo.org/fee.prover.36542ce";
 
     #[wasm_bindgen_test]
     async fn test_proving_key_roundtrip() {
