@@ -222,7 +222,7 @@ impl<N: Network> AleoAPIClient<N> {
             }));
             // If a maximum number of gates is specified, stop searching when the total gates
             // exceeds the specified limit
-            if max_gates.is_some() && total_gates > max_gates.unwrap() {
+            if max_gates.is_some() && total_gates >= max_gates.unwrap() {
                 break;
             }
             // If a list of specified amounts is specified, stop searching when records matching
@@ -233,7 +233,7 @@ impl<N: Network> AleoAPIClient<N> {
                     .filter_map(|amount| {
                         let position = records.iter().position(|(_, record)| {
                             if let Ok(decrypted_record) = record.decrypt(&view_key) {
-                                decrypted_record.microcredits().unwrap_or(0) > *amount
+                                decrypted_record.microcredits().unwrap_or(0) >= *amount
                             } else {
                                 false
                             }
