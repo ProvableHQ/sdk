@@ -241,8 +241,9 @@ impl<N: Network> AleoAPIClient<N> {
                         position.map(|index| records.remove(index))
                     })
                     .collect::<Vec<_>>();
-                if found_records.len() >= specified_amounts.len() {
-                    return Ok(found_records);
+                records.extend(found_records);
+                if records.len() >= specified_amounts.len() {
+                    return Ok(records);
                 }
             }
         }
