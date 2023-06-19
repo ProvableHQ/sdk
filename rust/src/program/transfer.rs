@@ -25,11 +25,15 @@ impl<N: Network> ProgramManager<N> {
         fee: u64,
         recipient_address: Address<N>,
         password: Option<&str>,
-        input_record: Record<N, Plaintext<N>>,
+        amount_record: Record<N, Plaintext<N>>,
         fee_record: Record<N, Plaintext<N>>,
     ) -> Result<String> {
-        ensure!(amount > 0, "Amount must be greater than 0");
-        ensure!(fee > 0, "Fee must be greater than 0");
+        // Ensure records provided have enough credits to cover the transfer amount and fee
+        ensure!(
+            amount_record.microcredits()? >= amount,
+            "Credits in amount record must greater than transfer amount specified"
+        );
+        ensure!(fee_record.microcredits()? >= fee, "Fee must be greater than 0");
 
         // Specify the network state query
         let query = Query::from(self.api_client.as_ref().unwrap().base_url());
@@ -47,7 +51,7 @@ impl<N: Network> ProgramManager<N> {
 
             // Prepare the inputs for a transfer.
             let inputs = vec![
-                Value::Record(input_record),
+                Value::Record(amount_record),
                 Value::from_str(&recipient_address.to_string())?,
                 Value::from_str(&format!("{}u64", amount))?,
             ];
