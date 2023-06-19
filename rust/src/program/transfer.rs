@@ -30,8 +30,14 @@ impl<N: Network> ProgramManager<N> {
         amount_record: Option<Record<N, Plaintext<N>>>,
         fee_record: Record<N, Plaintext<N>>,
     ) -> Result<String> {
-        ensure!(amount > 0, "Amount must be greater than 0");
-        ensure!(fee > 0, "Fee must be greater than 0");
+        // Ensure records provided have enough credits to cover the transfer amount and fee
+        if let Some(amount_record) = amount_record.as_ref() {
+            ensure!(
+                amount_record.microcredits()? >= amount,
+                "Credits in amount record must greater than transfer amount specified"
+            );
+        }
+        ensure!(fee_record.microcredits()? >= fee, "Fee must be greater than 0");
 
         // Specify the network state query
         let query = Query::from(self.api_client.as_ref().unwrap().base_url());
