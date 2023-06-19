@@ -1,10 +1,10 @@
 [package]
 name = "aleo-development-server"
-version = "0.4.1"
+version = "0.4.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A REST API server for local or remote Aleo development"
 homepage = "https://aleo.org"
-repository = "https://github.com/AleoHQ/aleo"
+repository = "https://github.com/AleoHQ/sdk"
 keywords = [
   "aleo",
   "cryptography",
@@ -40,7 +40,7 @@ version = "1.8"
 version = "8.2"
 
 [dependencies.once_cell]
-version = "1.13"
+version = "1.18"
 
 [dependencies.serde]
 version = "1"

@@ -1,7 +1,7 @@
 <h1 align="center">Aleo SDK</h1>
 
 <p align="center">
-    <a href="https://circleci.com/gh/AleoHQ/aleo"><img src="https://circleci.com/gh/AleoHQ/aleo.svg?style=svg"></a>
+    <a href="https://circleci.com/gh/AleoHQ/aleo"><img src="https://circleci.com/gh/AleoHQ/sdk.svg?style=svg"></a>
     <a href="https://codecov.io/gh/AleoHQ/aleo"><img src="https://codecov.io/gh/AleoHQ/aleo/branch/main/graph/badge.svg?token=HIVCMHYMTZ"/></a>
     <a href="https://discord.gg/5v2ynrw2ds"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
 </p>
@@ -17,11 +17,11 @@ and broadcast it to the network.
 
 ## 1. Overview
 
-The [Aleo github repository](https://github.com/AleoHQ/aleo) is the home of
-1. [`aleo/`](https://github.com/AleoHQ/aleo) - The Aleo SDK in Rust https://crates.io/crates/aleo
-2. [`aleo/sdk`](https://github.com/AleoHQ/aleo/tree/testnet3/sdk) - The Aleo SDK in Javascript https://www.npmjs.com/package/@aleohq/sdk
-3. [`aleo/wasm`](https://github.com/AleoHQ/aleo/tree/testnet3/wasm) - The Aleo Wasm library in Rust https://crates.io/crates/aleo-wasm
-4. [`aleo/wasm/pkg`](https://github.com/AleoHQ/aleo/tree/testnet3/wasm) - The Aleo Wasm library in JavaScript https://www.npmjs.com/package/@aleohq/wasm
+The [Aleo github repository](https://github.com/AleoHQ/sdk) is the home of
+1. [`sdk/`](https://github.com/AleoHQ/sdk) - The Aleo SDK in Rust https://crates.io/crates/aleo
+2. [`sdk/sdk`](https://github.com/AleoHQ/sdk/tree/testnet3/sdk) - The Aleo SDK in Javascript https://www.npmjs.com/package/@aleohq/sdk
+3. [`sdk/wasm`](https://github.com/AleoHQ/sdk/tree/testnet3/wasm) - The Aleo Wasm library in Rust https://crates.io/crates/aleo-wasm
+4. [`sdk/wasm/pkg`](https://github.com/AleoHQ/sdk/tree/testnet3/wasm) - The Aleo Wasm library in JavaScript https://www.npmjs.com/package/@aleohq/wasm
 
 We recommend developers to use the interfaces provided by the Aleo SDKs (1. and 2.) for their respective languages.
 
@@ -49,10 +49,10 @@ We recommend installing `aleo` this way. In your terminal, run:
 
 ```bash
 # Download the source code
-git clone https://github.com/AleoHQ/aleo.git
+git clone https://github.com/AleoHQ/sdk.git
 
-# Enter the 'aleo' directory
-cd aleo
+# Enter the 'sdk' directory
+cd sdk
 
 # Install 'aleo'
 cargo install --path .
@@ -367,7 +367,7 @@ function transfer_amount:
 ```
 First, we define our own record data type called `token`, that has the two non-optional parameters, `owner` and `gates`, and a user-defined parameter called `amount`, representing the amount of tokens we have.
 
-This `transfer_amount` function receives 3 input parameters (`sender` record, `receiver` record and `amount`) and stores them in 3 registers (`r0`, `r1` and `r2`). After that, it computes the final balance for both of them and stores it in `r3` and `r4` (using **sub** and **add** instructions to compute the subtraction and addition respectively). With those final amounts, it creates the output records for sender and receiver, storing them in `r5` and `r6` . Finally, both records are sent out of the function with the **output** instruction.
+This `transfer_amount` function receives 3 input parameters (`sender` record, `receiver` address and `amount`) and stores them in 3 registers (`r0`, `r1` and `r2`). After that, it computes the final balance for both of them and stores it in `r3` and `r4` (using **sub** and **add** instructions to compute the subtraction and addition respectively). With those final amounts, it creates the output records for sender and receiver, storing them in `r5` and `r6` . Finally, both records are sent out of the function with the **output** instruction.
 
 To run this function, the first parameter is the input record of the program. The format of this parameter is the same as for struct types:
 

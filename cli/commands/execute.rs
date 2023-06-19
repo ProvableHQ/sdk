@@ -1,18 +1,18 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::CurrentNetwork;
 use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
@@ -160,7 +160,7 @@ mod tests {
 
         // Assert execute fails without a private key or private key ciphertext
         let execute_missing_key_material =
-            Execute::try_parse_from(["aleo", "hello.aleo", "main", "1337u32", "42u32", "--fee", "0.7"]);
+            Execute::try_parse_from(["aleo", "hello.aleo", "hello", "1337u32", "42u32", "--fee", "0.7"]);
 
         assert!(execute_missing_key_material.unwrap().parse().is_err());
 
@@ -168,7 +168,7 @@ mod tests {
         let execute_conflicting_inputs = Execute::try_parse_from([
             "aleo",
             "hello.aleo",
-            "main",
+            "hello",
             "1337u32",
             "42u32",
             "-k",
@@ -188,7 +188,7 @@ mod tests {
         let execute_no_password = Execute::try_parse_from([
             "aleo",
             "hello.aleo",
-            "main",
+            "hello",
             "1337u32",
             "42u32",
             "--fee",
@@ -201,7 +201,7 @@ mod tests {
 
         // Assert execute fails if only a password is provided
         let execute_password_only =
-            Execute::try_parse_from(["aleo", "hello.aleo", "main", "1337u32", "42u32", "--password", "password"]);
+            Execute::try_parse_from(["aleo", "hello.aleo", "hello", "1337u32", "42u32", "--password", "password"]);
 
         assert_eq!(execute_password_only.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
 
@@ -209,7 +209,7 @@ mod tests {
         let execute_bad_peer = Execute::try_parse_from([
             "aleo",
             "hello.aleo",
-            "main",
+            "hello",
             "1337u32",
             "42u32",
             "-k",

@@ -2,13 +2,13 @@ import React, {useState} from "react";
 import {Card, Divider, Form, Input} from "antd";
 import {CopyButton} from "../../components/CopyButton";
 import {useAleoWASM} from "../../aleo-wasm-hook";
-import {stringToUint8Array} from "../../utils/Utils";
 
 export const SignMessage = () => {
     const [signingAccount, setSigningAccount] = useState(null);
     const [signingKey, setSigningKey] = useState(null);
     const [message, setMessage] = useState(null);
     const aleo = useAleoWASM();
+    const textEncoder = new TextEncoder();
 
     const onKeyChange = (event) => {
         setSigningAccount(null);
@@ -25,7 +25,7 @@ export const SignMessage = () => {
     }
     const signString = (str) => {
         if (str === "" | signingAccount === null) return;
-        return signingAccount.sign(stringToUint8Array(str)).to_string();
+        return signingAccount.sign(textEncoder.encode(str)).to_string();
     }
     const onMessageChange = (event) => {
         setMessage(event.target.value);

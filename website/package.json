@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@aleohq/ui": "^0.0.9",
-    "@aleohq/wasm": "file:../wasm/pkg",
+    "@aleohq/wasm": "file:../wasm/pkg-parallel",
     "@ant-design/icons": "^4.4.0",
     "antd": "^4.11.2",
     "axios": "^1.1.3",
@@ -30,9 +30,7 @@
     "webpack-dev-server": "^4.7.4"
   },
   "scripts": {
-    "preinstall": "cd ../wasm && wasm-pack build",
-    "prestart": "yarn preinstall",
-    "prerestart": "yarn preinstall",
+    "preinstall": "cd ../wasm && export RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--max-memory=4294967296' && rustup run nightly wasm-pack build --release --target web --out-dir pkg-parallel -- --features \"parallel, browser\" --no-default-features -Z build-std=panic_abort,std",
     "start": "webpack-dev-server",
     "build": "webpack --config webpack.config.js",
     "predeploy": "yarn build",
@@ -56,5 +54,5 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "https://aleohq.github.io/aleo"
+  "homepage": "https://aleo.tools"
 }

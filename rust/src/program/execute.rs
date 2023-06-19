@@ -1,18 +1,18 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
 
@@ -100,24 +100,14 @@ impl<N: Network> ProgramManager<N> {
             program.contains_function(&function_name),
             "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
         );
+
         // Create an ephemeral SnarkVM to store the programs
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        if &program.id().to_string() != "credits.aleo" {
-            let deployment = vm.deploy(program, rng)?;
-            vm.process().write().finalize_deployment(vm.program_store(), &deployment)?;
-        };
+        let _ = &vm.process().write().add_program(program);
 
-        // Create a new execution transaction.
-        Transaction::execute(
-            &vm,
-            private_key,
-            (program_id, function_name),
-            inputs,
-            Some((fee_record, fee)),
-            Some(query),
-            rng,
-        )
+        // Create an execution transaction
+        vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, fee)), Some(query), rng)
     }
 }
 
@@ -140,7 +130,7 @@ mod tests {
         let mut program_manager =
             ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client.clone()), None).unwrap();
 
-        for _ in 0..5 {
+        for i in 0..5 {
             let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
             // Test execution of a on chain program is successful
             let execution = program_manager.execute_program(
@@ -151,9 +141,12 @@ mod tests {
                 fee_record,
                 None,
             );
+            println!("{:?}", execution);
 
             if execution.is_ok() {
                 break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
             }
         }
 
@@ -161,7 +154,7 @@ mod tests {
         let mut program_manager =
             ProgramManager::<Testnet3>::new(None, Some(encrypted_private_key), Some(api_client), None).unwrap();
 
-        for _ in 0..5 {
+        for i in 0..5 {
             let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
             // Test execution of an on chain program is successful using an encrypted private key
             let execution = program_manager.execute_program(
@@ -174,6 +167,8 @@ mod tests {
             );
             if execution.is_ok() {
                 break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
             }
         }
     }
@@ -194,7 +189,7 @@ mod tests {
         // Assert that execution fails if record's available microcredits are below the fee
         let execution = program_manager.execute_program(
             "hello.aleo",
-            "main",
+            "hello",
             ["5u32", "6u32"].into_iter(),
             500000,
             record_5_microcredits,
@@ -206,7 +201,7 @@ mod tests {
         // Assert that execution fails if a fee is specified but no records are
         let execution = program_manager.execute_program(
             "hello.aleo",
-            "main",
+            "hello",
             ["5u32", "6u32"].into_iter(),
             200,
             record_2000000001_microcredits.clone(),
@@ -219,7 +214,7 @@ mod tests {
         let randomized_program_id = random_program_id(16);
         let execution = program_manager.execute_program(
             &randomized_program_id,
-            "main",
+            "hello",
             ["5u32", "6u32"].into_iter(),
             500000,
             record_2000000001_microcredits.clone(),

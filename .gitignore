@@ -2,6 +2,7 @@
 **/*.idea/
 
 ## Build Artifacts
+**/node_modules
 **/target
 wasm/Cargo.lock
 **/package-lock.json

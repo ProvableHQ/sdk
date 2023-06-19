@@ -1,18 +1,18 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
     account::PrivateKey,
@@ -33,7 +33,7 @@ impl RecordPlaintext {
     /// Return a record plaintext from a string.
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordPlaintext, String> {
-        Self::from_str(record).map_err(|_| "The plaintext string provided was invalid".into())
+        Self::from_str(record).map_err(|_| "The record plaintext string provided was invalid".into())
     }
 
     /// Returns the record plaintext string
@@ -163,7 +163,7 @@ mod tests {
         let invalid_bech32 = "{ owner: aleo2d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah.private, microcredits: 99u64.public, _nonce: 0group.public }";
         assert_eq!(
             RecordPlaintext::from_string("string").err(),
-            Some("The plaintext string provided was invalid".into())
+            Some("The record plaintext string provided was invalid".into())
         );
         assert!(RecordPlaintext::from_string(invalid_bech32).is_err());
     }

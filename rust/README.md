@@ -1,6 +1,9 @@
 # Aleo Rust SDK
+[![Crates.io](https://img.shields.io/crates/v/aleo-rust.svg?color=neon)](https://crates.io/crates/aleo-rust)
+[![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 
-[![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-rust)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo_rust/)
+[![github]](https://github.com/AleoHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-rust)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo_rust/)
 
 [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -85,9 +88,9 @@ let mut program_manager = ProgramManager::<Testnet3>::new(None, Some(private_key
 // EXECUTE PROGRAM STEPS
 // ------------------
 
-// Execute the function `main` of the hello.aleo program with the arguments 5u32 and 3u32.
+// Execute the function `hello` of the hello.aleo program with the arguments 5u32 and 3u32.
 // Specify 0 for the fee and provide a password to decrypt the private key stored in the program manager
-program_manager.execute_program("hello.aleo", "main", ["5u32", "3u32"].into_iter(), 0, None, Some("password")).unwrap();
+program_manager.execute_program("hello.aleo", "hello", ["5u32", "3u32"].into_iter(), 0, None, Some("password")).unwrap();
 
 // ------------------
 // DEPLOY PROGRAM STEPS
@@ -99,7 +102,7 @@ program_manager.execute_program("hello.aleo", "main", ["5u32", "3u32"].into_iter
 // Create a program name (note: change this to something unique)
 let program_name = "yourownprogram.aleo";
 // Create a test program
-let test_program = format!("program {};\n\nfunction main:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n", program_name);
+let test_program = format!("program {};\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n", program_name);
 // Create a program object from the program string
 let program = Program::from_str(&test_program).unwrap();
 // Add the program to the program manager (this can also be done by providing a path to

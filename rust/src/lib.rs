@@ -1,20 +1,20 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-//! [![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-rust)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo_rust/)
+//! [![github]](https://github.com/AleoHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-rust)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo_rust/)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -109,9 +109,9 @@
 //!   // Find a record to fund the deployment fee (requires an account with a balance)
 //!   let fee_record = record_finder.find_one_record(&private_key, fee_microcredits).unwrap();
 //!
-//!   // Execute the function `main` of the hello.aleo program with the arguments 5u32 and 3u32.
+//!   // Execute the function `hello` of the hello.aleo program with the arguments 5u32 and 3u32.
 //!   // Specify 0 for the fee and provide a password to decrypt the private key stored in the program manager
-//!   program_manager.execute_program("hello.aleo", "main", ["5u32", "3u32"].into_iter(), 0, fee_record, Some("password")).unwrap();
+//!   program_manager.execute_program("hello.aleo", "hello", ["5u32", "3u32"].into_iter(), 0, fee_record, Some("password")).unwrap();
 //!
 //!   // ------------------
 //!   // DEPLOY PROGRAM STEPS
@@ -123,7 +123,7 @@
 //!   // Create a program name (note: change this to something unique)
 //!   let program_name = "yourownprogram.aleo";
 //!   // Create a test program
-//!   let test_program = format!("program {};\n\nfunction main:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n", program_name);
+//!   let test_program = format!("program {};\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n", program_name);
 //!   // Create a program object from the program string
 //!   let program = Program::from_str(&test_program).unwrap();
 //!   // Add the program to the program manager (this can also be done by providing a path to
@@ -190,7 +190,15 @@ pub use test_utils::*;
 pub mod snarkvm_types {
     //! Re-export of crucial types from the snarkVM crate
     #[cfg(feature = "full")]
-    pub use snarkvm::synthesizer::{Block, ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
+    pub use snarkvm::synthesizer::{
+        store::helpers::memory::ConsensusMemory,
+        Block,
+        ConsensusStore,
+        Program,
+        Query,
+        Transaction,
+        VM,
+    };
     pub use snarkvm_console::{
         account::{Address, PrivateKey, Signature, ViewKey},
         network::Testnet3,

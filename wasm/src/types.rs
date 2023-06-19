@@ -1,18 +1,18 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use aleo_rust::{
     Address,
@@ -27,8 +27,17 @@ pub use aleo_rust::{
     Testnet3,
     ViewKey,
 };
-use snarkvm_synthesizer::{Fee, Program, Transaction};
-pub use snarkvm_wasm::{network::Environment, program::Response, FromBytes, PrimeField, ToBytes};
+use snarkvm_circuit_network::AleoV0;
+use snarkvm_console::program::{ProgramOwner, Response, TransactionLeaf};
+use snarkvm_synthesizer::{
+    helpers::memory::BlockMemory,
+    snark::{ProvingKey, VerifyingKey},
+    Process,
+    Program,
+    Transaction,
+};
+
+pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
 
 // Account types
 pub type AddressNative = Address<CurrentNetwork>;
@@ -38,6 +47,7 @@ pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 
 // Network types
 pub type CurrentNetwork = Testnet3;
+pub type CurrentAleo = AleoV0;
 
 // Record types
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;
@@ -46,9 +56,14 @@ pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
 pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 
 // Program types
-pub type FeeNative = Fee<CurrentNetwork>;
+pub type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
+pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProgramNative = Program<CurrentNetwork>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;
+pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
+pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
 pub type ResponseNative = Response<CurrentNetwork>;
+pub type TransactionLeafNative = TransactionLeaf<CurrentNetwork>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
+pub type VerifyingKeyNative = VerifyingKey<CurrentNetwork>;

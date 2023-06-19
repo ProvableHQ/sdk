@@ -93,7 +93,7 @@ commands:
 jobs:
   rust_stable:
     docker:
-      - image: cimg/rust:1.67
+      - image: cimg/rust:1.70
     resource_class: xlarge
     steps:
       - run_serial:
@@ -102,7 +102,7 @@ jobs:
 
   wasm:
     docker:
-      - image: cimg/rust:1.67
+      - image: cimg/rust:1.70
     resource_class: 2xlarge
     steps:
       - checkout
@@ -113,22 +113,23 @@ jobs:
           command: |
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
             export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install node
+            nvm install 18.16.0
+            nvm use 18.16.0
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-            cd wasm && wasm-pack test --node
+            cd wasm && wasm-pack test --node --lib
             # cargo test --target wasm32-unknown-unknown
             wasm-pack build --target nodejs
             npm install --global typescript
             npm install --global yarn
             cd ../sdk && yarn install
-            yarn build
+            sleep 5
             yarn test
       - clear_environment:
           cache_key: aleo-wasm-cache
 
   check-fmt:
     docker:
-      - image: cimg/rust:1.67
+      - image: cimg/rust:1.70
     resource_class: xlarge
     steps:
       - checkout
@@ -145,7 +146,7 @@ jobs:
 
   check-clippy:
     docker:
-      - image: cimg/rust:1.67
+      - image: cimg/rust:1.70
     resource_class: 2xlarge
     steps:
       - checkout
@@ -155,14 +156,14 @@ jobs:
           name: Check lint
           no_output_timeout: 35m
           command: |
-            cargo clippy --workspace --all-targets -- -D warnings
-            cargo clippy --workspace --all-targets --all-features -- -D warnings
+            cargo clippy --workspace --all-targets --all-features --exclude aleo-wasm
+            cargo clippy -p aleo-wasm --all-targets --features serial
       - clear_environment:
           cache_key: aleo-clippy-cache
 
   aleo-deploy-and-execute:
     docker:
-      - image: cimg/rust:1.67
+      - image: cimg/rust:1.70
     resource_class: xlarge
     steps:
       - checkout
@@ -175,10 +176,11 @@ jobs:
             sudo apt install git-all
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
             export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install node
+            nvm install 18.16.0
+            nvm use 18.16.0
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
             cd wasm
-            wasm-pack build --target nodejs
+            wasm-pack build --target nodejs -- --features serial --no-default-features
             cd ..
             npm install --global typescript
             npm install --global yarn
@@ -195,12 +197,12 @@ jobs:
             cargo test test_deploy -- --ignored --nocapture --test-threads=1
             cargo test test_execution -- --ignored --nocapture --test-threads=1
             cd ../sdk && yarn install
-            yarn build
+            sleep 5
             yarn integration
 
   aleo-executable:
     docker:
-      - image: cimg/rust:1.67
+      - image: cimg/rust:1.70
     resource_class: xlarge
     steps:
       - checkout

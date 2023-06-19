@@ -1,10 +1,10 @@
 [package]
 name = "aleo"
-version = "0.4.1"
+version = "0.4.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
-repository = "https://github.com/AleoHQ/aleo"
+repository = "https://github.com/AleoHQ/sdk"
 keywords = [
   "aleo",
   "cryptography",
@@ -21,25 +21,27 @@ edition = "2021"
 members = [ "rust", "wasm", "rust/develop"]
 
 [workspace.dependencies.aleo-rust]
-version = "0.4.0"
+version = "0.4.3"
 path = "rust"
 default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "0.10.3"
-
-[workspace.dependencies.snarkvm-console]
-version = "0.10.3"
+version = "=0.11.7"
 
 [workspace.dependencies.snarkvm-circuit-network]
-version = "0.10.3"
+version = "=0.11.7"
+
+[workspace.dependencies.snarkvm-console]
+version = "=0.11.7"
+
+[workspace.dependencies.snarkvm-console-network]
+version = "=0.11.7"
 
 [workspace.dependencies.snarkvm-synthesizer]
-version = "0.10.3"
+version = "=0.11.7"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.10.3"
-default-features = false
+version = "=0.11.7"
 
 [lib]
 path = "cli/lib.rs"
@@ -86,7 +88,7 @@ default-features = false
 version = "7.2.0"
 
 [dependencies.self_update]
-version = "0.36"
+version = "0.37"
 features = [ "default", "archive-zip", "archive-tar"]
 
 [dependencies.serde]

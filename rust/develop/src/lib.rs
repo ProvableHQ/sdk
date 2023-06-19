@@ -1,20 +1,20 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-//! [![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo-development-server/)
+//! [![github]](https://github.com/AleoHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo-development-server/)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -76,7 +76,7 @@
 //!
 //! `\execute`
 //! * `program_id` The program ID of the program to be executed (e.g. hello.aleo)
-//! * `program_function` The function to execute within the program (e.g. main)
+//! * `program_function` The function to execute within the program (e.g. hello)
 //! * `fee` Optional fee to be paid for the transfer, specify 0 for no fee
 //! * `inputs` Array of inputs to be passed to the program
 //! * `private_key` Optional private key of the user who is executing the program
@@ -100,7 +100,7 @@
 //! ## Deploy a program
 //! curl -X POST -H "Content-Type: application/json" \
 //! -d '{
-//!     "program": "program hello.aleo;\n\nfunction main:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n",
+//!     "program": "program hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n",
 //!     "fee": 100000,
 //!     "private_key": "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH"
 //! }' \
@@ -110,7 +110,7 @@
 //! curl -X POST -H "Content-Type: application/json" \
 //! -d '{
 //!     "program_id": "hello.aleo",
-//!     "program_function": "main",
+//!     "program_function": "hello",
 //!     "inputs": ["5u32", "5u32"],
 //!     "private_key": "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH",
 //!     "fee": 0

@@ -1,11 +1,11 @@
 [package]
 name = "aleo-rust"
-version = "0.4.1"
+version = "0.4.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Rust SDK for managing Aleo programs and communicating with the Aleo network"
 homepage = "https://aleo.org"
 readme = "README.md"
-repository = "https://github.com/AleoHQ/aleo"
+repository = "https://github.com/AleoHQ/sdk"
 keywords = [
   "aleo",
   "cryptography",
@@ -35,7 +35,7 @@ version = "1"
 version = "1.9.3"
 
 [dependencies.once_cell]
-version = "1.13.1"
+version = "1.18.0"
 
 [dependencies.rand]
 version = "0.8.5"
@@ -43,10 +43,10 @@ version = "0.8.5"
 [dependencies.ureq]
 features = [ "json" ]
 optional = true
-version = "2.6.2"
+version = "2.7.0"
 
 [dependencies.serde_json]
-version = "1.0.91"
+version = "1"
 
 [dependencies.snarkvm]
 optional = true

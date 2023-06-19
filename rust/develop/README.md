@@ -1,10 +1,10 @@
 # Aleo Development Server
 
-[![Crates.io](https://img.shields.io/crates/v/snarkos-node-rest.svg?color=neon)](https://crates.io/crates/snarkos-node-rest)
+[![Crates.io](https://img.shields.io/crates/v/aleo-development-server.svg?color=neon)](https://crates.io/crates/aleo-development-server)
 [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 
-[![github]](https://github.com/AleoHQ/aleo)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-rust/latest/aleo_development_server/)
+[![github]](https://github.com/AleoHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-development-server)&ensp;[![docs-rs]](https://docs.rs/aleo-development-server/latest/aleo_development_server/)
 
 [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -66,7 +66,7 @@ A javascript client for this server is available in the [Aleo SDK](https://www.n
 
 `\execute`
 * `program_id` The program ID of the program to be executed (e.g. hello.aleo)
-* `program_function` The function to execute within the program (e.g. main)
+* `program_function` The function to execute within the program (e.g. hello)
 * `fee` Optional fee to be paid for the transfer, specify 0 for no fee
 * `inputs` Array of inputs to be passed to the program
 * `private_key` Optional private key of the user who is executing the program
@@ -90,7 +90,7 @@ Example curl requests for the above endpoints:
 ## Deploy a program
 curl -X POST -H "Content-Type: application/json" \
 -d '{
-    "program": "program hello.aleo;\n\nfunction main:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n",
+    "program": "program hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n",
     "fee": 100000,
     "private_key": "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH"
 }' \
@@ -100,7 +100,7 @@ http://0.0.0.0:4040/testnet3/deploy
 curl -X POST -H "Content-Type: application/json" \
 -d '{
     "program_id": "hello.aleo",
-    "program_function": "main",
+    "program_function": "hello",
     "inputs": ["5u32", "5u32"],
     "private_key": "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH",
     "fee": 0

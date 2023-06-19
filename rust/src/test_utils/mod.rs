@@ -1,18 +1,18 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{AleoAPIClient, ProgramManager, RecordFinder};
 use snarkvm::file::Manifest;
@@ -53,7 +53,7 @@ function test:
 
 pub const HELLO_PROGRAM: &str = "program hello.aleo;
 
-function main:
+function hello:
     input r0 as u32.public;
     input r1 as u32.private;
     add r0 r1 into r2;
@@ -62,7 +62,7 @@ function main:
 
 pub const HELLO_PROGRAM_2: &str = "program hello.aleo;
 
-function main:
+function hello:
     input r0 as u32.public;
     input r1 as u32.private;
     mul r0 r1 into r2;
