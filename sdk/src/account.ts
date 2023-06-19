@@ -6,6 +6,8 @@ import {
   PrivateKeyCiphertext,
   RecordCiphertext,
 } from "@aleohq/wasm";
+import { mnemonicToSeedSync } from '@scure/bip39';
+import { derivePath, isValidHardenedPath } from "./models/ed25519-hd-key";
 
 interface AccountParam {
   privateKey?: string;
@@ -75,6 +77,26 @@ export class Account {
     } catch(e) {
       throw new Error("Wrong password or invalid ciphertext");
     }
+  }
+
+  /**
+   * Attempts to create an account from a mnemonic
+   * @param {string} mnemonic
+   * @param {string} path
+   * @returns {PrivateKey | Error}
+   *
+   * @example
+   * let mnemonic = '...';
+   * let path = 'm/44'/41440'/0'/0'/0'';
+   * let account = Account.fromDerivePath(mnemonic, path);
+   */
+  public static fromDerivePath(mnemonic: string, path?:string) {
+    path = path || "m/44'/41440'/0'/0'/0'";
+    if (!isValidHardenedPath(path)) {
+      throw new Error("Invalid derivation path");
+    }
+    const { key: seed } = derivePath(path, mnemonicToSeedSync(mnemonic));
+    return new Account({ seed });
   }
 
   private privateKeyFromParams(params: AccountParam) {

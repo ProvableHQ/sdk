@@ -1,6 +1,6 @@
 import { Account } from '../src'
 import { PrivateKey, ViewKey, Address, RecordCiphertext } from '@aleohq/wasm';
-import { seed, message, beaconPrivateKeyString, beaconViewKeyString, beaconAddressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from './data/account-data';
+import { seed, message, beaconPrivateKeyString, beaconViewKeyString, beaconAddressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString, mnemonic, mnemonicSeed } from './data/account-data';
 
 
 describe('Account', () => {
@@ -94,6 +94,13 @@ describe('Account', () => {
                 // The account should fail to decrypt
                 expect(true).toBe(true);
             }
+        });
+
+        test('creates a new from mnemonic', () => {
+            const account = new Account({seed: mnemonicSeed});
+            const newAccount = Account.fromDerivePath(mnemonic, `m/44'/41440'/0'/0'/0'`);
+            
+            expect(account.address().to_string()).toEqual(newAccount.toString());
         });
     });
 

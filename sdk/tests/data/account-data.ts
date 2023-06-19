@@ -29,4 +29,7 @@ const helloProgramId = 'hellothere.aleo';
 const helloProgramMainFunction = 'hello';
 const helloProgram = 'program ' + helloProgramId + ';\n\nfunction ' + helloProgramMainFunction + ':\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n';
 
-export { addressString, beaconAddressString, beaconPrivateKeyString, beaconViewKeyString, foreignCiphertextString, foreignViewKeyString, fundedAddressString, fundedPrivateKeyString, helloProgram, helloProgramId, helloProgramMainFunction, message, recordCiphertextString, recordPlaintextString, privateKeyString, seed, viewKeyString };
+const mnemonic = 'result crisp session latin must fruit genuine question prevent start coconut brave speak student dismiss';
+const mnemonicSeed = new Uint8Array([ 200,  74, 177, 141, 170,  14,  86, 44, 151, 243, 177, 117, 149, 207, 145, 115, 137,  29, 170, 125,  76, 87, 221, 166, 209,  50, 205, 201, 6, 165, 198, 132 ]);
+
+export { addressString, beaconAddressString, beaconPrivateKeyString, beaconViewKeyString, foreignCiphertextString, foreignViewKeyString, fundedAddressString, fundedPrivateKeyString, helloProgram, helloProgramId, helloProgramMainFunction, message, recordCiphertextString, recordPlaintextString, privateKeyString, seed, viewKeyString, mnemonic, mnemonicSeed };
