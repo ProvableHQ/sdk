@@ -19,7 +19,6 @@ import {Transfer} from "./tabs/develop/Transfer";
 import {VerifyMessage} from "./tabs/account/VerifyMessage";
 import {Join} from "./tabs/develop/Join";
 import {Split} from "./tabs/develop/Split";
-import {ProgramToForm} from "./tabs/brent/ProgramToForm";
 
 const {Header, Content, Footer} = Layout;
 
@@ -37,7 +36,6 @@ function App() {
                     <Menu.Item key="4" onClick={() => setMenuIndex(3)}>Advanced</Menu.Item>
                     <Menu.Item key="5" onClick={() => setMenuIndex(4)}>Develop</Menu.Item>
                     <Menu.Item key="6" onClick={() => setMenuIndex(5)}>Transfer</Menu.Item>
-                    <Menu.Item key="7" onClick={() => setMenuIndex(6)}>Brent's Test</Menu.Item>
                 </Menu>
             </Header>
             <Content style={{padding: '50px 50px'}}>
@@ -99,14 +97,6 @@ function App() {
                         <Split/>
                         <br/>
                         <Join/>
-                    </>
-                }
-                {
-                    menuIndex === 6 &&
-                    <>
-                        {/*<BrentTest/>*/}
-                        {/*<br/>*/}
-                        <ProgramToForm/>
                     </>
                 }
             </Content>
