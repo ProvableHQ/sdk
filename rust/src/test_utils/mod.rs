@@ -201,5 +201,5 @@ pub fn transfer_to_test_account(
     let client = program_manager.api_client()?;
     let latest_height = client.latest_height()?;
     let records = client.get_unspent_records(&recipient_private_key, 0..latest_height, None, None)?;
-    Ok(records.iter().map(|(_cm, record)| record.decrypt(&recipient_view_key).unwrap()).collect())
+    Ok(records.into_iter().map(|(_cm, record)| record).collect())
 }
