@@ -192,13 +192,11 @@ mod tests {
             println!("Attempting to verify transfer of visibility: {visibility:?} for amount: {amount}");
             let height = api_client.latest_height().unwrap();
             let records = api_client.get_unspent_records(recipient_private_key, 0..height, None, None).unwrap();
-            let recipient_view_key = ViewKey::try_from(recipient_private_key).unwrap();
             let mut is_verified = false;
             if !records.is_empty() {
                 for record in records.iter() {
                     let (_, record) = record;
-                    let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
-                    let record_amount = record_plaintext.microcredits().unwrap();
+                    let record_amount = record.microcredits().unwrap();
                     println!("Found amount: {record_amount} - expected: {amount}");
                     if amount == record_amount {
                         println!("✅ Transfer of {amount} verified for transfer type: {visibility:?}");
