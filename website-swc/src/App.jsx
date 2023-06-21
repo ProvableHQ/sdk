@@ -19,7 +19,6 @@ import {Transfer} from "./tabs/develop/Transfer";
 import {VerifyMessage} from "./tabs/account/VerifyMessage";
 import {Join} from "./tabs/develop/Join";
 import {Split} from "./tabs/develop/Split";
-import {BrentTest} from "./tabs/brent/BrentTest";
 import {ProgramToForm} from "./tabs/brent/ProgramToForm";
 
 const {Header, Content, Footer} = Layout;

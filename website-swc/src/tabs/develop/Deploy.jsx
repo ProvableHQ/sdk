@@ -3,6 +3,7 @@ import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from
 import {FormGenerator} from "../../components/InputForm";
 import axios from "axios";
 import init, * as aleo from '@aleohq/wasm';
+import AleoWorker from '../../workers/worker.js?worker'
 
 await init();
 
@@ -18,7 +19,7 @@ export const Deploy = () => {
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
     function spawnWorker() {
-        let worker = new Worker("./worker.js");
+        let worker = new AleoWorker();
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'DEPLOY_TRANSACTION_COMPLETED') {
                 axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.deployTransaction, {

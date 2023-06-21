@@ -3,6 +3,7 @@ import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from
 import {FormGenerator} from "../../components/InputForm";
 import axios from "axios";
 import init, * as aleo from '@aleohq/wasm';
+import AleoWorker from '../../workers/worker.js?worker'
 
 await init();
 
@@ -49,7 +50,7 @@ export const Execute = () => {
     }
 
     function spawnWorker() {
-        let worker = new Worker("./worker.js");
+        let worker = new AleoWorker();
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'OFFLINE_EXECUTION_COMPLETED') {
                 setLoading(false);

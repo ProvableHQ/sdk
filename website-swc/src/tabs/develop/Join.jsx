@@ -1,35 +1,38 @@
 import React, { useState, useEffect } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
 import axios from "axios";
+import AleoWorker from '../../workers/worker.js?worker'
 
-export const Split = () => {
-    const [amountRecord, setAmountRecord] = useState(null);
-    const [splitUrl, setSplitUrl] = useState("https://vm.aleo.org/api");
-    const [splitAmount, setSplitAmount] = useState("1.0");
+export const Join = () => {
+    const [joinFeeRecord, setJoinFeeRecord] = useState(null);
+    const [recordOne, setRecordOne] = useState(null);
+    const [recordTwo, setRecordTwo] = useState(null);
+    const [joinUrl, setJoinUrl] = useState("https://vm.aleo.org/api");
+    const [joinFee, setJoinFee] = useState("1.0");
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
-    const [splitError, setSplitError] = useState(null);
+    const [joinError, setJoinError] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
 
     function spawnWorker() {
-        let worker = new Worker("./worker.js");
+        let worker = new AleoWorker();
         worker.addEventListener("message", ev => {
-            if (ev.data.type == 'SPLIT_TRANSACTION_COMPLETED') {
-                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.splitTransaction, {
+            if (ev.data.type == 'JOIN_TRANSACTION_COMPLETED') {
+                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.joinTransaction, {
                     headers: {
                         'Content-Type': 'application/json',
                     }
                 }).then(
                     (response) => {
                         setLoading(false);
-                        setSplitError(null);
+                        setJoinError(null);
                         setTransactionID(response.data);
                     }
                 )
             } else if (ev.data.type == 'ERROR') {
-                setSplitError(ev.data.errorMessage);
+                setJoinError(ev.data.errorMessage);
                 setLoading(false);
                 setTransactionID(null);
             }
@@ -47,26 +50,28 @@ export const Split = () => {
         }
     }, []);
 
-    const split = async (event) => {
+    const join = async (event) => {
         setLoading(true)
         setTransactionID(null);
-        setSplitError(null);
+        setJoinError(null);
 
-        const amount = parseFloat(amountString());
-        if (isNaN(amount)) {
-            setSplitError("Amount is not a valid number");
+        const feeAmount = parseFloat(feeString());
+        if (isNaN(feeAmount)) {
+            setJoinError("Fee is not a valid number");
             setLoading(false);
             return;
-        } else if (amount <= 0) {
-            setSplitError("Amount must be greater than 0");
+        } else if (feeAmount <= 0) {
+            setJoinError("Fee must be greater than 0");
             setLoading(false);
             return;
         }
 
         await postMessagePromise(worker, {
-            type: 'ALEO_SPLIT',
-            splitAmount: amount,
-            record: amountRecordString(),
+            type: 'ALEO_JOIN',
+            recordOne: recordOneString(),
+            recordTwo: recordTwoString(),
+            fee: feeAmount,
+            feeRecord: feeRecordString(),
             privateKey: privateKeyString(),
             url: peerUrl(),
         });
@@ -78,7 +83,7 @@ export const Split = () => {
                 resolve(event.data);
             };
             worker.onerror = error => {
-                setSplitError(error);
+                setJoinError(error);
                 setLoading(false);
                 setTransactionID(null);
                 reject(error);
@@ -89,27 +94,45 @@ export const Split = () => {
 
     const onUrlChange = (event) => {
         if (event.target.value !== null) {
-            setSplitUrl(event.target.value);
+            setJoinUrl(event.target.value);
         }
-        return splitUrl;
+        return joinUrl;
     }
 
-    const onAmountChange = (event) => {
+    const onJoinFeeChange = (event) => {
         if (event.target.value !== null) {
-            setSplitAmount(event.target.value);
+            setJoinFee(event.target.value);
         }
         setTransactionID(null);
-        setSplitError(null);
-        return splitAmount;
+        setJoinError(null);
+        return joinFee;
     }
 
-    const onAmountRecordChange = (event) => {
+    const onRecordOneChange = (event) => {
         if (event.target.value !== null) {
-            setAmountRecord(event.target.value);
+            setRecordOne(event.target.value);
         }
         setTransactionID(null);
-        setSplitError(null);
-        return amountRecord;
+        setJoinError(null);
+        return recordOne;
+    }
+
+    const onRecordTwoChange = (event) => {
+        if (event.target.value !== null) {
+            setRecordTwo(event.target.value);
+        }
+        setTransactionID(null);
+        setJoinError(null);
+        return recordTwo;
+    }
+
+    const onJoinFeeRecordChange = (event) => {
+        if (event.target.value !== null) {
+            setJoinFeeRecord(event.target.value);
+        }
+        setTransactionID(null);
+        setJoinError(null);
+        return joinFeeRecord;
     }
 
     const onPrivateKeyChange = (event) => {
@@ -117,45 +140,70 @@ export const Split = () => {
             setPrivateKey(event.target.value);
         }
         setTransactionID(null);
-        setSplitError(null);
+        setJoinError(null);
         return privateKey;
     }
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const amountString = () => splitAmount !== null ? splitAmount : "";
     const privateKeyString = () => privateKey !== null ? privateKey : "";
-    const amountRecordString = () => amountRecord !== null ? amountRecord : "";
+    const feeRecordString = () => joinFeeRecord !== null ? joinFeeRecord : "";
+    const recordOneString = () => recordOne !== null ? recordOne : "";
+    const recordTwoString = () => recordTwo !== null ? recordTwo : "";
     const transactionIDString = () => transactionID !== null ? transactionID : "";
-    const splitErrorString = () => splitError !== null ? splitError : "";
-    const peerUrl = () => splitUrl !== null ? splitUrl : "";
+    const joinErrorString = () => joinError !== null ? joinError : "";
+    const feeString = () => joinFee !== null ? joinFee : "";
+    const peerUrl = () => joinUrl !== null ? joinUrl : "";
 
-
-    return <Card title="Split Record"
+    return <Card title="Join Records"
                  style={{width: "100%", borderRadius: "20px"}}
                  bordered={false}>
         <Form {...layout}>
-            <Form.Item label="Split Amount"
+            <Form.Item label="Record One"
                        colon={false}
                        validateStatus={status}
             >
-                <Input.TextArea name="split amount"
-                                size="large"
-                                placeholder="Amount to split record into"
+                <Input.TextArea name="Record One"
+                                size="small"
+                                placeholder="First Record to Join"
                                 allowClear
-                                onChange={onAmountChange}
-                                value={amountString()}
+                                onChange={onRecordOneChange}
+                                value={recordOneString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
-            <Form.Item label="Record"
+            <Form.Item label="Record Two"
                        colon={false}
                        validateStatus={status}
             >
-                <Input.TextArea name="Record"
+                <Input.TextArea name="Record Two"
                                 size="small"
-                                placeholder="Record to split"
+                                placeholder="Second Record to Join"
                                 allowClear
-                                onChange={onAmountRecordChange}
-                                value={amountRecordString()}
+                                onChange={onRecordTwoChange}
+                                value={recordTwoString()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
+            <Form.Item label="Fee"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="Fee"
+                                size="small"
+                                placeholder="Fee"
+                                allowClear
+                                onChange={onJoinFeeChange}
+                                value={feeString()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
+            <Form.Item label="Fee Record"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="Fee Record"
+                                size="small"
+                                placeholder="Record used to pay join fee"
+                                allowClear
+                                onChange={onJoinFeeRecordChange}
+                                value={feeRecordString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
             <Form.Item label="Private Key"
@@ -184,30 +232,30 @@ export const Split = () => {
             </Form.Item>
             <Row justify="center">
                 <Col justify="center">
-                    <Button type="primary" shape="round" size="middle" onClick={split}
-                    >Split</Button>
+                    <Button type="primary" shape="round" size="middle" onClick={join}
+                    >Join</Button>
                 </Col>
             </Row>
         </Form>
         <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
             {
                 (loading === true) &&
-                <Spin tip="Creating Split..." size="large"/>
+                <Spin tip="Creating Join..." size="large"/>
             }
             {
                 (transactionID !== null) &&
                 <Result
                     status="success"
-                    title="Split Successful!"
+                    title="Join Successful!"
                     subTitle={"Transaction ID: " + transactionIDString()}
                 />
             }
             {
-                (splitError !== null) &&
+                (joinError !== null) &&
                 <Result
                     status="error"
-                    title="Split Error"
-                    subTitle={"Error: " + splitErrorString()}
+                    title="Join Error"
+                    subTitle={"Error: " + joinErrorString()}
                 />
             }
         </Row>

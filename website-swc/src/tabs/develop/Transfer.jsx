@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
 import axios from "axios";
+import AleoWorker from '../../workers/worker.js?worker'
 
 export const Transfer = () => {
     const [transferFeeRecord, setTransferFeeRecord] = useState(null);
@@ -18,7 +19,7 @@ export const Transfer = () => {
     const [provingKey, setProvingKey] = useState(null);
 
     function spawnWorker() {
-        let worker = new Worker("./worker.js");
+        let worker = new AleoWorker();
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'TRANSFER_TRANSACTION_COMPLETED') {
                 axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.transferTransaction, {
