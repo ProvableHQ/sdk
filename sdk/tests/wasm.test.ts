@@ -1,4 +1,4 @@
-import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "@aleohq/wasm";
+import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "@aleohq/aleo-nodejs";
 import {
     seed,
     message,
