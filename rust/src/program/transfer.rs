@@ -121,8 +121,7 @@ mod tests {
             let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
             if !records.is_empty() {
                 let (_, record) = &records[0];
-                let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
-                let amount = record_plaintext.microcredits().unwrap();
+                let amount = record.microcredits().unwrap();
                 if amount == 100 {
                     break;
                 }

@@ -166,11 +166,19 @@ impl<N: Network> AleoAPIClient<N> {
         block_heights: Range<u32>,
         max_gates: Option<u64>,
         specified_amounts: Option<&Vec<u64>>,
-    ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
+    ) -> Result<Vec<(Field<N>, Record<N, Plaintext<N>>)>> {
         let view_key = ViewKey::try_from(private_key)?;
         let address_x_coordinate = view_key.to_address().to_x_coordinate();
 
         let step_size = 49;
+        let required_amounts = if let Some(amounts) = specified_amounts {
+            ensure!(!amounts.is_empty(), "If specific amounts are specified, there must be one amount specified");
+            let mut required_amounts = amounts.clone();
+            required_amounts.sort_by(|a, b| b.cmp(a));
+            required_amounts
+        } else {
+            vec![]
+        };
 
         ensure!(
             block_heights.start < block_heights.end,
@@ -178,7 +186,7 @@ impl<N: Network> AleoAPIClient<N> {
         );
 
         // Initialize a vector for the records.
-        let mut records = Vec::new();
+        let mut records = vec![];
 
         let mut total_gates = 0u64;
         let mut end_height = block_heights.end;
@@ -196,23 +204,19 @@ impl<N: Network> AleoAPIClient<N> {
             if start_height < block_heights.start {
                 start_height = block_heights.start
             };
-
             // Filter the records by the view key.
             records.extend(records_iter.filter_map(|(commitment, record)| {
                 match record.is_owner_with_address_x_coordinate(&view_key, &address_x_coordinate) {
                     true => {
                         let sn = Record::<N, Ciphertext<N>>::serial_number(*private_key, commitment).ok()?;
                         if self.find_transition_id(sn).is_err() {
-                            if max_gates.is_some() {
-                                let _ = record
-                                    .decrypt(&view_key)
-                                    .map(|record| {
-                                        total_gates += record.microcredits().unwrap_or(0);
-                                        record
-                                    })
-                                    .ok();
+                            let record = record.decrypt(&view_key);
+                            if let Ok(record) = record {
+                                total_gates += record.microcredits().unwrap_or(0);
+                                Some((commitment, record))
+                            } else {
+                                None
                             }
-                            Some((commitment, record))
                         } else {
                             None
                         }
@@ -222,32 +226,32 @@ impl<N: Network> AleoAPIClient<N> {
             }));
             // If a maximum number of gates is specified, stop searching when the total gates
             // exceeds the specified limit
-            if max_gates.is_some() && total_gates > max_gates.unwrap() {
+            if max_gates.is_some() && total_gates >= max_gates.unwrap() {
                 break;
             }
             // If a list of specified amounts is specified, stop searching when records matching
             // those amounts are found
-            if let Some(specified_amounts) = specified_amounts {
-                let found_records = specified_amounts
-                    .iter()
-                    .filter_map(|amount| {
-                        let position = records.iter().position(|(_, record)| {
-                            if let Ok(decrypted_record) = record.decrypt(&view_key) {
-                                decrypted_record.microcredits().unwrap_or(0) > *amount
-                            } else {
-                                false
-                            }
-                        });
-                        position.map(|index| records.remove(index))
-                    })
-                    .collect::<Vec<_>>();
-                records.extend(found_records);
-                if records.len() >= specified_amounts.len() {
-                    return Ok(records);
+            if !required_amounts.is_empty() {
+                records.sort_by(|a, b| b.1.microcredits().unwrap_or(0).cmp(&a.1.microcredits().unwrap_or(0)));
+                let mut found_indices = std::collections::HashSet::<usize>::new();
+                required_amounts.iter().for_each(|amount| {
+                    for (pos, record) in records.iter().enumerate() {
+                        if !found_indices.contains(&pos) && record.1.microcredits().unwrap_or(0) >= *amount {
+                            found_indices.insert(pos);
+                        }
+                    }
+                });
+                if found_indices.len() >= required_amounts.len() {
+                    let found_records = records[0..required_amounts.len()].to_vec();
+                    return Ok(found_records);
                 }
             }
         }
-
+        if !required_amounts.is_empty() {
+            bail!(
+                "Could not find enough records with the specified amounts, consider splitting records into smaller amounts"
+            );
+        }
         Ok(records)
     }
 

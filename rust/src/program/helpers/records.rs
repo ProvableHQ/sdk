@@ -70,9 +70,8 @@ impl<N: Network> RecordFinder<N> {
         max_microcredits: Option<u64>,
         private_key: &PrivateKey<N>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        let view_key = ViewKey::try_from(private_key)?;
         let latest_height = self.api_client.latest_height()?;
         let records = self.api_client.get_unspent_records(private_key, 0..latest_height, max_microcredits, amounts)?;
-        Ok(records.into_iter().filter_map(|(_, record)| record.decrypt(&view_key).ok()).collect())
+        Ok(records.into_iter().map(|(_, record)| record).collect())
     }
 }
