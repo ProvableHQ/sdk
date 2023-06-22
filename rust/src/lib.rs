@@ -214,7 +214,7 @@ use snarkvm::{file::Manifest, package::Package};
 pub use snarkvm_types::*;
 
 use anyhow::{anyhow, bail, ensure, Error, Result};
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use once_cell::sync::OnceCell;
 use snarkvm_console::program::Entry;
 #[cfg(feature = "full")]

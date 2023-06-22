@@ -19,6 +19,7 @@ use super::*;
 #[cfg(not(feature = "async"))]
 #[allow(clippy::type_complexity)]
 impl<N: Network> AleoAPIClient<N> {
+    /// Get the latest block height
     pub fn latest_height(&self) -> Result<u32> {
         let url = format!("{}/{}/latest/height", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -27,6 +28,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get the latest block hash
     pub fn latest_hash(&self) -> Result<N::BlockHash> {
         let url = format!("{}/{}/latest/hash", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -35,6 +37,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get the latest block
     pub fn latest_block(&self) -> Result<Block<N>> {
         let url = format!("{}/{}/latest/block", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -43,6 +46,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get the block matching the specific height from the network
     pub fn get_block(&self, height: u32) -> Result<Block<N>> {
         let url = format!("{}/{}/block/{height}", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -51,6 +55,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get a range of blocks from the network (limited 50 blocks at a time)
     pub fn get_blocks(&self, start_height: u32, end_height: u32) -> Result<Vec<Block<N>>> {
         if start_height >= end_height {
             bail!("Start height must be less than end height");
@@ -67,6 +72,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Retrieve a transaction by via its transaction id
     pub fn get_transaction(&self, transaction_id: N::TransactionID) -> Result<Transaction<N>> {
         let url = format!("{}/{}/transaction/{transaction_id}", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -75,6 +81,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get pending transactions currently in the mempool.
     pub fn get_memory_pool_transactions(&self) -> Result<Vec<Transaction<N>>> {
         let url = format!("{}/{}/memoryPool/transactions", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -83,6 +90,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get a program from the network by its ID. This method will return an error if it does not exist.
     pub fn get_program(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Program<N>> {
         // Prepare the program ID.
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
@@ -91,6 +99,39 @@ impl<N: Network> AleoAPIClient<N> {
         match self.client.get(&url).call()?.into_json() {
             Ok(program) => Ok(program),
             Err(error) => bail!("Failed to parse program {program_id}: {error}"),
+        }
+    }
+
+    /// Get all mappings associated with a program.
+    pub fn get_program_mappings(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<IndexSet<Identifier<N>>> {
+        // Prepare the program ID.
+        let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
+        // Perform the request.
+        let url = format!("{}/{}/program/{program_id}/mappings", self.base_url, self.network_id);
+        match self.client.get(&url).call()?.into_json() {
+            Ok(program_mappings) => Ok(program_mappings),
+            Err(error) => bail!("Failed to parse program {program_id}: {error}"),
+        }
+    }
+
+    /// Get the current value of a mapping given a specific program, mapping name, and mapping key
+    pub fn get_mapping_value(
+        &self,
+        program_id: impl TryInto<ProgramID<N>>,
+        mapping_name: impl TryInto<Identifier<N>>,
+        key: impl TryInto<Plaintext<N>>,
+    ) -> Result<Value<N>> {
+        // Prepare the program ID.
+        let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
+        // Prepare the mapping name.
+        let mapping_name = mapping_name.try_into().map_err(|_| anyhow!("Invalid mapping name"))?;
+        // Prepare the key.
+        let key = key.try_into().map_err(|_| anyhow!("Invalid key"))?;
+        // Perform the request.
+        let url = format!("{}/{}/program/{program_id}/mapping/{mapping_name}/{key}", self.base_url, self.network_id);
+        match self.client.get(&url).call()?.into_json() {
+            Ok(transition_id) => Ok(transition_id),
+            Err(error) => bail!("Failed to parse transition ID: {error}"),
         }
     }
 
