@@ -193,7 +193,7 @@ jobs:
             ./bin/aleo-develop start --server-address 0.0.0.0:5050 --peer http://localhost:3030 -d -k ciphertext1qvqgkey2cxklg4g5qjnkk4dy50zypte5ewp5kwdm9pt833eyext32pu07dgkxqzmn0wnpxx8kvh2phws6j5njsu6zrys20xpvqmqhw9gpngs50mpe9e0nkp6uyzctzdq3fs2n4p9d3kvaps6mg6xu0sef0xpzm028m7 1> /dev/null &
             sleep 15
             cd rust
-            cargo test test_transfer -- --ignored --nocapture --test-threads=1
+            cargo test test_transfer_roundtrip -- --ignored --nocapture --test-threads=1
             cargo test test_deploy -- --ignored --nocapture --test-threads=1
             cargo test test_execution -- --ignored --nocapture --test-threads=1
             cd ../sdk && yarn install

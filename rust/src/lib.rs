@@ -81,7 +81,8 @@
 //! ```no_run
 //!   use aleo_rust::{
 //!     AleoAPIClient, Encryptor, ProgramManager, RecordFinder,
-//!     snarkvm_types::{Address, PrivateKey, Testnet3, Program}
+//!     snarkvm_types::{Address, PrivateKey, Testnet3, Program},
+//!     TransferType
 //!   };
 //!   use rand::thread_rng;
 //!   use std::str::FromStr;
@@ -157,7 +158,7 @@
 //!   // Find records to fund the transfer
 //!   let (amount_record, fee_record) = record_finder.find_amount_and_fee_records(amount, fee, &private_key).unwrap();
 //!   // Create a transfer
-//!   program_manager.transfer(amount, fee, recipient_address, Some("password"), amount_record, fee_record).unwrap();
+//!   program_manager.transfer(amount, fee, recipient_address, TransferType::Private, Some("password"), Some(amount_record), fee_record).unwrap();
 //!
 //!   ```
 //! This API is currently under active development and is expected to change in the future in order
@@ -178,7 +179,7 @@ pub use api::AleoAPIClient;
 pub mod program;
 #[cfg(feature = "full")]
 #[doc(inline)]
-pub use program::{OnChainProgramState, ProgramManager, RecordFinder};
+pub use program::{OnChainProgramState, ProgramManager, RecordFinder, TransferType};
 
 #[cfg(test)]
 #[cfg(feature = "full")]

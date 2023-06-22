@@ -29,9 +29,11 @@ describe('DevelopmentServer', () => {
             for (let i = 0; i < 4; i++) {
                 try {
                     log("Attempting to make a value transfer");
-                    transaction_id = await devClient.transfer(1000, 1, fundedAddressString, fundedPrivateKeyString);
+                    transaction_id = await devClient.transfer(1000, 1, fundedAddressString, "private", fundedPrivateKeyString);
                     break;
                 } catch (e) {
+                    log("Transaction failed, retrying in 5 seconds");
+                    await wait(5000);
                 }
             }
 
