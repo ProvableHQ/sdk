@@ -8,6 +8,6 @@ import { Transaction } from "./models/transaction";
 import { Transition } from "./models/transition";
 import { DevelopmentClient } from "./development_client";
 
-import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/wasm";
+import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/aleo-nodejs";
 
 export { Account, Address, AleoNetworkClient, Block, DevelopmentClient, Execution, Input, PrivateKey, Output, Signature, Transaction, Transition, ViewKey };

@@ -18,19 +18,9 @@ use super::*;
 
 use crate::{
     execute_program,
-    fee_inclusion_proof,
     get_process,
-    inclusion_proof,
     log,
-    types::{
-        CurrentAleo,
-        CurrentBlockMemory,
-        IdentifierNative,
-        ProcessNative,
-        ProgramNative,
-        RecordPlaintextNative,
-        TransactionNative,
-    },
+    types::{CurrentAleo, CurrentBlockMemory, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
     PrivateKey,
     RecordPlaintext,
     Transaction,
@@ -77,7 +67,7 @@ impl ProgramManager {
         fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
         log("Executing join program");
-        let fee_microcredits = Self::validate_amount(fee_credits, &fee_record, true)?;
+        Self::validate_amount(fee_credits, &fee_record, true)?;
 
         log("Setup program and inputs");
         let program = ProgramNative::credits().unwrap().to_string();
@@ -87,19 +77,35 @@ impl ProgramManager {
 
         let mut new_process;
         let process = get_process!(self, cache, new_process);
+        let stack = process.get_stack("credits.aleo").map_err(|e| e.to_string())?;
+        let fee_identifier = IdentifierNative::from_str("fee").map_err(|e| e.to_string())?;
+        if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some() {
+            let fee_proving_key = fee_proving_key.unwrap();
+            let fee_verifying_key = fee_verifying_key.unwrap();
+            stack
+                .insert_proving_key(&fee_identifier, ProvingKeyNative::from(fee_proving_key))
+                .map_err(|e| e.to_string())?;
+            stack
+                .insert_verifying_key(&fee_identifier, VerifyingKeyNative::from(fee_verifying_key))
+                .map_err(|e| e.to_string())?;
+        }
 
-        let (_, execution, inclusion, _) =
+        let (_, mut trace) =
             execute_program!(process, inputs, program, "join", private_key, join_proving_key, join_verifying_key);
-        let execution = inclusion_proof!(process, inclusion, execution, url);
-        let fee = fee_inclusion_proof!(
-            process,
-            private_key,
-            fee_record,
-            fee_microcredits,
-            url,
-            fee_proving_key,
-            fee_verifying_key
-        );
+
+        // Prepare the inclusion proofs for the fee & execution
+        trace.prepare_async::<CurrentBlockMemory, _>(&url).await.map_err(|err| err.to_string())?;
+
+        // Prove the execution and fee
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>("credits.aleo/join", &mut StdRng::from_entropy())
+            .map_err(|e| e.to_string())?;
+        let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e| e.to_string())?;
+        let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
+
+        // Verify the execution and fee
+        process.verify_execution(&execution).map_err(|err| err.to_string())?;
+        process.verify_fee(&fee, execution_id).map_err(|err| err.to_string())?;
 
         log("Creating execution transaction for join");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;

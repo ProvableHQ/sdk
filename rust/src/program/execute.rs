@@ -130,14 +130,18 @@ mod tests {
         let mut program_manager =
             ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client.clone()), None).unwrap();
 
+        let fee = 2_500_000;
+        let finalize_fee = 8_000_000;
+
+        // Test execution of an on chain program is successful
         for i in 0..5 {
-            let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
+            let fee_record = record_finder.find_one_record(&private_key, fee).unwrap();
             // Test execution of a on chain program is successful
             let execution = program_manager.execute_program(
                 "credits_import_test.aleo",
                 "test",
                 ["1312u32", "62131112u32"].into_iter(),
-                500_000,
+                fee,
                 fee_record,
                 None,
             );
@@ -155,13 +159,32 @@ mod tests {
             ProgramManager::<Testnet3>::new(None, Some(encrypted_private_key), Some(api_client), None).unwrap();
 
         for i in 0..5 {
-            let fee_record = record_finder.find_one_record(&private_key, 500_000).unwrap();
+            let fee_record = record_finder.find_one_record(&private_key, fee).unwrap();
             // Test execution of an on chain program is successful using an encrypted private key
             let execution = program_manager.execute_program(
                 "credits_import_test.aleo",
                 "test",
                 ["1337u32", "42u32"].into_iter(),
-                500000,
+                fee,
+                fee_record,
+                Some("password"),
+            );
+            if execution.is_ok() {
+                break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
+            }
+        }
+
+        // Test execution with a finalize scope can be done
+        for i in 0..5 {
+            let fee_record = record_finder.find_one_record(&private_key, finalize_fee).unwrap();
+            // Test execution of an on chain program is successful using an encrypted private key
+            let execution = program_manager.execute_program(
+                "finalize_test.aleo",
+                "increase_counter",
+                ["0u32", "42u32"].into_iter(),
+                finalize_fee,
                 fee_record,
                 Some("password"),
             );

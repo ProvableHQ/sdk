@@ -70,10 +70,10 @@ mod tests {
     use super::*;
     use wasm_bindgen_test::*;
 
-    const FEE_VERIFIER_URL: &str = "https://testnet3.parameters.aleo.org/fee.verifier.44783e8";
+    const FEE_VERIFIER_URL: &str = "https://testnet3.parameters.aleo.org/fee.verifier.2de311b";
 
     #[wasm_bindgen_test]
-    async fn test_proving_key_roundtrip() {
+    async fn test_verifying_key_roundtrip() {
         let fee_verifying_key_bytes = reqwest::get(FEE_VERIFIER_URL).await.unwrap().bytes().await.unwrap().to_vec();
         let fee_verifying_key = VerifyingKey::from_bytes(&fee_verifying_key_bytes).unwrap();
         let bytes = fee_verifying_key.to_bytes().unwrap();

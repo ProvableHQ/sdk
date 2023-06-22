@@ -269,13 +269,31 @@ function bump_token_version:
     #[wasm_bindgen_test]
     fn test_get_functions() {
         let program = Program::from(ProgramNative::credits().unwrap());
-        assert_eq!(program.get_functions().to_vec(), vec!["mint", "transfer", "join", "split", "fee"]);
+        let mint = JsValue::from_str("mint");
+        let transfer_public = JsValue::from_str("transfer_public");
+        let transfer_private = JsValue::from_str("transfer_private");
+        let transfer_private_to_public = JsValue::from_str("transfer_private_to_public");
+        let transfer_public_to_private = JsValue::from_str("transfer_public_to_private");
+        let join = JsValue::from_str("join");
+        let split = JsValue::from_str("split");
+        let fee = JsValue::from_str("fee");
+
+        assert_eq!(program.get_functions().to_vec(), vec![
+            mint,
+            transfer_public,
+            transfer_private,
+            transfer_private_to_public,
+            transfer_public_to_private,
+            join,
+            split,
+            fee
+        ]);
     }
 
     #[wasm_bindgen_test]
     fn test_get_inputs() {
         let credits = Program::from(ProgramNative::credits().unwrap());
-        let inputs = credits.get_function_inputs("transfer".to_string()).unwrap();
+        let inputs = credits.get_function_inputs("transfer_private".to_string()).unwrap();
         let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"record","name":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"}]}), Object({"type":"address","visibility":"private"}), Object({"type":"u64","visibility":"private"})]) } }"#.to_string();
         assert_eq!(format!("{:?}", inputs), expected);
 
