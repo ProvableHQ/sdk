@@ -223,29 +223,42 @@ mod tests {
         // Initialize necessary key material
         // Use the beacon private key to make the initial transfer
         let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY).unwrap();
-        let rng = &mut rand::thread_rng();
+        let amount = 16_666_666;
+        let amount_str = "16666666u64";
+        let fee = 26_666_666;
         // Create a unique recipient for each transfer type so we can unique identify each transfer
-        let private_recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let private_recipient_private_key =
+            PrivateKey::<Testnet3>::from_str("APrivateKey1zkpCF24vGLohfHWNZam1z7qDhDq5Bp1u8WPFhh9q2wWoNh8").unwrap();
         let private_recipient_view_key = ViewKey::try_from(&private_recipient_private_key).unwrap();
         let private_recipient_address = Address::try_from(&private_recipient_view_key).unwrap();
-        let private_to_public_recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let private_to_public_recipient_private_key =
+            PrivateKey::<Testnet3>::from_str("APrivateKey1zkpFkojCEFsw3LaozkqaVkMuxdTq2DEsUV88WGexXoWGuNA").unwrap();
         let private_to_public_recipient_view_key = ViewKey::try_from(&private_to_public_recipient_private_key).unwrap();
         let private_to_public_recipient_address = Address::try_from(&private_to_public_recipient_view_key).unwrap();
-        let public_recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let public_recipient_private_key =
+            PrivateKey::<Testnet3>::from_str("APrivateKey1zkp6rwhE5Jxz16cv32kM8Z8VMsLe78BCK8LU3FM7htmSsis").unwrap();
         let public_recipient_view_key = ViewKey::try_from(&public_recipient_private_key).unwrap();
         let public_recipient_address = Address::try_from(&public_recipient_view_key).unwrap();
-        let public_to_private_recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
+        let public_to_private_recipient_private_key =
+            PrivateKey::<Testnet3>::from_str("APrivateKey1zkp3NchSbrypyf2UoJSGyag58biAFPvtd1WtpM5M9pqoifK").unwrap();
         let public_to_private_recipient_view_key = ViewKey::try_from(&public_to_private_recipient_private_key).unwrap();
         let public_to_private_recipient_address = Address::try_from(&public_to_private_recipient_view_key).unwrap();
         let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
+        let public_address_literal = Literal::<Testnet3>::from_str(&public_recipient_address.to_string()).unwrap();
+        let private_to_public_address_literal =
+            Literal::<Testnet3>::from_str(&private_to_public_recipient_address.to_string()).unwrap();
+        let expected_value = Value::from(Plaintext::<Testnet3>::from_str(amount_str).unwrap());
+        let zero_value = Value::from(Plaintext::<Testnet3>::from_str("0u64").unwrap());
 
+        println!("Private recipient private_key: {}", private_recipient_private_key);
         println!("Private recipient address: {}", private_recipient_address);
+        println!("Private to public recipient private_key: {}", private_to_public_recipient_private_key);
         println!("Private to public recipient address: {}", private_to_public_recipient_address);
+        println!("Public recipient private_key: {}", public_recipient_private_key);
         println!("Public recipient address: {}", public_recipient_address);
+        println!("Public to private recipient private_key: {}", public_to_private_recipient_private_key);
         println!("Public to private recipient address: {}", public_to_private_recipient_address);
 
-        let amount = 16_666_666;
-        let fee = 6_666_666;
         // Transfer funds to the private recipient and confirm that the transaction is on chain
         try_transfer(&beacon_private_key, &private_recipient_address, amount, TransferType::Private);
 
@@ -266,12 +279,18 @@ mod tests {
             amount,
             TransferType::PrivateToPublic,
         );
-        thread::sleep(std::time::Duration::from_secs(20));
-        // TODO: when a snarkOS api is available for finalize, verify the transfer is on chain
+        thread::sleep(std::time::Duration::from_secs(25));
+        let value =
+            api_client.get_mapping_value("credits.aleo", "account", &private_to_public_address_literal).unwrap();
+        assert!(value.eq(&expected_value));
 
         try_transfer(&private_to_public_recipient_private_key, &public_recipient_address, amount, TransferType::Public);
-        thread::sleep(std::time::Duration::from_secs(20));
-        // TODO: when a snarkOS api is available for finalize, verify the transfer is on chain
+        thread::sleep(std::time::Duration::from_secs(25));
+        let value = api_client.get_mapping_value("credits.aleo", "account", public_address_literal).unwrap();
+        assert!(value.eq(&expected_value));
+        let value =
+            api_client.get_mapping_value("credits.aleo", "account", &private_to_public_address_literal).unwrap();
+        assert!(value.eq(&zero_value));
 
         // Transfer funds to the public_to_private recipient and ensure the funds made the entire journey
         try_transfer(
@@ -280,8 +299,7 @@ mod tests {
             amount,
             TransferType::PublicToPrivate,
         );
-        thread::sleep(std::time::Duration::from_secs(20));
-
+        thread::sleep(std::time::Duration::from_secs(25));
         verify_transfer(amount, &api_client, &public_to_private_recipient_private_key, TransferType::PublicToPrivate);
     }
 }

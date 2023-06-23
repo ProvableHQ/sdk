@@ -16,7 +16,7 @@
 
 use super::*;
 
-impl<N: Network> Rest<N> {
+impl<N: Network, A: Aleo<Network = N>> Rest<N, A> {
     /// Initializes the routes for the development server REST API
     pub fn routes(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
         // POST /deploy
@@ -56,7 +56,7 @@ impl<N: Network> Rest<N> {
     }
 }
 
-impl<N: Network> Rest<N> {
+impl<N: Network, A: Aleo<Network = N>> Rest<N, A> {
     // Get the private key if one is specified in the request or decrypt the local request
     fn get_private_key(
         private_key_ciphertext: Option<Ciphertext<N>>,
@@ -146,7 +146,7 @@ impl<N: Network> Rest<N> {
         };
 
         // Execute the program and return the resulting transaction id
-        let transaction_id = spawn_blocking!(program_manager.execute_program(
+        let transaction_id = spawn_blocking!(program_manager.execute_program::<A>(
             request.program_id,
             request.program_function,
             request.inputs.iter(),

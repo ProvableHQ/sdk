@@ -20,7 +20,7 @@ impl<N: Network> ProgramManager<N> {
     /// Execute a program function on the Aleo Network.
     ///
     /// To run this function successfully, the program must already be deployed on the Aleo Network
-    pub fn execute_program(
+    pub fn execute_program<A: Aleo<Network = N>>(
         &mut self,
         program_id: impl TryInto<ProgramID<N>>,
         function: impl TryInto<Identifier<N>>,
@@ -54,7 +54,7 @@ impl<N: Network> ProgramManager<N> {
         // Attempt to construct the execution transaction
         println!("Building transaction..");
         let query = self.api_client.as_ref().unwrap().base_url();
-        let transaction = Self::create_execute_transaction(
+        let transaction = Self::create_execute_transaction::<A>(
             &private_key,
             fee,
             inputs,
@@ -79,7 +79,7 @@ impl<N: Network> ProgramManager<N> {
     }
 
     /// Create an execute transaction
-    pub fn create_execute_transaction(
+    pub fn create_execute_transaction<A: Aleo<Network = N>>(
         private_key: &PrivateKey<N>,
         fee: u64,
         inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
@@ -90,7 +90,7 @@ impl<N: Network> ProgramManager<N> {
     ) -> Result<Transaction<N>> {
         // Initialize an RNG and query object for the transaction
         let rng = &mut rand::thread_rng();
-        let query = Query::from(query);
+        let query = Query::<N, BlockMemory<N>>::from(query);
 
         // Check that the function exists in the program
         let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
@@ -101,13 +101,31 @@ impl<N: Network> ProgramManager<N> {
             "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
         );
 
-        // Create an ephemeral SnarkVM to store the programs
-        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
-        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        let _ = &vm.process().write().add_program(program);
+        // Create a new process to execute the program
+        let mut process = Process::<N>::load()?;
+        process.add_program(program)?;
+
+        // Create the execution authorization
+        let authorization = process.authorize::<A, _>(private_key, program.id(), function_name, inputs, rng)?;
+
+        // Execute & prove the program authorization
+        let (_, mut trace) = process.execute::<A>(authorization)?;
+        let locator = program.id().to_string().add("/").add(&function_name.to_string());
+        trace.prepare(query.clone())?;
+        let execution = trace.prove_execution::<A, _>(&locator, rng)?;
+
+        // Execute & prove the fee
+        let execution_id = execution.to_execution_id()?;
+        let (_, _, mut trace) = process.execute_fee::<A, _>(private_key, fee_record, fee, execution_id, rng)?;
+        trace.prepare(query)?;
+        let fee_execution = trace.prove_fee::<A, _>(rng)?;
+
+        // Verify the execution and fee
+        process.verify_execution(&execution)?;
+        process.verify_fee(&fee_execution, execution_id)?;
 
         // Create an execution transaction
-        vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, fee)), Some(query), rng)
+        Transaction::from_execution(execution, Some(fee_execution))
     }
 }
 
@@ -116,8 +134,8 @@ impl<N: Network> ProgramManager<N> {
 mod tests {
     use super::*;
     use crate::{random_program_id, AleoAPIClient, RECORD_5_MICROCREDITS};
+    use snarkvm::circuit::AleoV0;
     use snarkvm_console::network::Testnet3;
-    use std::str::FromStr;
 
     #[test]
     #[ignore]
@@ -137,7 +155,7 @@ mod tests {
         for i in 0..5 {
             let fee_record = record_finder.find_one_record(&private_key, fee).unwrap();
             // Test execution of a on chain program is successful
-            let execution = program_manager.execute_program(
+            let execution = program_manager.execute_program::<AleoV0>(
                 "credits_import_test.aleo",
                 "test",
                 ["1312u32", "62131112u32"].into_iter(),
@@ -161,7 +179,7 @@ mod tests {
         for i in 0..5 {
             let fee_record = record_finder.find_one_record(&private_key, fee).unwrap();
             // Test execution of an on chain program is successful using an encrypted private key
-            let execution = program_manager.execute_program(
+            let execution = program_manager.execute_program::<AleoV0>(
                 "credits_import_test.aleo",
                 "test",
                 ["1337u32", "42u32"].into_iter(),
@@ -180,7 +198,7 @@ mod tests {
         for i in 0..5 {
             let fee_record = record_finder.find_one_record(&private_key, finalize_fee).unwrap();
             // Test execution of an on chain program is successful using an encrypted private key
-            let execution = program_manager.execute_program(
+            let execution = program_manager.execute_program::<AleoV0>(
                 "finalize_test.aleo",
                 "increase_counter",
                 ["0u32", "42u32"].into_iter(),
@@ -210,7 +228,7 @@ mod tests {
             ProgramManager::<Testnet3>::new(Some(recipient_private_key), None, Some(api_client), None).unwrap();
 
         // Assert that execution fails if record's available microcredits are below the fee
-        let execution = program_manager.execute_program(
+        let execution = program_manager.execute_program::<AleoV0>(
             "hello.aleo",
             "hello",
             ["5u32", "6u32"].into_iter(),
@@ -222,7 +240,7 @@ mod tests {
         assert!(execution.is_err());
 
         // Assert that execution fails if a fee is specified but no records are
-        let execution = program_manager.execute_program(
+        let execution = program_manager.execute_program::<AleoV0>(
             "hello.aleo",
             "hello",
             ["5u32", "6u32"].into_iter(),
@@ -235,7 +253,7 @@ mod tests {
 
         // Assert that execution fails if the program is not found
         let randomized_program_id = random_program_id(16);
-        let execution = program_manager.execute_program(
+        let execution = program_manager.execute_program::<AleoV0>(
             &randomized_program_id,
             "hello",
             ["5u32", "6u32"].into_iter(),
@@ -247,7 +265,7 @@ mod tests {
         assert!(execution.is_err());
 
         // Assert that execution fails if the function is not found
-        let execution = program_manager.execute_program(
+        let execution = program_manager.execute_program::<AleoV0>(
             "hello.aleo",
             "random_function",
             ["5u32", "6u32"].into_iter(),
@@ -259,7 +277,7 @@ mod tests {
         assert!(execution.is_err());
 
         // Assert that execution fails if the function is not found
-        let execution = program_manager.execute_program(
+        let execution = program_manager.execute_program::<AleoV0>(
             "hello.aleo",
             "random_function",
             ["5u32", "6u32"].into_iter(),
