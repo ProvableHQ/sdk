@@ -346,4 +346,18 @@ mod tests {
         assert_eq!(blocks[1].previous_hash(), blocks[0].hash());
         assert_eq!(blocks[2].previous_hash(), blocks[1].hash());
     }
+
+    #[test]
+    #[ignore]
+    fn test_mappings_query() {
+        let client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
+        let mappings = client.get_program_mappings("credits.aleo").unwrap();
+        // Assert there's only one mapping in credits.aleo
+        assert_eq!(mappings.len(), 1);
+
+        let mappings = mappings.into_iter().map(|mapping| mapping).collect::<Vec<_>>();
+        let identifier = mappings[0];
+        // Assert the identifier is "account"
+        assert_eq!(identifier.to_string(), "account");
+    }
 }

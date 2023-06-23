@@ -52,5 +52,16 @@ describe('NodeConnection', () => {
                 expect(records.length).toBeGreaterThan(0);
             }
         }, 60000);
+
+        it('should find finalize scope values', async () => {
+            const mappings = await localApiClient.getProgramMappingNames("credits.aleo");
+            if (!(mappings instanceof Error)) {
+                expect(mappings[0]).toBe("account");
+            }
+            const mappingValue = await localApiClient.getMappingValue("credits.aleo", "account", "aleo1zrtqrkrr9l09lgnj2qvzyr9sjgs6r5rfqneaj4a9kh7l7tsn2c9qeevqcm");
+            if (!(mappingValue instanceof Error)) {
+                expect(mappingValue).toBe("0u64");
+            }
+        }, 60000);
     });
 });
