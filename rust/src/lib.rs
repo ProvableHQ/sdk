@@ -81,7 +81,7 @@
 //! ```no_run
 //!   use aleo_rust::{
 //!     AleoAPIClient, Encryptor, ProgramManager, RecordFinder,
-//!     snarkvm_types::{Address, PrivateKey, Testnet3, Program},
+//!     snarkvm_types::{Address, AleoV0, PrivateKey, Testnet3, Program},
 //!     TransferType
 //!   };
 //!   use rand::thread_rng;
@@ -112,7 +112,7 @@
 //!
 //!   // Execute the function `hello` of the hello.aleo program with the arguments 5u32 and 3u32.
 //!   // Specify 0 for the fee and provide a password to decrypt the private key stored in the program manager
-//!   program_manager.execute_program("hello.aleo", "hello", ["5u32", "3u32"].into_iter(), 0, fee_record, Some("password")).unwrap();
+//!   program_manager.execute_program::<AleoV0>("hello.aleo", "hello", ["5u32", "3u32"].into_iter(), 0, fee_record, Some("password")).unwrap();
 //!
 //!   // ------------------
 //!   // DEPLOY PROGRAM STEPS
@@ -191,6 +191,8 @@ pub use test_utils::*;
 pub mod snarkvm_types {
     //! Re-export of crucial types from the snarkVM crate
     #[cfg(feature = "full")]
+    pub use snarkvm::circuit::{Aleo, AleoV0};
+    #[cfg(feature = "full")]
     pub use snarkvm::synthesizer::{
         store::helpers::memory::ConsensusMemory,
         Block,
@@ -209,7 +211,12 @@ pub mod snarkvm_types {
     };
 }
 #[cfg(feature = "full")]
-use snarkvm::{file::Manifest, package::Package};
+use snarkvm::{
+    circuit::Aleo,
+    file::Manifest,
+    package::Package,
+    synthesizer::{helpers::memory::BlockMemory, Process},
+};
 
 pub use snarkvm_types::*;
 
@@ -218,7 +225,13 @@ use indexmap::{IndexMap, IndexSet};
 use once_cell::sync::OnceCell;
 use snarkvm_console::program::Entry;
 #[cfg(feature = "full")]
-use std::{convert::TryInto, fs::File, io::Read, ops::Range, path::PathBuf};
+use std::{
+    convert::TryInto,
+    fs::File,
+    io::Read,
+    ops::{Add, Range},
+    path::PathBuf,
+};
 use std::{iter::FromIterator, marker::PhantomData, str::FromStr};
 
 /// A trait providing convenient methods for accessing the amount of Aleo present in a record

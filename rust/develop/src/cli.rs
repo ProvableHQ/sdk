@@ -68,7 +68,7 @@ pub enum Command {
 }
 
 impl Command {
-    pub fn parse(self) -> Result<Rest<Testnet3>> {
+    pub fn parse(self) -> Result<Rest<Testnet3, AleoV0>> {
         match self {
             Command::Start { server_address, key_ciphertext: key, peer, debug } => {
                 Rest::initialize(server_address, key, peer, debug)

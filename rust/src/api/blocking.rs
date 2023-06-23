@@ -355,7 +355,7 @@ mod tests {
         // Assert there's only one mapping in credits.aleo
         assert_eq!(mappings.len(), 1);
 
-        let mappings = mappings.into_iter().map(|mapping| mapping).collect::<Vec<_>>();
+        let mappings = mappings.into_iter().collect::<Vec<_>>();
         let identifier = mappings[0];
         // Assert the identifier is "account"
         assert_eq!(identifier.to_string(), "account");

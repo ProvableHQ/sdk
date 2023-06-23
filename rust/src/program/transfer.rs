@@ -250,13 +250,13 @@ mod tests {
         let expected_value = Value::from(Plaintext::<Testnet3>::from_str(amount_str).unwrap());
         let zero_value = Value::from(Plaintext::<Testnet3>::from_str("0u64").unwrap());
 
-        println!("Private recipient private_key: {}", private_recipient_private_key.to_string());
+        println!("Private recipient private_key: {}", private_recipient_private_key);
         println!("Private recipient address: {}", private_recipient_address);
-        println!("Private to public recipient private_key: {}", private_to_public_recipient_private_key.to_string());
+        println!("Private to public recipient private_key: {}", private_to_public_recipient_private_key);
         println!("Private to public recipient address: {}", private_to_public_recipient_address);
-        println!("Public recipient private_key: {}", public_recipient_private_key.to_string());
+        println!("Public recipient private_key: {}", public_recipient_private_key);
         println!("Public recipient address: {}", public_recipient_address);
-        println!("Public to private recipient private_key: {}", public_to_private_recipient_private_key.to_string());
+        println!("Public to private recipient private_key: {}", public_to_private_recipient_private_key);
         println!("Public to private recipient address: {}", public_to_private_recipient_address);
 
         // Transfer funds to the private recipient and confirm that the transaction is on chain
@@ -286,7 +286,7 @@ mod tests {
 
         try_transfer(&private_to_public_recipient_private_key, &public_recipient_address, amount, TransferType::Public);
         thread::sleep(std::time::Duration::from_secs(25));
-        let value = api_client.get_mapping_value("credits.aleo", "account", &public_address_literal).unwrap();
+        let value = api_client.get_mapping_value("credits.aleo", "account", public_address_literal).unwrap();
         assert!(value.eq(&expected_value));
         let value =
             api_client.get_mapping_value("credits.aleo", "account", &private_to_public_address_literal).unwrap();
