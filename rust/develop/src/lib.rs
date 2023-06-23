@@ -149,7 +149,14 @@ use requests::*;
 mod routes;
 pub use routes::*;
 
-use aleo_rust::{snarkvm_types::{Aleo, AleoV0}, AleoAPIClient, Encryptor, ProgramManager, RecordFinder, TransferType};
+use aleo_rust::{
+    snarkvm_types::{Aleo, AleoV0},
+    AleoAPIClient,
+    Encryptor,
+    ProgramManager,
+    RecordFinder,
+    TransferType,
+};
 use snarkvm::{
     console::{
         account::{Address, PrivateKey},
@@ -206,7 +213,14 @@ impl<N: Network, A: Aleo<Network = N>> Rest<N, A> {
         };
 
         // Initialize the server.
-        let server = Self { api_client, private_key_ciphertext, record_finder, socket_address, debug, phantom: std::marker::PhantomData };
+        let server = Self {
+            api_client,
+            private_key_ciphertext,
+            record_finder,
+            socket_address,
+            debug,
+            phantom: std::marker::PhantomData,
+        };
 
         // Print an initialization message and return the server
         println!("{}", "\nStarting Aleo development server...".bright_blue());
