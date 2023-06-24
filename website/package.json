@@ -1,7 +1,7 @@
 {
   "name": "aleo-website",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "preinstall": "cd ../wasm && export RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--max-memory=4294967296' && rustup run nightly wasm-pack build --release --target web --out-dir pkg-parallel -- --features \"parallel, browser\" --no-default-features -Z build-std=panic_abort,std",
