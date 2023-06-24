@@ -49,7 +49,7 @@ const appConfig = {
         }),
         new HtmlWebpackPlugin(
             {
-                template: './public/index.html'
+                template: './index.html'
             }),
     ],
     performance: {
