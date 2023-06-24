@@ -1,15 +1,20 @@
-const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CopyPlugin = require("copy-webpack-plugin");
+import CopyPlugin from "copy-webpack-plugin";
+
+import HtmlWebpackPlugin from "html-webpack-plugin";
+
+import path from "path";
 
 const appConfig = {
     mode: 'production',
     entry: {
-        index: './src/index.js'
+        index: './src/index.jsx'
     },
     output: {
-        path: path.join(__dirname, '/dist'),
+        path: path.resolve('dist'),
         filename: '[name].bundle.js'
+    },
+    resolve: {
+        extensions: [".js", ".wasm", ".jsx"]
     },
     devServer: {
         port: 3000,
@@ -70,7 +75,7 @@ const workerConfig = {
         extensions: [".js", ".wasm"]
     },
     output: {
-        path: path.join(__dirname, '/dist'),
+        path: path.resolve('dist'),
         filename: "worker.js"
     },
     experiments: {
@@ -80,4 +85,4 @@ const workerConfig = {
     devtool: 'source-map',
 };
 
-module.exports = [appConfig, workerConfig];
+export default [appConfig, workerConfig];
