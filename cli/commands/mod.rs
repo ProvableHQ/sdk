@@ -48,7 +48,7 @@ use anyhow::Result;
 use clap::Parser;
 
 #[derive(Debug, Parser)]
-#[clap(name = "aleo", author = "The Aleo Team <hello@aleo.org>", setting = clap::AppSettings::ColoredHelp)]
+#[clap(name = "aleo", author = "The Aleo Team <hello@aleo.org>")]
 pub struct CLI {
     /// Specify the verbosity [options: 0, 1, 2, 3]
     #[clap(default_value = "2", short, long)]
@@ -72,8 +72,6 @@ pub enum Command {
     Execute(Execute),
     #[clap(name = "new")]
     New(New),
-    // #[clap(subcommand)]
-    // Node(Node),
     #[clap(name = "run")]
     Run(Run),
     #[clap(name = "transfer")]

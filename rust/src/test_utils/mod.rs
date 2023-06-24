@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AleoAPIClient, ProgramManager, RecordFinder};
+use crate::{AleoAPIClient, ProgramManager, RecordFinder, TransferType};
 use snarkvm::file::Manifest;
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
@@ -39,6 +39,34 @@ function test:
     input r1 as u32.private;
     add r0 r1 into r2;
     output r2 as u32.private;
+";
+
+pub const FINALIZE_TEST_PROGRAM: &str = "program finalize_test.aleo;
+
+mapping monotonic_counter:
+    // Counter key
+    key id as u32.public;
+    // Counter value
+    value counter as u32.public;
+
+function increase_counter:
+    // Counter index
+    input r0 as u32.public;
+    // Value to increment by
+    input r1 as u32.public;
+    finalize r0 r1;
+
+finalize increase_counter:
+    // Counter index
+    input r0 as u32.public;
+    // Value to increment by
+    input r1 as u32.public;
+    // Get or initialize counter key
+    get.or_use monotonic_counter[r0] 0u32 into r2;
+    // Add r1 to into the existing counter value
+    add r1 r2 into r3;
+    // Set r3 into account[r0];
+    set r3 into monotonic_counter[r0];
 ";
 
 pub const CREDITS_IMPORT_TEST_PROGRAM: &str = "import credits.aleo;
@@ -179,7 +207,15 @@ pub fn transfer_to_test_account(
             continue;
         }
         let (input_record, fee_record) = input_record.unwrap();
-        let result = program_manager.transfer(amount, 500_000, recipient_address, None, input_record, fee_record);
+        let result = program_manager.transfer(
+            amount,
+            500_000,
+            recipient_address,
+            TransferType::Private,
+            None,
+            Some(input_record),
+            fee_record,
+        );
         if result.is_ok() {
             println!("Transfer succeeded");
             transfer_successes += 1;
@@ -192,7 +228,7 @@ pub fn transfer_to_test_account(
             break;
         }
         if retries > 15 {
-            println!("exceeded 10 retries, exiting with found records");
+            println!("exceeded 15 retries, exiting with found records");
             break;
         }
         sleep(std::time::Duration::from_secs(3));
@@ -201,5 +237,5 @@ pub fn transfer_to_test_account(
     let client = program_manager.api_client()?;
     let latest_height = client.latest_height()?;
     let records = client.get_unspent_records(&recipient_private_key, 0..latest_height, None, None)?;
-    Ok(records.iter().map(|(_cm, record)| record.decrypt(&recipient_view_key).unwrap()).collect())
+    Ok(records.into_iter().map(|(_cm, record)| record).collect())
 }

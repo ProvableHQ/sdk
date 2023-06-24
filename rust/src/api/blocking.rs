@@ -19,6 +19,7 @@ use super::*;
 #[cfg(not(feature = "async"))]
 #[allow(clippy::type_complexity)]
 impl<N: Network> AleoAPIClient<N> {
+    /// Get the latest block height
     pub fn latest_height(&self) -> Result<u32> {
         let url = format!("{}/{}/latest/height", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -27,6 +28,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get the latest block hash
     pub fn latest_hash(&self) -> Result<N::BlockHash> {
         let url = format!("{}/{}/latest/hash", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -35,6 +37,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get the latest block
     pub fn latest_block(&self) -> Result<Block<N>> {
         let url = format!("{}/{}/latest/block", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -43,6 +46,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get the block matching the specific height from the network
     pub fn get_block(&self, height: u32) -> Result<Block<N>> {
         let url = format!("{}/{}/block/{height}", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -51,6 +55,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get a range of blocks from the network (limited 50 blocks at a time)
     pub fn get_blocks(&self, start_height: u32, end_height: u32) -> Result<Vec<Block<N>>> {
         if start_height >= end_height {
             bail!("Start height must be less than end height");
@@ -67,6 +72,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Retrieve a transaction by via its transaction id
     pub fn get_transaction(&self, transaction_id: N::TransactionID) -> Result<Transaction<N>> {
         let url = format!("{}/{}/transaction/{transaction_id}", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -75,6 +81,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get pending transactions currently in the mempool.
     pub fn get_memory_pool_transactions(&self) -> Result<Vec<Transaction<N>>> {
         let url = format!("{}/{}/memoryPool/transactions", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -83,6 +90,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get a program from the network by its ID. This method will return an error if it does not exist.
     pub fn get_program(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Program<N>> {
         // Prepare the program ID.
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
@@ -91,6 +99,39 @@ impl<N: Network> AleoAPIClient<N> {
         match self.client.get(&url).call()?.into_json() {
             Ok(program) => Ok(program),
             Err(error) => bail!("Failed to parse program {program_id}: {error}"),
+        }
+    }
+
+    /// Get all mappings associated with a program.
+    pub fn get_program_mappings(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<IndexSet<Identifier<N>>> {
+        // Prepare the program ID.
+        let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
+        // Perform the request.
+        let url = format!("{}/{}/program/{program_id}/mappings", self.base_url, self.network_id);
+        match self.client.get(&url).call()?.into_json() {
+            Ok(program_mappings) => Ok(program_mappings),
+            Err(error) => bail!("Failed to parse program {program_id}: {error}"),
+        }
+    }
+
+    /// Get the current value of a mapping given a specific program, mapping name, and mapping key
+    pub fn get_mapping_value(
+        &self,
+        program_id: impl TryInto<ProgramID<N>>,
+        mapping_name: impl TryInto<Identifier<N>>,
+        key: impl TryInto<Plaintext<N>>,
+    ) -> Result<Value<N>> {
+        // Prepare the program ID.
+        let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
+        // Prepare the mapping name.
+        let mapping_name = mapping_name.try_into().map_err(|_| anyhow!("Invalid mapping name"))?;
+        // Prepare the key.
+        let key = key.try_into().map_err(|_| anyhow!("Invalid key"))?;
+        // Perform the request.
+        let url = format!("{}/{}/program/{program_id}/mapping/{mapping_name}/{key}", self.base_url, self.network_id);
+        match self.client.get(&url).call()?.into_json() {
+            Ok(transition_id) => Ok(transition_id),
+            Err(error) => bail!("Failed to parse transition ID: {error}"),
         }
     }
 
@@ -166,11 +207,19 @@ impl<N: Network> AleoAPIClient<N> {
         block_heights: Range<u32>,
         max_gates: Option<u64>,
         specified_amounts: Option<&Vec<u64>>,
-    ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
+    ) -> Result<Vec<(Field<N>, Record<N, Plaintext<N>>)>> {
         let view_key = ViewKey::try_from(private_key)?;
         let address_x_coordinate = view_key.to_address().to_x_coordinate();
 
         let step_size = 49;
+        let required_amounts = if let Some(amounts) = specified_amounts {
+            ensure!(!amounts.is_empty(), "If specific amounts are specified, there must be one amount specified");
+            let mut required_amounts = amounts.clone();
+            required_amounts.sort_by(|a, b| b.cmp(a));
+            required_amounts
+        } else {
+            vec![]
+        };
 
         ensure!(
             block_heights.start < block_heights.end,
@@ -178,7 +227,7 @@ impl<N: Network> AleoAPIClient<N> {
         );
 
         // Initialize a vector for the records.
-        let mut records = Vec::new();
+        let mut records = vec![];
 
         let mut total_gates = 0u64;
         let mut end_height = block_heights.end;
@@ -196,23 +245,19 @@ impl<N: Network> AleoAPIClient<N> {
             if start_height < block_heights.start {
                 start_height = block_heights.start
             };
-
             // Filter the records by the view key.
             records.extend(records_iter.filter_map(|(commitment, record)| {
                 match record.is_owner_with_address_x_coordinate(&view_key, &address_x_coordinate) {
                     true => {
                         let sn = Record::<N, Ciphertext<N>>::serial_number(*private_key, commitment).ok()?;
                         if self.find_transition_id(sn).is_err() {
-                            if max_gates.is_some() {
-                                let _ = record
-                                    .decrypt(&view_key)
-                                    .map(|record| {
-                                        total_gates += record.microcredits().unwrap_or(0);
-                                        record
-                                    })
-                                    .ok();
+                            let record = record.decrypt(&view_key);
+                            if let Ok(record) = record {
+                                total_gates += record.microcredits().unwrap_or(0);
+                                Some((commitment, record))
+                            } else {
+                                None
                             }
-                            Some((commitment, record))
                         } else {
                             None
                         }
@@ -222,31 +267,32 @@ impl<N: Network> AleoAPIClient<N> {
             }));
             // If a maximum number of gates is specified, stop searching when the total gates
             // exceeds the specified limit
-            if max_gates.is_some() && total_gates > max_gates.unwrap() {
+            if max_gates.is_some() && total_gates >= max_gates.unwrap() {
                 break;
             }
             // If a list of specified amounts is specified, stop searching when records matching
             // those amounts are found
-            if let Some(specified_amounts) = specified_amounts {
-                let found_records = specified_amounts
-                    .iter()
-                    .filter_map(|amount| {
-                        let position = records.iter().position(|(_, record)| {
-                            if let Ok(decrypted_record) = record.decrypt(&view_key) {
-                                decrypted_record.microcredits().unwrap_or(0) > *amount
-                            } else {
-                                false
-                            }
-                        });
-                        position.map(|index| records.remove(index))
-                    })
-                    .collect::<Vec<_>>();
-                if found_records.len() >= specified_amounts.len() {
+            if !required_amounts.is_empty() {
+                records.sort_by(|a, b| b.1.microcredits().unwrap_or(0).cmp(&a.1.microcredits().unwrap_or(0)));
+                let mut found_indices = std::collections::HashSet::<usize>::new();
+                required_amounts.iter().for_each(|amount| {
+                    for (pos, record) in records.iter().enumerate() {
+                        if !found_indices.contains(&pos) && record.1.microcredits().unwrap_or(0) >= *amount {
+                            found_indices.insert(pos);
+                        }
+                    }
+                });
+                if found_indices.len() >= required_amounts.len() {
+                    let found_records = records[0..required_amounts.len()].to_vec();
                     return Ok(found_records);
                 }
             }
         }
-
+        if !required_amounts.is_empty() {
+            bail!(
+                "Could not find enough records with the specified amounts, consider splitting records into smaller amounts"
+            );
+        }
         Ok(records)
     }
 
@@ -299,5 +345,19 @@ mod tests {
         // Check block hashes
         assert_eq!(blocks[1].previous_hash(), blocks[0].hash());
         assert_eq!(blocks[2].previous_hash(), blocks[1].hash());
+    }
+
+    #[test]
+    #[ignore]
+    fn test_mappings_query() {
+        let client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
+        let mappings = client.get_program_mappings("credits.aleo").unwrap();
+        // Assert there's only one mapping in credits.aleo
+        assert_eq!(mappings.len(), 1);
+
+        let mappings = mappings.into_iter().collect::<Vec<_>>();
+        let identifier = mappings[0];
+        // Assert the identifier is "account"
+        assert_eq!(identifier.to_string(), "account");
     }
 }

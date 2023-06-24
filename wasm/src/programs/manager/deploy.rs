@@ -22,7 +22,6 @@ use crate::{
     log,
     types::{
         CurrentAleo,
-        CurrentBlockMemory,
         CurrentNetwork,
         ProcessNative,
         ProgramIDNative,
@@ -69,7 +68,7 @@ impl ProgramManager {
         imports: Option<Object>,
         fee_credits: f64,
         fee_record: RecordPlaintext,
-        url: String,
+        _url: String,
         cache: bool,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
@@ -125,16 +124,18 @@ impl ProgramManager {
             .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
 
+        let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
+
         let fee = fee_inclusion_proof!(
             process,
             private_key,
             fee_record,
             fee_microcredits,
-            url,
+            _url,
             fee_proving_key,
-            fee_verifying_key
+            fee_verifying_key,
+            deployment_id
         );
-        process.verify_fee(&fee).map_err(|e| e.to_string())?;
 
         log("Create the deployment transaction");
         TransactionNative::check_deployment_size(&deployment).map_err(|err| err.to_string())?;
@@ -161,7 +162,7 @@ impl ProgramManager {
             &leaves.collect::<anyhow::Result<Vec<_>>>().map_err(|err| err.to_string())?,
         )
         .map_err(|err| err.to_string())?;
-        let owner = ProgramOwnerNative::new(&private_key, (*id.root()).into(), &mut StdRng::from_entropy())
+        let owner = ProgramOwnerNative::new(&private_key, *id.root(), &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
 
         log("Creating deployment transaction");

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Account, Block, Transaction, Transition } from ".";
-import { RecordCiphertext, RecordPlaintext, PrivateKey } from "@aleohq/wasm";
+import { RecordCiphertext, RecordPlaintext, PrivateKey } from "@aleohq/aleo-nodejs";
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
@@ -100,6 +100,39 @@ export class AleoNetworkClient {
       return await this.fetchData<string>("/program/" + programId)
     } catch (error) {
       throw new Error("Error fetching program");
+    }
+  }
+
+  /**
+   * Returns the names of the mappings of a program
+   *
+   * @param {string} programId
+   * @example
+   * let mappings = connection.getProgramMappingNames("credits.aleo");
+   */
+  async getProgramMappingNames(programId: string): Promise<Array<string> | Error> {
+    try {
+      return await this.fetchData<Array<string>>("/program/" + programId + "/mappings")
+    } catch (error) {
+      throw new Error("Error fetching program mappings - ensure the program exists on chain before trying again");
+    }
+  }
+
+  /**
+   * Returns the value of a program's mapping for a specific key
+   *
+   * @param {string} programId
+   * @param {string} mappingName
+   * @param {string} key
+   * @example
+   * ## Get public balance of an account
+   * let mappingValue = connection.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+   */
+  async getMappingValue(programId: string, mappingName: string, key: string): Promise<string | Error> {
+    try {
+      return await this.fetchData<string>("/program/" + programId + "/mapping/" + mappingName + "/" + key)
+    } catch (error) {
+      throw new Error("Error fetching mapping value - ensure the mapping exists and the key is correct");
     }
   }
 
