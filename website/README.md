@@ -2,17 +2,23 @@
 
 This project was bootstrapped with [Vite](https://vitejs.dev/).
 
+## Getting Started
+
+### Prerequisites
+
+- Follow [SDK Build Guide](https://github.com/AleoHQ/sdk#2-build-guide) to get Rust installed
+- Nodejs `18` or `20`. Install through [official website](https://nodejs.org/) or via a node manager like [NVM](https://github.com/creationix/nvm)
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
+
 ## Available Scripts
 
 In the project directory, you can run:
-
-### `npm run dev`
-
-Runs the app in the development mode.\
-Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
 
 ### `npm run preview`
 
