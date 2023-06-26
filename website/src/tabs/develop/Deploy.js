@@ -21,7 +21,8 @@ export const Deploy = () => {
         let worker = new Worker("./worker.js");
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'DEPLOY_TRANSACTION_COMPLETED') {
-                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.deployTransaction, {
+                let [deployTransaction, url] = ev.data.deployTransaction;
+                axios.post(url + "/testnet3/transaction/broadcast", deployTransaction, {
                     headers: {
                         'Content-Type': 'application/json',
                     }
@@ -96,9 +97,9 @@ export const Deploy = () => {
         setLoading(false)
         setTransactionID(null);
         setDeploymentError(null);
-        setProgram("program hello.aleo;\n" +
+        setProgram("program hello_hello.aleo;\n" +
             "\n" +
-            "function main:\n" +
+            "function hello:\n" +
             "    input r0 as u32.public;\n" +
             "    input r1 as u32.private;\n" +
             "    add r0 r1 into r2;\n" +

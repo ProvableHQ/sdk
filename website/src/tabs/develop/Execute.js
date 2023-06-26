@@ -57,8 +57,8 @@ export const Execute = () => {
                 setExecutionError(null);
                 setProgramResponse(ev.data.outputs);
             } else if (ev.data.type == 'EXECUTION_TRANSACTION_COMPLETED') {
-                let object = JSON.parse(ev.data.executeTransaction);
-                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.executeTransaction, {
+                let [transaction, url] = ev.data.executeTransaction;
+                axios.post(url + "/testnet3/transaction/broadcast", transaction, {
                     headers: {
                         'Content-Type': 'application/json',
                     }
@@ -159,8 +159,8 @@ export const Execute = () => {
         setProgramResponse(null);
         setTransactionID(null);
         setExecutionError(null);
-        setProgramID("hello.aleo");
-        setProgram("program hello.aleo;\n" +
+        setProgramID("hello_hello.aleo");
+        setProgram("program hello_hello.aleo;\n" +
             "\n" +
             "function hello:\n" +
             "    input r0 as u32.public;\n" +

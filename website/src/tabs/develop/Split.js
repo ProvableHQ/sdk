@@ -17,7 +17,8 @@ export const Split = () => {
         let worker = new Worker("./worker.js");
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'SPLIT_TRANSACTION_COMPLETED') {
-                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.splitTransaction, {
+                let [transaction, url] = ev.data.splitTransaction;
+                axios.post(url + "/testnet3/transaction/broadcast", transaction, {
                     headers: {
                         'Content-Type': 'application/json',
                     }
