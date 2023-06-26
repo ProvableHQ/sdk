@@ -189,7 +189,7 @@ self.addEventListener("message", ev => {
                     if (transferPublicToPrivateProvingKey === null || transferPublicToPrivateVerifyingKey === null) {
                         [transferPublicToPrivateProvingKey, transferPublicToPrivateVerifyingKey] = await getFunctionKeys(TRANSFER_PUBLIC_TO_PRIVATE_PROVER_URL, TRANSFER_PUBLIC_TO_PRIVATE_VERIFIER_URL);
                         if (!aleoProgramManager.keyExists("credits.aleo", "transfer_public_to_private")) {
-                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer", transferPublicToPrivateProvingKey, transferPublicToPrivateVerifyingKey);
+                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer_public_to_private", transferPublicToPrivateProvingKey, transferPublicToPrivateVerifyingKey);
                         }
                     }
                 } else if (transfer_type === "privateToPublic") {
