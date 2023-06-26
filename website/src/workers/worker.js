@@ -178,14 +178,12 @@ self.addEventListener("message", ev => {
         (async function() {
             try {
                 console.log("transfer type:", transfer_type);
-                let cache = false;
                 if (transfer_type === "public") {
                     if (transferPublicProvingKey === null || transferPublicVerifyingKey === null) {
                         [transferPublicProvingKey, transferPublicVerifyingKey] = await getFunctionKeys(TRANSFER_PUBLIC_PROVER_URL, TRANSFER_PUBLIC_VERIFIER_URL);
                         if (!aleoProgramManager.keyExists("credits.aleo", "transfer_public")) {
-                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer", transferPublicProvingKey, transferPublicVerifyingKey);
+                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer_public", transferPublicProvingKey, transferPublicVerifyingKey);
                         }
-                        cache = true;
                     }
                 } else if (transfer_type === "publicToPrivate") {
                     if (transferPublicToPrivateProvingKey === null || transferPublicToPrivateVerifyingKey === null) {
@@ -193,18 +191,21 @@ self.addEventListener("message", ev => {
                         if (!aleoProgramManager.keyExists("credits.aleo", "transfer_public_to_private")) {
                             aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer", transferPublicToPrivateProvingKey, transferPublicToPrivateVerifyingKey);
                         }
-                        cache = true;
                     }
                 } else if (transfer_type === "privateToPublic") {
                     if (transferPrivateToPublicProvingKey === null || transferPrivateToPublicVerifyingKey === null) {
                         [transferPrivateToPublicProvingKey, transferPrivateToPublicVerifyingKey] = await getFunctionKeys(TRANSFER_PRIVATE_TO_PUBLIC_PROVER_URL, TRANSFER_PRIVATE_TO_PUBLIC_VERIFIER_URL);
-                        if (!aleoProgramManager.keyExists("credits.aleo", "transfer_public_to_private")) {
-                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer", transferPrivateToPublicProvingKey, transferPrivateToPublicVerifyingKey);
+                        if (!aleoProgramManager.keyExists("credits.aleo", "transfer_private_to_public")) {
+                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer_private_to_public", transferPrivateToPublicProvingKey, transferPrivateToPublicVerifyingKey);
                         }
-                        cache = true;
                     }
-                } else if (transfer_type == "private") {
-                    console.log("Initiating private transfer");
+                } else if (transfer_type === "private") {
+                    if (transferPrivateProvingKey === null || transferPrivateVerifyingKey === null) {
+                        [transferPrivateProvingKey, transferPrivateVerifyingKey] = await getFunctionKeys(TRANSFER_PRIVATE_PROVER_URL, TRANSFER_PRIVATE_VERIFIER_URL);
+                        if (!aleoProgramManager.keyExists("credits.aleo", "transfer_private")) {
+                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer_private", transferPrivateProvingKey, transferPrivateVerifyingKey);
+                        }
+                    }
                 } else {
                     throw (`Invalid transfer type`);
                 }
@@ -224,7 +225,7 @@ self.addEventListener("message", ev => {
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
-                    cache
+                    true
                 );
 
                 console.log(`Web worker: Transfer transaction created in ${performance.now() - startTime} ms`);
