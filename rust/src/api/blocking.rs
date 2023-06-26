@@ -103,7 +103,7 @@ impl<N: Network> AleoAPIClient<N> {
     }
 
     /// Get all mappings associated with a program.
-    pub fn get_program_mappings(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<IndexSet<Identifier<N>>> {
+    pub fn get_program_mappings(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Vec<Identifier<N>>> {
         // Prepare the program ID.
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
         // Perform the request.
@@ -355,7 +355,6 @@ mod tests {
         // Assert there's only one mapping in credits.aleo
         assert_eq!(mappings.len(), 1);
 
-        let mappings = mappings.into_iter().collect::<Vec<_>>();
         let identifier = mappings[0];
         // Assert the identifier is "account"
         assert_eq!(identifier.to_string(), "account");

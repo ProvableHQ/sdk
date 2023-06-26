@@ -90,7 +90,7 @@ impl<N: Network> ProgramManager<N> {
     ) -> Result<Transaction<N>> {
         // Initialize an RNG and query object for the transaction
         let rng = &mut rand::thread_rng();
-        let query = Query::<N, BlockMemory<N>>::from(query);
+        let query = Query::from(query);
 
         // Check that the function exists in the program
         let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
@@ -101,31 +101,13 @@ impl<N: Network> ProgramManager<N> {
             "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
         );
 
-        // Create a new process to execute the program
-        let mut process = Process::<N>::load()?;
-        process.add_program(program)?;
-
-        // Create the execution authorization
-        let authorization = process.authorize::<A, _>(private_key, program.id(), function_name, inputs, rng)?;
-
-        // Execute & prove the program authorization
-        let (_, mut trace) = process.execute::<A>(authorization)?;
-        let locator = program.id().to_string().add("/").add(&function_name.to_string());
-        trace.prepare(query.clone())?;
-        let execution = trace.prove_execution::<A, _>(&locator, rng)?;
-
-        // Execute & prove the fee
-        let execution_id = execution.to_execution_id()?;
-        let (_, _, mut trace) = process.execute_fee::<A, _>(private_key, fee_record, fee, execution_id, rng)?;
-        trace.prepare(query)?;
-        let fee_execution = trace.prove_fee::<A, _>(rng)?;
-
-        // Verify the execution and fee
-        process.verify_execution(&execution)?;
-        process.verify_fee(&fee_execution, execution_id)?;
+        // Create an ephemeral SnarkVM to store the programs
+        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
+        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
+        let _ = &vm.process().write().add_program(program);
 
         // Create an execution transaction
-        Transaction::from_execution(execution, Some(fee_execution))
+        vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, fee)), Some(query), rng)
     }
 }
 
