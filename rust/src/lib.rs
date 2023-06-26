@@ -211,12 +211,7 @@ pub mod snarkvm_types {
     };
 }
 #[cfg(feature = "full")]
-use snarkvm::{
-    circuit::Aleo,
-    file::Manifest,
-    package::Package,
-    synthesizer::{helpers::memory::BlockMemory, Process},
-};
+use snarkvm::{file::Manifest, package::Package};
 
 pub use snarkvm_types::*;
 

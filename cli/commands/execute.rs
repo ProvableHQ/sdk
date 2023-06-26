@@ -21,7 +21,6 @@ use snarkvm::prelude::{Ciphertext, Identifier, Plaintext, PrivateKey, ProgramID,
 use anyhow::{anyhow, ensure, Result};
 use clap::Parser;
 use colored::Colorize;
-use snarkvm::circuit::AleoV0;
 
 /// Executes an Aleo program function
 #[derive(Debug, Parser)]
@@ -117,7 +116,7 @@ impl Execute {
 
         // Execute the program function
         println!("Executing function {} from program: {}", function_string.bright_blue(), program_string.bright_blue());
-        let result = program_manager.execute_program::<AleoV0>(
+        let result = program_manager.execute_program(
             self.program_id,
             self.function,
             self.inputs.iter(),
