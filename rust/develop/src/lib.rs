@@ -149,14 +149,7 @@ use requests::*;
 mod routes;
 pub use routes::*;
 
-use aleo_rust::{
-    snarkvm_types::{Aleo, AleoV0},
-    AleoAPIClient,
-    Encryptor,
-    ProgramManager,
-    RecordFinder,
-    TransferType,
-};
+use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder, TransferType};
 use snarkvm::{
     console::{
         account::{Address, PrivateKey},
@@ -175,7 +168,7 @@ use warp::{reject, reply, Filter, Rejection, Reply};
 
 /// Server object for the Aleo Development Server
 #[derive(Clone)]
-pub struct Rest<N: Network, A: Aleo<Network = N>> {
+pub struct Rest<N: Network> {
     api_client: AleoAPIClient<N>,
     /// Private key ciphertext for the account being used with the server
     private_key_ciphertext: Option<Ciphertext<N>>,
@@ -185,10 +178,9 @@ pub struct Rest<N: Network, A: Aleo<Network = N>> {
     socket_address: SocketAddr,
     /// Debug mode flag
     debug: bool,
-    phantom: std::marker::PhantomData<A>,
 }
 
-impl<N: Network, A: Aleo<Network = N>> Rest<N, A> {
+impl<N: Network> Rest<N> {
     /// Initializes a new instance of the server.
     pub fn initialize(
         socket_address: Option<SocketAddr>,
@@ -213,14 +205,7 @@ impl<N: Network, A: Aleo<Network = N>> Rest<N, A> {
         };
 
         // Initialize the server.
-        let server = Self {
-            api_client,
-            private_key_ciphertext,
-            record_finder,
-            socket_address,
-            debug,
-            phantom: std::marker::PhantomData,
-        };
+        let server = Self { api_client, private_key_ciphertext, record_finder, socket_address, debug };
 
         // Print an initialization message and return the server
         println!("{}", "\nStarting Aleo development server...".bright_blue());
@@ -236,7 +221,7 @@ impl<N: Network, A: Aleo<Network = N>> Rest<N, A> {
     }
 }
 
-impl<N: Network, A: Aleo<Network = N>> Rest<N, A> {
+impl<N: Network> Rest<N> {
     /// Initializes the development server
     pub async fn start(&mut self) {
         let cors = warp::cors().allow_any_origin().allow_methods(vec!["GET", "POST", "OPTIONS"]).allow_headers(vec![

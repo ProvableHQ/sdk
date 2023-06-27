@@ -1,6 +1,6 @@
 [package]
 name = "aleo-rust"
-version = "0.4.4"
+version = "0.4.5"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Rust SDK for managing Aleo programs and communicating with the Aleo network"
 homepage = "https://aleo.org"
@@ -35,7 +35,7 @@ version = "1"
 workspace = true
 
 [dependencies.indexmap]
-version = "1.9.3"
+version = "2.0"
 
 [dependencies.once_cell]
 version = "1.18.0"

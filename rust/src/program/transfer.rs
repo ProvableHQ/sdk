@@ -37,7 +37,7 @@ impl<N: Network> ProgramManager<N> {
                 "Credits in amount record must greater than transfer amount specified"
             );
         }
-        ensure!(fee_record.microcredits()? >= fee, "Fee must be greater than 0");
+        ensure!(fee_record.microcredits()? >= fee, "Fee must be greater than the fee specified in the record");
 
         // Specify the network state query
         let query = Query::from(self.api_client.as_ref().unwrap().base_url());

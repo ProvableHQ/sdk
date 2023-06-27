@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.4.4"
+version = "0.4.5"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"
@@ -33,7 +33,7 @@ version = "0.2"
 features = [ "js" ]
 
 [dependencies.indexmap]
-version = "1.7"
+version = "2.0.0"
 
 [dependencies.lazy_static]
 version = "1.4.0"
@@ -100,16 +100,16 @@ browser = [ ]
 
 ## Profiles
 [profile.release]
-opt-level = 4
+opt-level = 3
 lto = true
 
 [profile.dev]
-opt-level = 4
+opt-level = 3
 lto = "thin"
 incremental = true
 
 [package.metadata.wasm-pack.profile.debug]
-wasm-opt = ["-O4"]
+wasm-opt = ["-O3"]
 
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-O4"]
+wasm-opt = ["-O3"]

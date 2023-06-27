@@ -18,10 +18,19 @@ use super::*;
 use std::ops::Add;
 
 use crate::{
+    execute_fee,
     execute_program,
     get_process,
     log,
-    types::{CurrentAleo, CurrentBlockMemory, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
+    types::{
+        CurrentAleo,
+        CurrentBlockMemory,
+        IdentifierNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        TransactionNative,
+    },
     ExecutionResponse,
     PrivateKey,
     RecordPlaintext,
@@ -116,15 +125,15 @@ impl ProgramManager {
         fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
         log(&format!("Executing function: {function} on-chain"));
-        Self::validate_amount(fee_credits, &fee_record, true)?;
+        let fee_microcredits = Self::validate_amount(fee_credits, &fee_record, true)?;
 
         let mut new_process;
         let process = get_process!(self, cache, new_process);
         let stack = process.get_stack("credits.aleo").map_err(|e| e.to_string())?;
         let fee_identifier = IdentifierNative::from_str("fee").map_err(|e| e.to_string())?;
         if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some() {
-            let fee_proving_key = fee_proving_key.unwrap();
-            let fee_verifying_key = fee_verifying_key.unwrap();
+            let fee_proving_key = fee_proving_key.clone().unwrap();
+            let fee_verifying_key = fee_verifying_key.clone().unwrap();
             stack
                 .insert_proving_key(&fee_identifier, ProvingKeyNative::from(fee_proving_key))
                 .map_err(|e| e.to_string())?;
@@ -133,24 +142,35 @@ impl ProgramManager {
                 .map_err(|e| e.to_string())?;
         }
 
+        log("Executing program");
         let (_, mut trace) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
 
-        // Prepare the inclusion proofs for the fee & execution
+        log("Preparing inclusion proofs for execution");
         trace.prepare_async::<CurrentBlockMemory, _>(&url).await.map_err(|err| err.to_string())?;
 
-        // Prove the execution and fee
+        log("Proving execution");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
         let locator = program.id().to_string().add("/").add(&function);
         let execution = trace
             .prove_execution::<CurrentAleo, _>(&locator, &mut StdRng::from_entropy())
             .map_err(|e| e.to_string())?;
-        let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
-        // Verify the execution and fee
+        log("Executing fee");
+        let fee = execute_fee!(
+            process,
+            private_key,
+            fee_record,
+            fee_microcredits,
+            url,
+            fee_proving_key,
+            fee_verifying_key,
+            execution_id
+        );
+
+        // Verify the execution
         process.verify_execution(&execution).map_err(|err| err.to_string())?;
-        process.verify_fee(&fee, execution_id).map_err(|err| err.to_string())?;
 
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
