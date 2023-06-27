@@ -81,7 +81,7 @@
 //! ```no_run
 //!   use aleo_rust::{
 //!     AleoAPIClient, Encryptor, ProgramManager, RecordFinder,
-//!     snarkvm_types::{Address, AleoV0, PrivateKey, Testnet3, Program},
+//!     snarkvm_types::{Address, PrivateKey, Testnet3, Program},
 //!     TransferType
 //!   };
 //!   use rand::thread_rng;
@@ -112,7 +112,7 @@
 //!
 //!   // Execute the function `hello` of the hello.aleo program with the arguments 5u32 and 3u32.
 //!   // Specify 0 for the fee and provide a password to decrypt the private key stored in the program manager
-//!   program_manager.execute_program::<AleoV0>("hello.aleo", "hello", ["5u32", "3u32"].into_iter(), 0, fee_record, Some("password")).unwrap();
+//!   program_manager.execute_program("hello.aleo", "hello", ["5u32", "3u32"].into_iter(), 0, fee_record, Some("password")).unwrap();
 //!
 //!   // ------------------
 //!   // DEPLOY PROGRAM STEPS

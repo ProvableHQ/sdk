@@ -5,7 +5,7 @@ import {
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
-} from "@aleohq/aleo-nodejs";
+} from "@aleohq/nodejs";
 
 interface AccountParam {
   privateKey?: string;
