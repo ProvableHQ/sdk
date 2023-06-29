@@ -16,3 +16,6 @@ storage*/
 rust/src/.DS_Store
 rust/src/program/.DS_Store
 
+
+# Local Netlify folder
+.netlify
