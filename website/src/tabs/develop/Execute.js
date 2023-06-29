@@ -125,7 +125,9 @@ export const Execute = () => {
 
         let functionInputs = []
         try {
-            functionInputs = inputs.split(" ");
+            if (!!inputs) {
+                functionInputs = inputs.split(" ");
+            }
         } catch (e) {
             setExecutionError("Inputs are not valid");
             setLoading(false);
