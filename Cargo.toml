@@ -89,7 +89,7 @@ version = "7.2.0"
 
 [dependencies.self_update]
 version = "0.37"
-features = [ "default", "archive-zip", "archive-tar"]
+features = [ "archive-zip" ]
 
 [dependencies.serde]
 version = "1"
