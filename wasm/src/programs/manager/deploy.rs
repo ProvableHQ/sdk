@@ -17,28 +17,24 @@
 use super::*;
 
 use crate::{
-    fee_inclusion_proof,
+    execute_fee,
     get_process,
     log,
     types::{
         CurrentAleo,
-        CurrentNetwork,
+        CurrentBlockMemory,
+        DeploymentNative,
         ProcessNative,
         ProgramIDNative,
         ProgramNative,
         ProgramOwnerNative,
         RecordPlaintextNative,
-        TransactionLeafNative,
         TransactionNative,
     },
-    utils::to_bits,
     PrivateKey,
     RecordPlaintext,
     Transaction,
 };
-
-use aleo_rust::{Network, ToBytes};
-use snarkvm_console::program::{ToBits, TRANSACTION_DEPTH};
 
 use js_sys::{Object, Reflect};
 use rand::{rngs::StdRng, SeedableRng};
@@ -68,7 +64,7 @@ impl ProgramManager {
         imports: Option<Object>,
         fee_credits: f64,
         fee_record: RecordPlaintext,
-        _url: String,
+        url: String,
         cache: bool,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
@@ -106,7 +102,7 @@ impl ProgramManager {
                 .map_err(|_| "Import resolution failed".to_string())?;
         }
 
-        log("Create and validate deployment");
+        log("Create deployment");
         let deployment =
             process.deploy::<CurrentAleo, _>(&program, &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
         if deployment.program().functions().is_empty() {
@@ -114,55 +110,34 @@ impl ProgramManager {
         }
 
         log("Ensure the fee is sufficient to pay for the deployment");
-        let deployment_fee = deployment.to_bytes_le().map_err(|err| err.to_string())?.len();
-        if fee_microcredits < deployment_fee as u64 {
-            return Err("Fee is not sufficient to pay for the deployment transaction".to_string());
+        let (minimum_deployment_cost, (_, _)) = DeploymentNative::cost(&deployment).map_err(|err| err.to_string())?;
+        if fee_microcredits < minimum_deployment_cost {
+            return Err(format!(
+                "Fee is too low to pay for the deployment. The minimum fee is {} credits",
+                minimum_deployment_cost as f64 / 1_000_000.0
+            ));
         }
-
-        log("Verify the deployment and fees");
-        process
-            .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
-            .map_err(|err| err.to_string())?;
 
         let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
 
-        let fee = fee_inclusion_proof!(
+        let fee = execute_fee!(
             process,
             private_key,
             fee_record,
             fee_microcredits,
-            _url,
+            url,
             fee_proving_key,
             fee_verifying_key,
             deployment_id
         );
 
-        log("Create the deployment transaction");
-        TransactionNative::check_deployment_size(&deployment).map_err(|err| err.to_string())?;
-        let leaves = program
-            .functions()
-            .values()
-            .enumerate()
-            .map(|(index, function)| {
-                // Construct the transaction leaf.
-                let id = CurrentNetwork::hash_bhp1024(&to_bits(function.to_bytes_le()?))?;
-                Ok(TransactionLeafNative::new_deployment(index as u16, id).to_bits_le())
-            })
-            .chain(
-                // Add the transaction fee to the leaves.
-                [Ok(TransactionLeafNative::new_fee(
-                    program.functions().len() as u16, // The last index.
-                    **fee.transition_id(),
-                )
-                .to_bits_le())]
-                .into_iter(),
-            );
+        log("Create the program owner");
+        let owner = ProgramOwnerNative::new(&private_key, deployment_id, &mut StdRng::from_entropy())
+            .map_err(|err| err.to_string())?;
 
-        let id = CurrentNetwork::merkle_tree_bhp::<TRANSACTION_DEPTH>(
-            &leaves.collect::<anyhow::Result<Vec<_>>>().map_err(|err| err.to_string())?,
-        )
-        .map_err(|err| err.to_string())?;
-        let owner = ProgramOwnerNative::new(&private_key, *id.root(), &mut StdRng::from_entropy())
+        log("Verify the deployment and fees");
+        process
+            .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
 
         log("Creating deployment transaction");

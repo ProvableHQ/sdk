@@ -26,7 +26,7 @@ pub struct Updater;
 // TODO Add logic for users to easily select release versions.
 impl Updater {
     const ALEO_BIN_NAME: &'static str = "aleo";
-    const ALEO_REPO_NAME: &'static str = "aleo";
+    const ALEO_REPO_NAME: &'static str = "sdk";
     const ALEO_REPO_OWNER: &'static str = "AleoHQ";
 
     /// Show all available releases for `aleo`.

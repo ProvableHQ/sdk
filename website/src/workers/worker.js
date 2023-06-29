@@ -26,11 +26,15 @@ const aleoProgramManager = new aleo.ProgramManager();
 const getFunctionKeys = async (proverUrl, verifierUrl) => {
     console.log("Downloading proving and verifying keys from: ", proverUrl, verifierUrl);
     let proofResponse = await fetch(proverUrl);
+    console.log("Getting array buffer");
     let proofBuffer = await proofResponse.arrayBuffer();
     let verificationResponse = await fetch(verifierUrl);
     let verificationBuffer = await verificationResponse.arrayBuffer();
+    console.log("Proving and verifying key binaries downloaded");
+    console.log("Creating proving and verifying keys...");
     let provingKey = aleo.ProvingKey.fromBytes(new Uint8Array(proofBuffer));
     let verifyingKey = aleo.VerifyingKey.fromBytes(new Uint8Array(verificationBuffer));
+    console.log("Proving and verifying keys created");
     return [provingKey, verifyingKey];
 }
 
@@ -43,12 +47,12 @@ const validateProgram = (programString) => {
     }
 }
 
-const programMatchesOnChain = async (programString) => {
+const programMatchesOnChain = async (programString, url) => {
     const program = validateProgram(programString);
     let onlineProgramText;
     try {
         const program_id = program.id();
-        const program_url = `https://vm.aleo.org/api/testnet3/program/${program_id}`;
+        const program_url = `${url}/testnet3/program/${program_id}`;
         const programResponse = await fetch(program_url);
         onlineProgramText = await programResponse.json();
     } catch (error) {
@@ -121,7 +125,7 @@ self.addEventListener("message", ev => {
 
         (async function() {
             try {
-                const programMatches = await programMatchesOnChain(remoteProgram);
+                const programMatches = await programMatchesOnChain(remoteProgram, url);
                 if (!programMatches) {
                     throw (`Program does not match the program deployed on the Aleo Network, cannot execute`);
                 }
@@ -147,8 +151,9 @@ self.addEventListener("message", ev => {
 
                 console.log(`Web worker: On-chain execution transaction created in ${performance.now() - startTime} ms`);
                 let transaction = executeTransaction.toString();
+                let transaction_and_url = [transaction, url]
                 console.log(transaction);
-                self.postMessage({type: 'EXECUTION_TRANSACTION_COMPLETED', executeTransaction: transaction});
+                self.postMessage({type: 'EXECUTION_TRANSACTION_COMPLETED', executeTransaction: transaction_and_url});
             } catch (error) {
                 console.log(error);
                 self.postMessage({ type: 'ERROR', errorMessage: error.toString() });
@@ -172,27 +177,37 @@ self.addEventListener("message", ev => {
 
         (async function() {
             try {
+                console.log("transfer type:", transfer_type);
                 if (transfer_type === "public") {
                     if (transferPublicProvingKey === null || transferPublicVerifyingKey === null) {
                         [transferPublicProvingKey, transferPublicVerifyingKey] = await getFunctionKeys(TRANSFER_PUBLIC_PROVER_URL, TRANSFER_PUBLIC_VERIFIER_URL);
-                    }
-                } else if (transfer_type === "private") {
-                    if (transferPrivateProvingKey === null || transferPrivateVerifyingKey === null) {
-                        [transferPrivateProvingKey, transferPrivateVerifyingKey] = await getFunctionKeys(TRANSFER_PRIVATE_PROVER_URL, TRANSFER_PRIVATE_VERIFIER_URL);
+                        if (!aleoProgramManager.keyExists("credits.aleo", "transfer_public")) {
+                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer_public", transferPublicProvingKey, transferPublicVerifyingKey);
+                        }
                     }
                 } else if (transfer_type === "publicToPrivate") {
                     if (transferPublicToPrivateProvingKey === null || transferPublicToPrivateVerifyingKey === null) {
                         [transferPublicToPrivateProvingKey, transferPublicToPrivateVerifyingKey] = await getFunctionKeys(TRANSFER_PUBLIC_TO_PRIVATE_PROVER_URL, TRANSFER_PUBLIC_TO_PRIVATE_VERIFIER_URL);
+                        if (!aleoProgramManager.keyExists("credits.aleo", "transfer_public_to_private")) {
+                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer_public_to_private", transferPublicToPrivateProvingKey, transferPublicToPrivateVerifyingKey);
+                        }
                     }
                 } else if (transfer_type === "privateToPublic") {
                     if (transferPrivateToPublicProvingKey === null || transferPrivateToPublicVerifyingKey === null) {
                         [transferPrivateToPublicProvingKey, transferPrivateToPublicVerifyingKey] = await getFunctionKeys(TRANSFER_PRIVATE_TO_PUBLIC_PROVER_URL, TRANSFER_PRIVATE_TO_PUBLIC_VERIFIER_URL);
+                        if (!aleoProgramManager.keyExists("credits.aleo", "transfer_private_to_public")) {
+                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer_private_to_public", transferPrivateToPublicProvingKey, transferPrivateToPublicVerifyingKey);
+                        }
+                    }
+                } else if (transfer_type === "private") {
+                    if (transferPrivateProvingKey === null || transferPrivateVerifyingKey === null) {
+                        [transferPrivateProvingKey, transferPrivateVerifyingKey] = await getFunctionKeys(TRANSFER_PRIVATE_PROVER_URL, TRANSFER_PRIVATE_VERIFIER_URL);
+                        if (!aleoProgramManager.keyExists("credits.aleo", "transfer_private")) {
+                            aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer_private", transferPrivateProvingKey, transferPrivateVerifyingKey);
+                        }
                     }
                 } else {
                     throw (`Invalid transfer type`);
-                }
-                if (!aleoProgramManager.keyExists("credits.aleo", "transfer")) {
-                    aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "transfer", transferPrivateProvingKey, transferPrivateVerifyingKey);
                 }
                 if (feeProvingKey === null || feeVerifyingKey === null) {
                     [feeProvingKey, feeVerifyingKey] = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL);
@@ -205,7 +220,7 @@ self.addEventListener("message", ev => {
                     aleo.PrivateKey.from_string(privateKey),
                     amountCredits,
                     recipient,
-                    "transfer_private",
+                    transfer_type,
                     aleo.RecordPlaintext.fromString(amountRecord),
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
@@ -215,8 +230,9 @@ self.addEventListener("message", ev => {
 
                 console.log(`Web worker: Transfer transaction created in ${performance.now() - startTime} ms`);
                 let transaction = transferTransaction.toString();
+                let transaction_and_url = [transaction, url]
                 console.log(transaction);
-                self.postMessage({type: 'TRANSFER_TRANSACTION_COMPLETED', transferTransaction: transaction});
+                self.postMessage({type: 'TRANSFER_TRANSACTION_COMPLETED', transferTransaction: transaction_and_url});
             } catch (error) {
                 console.log(error);
                 self.postMessage({ type: 'ERROR', errorMessage: error.toString() });
@@ -238,7 +254,7 @@ self.addEventListener("message", ev => {
         (async function() {
             try {
                 try {
-                    await programMatchesOnChain(program);
+                    await programMatchesOnChain(program, url);
                     throw (`A program with the same name already exists on the Aleo Network, cannot deploy`);
                 } catch (e) {
                     if (e !== `Program does not exist on chain`) {
@@ -251,9 +267,11 @@ self.addEventListener("message", ev => {
                     [feeProvingKey, feeVerifyingKey] = await getFunctionKeys(FEE_PROVER_URL, FEE_VERIFIER_URL);
                 }
                 if (!aleoProgramManager.keyExists("credits.aleo", "fee")) {
+                    console.log("Caching fee keys");
                     aleoProgramManager.cacheKeypairInWasmMemory(aleo.Program.getCreditsProgram().toString(), "fee", feeProvingKey, feeVerifyingKey);
                 }
 
+                console.log("Deploying program..");
                 let deployTransaction = await aleoProgramManager.deploy(
                     aleo.PrivateKey.from_string(privateKey),
                     program,
@@ -266,8 +284,9 @@ self.addEventListener("message", ev => {
 
                 console.log(`Web worker: Deployment transaction created in ${performance.now() - startTime} ms`);
                 let transaction = deployTransaction.toString();
+                let transaction_and_url = [transaction, url]
                 console.log(transaction);
-                self.postMessage({type: 'DEPLOY_TRANSACTION_COMPLETED', deployTransaction: transaction});
+                self.postMessage({type: 'DEPLOY_TRANSACTION_COMPLETED', deployTransaction: transaction_and_url});
             } catch (error) {
                 console.log(error);
                 self.postMessage({ type: 'ERROR', errorMessage: error.toString() });
@@ -303,8 +322,9 @@ self.addEventListener("message", ev => {
 
                 console.log(`Web worker: Split transaction created in ${performance.now() - startTime} ms`);
                 let transaction = splitTransaction.toString();
+                let transaction_and_url = [transaction, url]
                 console.log(transaction);
-                self.postMessage({type: 'SPLIT_TRANSACTION_COMPLETED', splitTransaction: transaction});
+                self.postMessage({type: 'SPLIT_TRANSACTION_COMPLETED', splitTransaction: transaction_and_url});
             } catch (error) {
                 console.log(error);
                 self.postMessage({ type: 'ERROR', errorMessage: error.toString() });
@@ -351,8 +371,9 @@ self.addEventListener("message", ev => {
 
                 console.log(`Web worker: Join transaction created in ${performance.now() - startTime} ms`);
                 let transaction = joinTransaction.toString();
+                let transaction_and_url = [transaction, url]
                 console.log(transaction);
-                self.postMessage({ type: 'JOIN_TRANSACTION_COMPLETED', joinTransaction: transaction });
+                self.postMessage({ type: 'JOIN_TRANSACTION_COMPLETED', joinTransaction: transaction_and_url });
             } catch (error) {
                 console.log(error);
                 self.postMessage({ type: 'ERROR', errorMessage: error.toString() });

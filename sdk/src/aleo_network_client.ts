@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Account, Block, Transaction, Transition } from ".";
-import { RecordCiphertext, RecordPlaintext, PrivateKey } from "@aleohq/aleo-nodejs";
+import { RecordCiphertext, RecordPlaintext, PrivateKey } from "@aleohq/nodejs";
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.

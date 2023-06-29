@@ -91,7 +91,7 @@ macro_rules! execute_program {
 }
 
 #[macro_export]
-macro_rules! fee_inclusion_proof {
+macro_rules! execute_fee {
     ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr) => {{
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
@@ -121,7 +121,7 @@ macro_rules! fee_inclusion_proof {
 
         log("Executing fee program");
         let fee_record_native = RecordPlaintextNative::from_str(&$fee_record.to_string()).unwrap();
-        let (_, _, trace) = $process
+        let (_, _, mut trace) = $process
             .execute_fee::<CurrentAleo, _>(
                 &$private_key,
                 fee_record_native,
@@ -131,6 +131,7 @@ macro_rules! fee_inclusion_proof {
             )
             .map_err(|err| err.to_string())?;
 
+        trace.prepare_async::<CurrentBlockMemory, _>(&$submission_url).await.map_err(|err| err.to_string())?;
         let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");

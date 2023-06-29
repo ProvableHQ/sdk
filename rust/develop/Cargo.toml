@@ -1,6 +1,6 @@
 [package]
 name = "aleo-development-server"
-version = "0.4.4"
+version = "0.4.5"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A REST API server for local or remote Aleo development"
 homepage = "https://aleo.org"
@@ -34,7 +34,7 @@ workspace = true
 version = "0.2"
 
 [dependencies.indexmap]
-version = "1.8"
+version = "2.0"
 
 [dependencies.jsonwebtoken]
 version = "8.2"

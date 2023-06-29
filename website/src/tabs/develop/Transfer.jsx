@@ -22,7 +22,8 @@ export const Transfer = () => {
         let worker = new AleoWorker();
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'TRANSFER_TRANSACTION_COMPLETED') {
-                axios.post(peerUrl() + "/testnet3/transaction/broadcast", ev.data.transferTransaction, {
+                let [transaction, url] = ev.data.transferTransaction
+                axios.post(url + "/testnet3/transaction/broadcast", transaction, {
                     headers: {
                         'Content-Type': 'application/json',
                     }
@@ -83,7 +84,7 @@ export const Transfer = () => {
             type: 'ALEO_TRANSFER',
             privateKey: privateKeyString(),
             amountCredits: amount,
-            transfer_type: "transfer_private",
+            transfer_type: "private",
             recipient: recipientString(),
             amountRecord: amountRecordString(),
             fee: feeAmount,
