@@ -21,7 +21,7 @@ Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
 
 In the project directory, you can run:
 
-### `npm run preview`
+### `preview:netlify`
 
 Locally preview production build.
 
