@@ -19,9 +19,9 @@ export const Deploy = () => {
     const [worker, setWorker] = useState(null);
     function spawnWorker() {
         let worker = new Worker(
-  new URL('../../workers/worker.js', import.meta.url),
-  {type: 'module'}
-);
+            new URL('../../workers/worker.js', import.meta.url),
+            {type: 'module'}
+        );
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'DEPLOY_TRANSACTION_COMPLETED') {
                 let [deployTransaction, url] = ev.data.deployTransaction;

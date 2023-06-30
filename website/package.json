@@ -6,10 +6,11 @@
   "scripts": {
     "preinstall": "cd ../wasm && export RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--max-memory=4294967296' && rustup run nightly-2023-05-24 wasm-pack build --release --target web --out-dir pkg-parallel -- --features \"parallel, browser\" --no-default-features -Z build-std=panic_abort,std",
     "dev": "vite",
-    "build": "vite build",
+    "build": "webpack --config webpack.config.js",
+    "build:vite": "vite build",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "preview:netlify": "vite build && netlify dev --dir=dist"
+    "preview:netlify": "netlify dev --dir=dist"
   },
   "dependencies": {
     "@aleohq/ui": "^0.0.9",
@@ -25,6 +26,9 @@
     "web-vitals": "^0.2.4"
   },
   "devDependencies": {
+    "@babel/core": "^7.17.2",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-react": "^7.16.7",
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
     "@vitejs/plugin-react-swc": "^3.0.0",
@@ -32,7 +36,14 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
-    "vite": "^4.3.9"
+    "vite": "^4.3.9",
+    "webpack": "^5.76.0",
+    "webpack-cli": "^5.1.4",
+    "html-webpack-plugin": "^5.5.0",
+    "css-loader": "^6.6.0",
+    "mini-css-extract-plugin": "^2.5.3",
+    "style-loader": "^3.3.1",
+    "copy-webpack-plugin": "^11.0.0"
   },
   "homepage": "https://aleo.tools"
 }

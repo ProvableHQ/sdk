@@ -15,9 +15,9 @@ export const Split = () => {
 
     function spawnWorker() {
         let worker = new Worker(
-  new URL('../../workers/worker.js', import.meta.url),
-  {type: 'module'}
-);
+            new URL('../../workers/worker.js', import.meta.url),
+            {type: 'module'}
+        );
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'SPLIT_TRANSACTION_COMPLETED') {
                 let [transaction, url] = ev.data.splitTransaction;
