@@ -2,22 +2,29 @@ import React, { useState, useEffect } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
 import axios from "axios";
 
-export const Split = () => {
+export const Transfer = () => {
+    const [transferFeeRecord, setTransferFeeRecord] = useState(null);
     const [amountRecord, setAmountRecord] = useState(null);
-    const [splitUrl, setSplitUrl] = useState("https://vm.aleo.org/api");
-    const [splitAmount, setSplitAmount] = useState("1.0");
+    const [transferUrl, setTransferUrl] = useState("https://vm.aleo.org/api");
+    const [transferAmount, setTransferAmount] = useState("1.0");
+    const [transferFee, setTransferFee] = useState("1.0");
+    const [recipient, setRecipient] = useState(null);
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
-    const [splitError, setSplitError] = useState(null);
+    const [transferError, setTransferError] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
+    const [provingKey, setProvingKey] = useState(null);
 
     function spawnWorker() {
-        let worker = new Worker("./worker.js");
+        let worker = new Worker(
+            new URL('../../workers/worker.js', import.meta.url),
+            {type: 'module'}
+        );
         worker.addEventListener("message", ev => {
-            if (ev.data.type == 'SPLIT_TRANSACTION_COMPLETED') {
-                let [transaction, url] = ev.data.splitTransaction;
+            if (ev.data.type == 'TRANSFER_TRANSACTION_COMPLETED') {
+                let [transaction, url] = ev.data.transferTransaction
                 axios.post(url + "/testnet3/transaction/broadcast", transaction, {
                     headers: {
                         'Content-Type': 'application/json',
@@ -25,12 +32,12 @@ export const Split = () => {
                 }).then(
                     (response) => {
                         setLoading(false);
-                        setSplitError(null);
+                        setTransferError(null);
                         setTransactionID(response.data);
                     }
                 )
             } else if (ev.data.type == 'ERROR') {
-                setSplitError(ev.data.errorMessage);
+                setTransferError(ev.data.errorMessage);
                 setLoading(false);
                 setTransactionID(null);
             }
@@ -48,27 +55,42 @@ export const Split = () => {
         }
     }, []);
 
-    const split = async (event) => {
+    const transfer = async (event) => {
         setLoading(true)
         setTransactionID(null);
-        setSplitError(null);
+        setTransferError(null);
+
+        const feeAmount = parseFloat(feeString());
+        if (isNaN(feeAmount)) {
+            setTransferError("Fee is not a valid number");
+            setLoading(false);
+            return;
+        } else if (feeAmount <= 0) {
+            setTransferError("Fee must be greater than 0");
+            setLoading(false);
+            return;
+        }
 
         const amount = parseFloat(amountString());
         if (isNaN(amount)) {
-            setSplitError("Amount is not a valid number");
+            setTransferError("Amount is not a valid number");
             setLoading(false);
             return;
         } else if (amount <= 0) {
-            setSplitError("Amount must be greater than 0");
+            setTransferError("Amount must be greater than 0");
             setLoading(false);
             return;
         }
 
         await postMessagePromise(worker, {
-            type: 'ALEO_SPLIT',
-            splitAmount: amount,
-            record: amountRecordString(),
+            type: 'ALEO_TRANSFER',
             privateKey: privateKeyString(),
+            amountCredits: amount,
+            transfer_type: "private",
+            recipient: recipientString(),
+            amountRecord: amountRecordString(),
+            fee: feeAmount,
+            feeRecord: feeRecordString(),
             url: peerUrl(),
         });
     }
@@ -79,7 +101,7 @@ export const Split = () => {
                 resolve(event.data);
             };
             worker.onerror = error => {
-                setSplitError(error);
+                setTransferError(error);
                 setLoading(false);
                 setTransactionID(null);
                 reject(error);
@@ -90,18 +112,27 @@ export const Split = () => {
 
     const onUrlChange = (event) => {
         if (event.target.value !== null) {
-            setSplitUrl(event.target.value);
+            setTransferUrl(event.target.value);
         }
-        return splitUrl;
+        return transferUrl;
     }
 
     const onAmountChange = (event) => {
         if (event.target.value !== null) {
-            setSplitAmount(event.target.value);
+            setTransferAmount(event.target.value);
         }
         setTransactionID(null);
-        setSplitError(null);
-        return splitAmount;
+        setTransferError(null);
+        return transferAmount;
+    }
+
+    const onTransferFeeChange = (event) => {
+        if (event.target.value !== null) {
+            setTransferFee(event.target.value);
+        }
+        setTransactionID(null);
+        setTransferError(null);
+        return transferFee;
     }
 
     const onAmountRecordChange = (event) => {
@@ -109,8 +140,26 @@ export const Split = () => {
             setAmountRecord(event.target.value);
         }
         setTransactionID(null);
-        setSplitError(null);
+        setTransferError(null);
         return amountRecord;
+    }
+
+    const onTransferFeeRecordChange = (event) => {
+        if (event.target.value !== null) {
+            setTransferFeeRecord(event.target.value);
+        }
+        setTransactionID(null);
+        setTransferError(null);
+        return transferFeeRecord;
+    }
+
+    const onRecipientChange = (event) => {
+        if (event.target.value !== null) {
+            setRecipient(event.target.value);
+        }
+        setTransactionID(null);
+        setTransferError(null);
+        return recipient;
     }
 
     const onPrivateKeyChange = (event) => {
@@ -118,45 +167,84 @@ export const Split = () => {
             setPrivateKey(event.target.value);
         }
         setTransactionID(null);
-        setSplitError(null);
+        setTransferError(null);
         return privateKey;
     }
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const amountString = () => splitAmount !== null ? splitAmount : "";
+    const feeString = () => transferFee !== null ? transferFee : "";
+    const amountString = () => transferAmount !== null ? transferAmount : "";
+    const recipientString = () => recipient !== null ? recipient : "";
     const privateKeyString = () => privateKey !== null ? privateKey : "";
+    const feeRecordString = () => transferFeeRecord !== null ? transferFeeRecord : "";
     const amountRecordString = () => amountRecord !== null ? amountRecord : "";
     const transactionIDString = () => transactionID !== null ? transactionID : "";
-    const splitErrorString = () => splitError !== null ? splitError : "";
-    const peerUrl = () => splitUrl !== null ? splitUrl : "";
+    const transferErrorString = () => transferError !== null ? transferError : "";
+    const peerUrl = () => transferUrl !== null ? transferUrl : "";
 
 
-    return <Card title="Split Record"
+    return <Card title="Transfer"
                  style={{width: "100%", borderRadius: "20px"}}
                  bordered={false}>
         <Form {...layout}>
-            <Form.Item label="Split Amount"
+            <Form.Item label="Recipient Address"
                        colon={false}
                        validateStatus={status}
             >
-                <Input.TextArea name="split amount"
+                <Input.TextArea name="recipient"
+                                size="middle"
+                                placeholder="Transfer recipient address"
+                                allowClear
+                                onChange={onRecipientChange}
+                                value={recipientString()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
+            <Form.Item label="Amount"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="amount"
                                 size="large"
-                                placeholder="Amount to split record into"
+                                placeholder="Amount"
                                 allowClear
                                 onChange={onAmountChange}
                                 value={amountString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
-            <Form.Item label="Record"
+            <Form.Item label="Amount Record"
                        colon={false}
                        validateStatus={status}
             >
-                <Input.TextArea name="Record"
+                <Input.TextArea name="Amount Record"
                                 size="small"
-                                placeholder="Record to split"
+                                placeholder="Record used to pay transfer amount"
                                 allowClear
                                 onChange={onAmountRecordChange}
                                 value={amountRecordString()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
+            <Form.Item label="Fee"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="Fee"
+                                size="small"
+                                placeholder="Fee"
+                                allowClear
+                                onChange={onTransferFeeChange}
+                                value={feeString()}
+                                style={{borderRadius: '20px'}}/>
+            </Form.Item>
+            <Form.Item label="Fee Record"
+                       colon={false}
+                       validateStatus={status}
+            >
+                <Input.TextArea name="Fee Record"
+                                size="small"
+                                placeholder="Record used to pay transfer fee"
+                                allowClear
+                                onChange={onTransferFeeRecordChange}
+                                value={feeRecordString()}
                                 style={{borderRadius: '20px'}}/>
             </Form.Item>
             <Form.Item label="Private Key"
@@ -185,30 +273,30 @@ export const Split = () => {
             </Form.Item>
             <Row justify="center">
                 <Col justify="center">
-                    <Button type="primary" shape="round" size="middle" onClick={split}
-                    >Split</Button>
+                    <Button type="primary" shape="round" size="middle" onClick={transfer}
+                    >Transfer</Button>
                 </Col>
             </Row>
         </Form>
         <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
             {
                 (loading === true) &&
-                <Spin tip="Creating Split..." size="large"/>
+                <Spin tip="Creating Transfer..." size="large"/>
             }
             {
                 (transactionID !== null) &&
                 <Result
                     status="success"
-                    title="Split Successful!"
+                    title="Transfer Successful!"
                     subTitle={"Transaction ID: " + transactionIDString()}
                 />
             }
             {
-                (splitError !== null) &&
+                (transferError !== null) &&
                 <Result
                     status="error"
-                    title="Split Error"
-                    subTitle={"Error: " + splitErrorString()}
+                    title="Transfer Error"
+                    subTitle={"Error: " + transferErrorString()}
                 />
             }
         </Row>

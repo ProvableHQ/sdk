@@ -16,7 +16,10 @@ export const Join = () => {
     const [worker, setWorker] = useState(null);
 
     function spawnWorker() {
-        let worker = new Worker("./worker.js");
+        let worker = new Worker(
+            new URL('../../workers/worker.js', import.meta.url),
+            {type: 'module'}
+        );
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'JOIN_TRANSACTION_COMPLETED') {
                 let [transaction, url] = ev.data.joinTransaction

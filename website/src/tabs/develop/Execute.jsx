@@ -49,7 +49,10 @@ export const Execute = () => {
     }
 
     function spawnWorker() {
-        let worker = new Worker("./worker.js");
+        let worker = new Worker(
+            new URL('../../workers/worker.js', import.meta.url),
+            {type: 'module'}
+        );
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'OFFLINE_EXECUTION_COMPLETED') {
                 setLoading(false);

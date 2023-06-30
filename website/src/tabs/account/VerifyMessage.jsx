@@ -55,9 +55,10 @@ export const VerifyMessage = () => {
     const layout = {labelCol: {span: 3}, wrapperCol: {span: 21}};
     useEffect(() => {
         if ( !didMount.current ) {
-            return didMount.current = true;
+            didMount.current = true;
+        } else {
+            attemptVerify()
         }
-        attemptVerify()
     }, [messageInput, signatureInput, inputAddress, verified]);
     if (aleo !== null) {
         const messageString = () => messageInput !== null ? messageInput.toString() : "";
