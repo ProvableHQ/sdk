@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
 import axios from "axios";
-import AleoWorker from '../../workers/worker.js?worker'
 
 export const Transfer = () => {
     const [transferFeeRecord, setTransferFeeRecord] = useState(null);
@@ -19,7 +18,10 @@ export const Transfer = () => {
     const [provingKey, setProvingKey] = useState(null);
 
     function spawnWorker() {
-        let worker = new AleoWorker();
+        let worker = new Worker(
+  new URL('../../workers/worker.js', import.meta.url),
+  {type: 'module'}
+);
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'TRANSFER_TRANSACTION_COMPLETED') {
                 let [transaction, url] = ev.data.transferTransaction

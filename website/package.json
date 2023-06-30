@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:netlify": "vite build && netlify dev --dir=dist"
   },
   "dependencies": {
     "@aleohq/ui": "^0.0.9",

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
 import axios from "axios";
-import AleoWorker from '../../workers/worker.js?worker'
 
 export const Join = () => {
     const [joinFeeRecord, setJoinFeeRecord] = useState(null);
@@ -17,7 +16,10 @@ export const Join = () => {
     const [worker, setWorker] = useState(null);
 
     function spawnWorker() {
-        let worker = new AleoWorker();
+        let worker = new Worker(
+  new URL('../../workers/worker.js', import.meta.url),
+  {type: 'module'}
+);
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'JOIN_TRANSACTION_COMPLETED') {
                 let [transaction, url] = ev.data.joinTransaction

@@ -20,9 +20,6 @@ edition = "2021"
 [workspace]
 members = [ "rust", "wasm", "rust/develop"]
 
-[patch.crates-io]
-wasm-bindgen-rayon = { git = "https://github.com/onetrickwolf/wasm-bindgen-rayon.git" }
-
 [workspace.dependencies.aleo-rust]
 version = "0.4.5"
 path = "rust"
