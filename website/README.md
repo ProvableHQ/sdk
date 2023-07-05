@@ -17,15 +17,6 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
 
-> **Note**
-> We recommend using `npm` for your package manage but if you want to use `yarn` make sure to replace the following line in your `package.json` file:
-> 
-> "@aleohq/wasm": "file:../wasm/pkg-parallel"
-> 
-> to
-> 
-> "@aleohq/wasm": "**link**:../wasm/pkg-parallel",
-
 ## Available Scripts
 
 In the project directory, you can run:
@@ -38,3 +29,12 @@ Locally preview production build.
 
 Builds the app for production to the `dist` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
+
+## `yarn` support
+
+We recommend using `npm` for your package manager but if you want to use `yarn` make sure to replace the following line in your `package.json` file:
+
+```diff
+-"@aleohq/wasm": "file:../wasm/pkg-parallel"
++"@aleohq/wasm": "link:../wasm/pkg-parallel",
+```
