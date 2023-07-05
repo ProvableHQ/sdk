@@ -36,8 +36,8 @@ jobs:
         run: |
           rustup component add rust-src
           cd website
-          yarn install
-          yarn build
+          npm install
+          npm run build
           cp _headers dist/_headers
         env:
           CI: ""

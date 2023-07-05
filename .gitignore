@@ -5,7 +5,6 @@
 **/node_modules
 **/target
 wasm/Cargo.lock
-**/package-lock.json
 **/build
 **/dist
 storage*/
