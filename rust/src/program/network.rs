@@ -49,6 +49,25 @@ impl<N: Network> ProgramManager<N> {
             )
             .unwrap_or(OnChainProgramState::NotDeployed))
     }
+
+    /// Check the value of an on-chain mapping
+    pub fn get_mapping_value(
+        &self,
+        program_id: impl TryInto<ProgramID<N>>,
+        mapping_name: impl TryInto<Identifier<N>>,
+        key: impl TryInto<Plaintext<N>>,
+    ) -> Result<Value<N>> {
+        let api_client = self.api_client()?;
+        let mapping_value = api_client.get_mapping_value(program_id, mapping_name, key)?;
+        Ok(mapping_value)
+    }
+
+    /// Check the mappings available in a program
+    pub fn get_mappings(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Vec<Identifier<N>>> {
+        let api_client = self.api_client()?;
+        let mappings = api_client.get_program_mappings(program_id)?;
+        Ok(mappings)
+    }
 }
 
 #[cfg(test)]

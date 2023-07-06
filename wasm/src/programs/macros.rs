@@ -131,7 +131,8 @@ macro_rules! execute_fee {
             )
             .map_err(|err| err.to_string())?;
 
-        trace.prepare_async::<CurrentBlockMemory, _>(&$submission_url).await.map_err(|err| err.to_string())?;
+        let query = QueryNative::from(&$submission_url);
+        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
         let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");

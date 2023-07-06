@@ -57,17 +57,6 @@ version = "0.11.18"
 [dependencies.serde_json]
 version = "1.0"
 
-[dependencies.snarkvm-console]
-workspace = true
-features = [ "wasm" ]
-
-[dependencies.snarkvm-circuit-network]
-workspace = true
-
-[dependencies.snarkvm-synthesizer]
-workspace = true
-features = [ "wasm" ]
-
 [dependencies.snarkvm-wasm]
 workspace = true
 features = [ "console", "fields", "utilities" ]
@@ -94,7 +83,7 @@ version = "0.3.37"
 
 [features]
 default = [ "serial", "browser" ]
-serial = [ "snarkvm-synthesizer/serial" ]
+serial = [ "aleo-rust/serial" ]
 parallel = [ "wasm-bindgen-rayon", "rayon" ]
 browser = [ ]
 

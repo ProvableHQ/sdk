@@ -15,9 +15,9 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::{CurrentNetwork, IdentifierNative, ProgramNative};
+use aleo_rust::{EntryType, PlaintextType, ValueType};
 
 use js_sys::{Array, Object, Reflect};
-use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
