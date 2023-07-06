@@ -154,7 +154,7 @@ function App() {
                             </>
                         }
                     </Content>
-                    <Footer style={{textAlign: 'center'}}>Visit the <a href="https://github.com/AleoHQ/sdk">Aleo Github
+                    <Footer style={{textAlign: 'center'}}>Visit the <a href="https://github.com/AleoHQ/sdk">Aleo SDK Github
                         repo</a>.</Footer>
                 </Layout>
             </Layout>
