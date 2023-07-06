@@ -275,18 +275,7 @@ checksum = "7b2d0f03b3640e3a630367e40c468cb7f309529c708ed1d88597047b0e7c6ef7"
 dependencies = [
  "proc-macro2",
  "quote 1.0.28",
- "syn 2.0.18",
-]
-
-[[package]]
-name = "atty"
-version = "0.2.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8"
-dependencies = [
- "hermit-abi 0.1.19",
- "libc",
- "winapi",
+ "syn 2.0.23",
 ]
 
 [[package]]
@@ -1453,7 +1442,7 @@ checksum = "9e6a0fd4f737c707bd9086cc16c925f294943eb62eb71499e9fd4cf71f8b9f4e"
 dependencies = [
  "proc-macro2",
  "quote 1.0.28",
- "syn 2.0.18",
+ "syn 2.0.23",
 ]
 
 [[package]]
