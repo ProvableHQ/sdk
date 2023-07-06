@@ -190,6 +190,8 @@ pub use test_utils::*;
 
 pub mod snarkvm_types {
     //! Re-export of crucial types from the snarkVM crate
+    #[cfg(feature = "full")]
+    pub use snarkvm::{file::Manifest, package::Package};
     pub use snarkvm_circuit_network::{Aleo, AleoV0};
     pub use snarkvm_console::{
         account::{Address, PrivateKey, Signature, ViewKey},
@@ -200,6 +202,7 @@ pub mod snarkvm_types {
             EntryType,
             Identifier,
             Literal,
+            Locator,
             Network,
             Plaintext,
             PlaintextType,
