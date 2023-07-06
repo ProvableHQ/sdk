@@ -170,8 +170,7 @@ export const Join = () => {
                                 placeholder="First Record to Join"
                                 allowClear
                                 onChange={onRecordOneChange}
-                                value={recordOneString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={recordOneString()}/>
             </Form.Item>
             <Form.Item label="Record Two"
                        colon={false}
@@ -182,8 +181,7 @@ export const Join = () => {
                                 placeholder="Second Record to Join"
                                 allowClear
                                 onChange={onRecordTwoChange}
-                                value={recordTwoString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={recordTwoString()}/>
             </Form.Item>
             <Form.Item label="Fee"
                        colon={false}
@@ -194,8 +192,7 @@ export const Join = () => {
                                 placeholder="Fee"
                                 allowClear
                                 onChange={onJoinFeeChange}
-                                value={feeString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={feeString()}/>
             </Form.Item>
             <Form.Item label="Fee Record"
                        colon={false}
@@ -206,8 +203,7 @@ export const Join = () => {
                                 placeholder="Record used to pay join fee"
                                 allowClear
                                 onChange={onJoinFeeRecordChange}
-                                value={feeRecordString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={feeRecordString()}/>
             </Form.Item>
             <Form.Item label="Private Key"
                        colon={false}
@@ -218,8 +214,7 @@ export const Join = () => {
                                 placeholder="Private Key"
                                 allowClear
                                 onChange={onPrivateKeyChange}
-                                value={privateKeyString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={privateKeyString()}/>
             </Form.Item>
             <Form.Item label="Peer Url"
                        colon={false}
@@ -230,8 +225,7 @@ export const Join = () => {
                                 placeholder="Aleo Network Node URL"
                                 allowClear
                                 onChange={onUrlChange}
-                                value={peerUrl()}
-                                style={{borderRadius: '20px'}}/>
+                                value={peerUrl()}/>
             </Form.Item>
             <Row justify="center">
                 <Col justify="center">

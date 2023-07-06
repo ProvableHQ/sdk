@@ -147,8 +147,7 @@ export const Split = () => {
                                 placeholder="Amount to split record into"
                                 allowClear
                                 onChange={onAmountChange}
-                                value={amountString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={amountString()}/>
             </Form.Item>
             <Form.Item label="Record"
                        colon={false}
@@ -159,8 +158,7 @@ export const Split = () => {
                                 placeholder="Record to split"
                                 allowClear
                                 onChange={onAmountRecordChange}
-                                value={amountRecordString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={amountRecordString()}/>
             </Form.Item>
             <Form.Item label="Private Key"
                        colon={false}
@@ -171,8 +169,7 @@ export const Split = () => {
                                 placeholder="Private Key"
                                 allowClear
                                 onChange={onPrivateKeyChange}
-                                value={privateKeyString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={privateKeyString()}/>
             </Form.Item>
             <Form.Item label="Peer Url"
                        colon={false}
@@ -183,8 +180,7 @@ export const Split = () => {
                                 placeholder="Aleo Network Node URL"
                                 allowClear
                                 onChange={onUrlChange}
-                                value={peerUrl()}
-                                style={{borderRadius: '20px'}}/>
+                                value={peerUrl()}/>
             </Form.Item>
             <Row justify="center">
                 <Col justify="center">

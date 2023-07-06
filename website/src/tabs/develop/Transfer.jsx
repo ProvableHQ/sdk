@@ -196,8 +196,7 @@ export const Transfer = () => {
                                 placeholder="Transfer recipient address"
                                 allowClear
                                 onChange={onRecipientChange}
-                                value={recipientString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={recipientString()}/>
             </Form.Item>
             <Form.Item label="Amount"
                        colon={false}
@@ -208,8 +207,7 @@ export const Transfer = () => {
                                 placeholder="Amount"
                                 allowClear
                                 onChange={onAmountChange}
-                                value={amountString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={amountString()}/>
             </Form.Item>
             <Form.Item label="Amount Record"
                        colon={false}
@@ -220,8 +218,7 @@ export const Transfer = () => {
                                 placeholder="Record used to pay transfer amount"
                                 allowClear
                                 onChange={onAmountRecordChange}
-                                value={amountRecordString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={amountRecordString()}/>
             </Form.Item>
             <Form.Item label="Fee"
                        colon={false}
@@ -232,8 +229,7 @@ export const Transfer = () => {
                                 placeholder="Fee"
                                 allowClear
                                 onChange={onTransferFeeChange}
-                                value={feeString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={feeString()}/>
             </Form.Item>
             <Form.Item label="Fee Record"
                        colon={false}
@@ -244,8 +240,7 @@ export const Transfer = () => {
                                 placeholder="Record used to pay transfer fee"
                                 allowClear
                                 onChange={onTransferFeeRecordChange}
-                                value={feeRecordString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={feeRecordString()}/>
             </Form.Item>
             <Form.Item label="Private Key"
                        colon={false}
@@ -256,8 +251,7 @@ export const Transfer = () => {
                                 placeholder="Private Key"
                                 allowClear
                                 onChange={onPrivateKeyChange}
-                                value={privateKeyString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={privateKeyString()}/>
             </Form.Item>
             <Form.Item label="Peer Url"
                        colon={false}
@@ -268,8 +262,7 @@ export const Transfer = () => {
                                 placeholder="Aleo Network Node URL"
                                 allowClear
                                 onChange={onUrlChange}
-                                value={peerUrl()}
-                                style={{borderRadius: '20px'}}/>
+                                value={peerUrl()}/>
             </Form.Item>
             <Row justify="center">
                 <Col justify="center">

@@ -1,6 +1,6 @@
 import './App.css';
 import React, {useState} from 'react';
-import {Layout, Menu} from 'antd';
+import {ConfigProvider, Layout, Menu, theme} from 'antd';
 import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
 import {DecryptAccount} from "./tabs/advanced/DecryptAccount";
 import {DecryptRecord} from "./tabs/record/DecryptRecord";
@@ -26,6 +26,11 @@ function App() {
     const [menuIndex, setMenuIndex] = useState(0);
 
     return (
+        <ConfigProvider
+            theme={{
+                algorithm: theme.darkAlgorithm,
+            }}
+        >
         <Layout className="layout" style={{minHeight: '100vh'}}>
             <Header className="header" style={{height: 67}}>
                 <div className="logo"/>
@@ -103,6 +108,7 @@ function App() {
             <Footer style={{textAlign: 'center'}}>Visit the <a href="https://github.com/AleoHQ/sdk">Aleo Github
                 repo</a>.</Footer>
         </Layout>
+        </ConfigProvider>
     );
 }
 
