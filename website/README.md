@@ -10,7 +10,8 @@ This project was bootstrapped with [Vite](https://vitejs.dev/).
 - Nodejs `18` or `20`. Install through [official website](https://nodejs.org/) or via a node manager like [NVM](https://github.com/creationix/nvm)
 
 ```bash
-rustup component add rust-src --toolchain nightly-2023-05-24-aarch64-apple-darwin
+rustup toolchain install nightly-2023-05-24
+rustup component add rust-src --toolchain nightly-2023-05-24
 npm install
 npm run dev
 ```
