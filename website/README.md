@@ -29,3 +29,12 @@ Locally preview production build.
 
 Builds the app for production to the `dist` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
+
+## `yarn` support
+
+We recommend using `npm` for your package manager but if you want to use `yarn` make sure to replace the following line in your `package.json` file:
+
+```diff
+-"@aleohq/wasm": "file:../wasm/pkg-parallel"
++"@aleohq/wasm": "link:../wasm/pkg-parallel",
+```

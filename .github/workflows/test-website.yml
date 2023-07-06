@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       #        with:
       #          persist-credentials: false
 
@@ -36,8 +36,8 @@ jobs:
         run: |
           rustup component add rust-src
           cd website
-          yarn install
-          yarn build
+          npm install
+          npm run build
           cp _headers dist/_headers
         env:
           CI: ""
