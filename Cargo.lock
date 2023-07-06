@@ -63,7 +63,7 @@ dependencies = [
 
 [[package]]
 name = "aleo-development-server"
-version = "0.4.5"
+version = "0.5.0"
 dependencies = [
  "aleo-rust",
  "anyhow",
@@ -86,7 +86,7 @@ dependencies = [
 
 [[package]]
 name = "aleo-rust"
-version = "0.4.5"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "bencher",
@@ -172,7 +172,7 @@ checksum = "7e4f181fc1a372e8ceff89612e5c9b13f72bff5b066da9f8d6827ae65af492c4"
 
 [[package]]
 name = "aleo-wasm"
-version = "0.4.5"
+version = "0.5.0"
 dependencies = [
  "aleo-rust",
  "anyhow",
