@@ -73,7 +73,7 @@ function App() {
             theme={{
                 algorithm: theme.darkAlgorithm,
                 token: {
-                    colorPrimary: "#ffa978"
+                    colorPrimary: "#18e48f"
                 }
             }}
         >
@@ -83,7 +83,7 @@ function App() {
                     collapsedWidth="0"
                     theme="light"
                 >
-                    <img src="../public/aleosdk.svg" alt="Aleo SDK Logo" className="logo"/>
+                    <div alt="Aleo SDK Logo" className="logo"></div>
                     <Menu
                         mode="inline"
                         selectedKeys={[menuIndex]}
