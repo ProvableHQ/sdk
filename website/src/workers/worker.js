@@ -79,6 +79,7 @@ self.addEventListener("message", ev => {
             privateKey,
         } = ev.data;
 
+        console.log("Executing with aleo SDK 0.5.0");
         console.log('Web worker: Executing function locally...');
         let startTime = performance.now();
 
