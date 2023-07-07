@@ -32,8 +32,6 @@ impl<N: Network> ProgramManager<N> {
     ) -> Result<String> {
         // Ensure records provided have enough credits to cover the transfer amount and fee
         if let Some(amount_record) = amount_record.as_ref() {
-            println!("amount_record: {:?}", amount_record.microcredits()?);
-            println!("amount: {:?}", amount);
             ensure!(
                 amount_record.microcredits()? >= amount,
                 "Credits in amount record must greater than transfer amount specified"
