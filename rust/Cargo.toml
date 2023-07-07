@@ -87,4 +87,4 @@ version = "0.3.1"
 default = [ "full" ]
 full = [ "ureq", "snarkvm" ]
 serial = [ "snarkvm-console/serial", "snarkvm-synthesizer/serial", "snarkvm-ledger-query/serial", "snarkvm-ledger-block/serial", "snarkvm-ledger-store/serial" ]
-wasm = [ "snarkvm-synthesizer/wasm", "snarkvm-console/wasm", "snarkvm-ledger-query/wasm", "snarkvm-ledger-query/async", "snarkvm-synthesizer/async" ]
+wasm = [ "snarkvm-console/wasm", "snarkvm-ledger-query/async", "snarkvm-synthesizer/async" ]
