@@ -23,6 +23,7 @@ use crate::{
     types::{
         CurrentAleo,
         CurrentBlockMemory,
+        CurrentNetwork,
         DeploymentNative,
         ProcessNative,
         ProgramIDNative,
@@ -110,7 +111,8 @@ impl ProgramManager {
         }
 
         log("Ensure the fee is sufficient to pay for the deployment");
-        let (minimum_deployment_cost, (_, _)) = DeploymentNative::cost(&deployment).map_err(|err| err.to_string())?;
+        let (minimum_deployment_cost, (_, _)) =
+            deployment_cost::<CurrentNetwork>(&deployment).map_err(|err| err.to_string())?;
         if fee_microcredits < minimum_deployment_cost {
             return Err(format!(
                 "Fee is too low to pay for the deployment. The minimum fee is {} credits",

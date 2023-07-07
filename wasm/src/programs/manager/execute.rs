@@ -147,7 +147,8 @@ impl ProgramManager {
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
 
         log("Preparing inclusion proofs for execution");
-        trace.prepare_async::<CurrentBlockMemory, _>(&url).await.map_err(|err| err.to_string())?;
+        let query = QueryNative::from(&url);
+        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
         log("Proving execution");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;

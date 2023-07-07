@@ -155,7 +155,8 @@ impl ProgramManager {
         );
 
         log("Preparing the inclusion proof for the transfer execution");
-        trace.prepare_async::<CurrentBlockMemory, _>(&url).await.map_err(|err| err.to_string())?;
+        let query = QueryNative::from(&url);
+        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
         log("Proving the transfer execution");
         let execution = trace

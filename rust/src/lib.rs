@@ -191,23 +191,44 @@ pub use test_utils::*;
 pub mod snarkvm_types {
     //! Re-export of crucial types from the snarkVM crate
     #[cfg(feature = "full")]
-    pub use snarkvm::circuit::{Aleo, AleoV0};
-    #[cfg(feature = "full")]
-    pub use snarkvm::synthesizer::{
-        store::helpers::memory::ConsensusMemory,
-        Block,
-        ConsensusStore,
-        Program,
-        Query,
-        Transaction,
-        VM,
-    };
+    pub use snarkvm::{file::Manifest, package::Package};
+    pub use snarkvm_circuit_network::{Aleo, AleoV0};
     pub use snarkvm_console::{
         account::{Address, PrivateKey, Signature, ViewKey},
         network::Testnet3,
         prelude::{ToBytes, Uniform},
-        program::{Ciphertext, Identifier, Literal, Network, Plaintext, ProgramID, Record, Value},
+        program::{
+            Ciphertext,
+            EntryType,
+            Identifier,
+            Literal,
+            Locator,
+            Network,
+            Plaintext,
+            PlaintextType,
+            ProgramID,
+            ProgramOwner,
+            Record,
+            Response,
+            Value,
+            ValueType,
+        },
         types::Field,
+    };
+    pub use snarkvm_ledger_block::{Block, Deployment, Transaction};
+    pub use snarkvm_ledger_query::Query;
+    pub use snarkvm_ledger_store::{
+        helpers::memory::{BlockMemory, ConsensusMemory},
+        BlockStore,
+        ConsensusStore,
+    };
+    pub use snarkvm_synthesizer::{
+        deployment_cost,
+        execution_cost,
+        snark::{ProvingKey, VerifyingKey},
+        Process,
+        Program,
+        VM,
     };
 }
 #[cfg(feature = "full")]
