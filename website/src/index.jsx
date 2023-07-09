@@ -3,8 +3,6 @@ import './index.css';
 import App from './App';
 import { createRoot } from 'react-dom/client';
 
-import '@aleohq/ui/dist/bundle.css';
-
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(

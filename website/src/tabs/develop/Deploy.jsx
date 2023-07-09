@@ -182,8 +182,7 @@ export const Deploy = () => {
                                 placeholder="Private Key"
                                 allowClear
                                 onChange={onPrivateKeyChange}
-                                value={privateKeyString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={privateKeyString()}/>
             </Form.Item>
             <Form.Item label="Peer Url"
                        colon={false}
@@ -194,8 +193,7 @@ export const Deploy = () => {
                                 placeholder="Aleo Network Node URL"
                                 allowClear
                                 onChange={onUrlChange}
-                                value={peerUrl()}
-                                style={{borderRadius: '20px'}}/>
+                                value={peerUrl()}/>
             </Form.Item>
             <Form.Item label="Fee"
                        colon={false}
@@ -206,8 +204,7 @@ export const Deploy = () => {
                                 placeholder="Fee"
                                 allowClear
                                 onChange={onDeploymentFeeChange}
-                                value={feeString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={feeString()}/>
             </Form.Item>
             <Form.Item label="Fee Record"
                        colon={false}
@@ -218,8 +215,7 @@ export const Deploy = () => {
                                 placeholder="Record used to pay deployment fee"
                                 allowClear
                                 onChange={onDeploymentFeeRecordChange}
-                                value={feeRecordString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={feeRecordString()}/>
             </Form.Item>
             <Row justify="center">
                 <Col justify="center">

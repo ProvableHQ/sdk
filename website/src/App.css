@@ -1,7 +1,6 @@
 .logo {
-  float: left;
-  width: 125px;
-  height: 31px;
+  height: 32px;
+  margin: 16px;
 }
 
 .logo:before {

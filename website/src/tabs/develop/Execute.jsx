@@ -354,8 +354,7 @@ export const Execute = () => {
                                 placeholder="Function ID"
                                 allowClear
                                 onChange={onFunctionChange}
-                                value={functionIDString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={functionIDString()}/>
             </Form.Item>
             <Form.Item label="Inputs"
                        colon={false}
@@ -366,8 +365,7 @@ export const Execute = () => {
                                 placeholder="Inputs"
                                 allowClear
                                 onChange={onInputsChange}
-                                value={inputsString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={inputsString()}/>
             </Form.Item>
             {
                 Array.isArray(programInputs) &&
@@ -384,8 +382,7 @@ export const Execute = () => {
                                 placeholder="Private Key"
                                 allowClear
                                 onChange={onPrivateKeyChange}
-                                value={privateKeyString()}
-                                style={{borderRadius: '20px'}}/>
+                                value={privateKeyString()}/>
             </Form.Item>
             {
                 (executeOnline === true) &&
@@ -398,8 +395,7 @@ export const Execute = () => {
                                     placeholder="Aleo Network Node URL"
                                     allowClear
                                     onChange={onUrlChange}
-                                    value={peerUrl()}
-                                    style={{borderRadius: '20px'}}/>
+                                    value={peerUrl()}/>
                 </Form.Item>
             }
             {
@@ -413,8 +409,7 @@ export const Execute = () => {
                                     placeholder="Fee"
                                     allowClear
                                     onChange={onExecutionFeeChange}
-                                    value={feeString()}
-                                    style={{borderRadius: '20px'}}/>
+                                    value={feeString()}/>
                 </Form.Item>
             }
             {
@@ -428,8 +423,7 @@ export const Execute = () => {
                                     placeholder="Record used to pay execution fee"
                                     allowClear
                                     onChange={onExecutionFeeRecordChange}
-                                    value={feeRecordString()}
-                                    style={{borderRadius: '20px'}}/>
+                                    value={feeRecordString()}/>
                 </Form.Item>
             }
             <Row justify="center">
