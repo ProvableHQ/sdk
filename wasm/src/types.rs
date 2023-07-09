@@ -15,27 +15,30 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use aleo_rust::{
+    deployment_cost,
+    execution_cost,
     Address,
+    AleoV0,
+    BlockMemory,
     Ciphertext,
+    Deployment,
     Encryptor,
     Identifier,
     Plaintext,
     PrivateKey,
-    ProgramID,
-    Record,
-    Signature,
-    Testnet3,
-    ViewKey,
-};
-use snarkvm_circuit_network::AleoV0;
-use snarkvm_console::program::{ProgramOwner, Response};
-use snarkvm_synthesizer::{
-    helpers::memory::BlockMemory,
-    snark::{ProvingKey, VerifyingKey},
-    Deployment,
     Process,
     Program,
+    ProgramID,
+    ProgramOwner,
+    ProvingKey,
+    Query,
+    Record,
+    Response,
+    Signature,
+    Testnet3,
     Transaction,
+    VerifyingKey,
+    ViewKey,
 };
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
@@ -65,6 +68,7 @@ pub type ProgramIDNative = ProgramID<CurrentNetwork>;
 pub type ProgramNative = Program<CurrentNetwork>;
 pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
 pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
+pub type QueryNative = Query<CurrentNetwork, CurrentBlockMemory>;
 pub type ResponseNative = Response<CurrentNetwork>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
 pub type VerifyingKeyNative = VerifyingKey<CurrentNetwork>;

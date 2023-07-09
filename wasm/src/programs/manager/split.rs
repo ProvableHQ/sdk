@@ -75,7 +75,8 @@ impl ProgramManager {
             execute_program!(process, inputs, program, "split", private_key, split_proving_key, split_verifying_key);
 
         log("Preparing the inclusion proof for the split execution");
-        trace.prepare_async::<CurrentBlockMemory, _>(&url).await.map_err(|err| err.to_string())?;
+        let query = QueryNative::from(&url);
+        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
         log("Proving the split execution");
         let execution = trace

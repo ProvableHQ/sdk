@@ -36,12 +36,15 @@ pub mod utils;
 
 use crate::{
     types::{
+        deployment_cost,
+        execution_cost,
         CurrentAleo,
         IdentifierNative,
         ProcessNative,
         ProgramIDNative,
         ProgramNative,
         ProvingKeyNative,
+        QueryNative,
         VerifyingKeyNative,
     },
     KeyPair,

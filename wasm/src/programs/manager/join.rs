@@ -35,6 +35,7 @@ use crate::{
     Transaction,
 };
 
+use crate::types::Testnet3;
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
@@ -104,7 +105,8 @@ impl ProgramManager {
             execute_program!(process, inputs, program, "join", private_key, join_proving_key, join_verifying_key);
 
         log("Preparing inclusion proof for the join execution");
-        trace.prepare_async::<CurrentBlockMemory, _>(&url).await.map_err(|err| err.to_string())?;
+        let query = QueryNative::from(&url);
+        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
         log("Proving the join execution");
         let execution = trace

@@ -273,11 +273,14 @@ impl<N: Network> AleoAPIClient<N> {
             // If a list of specified amounts is specified, stop searching when records matching
             // those amounts are found
             if !required_amounts.is_empty() {
-                records.sort_by(|a, b| b.1.microcredits().unwrap_or(0).cmp(&a.1.microcredits().unwrap_or(0)));
+                records.sort_by(|(_, first), (_, second)| {
+                    second.microcredits().unwrap_or(0).cmp(&first.microcredits().unwrap_or(0))
+                });
                 let mut found_indices = std::collections::HashSet::<usize>::new();
                 required_amounts.iter().for_each(|amount| {
-                    for (pos, record) in records.iter().enumerate() {
-                        if !found_indices.contains(&pos) && record.1.microcredits().unwrap_or(0) >= *amount {
+                    for (pos, (_, found_record)) in records.iter().enumerate() {
+                        let found_amount = found_record.microcredits().unwrap_or(0);
+                        if !found_indices.contains(&pos) && found_amount >= *amount {
                             found_indices.insert(pos);
                         }
                     }
