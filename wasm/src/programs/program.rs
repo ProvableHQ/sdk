@@ -103,9 +103,9 @@ impl Program {
     ///
     /// @returns {Array} - An array of objects representing the mappings in the program
     /// @example
-    /// let expected_mappings = [
+    /// const expected_mappings = [
     ///    {
-    ///       "name: "account",
+    ///       name: "account",
     ///       key_name: "owner",
     ///       key_type: "address",
     ///       value_name: "microcredits",
@@ -113,8 +113,8 @@ impl Program {
     ///    }
     /// ]
     ///
-    /// let credits_program = aleo_wasm.Program.getCreditsProgram();
-    /// let credits_mappings = credits_program.getMappings();
+    /// const credits_program = aleo_wasm.Program.getCreditsProgram();
+    /// const credits_mappings = credits_program.getMappings();
     /// console.log(credits_mappings === expected_mappings); // Output should be "true"
     #[wasm_bindgen(js_name = "getMappings")]
     pub fn get_mappings(&self) -> Result<Array, String> {
