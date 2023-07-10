@@ -15,7 +15,7 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
-use std::ops::Add;
+use std::{collections::HashMap, ops::Add};
 
 use crate::{
     execute_fee,
@@ -25,6 +25,7 @@ use crate::{
     types::{
         CurrentAleo,
         CurrentBlockMemory,
+        CurrentNetwork,
         IdentifierNative,
         ProcessNative,
         ProgramNative,
@@ -37,6 +38,7 @@ use crate::{
     Transaction,
 };
 
+use aleo_rust::VM;
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
@@ -176,5 +178,72 @@ impl ProgramManager {
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
         Ok(Transaction::from(transaction))
+    }
+
+    /// Estimate Fee for Aleo function execution
+    /// Execute an arbitrary function locally
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being executed
+    /// @param function The name of the function to execute
+    /// @param inputs A javascript array of inputs to the function
+    /// @param amount_record The record to fund the amount from
+    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
+    /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
+    /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
+    /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
+    /// keys will be deallocated from memory after the transaction is executed.
+    /// @param proving_key (optional) Provide a verifying key to use for the function execution
+    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
+    #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
+    pub fn estimate_execution_fee(
+        &mut self,
+        private_key: PrivateKey,
+        program: String,
+        function: String,
+        inputs: Array,
+        cache: bool,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
+    ) -> Result<u64, String> {
+        log(&format!("Executing local function: {function}"));
+        let inputs = inputs.to_vec();
+
+        let mut new_process;
+        let process: &mut ProcessNative = get_process!(self, cache, new_process);
+
+        let (_, trace) = execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
+
+        // Generate execution
+        let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
+        let locator = program.id().to_string().add("/").add(&function);
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>(&locator, &mut StdRng::from_entropy())
+            .map_err(|e| e.to_string())?;
+
+        // Get the storage cost in bytes for the program execution
+        let storage_cost = execution.size_in_bytes().map_err(|e| e.to_string())?;
+
+        // Compute the finalize cost in microcredits.
+        let mut finalize_cost = 0u64;
+        // Iterate over the transitions to accumulate the finalize cost.
+        for transition in execution.transitions() {
+            // Retrieve the function name.
+            let function_name = transition.function_name();
+            // Retrieve the finalize cost.
+            let cost = match &program.get_function(function_name).map_err(|e| e.to_string())?.finalize() {
+                Some((_, finalize)) => cost_in_microcredits(finalize).map_err(|e| e.to_string())?,
+                None => continue,
+            };
+            // Accumulate the finalize cost.
+            finalize_cost = finalize_cost
+                .checked_add(cost)
+                .ok_or("The finalize cost computation overflowed for an execution".to_string())?;
+        }
+        Ok(storage_cost + finalize_cost)
     }
 }

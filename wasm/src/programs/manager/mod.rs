@@ -36,8 +36,8 @@ pub mod utils;
 
 use crate::{
     types::{
+        cost_in_microcredits,
         deployment_cost,
-        execution_cost,
         CurrentAleo,
         IdentifierNative,
         ProcessNative,

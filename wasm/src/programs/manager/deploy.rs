@@ -147,4 +147,65 @@ impl ProgramManager {
             TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
         ))
     }
+
+    /// Deploy an Aleo program
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being deployed
+    /// @param imports A javascript object holding the source code of any imported programs in the
+    /// form {"program_name1": "program_source_code", "program_name2": "program_source_code", ..}.
+    /// Note that all imported programs must be deployed on chain before the main program in order
+    /// for the deployment to succeed
+    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn estimate_deployment_fee(
+        &mut self,
+        program: String,
+        imports: Option<Object>,
+        cache: bool,
+    ) -> Result<u64, String> {
+        let mut new_process;
+        let process = get_process!(self, cache, new_process);
+
+        log("Check program has a valid name");
+        let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
+
+        log("Check program imports are valid");
+        if let Some(imports) = imports {
+            program
+                .imports()
+                .keys()
+                .try_for_each(|program_id| {
+                    let program_id =
+                        program_id.to_string().parse::<ProgramIDNative>().map_err(|err| err.to_string())?.to_string();
+                    if let Some(import_string) = Reflect::get(&imports, &program_id.into())
+                        .map_err(|_| "Import not found".to_string())?
+                        .as_string()
+                    {
+                        let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
+                        process.add_program(&import).map_err(|err| err.to_string())?;
+                    }
+                    Ok::<(), String>(())
+                })
+                .map_err(|_| "Import resolution failed".to_string())?;
+        }
+
+        log("Create deployment");
+        let deployment =
+            process.deploy::<CurrentAleo, _>(&program, &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
+        if deployment.program().functions().is_empty() {
+            return Err("Attempted to create an empty transaction deployment".to_string());
+        }
+
+        log("Estimate the deployment fee");
+        let (minimum_deployment_cost, (_, _)) =
+            deployment_cost::<CurrentNetwork>(&deployment).map_err(|err| err.to_string())?;
+
+        Ok(minimum_deployment_cost)
+    }
 }

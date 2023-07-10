@@ -15,8 +15,8 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use aleo_rust::{
+    cost_in_microcredits,
     deployment_cost,
-    execution_cost,
     Address,
     AleoV0,
     BlockMemory,
@@ -39,6 +39,7 @@ pub use aleo_rust::{
     Transaction,
     VerifyingKey,
     ViewKey,
+    VM,
 };
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
