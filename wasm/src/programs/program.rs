@@ -100,6 +100,22 @@ impl Program {
     }
 
     /// Get a the list of a program's mappings and the names/types of their keys and values.
+    ///
+    /// @returns {Array} - An array of objects representing the mappings in the program
+    /// @example
+    /// let expected_mappings = [
+    ///    {
+    ///       "name: "account",
+    ///       key_name: "owner",
+    ///       key_type: "address",
+    ///       value_name: "microcredits",
+    ///       value_type: "u64"
+    ///    }
+    /// ]
+    ///
+    /// let credits_program = aleo_wasm.Program.getCreditsProgram();
+    /// let credits_mappings = credits_program.getMappings();
+    /// console.log(credits_mappings === expected_mappings); // Output should be "true"
     #[wasm_bindgen(js_name = "getMappings")]
     pub fn get_mappings(&self) -> Result<Array, String> {
         let mappings = Array::new();
@@ -107,11 +123,16 @@ impl Program {
         // Set the mapping name and key/value names & types
         self.0.mappings().iter().try_for_each(|(name, mapping)| {
             let mapping_object = Object::new();
-            Reflect::set(&mapping_object, &"name".into(), &name.to_string().into()).map_err(|_| "Failed to set property")?;
-            Reflect::set(&mapping_object, &"key_name".into(), &mapping.key().name().to_string().into()).map_err(|_| "Failed to set property")?;
-            Reflect::set(&mapping_object, &"key_type".into(), &mapping.key().plaintext_type().to_string().into()).map_err(|_| "Failed to set property")?;
-            Reflect::set(&mapping_object, &"value_name".into(), &mapping.value().name().to_string().into()).map_err(|_| "Failed to set property")?;
-            Reflect::set(&mapping_object, &"value_type".into(), &mapping.value().plaintext_type().to_string().into()).map_err(|_| "Failed to set property")?;
+            Reflect::set(&mapping_object, &"name".into(), &name.to_string().into())
+                .map_err(|_| "Failed to set property")?;
+            Reflect::set(&mapping_object, &"key_name".into(), &mapping.key().name().to_string().into())
+                .map_err(|_| "Failed to set property")?;
+            Reflect::set(&mapping_object, &"key_type".into(), &mapping.key().plaintext_type().to_string().into())
+                .map_err(|_| "Failed to set property")?;
+            Reflect::set(&mapping_object, &"value_name".into(), &mapping.value().name().to_string().into())
+                .map_err(|_| "Failed to set property")?;
+            Reflect::set(&mapping_object, &"value_type".into(), &mapping.value().plaintext_type().to_string().into())
+                .map_err(|_| "Failed to set property")?;
             mappings.push(&mapping_object);
             Ok::<(), String>(())
         })?;
@@ -253,8 +274,8 @@ impl FromStr for Program {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::Ref;
     use super::*;
+    use std::cell::Ref;
 
     use wasm_bindgen_test::*;
 
@@ -356,29 +377,53 @@ finalize signed_integer_update:
         let field_mapping_object = Object::new();
         let signed_integer_mapping_object = Object::new();
 
-        Reflect::set(&address_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("address_mapping")).unwrap();
-        Reflect::set(&address_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("address_key")).unwrap();
+        Reflect::set(&address_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("address_mapping"))
+            .unwrap();
+        Reflect::set(&address_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("address_key"))
+            .unwrap();
         Reflect::set(&address_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
-        Reflect::set(&address_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value")).unwrap();
+        Reflect::set(&address_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value"))
+            .unwrap();
         Reflect::set(&address_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
 
-        Reflect::set(&integer_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("integer_key_mapping")).unwrap();
-        Reflect::set(&integer_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("integer_key")).unwrap();
+        Reflect::set(&integer_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("integer_key_mapping"))
+            .unwrap();
+        Reflect::set(&integer_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("integer_key"))
+            .unwrap();
         Reflect::set(&integer_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("u64")).unwrap();
-        Reflect::set(&integer_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value")).unwrap();
+        Reflect::set(&integer_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value"))
+            .unwrap();
         Reflect::set(&integer_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
 
         Reflect::set(&field_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("field_mapping")).unwrap();
         Reflect::set(&field_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("field_key")).unwrap();
         Reflect::set(&field_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("field")).unwrap();
-        Reflect::set(&field_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value")).unwrap();
+        Reflect::set(&field_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value"))
+            .unwrap();
         Reflect::set(&field_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
 
-        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("signed_integer_mapping")).unwrap();
-        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("signed_integer_key")).unwrap();
-        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("i64")).unwrap();
-        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("boolean_value")).unwrap();
-        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("bool")).unwrap();
+        Reflect::set(
+            &signed_integer_mapping_object,
+            &JsValue::from_str("name"),
+            &JsValue::from_str("signed_integer_mapping"),
+        )
+        .unwrap();
+        Reflect::set(
+            &signed_integer_mapping_object,
+            &JsValue::from_str("key_name"),
+            &JsValue::from_str("signed_integer_key"),
+        )
+        .unwrap();
+        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("i64"))
+            .unwrap();
+        Reflect::set(
+            &signed_integer_mapping_object,
+            &JsValue::from_str("value_name"),
+            &JsValue::from_str("boolean_value"),
+        )
+        .unwrap();
+        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("bool"))
+            .unwrap();
         array.push(&address_mapping_object);
         array.push(&integer_mapping_object);
         array.push(&field_mapping_object);
