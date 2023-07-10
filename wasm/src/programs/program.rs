@@ -99,6 +99,25 @@ impl Program {
         Ok(function_inputs)
     }
 
+    /// Get a the list of a program's mappings and the names/types of their keys and values.
+    #[wasm_bindgen(js_name = "getMappings")]
+    pub fn get_mappings(&self) -> Result<Array, String> {
+        let mappings = Array::new();
+
+        // Set the mapping name and key/value names & types
+        self.0.mappings().iter().try_for_each(|(name, mapping)| {
+            let mapping_object = Object::new();
+            Reflect::set(&mapping_object, &"name".into(), &name.to_string().into()).map_err(|_| "Failed to set property")?;
+            Reflect::set(&mapping_object, &"key_name".into(), &mapping.key().name().to_string().into()).map_err(|_| "Failed to set property")?;
+            Reflect::set(&mapping_object, &"key_type".into(), &mapping.key().plaintext_type().to_string().into()).map_err(|_| "Failed to set property")?;
+            Reflect::set(&mapping_object, &"value_name".into(), &mapping.value().name().to_string().into()).map_err(|_| "Failed to set property")?;
+            Reflect::set(&mapping_object, &"value_type".into(), &mapping.value().plaintext_type().to_string().into()).map_err(|_| "Failed to set property")?;
+            mappings.push(&mapping_object);
+            Ok::<(), String>(())
+        })?;
+        Ok(mappings)
+    }
+
     // Get the value of a plaintext input
     fn get_plaintext_input(
         &self,
@@ -234,6 +253,7 @@ impl FromStr for Program {
 
 #[cfg(test)]
 mod tests {
+    use std::cell::Ref;
     use super::*;
 
     use wasm_bindgen_test::*;
@@ -265,6 +285,114 @@ function bump_token_version:
     assert.eq r1 r3.owner;
     cast r0 r1.microcredits r1.amount r2 into r3 as Token.record;
     output r3 as Token.record;"#;
+
+    const MAPPING_EXAMPLE: &str = r#"program mappings_example.aleo;
+
+mapping address_mapping:
+    key address_key as address.public;
+    value integer_value as u64.public;
+
+function address_mapping_update:
+    input r0 as u64.private;
+    finalize self.caller r0;
+
+finalize address_mapping_update:
+    input r0 as address.public;
+    input r1 as u64.public;
+    set r1 into address_mapping[r0];
+
+mapping integer_key_mapping:
+    key integer_key as u64.public;
+    value integer_value as u64.public;
+
+function integer_key_mapping_update:
+    input r0 as u64.public;
+    input r1 as u64.public;
+    finalize r0 r1;
+
+finalize integer_key_mapping_update:
+    input r0 as u64.public;
+    input r1 as u64.public;
+    set r1 into integer_key_mapping[r0];
+
+mapping field_mapping:
+    key field_key as field.public;
+    value integer_value as u64.public;
+
+function field_mapping_update:
+    input r0 as field.public;
+    input r1 as u64.public;
+    finalize r0 r1;
+
+finalize field_mapping_update:
+    input r0 as field.public;
+    input r1 as u64.public;
+    set r1 into field_mapping[r0];
+
+mapping signed_integer_mapping:
+    key signed_integer_key as i64.public;
+    value boolean_value as bool.public;
+
+function signed_integer_update:
+    input r0 as i64.public;
+    input r1 as bool.public;
+    finalize r0 r1;
+
+finalize signed_integer_update:
+    input r0 as i64.public;
+    input r1 as bool.public;
+    set r1 into signed_integer_mapping[r0];"#;
+
+    #[wasm_bindgen_test]
+    fn test_mappings() {
+        // Get the mappings from the program
+        let program = Program::from_string(MAPPING_EXAMPLE).unwrap();
+        let mappings = program.get_mappings().unwrap();
+
+        // Create the expected mappings
+        let array = Array::new();
+        let address_mapping_object = Object::new();
+        let integer_mapping_object = Object::new();
+        let field_mapping_object = Object::new();
+        let signed_integer_mapping_object = Object::new();
+
+        Reflect::set(&address_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("address_mapping")).unwrap();
+        Reflect::set(&address_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("address_key")).unwrap();
+        Reflect::set(&address_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
+        Reflect::set(&address_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value")).unwrap();
+        Reflect::set(&address_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
+
+        Reflect::set(&integer_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("integer_key_mapping")).unwrap();
+        Reflect::set(&integer_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("integer_key")).unwrap();
+        Reflect::set(&integer_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("u64")).unwrap();
+        Reflect::set(&integer_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value")).unwrap();
+        Reflect::set(&integer_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
+
+        Reflect::set(&field_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("field_mapping")).unwrap();
+        Reflect::set(&field_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("field_key")).unwrap();
+        Reflect::set(&field_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("field")).unwrap();
+        Reflect::set(&field_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value")).unwrap();
+        Reflect::set(&field_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
+
+        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("signed_integer_mapping")).unwrap();
+        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("signed_integer_key")).unwrap();
+        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("i64")).unwrap();
+        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("boolean_value")).unwrap();
+        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("bool")).unwrap();
+        array.push(&address_mapping_object);
+        array.push(&integer_mapping_object);
+        array.push(&field_mapping_object);
+        array.push(&signed_integer_mapping_object);
+
+        // Assert that the mappings are equal
+        assert_eq!(format!("{:?}", mappings.to_vec()), format!("{:?}", array.to_vec()));
+
+        // Assert a program with no mappings providers an empty array
+        let program = Program::from_string(TOKEN_ISSUE).unwrap();
+        let mappings = program.get_mappings().unwrap();
+        let empty: Vec<JsValue> = vec![];
+        assert_eq!(mappings.to_vec(), empty);
+    }
 
     #[wasm_bindgen_test]
     fn test_get_functions() {
