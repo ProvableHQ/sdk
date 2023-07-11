@@ -173,9 +173,9 @@ impl ProgramManager {
         Ok(minimum_deployment_cost)
     }
 
-    /// Estimate the component of the deployment cost which comes from the fee surrounding the
-    /// program name. Note that this cost does not represent the entire cost of deployment. It is
-    /// additional to the cost of the size (in bytes) of the deployment.
+    /// Estimate the component of the deployment cost which comes from the fee for the program name.
+    /// Note that this cost does not represent the entire cost of deployment. It is additional to
+    /// the cost of the size (in bytes) of the deployment.
     ///
     /// @param name The name of the program to be deployed
     #[wasm_bindgen(js_name = estimateProgramNameCost)]

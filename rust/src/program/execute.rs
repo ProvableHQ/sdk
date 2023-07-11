@@ -169,9 +169,50 @@ impl<N: Network> ProgramManager<N> {
 #[cfg(not(feature = "wasm"))]
 mod tests {
     use super::*;
-    use crate::{random_program_id, AleoAPIClient, RECORD_5_MICROCREDITS};
+    use crate::{random_program, random_program_id, AleoAPIClient, RECORD_5_MICROCREDITS};
     use snarkvm::circuit::AleoV0;
     use snarkvm_console::network::Testnet3;
+
+    #[test]
+    fn test_fee_estimation() {
+        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let api_client = AleoAPIClient::<Testnet3>::testnet3();
+        let mut program_manager =
+            ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client.clone()), None).unwrap();
+
+        let finalize_program = program_manager.api_client.as_ref().unwrap().get_program("lottery_first.aleo").unwrap();
+        let hello_hello = program_manager.api_client.as_ref().unwrap().get_program("hello_hello.aleo").unwrap();
+        // Ensure a finalize scope program execution fee is estimated correctly
+        let (total, (storage, finalize)) = program_manager
+            .estimate_execution_fee::<AleoV0>(&finalize_program, "play", Vec::<&str>::new().into_iter())
+            .unwrap();
+        let finalize_only = program_manager.estimate_finalize_fee(&finalize_program, "play").unwrap();
+        assert!(finalize_only > 0);
+        assert!(finalize > storage);
+        assert_eq!(finalize, finalize_only);
+        assert_eq!(total, finalize_only + storage);
+        assert_eq!(storage, total - finalize_only);
+
+        // Ensure a non-finalize scope program execution fee is estimated correctly
+        let (total, (storage, finalize)) = program_manager
+            .estimate_execution_fee::<AleoV0>(&hello_hello, "hello", vec!["5u32", "5u32"].into_iter())
+            .unwrap();
+        let finalize_only = program_manager.estimate_finalize_fee(&hello_hello, "hello").unwrap();
+        assert!(storage > 0);
+        assert_eq!(finalize_only, 0);
+        assert_eq!(finalize, finalize_only);
+        assert_eq!(total, finalize_only + storage);
+        assert_eq!(storage, total - finalize_only);
+
+        // Ensure a deployment fee is estimated correctly
+        let random = random_program();
+        let (total, (storage, namespace)) = program_manager.estimate_deployment_fee::<AleoV0>(&random).unwrap();
+        let namespace_only = program_manager.estimate_namespace_fee(random.id()).unwrap();
+        assert_eq!(namespace, 1000000);
+        assert_eq!(namespace, namespace_only);
+        assert_eq!(total, namespace_only + storage);
+        assert_eq!(storage, total - namespace_only);
+    }
 
     #[test]
     #[ignore]

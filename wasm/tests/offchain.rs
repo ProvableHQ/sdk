@@ -323,6 +323,10 @@ async fn test_program_execution_with_cache_and_external_keys() {
         )
         .unwrap();
 
+    // Ensure the finalize fee is zero for a program without a finalize scope
+    let finalize_fee = program_manager.estimate_finalize_fee(HELLO_PROGRAM.to_string(), "main".to_string()).unwrap();
+    assert_eq!(finalize_fee, 0);
+
     // Check the fee can be estimated without a finalize scope
     let fee = program_manager
         .estimate_execution_fee(
@@ -346,9 +350,6 @@ async fn test_program_execution_with_cache_and_external_keys() {
     console_log!("outputs: {:?}", outputs);
     assert_eq!(outputs.len(), 1);
     assert_eq!(outputs[0], "30u32");
-
-    // Check if we're NOT using the internal cache, that we can execute a program with the same
-    // name but different source code
 
     // Assert cached keys aren't used in future transactions
     let inputs = js_sys::Array::new_with_length(2);
@@ -375,9 +376,16 @@ async fn test_fee_estimation() {
 
     // Ensure the deployment fee is correct and the cache is used
     let deployment_fee = program_manager.estimate_deployment_fee(FINALIZE.to_string(), true).await.unwrap();
+    let namespace_fee = program_manager.program_name_cost("tencharacters.aleo").unwrap();
+    assert_eq!(namespace_fee, 1000000);
 
     // Ensure the fee is greater a specific amount
     assert!(deployment_fee > 1940000);
+
+    // Ensure the finalize fee is greater than zero for a program with a finalize scope
+    let finalize_fee =
+        program_manager.estimate_finalize_fee(FINALIZE.to_string(), "integer_key_mapping_update".to_string()).unwrap();
+    assert!(finalize_fee > 0);
 
     let execution_fee = program_manager
         .estimate_execution_fee(
@@ -396,4 +404,7 @@ async fn test_fee_estimation() {
     // Ensure the fee is greater a specific amount
     console_log!("execute fee for finalize: {:?}", execution_fee);
     assert!(execution_fee > 1001000);
+
+    // Ensure the total fee is greater than the finalize fee
+    assert!(execution_fee > finalize_fee);
 }
