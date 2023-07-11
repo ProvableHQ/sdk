@@ -19,6 +19,15 @@ use snarkvm::prelude::AleoID;
 
 impl<N: Network> ProgramManager<N> {
     /// Create an offline execution of a program to share with a third party.
+    ///
+    /// DISCLAIMER: Offline executions will not interact with the Aleo network and cannot use all
+    /// of the features of the Leo programming language or Aleo instructions. Any code written
+    /// inside finalize blocks will not be executed, mappings cannot be initialized, updated or read,
+    /// and a chain of records cannot be created.
+    ///
+    /// Offline executions however can be used to verify that program outputs follow from program
+    /// inputs and that the program was executed correctly. If this is the aim and no chain
+    /// interaction is desired, this function can be used.
     pub fn execute_program_offline<A: Aleo<Network = N>>(
         &self,
         private_key: &PrivateKey<N>,
