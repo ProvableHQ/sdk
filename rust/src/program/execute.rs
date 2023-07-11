@@ -15,8 +15,59 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
+use snarkvm::prelude::AleoID;
 
 impl<N: Network> ProgramManager<N> {
+    /// Create an offline execution of a program to share with a third party.
+    pub fn execute_program_offline<A: Aleo<Network = N>>(
+        &self,
+        private_key: &PrivateKey<N>,
+        program: &Program<N>,
+        function: impl TryInto<Identifier<N>>,
+        inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
+        include_outputs: bool,
+        url: &str,
+    ) -> Result<OfflineExecution<N>> {
+        // Initialize an RNG and query object for the transaction
+        let rng = &mut rand::thread_rng();
+        let query = Query::<N, BlockMemory<N>>::from(url);
+
+        // Check that the function exists in the program
+        let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
+        let program_id = program.id();
+        println!("Checking function {function_name:?} exists in {program_id:?}");
+        ensure!(
+            program.contains_function(&function_name),
+            "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
+        );
+
+        // Create an ephemeral SnarkVM to store the programs
+        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
+        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
+        let _ = &vm.process().write().add_program(program);
+
+        // Compute the authorization.
+        let authorization = vm.authorize(private_key, program_id, function_name, inputs, rng)?;
+
+        let locator = Locator::new(*program_id, function_name);
+        let (response, mut trace) = vm.process().write().execute::<A>(authorization)?;
+        trace.prepare(query)?;
+        let execution = trace.prove_execution::<A, _>(&locator.to_string(), &mut rand::thread_rng())?;
+
+        let mut public_outputs = vec![];
+        response.outputs().iter().zip(response.output_ids().iter()).for_each(|(output, output_id)| match output_id {
+            OutputID::Public(_) => {
+                public_outputs.push(output.clone());
+            }
+            _ => {}
+        });
+
+        let response = if include_outputs { Some(response) } else { None };
+
+        // Return the execution
+        Ok(OfflineExecution::new(execution, response, trace, Some(public_outputs)))
+    }
+
     /// Execute a program function on the Aleo Network.
     ///
     /// To run this function successfully, the program must already be deployed on the Aleo Network
