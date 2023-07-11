@@ -159,6 +159,28 @@ impl<N: Network> ProgramManager<N> {
 
         vm.deploy(private_key, program, (fee_record, fee), Some(query), rng)
     }
+
+    /// Estimate deployment fee for a program in microcredits. The result will be in the form
+    /// (total_cost, (storage_cost, namespace_cost))
+    pub fn estimate_deployment_fee<A: Aleo<Network = N>>(&mut self, program: &Program<N>) -> Result<(u64, (u64, u64))> {
+        let process = Process::load()?;
+        let deployment = process.deploy::<A, _>(program, &mut rand::thread_rng())?;
+        let (minimum_deployment_cost, (storage_cost, namespace_cost)) = deployment_cost::<N>(&deployment)?;
+        Ok((minimum_deployment_cost, (storage_cost, namespace_cost)))
+    }
+
+    /// Estimate the component of the deployment cost which comes from the fee surrounding the
+    /// program name. Note that this cost does not represent the entire cost of deployment. It is
+    /// additional to the cost of the size (in bytes) of the deployment.
+    pub fn estimate_namespace_fee(&mut self, program_id: impl TryInto<ProgramID<N>>) -> Result<u64> {
+        let program_id = program_id.try_into().map_err(|_| anyhow!("❌ Invalid program ID"))?;
+        let num_characters = program_id.to_string().chars().count() as u32;
+        let namespace_cost = 10u64
+            .checked_pow(10u32.saturating_sub(num_characters))
+            .ok_or(anyhow!("The namespace cost computation overflowed for a deployment"))?
+            .saturating_mul(1_000_000); // 1 microcredit = 1e-6 credits.
+        Ok(namespace_cost)
+    }
 }
 
 #[cfg(test)]

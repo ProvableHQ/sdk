@@ -275,7 +275,6 @@ impl FromStr for Program {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::cell::Ref;
 
     use wasm_bindgen_test::*;
 

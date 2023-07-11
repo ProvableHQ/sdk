@@ -17,9 +17,8 @@
 use super::*;
 
 impl<N: Network> ProgramManager<N> {
-    /// Execute a program function on the Aleo Network.
-    ///
-    /// To run this function successfully, the program must already be deployed on the Aleo Network
+    /// Execute a program function on the Aleo Network. To run this function successfully, the
+    /// program must already be deployed on the Aleo Network
     pub fn execute_program(
         &mut self,
         program_id: impl TryInto<ProgramID<N>>,
@@ -108,6 +107,61 @@ impl<N: Network> ProgramManager<N> {
 
         // Create an execution transaction
         vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, fee)), Some(query), rng)
+    }
+
+    /// Estimate the cost of executing a program with the given inputs in microcredits. The response
+    /// will be in the form of (total_cost, (storage_cost, finalize_cost))
+    pub fn estimate_execution_fee<A: Aleo<Network = N>>(
+        &self,
+        program: &Program<N>,
+        function: impl TryInto<Identifier<N>>,
+        inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
+    ) -> Result<(u64, (u64, u64))> {
+        let url = self.api_client.as_ref().map_or_else(
+            || bail!("A network client must be configured to estimate a program execution fee"),
+            |api_client| Ok(api_client.base_url()),
+        )?;
+
+        // Initialize an RNG and query object for the transaction
+        let rng = &mut rand::thread_rng();
+        let query = Query::<N, BlockMemory<N>>::from(url);
+
+        // Check that the function exists in the program
+        let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
+        let program_id = program.id();
+        println!("Checking function {function_name:?} exists in {program_id:?}");
+        ensure!(
+            program.contains_function(&function_name),
+            "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
+        );
+
+        // Create an ephemeral SnarkVM to store the programs
+        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
+        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
+        let _ = &vm.process().write().add_program(program);
+
+        // Create an ephemeral private key for the sample execution
+        let private_key = PrivateKey::<N>::new(rng)?;
+
+        // Compute the authorization.
+        let authorization = vm.authorize(&private_key, program_id, function_name, inputs, rng)?;
+
+        let locator = Locator::new(*program_id, function_name);
+        let (_, mut trace) = vm.process().write().execute::<A>(authorization)?;
+        trace.prepare(query)?;
+        let execution = trace.prove_execution::<A, _>(&locator.to_string(), &mut rand::thread_rng())?;
+        execution_cost(&vm, &execution)
+    }
+
+    /// Estimate the finalize fee component for executing a function. This fee is additional to the
+    /// size of the execution of the program in bytes. If the function does not have a finalize
+    /// step, then the finalize fee is 0.
+    pub fn estimate_finalize_fee(&self, program: &Program<N>, function: impl TryInto<Identifier<N>>) -> Result<u64> {
+        let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
+        match program.get_function(&function_name)?.finalize() {
+            Some((_, finalize)) => cost_in_microcredits(finalize),
+            None => Ok(0u64),
+        }
     }
 }
 

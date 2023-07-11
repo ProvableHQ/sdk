@@ -16,11 +16,11 @@
 
 use super::*;
 
-pub mod state;
-pub use state::*;
-
 pub mod records;
 pub use records::*;
+
+pub mod state;
+pub use state::*;
 
 /// Transfer Type to Perform
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

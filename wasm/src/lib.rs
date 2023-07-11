@@ -173,5 +173,5 @@ pub use wasm_bindgen_rayon::init_thread_pool;
 extern "C" {
     // Log a &str the console in the browser or console.log in nodejs
     #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
+    pub fn log(s: &str);
 }

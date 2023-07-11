@@ -21,7 +21,6 @@ pub use aleo_rust::{
     AleoV0,
     BlockMemory,
     Ciphertext,
-    Deployment,
     Encryptor,
     Identifier,
     Plaintext,
@@ -61,8 +60,7 @@ pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
 pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 
 // Program types
-pub type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
-pub type DeploymentNative = Deployment<CurrentNetwork>;
+type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
 pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;

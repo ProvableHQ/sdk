@@ -20,7 +20,7 @@ use crate::{
     execute_program,
     get_process,
     log,
-    types::{CurrentAleo, CurrentBlockMemory, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
+    types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
     PrivateKey,
     RecordPlaintext,
     Transaction,
