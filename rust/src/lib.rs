@@ -204,6 +204,7 @@ pub mod snarkvm_types {
             Literal,
             Locator,
             Network,
+            OutputID,
             Plaintext,
             PlaintextType,
             ProgramID,
@@ -215,7 +216,7 @@ pub mod snarkvm_types {
         },
         types::Field,
     };
-    pub use snarkvm_ledger_block::{Block, Deployment, Transaction};
+    pub use snarkvm_ledger_block::{Block, Deployment, Execution, Transaction};
     pub use snarkvm_ledger_query::Query;
     pub use snarkvm_ledger_store::{
         helpers::memory::{BlockMemory, ConsensusMemory},
@@ -226,9 +227,10 @@ pub mod snarkvm_types {
         cost_in_microcredits,
         deployment_cost,
         execution_cost,
-        snark::{ProvingKey, VerifyingKey},
+        snark::{Proof, ProvingKey, VerifyingKey},
         Process,
         Program,
+        Trace,
         VM,
     };
 }
