@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1689126866293,
+  "lastUpdate": 1689127010424,
   "repoUrl": "https://github.com/AleoHQ/sdk",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -107,6 +107,60 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_encryption_decryption_roundtrip",
             "value": 608924,
             "range": "± 2146",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mturner@aleo.org",
+            "name": "Mike Turner",
+            "username": "iamalwaysuncomfortable"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d522c6a971af5230dd926fc5e00d838700ff8746",
+          "message": "[Feature] Fee estimation",
+          "timestamp": "2023-07-11T21:39:49-04:00",
+          "tree_id": "b9904dfc6d1e4cd79e31e91fcf02e38a873bd334",
+          "url": "https://github.com/AleoHQ/sdk/commit/d522c6a971af5230dd926fc5e00d838700ff8746"
+        },
+        "date": 1689126995686,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 219966,
+            "range": "± 34467",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 96072,
+            "range": "± 21927",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_decryption",
+            "value": 314917,
+            "range": "± 65168",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption",
+            "value": 218358,
+            "range": "± 32179",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption_decryption_roundtrip",
+            "value": 538684,
+            "range": "± 57837",
             "unit": "ns/iter"
           }
         ]
