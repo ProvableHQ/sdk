@@ -169,15 +169,111 @@ impl<N: Network> ProgramManager<N> {
         // Create an execution transaction
         vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, fee)), Some(query), rng)
     }
+
+    /// Estimate the cost of executing a program with the given inputs in microcredits. The response
+    /// will be in the form of (total_cost, (storage_cost, finalize_cost))
+    pub fn estimate_execution_fee<A: Aleo<Network = N>>(
+        &self,
+        program: &Program<N>,
+        function: impl TryInto<Identifier<N>>,
+        inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
+    ) -> Result<(u64, (u64, u64))> {
+        let url = self.api_client.as_ref().map_or_else(
+            || bail!("A network client must be configured to estimate a program execution fee"),
+            |api_client| Ok(api_client.base_url()),
+        )?;
+
+        // Initialize an RNG and query object for the transaction
+        let rng = &mut rand::thread_rng();
+        let query = Query::<N, BlockMemory<N>>::from(url);
+
+        // Check that the function exists in the program
+        let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
+        let program_id = program.id();
+        println!("Checking function {function_name:?} exists in {program_id:?}");
+        ensure!(
+            program.contains_function(&function_name),
+            "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
+        );
+
+        // Create an ephemeral SnarkVM to store the programs
+        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
+        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
+        let _ = &vm.process().write().add_program(program);
+
+        // Create an ephemeral private key for the sample execution
+        let private_key = PrivateKey::<N>::new(rng)?;
+
+        // Compute the authorization.
+        let authorization = vm.authorize(&private_key, program_id, function_name, inputs, rng)?;
+
+        let locator = Locator::new(*program_id, function_name);
+        let (_, mut trace) = vm.process().write().execute::<A>(authorization)?;
+        trace.prepare(query)?;
+        let execution = trace.prove_execution::<A, _>(&locator.to_string(), &mut rand::thread_rng())?;
+        execution_cost(&vm, &execution)
+    }
+
+    /// Estimate the finalize fee component for executing a function. This fee is additional to the
+    /// size of the execution of the program in bytes. If the function does not have a finalize
+    /// step, then the finalize fee is 0.
+    pub fn estimate_finalize_fee(&self, program: &Program<N>, function: impl TryInto<Identifier<N>>) -> Result<u64> {
+        let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
+        match program.get_function(&function_name)?.finalize() {
+            Some((_, finalize)) => cost_in_microcredits(finalize),
+            None => Ok(0u64),
+        }
+    }
 }
 
 #[cfg(test)]
 #[cfg(not(feature = "wasm"))]
 mod tests {
     use super::*;
-    use crate::{random_program_id, AleoAPIClient, RECORD_5_MICROCREDITS};
+    use crate::{random_program, random_program_id, AleoAPIClient, RECORD_5_MICROCREDITS};
     use snarkvm::circuit::AleoV0;
     use snarkvm_console::network::Testnet3;
+
+    #[test]
+    fn test_fee_estimation() {
+        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let api_client = AleoAPIClient::<Testnet3>::testnet3();
+        let mut program_manager =
+            ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client.clone()), None).unwrap();
+
+        let finalize_program = program_manager.api_client.as_ref().unwrap().get_program("lottery_first.aleo").unwrap();
+        let hello_hello = program_manager.api_client.as_ref().unwrap().get_program("hello_hello.aleo").unwrap();
+        // Ensure a finalize scope program execution fee is estimated correctly
+        let (total, (storage, finalize)) = program_manager
+            .estimate_execution_fee::<AleoV0>(&finalize_program, "play", Vec::<&str>::new().into_iter())
+            .unwrap();
+        let finalize_only = program_manager.estimate_finalize_fee(&finalize_program, "play").unwrap();
+        assert!(finalize_only > 0);
+        assert!(finalize > storage);
+        assert_eq!(finalize, finalize_only);
+        assert_eq!(total, finalize_only + storage);
+        assert_eq!(storage, total - finalize_only);
+
+        // Ensure a non-finalize scope program execution fee is estimated correctly
+        let (total, (storage, finalize)) = program_manager
+            .estimate_execution_fee::<AleoV0>(&hello_hello, "hello", vec!["5u32", "5u32"].into_iter())
+            .unwrap();
+        let finalize_only = program_manager.estimate_finalize_fee(&hello_hello, "hello").unwrap();
+        assert!(storage > 0);
+        assert_eq!(finalize_only, 0);
+        assert_eq!(finalize, finalize_only);
+        assert_eq!(total, finalize_only + storage);
+        assert_eq!(storage, total - finalize_only);
+
+        // Ensure a deployment fee is estimated correctly
+        let random = random_program();
+        let (total, (storage, namespace)) = program_manager.estimate_deployment_fee::<AleoV0>(&random).unwrap();
+        let namespace_only = program_manager.estimate_namespace_fee(random.id()).unwrap();
+        assert_eq!(namespace, 1000000);
+        assert_eq!(namespace, namespace_only);
+        assert_eq!(total, namespace_only + storage);
+        assert_eq!(storage, total - namespace_only);
+    }
 
     #[test]
     #[ignore]

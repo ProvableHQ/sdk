@@ -21,21 +21,12 @@ use crate::{
     execute_program,
     get_process,
     log,
-    types::{
-        CurrentAleo,
-        CurrentBlockMemory,
-        IdentifierNative,
-        ProcessNative,
-        ProgramNative,
-        RecordPlaintextNative,
-        TransactionNative,
-    },
+    types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative, TransactionNative},
     PrivateKey,
     RecordPlaintext,
     Transaction,
 };
 
-use crate::types::Testnet3;
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;

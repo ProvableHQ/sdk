@@ -22,9 +22,7 @@ use crate::{
     log,
     types::{
         CurrentAleo,
-        CurrentBlockMemory,
         CurrentNetwork,
-        DeploymentNative,
         ProcessNative,
         ProgramIDNative,
         ProgramNative,
@@ -54,6 +52,7 @@ impl ProgramManager {
     /// @param fee_credits The amount of credits to pay as a fee
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
+    /// @param cache Cache the synthesized keys for future use
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     #[wasm_bindgen]
@@ -146,5 +145,46 @@ impl ProgramManager {
         Ok(Transaction::from(
             TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
         ))
+    }
+
+    /// Estimate the fee for a program deployment
+    ///
+    /// @param program The source code of the program being deployed
+    /// @param cache Cache the synthesized keys for future use
+    #[wasm_bindgen(js_name = estimateDeploymentFee)]
+    pub async fn estimate_deployment_fee(&mut self, program: String, cache: bool) -> Result<u64, String> {
+        let mut new_process;
+        let process = get_process!(self, cache, new_process);
+
+        log("Check program has a valid name");
+        let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
+
+        log("Create sample deployment");
+        let deployment =
+            process.deploy::<CurrentAleo, _>(&program, &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
+        if deployment.program().functions().is_empty() {
+            return Err("Attempted to create an empty transaction deployment".to_string());
+        }
+
+        log("Estimate the deployment fee");
+        let (minimum_deployment_cost, (_, _)) =
+            deployment_cost::<CurrentNetwork>(&deployment).map_err(|err| err.to_string())?;
+
+        Ok(minimum_deployment_cost)
+    }
+
+    /// Estimate the component of the deployment cost which comes from the fee for the program name.
+    /// Note that this cost does not represent the entire cost of deployment. It is additional to
+    /// the cost of the size (in bytes) of the deployment.
+    ///
+    /// @param name The name of the program to be deployed
+    #[wasm_bindgen(js_name = estimateProgramNameCost)]
+    pub fn program_name_cost(&self, name: &str) -> Result<u64, String> {
+        let num_characters = name.chars().count() as u32;
+        let namespace_cost = 10u64
+            .checked_pow(10u32.saturating_sub(num_characters))
+            .ok_or("The namespace cost computation overflowed for a deployment")?
+            .saturating_mul(1_000_000); // 1 microcredit = 1e-6 credits.
+        Ok(namespace_cost)
     }
 }

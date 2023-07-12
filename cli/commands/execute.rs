@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::CurrentNetwork;
+use crate::{Aleo, CurrentNetwork};
 use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
 use snarkvm::prelude::{Ciphertext, Identifier, Plaintext, PrivateKey, ProgramID, Record, Value};
 
@@ -31,12 +31,16 @@ pub struct Execute {
     function: Identifier<CurrentNetwork>,
     /// The function inputs
     inputs: Vec<Value<CurrentNetwork>>,
+    /// Estimate the execution fee in credits. If set, this will estimate the fee for executing the
+    /// program but will NOT execute the program
+    #[clap(long)]
+    estimate_fee: bool,
     /// Aleo Network peer to broadcast the transaction to
     #[clap(short, long)]
     endpoint: Option<String>,
     /// Execution fee in credits
     #[clap(long)]
-    fee: f64,
+    fee: Option<f64>,
     /// The record to spend the fee from
     #[clap(short, long)]
     record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
@@ -58,28 +62,37 @@ impl Execute {
             !(self.private_key.is_none() && self.ciphertext.is_none()),
             "Private key or private key ciphertext required to execute a function"
         );
-        ensure!(self.fee > 0.0, "Fee must be greater than 0 to execute a program");
-
-        // Convert execution fee to microcredits
-        let fee_credits = self.fee;
-        let fee_microcredits = (fee_credits * 1000000.0) as u64;
 
         // Get strings for the program and function for logging
         let program_string = self.program_id.to_string();
         let function_string = self.function.to_string();
 
-        println!(
-            "{}",
-            format!(
-                "Attempting to execute function '{}' from program '{}' with a fee of {} credits",
-                &function_string, &program_string, fee_credits
-            )
-            .bright_blue()
-        );
+        // Get fee in credits, and microcredits
+        let fee_microcredits = if !self.estimate_fee {
+            ensure!(self.fee.is_some(), "Fee must be specified when executing a program");
+            let fee = self.fee.unwrap();
+            ensure!(fee > 0.0, "Execution fee must be greater than 0");
+            println!(
+                "{}",
+                format!(
+                    "Attempting to execute function '{}:{}' with a fee of {} credits",
+                    &program_string, &function_string, fee
+                )
+                .bright_blue()
+            );
+            (fee * 1000000.0) as u64
+        } else {
+            println!(
+                "{}",
+                format!("Attempting to estimate the fee for '{}:{}'", &program_string, &function_string).bright_blue()
+            );
+            0u64
+        };
 
         // Setup the API client to use configured peer or default to https://vm.aleo.org/api/testnet3
         let api_client = self
             .endpoint
+            .clone()
             .map_or_else(
                 || {
                     println!("Using default peer: https://vm.aleo.org/api/testnet3");
@@ -97,7 +110,29 @@ impl Execute {
             Some(api_client.clone()),
             None,
         )?;
-        program_manager.find_program(&self.program_id)?;
+        let program = program_manager.find_program(&self.program_id)?;
+
+        if self.estimate_fee {
+            let (total, (storage, finalize)) =
+                program_manager.estimate_execution_fee::<Aleo>(&program, self.function, self.inputs.iter())?;
+            let (total, storage, finalize) =
+                ((total as f64) / 1_000_000.0, (storage as f64) / 1_000_000.0, (finalize as f64) / 1_000_000.0);
+            let function_id = &self.function;
+            let program_id = program.id();
+            println!(
+                "\n{} {} {} {} {} {} {} {} {}",
+                "Function".bright_green(),
+                format!("{program_id}:{function_id:?}").bright_blue(),
+                "has a storage fee of".bright_green(),
+                format!("{storage}").bright_blue(),
+                "credits and a finalize fee of".bright_green(),
+                format!("{finalize}").bright_blue(),
+                "credits for a total execution fee of".bright_green(),
+                format!("{total}").bright_blue(),
+                "credits".bright_green()
+            );
+            return Ok("".to_string());
+        }
 
         // Find a fee record to pay the fee if necessary
         let fee_record = if self.record.is_none() {
@@ -115,7 +150,7 @@ impl Execute {
         };
 
         // Execute the program function
-        println!("Executing function {} from program: {}", function_string.bright_blue(), program_string.bright_blue());
+        println!("Executing '{}:{}'", program_string.bright_blue(), function_string.bright_blue());
         let result = program_manager.execute_program(
             self.program_id,
             self.function,
@@ -128,9 +163,9 @@ impl Execute {
         // Inform the user of the result of the program execution
         if result.is_err() {
             println!(
-                "Execution of function {} from {} failed with error:",
-                function_string.red().bold(),
-                program_string.red().bold()
+                "Execution of function '{}:{}' failed with error:",
+                program_string.red().bold(),
+                function_string.red().bold()
             );
         } else {
             println!(

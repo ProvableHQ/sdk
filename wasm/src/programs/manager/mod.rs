@@ -15,10 +15,7 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod deploy;
-
 pub use deploy::*;
-use rand::{rngs::StdRng, SeedableRng};
-use std::str::FromStr;
 
 pub mod execute;
 pub use execute::*;
@@ -36,8 +33,8 @@ pub mod utils;
 
 use crate::{
     types::{
+        cost_in_microcredits,
         deployment_cost,
-        execution_cost,
         CurrentAleo,
         IdentifierNative,
         ProcessNative,
@@ -53,6 +50,8 @@ use crate::{
     VerifyingKey,
 };
 
+use rand::{rngs::StdRng, SeedableRng};
+use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]

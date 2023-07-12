@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::CurrentNetwork;
+use crate::{Aleo, CurrentNetwork};
 use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
 use snarkvm::prelude::{Ciphertext, Plaintext, PrivateKey, ProgramID, Record};
 
@@ -27,6 +27,10 @@ use colored::Colorize;
 pub struct Deploy {
     /// The program identifier
     program_id: ProgramID<CurrentNetwork>,
+    /// Estimate the deployment fee in credits. If set, this will estimate the fee for deploying the
+    /// program but will NOT deploy the program
+    #[clap(long)]
+    estimate_fee: bool,
     /// Directory containing the program files
     #[clap(short, long)]
     directory: Option<std::path::PathBuf>,
@@ -35,7 +39,7 @@ pub struct Deploy {
     endpoint: Option<String>,
     /// Deployment fee in credits
     #[clap(short, long)]
-    fee: f64,
+    fee: Option<f64>,
     /// The record to spend the fee from
     #[clap(short, long)]
     record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
@@ -58,19 +62,23 @@ impl Deploy {
             "Private key or private key ciphertext required to deploy a program"
         );
 
-        ensure!(self.fee > 0.0, "Deployment fee must be greater than 0");
-
-        // Convert deployment fee to microcredits
-        let fee_microcredits = (self.fee * 1000000.0) as u64;
-
         // Get strings for the program for logging
         let program_string = self.program_id.to_string();
 
-        println!(
-            "{}",
-            format!("Attempting to deploy program '{}' with a fee of {} credits", &program_string, self.fee)
-                .bright_blue()
-        );
+        // Ensure a fee is specified if deploying a program
+        let fee_microcredits = if !self.estimate_fee {
+            ensure!(self.fee.is_some(), "Fee must be specified when deploying a program");
+            let fee = self.fee.unwrap();
+            ensure!(fee > 0.0, "Deployment fee must be greater than 0");
+            println!(
+                "{}",
+                format!("Attempting to deploy program '{}' with a fee of {} credits", &program_string, fee)
+                    .bright_blue()
+            );
+            (fee * 1000000.0) as u64
+        } else {
+            0u64
+        };
 
         // Setup the API client to use configured peer or default to https://vm.aleo.org/api/testnet3
         let api_client = self
@@ -103,6 +111,28 @@ impl Deploy {
             Some(api_client.clone()),
             Some(program_directory),
         )?;
+
+        // Estimate the fee if specified
+        if self.estimate_fee {
+            let program = program_manager.find_program_on_disk(&self.program_id)?;
+            let (total, (storage, namespace)) = program_manager.estimate_deployment_fee::<Aleo>(&program)?;
+            let (total, storage, namespace) =
+                ((total as f64) / 1_000_000.0, (storage as f64) / 1_000_000.0, (namespace as f64) / 1_000_000.0);
+            let program_id = program.id();
+            println!(
+                "\n{} {} {} {} {} {} {} {} {}",
+                "Program".bright_green(),
+                format!("{program_id}").bright_blue(),
+                "has a storage fee of".bright_green(),
+                format!("{storage}").bright_blue(),
+                "credits and a namespace fee of".bright_green(),
+                format!("{namespace}").bright_blue(),
+                "credits for a total deployment fee of".bright_green(),
+                format!("{total}").bright_blue(),
+                "credits".bright_green()
+            );
+            return Ok("".to_string());
+        }
 
         // Find a fee record to pay the fee if necessary
         let fee_record = if self.record.is_none() {

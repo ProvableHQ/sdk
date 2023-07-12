@@ -15,13 +15,12 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use aleo_rust::{
+    cost_in_microcredits,
     deployment_cost,
-    execution_cost,
     Address,
     AleoV0,
     BlockMemory,
     Ciphertext,
-    Deployment,
     Encryptor,
     Identifier,
     Plaintext,
@@ -39,6 +38,7 @@ pub use aleo_rust::{
     Transaction,
     VerifyingKey,
     ViewKey,
+    VM,
 };
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
@@ -60,8 +60,7 @@ pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
 pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 
 // Program types
-pub type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
-pub type DeploymentNative = Deployment<CurrentNetwork>;
+type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
 pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;

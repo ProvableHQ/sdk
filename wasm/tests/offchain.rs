@@ -36,6 +36,23 @@ function hello:
     output r2 as u32.private;
 "#;
 
+pub const FINALIZE: &str = r#"program finalize_test.aleo;
+
+mapping integer_key_mapping:
+    key integer_key as u64.public;
+    value integer_value as u64.public;
+
+function integer_key_mapping_update:
+    input r0 as u64.public;
+    input r1 as u64.public;
+    finalize r0 r1;
+
+finalize integer_key_mapping_update:
+    input r0 as u64.public;
+    input r1 as u64.public;
+    set r1 into integer_key_mapping[r0];
+"#;
+
 const SPLIT_PROVER_URL: &str = "https://testnet3.parameters.aleo.org/split.prover.8c585f2";
 const SPLIT_VERIFIER_URL: &str = "https://testnet3.parameters.aleo.org/split.verifier.8281688";
 
@@ -299,12 +316,34 @@ async fn test_program_execution_with_cache_and_external_keys() {
             private_key.clone(),
             HELLO_PROGRAM.to_string(),
             "main".to_string(),
+            inputs.clone(),
+            false,
+            Some(retrieved_proving_key.clone()),
+            Some(retrieved_verifying_key.clone()),
+        )
+        .unwrap();
+
+    // Ensure the finalize fee is zero for a program without a finalize scope
+    let finalize_fee = program_manager.estimate_finalize_fee(HELLO_PROGRAM.to_string(), "main".to_string()).unwrap();
+    assert_eq!(finalize_fee, 0);
+
+    // Check the fee can be estimated without a finalize scope
+    let fee = program_manager
+        .estimate_execution_fee(
+            private_key.clone(),
+            HELLO_PROGRAM.to_string(),
+            "main".to_string(),
             inputs,
+            "https://vm.aleo.org/api".to_string(),
             false,
             Some(retrieved_proving_key),
             Some(retrieved_verifying_key),
         )
+        .await
         .unwrap();
+
+    // Ensure the fee is greater a specific amount
+    assert!(fee > 1200);
 
     // Ensure the output is correct
     let outputs = result.get_outputs().to_vec();
@@ -312,10 +351,7 @@ async fn test_program_execution_with_cache_and_external_keys() {
     assert_eq!(outputs.len(), 1);
     assert_eq!(outputs[0], "30u32");
 
-    // Check if we're NOT using the internal cache, that we can execute a program with the same
-    // name but different source code
-
-    // Assert cached keys are used in future transactions
+    // Assert cached keys aren't used in future transactions
     let inputs = js_sys::Array::new_with_length(2);
     inputs.set(0, wasm_bindgen::JsValue::from_str("20u32"));
     inputs.set(1, wasm_bindgen::JsValue::from_str("20u32"));
@@ -327,4 +363,48 @@ async fn test_program_execution_with_cache_and_external_keys() {
     console_log!("outputs: {:?}", outputs);
     assert_eq!(outputs.len(), 1);
     assert_eq!(outputs[0], "40u32");
+}
+
+#[wasm_bindgen_test]
+async fn test_fee_estimation() {
+    let mut program_manager = ProgramManager::new();
+    let private_key = PrivateKey::new();
+
+    let inputs = js_sys::Array::new_with_length(2);
+    inputs.set(0, wasm_bindgen::JsValue::from_str("15u64"));
+    inputs.set(1, wasm_bindgen::JsValue::from_str("15u64"));
+
+    // Ensure the deployment fee is correct and the cache is used
+    let deployment_fee = program_manager.estimate_deployment_fee(FINALIZE.to_string(), true).await.unwrap();
+    let namespace_fee = program_manager.program_name_cost("tencharacters.aleo").unwrap();
+    assert_eq!(namespace_fee, 1000000);
+
+    // Ensure the fee is greater a specific amount
+    assert!(deployment_fee > 1940000);
+
+    // Ensure the finalize fee is greater than zero for a program with a finalize scope
+    let finalize_fee =
+        program_manager.estimate_finalize_fee(FINALIZE.to_string(), "integer_key_mapping_update".to_string()).unwrap();
+    assert!(finalize_fee > 0);
+
+    let execution_fee = program_manager
+        .estimate_execution_fee(
+            private_key.clone(),
+            FINALIZE.to_string(),
+            "integer_key_mapping_update".to_string(),
+            inputs,
+            "https://vm.aleo.org/api".to_string(),
+            true,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+
+    // Ensure the fee is greater a specific amount
+    console_log!("execute fee for finalize: {:?}", execution_fee);
+    assert!(execution_fee > 1001000);
+
+    // Ensure the total fee is greater than the finalize fee
+    assert!(execution_fee > finalize_fee);
 }
