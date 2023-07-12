@@ -12,6 +12,7 @@ export const Execute = () => {
     const [functionID, setFunctionID] = useState(null);
     const [executionFee, setExecutionFee] = useState("1");
     const [inputs, setInputs] = useState(null);
+    const [feeLoading, setFeeLoading] = useState(false);
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
     const [program, setProgram] = useState(null);
@@ -23,6 +24,7 @@ export const Execute = () => {
     const [worker, setWorker] = useState(null);
     const [executeOnline, setExecuteOnline] = useState(false);
     const [programInputs, setProgramInputs] = useState(null);
+    const [tip, setTip] = useState("Executing Program...");
 
     const getProgramInputs = (event) => {
         const programManifest = [];
@@ -55,10 +57,12 @@ export const Execute = () => {
         );
         worker.addEventListener("message", ev => {
             if (ev.data.type == 'OFFLINE_EXECUTION_COMPLETED') {
+                setFeeLoading(false);
                 setLoading(false);
                 setTransactionID(null);
                 setExecutionError(null);
                 setProgramResponse(ev.data.outputs);
+                setTip("Executing Program...");
             } else if (ev.data.type == 'EXECUTION_TRANSACTION_COMPLETED') {
                 let [transaction, url] = ev.data.executeTransaction;
                 axios.post(url + "/testnet3/transaction/broadcast", transaction, {
@@ -67,16 +71,29 @@ export const Execute = () => {
                     }
                 }).then(
                     (response) => {
+                        setFeeLoading(false);
                         setLoading(false);
                         setProgramResponse(null);
                         setExecutionError(null);
+                        setTip("Executing Program...");
                         setTransactionID(response.data);
                     }
                 )
+            } else if (ev.data.type == 'EXECUTION_FEE_ESTIMATION_COMPLETED') {
+                let fee = ev.data.executionFee;
+                setFeeLoading(false);
+                setLoading(false);
+                setProgramResponse(null);
+                setExecutionError(null);
+                setTransactionID(null);
+                setTip("Executing Program...");
+                setExecutionFee(fee.toString());
             } else if (ev.data.type == 'ERROR') {
+                setFeeLoading(false);
                 setLoading(false);
                 setProgramResponse(null);
                 setTransactionID(null);
+                setTip("Executing Program...");
                 setExecutionError(ev.data.errorMessage);
             }
         });
@@ -100,9 +117,11 @@ export const Execute = () => {
             };
             worker.onerror = error => {
                 setExecutionError(error);
+                setFeeLoading(false);
                 setLoading(false);
                 setProgramResponse(null);
                 setTransactionID(null);
+                setTip("Executing Program...");
                 reject(error);
             };
             worker.postMessage(message);
@@ -110,7 +129,8 @@ export const Execute = () => {
     }
 
     const execute = async (event) => {
-        setLoading(true)
+        setLoading(true);
+        setTip("Executing Program...");
         setProgramResponse(null);
         setTransactionID(null);
         setExecutionError(null);
@@ -118,11 +138,15 @@ export const Execute = () => {
         const feeAmount = parseFloat(feeString());
         if (isNaN(feeAmount)) {
             setExecutionError("Fee is not a valid number");
+            setFeeLoading(false);
             setLoading(false);
+            setTip("Executing Program...");
             return;
         } else if (feeAmount <= 0) {
             setExecutionError("Fee must be greater than 0");
+            setFeeLoading(false);
             setLoading(false);
+            setTip("Executing Program...");
             return;
         }
 
@@ -133,7 +157,9 @@ export const Execute = () => {
             }
         } catch (e) {
             setExecutionError("Inputs are not valid");
+            setFeeLoading(false);
             setLoading(false);
+            setTip("Executing Program...");
             return;
         }
 
@@ -159,11 +185,44 @@ export const Execute = () => {
         }
     }
 
+    const estimate = async (event) => {
+        setFeeLoading(true);
+        setLoading(false);
+        setProgramResponse(null);
+        setTransactionID(null);
+        setExecutionError(null);
+        setTip("Estimating Execution Fee...");
+        let functionInputs = []
+        try {
+            if (inputs) {
+                functionInputs = inputs.split(" ");
+            }
+        } catch (e) {
+            setExecutionError("Inputs are not valid");
+            setFeeLoading(false);
+            setLoading(false);
+            setTip("Executing Program...")
+            return;
+        }
+
+        if (executeOnline) {
+            await postMessagePromise(worker, {
+                type: 'ALEO_ESTIMATE_EXECUTION_FEE',
+                privateKey: privateKeyString(),
+                remoteProgram: programString(),
+                aleoFunction: functionIDString(),
+                inputs: functionInputs,
+                url: peerUrl()
+            });
+        }
+    }
+
     const demo = async (event) => {
         setLoading(false)
         setProgramResponse(null);
         setTransactionID(null);
         setExecutionError(null);
+        setTip("Executing Program...");
         setProgramID("hello_hello.aleo");
         setProgram("program hello_hello.aleo;\n" +
             "\n" +
@@ -255,10 +314,12 @@ export const Execute = () => {
 
     // Calls `tryRequest` when the search bar input is entered.
     const onSearch = (value) => {
+        setFeeLoading(false);
         setLoading(false);
         setProgramResponse(null);
         setTransactionID(null);
         setExecutionError(null);
+        setTip("Executing Program...");
         try {
             tryRequest(value);
         } catch (error) {
@@ -431,12 +492,19 @@ export const Execute = () => {
                     <Button type="primary" shape="round" size="middle" onClick={execute}
                     >Execute</Button>
                 </Col>
+                {
+                    (executeOnline === true) &&
+                    <Col justify="center">
+                        <Button type="primary" shape="round" size="middle" onClick={estimate}
+                        >Estimate Fee</Button>
+                    </Col>
+                }
             </Row>
         </Form>
         <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
             {
-                (loading === true) &&
-                <Spin tip="Executing Program..." size="large"/>
+                (loading === true || feeLoading == true) &&
+                    <Spin tip={tip} size="large"/>
             }
             {
                 (transactionID !== null) &&

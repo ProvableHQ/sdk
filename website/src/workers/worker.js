@@ -159,8 +159,78 @@ self.addEventListener("message", ev => {
                 self.postMessage({ type: 'ERROR', errorMessage: error.toString() });
             }
         })();
-    }
-    else if (ev.data.type === 'ALEO_TRANSFER') {
+    } else if (ev.data.type === 'ALEO_ESTIMATE_EXECUTION_FEE') {
+        const {
+            privateKey,
+            remoteProgram,
+            aleoFunction,
+            inputs,
+            url
+        } = ev.data;
+
+        console.log('Web worker: Estimating execution fee...');
+        let startTime = performance.now();
+
+        (async function() {
+            try {
+                const programMatches = await programMatchesOnChain(remoteProgram, url);
+                if (!programMatches) {
+                    throw (`Program does not match the program deployed on the Aleo Network, cannot estimate execution fee`);
+                }
+
+                let executeFee = await aleoProgramManager.estimateExecutionFee(
+                    aleo.PrivateKey.from_string(privateKey),
+                    remoteProgram,
+                    aleoFunction,
+                    inputs,
+                    url,
+                    true
+                );
+
+                console.log(`Web worker: Execution fee estimated in ${performance.now() - startTime} ms`);
+                console.log("Execution Fee:", executeFee);
+                self.postMessage({type: 'EXECUTION_FEE_ESTIMATION_COMPLETED', executionFee: Number(executeFee)/1000000 + .01});
+            } catch (error) {
+                console.log(error);
+                self.postMessage({ type: 'ERROR', errorMessage: error.toString() });
+            }
+        })();
+    } else if (ev.data.type === 'ALEO_ESTIMATE_DEPLOYMENT_FEE') {
+        const {
+            program,
+            url
+        } = ev.data;
+
+        console.log('Web worker: Estimating deployment fee...');
+
+        let startTime = performance.now();
+        (async function() {
+            try {
+                try {
+                    await programMatchesOnChain(program, url);
+                    throw (`A program with the same name already exists on the Aleo Network, cannot estimate deployment fee`);
+                } catch (e) {
+                    if (e !== `Program does not exist on chain`) {
+                        throw e;
+                    }
+                    console.log(`Program not found on the Aleo Network - proceeding with deployment fee estimation...`);
+                }
+
+                console.log("Estimating deployment fee..");
+                let deploymentFee = await aleoProgramManager.estimateDeploymentFee(
+                    program,
+                    false
+                );
+
+                console.log(`Web worker: Deployment fee estimation completed in ${performance.now() - startTime} ms`);
+                console.log("Deployment fee:", deploymentFee);
+                self.postMessage({type: 'DEPLOYMENT_FEE_ESTIMATION_COMPLETED', deploymentFee: Number(deploymentFee)/1000000 + .01});
+            } catch (error) {
+                console.log(error);
+                self.postMessage({ type: 'ERROR', errorMessage: error.toString() });
+            }
+        })();
+    } else if (ev.data.type === 'ALEO_TRANSFER') {
         const {
             privateKey,
             amountCredits,
