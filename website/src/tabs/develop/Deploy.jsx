@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
+import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch, Space} from "antd";
 import {FormGenerator} from "../../components/InputForm";
 import axios from "axios";
 import init, * as aleo from '@aleohq/wasm';
@@ -248,10 +248,12 @@ export const Deploy = () => {
             </Form.Item>
             <Row justify="center">
                 <Col justify="center">
-                    <Button type="primary" shape="round" size="middle" onClick={deploy}
-                    >Deploy</Button>
-                    <Button type="primary" shape="round" size="middle" onClick={estimate}
-                    >Estimate Fee</Button>
+                    <Space>
+                        <Button type="primary" shape="round" size="middle" onClick={deploy}
+                        >Deploy</Button>
+                        <Button type="primary" shape="round" size="middle" onClick={estimate}
+                        >Estimate Fee</Button>
+                    </Space>
                 </Col>
             </Row>
         </Form>

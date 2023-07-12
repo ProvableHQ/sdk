@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
+import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch, Space} from "antd";
 import {FormGenerator} from "../../components/InputForm";
 import axios from "axios";
 import init, * as aleo from '@aleohq/wasm';
@@ -489,16 +489,12 @@ export const Execute = () => {
             }
             <Row justify="center">
                 <Col justify="center">
+                    <Space>
                     <Button type="primary" shape="round" size="middle" onClick={execute}
                     >Execute</Button>
+                        {executeOnline && <Button type="primary" shape="round" size="middle" onClick={estimate}>Estimate Fee</Button>}
+                    </Space>
                 </Col>
-                {
-                    (executeOnline === true) &&
-                    <Col justify="center">
-                        <Button type="primary" shape="round" size="middle" onClick={estimate}
-                        >Estimate Fee</Button>
-                    </Col>
-                }
             </Row>
         </Form>
         <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
