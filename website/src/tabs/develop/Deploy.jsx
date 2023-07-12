@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
+import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch, Space} from "antd";
 import {FormGenerator} from "../../components/InputForm";
 import axios from "axios";
 import init, * as aleo from '@aleohq/wasm';
@@ -11,6 +11,7 @@ export const Deploy = () => {
     const [deployUrl, setDeployUrl] = useState("https://vm.aleo.org/api");
     const [deploymentFee, setDeploymentFee] = useState("1");
     const [loading, setLoading] = useState(false);
+    const [feeLoading, setFeeLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
     const [program, setProgram] = useState(null);
     const [deploymentError, setDeploymentError] = useState(null);
@@ -31,14 +32,24 @@ export const Deploy = () => {
                     }
                 }).then(
                     (response) => {
+                        setFeeLoading(false);
                         setLoading(false);
                         setDeploymentError(null);
                         setTransactionID(response.data);
                     }
                 )
+            } else if (ev.data.type == 'DEPLOYMENT_FEE_ESTIMATION_COMPLETED') {
+                let fee = ev.data.deploymentFee;
+                setFeeLoading(false)
+                setLoading(false);
+                setDeploymentError(null);
+                setTransactionID(null);
+                setDeploymentFee(fee.toString());
             } else if (ev.data.type == 'ERROR') {
                 setDeploymentError(ev.data.errorMessage);
+                setFeeLoading(false)
                 setLoading(false);
+                setFeeLoading(false);
                 setTransactionID(null);
             }
         });
@@ -62,6 +73,7 @@ export const Deploy = () => {
             };
             worker.onerror = error => {
                 setDeploymentError(error);
+                setFeeLoading(false);
                 setLoading(false);
                 setTransactionID(null);
                 reject(error);
@@ -71,6 +83,7 @@ export const Deploy = () => {
     }
 
     const deploy = async (event) => {
+        setFeeLoading(false)
         setLoading(true)
         setTransactionID(null);
         setDeploymentError(null);
@@ -78,10 +91,12 @@ export const Deploy = () => {
         const feeAmount = parseFloat(feeString());
         if (isNaN(feeAmount)) {
             setDeploymentError("Fee is not a valid number");
+            setFeeLoading(false);
             setLoading(false);
             return;
         } else if (feeAmount <= 0) {
             setDeploymentError("Fee must be greater than 0");
+            setFeeLoading(false);
             setLoading(false);
             return;
         }
@@ -96,8 +111,22 @@ export const Deploy = () => {
         });
     }
 
-    const demo = async (event) => {
+    const estimate = async (event) => {
+        setFeeLoading(true)
         setLoading(false)
+        setTransactionID(null);
+        setDeploymentError(null);
+
+        await postMessagePromise(worker, {
+            type: "ALEO_ESTIMATE_DEPLOYMENT_FEE",
+            program: programString(),
+            url: peerUrl(),
+        });
+    }
+
+    const demo = async (event) => {
+        setFeeLoading(false);
+        setLoading(false);
         setTransactionID(null);
         setDeploymentError(null);
         setProgram("program hello_hello.aleo;\n" +
@@ -219,15 +248,23 @@ export const Deploy = () => {
             </Form.Item>
             <Row justify="center">
                 <Col justify="center">
-                    <Button type="primary" shape="round" size="middle" onClick={deploy}
-                    >Deploy</Button>
+                    <Space>
+                        <Button type="primary" shape="round" size="middle" onClick={deploy}
+                        >Deploy</Button>
+                        <Button type="primary" shape="round" size="middle" onClick={estimate}
+                        >Estimate Fee</Button>
+                    </Space>
                 </Col>
             </Row>
         </Form>
         <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
             {
                 (loading === true) &&
-                <Spin tip="Attempting to Deploy Program..." size="large"/>
+                    <Spin tip="Attempting to Deploy Program..." size="large"/>
+            }
+            {
+                (feeLoading === true && loading === false) &&
+                    <Spin tip="Estimating Deployment Fee..." size="large"/>
             }
             {
                 (transactionID !== null) &&
@@ -241,7 +278,7 @@ export const Deploy = () => {
                 (deploymentError !== null) &&
                 <Result
                     status="error"
-                    title="Deployment Error"
+                    title="Error"
                     subTitle={"Error: " + deploymentErrorString()}
                 />
             }
