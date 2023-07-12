@@ -16,6 +16,9 @@
 
 use super::*;
 
+pub mod offline;
+pub use offline::*;
+
 pub mod state;
 pub use state::*;
 
