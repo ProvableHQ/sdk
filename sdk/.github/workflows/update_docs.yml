@@ -1,0 +1,84 @@
+name: Update Documentation
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - testnet3
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sdk
+        uses: actions/checkout@v3
+        with:
+          repository: 'AleoHQ/sdk'
+          path: 'sdk'
+
+      - name: Checkout aleo-docs
+        uses: actions/checkout@v3
+        with:
+          repository: 'AleoHQ/aleo-docs'
+          path: 'aleo-docs'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout welcome
+        uses: actions/checkout@v3
+        with:
+          repository: 'AleoHQ/welcome'
+          path: 'welcome'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd sdk
+          npm install
+          cd ../aleo-docs
+          yarn install
+
+      - name: Generate Docs
+        run: |
+          cd ../aleo-docs
+          yarn gen-sdk-docs
+
+      - name: Update submodule and Push
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          cd ../welcome/sdk
+          git pull origin main
+          cd ..
+          git add .
+          git commit -m "Update sdk submodule and docs [skip ci]"
+          git push
+          cd ../aleo-docs
+          git add .
+          git commit -m "Update submodule [skip ci]"
+          git push
+
+      - name: Create Pull Request for welcome
+        uses: peter-evans/create-pull-request@v3
+        with:
+          path: 'welcome'
+          commit-message: 'Update sdk submodule and docs'
+          title: 'Docs and submodule update'
+          labels: 'documentation'
+          base: 'master'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Request for aleo-docs
+        uses: peter-evans/create-pull-request@v3
+        with:
+          path: 'aleo-docs'
+          commit-message: 'Update welcome submodule'
+          title: 'Submodule update'
+          labels: 'documentation'
+          base: 'master'
+          token: ${{ secrets.GITHUB_TOKEN }}
