@@ -11,6 +11,8 @@ import {GetBlockByHash} from "./tabs/rest/GetBlockByHash";
 import {GetBlockByHeight} from "./tabs/rest/GetBlockByHeight";
 import {GetLatestBlock} from "./tabs/rest/GetLatestBlock";
 import {GetLatestBlockHeight} from "./tabs/rest/GetLatestBlockHeight";
+import {GetMappingNames} from "./tabs/rest/GetMappingNames.jsx";
+import {GetMappingValue} from "./tabs/rest/GetMappingValue.jsx";
 import {GetProgram} from "./tabs/rest/GetProgram";
 import {GetTransaction} from "./tabs/rest/GetTransaction";
 import {NewAccount} from "./tabs/account/NewAccount";
@@ -123,6 +125,10 @@ function App() {
                                 <GetBlockByHash/>
                                 <br/>
                                 <GetProgram/>
+                                <br/>
+                                <GetMappingNames/>
+                                <br/>
+                                <GetMappingValue/>
                                 <br/>
                                 <GetTransaction/>
                             </>
