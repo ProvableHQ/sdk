@@ -351,9 +351,8 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_mappings_query() {
-        let client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
+        let client = AleoAPIClient::<Testnet3>::testnet3();
         let mappings = client.get_program_mappings("credits.aleo").unwrap();
         // Assert there's only one mapping in credits.aleo
         assert_eq!(mappings.len(), 1);
