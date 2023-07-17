@@ -31,7 +31,7 @@ are three endpoints:
 ## Installation & Configuration
 The development server can be installed with:
 
-`cargo install aleo-develop` - Install from crates.io
+`cargo install aleo-development-server` - Install from crates.io
 
 `cargo install --path . --locked` - Install from source
 
