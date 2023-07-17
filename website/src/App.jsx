@@ -1,25 +1,7 @@
 import "./App.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConfigProvider, Layout, Menu, theme } from "antd";
-import { AccountFromPrivateKey } from "./tabs/account/AccountFromPrivateKey";
-import { AddressFromViewKey } from "./tabs/account/AddressFromViewKey";
-import { DecryptAccount } from "./tabs/advanced/DecryptAccount";
-import { DecryptRecord } from "./tabs/record/DecryptRecord";
-import { Deploy } from "./tabs/develop/Deploy";
-import { EncryptAccount } from "./tabs/advanced/EncryptAccount";
-import { Execute } from "./tabs/develop/Execute";
-import { GetBlockByHash } from "./tabs/rest/GetBlockByHash";
-import { GetBlockByHeight } from "./tabs/rest/GetBlockByHeight";
-import { GetLatestBlock } from "./tabs/rest/GetLatestBlock";
-import { GetLatestBlockHeight } from "./tabs/rest/GetLatestBlockHeight";
-import { GetProgram } from "./tabs/rest/GetProgram";
-import { GetTransaction } from "./tabs/rest/GetTransaction";
-import { NewAccount } from "./tabs/account/NewAccount";
-import { SignMessage } from "./tabs/account/SignMessage";
-import { Transfer } from "./tabs/develop/Transfer";
-import { VerifyMessage } from "./tabs/account/VerifyMessage";
-import { Join } from "./tabs/develop/Join";
-import { Split } from "./tabs/develop/Split";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import {
     ApiOutlined,
@@ -34,34 +16,45 @@ const { Content, Footer, Sider } = Layout;
 
 function App() {
     const [menuIndex, setMenuIndex] = useState("account");
+
+    const navigate = useNavigate();
+    const location = useLocation();
     const onClick = (e) => {
-        setMenuIndex(e.key);
+        navigate(e.key);
     };
+
+    useEffect(() => {
+        console.log(location);
+        setMenuIndex(location.pathname);
+        if (location.pathname === "/") {
+            navigate("/account");
+        }
+    }, [location, navigate]);
 
     const menuItems = [
         {
             label: "Account",
-            key: "account",
+            key: "/account",
             icon: <UserOutlined />,
         },
         {
             label: "Record",
-            key: "record",
+            key: "/record",
             icon: <ProfileOutlined />,
         },
         {
             label: "REST API",
-            key: "rest",
+            key: "/rest",
             icon: <ApiOutlined />,
         },
         {
             label: "Advanced",
-            key: "advanced",
+            key: "/advanced",
             icon: <ToolOutlined />,
         },
         {
             label: "Develop",
-            key: "develop",
+            key: "/develop",
             icon: <CodeOutlined />,
         },
         {
@@ -92,62 +85,7 @@ function App() {
                 </Sider>
                 <Layout>
                     <Content style={{ padding: "50px 50px" }}>
-                        {menuIndex === "account" && (
-                            <>
-                                <NewAccount />
-                                <br />
-                                <AccountFromPrivateKey />
-                                <br />
-                                <AddressFromViewKey />
-                                <br />
-                                <SignMessage />
-                                <br />
-                                <VerifyMessage />
-                            </>
-                        )}
-                        {menuIndex === "record" && (
-                            <>
-                                <DecryptRecord />
-                            </>
-                        )}
-                        {menuIndex === "rest" && (
-                            <>
-                                <GetLatestBlockHeight />
-                                <br />
-                                <GetLatestBlock />
-                                <br />
-                                <GetBlockByHeight />
-                                <br />
-                                <GetBlockByHash />
-                                <br />
-                                <GetProgram />
-                                <br />
-                                <GetTransaction />
-                            </>
-                        )}
-                        {menuIndex === "advanced" && (
-                            <>
-                                <EncryptAccount />
-                                <br />
-                                <DecryptAccount />
-                            </>
-                        )}
-                        {menuIndex === "develop" && (
-                            <>
-                                <Execute />
-                                <br />
-                                <Deploy />
-                            </>
-                        )}
-                        {menuIndex === "transfer" && (
-                            <>
-                                <Transfer />
-                                <br />
-                                <Split />
-                                <br />
-                                <Join />
-                            </>
-                        )}
+                        <Outlet />
                     </Content>
                     <Footer style={{ textAlign: "center" }}>
                         Visit the{" "}
