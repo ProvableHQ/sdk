@@ -1,5 +1,5 @@
 import "./App.css";
-import React, { useState } from "react";
+import { useState } from "react";
 import { ConfigProvider, Layout, Menu, theme } from "antd";
 import { AccountFromPrivateKey } from "./tabs/account/AccountFromPrivateKey";
 import { DecryptAccount } from "./tabs/advanced/DecryptAccount";

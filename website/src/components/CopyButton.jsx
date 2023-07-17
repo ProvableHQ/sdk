@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import copyToClipboard from "copy-to-clipboard";
 import { CheckCircleOutlined, CopyOutlined } from "@ant-design/icons";
 

@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     Button,
     Card,
     Col,
-    Divider,
     Form,
     Input,
     Row,
     Result,
     Spin,
-    Switch,
 } from "antd";
 import axios from "axios";
 
@@ -68,7 +66,7 @@ export const Join = () => {
         }
     }, []);
 
-    const join = async (event) => {
+    const join = async () => {
         setLoading(true);
         setTransactionID(null);
         setJoinError(null);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Card, Col, Divider, Form, Input, Row, Skeleton } from "antd";
 import { CopyButton } from "../../components/CopyButton";
 import { useAleoWASM } from "../../aleo-wasm-hook";
@@ -54,7 +54,7 @@ export const DecryptRecord = () => {
             }
         }
     };
-    const populateForm = async (event) => {
+    const populateForm = async () => {
         const recordCipherTextString =
             "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
         const viewKeyString =
@@ -63,7 +63,7 @@ export const DecryptRecord = () => {
         setViewKey(viewKeyString);
         tryDecrypt(recordCipherTextString, viewKeyString);
     };
-    const clearForm = async (event) => {
+    const clearForm = async () => {
         setCiphertext(null);
         setViewKey(null);
         setPlaintext(null);

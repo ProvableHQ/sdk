@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, Form, Input } from "antd";
 import { useAleoWASM } from "../../aleo-wasm-hook";
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";

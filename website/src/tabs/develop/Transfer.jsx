@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     Button,
     Card,
     Col,
-    Divider,
     Form,
     Input,
     Row,
     Result,
     Spin,
-    Switch,
 } from "antd";
 import axios from "axios";
 
@@ -26,7 +24,6 @@ export const Transfer = () => {
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
-    const [provingKey, setProvingKey] = useState(null);
 
     function spawnWorker() {
         let worker = new Worker(
@@ -70,7 +67,7 @@ export const Transfer = () => {
         }
     }, []);
 
-    const transfer = async (event) => {
+    const transfer = async () => {
         setLoading(true);
         setTransactionID(null);
         setTransferError(null);

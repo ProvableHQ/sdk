@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     Button,
     Card,
     Col,
-    Divider,
     Form,
     Input,
     Row,
     Result,
     Spin,
-    Switch,
 } from "antd";
 import axios from "axios";
 
@@ -66,7 +64,7 @@ export const Split = () => {
         }
     }, []);
 
-    const split = async (event) => {
+    const split = async () => {
         setLoading(true);
         setTransactionID(null);
         setSplitError(null);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     Button,
     Card,
@@ -9,10 +9,8 @@ import {
     Row,
     Result,
     Spin,
-    Switch,
     Space,
 } from "antd";
-import { FormGenerator } from "../../components/InputForm";
 import axios from "axios";
 import init, * as aleo from "@aleohq/wasm";
 
@@ -98,7 +96,7 @@ export const Deploy = () => {
         });
     }
 
-    const deploy = async (event) => {
+    const deploy = async () => {
         setFeeLoading(false);
         setLoading(true);
         setTransactionID(null);
@@ -127,7 +125,7 @@ export const Deploy = () => {
         });
     };
 
-    const estimate = async (event) => {
+    const estimate = async () => {
         setFeeLoading(true);
         setLoading(false);
         setTransactionID(null);
@@ -140,7 +138,7 @@ export const Deploy = () => {
         });
     };
 
-    const demo = async (event) => {
+    const demo = async () => {
         setFeeLoading(false);
         setLoading(false);
         setTransactionID(null);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     Button,
     Card,
@@ -38,7 +38,7 @@ export const Execute = () => {
     const [programInputs, setProgramInputs] = useState(null);
     const [tip, setTip] = useState("Executing Program...");
 
-    const getProgramInputs = (event) => {
+    const getProgramInputs = () => {
         const programManifest = [];
         if (program) {
             try {
@@ -146,7 +146,7 @@ export const Execute = () => {
         });
     }
 
-    const execute = async (event) => {
+    const execute = async () => {
         setLoading(true);
         setTip("Executing Program...");
         setProgramResponse(null);
@@ -170,7 +170,7 @@ export const Execute = () => {
 
         let functionInputs = [];
         try {
-            if (!!inputs) {
+            if (inputs) {
                 functionInputs = inputs.split(" ");
             }
         } catch (e) {
@@ -203,7 +203,7 @@ export const Execute = () => {
         }
     };
 
-    const estimate = async (event) => {
+    const estimate = async () => {
         setFeeLoading(true);
         setLoading(false);
         setProgramResponse(null);
@@ -235,7 +235,7 @@ export const Execute = () => {
         }
     };
 
-    const demo = async (event) => {
+    const demo = async () => {
         setLoading(false);
         setProgramResponse(null);
         setTransactionID(null);

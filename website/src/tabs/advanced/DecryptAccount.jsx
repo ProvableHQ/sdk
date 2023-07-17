@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Alert, Card, Divider, Form, Input, Row } from "antd";
+import { useEffect, useState } from "react";
+import { Card, Divider, Form, Input } from "antd";
 import { CopyButton } from "../../components/CopyButton";
 import { useAleoWASM } from "../../aleo-wasm-hook";
 
