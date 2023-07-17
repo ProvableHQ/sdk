@@ -2,6 +2,7 @@ import './App.css';
 import React, {useState} from 'react';
 import {ConfigProvider, Layout, Menu, theme} from 'antd';
 import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
+import {AddressFromViewKey} from "./tabs/account/AddressFromViewKey";
 import {DecryptAccount} from "./tabs/advanced/DecryptAccount";
 import {DecryptRecord} from "./tabs/record/DecryptRecord";
 import {Deploy} from "./tabs/develop/Deploy";
@@ -99,6 +100,8 @@ function App() {
                                 <NewAccount/>
                                 <br/>
                                 <AccountFromPrivateKey/>
+                                <br/>
+                                <AddressFromViewKey/>
                                 <br/>
                                 <SignMessage/>
                                 <br/>
