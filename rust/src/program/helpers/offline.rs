@@ -56,18 +56,24 @@ impl<N: Network> OfflineExecution<N> {
         self.response.as_ref().map(|r| r.outputs().to_vec())
     }
 
+    /// Get public outputs
+    pub fn public_outputs(&self) -> Option<Vec<Value<N>>> {
+        self.public_outputs.clone()
+    }
+
     /// Get the trace of the execution
     pub fn trace(&self) -> &Trace<N> {
         &self.trace
     }
 
     /// Verify the execution proof against the given verifier inputs and program verifying key
+    #[allow(clippy::type_complexity)]
     pub fn verify_execution_proof(
         &self,
         locator: &str,
         verifier_inputs: Vec<(VerifyingKey<N>, Vec<Vec<N::Field>>)>,
         execution: &Execution<N>,
     ) -> Result<(), String> {
-        self.verify_execution_proof(locator, verifier_inputs, execution)
+        Trace::verify_execution_proof(locator, verifier_inputs, execution).map_err(|e| e.to_string())
     }
 }

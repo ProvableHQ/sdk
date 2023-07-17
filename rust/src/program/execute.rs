@@ -64,11 +64,10 @@ impl<N: Network> ProgramManager<N> {
         let execution = trace.prove_execution::<A, _>(&locator.to_string(), &mut rand::thread_rng())?;
 
         let mut public_outputs = vec![];
-        response.outputs().iter().zip(response.output_ids().iter()).for_each(|(output, output_id)| match output_id {
-            OutputID::Public(_) => {
+        response.outputs().iter().zip(response.output_ids().iter()).for_each(|(output, output_id)| {
+            if let OutputID::Public(_) = output_id {
                 public_outputs.push(output.clone());
             }
-            _ => {}
         });
 
         let response = if include_outputs { Some(response) } else { None };
