@@ -24,7 +24,6 @@ function App() {
     };
 
     useEffect(() => {
-        console.log(location);
         setMenuIndex(location.pathname);
         if (location.pathname === "/") {
             navigate("/account");
