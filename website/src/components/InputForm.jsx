@@ -1,5 +1,5 @@
-import React from 'react';
-import { Form, Input, Typography } from 'antd';
+import React from "react";
+import { Form, Input, Typography } from "antd";
 const { Title } = Typography;
 const nameOrIndex = (field, index) => {
     if (field.name) {
@@ -9,7 +9,11 @@ const nameOrIndex = (field, index) => {
 };
 
 const createFormField = (field, index) => (
-    <Form.Item label={nameOrIndex(field, index)} name={nameOrIndex(field, index)} key={index}>
+    <Form.Item
+        label={nameOrIndex(field, index)}
+        name={nameOrIndex(field, index)}
+        key={index}
+    >
         <Input placeholder={field.type} />
     </Form.Item>
 );
@@ -34,10 +38,10 @@ export const FormGenerator = ({ formData }) => {
         <div>
             {formData.map((funcData, index) => (
                 <div key={index}>
-                    <Title level={3}>{"function: " + funcData.functionID}</Title>
-                    <Form>
-                        {renderFormFields(funcData.inputs)}
-                    </Form>
+                    <Title level={3}>
+                        {"function: " + funcData.functionID}
+                    </Title>
+                    <Form>{renderFormFields(funcData.inputs)}</Form>
                 </div>
             ))}
         </div>

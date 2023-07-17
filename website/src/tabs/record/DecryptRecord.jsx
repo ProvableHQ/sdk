@@ -1,7 +1,7 @@
-import React, {useState} from "react";
-import {Button, Card, Col, Divider, Form, Input, Row, Skeleton} from "antd";
-import {CopyButton} from "../../components/CopyButton";
-import {useAleoWASM} from "../../aleo-wasm-hook";
+import React, { useState } from "react";
+import { Button, Card, Col, Divider, Form, Input, Row, Skeleton } from "antd";
+import { CopyButton } from "../../components/CopyButton";
+import { useAleoWASM } from "../../aleo-wasm-hook";
 
 export const DecryptRecord = () => {
     const [ciphertext, setCiphertext] = useState(null);
@@ -18,7 +18,7 @@ export const DecryptRecord = () => {
         } catch (error) {
             console.error(error);
         }
-    }
+    };
     const onViewKeyChange = (event) => {
         setViewKey(null);
         try {
@@ -27,13 +27,15 @@ export const DecryptRecord = () => {
         } catch (error) {
             console.error(error);
         }
-    }
+    };
     const tryDecrypt = (ciphertext, viewKey) => {
         setPlaintext(null);
         try {
             // Check if we have a ciphertext and a view key, and if so, decrypt the ciphertext.
             if (ciphertext && viewKey) {
-                setPlaintext(aleo.ViewKey.from_string(viewKey).decrypt(ciphertext));
+                setPlaintext(
+                    aleo.ViewKey.from_string(viewKey).decrypt(ciphertext),
+                );
                 setIsOwner(true);
             }
         } catch (error) {
@@ -51,75 +53,118 @@ export const DecryptRecord = () => {
                 setPlaintext(null);
             }
         }
-    }
+    };
     const populateForm = async (event) => {
-        const recordCipherTextString = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
-        const viewKeyString = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
+        const recordCipherTextString =
+            "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
+        const viewKeyString =
+            "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
         setCiphertext(recordCipherTextString);
         setViewKey(viewKeyString);
         tryDecrypt(recordCipherTextString, viewKeyString);
-    }
+    };
     const clearForm = async (event) => {
         setCiphertext(null);
         setViewKey(null);
         setPlaintext(null);
         setIsOwner(null);
-    }
+    };
 
-    const layout = {labelCol: {span: 4}, wrapperCol: {span: 21}};
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     if (aleo !== null) {
-        const recordPlaintext = () => plaintext !== null ? plaintext.toString() : "";
-        const viewKeyString = () => viewKey !== null ? viewKey.toString() : "";
-        const recordCipherTextString = () => ciphertext !== null ? ciphertext.toString() : "";
+        const recordPlaintext = () =>
+            plaintext !== null ? plaintext.toString() : "";
+        const viewKeyString = () =>
+            viewKey !== null ? viewKey.toString() : "";
+        const recordCipherTextString = () =>
+            ciphertext !== null ? ciphertext.toString() : "";
 
-        return <Card title="Decrypt Record"
-                     style={{width: "100%", borderRadius: "20px"}}
-                     bordered={false}
-                     extra={<Button type="primary" shape="round" size="middle"
-                                    onClick={populateForm}>Demo</Button>}>
-            <Form {...layout}>
-                <Form.Item label="Record (Ciphertext)" colon={false}>
-                    <Input name="recordCiphertext" size="large" placeholder="Record (Ciphertext)" allowClear onChange={onCiphertextChange}
-                           value={recordCipherTextString()} style={{borderRadius: '20px'}}/>
-                </Form.Item>
-                <Form.Item label="View Key" colon={false}>
-                    <Input name="viewKey" size="large" placeholder="View Key" allowClear onChange={onViewKeyChange}
-                           value={viewKeyString()} style={{borderRadius: '20px'}}/>
-                </Form.Item>
-            </Form>
-            {
-                (ciphertext || viewKey) ?
-                <Row justify="center">
-                    <Col><Button shape="round" size="middle" onClick={clearForm}
-                    >Clear</Button></Col>
-                </Row> : null
-
-            }
-            {
+        return (
+            <Card
+                title="Decrypt Record"
+                style={{ width: "100%", borderRadius: "20px" }}
+                bordered={false}
+                extra={
+                    <Button
+                        type="primary"
+                        shape="round"
+                        size="middle"
+                        onClick={populateForm}
+                    >
+                        Demo
+                    </Button>
+                }
+            >
                 <Form {...layout}>
-                    <Divider/>
-                    <Form.Item label="Record (Plaintext)" colon={false}>
-                        {
-                            (plaintext) ?
-                                    <Row align="middle">
-                                        <Col span={23}>
-                                            <Input.TextArea size="large"  rows={10} placeholder="Record (Plaintext)"
-                                                            value={recordPlaintext()} disabled/>
-                                        </Col>
-                                        <Col span={1} align="middle">
-                                            <CopyButton data={recordPlaintext()}/>
-                                        </Col>
-                                    </Row>
-                                : <Skeleton active/>
-                        }
+                    <Form.Item label="Record (Ciphertext)" colon={false}>
+                        <Input
+                            name="recordCiphertext"
+                            size="large"
+                            placeholder="Record (Ciphertext)"
+                            allowClear
+                            onChange={onCiphertextChange}
+                            value={recordCipherTextString()}
+                            style={{ borderRadius: "20px" }}
+                        />
+                    </Form.Item>
+                    <Form.Item label="View Key" colon={false}>
+                        <Input
+                            name="viewKey"
+                            size="large"
+                            placeholder="View Key"
+                            allowClear
+                            onChange={onViewKeyChange}
+                            value={viewKeyString()}
+                            style={{ borderRadius: "20px" }}
+                        />
                     </Form.Item>
                 </Form>
-        }
-        </Card>
+                {ciphertext || viewKey ? (
+                    <Row justify="center">
+                        <Col>
+                            <Button
+                                shape="round"
+                                size="middle"
+                                onClick={clearForm}
+                            >
+                                Clear
+                            </Button>
+                        </Col>
+                    </Row>
+                ) : null}
+                {
+                    <Form {...layout}>
+                        <Divider />
+                        <Form.Item label="Record (Plaintext)" colon={false}>
+                            {plaintext ? (
+                                <Row align="middle">
+                                    <Col span={23}>
+                                        <Input.TextArea
+                                            size="large"
+                                            rows={10}
+                                            placeholder="Record (Plaintext)"
+                                            value={recordPlaintext()}
+                                            disabled
+                                        />
+                                    </Col>
+                                    <Col span={1} align="middle">
+                                        <CopyButton data={recordPlaintext()} />
+                                    </Col>
+                                </Row>
+                            ) : (
+                                <Skeleton active />
+                            )}
+                        </Form.Item>
+                    </Form>
+                }
+            </Card>
+        );
     } else {
-        return <h3>
-            <center>Loading...</center>
-        </h3>
+        return (
+            <h3>
+                <center>Loading...</center>
+            </h3>
+        );
     }
-}
+};

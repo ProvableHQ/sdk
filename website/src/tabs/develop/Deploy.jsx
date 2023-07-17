@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from "react";
-import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch, Space} from "antd";
-import {FormGenerator} from "../../components/InputForm";
+import {
+    Button,
+    Card,
+    Col,
+    Divider,
+    Form,
+    Input,
+    Row,
+    Result,
+    Spin,
+    Switch,
+    Space,
+} from "antd";
+import { FormGenerator } from "../../components/InputForm";
 import axios from "axios";
-import init, * as aleo from '@aleohq/wasm';
+import init, * as aleo from "@aleohq/wasm";
 
 await init();
 
@@ -20,34 +32,38 @@ export const Deploy = () => {
     const [worker, setWorker] = useState(null);
     function spawnWorker() {
         let worker = new Worker(
-            new URL('../../workers/worker.js', import.meta.url),
-            {type: 'module'}
+            new URL("../../workers/worker.js", import.meta.url),
+            { type: "module" },
         );
-        worker.addEventListener("message", ev => {
-            if (ev.data.type == 'DEPLOY_TRANSACTION_COMPLETED') {
+        worker.addEventListener("message", (ev) => {
+            if (ev.data.type == "DEPLOY_TRANSACTION_COMPLETED") {
                 let [deployTransaction, url] = ev.data.deployTransaction;
-                axios.post(url + "/testnet3/transaction/broadcast", deployTransaction, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                }).then(
-                    (response) => {
+                axios
+                    .post(
+                        url + "/testnet3/transaction/broadcast",
+                        deployTransaction,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        },
+                    )
+                    .then((response) => {
                         setFeeLoading(false);
                         setLoading(false);
                         setDeploymentError(null);
                         setTransactionID(response.data);
-                    }
-                )
-            } else if (ev.data.type == 'DEPLOYMENT_FEE_ESTIMATION_COMPLETED') {
+                    });
+            } else if (ev.data.type == "DEPLOYMENT_FEE_ESTIMATION_COMPLETED") {
                 let fee = ev.data.deploymentFee;
-                setFeeLoading(false)
+                setFeeLoading(false);
                 setLoading(false);
                 setDeploymentError(null);
                 setTransactionID(null);
                 setDeploymentFee(fee.toString());
-            } else if (ev.data.type == 'ERROR') {
+            } else if (ev.data.type == "ERROR") {
                 setDeploymentError(ev.data.errorMessage);
-                setFeeLoading(false)
+                setFeeLoading(false);
                 setLoading(false);
                 setFeeLoading(false);
                 setTransactionID(null);
@@ -61,17 +77,17 @@ export const Deploy = () => {
             const spawnedWorker = spawnWorker();
             setWorker(spawnedWorker);
             return () => {
-                spawnedWorker.terminate()
+                spawnedWorker.terminate();
             };
         }
     }, []);
 
     function postMessagePromise(worker, message) {
         return new Promise((resolve, reject) => {
-            worker.onmessage = event => {
+            worker.onmessage = (event) => {
                 resolve(event.data);
             };
-            worker.onerror = error => {
+            worker.onerror = (error) => {
                 setDeploymentError(error);
                 setFeeLoading(false);
                 setLoading(false);
@@ -83,8 +99,8 @@ export const Deploy = () => {
     }
 
     const deploy = async (event) => {
-        setFeeLoading(false)
-        setLoading(true)
+        setFeeLoading(false);
+        setLoading(true);
         setTransactionID(null);
         setDeploymentError(null);
 
@@ -109,11 +125,11 @@ export const Deploy = () => {
             feeRecord: feeRecordString(),
             url: peerUrl(),
         });
-    }
+    };
 
     const estimate = async (event) => {
-        setFeeLoading(true)
-        setLoading(false)
+        setFeeLoading(true);
+        setLoading(false);
         setTransactionID(null);
         setDeploymentError(null);
 
@@ -122,28 +138,30 @@ export const Deploy = () => {
             program: programString(),
             url: peerUrl(),
         });
-    }
+    };
 
     const demo = async (event) => {
         setFeeLoading(false);
         setLoading(false);
         setTransactionID(null);
         setDeploymentError(null);
-        setProgram("program hello_hello.aleo;\n" +
-            "\n" +
-            "function hello:\n" +
-            "    input r0 as u32.public;\n" +
-            "    input r1 as u32.private;\n" +
-            "    add r0 r1 into r2;\n" +
-            "    output r2 as u32.private;\n");
-    }
+        setProgram(
+            "program hello_hello.aleo;\n" +
+                "\n" +
+                "function hello:\n" +
+                "    input r0 as u32.public;\n" +
+                "    input r1 as u32.private;\n" +
+                "    add r0 r1 into r2;\n" +
+                "    output r2 as u32.private;\n",
+        );
+    };
 
     const onUrlChange = (event) => {
         if (event.target.value !== null) {
             setDeployUrl(event.target.value);
         }
         return deployUrl;
-    }
+    };
 
     const onProgramChange = (event) => {
         if (event.target.value !== null) {
@@ -152,7 +170,7 @@ export const Deploy = () => {
         setTransactionID(null);
         setDeploymentError(null);
         return program;
-    }
+    };
 
     const onDeploymentFeeChange = (event) => {
         if (event.target.value !== null) {
@@ -161,7 +179,7 @@ export const Deploy = () => {
         setTransactionID(null);
         setDeploymentError(null);
         return deploymentFee;
-    }
+    };
 
     const onDeploymentFeeRecordChange = (event) => {
         if (event.target.value !== null) {
@@ -170,7 +188,7 @@ export const Deploy = () => {
         setTransactionID(null);
         setDeploymentError(null);
         return deploymentFeeRecord;
-    }
+    };
 
     const onPrivateKeyChange = (event) => {
         if (event.target.value !== null) {
@@ -179,109 +197,153 @@ export const Deploy = () => {
         setTransactionID(null);
         setDeploymentError(null);
         return privateKey;
-    }
+    };
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const privateKeyString = () => privateKey !== null ? privateKey : "";
-    const programString = () => program !== null ? program : "";
-    const feeRecordString = () => deploymentFeeRecord !== null ? deploymentFeeRecord : "";
-    const transactionIDString = () => transactionID !== null ? transactionID : "";
-    const deploymentErrorString = () => deploymentError !== null ? deploymentError : "";
-    const feeString = () => deploymentFee !== null ? deploymentFee : "";
-    const peerUrl = () => deployUrl !== null ? deployUrl : "";
+    const privateKeyString = () => (privateKey !== null ? privateKey : "");
+    const programString = () => (program !== null ? program : "");
+    const feeRecordString = () =>
+        deploymentFeeRecord !== null ? deploymentFeeRecord : "";
+    const transactionIDString = () =>
+        transactionID !== null ? transactionID : "";
+    const deploymentErrorString = () =>
+        deploymentError !== null ? deploymentError : "";
+    const feeString = () => (deploymentFee !== null ? deploymentFee : "");
+    const peerUrl = () => (deployUrl !== null ? deployUrl : "");
 
-    return <Card title="Deploy Program"
-                 style={{width: "100%", borderRadius: "20px"}}
-                 bordered={false}
-                 extra={<Button type="primary" shape="round" size="middle"
-                                onClick={demo}>Demo</Button>}>
-        <Form {...layout}>
-            <Divider/>
-            <Form.Item label="Program" colon={false}>
-                <Input.TextArea size="large" rows={10} placeholder="Program" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
-                                value={programString()} onChange={onProgramChange}/>
-            </Form.Item>
-            <Divider/>
-            <Form.Item label="Private Key"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="private_key"
-                                size="small"
-                                placeholder="Private Key"
-                                allowClear
-                                onChange={onPrivateKeyChange}
-                                value={privateKeyString()}/>
-            </Form.Item>
-            <Form.Item label="Peer Url"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Peer URL"
+    return (
+        <Card
+            title="Deploy Program"
+            style={{ width: "100%", borderRadius: "20px" }}
+            bordered={false}
+            extra={
+                <Button
+                    type="primary"
+                    shape="round"
+                    size="middle"
+                    onClick={demo}
+                >
+                    Demo
+                </Button>
+            }
+        >
+            <Form {...layout}>
+                <Divider />
+                <Form.Item label="Program" colon={false}>
+                    <Input.TextArea
+                        size="large"
+                        rows={10}
+                        placeholder="Program"
+                        style={{
+                            whiteSpace: "pre-wrap",
+                            overflowWrap: "break-word",
+                        }}
+                        value={programString()}
+                        onChange={onProgramChange}
+                    />
+                </Form.Item>
+                <Divider />
+                <Form.Item
+                    label="Private Key"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="private_key"
+                        size="small"
+                        placeholder="Private Key"
+                        allowClear
+                        onChange={onPrivateKeyChange}
+                        value={privateKeyString()}
+                    />
+                </Form.Item>
+                <Form.Item
+                    label="Peer Url"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="Peer URL"
+                        size="middle"
+                        placeholder="Aleo Network Node URL"
+                        allowClear
+                        onChange={onUrlChange}
+                        value={peerUrl()}
+                    />
+                </Form.Item>
+                <Form.Item label="Fee" colon={false} validateStatus={status}>
+                    <Input.TextArea
+                        name="Fee"
+                        size="small"
+                        placeholder="Fee"
+                        allowClear
+                        onChange={onDeploymentFeeChange}
+                        value={feeString()}
+                    />
+                </Form.Item>
+                <Form.Item
+                    label="Fee Record"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="Fee Record"
+                        size="small"
+                        placeholder="Record used to pay deployment fee"
+                        allowClear
+                        onChange={onDeploymentFeeRecordChange}
+                        value={feeRecordString()}
+                    />
+                </Form.Item>
+                <Row justify="center">
+                    <Col justify="center">
+                        <Space>
+                            <Button
+                                type="primary"
+                                shape="round"
                                 size="middle"
-                                placeholder="Aleo Network Node URL"
-                                allowClear
-                                onChange={onUrlChange}
-                                value={peerUrl()}/>
-            </Form.Item>
-            <Form.Item label="Fee"
-                       colon={false}
-                       validateStatus={status}
+                                onClick={deploy}
+                            >
+                                Deploy
+                            </Button>
+                            <Button
+                                type="primary"
+                                shape="round"
+                                size="middle"
+                                onClick={estimate}
+                            >
+                                Estimate Fee
+                            </Button>
+                        </Space>
+                    </Col>
+                </Row>
+            </Form>
+            <Row
+                justify="center"
+                gutter={[16, 32]}
+                style={{ marginTop: "48px" }}
             >
-                <Input.TextArea name="Fee"
-                                size="small"
-                                placeholder="Fee"
-                                allowClear
-                                onChange={onDeploymentFeeChange}
-                                value={feeString()}/>
-            </Form.Item>
-            <Form.Item label="Fee Record"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Fee Record"
-                                size="small"
-                                placeholder="Record used to pay deployment fee"
-                                allowClear
-                                onChange={onDeploymentFeeRecordChange}
-                                value={feeRecordString()}/>
-            </Form.Item>
-            <Row justify="center">
-                <Col justify="center">
-                    <Space>
-                        <Button type="primary" shape="round" size="middle" onClick={deploy}
-                        >Deploy</Button>
-                        <Button type="primary" shape="round" size="middle" onClick={estimate}
-                        >Estimate Fee</Button>
-                    </Space>
-                </Col>
+                {loading === true && (
+                    <Spin tip="Attempting to Deploy Program..." size="large" />
+                )}
+                {feeLoading === true && loading === false && (
+                    <Spin tip="Estimating Deployment Fee..." size="large" />
+                )}
+                {transactionID !== null && (
+                    <Result
+                        status="success"
+                        title="Deployment Successful!"
+                        subTitle={"Transaction ID: " + transactionIDString()}
+                    />
+                )}
+                {deploymentError !== null && (
+                    <Result
+                        status="error"
+                        title="Error"
+                        subTitle={"Error: " + deploymentErrorString()}
+                    />
+                )}
             </Row>
-        </Form>
-        <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
-            {
-                (loading === true) &&
-                    <Spin tip="Attempting to Deploy Program..." size="large"/>
-            }
-            {
-                (feeLoading === true && loading === false) &&
-                    <Spin tip="Estimating Deployment Fee..." size="large"/>
-            }
-            {
-                (transactionID !== null) &&
-                <Result
-                    status="success"
-                    title="Deployment Successful!"
-                    subTitle={"Transaction ID: " + transactionIDString()}
-                />
-            }
-            {
-                (deploymentError !== null) &&
-                <Result
-                    status="error"
-                    title="Error"
-                    subTitle={"Error: " + deploymentErrorString()}
-                />
-            }
-        </Row>
-    </Card>
-}
+        </Card>
+    );
+};
