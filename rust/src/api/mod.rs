@@ -50,7 +50,7 @@ impl<N: Network> AleoAPIClient<N> {
     }
 
     pub fn local_testnet3(port: &str) -> Self {
-        Self::new(&format!("http://localhost:{}", port), "testnet3").unwrap()
+        Self::new(&format!("http://0.0.0.0:{}", port), "testnet3").unwrap()
     }
 
     /// Get base URL
