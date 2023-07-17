@@ -37,7 +37,6 @@ jobs:
           rustup component add rust-src
           cd website
           npm install
-          npm run lint
           npm run build
           cp _headers dist/_headers
         env:

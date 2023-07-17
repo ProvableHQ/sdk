@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-    Button,
-    Card,
-    Col,
-    Form,
-    Input,
-    Row,
-    Result,
-    Spin,
-} from "antd";
+import { Button, Card, Col, Form, Input, Row, Result, Spin } from "antd";
 import axios from "axios";
 
 export const Transfer = () => {
