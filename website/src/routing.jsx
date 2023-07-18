@@ -1,0 +1,107 @@
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import App from "./App.jsx";
+import { NewAccount } from "./tabs/account/NewAccount.jsx";
+import { AccountFromPrivateKey } from "./tabs/account/AccountFromPrivateKey.jsx";
+import { AddressFromViewKey } from "./tabs/account/AddressFromViewKey.jsx";
+import { SignMessage } from "./tabs/account/SignMessage.jsx";
+import { VerifyMessage } from "./tabs/account/VerifyMessage.jsx";
+import { DecryptRecord } from "./tabs/record/DecryptRecord.jsx";
+import { GetLatestBlockHeight } from "./tabs/rest/GetLatestBlockHeight.jsx";
+import { GetLatestBlock } from "./tabs/rest/GetLatestBlock.jsx";
+import { GetBlockByHeight } from "./tabs/rest/GetBlockByHeight.jsx";
+import { GetBlockByHash } from "./tabs/rest/GetBlockByHash.jsx";
+import { GetProgram } from "./tabs/rest/GetProgram.jsx";
+import { GetTransaction } from "./tabs/rest/GetTransaction.jsx";
+import { EncryptAccount } from "./tabs/advanced/EncryptAccount.jsx";
+import { DecryptAccount } from "./tabs/advanced/DecryptAccount.jsx";
+import { Execute } from "./tabs/develop/Execute.jsx";
+import { Deploy } from "./tabs/develop/Deploy.jsx";
+import { Transfer } from "./tabs/develop/Transfer.jsx";
+import { Split } from "./tabs/develop/Split.jsx";
+import { Join } from "./tabs/develop/Join.jsx";
+
+export const router = createBrowserRouter([
+    {
+        element: <App />,
+        children: [
+            {
+                path: "/",
+                element: <Navigate to="/deploy" replace={false} />,
+            },
+            {
+                path: "/account",
+                element: (
+                    <>
+                        <NewAccount />
+                        <br />
+                        <AccountFromPrivateKey />
+                        <br />
+                        <AddressFromViewKey />
+                        <br />
+                        <SignMessage />
+                        <br />
+                        <VerifyMessage />
+                    </>
+                ),
+            },
+            {
+                path: "/record",
+                element: (
+                    <>
+                        <DecryptRecord />
+                    </>
+                ),
+            },
+            {
+                path: "/rest",
+                element: (
+                    <>
+                        <GetLatestBlockHeight />
+                        <br />
+                        <GetLatestBlock />
+                        <br />
+                        <GetBlockByHeight />
+                        <br />
+                        <GetBlockByHash />
+                        <br />
+                        <GetProgram />
+                        <br />
+                        <GetTransaction />
+                    </>
+                ),
+            },
+            {
+                path: "/advanced",
+                element: (
+                    <>
+                        <EncryptAccount />
+                        <br />
+                        <DecryptAccount />
+                    </>
+                ),
+            },
+            {
+                path: "/develop",
+                element: (
+                    <>
+                        <Execute />
+                        <br />
+                        <Deploy />
+                    </>
+                ),
+            },
+            {
+                path: "/transfer",
+                element: (
+                    <>
+                        <Transfer />
+                        <br />
+                        <Split />
+                        <br />
+                        <Join />
+                    </>
+                ),
+            },
+        ],
+    },
+]);
