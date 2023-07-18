@@ -71,7 +71,6 @@ impl<N: Network> ProgramManager<N> {
 
         // Check if program imports are deployed on chain. If so add them to the list of imports
         // and continue with deployment. If not, cancel deployment.
-        let mut imports = vec![];
         program.imports().keys().try_for_each(|program_id| {
             let imported_program = if self.contains_program(program_id)? {
                 self.get_program(program_id)
@@ -88,14 +87,11 @@ impl<N: Network> ProgramManager<N> {
                 }
                 OnChainProgramState::Same => (),
             };
-            if imports.contains(&imported_program) {
-                bail!("❌ Imported program {imported_program_id:?} was specified twice by {program_id:?}, remove the duplicated import before trying again");
-            }
-            if imported_program_id.to_string() != "credits.aleo" {
-                imports.push(imported_program);
-            }
+
             Ok::<_, Error>(())
         })?;
+
+        let imports = self.api_client()?.resolve_imports_from_source(&program)?;
 
         // Try to get the private key
         let private_key = self.get_private_key(password)?;
@@ -137,7 +133,7 @@ impl<N: Network> ProgramManager<N> {
     /// Create a deploy transaction for a program without instantiating the program manager
     pub fn create_deploy_transaction(
         program: &Program<N>,
-        imports: &[Program<N>],
+        imports: &IndexMap<ProgramID<N>, Program<N>>,
         private_key: &PrivateKey<N>,
         fee: u64,
         fee_record: Record<N, Plaintext<N>>,
@@ -150,7 +146,7 @@ impl<N: Network> ProgramManager<N> {
         // Attempt to add the programs to a local VM. This will fail if any imports are duplicated.
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        imports.iter().try_for_each(|imported_program| {
+        imports.iter().try_for_each(|(_, imported_program)| {
             if imported_program.id().to_string() != "credits.aleo" {
                 vm.process().write().add_program(imported_program)?;
             };
@@ -163,7 +159,9 @@ impl<N: Network> ProgramManager<N> {
     /// Estimate deployment fee for a program in microcredits. The result will be in the form
     /// (total_cost, (storage_cost, namespace_cost))
     pub fn estimate_deployment_fee<A: Aleo<Network = N>>(&mut self, program: &Program<N>) -> Result<(u64, (u64, u64))> {
-        let process = Process::load()?;
+        let mut process = Process::load()?;
+        let imports = self.api_client()?.resolve_imports_from_source(program)?;
+        imports.iter().try_for_each(|(_, import)| process.add_program(import))?;
         let deployment = process.deploy::<A, _>(program, &mut rand::thread_rng())?;
         let (minimum_deployment_cost, (storage_cost, namespace_cost)) = deployment_cost::<N>(&deployment)?;
         Ok((minimum_deployment_cost, (storage_cost, namespace_cost)))

@@ -107,6 +107,8 @@ impl<N: Network> ProgramManager<N> {
             .get_program(program_id)
             .map_err(|_| anyhow!("Program {program_id:?} does not exist on the Aleo Network. Try deploying the program first before executing."))?;
 
+        let imports = self.api_client()?.resolve_imports(program_id)?;
+
         // Try to get the private key configured in the program manager
         let private_key = self.get_private_key(password)?;
 
@@ -119,6 +121,7 @@ impl<N: Network> ProgramManager<N> {
             inputs,
             fee_record,
             &program,
+            Some(imports),
             function_id,
             query.to_string(),
         )?;
@@ -138,12 +141,14 @@ impl<N: Network> ProgramManager<N> {
     }
 
     /// Create an execute transaction
+    #[allow(clippy::too_many_arguments)]
     pub fn create_execute_transaction(
         private_key: &PrivateKey<N>,
         fee: u64,
         inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
         fee_record: Record<N, Plaintext<N>>,
         program: &Program<N>,
+        imports: Option<IndexMap<ProgramID<N>, Program<N>>>,
         function: impl TryInto<Identifier<N>>,
         query: String,
     ) -> Result<Transaction<N>> {
@@ -163,7 +168,11 @@ impl<N: Network> ProgramManager<N> {
         // Create an ephemeral SnarkVM to store the programs
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        let _ = &vm.process().write().add_program(program);
+
+        if let Some(imports) = imports {
+            imports.iter().try_for_each(|(_, import)| vm.process().write().add_program(import))?;
+        }
+        let _ = &vm.process().write().add_program(program)?;
 
         // Create an execution transaction
         vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, fee)), Some(query), rng)
@@ -198,6 +207,11 @@ impl<N: Network> ProgramManager<N> {
         // Create an ephemeral SnarkVM to store the programs
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
+
+        self.api_client()?
+            .resolve_imports(program_id)?
+            .iter()
+            .try_for_each(|(_, import)| vm.process().write().add_program(import))?;
         let _ = &vm.process().write().add_program(program);
 
         // Create an ephemeral private key for the sample execution
