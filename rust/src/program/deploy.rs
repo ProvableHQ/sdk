@@ -76,11 +76,11 @@ impl<N: Network> ProgramManager<N> {
             let imported_program_id = imported_program.id();
             match self.on_chain_program_state(&imported_program)? {
                 OnChainProgramState::NotDeployed => {
-                    // For now enforce that users deploy dependent imports individually, in the future, create a more detailed program resolution method
+                    // For now enforce that users deploy imports individually. In the future, create a more detailed program resolution method for local imports
                     bail!("❌ Imported program {imported_program_id:?} could not be found on the Aleo Network, please deploy this imported program first before continuing with deployment of {program_id:?}");
                 }
                 OnChainProgramState::Different => {
-                    // If the on-chain program is different,
+                    // If the on-chain program is different, cancel deployment
                     bail!("❌ Imported program {imported_program_id:?} is already deployed on chain and did not match local import");
                 }
                 OnChainProgramState::Same => (),
@@ -151,9 +151,9 @@ impl<N: Network> ProgramManager<N> {
         Ok((minimum_deployment_cost, (storage_cost, namespace_cost)))
     }
 
-    /// Estimate the component of the deployment cost which comes from the fee surrounding the
-    /// program name. Note that this cost does not represent the entire cost of deployment. It is
-    /// additional to the cost of the size (in bytes) of the deployment.
+    /// Estimate the component of the deployment cost derived from the program name. Note that this
+    /// cost does not represent the entire cost of deployment. It is additional to the cost of the
+    /// size (in bytes) of the deployment.
     pub fn estimate_namespace_fee(program_id: impl TryInto<ProgramID<N>>) -> Result<u64> {
         let program_id = program_id.try_into().map_err(|_| anyhow!("❌ Invalid program ID"))?;
         let num_characters = program_id.to_string().chars().count() as u32;

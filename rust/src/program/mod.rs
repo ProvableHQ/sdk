@@ -91,14 +91,15 @@ impl<N: Network> ProgramManager<N> {
 
         // Resolve imports
         let credits_id = ProgramID::<N>::from_str("credits.aleo")?;
-        api_client.resolve_imports_from_source(program)?.iter().try_for_each(|(_, import)| {
+        api_client.get_program_imports_from_source(program)?.iter().try_for_each(|(_, import)| {
             if import.id() != &credits_id {
                 vm.process().write().add_program(import)?
             }
             Ok::<_, Error>(())
         })?;
 
-        // If the initialization is for an execution, add the program
+        // If the initialization is for an execution, add the program. Otherwise, don't add it as
+        // it will be added during the deployment process
         if initialize_execution {
             vm.process().write().add_program(program)?;
         }
@@ -150,6 +151,7 @@ impl<N: Network> ProgramManager<N> {
 }
 
 #[cfg(test)]
+#[cfg(not(feature = "wasm"))]
 mod tests {
 
     use super::*;

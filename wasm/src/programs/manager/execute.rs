@@ -29,6 +29,7 @@ use crate::{
     Transaction,
 };
 
+use indexmap::IndexMap;
 use js_sys::{Array, Object};
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
@@ -50,6 +51,9 @@ impl ProgramManager {
     /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
     /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
     /// keys will be deallocated from memory after the transaction is executed.
+    /// @param imports (optional) Provide a list of imports to use for the function execution in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
     /// @param proving_key (optional) Provide a verifying key to use for the function execution
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     #[wasm_bindgen]
@@ -100,6 +104,9 @@ impl ProgramManager {
     /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
     /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
     /// keys will be deallocated from memory after the transaction is executed.
+    /// @param imports (optional) Provide a list of imports to use for the function execution in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
     /// @param proving_key (optional) Provide a verifying key to use for the function execution
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
@@ -191,6 +198,9 @@ impl ProgramManager {
     /// @param inputs A javascript array of inputs to the function
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
+    /// @param imports (optional) Provide a list of imports to use for the fee estimation in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
     /// @param proving_key (optional) Provide a verifying key to use for the fee estimation
     /// @param verifying_key (optional) Provide a verifying key to use for the fee estimation
     #[wasm_bindgen(js_name = estimateExecutionFee)]
@@ -216,6 +226,14 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let mut lookup = IndexMap::new();
+
+        program_native.imports().iter().try_for_each(|(name, _)| {
+            let import = process.get_program(name).map_err(|e| e.to_string())?.clone();
+            lookup.insert(*name, import);
+            Ok::<(), String>(())
+        })?;
+        lookup.insert(*program_native.id(), program_native.clone());
 
         log("Generating execution trace");
         let (_, mut trace) =
@@ -239,7 +257,9 @@ impl ProgramManager {
         for transition in execution.transitions() {
             // Retrieve the function name.
             let function_name = transition.function_name();
+            let program_id = transition.program_id();
             // Retrieve the finalize cost.
+            let program = lookup.get(program_id).ok_or("Program not found".to_string())?;
             let cost = match &program.get_function(function_name).map_err(|e| e.to_string())?.finalize() {
                 Some((_, finalize)) => cost_in_microcredits(finalize).map_err(|e| e.to_string())?,
                 None => continue,

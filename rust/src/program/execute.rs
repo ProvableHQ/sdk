@@ -100,7 +100,7 @@ impl<N: Network> ProgramManager<N> {
         fee_record: Record<N, Plaintext<N>>,
         password: Option<&str>,
     ) -> Result<String> {
-        // Ensure network config is set, otherwise execution is not possible
+        // Ensure a network client is set, otherwise online execution is not possible
         ensure!(
             self.api_client.is_some(),
             "❌ Network client not set. A network client must be set before execution in order to send an execution transaction to the Aleo network"

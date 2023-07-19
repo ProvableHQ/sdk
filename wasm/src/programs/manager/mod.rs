@@ -210,7 +210,7 @@ impl ProgramManager {
         )
     }
 
-    /// Resolve imports
+    /// Resolve imports for a program in depth first search order
     pub(crate) fn resolve_imports(
         process: &mut ProcessNative,
         program: &ProgramNative,
@@ -218,12 +218,10 @@ impl ProgramManager {
     ) -> Result<(), String> {
         if let Some(imports) = imports {
             program.imports().keys().try_for_each(|program_id| {
-                // Ensure the program ID is valid
-                let program_id = program_id.to_string();
-
                 // Get the program string
+                let program_id = program_id.to_string();
                 if let Some(import_string) = Reflect::get(&imports, &program_id.as_str().into())
-                    .map_err(|_| "Import not found".to_string())?
+                    .map_err(|_| "Program import not found in imports provided".to_string())?
                     .as_string()
                 {
                     if &program_id != "credits.aleo" {
@@ -231,6 +229,7 @@ impl ProgramManager {
                         let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
                         // If the program has imports, add them
                         Self::resolve_imports(process, &import, Some(imports.clone()))?;
+                        // If the process does not already contain the program, add it
                         if !process.contains_program(import.id()) {
                             process.add_program(&import).map_err(|err| err.to_string())?;
                         }

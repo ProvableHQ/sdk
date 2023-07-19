@@ -103,20 +103,20 @@ impl<N: Network> AleoAPIClient<N> {
     }
 
     /// Resolve imports of a program in a depth-first-search order from a program id
-    pub fn resolve_imports(
+    pub fn get_program_imports(
         &self,
         program_id: impl TryInto<ProgramID<N>>,
     ) -> Result<IndexMap<ProgramID<N>, Program<N>>> {
         let program = self.get_program(program_id)?;
-        self.resolve_imports_from_source(&program)
+        self.get_program_imports_from_source(&program)
     }
 
     /// Resolve imports of a program in a depth-first-search order from program source code
-    pub fn resolve_imports_from_source(&self, program: &Program<N>) -> Result<IndexMap<ProgramID<N>, Program<N>>> {
+    pub fn get_program_imports_from_source(&self, program: &Program<N>) -> Result<IndexMap<ProgramID<N>, Program<N>>> {
         let mut found_imports = IndexMap::new();
         for (import_id, _) in program.imports().iter() {
             let imported_program = self.get_program(import_id)?;
-            let nested_imports = self.resolve_imports_from_source(&imported_program)?;
+            let nested_imports = self.get_program_imports_from_source(&imported_program)?;
             for (id, import) in nested_imports.into_iter() {
                 found_imports.contains_key(&id).then(|| anyhow!("Circular dependency discovered in program imports"));
                 found_imports.insert(id, import);
@@ -390,7 +390,7 @@ mod tests {
     #[test]
     fn test_import_resolution() {
         let client = AleoAPIClient::<Testnet3>::testnet3();
-        let imports = client.resolve_imports("imported_add_mul.aleo").unwrap();
+        let imports = client.get_program_imports("imported_add_mul.aleo").unwrap();
         let id1 = ProgramID::<Testnet3>::from_str("multiply_test.aleo").unwrap();
         let id2 = ProgramID::<Testnet3>::from_str("double_test.aleo").unwrap();
         let id3 = ProgramID::<Testnet3>::from_str("addition_test.aleo").unwrap();

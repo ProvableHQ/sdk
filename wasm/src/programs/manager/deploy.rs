@@ -53,6 +53,9 @@ impl ProgramManager {
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param cache Cache the synthesized keys for future use
+    /// @param imports (optional) Provide a list of imports to use for the program deployment in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     #[wasm_bindgen]
@@ -134,6 +137,9 @@ impl ProgramManager {
     ///
     /// @param program The source code of the program being deployed
     /// @param cache Cache the synthesized keys for future use
+    /// @param imports (optional) Provide a list of imports to use for the deployment fee estimation
+    /// in the form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
     #[wasm_bindgen(js_name = estimateDeploymentFee)]
     pub async fn estimate_deployment_fee(
         &mut self,
