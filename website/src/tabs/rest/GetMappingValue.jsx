@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import {Button, Card, Col, Divider, Form, Input, Row} from "antd";
+import { useState } from "react";
+import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
 
@@ -17,7 +17,7 @@ export const GetMappingValue = () => {
         } catch (error) {
             console.error(error);
         }
-    }
+    };
 
     const onMappingNameChange = (event) => {
         setMappingName(null);
@@ -26,7 +26,7 @@ export const GetMappingValue = () => {
         } catch (error) {
             console.error(error);
         }
-    }
+    };
     const onMappingKeyChange = (event) => {
         setMappingKey(null);
         try {
@@ -34,20 +34,22 @@ export const GetMappingValue = () => {
         } catch (error) {
             console.error(error);
         }
-    }
+    };
 
     const setDefaultRequest = (id, name, key) => {
         setProgramID(id);
         setMappingName(name);
         setMappingKey(key);
-    }
+    };
 
     // Attempts to request the program bytecode with the given program id.
     const tryRequest = () => {
         try {
             if (programID && mappingName && mappingKey) {
                 axios
-                    .get(`https://vm.aleo.org/api/testnet3/program/${programID}/mapping/${mappingName}/${mappingKey}`)
+                    .get(
+                        `https://vm.aleo.org/api/testnet3/program/${programID}/mapping/${mappingName}/${mappingKey}`,
+                    )
                     .then((response) => {
                         console.log(response);
                         setMappingValue(response.data);
@@ -57,7 +59,6 @@ export const GetMappingValue = () => {
                         setMappingValue(null);
                         console.error(error);
                     });
-
             } else {
                 // Reset the mapping text if the user clears the search bar.
                 setMappingValue(null);
@@ -68,52 +69,106 @@ export const GetMappingValue = () => {
     };
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const programIDString = () => programID !== null ? programID : "";
-    const mappingNameString = () => mappingName !== null ? mappingName : "";
-    const mappingKeyString = () => mappingKey !== null ? mappingKey : "";
-    const mappingValueString = () => mappingValue !== null ? mappingValue : "";
+    const programIDString = () => (programID !== null ? programID : "");
+    const mappingNameString = () => (mappingName !== null ? mappingName : "");
+    const mappingKeyString = () => (mappingKey !== null ? mappingKey : "");
+    const mappingValueString = () =>
+        mappingValue !== null ? mappingValue : "";
 
-    return <Card title="Get Mapping Value"
-                 style={{width: "100%", borderRadius: "20px"}}
-                 bordered={false}
-                 extra={<Button type="primary" shape="round" size="middle" onClick={() => {setDefaultRequest("credits.aleo", "account", "aleo1q6qstg8q8shwqf5m6q5fcenuwsdqsvp4hhsgfnx5chzjm3secyzqt9mxm8")}}
-    >Demo</Button>}>
-        <Form {...layout}>
-            <Form.Item label="Program ID" colon={false}>
-                <Input name="programID" size="large" placeholder="Program ID" value = {programIDString()}
-                       allowClear = {true} style={{borderRadius: '20px'}} onChange={onProgramIDChange}/>
-            </Form.Item>
-            <Form.Item label="Mapping Name" colon={false}>
-                <Input name="mappingName" size="large" placeholder="Mapping Name" value = {mappingNameString()}
-                       allowClear = {true} style={{borderRadius: '20px'}} onChange={onMappingNameChange}/>
-            </Form.Item>
-            <Form.Item label="Mapping Key" colon={false}>
-                <Input name="mappingKey" size="large" placeholder="Mapping Key" value = {mappingKeyString()}
-                       allowClear = {true} style={{borderRadius: '20px'}} onChange={onMappingKeyChange}/>
-            </Form.Item>
-        </Form>
-        <Row justify="center">
-            <Col><Button type="primary" shape="round" size="middle" onClick={tryRequest}
-            >Get Mapping Value</Button></Col>
-        </Row>
-        {
-            (mappingValue !== null) ?
+    return (
+        <Card
+            title="Get Mapping Value"
+            style={{ width: "100%", borderRadius: "20px" }}
+            bordered={false}
+            extra={
+                <Button
+                    type="primary"
+                    shape="round"
+                    size="middle"
+                    onClick={() => {
+                        setDefaultRequest(
+                            "credits.aleo",
+                            "account",
+                            "aleo1q6qstg8q8shwqf5m6q5fcenuwsdqsvp4hhsgfnx5chzjm3secyzqt9mxm8",
+                        );
+                    }}
+                >
+                    Demo
+                </Button>
+            }
+        >
+            <Form {...layout}>
+                <Form.Item label="Program ID" colon={false}>
+                    <Input
+                        name="programID"
+                        size="large"
+                        placeholder="Program ID"
+                        value={programIDString()}
+                        allowClear={true}
+                        style={{ borderRadius: "20px" }}
+                        onChange={onProgramIDChange}
+                    />
+                </Form.Item>
+                <Form.Item label="Mapping Name" colon={false}>
+                    <Input
+                        name="mappingName"
+                        size="large"
+                        placeholder="Mapping Name"
+                        value={mappingNameString()}
+                        allowClear={true}
+                        style={{ borderRadius: "20px" }}
+                        onChange={onMappingNameChange}
+                    />
+                </Form.Item>
+                <Form.Item label="Mapping Key" colon={false}>
+                    <Input
+                        name="mappingKey"
+                        size="large"
+                        placeholder="Mapping Key"
+                        value={mappingKeyString()}
+                        allowClear={true}
+                        style={{ borderRadius: "20px" }}
+                        onChange={onMappingKeyChange}
+                    />
+                </Form.Item>
+            </Form>
+            <Row justify="center">
+                <Col>
+                    <Button
+                        type="primary"
+                        shape="round"
+                        size="middle"
+                        onClick={tryRequest}
+                    >
+                        Get Mapping Value
+                    </Button>
+                </Col>
+            </Row>
+            {mappingValue !== null ? (
                 <Form {...layout}>
-                    <Divider/>
+                    <Divider />
                     <Row align="middle">
                         <Col span={23}>
                             <Form.Item label="Mapping Value" colon={false}>
-                                <Input.TextArea size="large" rows={1} placeholder="Value" style={{whiteSpace: 'pre-wrap', overflowWrap: 'break-word'}}
-                                                value={mappingValueString()}
-                                                disabled/>
+                                <Input.TextArea
+                                    size="large"
+                                    rows={3}
+                                    placeholder="Value"
+                                    style={{
+                                        whiteSpace: "pre-wrap",
+                                        overflowWrap: "break-word",
+                                    }}
+                                    value={mappingValueString()}
+                                    disabled
+                                />
                             </Form.Item>
                         </Col>
                         <Col span={1} align="middle">
-                            <CopyButton data={mappingValueString()}/>
+                            <CopyButton data={mappingValueString()} />
                         </Col>
                     </Row>
                 </Form>
-                : null
-        }
-    </Card>
-}
+            ) : null}
+        </Card>
+    );
+};

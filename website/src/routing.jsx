@@ -67,10 +67,10 @@ export const router = createBrowserRouter([
                         <GetBlockByHash />
                         <br />
                         <GetProgram />
-                        <br/>
-                        <GetMappingNames/>
-                        <br/>
-                        <GetMappingValue/>
+                        <br />
+                        <GetMappingNames />
+                        <br />
+                        <GetMappingValue />
                         <br />
                         <GetTransaction />
                     </>
