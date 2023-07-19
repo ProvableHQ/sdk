@@ -51,8 +51,11 @@ export const GetMappingValue = () => {
                         `https://vm.aleo.org/api/testnet3/program/${programID}/mapping/${mappingName}/${mappingKey}`,
                     )
                     .then((response) => {
-                        console.log(response);
-                        setMappingValue(response.data);
+                        if (response.data === null) {
+                            setMappingValue("Key Not Found");
+                        } else {
+                            setMappingValue(response.data);
+                        }
                     })
                     .catch((error) => {
                         // Reset the mapping text to `null` if the program id does not exist.
