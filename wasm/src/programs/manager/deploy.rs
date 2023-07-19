@@ -82,20 +82,20 @@ impl ProgramManager {
         let mut new_process;
         let process = get_process!(self, cache, new_process);
 
-        log("Check program has a valid name");
+        log("Checking program has a valid name");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
 
-        log("Check program imports are valid and add them to the process");
+        log("Checking program imports are valid and add them to the process");
         ProgramManager::resolve_imports(process, &program, imports)?;
 
-        log("Create deployment");
+        log("Creating deployment");
         let deployment =
             process.deploy::<CurrentAleo, _>(&program, &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
         if deployment.program().functions().is_empty() {
             return Err("Attempted to create an empty transaction deployment".to_string());
         }
 
-        log("Ensure the fee is sufficient to pay for the deployment");
+        log("Ensuring the fee is sufficient to pay for the deployment");
         let (minimum_deployment_cost, (_, _)) =
             deployment_cost::<CurrentNetwork>(&deployment).map_err(|err| err.to_string())?;
         if fee_microcredits < minimum_deployment_cost {
@@ -118,11 +118,11 @@ impl ProgramManager {
             deployment_id
         );
 
-        log("Create the program owner");
+        // Create the program owner
         let owner = ProgramOwnerNative::new(&private_key, deployment_id, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
 
-        log("Verify the deployment and fees");
+        log("Verifying the deployment and fees");
         process
             .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;

@@ -226,19 +226,12 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
-        let mut lookup = IndexMap::new();
-
-        program_native.imports().iter().try_for_each(|(name, _)| {
-            let import = process.get_program(name).map_err(|e| e.to_string())?.clone();
-            lookup.insert(*name, import);
-            Ok::<(), String>(())
-        })?;
-        lookup.insert(*program_native.id(), program_native.clone());
 
         log("Generating execution trace");
         let (_, mut trace) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
 
+        // Execute the program
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
         let locator = program.id().to_string().add("/").add(&function);
         let query = QueryNative::from(&url);
@@ -255,15 +248,17 @@ impl ProgramManager {
         let mut finalize_cost = 0u64;
         // Iterate over the transitions to accumulate the finalize cost.
         for transition in execution.transitions() {
-            // Retrieve the function name.
+            // Retrieve the function name, program id, and program.
             let function_name = transition.function_name();
             let program_id = transition.program_id();
-            // Retrieve the finalize cost.
-            let program = lookup.get(program_id).ok_or("Program not found".to_string())?;
+            let program = process.get_program(program_id).map_err(|e| e.to_string())?;
+
+            // Calculate the finalize cost for the function identified in the transition
             let cost = match &program.get_function(function_name).map_err(|e| e.to_string())?.finalize() {
                 Some((_, finalize)) => cost_in_microcredits(finalize).map_err(|e| e.to_string())?,
                 None => continue,
             };
+
             // Accumulate the finalize cost.
             finalize_cost = finalize_cost
                 .checked_add(cost)

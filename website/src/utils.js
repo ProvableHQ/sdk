@@ -1,6 +1,8 @@
 import init, * as aleo from "@aleohq/wasm";
 
 await init();
+
+// Get program source code from the Aleo network
 async function getProgram(name) {
     const response = await fetch(`https://vm.aleo.org/api/testnet3/program/${name}`);
     if (response.ok) {
@@ -9,6 +11,10 @@ async function getProgram(name) {
     throw new Error("Unable to get program");
 }
 
+// Recursively resolve imports for programs and return a map of program_id to program
+// in the form of { "program name": "program source code" }. The object returned from
+// this function should be passed to the "imports" parameter of the aleo-wasm program
+// execution and deployment functions.
 async function resolveImports(program_code) {
     let program = aleo.Program.fromString(program_code);
     const imports = {};
