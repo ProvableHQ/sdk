@@ -307,7 +307,7 @@ self.addEventListener("message", (ev) => {
             url,
         } = ev.data;
 
-        console.log("Web worker: Creating transfer...");
+        console.log(`Web worker: Creating transfer of type ${transfer_type}...`);
         let startTime = performance.now();
 
         (async function () {
@@ -352,18 +352,19 @@ self.addEventListener("message", (ev) => {
                         if (
                             !aleoProgramManager.keyExists(
                                 "credits.aleo",
-                                "transfer_public_to_private",
+                                "public_to_private",
                             )
                         ) {
                             aleoProgramManager.cacheKeypairInWasmMemory(
                                 aleo.Program.getCreditsProgram().toString(),
-                                "transfer_public_to_private",
+                                "public_to_private",
                                 transferPublicToPrivateProvingKey,
                                 transferPublicToPrivateVerifyingKey,
                             );
                         }
                     }
                 } else if (transfer_type === "privateToPublic") {
+                    console.log("private to public");
                     if (
                         transferPrivateToPublicProvingKey === null ||
                         transferPrivateToPublicVerifyingKey === null
@@ -378,12 +379,12 @@ self.addEventListener("message", (ev) => {
                         if (
                             !aleoProgramManager.keyExists(
                                 "credits.aleo",
-                                "transfer_private_to_public",
+                                "private_to_public",
                             )
                         ) {
                             aleoProgramManager.cacheKeypairInWasmMemory(
                                 aleo.Program.getCreditsProgram().toString(),
-                                "transfer_private_to_public",
+                                "private_to_public",
                                 transferPrivateToPublicProvingKey,
                                 transferPrivateToPublicVerifyingKey,
                             );
