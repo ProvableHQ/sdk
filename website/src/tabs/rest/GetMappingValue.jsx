@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
+import { Button, Card, Col, Divider, Form, Input, Result, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
 
@@ -8,6 +8,7 @@ export const GetMappingValue = () => {
     const [mappingName, setMappingName] = useState(null);
     const [mappingKey, setMappingKey] = useState(null);
     const [mappingValue, setMappingValue] = useState(null);
+    const [mappingError, setMappingError] = useState(null);
 
     // Returns the program id if the user changes it or the "Demo" button is clicked.
     const onProgramIDChange = (event) => {
@@ -42,8 +43,13 @@ export const GetMappingValue = () => {
         setMappingKey(key);
     };
 
+    const mappingErrorString = () =>
+        mappingError !== null ? mappingError : "";
+
     // Attempts to request the program bytecode with the given program id.
     const tryRequest = () => {
+        setMappingError(null);
+
         try {
             if (programID && mappingName && mappingKey) {
                 axios
@@ -60,6 +66,7 @@ export const GetMappingValue = () => {
                     .catch((error) => {
                         // Reset the mapping text to `null` if the program id does not exist.
                         setMappingValue(null);
+                        setMappingError(error.response?.data);
                         console.error(error);
                     });
             } else {
@@ -172,6 +179,13 @@ export const GetMappingValue = () => {
                     </Row>
                 </Form>
             ) : null}
+            {mappingError !== null && (
+                <Result
+                    status="error"
+                    title="Mapping Error"
+                    subTitle={"Error: " + mappingErrorString()}
+                />
+            )}
         </Card>
     );
 };
