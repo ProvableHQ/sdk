@@ -87,13 +87,18 @@ export const Transfer = () => {
             return;
         }
 
+        let amountRecord = amountRecordString();
+        if (visibilityString() === "public" || visibilityString() === "publicToPrivate") {
+            amountRecord = undefined;
+        }
+
         await postMessagePromise(worker, {
             type: "ALEO_TRANSFER",
             privateKey: privateKeyString(),
             amountCredits: amount,
             transfer_type: visibilityString(),
             recipient: recipientString(),
-            amountRecord: amountRecordString(),
+            amountRecord: amountRecord,
             fee: feeAmount,
             feeRecord: feeRecordString(),
             url: peerUrl(),
@@ -181,7 +186,9 @@ export const Transfer = () => {
         setTransferError(null);
         console.log("Visibility changed to: ", key);
         setVisibility(key);
-        setAmountRecord(null);
+        if (key === "public" || key === "publicToPrivate") {
+            setAmountRecord(null);
+        }
     };
 
     const items = [

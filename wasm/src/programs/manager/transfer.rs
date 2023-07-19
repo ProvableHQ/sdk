@@ -89,20 +89,20 @@ impl ProgramManager {
 
         let (transfer_type, inputs) = match transfer_type {
             "private" => {
-                let inputs = Array::new_with_length(3);
                 if amount_record.is_none() {
                     return Err("Amount record must be provided for private transfers".to_string());
                 }
+                let inputs = Array::new_with_length(3);
                 inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.unwrap().to_string()));
                 inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
                 inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
                 ("transfer_private", inputs)
             }
             "private_to_public" | "privateToPublic" | "transfer_private_to_public" | "transferPrivateToPublic" => {
-                let inputs = Array::new_with_length(3);
                 if amount_record.is_none() {
                     return Err("Amount record must be provided for private transfers".to_string());
                 }
+                let inputs = Array::new_with_length(3);
                 inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.unwrap().to_string()));
                 inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
                 inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));

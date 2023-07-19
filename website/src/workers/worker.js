@@ -352,12 +352,12 @@ self.addEventListener("message", (ev) => {
                         if (
                             !aleoProgramManager.keyExists(
                                 "credits.aleo",
-                                "public_to_private",
+                                "transfer_public_to_private",
                             )
                         ) {
                             aleoProgramManager.cacheKeypairInWasmMemory(
                                 aleo.Program.getCreditsProgram().toString(),
-                                "public_to_private",
+                                "transfer_public_to_private",
                                 transferPublicToPrivateProvingKey,
                                 transferPublicToPrivateVerifyingKey,
                             );
@@ -379,12 +379,12 @@ self.addEventListener("message", (ev) => {
                         if (
                             !aleoProgramManager.keyExists(
                                 "credits.aleo",
-                                "private_to_public",
+                                "transfer_private_to_public",
                             )
                         ) {
                             aleoProgramManager.cacheKeypairInWasmMemory(
                                 aleo.Program.getCreditsProgram().toString(),
-                                "private_to_public",
+                                "transfer_private_to_public",
                                 transferPrivateToPublicProvingKey,
                                 transferPrivateToPublicVerifyingKey,
                             );
@@ -434,12 +434,14 @@ self.addEventListener("message", (ev) => {
                     );
                 }
 
+                let transferAmountRecord = amountRecord !== undefined ? aleo.RecordPlaintext.fromString(amountRecord) : undefined;
+
                 let transferTransaction = await aleoProgramManager.transfer(
                     aleo.PrivateKey.from_string(privateKey),
                     amountCredits,
                     recipient,
                     transfer_type,
-                    aleo.RecordPlaintext.fromString(amountRecord),
+                    transferAmountRecord,
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
