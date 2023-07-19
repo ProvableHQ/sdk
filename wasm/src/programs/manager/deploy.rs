@@ -35,7 +35,7 @@ use crate::{
     Transaction,
 };
 
-use js_sys::{Object, Reflect};
+use js_sys::Object;
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
 
@@ -61,11 +61,11 @@ impl ProgramManager {
         &mut self,
         private_key: PrivateKey,
         program: String,
-        imports: Option<Object>,
         fee_credits: f64,
         fee_record: RecordPlaintext,
         url: String,
         cache: bool,
+        imports: Option<Object>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
@@ -82,25 +82,8 @@ impl ProgramManager {
         log("Check program has a valid name");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
 
-        log("Check program imports are valid");
-        if let Some(imports) = imports {
-            program
-                .imports()
-                .keys()
-                .try_for_each(|program_id| {
-                    let program_id =
-                        program_id.to_string().parse::<ProgramIDNative>().map_err(|err| err.to_string())?.to_string();
-                    if let Some(import_string) = Reflect::get(&imports, &program_id.into())
-                        .map_err(|_| "Import not found".to_string())?
-                        .as_string()
-                    {
-                        let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
-                        process.add_program(&import).map_err(|err| err.to_string())?;
-                    }
-                    Ok::<(), String>(())
-                })
-                .map_err(|_| "Import resolution failed".to_string())?;
-        }
+        log("Check program imports are valid and add them to the process");
+        ProgramManager::resolve_imports(process, &program, imports)?;
 
         log("Create deployment");
         let deployment =
@@ -152,12 +135,20 @@ impl ProgramManager {
     /// @param program The source code of the program being deployed
     /// @param cache Cache the synthesized keys for future use
     #[wasm_bindgen(js_name = estimateDeploymentFee)]
-    pub async fn estimate_deployment_fee(&mut self, program: String, cache: bool) -> Result<u64, String> {
+    pub async fn estimate_deployment_fee(
+        &mut self,
+        program: String,
+        cache: bool,
+        imports: Option<Object>,
+    ) -> Result<u64, String> {
         let mut new_process;
         let process = get_process!(self, cache, new_process);
 
         log("Check program has a valid name");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
+
+        log("Check program imports are valid and add them to the process");
+        ProgramManager::resolve_imports(process, &program, imports)?;
 
         log("Create sample deployment");
         let deployment =

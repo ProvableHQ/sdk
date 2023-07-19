@@ -29,7 +29,7 @@ use crate::{
     Transaction,
 };
 
-use js_sys::Array;
+use js_sys::{Array, Object};
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
 
@@ -61,6 +61,7 @@ impl ProgramManager {
         function: String,
         inputs: Array,
         cache: bool,
+        imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
     ) -> Result<ExecutionResponse, String> {
@@ -69,6 +70,10 @@ impl ProgramManager {
 
         let mut new_process;
         let process: &mut ProcessNative = get_process!(self, cache, new_process);
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
 
         let (response, _) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
@@ -111,6 +116,7 @@ impl ProgramManager {
         fee_record: RecordPlaintext,
         url: String,
         cache: bool,
+        imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
         fee_proving_key: Option<ProvingKey>,
@@ -121,6 +127,11 @@ impl ProgramManager {
 
         let mut new_process;
         let process = get_process!(self, cache, new_process);
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+
         let stack = process.get_stack("credits.aleo").map_err(|e| e.to_string())?;
         let fee_identifier = IdentifierNative::from_str("fee").map_err(|e| e.to_string())?;
         if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some() {
@@ -192,6 +203,7 @@ impl ProgramManager {
         inputs: Array,
         url: String,
         cache: bool,
+        imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
     ) -> Result<u64, String> {
@@ -201,10 +213,14 @@ impl ProgramManager {
         let mut new_process;
         let process: &mut ProcessNative = get_process!(self, cache, new_process);
 
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+
+        log("Generating execution trace");
         let (_, mut trace) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
 
-        // Generate execution
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
         let locator = program.id().to_string().add("/").add(&function);
         let query = QueryNative::from(&url);
@@ -214,6 +230,7 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
 
         // Get the storage cost in bytes for the program execution
+        log("Estimating cost");
         let storage_cost = execution.size_in_bytes().map_err(|e| e.to_string())?;
 
         // Compute the finalize cost in microcredits.
