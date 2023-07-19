@@ -98,7 +98,7 @@ impl ProgramManager {
                 inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
                 "transfer_private"
             }
-            "private_to_public" => {
+            "private_to_public" | "privateToPublic" | "transfer_private_to_public" | "transferPrivateToPublic" => {
                 if amount_record.is_none() {
                     return Err("Amount record must be provided for private transfers".to_string());
                 }
@@ -112,7 +112,7 @@ impl ProgramManager {
                 inputs.set(1u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
                 "transfer_public"
             }
-            "public_to_private" => {
+            "public_to_private" | "publicToPrivate" | "transfer_public_to_private" | "transferPublicToPrivate" => {
                 inputs.set(1u32, wasm_bindgen::JsValue::from_str(&recipient));
                 inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
                 "transfer_public_to_private"
