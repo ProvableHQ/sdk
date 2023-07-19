@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
+import { useState, useEffect } from "react";
+import { Button, Card, Col, Form, Input, Row, Result, Spin } from "antd";
 import axios from "axios";
 
 export const Join = () => {
@@ -17,24 +17,28 @@ export const Join = () => {
 
     function spawnWorker() {
         let worker = new Worker(
-            new URL('../../workers/worker.js', import.meta.url),
-            {type: 'module'}
+            new URL("../../workers/worker.js", import.meta.url),
+            { type: "module" },
         );
-        worker.addEventListener("message", ev => {
-            if (ev.data.type == 'JOIN_TRANSACTION_COMPLETED') {
-                let [transaction, url] = ev.data.joinTransaction
-                axios.post(url + "/testnet3/transaction/broadcast", transaction, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                }).then(
-                    (response) => {
+        worker.addEventListener("message", (ev) => {
+            if (ev.data.type == "JOIN_TRANSACTION_COMPLETED") {
+                let [transaction, url] = ev.data.joinTransaction;
+                axios
+                    .post(
+                        url + "/testnet3/transaction/broadcast",
+                        transaction,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        },
+                    )
+                    .then((response) => {
                         setLoading(false);
                         setJoinError(null);
                         setTransactionID(response.data);
-                    }
-                )
-            } else if (ev.data.type == 'ERROR') {
+                    });
+            } else if (ev.data.type == "ERROR") {
                 setJoinError(ev.data.errorMessage);
                 setLoading(false);
                 setTransactionID(null);
@@ -48,13 +52,13 @@ export const Join = () => {
             const spawnedWorker = spawnWorker();
             setWorker(spawnedWorker);
             return () => {
-                spawnedWorker.terminate()
+                spawnedWorker.terminate();
             };
         }
     }, []);
 
-    const join = async (event) => {
-        setLoading(true)
+    const join = async () => {
+        setLoading(true);
         setTransactionID(null);
         setJoinError(null);
 
@@ -70,7 +74,7 @@ export const Join = () => {
         }
 
         await postMessagePromise(worker, {
-            type: 'ALEO_JOIN',
+            type: "ALEO_JOIN",
             recordOne: recordOneString(),
             recordTwo: recordTwoString(),
             fee: feeAmount,
@@ -78,14 +82,14 @@ export const Join = () => {
             privateKey: privateKeyString(),
             url: peerUrl(),
         });
-    }
+    };
 
     function postMessagePromise(worker, message) {
         return new Promise((resolve, reject) => {
-            worker.onmessage = event => {
+            worker.onmessage = (event) => {
                 resolve(event.data);
             };
-            worker.onerror = error => {
+            worker.onerror = (error) => {
                 setJoinError(error);
                 setLoading(false);
                 setTransactionID(null);
@@ -100,7 +104,7 @@ export const Join = () => {
             setJoinUrl(event.target.value);
         }
         return joinUrl;
-    }
+    };
 
     const onJoinFeeChange = (event) => {
         if (event.target.value !== null) {
@@ -109,7 +113,7 @@ export const Join = () => {
         setTransactionID(null);
         setJoinError(null);
         return joinFee;
-    }
+    };
 
     const onRecordOneChange = (event) => {
         if (event.target.value !== null) {
@@ -118,7 +122,7 @@ export const Join = () => {
         setTransactionID(null);
         setJoinError(null);
         return recordOne;
-    }
+    };
 
     const onRecordTwoChange = (event) => {
         if (event.target.value !== null) {
@@ -127,7 +131,7 @@ export const Join = () => {
         setTransactionID(null);
         setJoinError(null);
         return recordTwo;
-    }
+    };
 
     const onJoinFeeRecordChange = (event) => {
         if (event.target.value !== null) {
@@ -136,7 +140,7 @@ export const Join = () => {
         setTransactionID(null);
         setJoinError(null);
         return joinFeeRecord;
-    }
+    };
 
     const onPrivateKeyChange = (event) => {
         if (event.target.value !== null) {
@@ -145,116 +149,142 @@ export const Join = () => {
         setTransactionID(null);
         setJoinError(null);
         return privateKey;
-    }
+    };
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const privateKeyString = () => privateKey !== null ? privateKey : "";
-    const feeRecordString = () => joinFeeRecord !== null ? joinFeeRecord : "";
-    const recordOneString = () => recordOne !== null ? recordOne : "";
-    const recordTwoString = () => recordTwo !== null ? recordTwo : "";
-    const transactionIDString = () => transactionID !== null ? transactionID : "";
-    const joinErrorString = () => joinError !== null ? joinError : "";
-    const feeString = () => joinFee !== null ? joinFee : "";
-    const peerUrl = () => joinUrl !== null ? joinUrl : "";
+    const privateKeyString = () => (privateKey !== null ? privateKey : "");
+    const feeRecordString = () => (joinFeeRecord !== null ? joinFeeRecord : "");
+    const recordOneString = () => (recordOne !== null ? recordOne : "");
+    const recordTwoString = () => (recordTwo !== null ? recordTwo : "");
+    const transactionIDString = () =>
+        transactionID !== null ? transactionID : "";
+    const joinErrorString = () => (joinError !== null ? joinError : "");
+    const feeString = () => (joinFee !== null ? joinFee : "");
+    const peerUrl = () => (joinUrl !== null ? joinUrl : "");
 
-    return <Card title="Join Records"
-                 style={{width: "100%", borderRadius: "20px"}}
-                 bordered={false}>
-        <Form {...layout}>
-            <Form.Item label="Record One"
-                       colon={false}
-                       validateStatus={status}
+    return (
+        <Card
+            title="Join Records"
+            style={{ width: "100%", borderRadius: "20px" }}
+            bordered={false}
+        >
+            <Form {...layout}>
+                <Form.Item
+                    label="Record One"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="Record One"
+                        size="small"
+                        placeholder="First Record to Join"
+                        allowClear
+                        onChange={onRecordOneChange}
+                        value={recordOneString()}
+                    />
+                </Form.Item>
+                <Form.Item
+                    label="Record Two"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="Record Two"
+                        size="small"
+                        placeholder="Second Record to Join"
+                        allowClear
+                        onChange={onRecordTwoChange}
+                        value={recordTwoString()}
+                    />
+                </Form.Item>
+                <Form.Item label="Fee" colon={false} validateStatus={status}>
+                    <Input.TextArea
+                        name="Fee"
+                        size="small"
+                        placeholder="Fee"
+                        allowClear
+                        onChange={onJoinFeeChange}
+                        value={feeString()}
+                    />
+                </Form.Item>
+                <Form.Item
+                    label="Fee Record"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="Fee Record"
+                        size="small"
+                        placeholder="Record used to pay join fee"
+                        allowClear
+                        onChange={onJoinFeeRecordChange}
+                        value={feeRecordString()}
+                    />
+                </Form.Item>
+                <Form.Item
+                    label="Private Key"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="private_key"
+                        size="small"
+                        placeholder="Private Key"
+                        allowClear
+                        onChange={onPrivateKeyChange}
+                        value={privateKeyString()}
+                    />
+                </Form.Item>
+                <Form.Item
+                    label="Peer Url"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="Peer URL"
+                        size="middle"
+                        placeholder="Aleo Network Node URL"
+                        allowClear
+                        onChange={onUrlChange}
+                        value={peerUrl()}
+                    />
+                </Form.Item>
+                <Row justify="center">
+                    <Col justify="center">
+                        <Button
+                            type="primary"
+                            shape="round"
+                            size="middle"
+                            onClick={join}
+                        >
+                            Join
+                        </Button>
+                    </Col>
+                </Row>
+            </Form>
+            <Row
+                justify="center"
+                gutter={[16, 32]}
+                style={{ marginTop: "48px" }}
             >
-                <Input.TextArea name="Record One"
-                                size="small"
-                                placeholder="First Record to Join"
-                                allowClear
-                                onChange={onRecordOneChange}
-                                value={recordOneString()}/>
-            </Form.Item>
-            <Form.Item label="Record Two"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Record Two"
-                                size="small"
-                                placeholder="Second Record to Join"
-                                allowClear
-                                onChange={onRecordTwoChange}
-                                value={recordTwoString()}/>
-            </Form.Item>
-            <Form.Item label="Fee"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Fee"
-                                size="small"
-                                placeholder="Fee"
-                                allowClear
-                                onChange={onJoinFeeChange}
-                                value={feeString()}/>
-            </Form.Item>
-            <Form.Item label="Fee Record"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Fee Record"
-                                size="small"
-                                placeholder="Record used to pay join fee"
-                                allowClear
-                                onChange={onJoinFeeRecordChange}
-                                value={feeRecordString()}/>
-            </Form.Item>
-            <Form.Item label="Private Key"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="private_key"
-                                size="small"
-                                placeholder="Private Key"
-                                allowClear
-                                onChange={onPrivateKeyChange}
-                                value={privateKeyString()}/>
-            </Form.Item>
-            <Form.Item label="Peer Url"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Peer URL"
-                                size="middle"
-                                placeholder="Aleo Network Node URL"
-                                allowClear
-                                onChange={onUrlChange}
-                                value={peerUrl()}/>
-            </Form.Item>
-            <Row justify="center">
-                <Col justify="center">
-                    <Button type="primary" shape="round" size="middle" onClick={join}
-                    >Join</Button>
-                </Col>
+                {loading === true && (
+                    <Spin tip="Creating Join..." size="large" />
+                )}
+                {transactionID !== null && (
+                    <Result
+                        status="success"
+                        title="Join Successful!"
+                        subTitle={"Transaction ID: " + transactionIDString()}
+                    />
+                )}
+                {joinError !== null && (
+                    <Result
+                        status="error"
+                        title="Join Error"
+                        subTitle={"Error: " + joinErrorString()}
+                    />
+                )}
             </Row>
-        </Form>
-        <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
-            {
-                (loading === true) &&
-                <Spin tip="Creating Join..." size="large"/>
-            }
-            {
-                (transactionID !== null) &&
-                <Result
-                    status="success"
-                    title="Join Successful!"
-                    subTitle={"Transaction ID: " + transactionIDString()}
-                />
-            }
-            {
-                (joinError !== null) &&
-                <Result
-                    status="error"
-                    title="Join Error"
-                    subTitle={"Error: " + joinErrorString()}
-                />
-            }
-        </Row>
-    </Card>
-}
+        </Card>
+    );
+};

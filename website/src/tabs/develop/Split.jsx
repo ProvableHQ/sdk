@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {Button, Card, Col, Divider, Form, Input, Row, Result, Spin, Switch} from "antd";
+import { useState, useEffect } from "react";
+import { Button, Card, Col, Form, Input, Row, Result, Spin } from "antd";
 import axios from "axios";
 
 export const Split = () => {
@@ -15,24 +15,28 @@ export const Split = () => {
 
     function spawnWorker() {
         let worker = new Worker(
-            new URL('../../workers/worker.js', import.meta.url),
-            {type: 'module'}
+            new URL("../../workers/worker.js", import.meta.url),
+            { type: "module" },
         );
-        worker.addEventListener("message", ev => {
-            if (ev.data.type == 'SPLIT_TRANSACTION_COMPLETED') {
+        worker.addEventListener("message", (ev) => {
+            if (ev.data.type == "SPLIT_TRANSACTION_COMPLETED") {
                 let [transaction, url] = ev.data.splitTransaction;
-                axios.post(url + "/testnet3/transaction/broadcast", transaction, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                }).then(
-                    (response) => {
+                axios
+                    .post(
+                        url + "/testnet3/transaction/broadcast",
+                        transaction,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        },
+                    )
+                    .then((response) => {
                         setLoading(false);
                         setSplitError(null);
                         setTransactionID(response.data);
-                    }
-                )
-            } else if (ev.data.type == 'ERROR') {
+                    });
+            } else if (ev.data.type == "ERROR") {
                 setSplitError(ev.data.errorMessage);
                 setLoading(false);
                 setTransactionID(null);
@@ -46,13 +50,13 @@ export const Split = () => {
             const spawnedWorker = spawnWorker();
             setWorker(spawnedWorker);
             return () => {
-                spawnedWorker.terminate()
+                spawnedWorker.terminate();
             };
         }
     }, []);
 
-    const split = async (event) => {
-        setLoading(true)
+    const split = async () => {
+        setLoading(true);
         setTransactionID(null);
         setSplitError(null);
 
@@ -68,20 +72,20 @@ export const Split = () => {
         }
 
         await postMessagePromise(worker, {
-            type: 'ALEO_SPLIT',
+            type: "ALEO_SPLIT",
             splitAmount: amount,
             record: amountRecordString(),
             privateKey: privateKeyString(),
             url: peerUrl(),
         });
-    }
+    };
 
     function postMessagePromise(worker, message) {
         return new Promise((resolve, reject) => {
-            worker.onmessage = event => {
+            worker.onmessage = (event) => {
                 resolve(event.data);
             };
-            worker.onerror = error => {
+            worker.onerror = (error) => {
                 setSplitError(error);
                 setLoading(false);
                 setTransactionID(null);
@@ -96,7 +100,7 @@ export const Split = () => {
             setSplitUrl(event.target.value);
         }
         return splitUrl;
-    }
+    };
 
     const onAmountChange = (event) => {
         if (event.target.value !== null) {
@@ -105,7 +109,7 @@ export const Split = () => {
         setTransactionID(null);
         setSplitError(null);
         return splitAmount;
-    }
+    };
 
     const onAmountRecordChange = (event) => {
         if (event.target.value !== null) {
@@ -114,7 +118,7 @@ export const Split = () => {
         setTransactionID(null);
         setSplitError(null);
         return amountRecord;
-    }
+    };
 
     const onPrivateKeyChange = (event) => {
         if (event.target.value !== null) {
@@ -123,93 +127,113 @@ export const Split = () => {
         setTransactionID(null);
         setSplitError(null);
         return privateKey;
-    }
+    };
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const amountString = () => splitAmount !== null ? splitAmount : "";
-    const privateKeyString = () => privateKey !== null ? privateKey : "";
-    const amountRecordString = () => amountRecord !== null ? amountRecord : "";
-    const transactionIDString = () => transactionID !== null ? transactionID : "";
-    const splitErrorString = () => splitError !== null ? splitError : "";
-    const peerUrl = () => splitUrl !== null ? splitUrl : "";
+    const amountString = () => (splitAmount !== null ? splitAmount : "");
+    const privateKeyString = () => (privateKey !== null ? privateKey : "");
+    const amountRecordString = () =>
+        amountRecord !== null ? amountRecord : "";
+    const transactionIDString = () =>
+        transactionID !== null ? transactionID : "";
+    const splitErrorString = () => (splitError !== null ? splitError : "");
+    const peerUrl = () => (splitUrl !== null ? splitUrl : "");
 
-
-    return <Card title="Split Record"
-                 style={{width: "100%", borderRadius: "20px"}}
-                 bordered={false}>
-        <Form {...layout}>
-            <Form.Item label="Split Amount"
-                       colon={false}
-                       validateStatus={status}
+    return (
+        <Card
+            title="Split Record"
+            style={{ width: "100%", borderRadius: "20px" }}
+            bordered={false}
+        >
+            <Form {...layout}>
+                <Form.Item
+                    label="Split Amount"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="split amount"
+                        size="large"
+                        placeholder="Amount to split record into"
+                        allowClear
+                        onChange={onAmountChange}
+                        value={amountString()}
+                    />
+                </Form.Item>
+                <Form.Item label="Record" colon={false} validateStatus={status}>
+                    <Input.TextArea
+                        name="Record"
+                        size="small"
+                        placeholder="Record to split"
+                        allowClear
+                        onChange={onAmountRecordChange}
+                        value={amountRecordString()}
+                    />
+                </Form.Item>
+                <Form.Item
+                    label="Private Key"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="private_key"
+                        size="small"
+                        placeholder="Private Key"
+                        allowClear
+                        onChange={onPrivateKeyChange}
+                        value={privateKeyString()}
+                    />
+                </Form.Item>
+                <Form.Item
+                    label="Peer Url"
+                    colon={false}
+                    validateStatus={status}
+                >
+                    <Input.TextArea
+                        name="Peer URL"
+                        size="middle"
+                        placeholder="Aleo Network Node URL"
+                        allowClear
+                        onChange={onUrlChange}
+                        value={peerUrl()}
+                    />
+                </Form.Item>
+                <Row justify="center">
+                    <Col justify="center">
+                        <Button
+                            type="primary"
+                            shape="round"
+                            size="middle"
+                            onClick={split}
+                        >
+                            Split
+                        </Button>
+                    </Col>
+                </Row>
+            </Form>
+            <Row
+                justify="center"
+                gutter={[16, 32]}
+                style={{ marginTop: "48px" }}
             >
-                <Input.TextArea name="split amount"
-                                size="large"
-                                placeholder="Amount to split record into"
-                                allowClear
-                                onChange={onAmountChange}
-                                value={amountString()}/>
-            </Form.Item>
-            <Form.Item label="Record"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Record"
-                                size="small"
-                                placeholder="Record to split"
-                                allowClear
-                                onChange={onAmountRecordChange}
-                                value={amountRecordString()}/>
-            </Form.Item>
-            <Form.Item label="Private Key"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="private_key"
-                                size="small"
-                                placeholder="Private Key"
-                                allowClear
-                                onChange={onPrivateKeyChange}
-                                value={privateKeyString()}/>
-            </Form.Item>
-            <Form.Item label="Peer Url"
-                       colon={false}
-                       validateStatus={status}
-            >
-                <Input.TextArea name="Peer URL"
-                                size="middle"
-                                placeholder="Aleo Network Node URL"
-                                allowClear
-                                onChange={onUrlChange}
-                                value={peerUrl()}/>
-            </Form.Item>
-            <Row justify="center">
-                <Col justify="center">
-                    <Button type="primary" shape="round" size="middle" onClick={split}
-                    >Split</Button>
-                </Col>
+                {loading === true && (
+                    <Spin tip="Creating Split..." size="large" />
+                )}
+                {transactionID !== null && (
+                    <Result
+                        status="success"
+                        title="Split Successful!"
+                        subTitle={"Transaction ID: " + transactionIDString()}
+                    />
+                )}
+                {splitError !== null && (
+                    <Result
+                        status="error"
+                        title="Split Error"
+                        subTitle={"Error: " + splitErrorString()}
+                    />
+                )}
             </Row>
-        </Form>
-        <Row justify="center" gutter={[16, 32]} style={{ marginTop: '48px' }}>
-            {
-                (loading === true) &&
-                <Spin tip="Creating Split..." size="large"/>
-            }
-            {
-                (transactionID !== null) &&
-                <Result
-                    status="success"
-                    title="Split Successful!"
-                    subTitle={"Transaction ID: " + transactionIDString()}
-                />
-            }
-            {
-                (splitError !== null) &&
-                <Result
-                    status="error"
-                    title="Split Error"
-                    subTitle={"Error: " + splitErrorString()}
-                />
-            }
-        </Row>
-    </Card>
-}
+        </Card>
+    );
+};

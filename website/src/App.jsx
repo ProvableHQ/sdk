@@ -1,73 +1,66 @@
-import './App.css';
-import React, {useState} from 'react';
-import {ConfigProvider, Layout, Menu, theme} from 'antd';
-import {AccountFromPrivateKey} from "./tabs/account/AccountFromPrivateKey";
-import {DecryptAccount} from "./tabs/advanced/DecryptAccount";
-import {DecryptRecord} from "./tabs/record/DecryptRecord";
-import {Deploy} from "./tabs/develop/Deploy";
-import {EncryptAccount} from "./tabs/advanced/EncryptAccount";
-import {Execute} from "./tabs/develop/Execute";
-import {GetBlockByHash} from "./tabs/rest/GetBlockByHash";
-import {GetBlockByHeight} from "./tabs/rest/GetBlockByHeight";
-import {GetLatestBlock} from "./tabs/rest/GetLatestBlock";
-import {GetLatestBlockHeight} from "./tabs/rest/GetLatestBlockHeight";
-import {GetMappingNames} from "./tabs/rest/GetMappingNames.jsx";
-import {GetMappingValue} from "./tabs/rest/GetMappingValue.jsx";
-import {GetProgram} from "./tabs/rest/GetProgram";
-import {GetTransaction} from "./tabs/rest/GetTransaction";
-import {NewAccount} from "./tabs/account/NewAccount";
-import {SignMessage} from "./tabs/account/SignMessage";
-import {Transfer} from "./tabs/develop/Transfer";
-import {VerifyMessage} from "./tabs/account/VerifyMessage";
-import {Join} from "./tabs/develop/Join";
-import {Split} from "./tabs/develop/Split";
+import "./App.css";
+import { useEffect, useState } from "react";
+import { ConfigProvider, Layout, Menu, theme } from "antd";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import {
-    ApiOutlined, CodeOutlined,
-    ProfileOutlined, SwapOutlined,
+    ApiOutlined,
+    CodeOutlined,
+    ProfileOutlined,
+    SwapOutlined,
     ToolOutlined,
     UserOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 
 const { Content, Footer, Sider } = Layout;
 
 function App() {
-    const [menuIndex, setMenuIndex] = useState('account');
+    const [menuIndex, setMenuIndex] = useState("account");
+
+    const navigate = useNavigate();
+    const location = useLocation();
     const onClick = (e) => {
-        setMenuIndex(e.key);
+        navigate(e.key);
     };
+
+    useEffect(() => {
+        setMenuIndex(location.pathname);
+        if (location.pathname === "/") {
+            navigate("/account");
+        }
+    }, [location, navigate]);
 
     const menuItems = [
         {
-            label: 'Account',
-            key: 'account',
+            label: "Account",
+            key: "/account",
             icon: <UserOutlined />,
         },
         {
-            label: 'Record',
-            key: 'record',
+            label: "Record",
+            key: "/record",
             icon: <ProfileOutlined />,
         },
         {
-            label: 'REST API',
-            key: 'rest',
+            label: "REST API",
+            key: "/rest",
             icon: <ApiOutlined />,
         },
         {
-            label: 'Advanced',
-            key: 'advanced',
+            label: "Advanced",
+            key: "/advanced",
             icon: <ToolOutlined />,
         },
         {
-            label: 'Develop',
-            key: 'develop',
+            label: "Develop",
+            key: "/develop",
             icon: <CodeOutlined />,
         },
         {
-            label: 'Transfer',
-            key: 'transfer',
+            label: "Transfer",
+            key: "transfer",
             icon: <SwapOutlined />,
-        }
+        },
     ];
 
     return (
@@ -75,16 +68,12 @@ function App() {
             theme={{
                 algorithm: theme.darkAlgorithm,
                 token: {
-                    colorPrimary: "#18e48f"
-                }
+                    colorPrimary: "#18e48f",
+                },
             }}
         >
-            <Layout style={{minHeight: '100vh'}}>
-                <Sider
-                    breakpoint="lg"
-                    collapsedWidth="0"
-                    theme="light"
-                >
+            <Layout style={{ minHeight: "100vh" }}>
+                <Sider breakpoint="lg" collapsedWidth="0" theme="light">
                     <div alt="Aleo SDK Logo" className="logo"></div>
                     <Menu
                         mode="inline"
@@ -94,74 +83,16 @@ function App() {
                     />
                 </Sider>
                 <Layout>
-                    <Content style={{padding: '50px 50px'}}>
-                        {
-                            menuIndex === 'account' &&
-                            <>
-                                <NewAccount/>
-                                <br/>
-                                <AccountFromPrivateKey/>
-                                <br/>
-                                <SignMessage/>
-                                <br/>
-                                <VerifyMessage/>
-                            </>
-                        }
-                        {
-                            menuIndex === 'record' &&
-                            <>
-                                <DecryptRecord/>
-                            </>
-                        }
-                        {
-                            menuIndex === 'rest' &&
-                            <>
-                                <GetLatestBlockHeight/>
-                                <br/>
-                                <GetLatestBlock/>
-                                <br/>
-                                <GetBlockByHeight/>
-                                <br/>
-                                <GetBlockByHash/>
-                                <br/>
-                                <GetProgram/>
-                                <br/>
-                                <GetMappingNames/>
-                                <br/>
-                                <GetMappingValue/>
-                                <br/>
-                                <GetTransaction/>
-                            </>
-                        }
-                        {
-                            menuIndex === 'advanced' &&
-                            <>
-                                <EncryptAccount/>
-                                <br/>
-                                <DecryptAccount/>
-                            </>
-                        }
-                        {
-                            menuIndex === 'develop' &&
-                            <>
-                                <Execute/>
-                                <br/>
-                                <Deploy/>
-                            </>
-                        }
-                        {
-                            menuIndex === 'transfer' &&
-                            <>
-                                <Transfer/>
-                                <br/>
-                                <Split/>
-                                <br/>
-                                <Join/>
-                            </>
-                        }
+                    <Content style={{ padding: "50px 50px" }}>
+                        <Outlet />
                     </Content>
-                    <Footer style={{textAlign: 'center'}}>Visit the <a href="https://github.com/AleoHQ/sdk">Aleo SDK Github
-                        repo</a>.</Footer>
+                    <Footer style={{ textAlign: "center" }}>
+                        Visit the{" "}
+                        <a href="https://github.com/AleoHQ/sdk">
+                            Aleo SDK Github repo
+                        </a>
+                        .
+                    </Footer>
                 </Layout>
             </Layout>
         </ConfigProvider>
