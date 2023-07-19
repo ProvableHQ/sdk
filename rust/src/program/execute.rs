@@ -179,6 +179,8 @@ impl<N: Network> ProgramManager<N> {
 
     /// Estimate the cost of executing a program with the given inputs in microcredits. The response
     /// will be in the form of (total_cost, (storage_cost, finalize_cost))
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
     pub fn estimate_execution_fee<A: Aleo<Network = N>>(
         &self,
         program: &Program<N>,
@@ -221,6 +223,8 @@ impl<N: Network> ProgramManager<N> {
     /// Estimate the finalize fee component for executing a function. This fee is additional to the
     /// size of the execution of the program in bytes. If the function does not have a finalize
     /// step, then the finalize fee is 0.
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
     pub fn estimate_finalize_fee(&self, program: &Program<N>, function: impl TryInto<Identifier<N>>) -> Result<u64> {
         let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
         match program.get_function(&function_name)?.finalize() {

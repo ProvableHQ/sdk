@@ -144,6 +144,8 @@ impl<N: Network> ProgramManager<N> {
 
     /// Estimate deployment fee for a program in microcredits. The result will be in the form
     /// (total_cost, (storage_cost, namespace_cost))
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
     pub fn estimate_deployment_fee<A: Aleo<Network = N>>(&self, program: &Program<N>) -> Result<(u64, (u64, u64))> {
         let vm = Self::initialize_vm(self.api_client()?, program, false)?;
         let deployment = vm.deploy_raw(program, &mut rand::thread_rng())?;
@@ -154,6 +156,8 @@ impl<N: Network> ProgramManager<N> {
     /// Estimate the component of the deployment cost derived from the program name. Note that this
     /// cost does not represent the entire cost of deployment. It is additional to the cost of the
     /// size (in bytes) of the deployment.
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
     pub fn estimate_namespace_fee(program_id: impl TryInto<ProgramID<N>>) -> Result<u64> {
         let program_id = program_id.try_into().map_err(|_| anyhow!("❌ Invalid program ID"))?;
         let num_characters = program_id.to_string().chars().count() as u32;

@@ -192,6 +192,8 @@ impl ProgramManager {
     /// verifying keys will be stored in the ProgramManager's memory and used for subsequent
     /// program executions.
     ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    ///
     /// @param private_key The private key of the sender
     /// @param program The source code of the program to estimate the execution fee for
     /// @param function The name of the function to execute
@@ -217,6 +219,9 @@ impl ProgramManager {
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
     ) -> Result<u64, String> {
+        log(
+            "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
+        );
         log(&format!("Executing local function: {function}"));
         let inputs = inputs.to_vec();
 
@@ -271,10 +276,15 @@ impl ProgramManager {
     /// size of the execution of the program in bytes. If the function does not have a finalize
     /// step, then the finalize fee is 0.
     ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    ///
     /// @param program The program containing the function to estimate the finalize fee for
     /// @param function The function to estimate the finalize fee for
     #[wasm_bindgen(js_name = estimateFinalizeFee)]
     pub fn estimate_finalize_fee(&self, program: String, function: String) -> Result<u64, String> {
+        log(
+            "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
+        );
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
         let function_id = IdentifierNative::from_str(&function).map_err(|err| err.to_string())?;
         match program.get_function(&function_id).map_err(|err| err.to_string())?.finalize() {

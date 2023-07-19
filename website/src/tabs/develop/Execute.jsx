@@ -6,6 +6,7 @@ import {
     Divider,
     Form,
     Input,
+    message,
     Row,
     Result,
     Spin,
@@ -26,6 +27,7 @@ export const Execute = () => {
     const [inputs, setInputs] = useState(null);
     const [feeLoading, setFeeLoading] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [messageApi, contextHolder] = message.useMessage();
     const [privateKey, setPrivateKey] = useState(null);
     const [program, setProgram] = useState(null);
     const [programResponse, setProgramResponse] = useState(null);
@@ -209,6 +211,7 @@ export const Execute = () => {
         setProgramResponse(null);
         setTransactionID(null);
         setExecutionError(null);
+        messageApi.info("Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network");
         setTip("Estimating Execution Fee...");
         let functionInputs = [];
         try {
@@ -561,6 +564,7 @@ export const Execute = () => {
                             >
                                 Execute
                             </Button>
+                            {contextHolder}
                             {executeOnline && (
                                 <Button
                                     type="primary"

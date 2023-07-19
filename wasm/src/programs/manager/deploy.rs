@@ -135,6 +135,8 @@ impl ProgramManager {
 
     /// Estimate the fee for a program deployment
     ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    ///
     /// @param program The source code of the program being deployed
     /// @param cache Cache the synthesized keys for future use
     /// @param imports (optional) Provide a list of imports to use for the deployment fee estimation
@@ -147,6 +149,9 @@ impl ProgramManager {
         cache: bool,
         imports: Option<Object>,
     ) -> Result<u64, String> {
+        log(
+            "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
+        );
         let mut new_process;
         let process = get_process!(self, cache, new_process);
 
@@ -174,9 +179,14 @@ impl ProgramManager {
     /// Note that this cost does not represent the entire cost of deployment. It is additional to
     /// the cost of the size (in bytes) of the deployment.
     ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    ///
     /// @param name The name of the program to be deployed
     #[wasm_bindgen(js_name = estimateProgramNameCost)]
     pub fn program_name_cost(&self, name: &str) -> Result<u64, String> {
+        log(
+            "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
+        );
         let num_characters = name.chars().count() as u32;
         let namespace_cost = 10u64
             .checked_pow(10u32.saturating_sub(num_characters))
