@@ -225,6 +225,64 @@ impl<N: Network> AleoAPIClient<N> {
         Ok(records)
     }
 
+    /// Search for records that belong to a specific program
+    pub fn get_program_records(
+        &self,
+        private_key: &PrivateKey<N>,
+        program_id: impl TryInto<ProgramID<N>>,
+        block_heights: Range<u32>,
+        unspent_only: bool,
+    ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
+        // Prepare the view key.
+        let view_key = ViewKey::try_from(private_key)?;
+        // Compute the x-coordinate of the address.
+        let address_x_coordinate = view_key.to_address().to_x_coordinate();
+
+        // Prepare the starting block height, by rounding down to the nearest step of 50.
+        let start_block_height = block_heights.start - (block_heights.start % 50);
+        // Prepare the ending block height, by rounding up to the nearest step of 50.
+        let end_block_height = block_heights.end + (50 - (block_heights.end % 50));
+
+        // Initialize a vector for the records.
+        let mut records = Vec::new();
+
+        let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid Program ID"))?;
+
+        for start_height in (start_block_height..end_block_height).step_by(50) {
+            println!("Searching blocks {} to {} for records...", start_height, end_block_height);
+            if start_height >= block_heights.end {
+                break;
+            }
+
+            let end = start_height + 50;
+            let end_height = if end > block_heights.end { block_heights.end } else { end };
+
+            // Prepare the URL.
+            records.extend(
+                self.get_blocks(start_height, end_height)?
+                    .into_iter()
+                    .flat_map(|block| block.into_transitions())
+                    .filter(|transition| transition.program_id() == &program_id)
+                    .flat_map(|transition| transition.into_records())
+                    .filter_map(|(commitment, record)| {
+                        match record.is_owner_with_address_x_coordinate(&view_key, &address_x_coordinate) {
+                            true => {
+                                let sn = Record::<N, Ciphertext<N>>::serial_number(*private_key, commitment).ok()?;
+                                if unspent_only {
+                                    if self.find_transition_id(sn).is_err() { Some((commitment, record)) } else { None }
+                                } else {
+                                    Some((commitment, record))
+                                }
+                            }
+                            false => None,
+                        }
+                    }),
+            );
+        }
+
+        Ok(records)
+    }
+
     /// Search for unspent records in the ledger
     pub fn get_unspent_records(
         &self,
