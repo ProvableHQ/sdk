@@ -1,6 +1,6 @@
 [package]
 name = "aleo"
-version = "0.5.0"
+version = "0.5.1"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
@@ -21,36 +21,36 @@ edition = "2021"
 members = [ "rust", "wasm", "rust/develop"]
 
 [workspace.dependencies.aleo-rust]
-version = "0.5.0"
+version = "0.5.1"
 path = "rust"
 default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "=0.14.2"
+version = "=0.14.5"
 
 [workspace.dependencies.snarkvm-circuit-network]
-version = "=0.14.2"
+version = "=0.14.5"
 
 [workspace.dependencies.snarkvm-console]
-version = "=0.14.2"
+version = "=0.14.5"
 
 [workspace.dependencies.snarkvm-console-network]
-version = "=0.14.2"
+version = "=0.14.5"
 
 [workspace.dependencies.snarkvm-synthesizer]
-version = "=0.14.2"
+version = "=0.14.5"
 
 [workspace.dependencies.snarkvm-ledger-block]
-version = "=0.14.2"
+version = "=0.14.5"
 
 [workspace.dependencies.snarkvm-ledger-store]
-version = "=0.14.2"
+version = "=0.14.5"
 
 [workspace.dependencies.snarkvm-ledger-query]
-version = "=0.14.2"
+version = "=0.14.5"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "=0.14.2"
+version = "=0.14.5"
 
 [lib]
 path = "cli/lib.rs"

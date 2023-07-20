@@ -24,6 +24,7 @@ use anyhow::Result;
 use clap::Parser;
 use colored::Colorize;
 use core::str::FromStr;
+use snarkvm::console::account::PrivateKey;
 use std::collections::HashMap;
 
 pub const LOCALE: &num_format::Locale = &num_format::Locale::en;
@@ -35,12 +36,9 @@ pub struct Run {
     function: Identifier<CurrentNetwork>,
     /// The function inputs.
     inputs: Vec<Value<CurrentNetwork>>,
-    /// Uses the specified endpoint.
-    #[clap(long)]
-    endpoint: Option<String>,
-    /// Toggles offline mode.
-    #[clap(long)]
-    offline: bool,
+    /// Optional Private key to run the program with
+    #[clap(short = 'k', long)]
+    private_key: Option<PrivateKey<CurrentNetwork>>,
 }
 
 impl Run {
@@ -53,21 +51,18 @@ impl Run {
         // Load the package.
         let package = Package::open(&path)?;
 
+        // Use a provided private key or generate a temporary one
+        let private_key = self.private_key.unwrap_or(PrivateKey::new(&mut rand::thread_rng()).unwrap());
+
         // Initialize an RNG.
         let rng = &mut rand::thread_rng();
 
         // Execute the request.
-        let (response, trace) = package.run::<Aleo, _>(
-            self.endpoint,
-            package.manifest_file().development_private_key(),
-            self.function,
-            &self.inputs,
-            rng,
-        )?;
+        let (response, metrics) = package.run::<Aleo, _>(&private_key, self.function, &self.inputs, rng)?;
 
         // Count the number of times a function is called.
         let mut program_frequency = HashMap::<String, usize>::new();
-        for metric in trace.call_metrics().iter() {
+        for metric in metrics.iter() {
             // Prepare the function name string.
             let function_name_string = format!("'{}/{}'", metric.program_id, metric.function_name).bold();
 
@@ -89,7 +84,7 @@ impl Run {
         // Log the metrics.
         use num_format::ToFormattedString;
 
-        println!("\n⛓  Constraints\n");
+        println!("⛓  Constraints\n");
         for (function_constraints, counter) in program_frequency {
             // Log the constraints
             let counter_string = match counter {
@@ -116,6 +111,6 @@ impl Run {
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
-        Ok(format!("✅ Executed '{}' {}", locator.to_string().bold(), path_string.dimmed()))
+        Ok(format!("✅ Finished '{}' {}", locator.to_string().bold(), path_string.dimmed()))
     }
 }
