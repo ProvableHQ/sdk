@@ -232,6 +232,7 @@ impl<N: Network> AleoAPIClient<N> {
         program_id: impl TryInto<ProgramID<N>>,
         block_heights: Range<u32>,
         unspent_only: bool,
+        max_records: Option<usize>,
     ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
         // Prepare the view key.
         let view_key = ViewKey::try_from(private_key)?;
@@ -278,6 +279,12 @@ impl<N: Network> AleoAPIClient<N> {
                         }
                     }),
             );
+
+            if let Some(max_records) = max_records {
+                if records.len() >= max_records {
+                    break;
+                }
+            }
         }
 
         Ok(records)

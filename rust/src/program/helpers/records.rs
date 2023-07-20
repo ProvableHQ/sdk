@@ -81,12 +81,20 @@ impl<N: Network> RecordFinder<N> {
         private_key: &PrivateKey<N>,
         program_id: &ProgramID<N>,
         matching_function: impl FnOnce(Vec<Record<N, Plaintext<N>>>) -> Result<Vec<Record<N, Plaintext<N>>>>,
-        unspent_only: bool
+        unspent_only: bool,
+        max_records: Option<usize>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
         let latest_height = self.api_client.latest_height()?;
         let view_key = ViewKey::try_from(private_key)?;
-        let records = self.api_client.get_program_records(private_key, program_id, 0..latest_height, unspent_only)?;
-        let decrypted_records = records.into_iter().map(|(_, record)| record.decrypt(&view_key).unwrap()).collect::<Vec<_>>();
+        let records = self.api_client.get_program_records(
+            private_key,
+            program_id,
+            0..latest_height,
+            unspent_only,
+            max_records,
+        )?;
+        let decrypted_records =
+            records.into_iter().map(|(_, record)| record.decrypt(&view_key).unwrap()).collect::<Vec<_>>();
         matching_function(decrypted_records)
     }
 }

@@ -199,6 +199,7 @@ pub mod snarkvm_types {
         prelude::{ToBytes, Uniform},
         program::{
             Ciphertext,
+            Entry,
             EntryType,
             Identifier,
             Literal,
