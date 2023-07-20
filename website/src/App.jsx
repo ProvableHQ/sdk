@@ -1,7 +1,7 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 import { ConfigProvider, Layout, Menu, theme } from "antd";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import {
     ApiOutlined,
@@ -34,42 +34,42 @@ function App() {
 
     const menuItems = [
         {
-            label: "Account",
+            label: <Link to="/account">Account</Link>,
             key: "/account",
             icon: <UserOutlined />,
         },
         {
-            label: "Record",
+            label: <Link to="/record">Record</Link>,
             key: "/record",
             icon: <ProfileOutlined />,
         },
         {
-            label: "REST API",
+            label: <Link to="/rest">REST API</Link>,
             key: "/rest",
             icon: <ApiOutlined />,
         },
         {
-            label: "Advanced",
+            label: <Link to="/advanced">Advanced</Link>,
             key: "/advanced",
             icon: <ToolOutlined />,
         },
         {
-            label: "Develop",
+            label: <Link to="/develop">Develop</Link>,
             key: "/develop",
             icon: <CodeOutlined />,
         },
         {
-            label: "Transfer",
+            label: <Link to="/transfer">Transfer</Link>,
             key: "transfer",
             icon: <SwapOutlined />,
         },
         {
-            label: "Program2Form",
+            label: <Link to="/program2form">Program2Form</Link>,
             key: "/program2form",
             icon: <FormatPainterOutlined />,
         },
         {
-            label: "ExecuteV2",
+            label: <Link to="/executev2">ExecuteV2</Link>,
             key: "/executev2",
             icon: <FireOutlined />,
         },
