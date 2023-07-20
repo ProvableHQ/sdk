@@ -21,7 +21,7 @@ impl<N: Network> ProgramManager<N> {
     pub fn deploy_program(
         &mut self,
         program_id: impl TryInto<ProgramID<N>>,
-        fee: u64,
+        priority_fee: u64,
         fee_record: Record<N, Plaintext<N>>,
         password: Option<&str>,
     ) -> Result<String> {
@@ -29,14 +29,6 @@ impl<N: Network> ProgramManager<N> {
         ensure!(
             self.api_client.is_some(),
             "❌ Network client not set, network config must be set before deployment in order to send transactions to the Aleo network"
-        );
-
-        // Ensure a fee is specified and the record has enough balance to pay for it
-        ensure!(fee > 0, "❌ Fee must be greater than zero in order to deploy a program");
-        let record_amount = fee_record.microcredits()?;
-        ensure!(
-            record_amount >= fee,
-            "❌ The record supplied has balance of {record_amount:?} microcredits which is insufficient to pay the specified fee of {fee:?} microcredits"
         );
 
         // Check program has a valid name
@@ -69,31 +61,31 @@ impl<N: Network> ProgramManager<N> {
             );
         };
 
-        // Check if program imports are deployed on chain. If so add them to the list of imports
-        // and continue with deployment. If not, cancel deployment.
-        let mut imports = vec![];
+        // If the program has imports, check if they are deployed on chain. If they are not or if
+        // the imports on disk or in-memory do not match the programs deployed on chain, cancel deployment
         program.imports().keys().try_for_each(|program_id| {
             let imported_program = if self.contains_program(program_id)? {
+                // If the import is in memory, use it
                 self.get_program(program_id)
             } else {
+                // Else look on disk or on the network for the import
                 self.find_program(program_id)
             }.map_err(|_| anyhow!("❌ Imported program {program_id:?} could not be found locally or on the Aleo Network"))?;
+
+            // Check that the program import matches a deployed program on chain
             let imported_program_id = imported_program.id();
             match self.on_chain_program_state(&imported_program)? {
                 OnChainProgramState::NotDeployed => {
+                    // For now enforce that users deploy imports individually. In the future, create a more detailed program resolution method for local imports
                     bail!("❌ Imported program {imported_program_id:?} could not be found on the Aleo Network, please deploy this imported program first before continuing with deployment of {program_id:?}");
                 }
                 OnChainProgramState::Different => {
+                    // If the on-chain program is different, cancel deployment
                     bail!("❌ Imported program {imported_program_id:?} is already deployed on chain and did not match local import");
                 }
                 OnChainProgramState::Same => (),
             };
-            if imports.contains(&imported_program) {
-                bail!("❌ Imported program {imported_program_id:?} was specified twice by {program_id:?}, remove the duplicated import before trying again");
-            }
-            if imported_program_id.to_string() != "credits.aleo" {
-                imports.push(imported_program);
-            }
+
             Ok::<_, Error>(())
         })?;
 
@@ -103,8 +95,14 @@ impl<N: Network> ProgramManager<N> {
         // Attempt to construct the transaction
         println!("Building transaction..");
         let query = self.api_client.as_ref().unwrap().base_url();
-        let transaction =
-            Self::create_deploy_transaction(&program, &imports, &private_key, fee, fee_record, query.to_string())?;
+        let transaction = Self::create_deploy_transaction(
+            &program,
+            &private_key,
+            priority_fee,
+            fee_record,
+            query.to_string(),
+            self.api_client()?,
+        )?;
 
         println!(
             "Attempting to broadcast a deploy transaction for program {:?} to node {:?}",
@@ -112,17 +110,7 @@ impl<N: Network> ProgramManager<N> {
             self.api_client().unwrap().base_url()
         );
 
-        // Ensure the fee is sufficient to pay for the transaction
-        let required_fee = transaction.to_bytes_le()?.len();
-        let result = if usize::try_from(fee)? >= required_fee {
-            self.broadcast_transaction(transaction)
-        } else {
-            bail!(
-                "❌ Insufficient funds to pay for transaction fee, required fee: {}, fee specified in the record: {}",
-                required_fee,
-                fee
-            )
-        };
+        let result = self.broadcast_transaction(transaction);
 
         // Notify the developer of the result
         if result.is_ok() {
@@ -137,42 +125,40 @@ impl<N: Network> ProgramManager<N> {
     /// Create a deploy transaction for a program without instantiating the program manager
     pub fn create_deploy_transaction(
         program: &Program<N>,
-        imports: &[Program<N>],
         private_key: &PrivateKey<N>,
-        fee: u64,
+        priority_fee: u64,
         fee_record: Record<N, Plaintext<N>>,
-        query: String,
+        node_url: String,
+        api_client: &AleoAPIClient<N>,
     ) -> Result<Transaction<N>> {
         // Initialize an RNG.
         let rng = &mut rand::thread_rng();
-        let query = Query::from(query);
+        let query = Query::from(node_url);
 
-        // Attempt to add the programs to a local VM. This will fail if any imports are duplicated.
-        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
-        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        imports.iter().try_for_each(|imported_program| {
-            if imported_program.id().to_string() != "credits.aleo" {
-                vm.process().write().add_program(imported_program)?;
-            };
-            Ok::<_, Error>(())
-        })?;
+        // Initialize the VM
+        let vm = Self::initialize_vm(api_client, program, false)?;
 
-        vm.deploy(private_key, program, (fee_record, fee), Some(query), rng)
+        // Create the deployment transaction
+        vm.deploy(private_key, program, (fee_record, priority_fee), Some(query), rng)
     }
 
     /// Estimate deployment fee for a program in microcredits. The result will be in the form
     /// (total_cost, (storage_cost, namespace_cost))
-    pub fn estimate_deployment_fee<A: Aleo<Network = N>>(&mut self, program: &Program<N>) -> Result<(u64, (u64, u64))> {
-        let process = Process::load()?;
-        let deployment = process.deploy::<A, _>(program, &mut rand::thread_rng())?;
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    pub fn estimate_deployment_fee<A: Aleo<Network = N>>(&self, program: &Program<N>) -> Result<(u64, (u64, u64))> {
+        let vm = Self::initialize_vm(self.api_client()?, program, false)?;
+        let deployment = vm.deploy_raw(program, &mut rand::thread_rng())?;
         let (minimum_deployment_cost, (storage_cost, namespace_cost)) = deployment_cost::<N>(&deployment)?;
         Ok((minimum_deployment_cost, (storage_cost, namespace_cost)))
     }
 
-    /// Estimate the component of the deployment cost which comes from the fee surrounding the
-    /// program name. Note that this cost does not represent the entire cost of deployment. It is
-    /// additional to the cost of the size (in bytes) of the deployment.
-    pub fn estimate_namespace_fee(&mut self, program_id: impl TryInto<ProgramID<N>>) -> Result<u64> {
+    /// Estimate the component of the deployment cost derived from the program name. Note that this
+    /// cost does not represent the entire cost of deployment. It is additional to the cost of the
+    /// size (in bytes) of the deployment.
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    pub fn estimate_namespace_fee(program_id: impl TryInto<ProgramID<N>>) -> Result<u64> {
         let program_id = program_id.try_into().map_err(|_| anyhow!("❌ Invalid program ID"))?;
         let num_characters = program_id.to_string().chars().count() as u32;
         let namespace_cost = 10u64
@@ -195,6 +181,8 @@ mod tests {
             transfer_to_test_account,
             CREDITS_IMPORT_TEST_PROGRAM,
             HELLO_PROGRAM,
+            MULTIPLY_IMPORT_PROGRAM,
+            MULTIPLY_PROGRAM,
             RECORD_2000000001_MICROCREDITS,
             RECORD_5_MICROCREDITS,
         },
@@ -210,6 +198,8 @@ mod tests {
     fn test_deploy() {
         let recipient_private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
         let finalize_program = Program::<Testnet3>::from_str(FINALIZE_TEST_PROGRAM).unwrap();
+        let multiply_program = Program::<Testnet3>::from_str(MULTIPLY_PROGRAM).unwrap();
+        let multiply_import_program = Program::<Testnet3>::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
 
         // Wait for the node to bootup
         thread::sleep(std::time::Duration::from_secs(5));
@@ -255,6 +245,44 @@ mod tests {
 
             if deployed_program.is_ok() {
                 assert_eq!(deployed_program.unwrap(), Program::from_str(FINALIZE_TEST_PROGRAM).unwrap());
+                break;
+            }
+            println!("Program has not yet appeared on chain, waiting another 15 seconds");
+            thread::sleep(std::time::Duration::from_secs(15));
+        }
+
+        // Deploy a program other than credits.aleo to be imported
+        program_manager.add_program(&multiply_program).unwrap();
+
+        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();
+        program_manager.deploy_program("multiply_test.aleo", deployment_fee, fee_record, None).unwrap();
+
+        // Wait for the program to show up on chain
+        thread::sleep(std::time::Duration::from_secs(45));
+        for _ in 0..4 {
+            let deployed_program = program_manager.api_client().unwrap().get_program("multiply_test.aleo");
+
+            if deployed_program.is_ok() {
+                assert_eq!(deployed_program.unwrap(), Program::from_str(MULTIPLY_PROGRAM).unwrap());
+                break;
+            }
+            println!("Program has not yet appeared on chain, waiting another 15 seconds");
+            thread::sleep(std::time::Duration::from_secs(15));
+        }
+
+        // Deploy a program with imports other than credits.aleo
+        program_manager.add_program(&multiply_import_program).unwrap();
+
+        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();
+        program_manager.deploy_program("double_test.aleo", deployment_fee, fee_record, None).unwrap();
+
+        // Wait for the program to show up on chain
+        thread::sleep(std::time::Duration::from_secs(45));
+        for _ in 0..4 {
+            let deployed_program = program_manager.api_client().unwrap().get_program("double_test.aleo");
+
+            if deployed_program.is_ok() {
+                assert_eq!(deployed_program.unwrap(), Program::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap());
                 break;
             }
             println!("Program has not yet appeared on chain, waiting another 15 seconds");

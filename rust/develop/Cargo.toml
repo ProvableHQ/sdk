@@ -1,6 +1,6 @@
 [package]
 name = "aleo-development-server"
-version = "0.5.0"
+version = "0.5.1"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A REST API server for local or remote Aleo development"
 homepage = "https://aleo.org"

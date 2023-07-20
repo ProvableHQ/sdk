@@ -56,6 +56,12 @@ pub struct Deploy {
 
 impl Deploy {
     pub fn parse(self) -> Result<String> {
+        if self.estimate_fee {
+            println!(
+                "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network"
+            );
+        }
+
         // Check for config errors
         ensure!(
             !(self.private_key.is_none() && self.ciphertext.is_none()),

@@ -21,6 +21,8 @@ import { Split } from "./tabs/develop/Split.jsx";
 import { Join } from "./tabs/develop/Join.jsx";
 import { ProgramToForm } from "./tabs/develop/ProgramToForm.jsx";
 import { ExecuteV2 } from "./tabs/develop/ExecuteV2.jsx";
+import { GetMappingNames } from "./tabs/rest/GetMappingNames.jsx";
+import { GetMappingValue } from "./tabs/rest/GetMappingValue.jsx";
 
 export const router = createBrowserRouter([
     {
@@ -67,6 +69,10 @@ export const router = createBrowserRouter([
                         <GetBlockByHash />
                         <br />
                         <GetProgram />
+                        <br />
+                        <GetMappingNames />
+                        <br />
+                        <GetMappingValue />
                         <br />
                         <GetTransaction />
                     </>

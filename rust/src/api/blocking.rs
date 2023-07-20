@@ -102,6 +102,31 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Resolve imports of a program in a depth-first-search order from a program id
+    pub fn get_program_imports(
+        &self,
+        program_id: impl TryInto<ProgramID<N>>,
+    ) -> Result<IndexMap<ProgramID<N>, Program<N>>> {
+        let program = self.get_program(program_id)?;
+        self.get_program_imports_from_source(&program)
+    }
+
+    /// Resolve imports of a program in a depth-first-search order from program source code
+    pub fn get_program_imports_from_source(&self, program: &Program<N>) -> Result<IndexMap<ProgramID<N>, Program<N>>> {
+        let mut found_imports = IndexMap::new();
+        for (import_id, _) in program.imports().iter() {
+            let imported_program = self.get_program(import_id)?;
+            let nested_imports = self.get_program_imports_from_source(&imported_program)?;
+            for (id, import) in nested_imports.into_iter() {
+                found_imports.contains_key(&id).then(|| anyhow!("Circular dependency discovered in program imports"));
+                found_imports.insert(id, import);
+            }
+            found_imports.contains_key(import_id).then(|| anyhow!("Circular dependency discovered in program imports"));
+            found_imports.insert(*import_id, imported_program);
+        }
+        Ok(found_imports)
+    }
+
     /// Get all mappings associated with a program.
     pub fn get_program_mappings(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Vec<Identifier<N>>> {
         // Prepare the program ID.
@@ -360,5 +385,21 @@ mod tests {
         let identifier = mappings[0];
         // Assert the identifier is "account"
         assert_eq!(identifier.to_string(), "account");
+    }
+
+    #[test]
+    fn test_import_resolution() {
+        let client = AleoAPIClient::<Testnet3>::testnet3();
+        let imports = client.get_program_imports("imported_add_mul.aleo").unwrap();
+        let id1 = ProgramID::<Testnet3>::from_str("multiply_test.aleo").unwrap();
+        let id2 = ProgramID::<Testnet3>::from_str("double_test.aleo").unwrap();
+        let id3 = ProgramID::<Testnet3>::from_str("addition_test.aleo").unwrap();
+
+        let keys = imports.keys();
+        println!("Imports: {keys:?}");
+        assert!(imports.contains_key(&id1));
+        assert!(imports.contains_key(&id2));
+        assert!(imports.contains_key(&id3));
+        assert_eq!(keys.len(), 3);
     }
 }

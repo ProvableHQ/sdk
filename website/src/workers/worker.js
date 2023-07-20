@@ -1,4 +1,5 @@
 import init, * as aleo from "@aleohq/wasm";
+import { resolveImports } from "../utils.js";
 import {
     FEE_PROVER_URL,
     FEE_VERIFIER_URL,
@@ -95,36 +96,39 @@ self.addEventListener("message", (ev) => {
         console.log("Web worker: Executing function locally...");
         let startTime = performance.now();
 
-        try {
-            validateProgram(localProgram);
+        (async function () {
+            try {
+                validateProgram(localProgram);
+                const imports = await resolveImports(localProgram);
+                if (lastLocalProgram === null) {
+                    lastLocalProgram = localProgram;
+                } else if (lastLocalProgram !== localProgram) {
+                    aleoProgramManager.clearKeyCache();
+                    lastLocalProgram = localProgram;
+                }
 
-            if (lastLocalProgram === null) {
-                lastLocalProgram = localProgram;
-            } else if (lastLocalProgram !== localProgram) {
-                aleoProgramManager.clearKeyCache();
-                lastLocalProgram = localProgram;
+                let response = aleoProgramManager.execute_local(
+                    aleo.PrivateKey.from_string(privateKey),
+                    localProgram,
+                    aleoFunction,
+                    inputs,
+                    true,
+                    imports
+                );
+
+                console.log(
+                    `Web worker: Local execution completed in ${
+                        performance.now() - startTime
+                    } ms`,
+                );
+                let outputs = response.getOutputs();
+                console.log(`Function execution response: ${outputs}`);
+                self.postMessage({ type: "OFFLINE_EXECUTION_COMPLETED", outputs });
+            } catch (error) {
+                console.log(error);
+                self.postMessage({ type: "ERROR", errorMessage: error.toString() });
             }
-
-            let response = aleoProgramManager.execute_local(
-                aleo.PrivateKey.from_string(privateKey),
-                localProgram,
-                aleoFunction,
-                inputs,
-                true,
-            );
-
-            console.log(
-                `Web worker: Local execution completed in ${
-                    performance.now() - startTime
-                } ms`,
-            );
-            let outputs = response.getOutputs();
-            console.log(`Function execution response: ${outputs}`);
-            self.postMessage({ type: "OFFLINE_EXECUTION_COMPLETED", outputs });
-        } catch (error) {
-            console.log(error);
-            self.postMessage({ type: "ERROR", errorMessage: error.toString() });
-        }
+        })();
     } else if (ev.data.type === "ALEO_EXECUTE_PROGRAM_ON_CHAIN") {
         const {
             remoteProgram,
@@ -145,6 +149,7 @@ self.addEventListener("message", (ev) => {
                     remoteProgram,
                     url,
                 );
+                const imports = await resolveImports(remoteProgram);
                 if (!programMatches) {
                     throw `Program does not match the program deployed on the Aleo Network, cannot execute`;
                 }
@@ -174,6 +179,7 @@ self.addEventListener("message", (ev) => {
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
                     true,
+                    imports
                 );
 
                 console.log(
@@ -209,6 +215,7 @@ self.addEventListener("message", (ev) => {
                     remoteProgram,
                     url,
                 );
+                const imports = await resolveImports(remoteProgram);
                 if (!programMatches) {
                     throw `Program does not match the program deployed on the Aleo Network, cannot estimate execution fee`;
                 }
@@ -220,6 +227,7 @@ self.addEventListener("message", (ev) => {
                     inputs,
                     url,
                     true,
+                    imports,
                 );
 
                 console.log(
@@ -260,11 +268,13 @@ self.addEventListener("message", (ev) => {
                     );
                 }
 
+                const imports = await resolveImports(program);
                 console.log("Estimating deployment fee..");
                 let deploymentFee =
                     await aleoProgramManager.estimateDeploymentFee(
                         program,
                         false,
+                        imports
                     );
 
                 console.log(
@@ -297,7 +307,7 @@ self.addEventListener("message", (ev) => {
             url,
         } = ev.data;
 
-        console.log("Web worker: Creating transfer...");
+        console.log(`Web worker: Creating transfer of type ${transfer_type}...`);
         let startTime = performance.now();
 
         (async function () {
@@ -354,6 +364,7 @@ self.addEventListener("message", (ev) => {
                         }
                     }
                 } else if (transfer_type === "privateToPublic") {
+                    console.log("private to public");
                     if (
                         transferPrivateToPublicProvingKey === null ||
                         transferPrivateToPublicVerifyingKey === null
@@ -423,12 +434,14 @@ self.addEventListener("message", (ev) => {
                     );
                 }
 
+                let transferAmountRecord = amountRecord !== undefined ? aleo.RecordPlaintext.fromString(amountRecord) : undefined;
+
                 let transferTransaction = await aleoProgramManager.transfer(
                     aleo.PrivateKey.from_string(privateKey),
                     amountCredits,
                     recipient,
                     transfer_type,
-                    aleo.RecordPlaintext.fromString(amountRecord),
+                    transferAmountRecord,
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
@@ -474,7 +487,7 @@ self.addEventListener("message", (ev) => {
                         `Program not found on the Aleo Network - proceeding with deployment...`,
                     );
                 }
-
+                const imports = await resolveImports(program);
                 if (feeProvingKey === null || feeVerifyingKey === null) {
                     [feeProvingKey, feeVerifyingKey] = await getFunctionKeys(
                         FEE_PROVER_URL,
@@ -495,11 +508,11 @@ self.addEventListener("message", (ev) => {
                 let deployTransaction = await aleoProgramManager.deploy(
                     aleo.PrivateKey.from_string(privateKey),
                     program,
-                    undefined,
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
                     true,
+                    imports
                 );
 
                 console.log(

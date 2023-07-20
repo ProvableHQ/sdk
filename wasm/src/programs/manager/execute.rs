@@ -29,7 +29,8 @@ use crate::{
     Transaction,
 };
 
-use js_sys::Array;
+use indexmap::IndexMap;
+use js_sys::{Array, Object};
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
 
@@ -50,6 +51,9 @@ impl ProgramManager {
     /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
     /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
     /// keys will be deallocated from memory after the transaction is executed.
+    /// @param imports (optional) Provide a list of imports to use for the function execution in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
     /// @param proving_key (optional) Provide a verifying key to use for the function execution
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     #[wasm_bindgen]
@@ -61,6 +65,7 @@ impl ProgramManager {
         function: String,
         inputs: Array,
         cache: bool,
+        imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
     ) -> Result<ExecutionResponse, String> {
@@ -69,6 +74,10 @@ impl ProgramManager {
 
         let mut new_process;
         let process: &mut ProcessNative = get_process!(self, cache, new_process);
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
 
         let (response, _) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
@@ -95,6 +104,9 @@ impl ProgramManager {
     /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
     /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
     /// keys will be deallocated from memory after the transaction is executed.
+    /// @param imports (optional) Provide a list of imports to use for the function execution in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
     /// @param proving_key (optional) Provide a verifying key to use for the function execution
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
@@ -111,6 +123,7 @@ impl ProgramManager {
         fee_record: RecordPlaintext,
         url: String,
         cache: bool,
+        imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
         fee_proving_key: Option<ProvingKey>,
@@ -121,6 +134,11 @@ impl ProgramManager {
 
         let mut new_process;
         let process = get_process!(self, cache, new_process);
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+
         let stack = process.get_stack("credits.aleo").map_err(|e| e.to_string())?;
         let fee_identifier = IdentifierNative::from_str("fee").map_err(|e| e.to_string())?;
         if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some() {
@@ -174,12 +192,17 @@ impl ProgramManager {
     /// verifying keys will be stored in the ProgramManager's memory and used for subsequent
     /// program executions.
     ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    ///
     /// @param private_key The private key of the sender
     /// @param program The source code of the program to estimate the execution fee for
     /// @param function The name of the function to execute
     /// @param inputs A javascript array of inputs to the function
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
+    /// @param imports (optional) Provide a list of imports to use for the fee estimation in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
     /// @param proving_key (optional) Provide a verifying key to use for the fee estimation
     /// @param verifying_key (optional) Provide a verifying key to use for the fee estimation
     #[wasm_bindgen(js_name = estimateExecutionFee)]
@@ -192,19 +215,28 @@ impl ProgramManager {
         inputs: Array,
         url: String,
         cache: bool,
+        imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
     ) -> Result<u64, String> {
+        log(
+            "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
+        );
         log(&format!("Executing local function: {function}"));
         let inputs = inputs.to_vec();
 
         let mut new_process;
         let process: &mut ProcessNative = get_process!(self, cache, new_process);
 
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+
+        log("Generating execution trace");
         let (_, mut trace) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
 
-        // Generate execution
+        // Execute the program
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
         let locator = program.id().to_string().add("/").add(&function);
         let query = QueryNative::from(&url);
@@ -214,19 +246,24 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
 
         // Get the storage cost in bytes for the program execution
+        log("Estimating cost");
         let storage_cost = execution.size_in_bytes().map_err(|e| e.to_string())?;
 
         // Compute the finalize cost in microcredits.
         let mut finalize_cost = 0u64;
         // Iterate over the transitions to accumulate the finalize cost.
         for transition in execution.transitions() {
-            // Retrieve the function name.
+            // Retrieve the function name, program id, and program.
             let function_name = transition.function_name();
-            // Retrieve the finalize cost.
+            let program_id = transition.program_id();
+            let program = process.get_program(program_id).map_err(|e| e.to_string())?;
+
+            // Calculate the finalize cost for the function identified in the transition
             let cost = match &program.get_function(function_name).map_err(|e| e.to_string())?.finalize() {
                 Some((_, finalize)) => cost_in_microcredits(finalize).map_err(|e| e.to_string())?,
                 None => continue,
             };
+
             // Accumulate the finalize cost.
             finalize_cost = finalize_cost
                 .checked_add(cost)
@@ -239,10 +276,15 @@ impl ProgramManager {
     /// size of the execution of the program in bytes. If the function does not have a finalize
     /// step, then the finalize fee is 0.
     ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    ///
     /// @param program The program containing the function to estimate the finalize fee for
     /// @param function The function to estimate the finalize fee for
     #[wasm_bindgen(js_name = estimateFinalizeFee)]
     pub fn estimate_finalize_fee(&self, program: String, function: String) -> Result<u64, String> {
+        log(
+            "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
+        );
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
         let function_id = IdentifierNative::from_str(&function).map_err(|err| err.to_string())?;
         match program.get_function(&function_id).map_err(|err| err.to_string())?.finalize() {
