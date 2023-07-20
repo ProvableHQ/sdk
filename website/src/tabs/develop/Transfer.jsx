@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Button, Card, Col, Form, Input, Row, Result, Spin } from "antd";
+import { Button, Card, Col, Dropdown, Form, Input, Row, Result, Space, Spin } from "antd";
+import { DownOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 export const Transfer = () => {
@@ -14,6 +15,7 @@ export const Transfer = () => {
     const [transferError, setTransferError] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
+    const [visibility, setVisibility] = useState("private");
     const [worker, setWorker] = useState(null);
 
     function spawnWorker() {
@@ -85,13 +87,18 @@ export const Transfer = () => {
             return;
         }
 
+        let amountRecord = amountRecordString();
+        if (visibilityString() === "public" || visibilityString() === "publicToPrivate") {
+            amountRecord = undefined;
+        }
+
         await postMessagePromise(worker, {
             type: "ALEO_TRANSFER",
             privateKey: privateKeyString(),
             amountCredits: amount,
-            transfer_type: "private",
+            transfer_type: visibilityString(),
             recipient: recipientString(),
-            amountRecord: amountRecordString(),
+            amountRecord: amountRecord,
             fee: feeAmount,
             feeRecord: feeRecordString(),
             url: peerUrl(),
@@ -174,6 +181,35 @@ export const Transfer = () => {
         return privateKey;
     };
 
+    const onClick = ({ key }) => {
+        setTransactionID(null);
+        setTransferError(null);
+        console.log("Visibility changed to: ", key);
+        setVisibility(key);
+        if (key === "public" || key === "publicToPrivate") {
+            setAmountRecord(null);
+        }
+    };
+
+    const items = [
+        {
+            label: 'private',
+            key: 'private',
+        },
+        {
+            label: 'privateToPublic',
+            key: 'privateToPublic',
+        },
+        {
+            label: 'public',
+            key: 'public',
+        },
+        {
+            label: 'publicToPrivate',
+            key: 'publicToPrivate',
+        },
+    ];
+
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
     const feeString = () => (transferFee !== null ? transferFee : "");
     const amountString = () => (transferAmount !== null ? transferAmount : "");
@@ -188,12 +224,19 @@ export const Transfer = () => {
     const transferErrorString = () =>
         transferError !== null ? transferError : "";
     const peerUrl = () => (transferUrl !== null ? transferUrl : "");
+    const visibilityString = () => (visibility !== null ? visibility : "private");
 
     return (
         <Card
             title="Transfer"
             style={{ width: "100%", borderRadius: "20px" }}
             bordered={false}
+            extra={
+            <Dropdown menu={{ items, onClick }}>
+                <a onClick={(e) => e.preventDefault()}>
+                    <Button>{visibilityString()}</Button>
+                </a>
+            </Dropdown>}
         >
             <Form {...layout}>
                 <Form.Item
@@ -220,20 +263,23 @@ export const Transfer = () => {
                         value={amountString()}
                     />
                 </Form.Item>
-                <Form.Item
-                    label="Amount Record"
-                    colon={false}
-                    validateStatus={status}
-                >
-                    <Input.TextArea
-                        name="Amount Record"
-                        size="small"
-                        placeholder="Record used to pay transfer amount"
-                        allowClear
-                        onChange={onAmountRecordChange}
-                        value={amountRecordString()}
-                    />
-                </Form.Item>
+                {
+                    (visibilityString() === "privateToPublic" || visibilityString() === "private") &&
+                    <Form.Item
+                        label="Amount Record"
+                        colon={false}
+                        validateStatus={status}
+                    >
+                        <Input.TextArea
+                            name="Amount Record"
+                            size="small"
+                            placeholder="Record used to pay transfer amount"
+                            allowClear
+                            onChange={onAmountRecordChange}
+                            value={amountRecordString()}
+                        />
+                    </Form.Item>
+                }
                 <Form.Item label="Fee" colon={false} validateStatus={status}>
                     <Input.TextArea
                         name="Fee"

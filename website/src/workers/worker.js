@@ -307,7 +307,7 @@ self.addEventListener("message", (ev) => {
             url,
         } = ev.data;
 
-        console.log("Web worker: Creating transfer...");
+        console.log(`Web worker: Creating transfer of type ${transfer_type}...`);
         let startTime = performance.now();
 
         (async function () {
@@ -364,6 +364,7 @@ self.addEventListener("message", (ev) => {
                         }
                     }
                 } else if (transfer_type === "privateToPublic") {
+                    console.log("private to public");
                     if (
                         transferPrivateToPublicProvingKey === null ||
                         transferPrivateToPublicVerifyingKey === null
@@ -433,12 +434,14 @@ self.addEventListener("message", (ev) => {
                     );
                 }
 
+                let transferAmountRecord = amountRecord !== undefined ? aleo.RecordPlaintext.fromString(amountRecord) : undefined;
+
                 let transferTransaction = await aleoProgramManager.transfer(
                     aleo.PrivateKey.from_string(privateKey),
                     amountCredits,
                     recipient,
                     transfer_type,
-                    aleo.RecordPlaintext.fromString(amountRecord),
+                    transferAmountRecord,
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
