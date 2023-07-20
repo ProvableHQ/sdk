@@ -19,8 +19,9 @@ Happy hacking!
 
 ## Aleo Tools
 
-[Aleo SDK account generator](https://aleohq.github.io/aleo/)
+<!-- markdown-link-check-disable -->
+[Aleo SDK account generator](https://aleo.tools/)
 
 [Aleo Home](https://www.aleo.org/)
-
+<!-- markdown-link-check-enable -->
 You can visit the [SnarkVM repo](https://github.com/AleoHQ/snarkVM) and [SnarkOS repo](https://github.com/AleoHQ/snarkOS) to go deep into the code of aleo infrastructure
