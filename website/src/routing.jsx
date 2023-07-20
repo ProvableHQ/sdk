@@ -19,6 +19,8 @@ import { Deploy } from "./tabs/develop/Deploy.jsx";
 import { Transfer } from "./tabs/develop/Transfer.jsx";
 import { Split } from "./tabs/develop/Split.jsx";
 import { Join } from "./tabs/develop/Join.jsx";
+import { ProgramToForm } from "./tabs/develop/ProgramToForm.jsx";
+import { ExecuteV2 } from "./tabs/develop/ExecuteV2.jsx";
 
 export const router = createBrowserRouter([
     {
@@ -99,6 +101,22 @@ export const router = createBrowserRouter([
                         <Split />
                         <br />
                         <Join />
+                    </>
+                ),
+            },
+            {
+                path: "/program2form",
+                element: (
+                    <>
+                        <ProgramToForm />
+                    </>
+                ),
+            },
+            {
+                path: "/executev2",
+                element: (
+                    <>
+                        <ExecuteV2 />
                     </>
                 ),
             },

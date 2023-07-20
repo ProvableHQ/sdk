@@ -10,6 +10,8 @@ import {
     SwapOutlined,
     ToolOutlined,
     UserOutlined,
+    FormatPainterOutlined,
+    FireOutlined,
 } from "@ant-design/icons";
 
 const { Content, Footer, Sider } = Layout;
@@ -60,6 +62,16 @@ function App() {
             label: "Transfer",
             key: "transfer",
             icon: <SwapOutlined />,
+        },
+        {
+            label: "Program2Form",
+            key: "/program2form",
+            icon: <FormatPainterOutlined />,
+        },
+        {
+            label: "ExecuteV2",
+            key: "/executev2",
+            icon: <FireOutlined />,
         },
     ];
 

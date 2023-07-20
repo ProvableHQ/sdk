@@ -18,9 +18,3 @@
 input[type="text"]:disabled {
     cursor: text;
 }
-
-/* Copy to clipboard icon formatting */
-.ant-input-group-addon:last-child {
-    border-radius: 20px;
-    width: 42px;
-}
