@@ -19,6 +19,8 @@ import { Deploy } from "./tabs/develop/Deploy.jsx";
 import { Transfer } from "./tabs/develop/Transfer.jsx";
 import { Split } from "./tabs/develop/Split.jsx";
 import { Join } from "./tabs/develop/Join.jsx";
+import { GetMappingNames } from "./tabs/rest/GetMappingNames.jsx";
+import { GetMappingValue } from "./tabs/rest/GetMappingValue.jsx";
 
 export const router = createBrowserRouter([
     {
@@ -65,6 +67,10 @@ export const router = createBrowserRouter([
                         <GetBlockByHash />
                         <br />
                         <GetProgram />
+                        <br />
+                        <GetMappingNames />
+                        <br />
+                        <GetMappingValue />
                         <br />
                         <GetTransaction />
                     </>

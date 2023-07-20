@@ -70,7 +70,7 @@ workspace = true
 version = "1.0"
 
 [workspace.dependencies.clap]
-version = "4.3.12"
+version = "4.3.16"
 features = [ "derive", "string" ]
 
 [dependencies.clap]
