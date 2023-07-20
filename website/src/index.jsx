@@ -1,25 +1,28 @@
-import React from 'react';
-import './index.css';
-import App from './App';
-import { createRoot } from 'react-dom/client';
+import React from "react";
+import "./index.css";
+import { createRoot } from "react-dom/client";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./routing.jsx";
 
-const container = document.getElementById('root');
+const container = document.getElementById("root");
 const root = createRoot(container);
 root.render(
     <React.StrictMode>
-        <App />
-    </React.StrictMode>
+        <RouterProvider router={router} />
+    </React.StrictMode>,
 );
 
-const reportWebVitals = onPerfEntry => {
+const reportWebVitals = (onPerfEntry) => {
     if (onPerfEntry && onPerfEntry instanceof Function) {
-        import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-            getCLS(onPerfEntry);
-            getFID(onPerfEntry);
-            getFCP(onPerfEntry);
-            getLCP(onPerfEntry);
-            getTTFB(onPerfEntry);
-        });
+        import("web-vitals").then(
+            ({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+                getCLS(onPerfEntry);
+                getFID(onPerfEntry);
+                getFCP(onPerfEntry);
+                getLCP(onPerfEntry);
+                getTTFB(onPerfEntry);
+            },
+        );
     }
 };
 

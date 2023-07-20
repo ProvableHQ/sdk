@@ -106,6 +106,29 @@ function fabulous:
     output r2 as u32.private;
 ";
 
+pub const MULTIPLY_PROGRAM: &str =
+    "// The 'multiply_test.aleo' program which is imported by the 'double_test.aleo' program.
+program multiply_test.aleo;
+
+function multiply:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    mul r0 r1 into r2;
+    output r2 as u32.private;
+";
+
+pub const MULTIPLY_IMPORT_PROGRAM: &str =
+    "// The 'double_test.aleo' program that uses a single import from another program to perform doubling.
+import multiply_test.aleo;
+
+program double_test.aleo;
+
+function double_it:
+    input r0 as u32.private;
+    call multiply_test.aleo/multiply 2u32 r0 into r1;
+    output r1 as u32.private;
+";
+
 pub const RECORD_2000000001_MICROCREDITS: &str = r"{
   owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
   microcredits: 2000000001u64.private,

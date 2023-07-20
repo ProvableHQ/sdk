@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.5.0"
+version = "0.5.1"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"

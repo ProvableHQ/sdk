@@ -5,26 +5,26 @@ import HtmlWebpackPlugin from "html-webpack-plugin";
 import path from "path";
 
 const appConfig = {
-    mode: 'production',
+    mode: "production",
     entry: {
-        index: './src/index.jsx'
+        index: "./src/index.jsx",
     },
     output: {
-        path: path.resolve('dist'),
-        filename: '[name].bundle.js'
+        path: path.resolve("dist"),
+        filename: "[name].bundle.js",
     },
     resolve: {
-        extensions: [".js", ".wasm", ".jsx"]
+        extensions: [".js", ".wasm", ".jsx"],
     },
     devServer: {
         port: 3000,
         headers: {
-            'Cross-Origin-Opener-Policy': 'same-origin',
-            'Cross-Origin-Embedder-Policy': 'require-corp'
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
         },
         client: {
-            overlay: false
-        }
+            overlay: false,
+        },
     },
     module: {
         rules: [
@@ -32,25 +32,22 @@ const appConfig = {
                 test: /\.(js|jsx)$/,
                 exclude: /nodeModules/,
                 use: {
-                    loader: 'babel-loader'
-                }
+                    loader: "babel-loader",
+                },
             },
             {
                 test: /\.css$/,
-                use: ['style-loader', 'css-loader']
-            }
-        ]
+                use: ["style-loader", "css-loader"],
+            },
+        ],
     },
     plugins: [
         new CopyPlugin({
-            patterns: [
-                { from: "public", to: "public" }
-            ]
+            patterns: [{ from: "public", to: "public" }],
         }),
-        new HtmlWebpackPlugin(
-            {
-                template: './index.html'
-            }),
+        new HtmlWebpackPlugin({
+            template: "./index.html",
+        }),
     ],
     performance: {
         hints: false,
@@ -62,9 +59,9 @@ const appConfig = {
     },
     experiments: {
         asyncWebAssembly: true,
-        topLevelAwait: true
+        topLevelAwait: true,
     },
-    devtool: 'source-map',
-}
+    devtool: "source-map",
+};
 
 export default [appConfig];

@@ -3,8 +3,8 @@ import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
 
-export const GetProgram = () => {
-    const [program, setProgram] = useState(null);
+export const GetMappingNames = () => {
+    const [mapping, setMapping] = useState(null);
     const [programID, setProgramID] = useState(null);
     const [status, setStatus] = useState("");
 
@@ -31,20 +31,22 @@ export const GetProgram = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://vm.aleo.org/api/testnet3/program/${id}`)
+                    .get(
+                        `https://vm.aleo.org/api/testnet3/program/${id}/mappings`,
+                    )
                     .then((response) => {
                         setStatus("success");
-                        setProgram(response.data);
+                        setMapping(response.data);
                     })
                     .catch((error) => {
-                        // Reset the program text to `null` if the program id does not exist.
-                        setProgram(null);
+                        // Reset the mapping text to `null` if the program id does not exist.
+                        setMapping(null);
                         setStatus("error");
                         console.error(error);
                     });
             } else {
-                // Reset the program text if the user clears the search bar.
-                setProgram(null);
+                // Reset the mapping text if the user clears the search bar.
+                setMapping(null);
                 // If the search bar is empty reset the status to "".
                 setStatus("");
             }
@@ -54,12 +56,12 @@ export const GetProgram = () => {
     };
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const programString = () => (program !== null ? program : "");
+    const mappingString = () => (mapping !== null ? mapping : "");
     const programIDString = () => (programID !== null ? programID : "");
 
     return (
         <Card
-            title="Get Program"
+            title="Get Mapping Names"
             style={{ width: "100%", borderRadius: "20px" }}
             bordered={false}
             extra={
@@ -93,27 +95,27 @@ export const GetProgram = () => {
                     />
                 </Form.Item>
             </Form>
-            {program !== null ? (
+            {mapping !== null ? (
                 <Form {...layout}>
                     <Divider />
                     <Row align="middle">
                         <Col span={23}>
-                            <Form.Item label="Program Bytecode" colon={false}>
+                            <Form.Item label="Mapping Names" colon={false}>
                                 <Input.TextArea
                                     size="large"
-                                    rows={15}
-                                    placeholder="Program"
+                                    rows={5}
+                                    placeholder="Names"
                                     style={{
                                         whiteSpace: "pre-wrap",
                                         overflowWrap: "break-word",
                                     }}
-                                    value={programString()}
+                                    value={mappingString()}
                                     disabled
                                 />
                             </Form.Item>
                         </Col>
                         <Col span={1} align="middle">
-                            <CopyButton data={programString()} />
+                            <CopyButton data={mappingString()} />
                         </Col>
                     </Row>
                 </Form>
