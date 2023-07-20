@@ -20,7 +20,7 @@ import { Transfer } from "./tabs/develop/Transfer.jsx";
 import { Split } from "./tabs/develop/Split.jsx";
 import { Join } from "./tabs/develop/Join.jsx";
 import { ProgramToForm } from "./tabs/develop/ProgramToForm.jsx";
-import { ExecuteV2 } from "./tabs/develop/ExecuteV2.jsx";
+import { Execute as ExecuteV2 } from "./tabs/develop/execute/index.jsx";
 import { GetMappingNames } from "./tabs/rest/GetMappingNames.jsx";
 import { GetMappingValue } from "./tabs/rest/GetMappingValue.jsx";
 
