@@ -50,6 +50,7 @@ use crate::{
     VerifyingKey,
 };
 
+use js_sys::{Object, Reflect};
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -208,10 +209,124 @@ impl ProgramManager {
             |stack| stack.contains_proving_key(function_id) && stack.contains_verifying_key(function_id),
         )
     }
+
+    /// Resolve imports for a program in depth first search order
+    pub(crate) fn resolve_imports(
+        process: &mut ProcessNative,
+        program: &ProgramNative,
+        imports: Option<Object>,
+    ) -> Result<(), String> {
+        if let Some(imports) = imports {
+            program.imports().keys().try_for_each(|program_id| {
+                // Get the program string
+                let program_id = program_id.to_string();
+                if let Some(import_string) = Reflect::get(&imports, &program_id.as_str().into())
+                    .map_err(|_| "Program import not found in imports provided".to_string())?
+                    .as_string()
+                {
+                    if &program_id != "credits.aleo" {
+                        crate::log(&format!("Importing program: {}", program_id));
+                        let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
+                        // If the program has imports, add them
+                        Self::resolve_imports(process, &import, Some(imports.clone()))?;
+                        // If the process does not already contain the program, add it
+                        if !process.contains_program(import.id()) {
+                            process.add_program(&import).map_err(|err| err.to_string())?;
+                        }
+                    }
+                }
+                Ok::<(), String>(())
+            })
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl Default for ProgramManager {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use js_sys::{Object, Reflect};
+    use wasm_bindgen::JsValue;
+    use wasm_bindgen_test::*;
+
+    pub const MULTIPLY_PROGRAM: &str = r#"// The 'multiply_test.aleo' program which is imported by the 'double_test.aleo' program.
+program multiply_test.aleo;
+
+function multiply:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    mul r0 r1 into r2;
+    output r2 as u32.private;
+"#;
+
+    pub const MULTIPLY_IMPORT_PROGRAM: &str = r#"// The 'double_test.aleo' program that uses a single import from another program to perform doubling.
+import multiply_test.aleo;
+
+program double_test.aleo;
+
+function double_it:
+    input r0 as u32.private;
+    call multiply_test.aleo/multiply 2u32 r0 into r1;
+    output r1 as u32.private;
+"#;
+
+    pub const ADDITION_PROGRAM: &str = r#"// The 'addition_test.aleo' program is imported by the 'double_test.aleo' program.
+program addition_test.aleo;
+
+function binary_add:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+"#;
+
+    pub const NESTED_IMPORT_PROGRAM: &str = r#"// The 'imported_add_mul.aleo' program uses a nested series of imports. It imports the 'double_test.aleo' program
+// which then imports the 'multiply_test.aleo' program and implicitly uses that to perform the doubling.
+import double_test.aleo;
+import addition_test.aleo;
+
+program imported_add_mul.aleo;
+
+function add_and_double:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    call addition_test.aleo/binary_add r0 r1 into r2;
+    call double_test.aleo/double_it r2 into r3;
+    output r3 as u32.private;
+"#;
+
+    #[wasm_bindgen_test]
+    fn test_import_resolution() {
+        let imports = Object::new();
+        Reflect::set(&imports, &JsValue::from_str("multiply_test.aleo"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+        Reflect::set(&imports, &JsValue::from_str("addition_test.aleo"), &JsValue::from_str(ADDITION_PROGRAM)).unwrap();
+        Reflect::set(&imports, &JsValue::from_str("double_test.aleo"), &JsValue::from_str(MULTIPLY_IMPORT_PROGRAM))
+            .unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+        let program = ProgramNative::from_str(NESTED_IMPORT_PROGRAM).unwrap();
+        let add_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
+        let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
+        let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
+
+        ProgramManager::resolve_imports(&mut process, &program, Some(imports)).unwrap();
+
+        let add_import = process.get_program("addition_test.aleo").unwrap();
+        let multiply_import = process.get_program("multiply_test.aleo").unwrap();
+        let double_import = process.get_program("double_test.aleo").unwrap();
+        let main_program = process.get_program("imported_add_mul.aleo");
+
+        assert_eq!(add_import, &add_program);
+        assert_eq!(multiply_import, &multiply_program);
+        assert_eq!(double_import, &double_program);
+        assert!(main_program.is_err());
     }
 }

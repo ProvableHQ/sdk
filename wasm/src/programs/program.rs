@@ -242,6 +242,16 @@ impl Program {
     pub fn is_equal(&self, other: &Program) -> bool {
         self == other
     }
+
+    /// Get program_imports
+    #[wasm_bindgen(js_name = "getImports")]
+    pub fn get_imports(&self) -> Array {
+        let imports = Array::new_with_length(self.0.imports().len() as u32);
+        for (index, (import, _)) in self.0.imports().iter().enumerate() {
+            imports.set(index as u32, import.to_string().into());
+        }
+        imports
+    }
 }
 
 impl Deref for Program {
@@ -362,6 +372,21 @@ finalize signed_integer_update:
     input r0 as i64.public;
     input r1 as bool.public;
     set r1 into signed_integer_mapping[r0];"#;
+
+    pub const NESTED_IMPORT_PROGRAM: &str = r#"// The 'imported_add_mul.aleo' program uses a nested series of imports. It imports the 'double_test.aleo' program
+// which then imports the 'multiply_test.aleo' program and implicitly uses that to perform the doubling.
+import double_test.aleo;
+import addition_test.aleo;
+
+program imported_add_mul.aleo;
+
+function add_and_double:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    call addition_test.aleo/binary_add r0 r1 into r2;
+    call double_test.aleo/double_it r2 into r3;
+    output r3 as u32.private;
+"#;
 
     #[wasm_bindgen_test]
     fn test_mappings() {
@@ -509,5 +534,13 @@ finalize signed_integer_update:
         assert_eq!(program, program_from_native);
         let native_from_program = ProgramNative::from(program);
         assert_eq!(program_native, native_from_program);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_get_imports() {
+        let program = Program::from_string(NESTED_IMPORT_PROGRAM).unwrap();
+        let imports = program.get_imports().to_vec();
+        assert_eq!(&imports[0].as_string().unwrap(), "double_test.aleo");
+        assert_eq!(&imports[1].as_string().unwrap(), "addition_test.aleo");
     }
 }

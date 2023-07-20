@@ -28,11 +28,13 @@ impl<N: Network> ProgramManager<N> {
     /// Offline executions however can be used to verify that program outputs follow from program
     /// inputs and that the program was executed correctly. If this is the aim and no chain
     /// interaction is desired, this function can be used.
+    #[allow(clippy::too_many_arguments)]
     pub fn execute_program_offline<A: Aleo<Network = N>>(
         &self,
         private_key: &PrivateKey<N>,
         program: &Program<N>,
         function: impl TryInto<Identifier<N>>,
+        imports: &[Program<N>],
         inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
         include_outputs: bool,
         url: &str,
@@ -53,16 +55,25 @@ impl<N: Network> ProgramManager<N> {
         // Create an ephemeral SnarkVM to store the programs
         let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
         let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        let _ = &vm.process().write().add_program(program);
+        let credits_id = ProgramID::<N>::from_str("credits.aleo")?;
+        imports.iter().try_for_each(|program| {
+            if &credits_id != program.id() {
+                vm.process().write().add_program(program)?
+            }
+            Ok::<(), Error>(())
+        })?;
+        let _ = vm.process().write().add_program(program);
 
         // Compute the authorization.
         let authorization = vm.authorize(private_key, program_id, function_name, inputs, rng)?;
 
+        // Compute the trace
         let locator = Locator::new(*program_id, function_name);
         let (response, mut trace) = vm.process().write().execute::<A>(authorization)?;
         trace.prepare(query)?;
         let execution = trace.prove_execution::<A, _>(&locator.to_string(), &mut rand::thread_rng())?;
 
+        // Get the public outputs
         let mut public_outputs = vec![];
         response.outputs().iter().zip(response.output_ids().iter()).for_each(|(output, output_id)| {
             if let OutputID::Public(_) = output_id {
@@ -70,6 +81,7 @@ impl<N: Network> ProgramManager<N> {
             }
         });
 
+        // If all outputs are requested, include them
         let response = if include_outputs { Some(response) } else { None };
 
         // Return the execution
@@ -84,19 +96,17 @@ impl<N: Network> ProgramManager<N> {
         program_id: impl TryInto<ProgramID<N>>,
         function: impl TryInto<Identifier<N>>,
         inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
-        fee: u64,
+        priority_fee: u64,
         fee_record: Record<N, Plaintext<N>>,
         password: Option<&str>,
     ) -> Result<String> {
-        ensure!(fee > 0, "Fee must be greater than 0");
-
-        // Ensure network config is set, otherwise execution is not possible
+        // Ensure a network client is set, otherwise online execution is not possible
         ensure!(
             self.api_client.is_some(),
             "❌ Network client not set. A network client must be set before execution in order to send an execution transaction to the Aleo network"
         );
 
-        // Check program and function has a valid name
+        // Check program and function have valid names
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
         let function_id = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
         let function_name = function_id.to_string();
@@ -107,20 +117,18 @@ impl<N: Network> ProgramManager<N> {
             .get_program(program_id)
             .map_err(|_| anyhow!("Program {program_id:?} does not exist on the Aleo Network. Try deploying the program first before executing."))?;
 
-        // Try to get the private key configured in the program manager
+        // Create the execution transaction
         let private_key = self.get_private_key(password)?;
-
-        // Attempt to construct the execution transaction
-        println!("Building transaction..");
-        let query = self.api_client.as_ref().unwrap().base_url();
+        let node_url = self.api_client.as_ref().unwrap().base_url().to_string();
         let transaction = Self::create_execute_transaction(
             &private_key,
-            fee,
+            priority_fee,
             inputs,
             fee_record,
             &program,
             function_id,
-            query.to_string(),
+            node_url,
+            self.api_client()?,
         )?;
 
         // Broadcast the execution transaction to the network
@@ -137,19 +145,21 @@ impl<N: Network> ProgramManager<N> {
         execution
     }
 
-    /// Create an execute transaction
+    /// Create an execute transaction without initializing a program manager instance
+    #[allow(clippy::too_many_arguments)]
     pub fn create_execute_transaction(
         private_key: &PrivateKey<N>,
-        fee: u64,
+        priority_fee: u64,
         inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
         fee_record: Record<N, Plaintext<N>>,
         program: &Program<N>,
         function: impl TryInto<Identifier<N>>,
-        query: String,
+        node_url: String,
+        api_client: &AleoAPIClient<N>,
     ) -> Result<Transaction<N>> {
         // Initialize an RNG and query object for the transaction
         let rng = &mut rand::thread_rng();
-        let query = Query::from(query);
+        let query = Query::from(node_url);
 
         // Check that the function exists in the program
         let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
@@ -160,17 +170,17 @@ impl<N: Network> ProgramManager<N> {
             "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
         );
 
-        // Create an ephemeral SnarkVM to store the programs
-        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
-        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        let _ = &vm.process().write().add_program(program);
+        // Initialize the VM
+        let vm = Self::initialize_vm(api_client, program, true)?;
 
         // Create an execution transaction
-        vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, fee)), Some(query), rng)
+        vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, priority_fee)), Some(query), rng)
     }
 
     /// Estimate the cost of executing a program with the given inputs in microcredits. The response
     /// will be in the form of (total_cost, (storage_cost, finalize_cost))
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
     pub fn estimate_execution_fee<A: Aleo<Network = N>>(
         &self,
         program: &Program<N>,
@@ -182,10 +192,6 @@ impl<N: Network> ProgramManager<N> {
             |api_client| Ok(api_client.base_url()),
         )?;
 
-        // Initialize an RNG and query object for the transaction
-        let rng = &mut rand::thread_rng();
-        let query = Query::<N, BlockMemory<N>>::from(url);
-
         // Check that the function exists in the program
         let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
         let program_id = program.id();
@@ -196,9 +202,10 @@ impl<N: Network> ProgramManager<N> {
         );
 
         // Create an ephemeral SnarkVM to store the programs
-        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
-        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        let _ = &vm.process().write().add_program(program);
+        // Initialize an RNG and query object for the transaction
+        let rng = &mut rand::thread_rng();
+        let query = Query::<N, BlockMemory<N>>::from(url);
+        let vm = Self::initialize_vm(self.api_client()?, program, true)?;
 
         // Create an ephemeral private key for the sample execution
         let private_key = PrivateKey::<N>::new(rng)?;
@@ -216,6 +223,8 @@ impl<N: Network> ProgramManager<N> {
     /// Estimate the finalize fee component for executing a function. This fee is additional to the
     /// size of the execution of the program in bytes. If the function does not have a finalize
     /// step, then the finalize fee is 0.
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
     pub fn estimate_finalize_fee(&self, program: &Program<N>, function: impl TryInto<Identifier<N>>) -> Result<u64> {
         let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
         match program.get_function(&function_name)?.finalize() {
@@ -237,7 +246,7 @@ mod tests {
     fn test_fee_estimation() {
         let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
-        let mut program_manager =
+        let program_manager =
             ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client.clone()), None).unwrap();
 
         let finalize_program = program_manager.api_client.as_ref().unwrap().get_program("lottery_first.aleo").unwrap();
@@ -267,7 +276,31 @@ mod tests {
         // Ensure a deployment fee is estimated correctly
         let random = random_program();
         let (total, (storage, namespace)) = program_manager.estimate_deployment_fee::<AleoV0>(&random).unwrap();
-        let namespace_only = program_manager.estimate_namespace_fee(random.id()).unwrap();
+        let namespace_only = ProgramManager::estimate_namespace_fee(random.id()).unwrap();
+        assert_eq!(namespace, 1000000);
+        assert_eq!(namespace, namespace_only);
+        assert_eq!(total, namespace_only + storage);
+        assert_eq!(storage, total - namespace_only);
+
+        // Ensure a program with imports is estimated correctly
+        let nested_import_program = api_client.get_program("imported_add_mul.aleo").unwrap();
+        let finalize_only = program_manager.estimate_finalize_fee(&nested_import_program, "add_and_double").unwrap();
+        let (total, (storage, finalize)) = program_manager
+            .estimate_execution_fee::<AleoV0>(
+                &nested_import_program,
+                "add_and_double",
+                vec!["5u32", "5u32"].into_iter(),
+            )
+            .unwrap();
+        assert!(storage > 0);
+        assert_eq!(finalize_only, 0);
+        assert_eq!(finalize, finalize_only);
+        assert_eq!(total, finalize_only + storage);
+        assert_eq!(storage, total - finalize_only);
+
+        let (total, (storage, namespace)) =
+            program_manager.estimate_deployment_fee::<AleoV0>(&nested_import_program).unwrap();
+        let namespace_only = ProgramManager::estimate_namespace_fee(nested_import_program.id()).unwrap();
         assert_eq!(namespace, 1000000);
         assert_eq!(namespace, namespace_only);
         assert_eq!(total, namespace_only + storage);
@@ -339,6 +372,25 @@ mod tests {
                 "finalize_test.aleo",
                 "increase_counter",
                 ["0u32", "42u32"].into_iter(),
+                finalize_fee,
+                fee_record,
+                Some("password"),
+            );
+            if execution.is_ok() {
+                break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
+            }
+        }
+
+        // Test execution of a program with imports other than credits.aleo is successful
+        for i in 0..5 {
+            let fee_record = record_finder.find_one_record(&private_key, finalize_fee).unwrap();
+            // Test execution of an on chain program is successful using an encrypted private key
+            let execution = program_manager.execute_program(
+                "double_test.aleo",
+                "double_it",
+                ["42u32"].into_iter(),
                 finalize_fee,
                 fee_record,
                 Some("password"),

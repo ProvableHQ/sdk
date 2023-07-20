@@ -15,7 +15,8 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use aleo_wasm::{PrivateKey, Program, ProgramManager, ProvingKey, RecordPlaintext, VerifyingKey};
-use js_sys::Array;
+use js_sys::{Array, Object, Reflect};
+use std::str::FromStr;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 wasm_bindgen_test_configure!(run_in_browser);
@@ -51,6 +52,52 @@ finalize integer_key_mapping_update:
     input r0 as u64.public;
     input r1 as u64.public;
     set r1 into integer_key_mapping[r0];
+"#;
+
+pub const MULTIPLY_PROGRAM: &str = r#"// The 'multiply_test.aleo' program which is imported by the 'double_test.aleo' program.
+program multiply_test.aleo;
+
+function multiply:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    mul r0 r1 into r2;
+    output r2 as u32.private;
+"#;
+
+pub const MULTIPLY_IMPORT_PROGRAM: &str = r#"// The 'double_test.aleo' program that uses a single import from another program to perform doubling.
+import multiply_test.aleo;
+
+program double_test.aleo;
+
+function double_it:
+    input r0 as u32.private;
+    call multiply_test.aleo/multiply 2u32 r0 into r1;
+    output r1 as u32.private;
+"#;
+
+pub const ADDITION_PROGRAM: &str = r#"// The 'addition_test.aleo' program is imported by the 'double_test.aleo' program.
+program addition_test.aleo;
+
+function binary_add:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+"#;
+
+pub const NESTED_IMPORT_PROGRAM: &str = r#"// The 'imported_add_mul.aleo' program uses a nested series of imports. It imports the 'double_test.aleo' program
+// which then imports the 'multiply_test.aleo' program and implicitly uses that to perform the doubling.
+import double_test.aleo;
+import addition_test.aleo;
+
+program imported_add_mul.aleo;
+
+function add_and_double:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    call addition_test.aleo/binary_add r0 r1 into r2;
+    call double_test.aleo/double_it r2 into r3;
+    output r3 as u32.private;
 "#;
 
 const SPLIT_PROVER_URL: &str = "https://testnet3.parameters.aleo.org/split.prover.8c585f2";
@@ -104,6 +151,7 @@ async fn test_cache_functionality() {
             true,
             None,
             None,
+            None,
         )
         .unwrap();
 
@@ -154,6 +202,7 @@ async fn test_key_synthesis() {
             true,
             None,
             None,
+            None,
         )
         .unwrap();
 
@@ -187,6 +236,7 @@ async fn test_fee_validation() {
             None,
             None,
             None,
+            None,
         )
         .await;
     assert!(execution.is_err());
@@ -196,11 +246,11 @@ async fn test_fee_validation() {
         .deploy(
             private_key.clone(),
             Program::get_credits_program().to_string(),
-            None,
             100.0,
             fee_record.clone(),
             "https://vm.aleo.org/api".to_string(),
             false,
+            None,
             None,
             None,
         )
@@ -274,7 +324,16 @@ async fn test_program_execution_with_cache_and_external_keys() {
     inputs.set(0, wasm_bindgen::JsValue::from_str("5u32"));
     inputs.set(1, wasm_bindgen::JsValue::from_str("5u32"));
     let result = program_manager
-        .execute_local(private_key.clone(), HELLO_PROGRAM.to_string(), "main".to_string(), inputs, true, None, None)
+        .execute_local(
+            private_key.clone(),
+            HELLO_PROGRAM.to_string(),
+            "main".to_string(),
+            inputs,
+            true,
+            None,
+            None,
+            None,
+        )
         .unwrap();
     let outputs = result.get_outputs().to_vec();
     console_log!("outputs: {:?}", outputs);
@@ -289,7 +348,16 @@ async fn test_program_execution_with_cache_and_external_keys() {
     inputs.set(0, wasm_bindgen::JsValue::from_str("15u32"));
     inputs.set(1, wasm_bindgen::JsValue::from_str("5u32"));
     let result = program_manager
-        .execute_local(private_key.clone(), HELLO_PROGRAM.to_string(), "main".to_string(), inputs, true, None, None)
+        .execute_local(
+            private_key.clone(),
+            HELLO_PROGRAM.to_string(),
+            "main".to_string(),
+            inputs,
+            true,
+            None,
+            None,
+            None,
+        )
         .unwrap();
 
     // Ensure the output using cached keys is correct
@@ -318,6 +386,7 @@ async fn test_program_execution_with_cache_and_external_keys() {
             "main".to_string(),
             inputs.clone(),
             false,
+            None,
             Some(retrieved_proving_key.clone()),
             Some(retrieved_verifying_key.clone()),
         )
@@ -336,6 +405,7 @@ async fn test_program_execution_with_cache_and_external_keys() {
             inputs,
             "https://vm.aleo.org/api".to_string(),
             false,
+            None,
             Some(retrieved_proving_key),
             Some(retrieved_verifying_key),
         )
@@ -356,7 +426,16 @@ async fn test_program_execution_with_cache_and_external_keys() {
     inputs.set(0, wasm_bindgen::JsValue::from_str("20u32"));
     inputs.set(1, wasm_bindgen::JsValue::from_str("20u32"));
     let result = program_manager
-        .execute_local(private_key, HELLO_PROGRAM_EDIT.to_string(), "hello".to_string(), inputs, false, None, None)
+        .execute_local(
+            private_key,
+            HELLO_PROGRAM_EDIT.to_string(),
+            "hello".to_string(),
+            inputs,
+            false,
+            None,
+            None,
+            None,
+        )
         .unwrap();
 
     let outputs = result.get_outputs().to_vec();
@@ -375,7 +454,7 @@ async fn test_fee_estimation() {
     inputs.set(1, wasm_bindgen::JsValue::from_str("15u64"));
 
     // Ensure the deployment fee is correct and the cache is used
-    let deployment_fee = program_manager.estimate_deployment_fee(FINALIZE.to_string(), true).await.unwrap();
+    let deployment_fee = program_manager.estimate_deployment_fee(FINALIZE.to_string(), true, None).await.unwrap();
     let namespace_fee = program_manager.program_name_cost("tencharacters.aleo").unwrap();
     assert_eq!(namespace_fee, 1000000);
 
@@ -397,6 +476,7 @@ async fn test_fee_estimation() {
             true,
             None,
             None,
+            None,
         )
         .await
         .unwrap();
@@ -407,4 +487,37 @@ async fn test_fee_estimation() {
 
     // Ensure the total fee is greater than the finalize fee
     assert!(execution_fee > finalize_fee);
+}
+
+#[wasm_bindgen_test]
+async fn test_import_resolution() {
+    let imports = Object::new();
+    Reflect::set(&imports, &JsValue::from_str("multiply_test.aleo"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+    Reflect::set(&imports, &JsValue::from_str("addition_test.aleo"), &JsValue::from_str(ADDITION_PROGRAM)).unwrap();
+    Reflect::set(&imports, &JsValue::from_str("double_test.aleo"), &JsValue::from_str(MULTIPLY_IMPORT_PROGRAM))
+        .unwrap();
+
+    let mut program_manager = ProgramManager::new();
+    let private_key = PrivateKey::new();
+    let inputs = js_sys::Array::new_with_length(1);
+    inputs.set(0, JsValue::from_str("5u32"));
+    inputs.set(1, JsValue::from_str("10u32"));
+
+    let result = program_manager
+        .execute_local(
+            private_key,
+            NESTED_IMPORT_PROGRAM.to_string(),
+            "add_and_double".to_string(),
+            inputs,
+            true,
+            Some(imports),
+            None,
+            None,
+        )
+        .unwrap();
+
+    let outputs = result.get_outputs().to_vec();
+    console_log!("outputs: {:?}", outputs);
+    assert_eq!(outputs.len(), 1);
+    assert_eq!(outputs[0], "30u32");
 }
