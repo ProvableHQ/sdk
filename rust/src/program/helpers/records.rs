@@ -74,4 +74,19 @@ impl<N: Network> RecordFinder<N> {
         let records = self.api_client.get_unspent_records(private_key, 0..latest_height, max_microcredits, amounts)?;
         Ok(records.into_iter().map(|(_, record)| record).collect())
     }
+
+    /// Find matching records from a program using a user-specified function to match records
+    pub fn find_matching_records_from_program(
+        &self,
+        private_key: &PrivateKey<N>,
+        program_id: &ProgramID<N>,
+        matching_function: impl FnOnce(Vec<Record<N, Plaintext<N>>>) -> Result<Vec<Record<N, Plaintext<N>>>>,
+        unspent_only: bool
+    ) -> Result<Vec<Record<N, Plaintext<N>>>> {
+        let latest_height = self.api_client.latest_height()?;
+        let view_key = ViewKey::try_from(private_key)?;
+        let records = self.api_client.get_program_records(private_key, program_id, 0..latest_height, unspent_only)?;
+        let decrypted_records = records.into_iter().map(|(_, record)| record.decrypt(&view_key).unwrap()).collect::<Vec<_>>();
+        matching_function(decrypted_records)
+    }
 }
