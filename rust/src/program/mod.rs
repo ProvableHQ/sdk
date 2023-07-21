@@ -101,7 +101,9 @@ impl<N: Network> ProgramManager<N> {
         // If the initialization is for an execution, add the program. Otherwise, don't add it as
         // it will be added during the deployment process
         if initialize_execution {
-            vm.process().write().add_program(program)?;
+            if program.id() != &credits_id {
+                vm.process().write().add_program(program)?;
+            }
         }
         Ok(vm)
     }
