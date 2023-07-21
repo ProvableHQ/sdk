@@ -1,5 +1,6 @@
 import { Button, Card, Divider, Form, Input, Select } from "antd";
 import { LoadProgram } from "./LoadProgram.jsx";
+import { CodeEditor } from "./CodeEditor.jsx";
 
 export const Execute = () => {
     const layout = { labelCol: { span: 4 }, wrapperCol: { span: 18 } };
@@ -59,14 +60,7 @@ export const Execute = () => {
                         },
                     ]}
                 >
-                    <Input.TextArea
-                        rows={10}
-                        placeholder="Program"
-                        style={{
-                            whiteSpace: "pre-wrap",
-                            overflowWrap: "break-word",
-                        }}
-                    />
+                    <CodeEditor />
                 </Form.Item>
                 <Divider />
                 <Form.Item

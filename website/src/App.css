@@ -18,3 +18,8 @@
 input[type="text"]:disabled {
     cursor: text;
 }
+
+.my-code-mirror:focus-within {
+    outline: 2px solid #3dda93;
+    border-radius: 5px;
+}

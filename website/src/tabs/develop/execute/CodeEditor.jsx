@@ -1,0 +1,67 @@
+import CodeMirror from "@uiw/react-codemirror";
+import { okaidia } from "@uiw/codemirror-theme-okaidia";
+import { simpleMode } from "@codemirror/legacy-modes/mode/simple-mode";
+import { StreamLanguage } from "@codemirror/language";
+
+const aleoSyntaxHighlight = {
+    start: [
+        {
+            regex: /(?:function|program|as|by|interface|closure|into|import)\b/,
+            token: "keyword",
+        },
+        {
+            regex: /(?:finalize|mapping|increment|decrement)\b/,
+            token: "atom",
+        },
+        {
+            regex: /(?:abs\\.w|abs|add\\.w|add|and|assert\\.eq|assert\\.neq|block\\.height|branch\\.eq|branch\\.neq|call|cast|cast\\.loosy|commit\\.bhp256|commit\\.bhp512|commit\\.bhp768|commit\\.bhp1024|commit\\.ped64|commit\\.ped128|div\\.w|div|double|gt|gte|hash\\.bhp256|hash\\.bhp512|hash\\.bhp768|hash\\.bhp1024|hash\\.ped64|hash\\.ped128|hash\\.psd2|hash\\.psd4|hash\\.psd8|inv|input|is\\.eq|is\\.neq|lt|lte|key|mod|mul\\.w|mul|nand|neg|nor|not|or|output|position|pow\\.w|pow|rand\\.chacha|rem\\.w|rem|shl\\.w|shl|shr\\.w|srh|sqrt|sub\\.w|sub|square|ternary|value|xor|get\\.or_use|get|set|contains|remove)\b/,
+            token: "property",
+        },
+        {
+            regex: /(?:field|group|address|scalar|u8|u16|u32|u64|u128|i8|i16|i32|i64|i128)\b/,
+            token: "number",
+        },
+        {
+            regex: /(?:constant|public|private|record|aleo)\b/,
+            token: "type",
+        },
+        {
+            regex: /\b([0-9]+)([ui](8|16|32|64|128))?\b/,
+            token: "number",
+        },
+        {
+            regex: /[cr][0-9]+/,
+            token: "variable",
+        },
+    ],
+};
+
+const program =
+    "program hello_hello.aleo;\n" +
+    "\n" +
+    "function hello:\n" +
+    "    input r0 as u32.public;\n" +
+    "    input r1 as u32.private;\n" +
+    "    add r0 r1 into r2;\n" +
+    "    output r2 as u32.private;";
+
+export function CodeEditor({ value, onChange }) {
+    return (
+        <div className="my-code-mirror" tabIndex={0}>
+            <CodeMirror
+                style={{
+                    overflow: "auto",
+                    borderRadius: "5px",
+                }}
+                value={value}
+                extensions={[
+                    StreamLanguage.define(simpleMode(aleoSyntaxHighlight)),
+                ]}
+                theme={okaidia}
+                height="200px"
+                onChange={onChange}
+                option={{ indentUnit: 4 }}
+            />
+        </div>
+    );
+}
