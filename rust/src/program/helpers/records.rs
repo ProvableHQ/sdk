@@ -49,7 +49,7 @@ impl<N: Network> RecordFinder<N> {
         &self,
         private_key: &PrivateKey<N>,
         amount: u64,
-        found_nonces: Option<&[&Group<N>]>,
+        found_nonces: Option<&[Group<N>]>,
     ) -> Result<Record<N, Plaintext<N>>> {
         let amounts = vec![amount];
         self.find_unspent_records_on_chain(Some(&amounts), None, private_key)?
