@@ -108,7 +108,7 @@
 //!   // Set the fee for the deployment transaction (in units of microcredits)
 //!   let fee_microcredits = 300000;
 //!   // Find a record to fund the deployment fee (requires an account with a balance)
-//!   let fee_record = record_finder.find_one_record(&private_key, fee_microcredits).unwrap();
+//!   let fee_record = record_finder.find_one_record(&private_key, fee_microcredits, None).unwrap();
 //!
 //!   // Execute the function `hello` of the hello.aleo program with the arguments 5u32 and 3u32.
 //!   // Specify 0 for the fee and provide a password to decrypt the private key stored in the program manager
@@ -135,7 +135,7 @@
 //!   // Set the fee for the deployment transaction (in units of microcredits)
 //!   let fee_microcredits = 300000;
 //!   // Find a record to fund the deployment fee (requires an account with a balance)
-//!   let fee_record = record_finder.find_one_record(&private_key, fee_microcredits).unwrap();
+//!   let fee_record = record_finder.find_one_record(&private_key, fee_microcredits, None).unwrap();
 //!   // Deploy the program to the network
 //!   program_manager.deploy_program(program_name, fee_microcredits, fee_record, Some("password")).unwrap();
 //!

@@ -128,11 +128,11 @@ impl Transfer {
             match transfer_type {
                 TransferType::Public => {
                     // The transfer is drawing from a public account balance, so only a fee record is needed
-                    (None, record_finder.find_one_record(&private_key, fee_microcredits)?)
+                    (None, record_finder.find_one_record(&private_key, fee_microcredits, None)?)
                 }
                 TransferType::PublicToPrivate => {
                     // The transfer is drawing from a public account balance, so only a fee record is needed
-                    (None, record_finder.find_one_record(&private_key, fee_microcredits)?)
+                    (None, record_finder.find_one_record(&private_key, fee_microcredits, None)?)
                 }
                 _ => {
                     // The transfer is drawing being funded by a record, so an input record and fee record are both needed
@@ -149,7 +149,7 @@ impl Transfer {
                             amount_record.microcredits()? > amount_microcredits,
                             "Amount record must have more microcredits than the transfer amount specified"
                         );
-                        (Some(amount_record), record_finder.find_one_record(&private_key, fee_microcredits)?)
+                        (Some(amount_record), record_finder.find_one_record(&private_key, fee_microcredits, None)?)
                     }
                 }
             }
@@ -172,7 +172,7 @@ impl Transfer {
                 _ => {
                     // The transfer is drawing being funded by a record, so an input record and fee record are both needed
                     if self.amount_record.is_none() {
-                        (Some(record_finder.find_one_record(&private_key, amount_microcredits)?), fee_record)
+                        (Some(record_finder.find_one_record(&private_key, amount_microcredits, None)?), fee_record)
                     } else {
                         let amount_record = self.amount_record.unwrap();
                         ensure!(

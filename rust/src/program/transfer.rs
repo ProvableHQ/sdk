@@ -134,7 +134,7 @@ mod tests {
         for i in 0..10 {
             let (amount_record, fee_record) = match &visibility {
                 TransferType::Public => {
-                    let fee_record = record_finder.find_one_record(sender, fee);
+                    let fee_record = record_finder.find_one_record(sender, fee, None);
                     if fee_record.is_err() {
                         println!("Record not found: {} - retrying", fee_record.unwrap_err());
                         thread::sleep(std::time::Duration::from_secs(3));
@@ -146,7 +146,7 @@ mod tests {
                     (None, fee_record.unwrap())
                 }
                 TransferType::PublicToPrivate => {
-                    let fee_record = record_finder.find_one_record(sender, fee);
+                    let fee_record = record_finder.find_one_record(sender, fee, None);
                     if fee_record.is_err() {
                         println!("Record not found: {} - retrying", fee_record.unwrap_err());
                         thread::sleep(std::time::Duration::from_secs(3));

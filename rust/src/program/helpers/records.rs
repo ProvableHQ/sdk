@@ -15,6 +15,7 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
+use snarkvm_console::account::Group;
 
 /// Helper struct for finding records on chain during program development
 #[derive(Clone)]
@@ -44,11 +45,20 @@ impl<N: Network> RecordFinder<N> {
 
     /// Resolve a record with a specific value. If successful it will return a record with a gate
     /// value equal to or greater than the specified amount.
-    pub fn find_one_record(&self, private_key: &PrivateKey<N>, amount: u64) -> Result<Record<N, Plaintext<N>>> {
+    pub fn find_one_record(
+        &self,
+        private_key: &PrivateKey<N>,
+        amount: u64,
+        found_nonces: Option<&[&Group<N>]>,
+    ) -> Result<Record<N, Plaintext<N>>> {
         let amounts = vec![amount];
         self.find_unspent_records_on_chain(Some(&amounts), None, private_key)?
             .into_iter()
-            .find(|record| record.microcredits().unwrap_or(0) >= amount)
+            .find(|record| {
+                record.microcredits().unwrap_or(0) >= amount && {
+                    if let Some(found_nonces) = found_nonces { !found_nonces.contains(&record.nonce()) } else { true }
+                }
+            })
             .ok_or_else(|| anyhow!("Insufficient funds"))
     }
 

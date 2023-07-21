@@ -216,7 +216,7 @@ mod tests {
         // Wait for the transactions to show up on chain
         thread::sleep(std::time::Duration::from_secs(30));
         let deployment_fee = 200_000_001;
-        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();
+        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee, None).unwrap();
         program_manager.deploy_program("credits_import_test.aleo", deployment_fee, fee_record, None).unwrap();
 
         // Wait for the program to show up on chain
@@ -235,7 +235,7 @@ mod tests {
         // Deploy a program with a finalize scope
         program_manager.add_program(&finalize_program).unwrap();
 
-        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();
+        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee, None).unwrap();
         program_manager.deploy_program("finalize_test.aleo", deployment_fee, fee_record, None).unwrap();
 
         // Wait for the program to show up on chain
@@ -254,7 +254,7 @@ mod tests {
         // Deploy a program other than credits.aleo to be imported
         program_manager.add_program(&multiply_program).unwrap();
 
-        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();
+        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee, None).unwrap();
         program_manager.deploy_program("multiply_test.aleo", deployment_fee, fee_record, None).unwrap();
 
         // Wait for the program to show up on chain
@@ -273,7 +273,7 @@ mod tests {
         // Deploy a program with imports other than credits.aleo
         program_manager.add_program(&multiply_import_program).unwrap();
 
-        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee).unwrap();
+        let fee_record = record_finder.find_one_record(&recipient_private_key, deployment_fee, None).unwrap();
         program_manager.deploy_program("double_test.aleo", deployment_fee, fee_record, None).unwrap();
 
         // Wait for the program to show up on chain

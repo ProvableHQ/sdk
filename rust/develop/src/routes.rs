@@ -109,7 +109,7 @@ impl<N: Network> Rest<N> {
 
         // Get the fee record if it is not provided in the request
         let fee_record = if request.fee_record.is_none() {
-            spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?
+            spawn_blocking!(record_finder.find_one_record(&private_key, request.fee, None))?
         } else {
             request.fee_record.unwrap()
         };
@@ -140,7 +140,7 @@ impl<N: Network> Rest<N> {
 
         // Find a fee record if a fee is specified and a fee record is not provided
         let fee_record = if request.fee_record.is_none() {
-            spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?
+            spawn_blocking!(record_finder.find_one_record(&private_key, request.fee, None))?
         } else {
             request.fee_record.take().unwrap()
         };
@@ -191,14 +191,14 @@ impl<N: Network> Rest<N> {
                     if let Some(fee_record) = request.fee_record {
                         (None, fee_record)
                     } else {
-                        (None, spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?)
+                        (None, spawn_blocking!(record_finder.find_one_record(&private_key, request.fee, None))?)
                     }
                 }
                 TransferType::PublicToPrivate => {
                     if let Some(fee_record) = request.fee_record {
                         (None, fee_record)
                     } else {
-                        (None, spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?)
+                        (None, spawn_blocking!(record_finder.find_one_record(&private_key, request.fee, None))?)
                     }
                 }
                 _ => {
@@ -208,11 +208,11 @@ impl<N: Network> Rest<N> {
                             // Find a fee record if a fee is specified and a fee record is not provided
                             (
                                 Some(amount_record),
-                                spawn_blocking!(record_finder.find_one_record(&private_key, request.fee))?,
+                                spawn_blocking!(record_finder.find_one_record(&private_key, request.fee, None))?,
                             )
                         }
                         (None, Some(fee_record)) => (
-                            Some(spawn_blocking!(record_finder.find_one_record(&private_key, request.amount))?),
+                            Some(spawn_blocking!(record_finder.find_one_record(&private_key, request.amount, None))?),
                             fee_record,
                         ),
                         (None, None) => {

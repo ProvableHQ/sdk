@@ -150,7 +150,7 @@ impl Execute {
                 Encryptor::decrypt_private_key_with_secret(ciphertext, self.password.as_ref().unwrap())?
             };
             let record_finder = RecordFinder::new(api_client);
-            record_finder.find_one_record(&private_key, fee_microcredits)?
+            record_finder.find_one_record(&private_key, fee_microcredits, None)?
         } else {
             self.record.unwrap()
         };

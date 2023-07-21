@@ -323,7 +323,7 @@ mod tests {
 
         // Test execution of an on chain program is successful
         for i in 0..5 {
-            let fee_record = record_finder.find_one_record(&private_key, fee).unwrap();
+            let fee_record = record_finder.find_one_record(&private_key, fee, None).unwrap();
             // Test execution of a on chain program is successful
             let execution = program_manager.execute_program(
                 "credits_import_test.aleo",
@@ -347,7 +347,7 @@ mod tests {
             ProgramManager::<Testnet3>::new(None, Some(encrypted_private_key), Some(api_client), None).unwrap();
 
         for i in 0..5 {
-            let fee_record = record_finder.find_one_record(&private_key, fee).unwrap();
+            let fee_record = record_finder.find_one_record(&private_key, fee, None).unwrap();
             // Test execution of an on chain program is successful using an encrypted private key
             let execution = program_manager.execute_program(
                 "credits_import_test.aleo",
@@ -366,7 +366,7 @@ mod tests {
 
         // Test execution with a finalize scope can be done
         for i in 0..5 {
-            let fee_record = record_finder.find_one_record(&private_key, finalize_fee).unwrap();
+            let fee_record = record_finder.find_one_record(&private_key, finalize_fee, None).unwrap();
             // Test execution of an on chain program is successful using an encrypted private key
             let execution = program_manager.execute_program(
                 "finalize_test.aleo",
@@ -385,7 +385,7 @@ mod tests {
 
         // Test execution of a program with imports other than credits.aleo is successful
         for i in 0..5 {
-            let fee_record = record_finder.find_one_record(&private_key, finalize_fee).unwrap();
+            let fee_record = record_finder.find_one_record(&private_key, finalize_fee, None).unwrap();
             // Test execution of an on chain program is successful using an encrypted private key
             let execution = program_manager.execute_program(
                 "double_test.aleo",
