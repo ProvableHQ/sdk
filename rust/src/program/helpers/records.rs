@@ -51,15 +51,35 @@ impl<N: Network> RecordFinder<N> {
         amount: u64,
         found_nonces: Option<&[Group<N>]>,
     ) -> Result<Record<N, Plaintext<N>>> {
-        let amounts = vec![amount];
-        self.find_unspent_records_on_chain(Some(&amounts), None, private_key)?
-            .into_iter()
-            .find(|record| {
-                record.microcredits().unwrap_or(0) >= amount && {
-                    if let Some(found_nonces) = found_nonces { !found_nonces.contains(&record.nonce()) } else { true }
-                }
-            })
-            .ok_or_else(|| anyhow!("Insufficient funds"))
+        let step_size = 49u32;
+        let amounts = Some(vec![amount]);
+        let current_height = self.api_client.latest_height()?;
+        let mut end_height = current_height;
+        let mut start_height = end_height.saturating_sub(49);
+        for _ in (0..current_height).step_by(step_size as usize) {
+            let result = self
+                .api_client
+                .get_unspent_records(private_key, start_height..end_height, None, amounts.as_ref())
+                .map_or(vec![], |records| records)
+                .into_iter()
+                .find(|(_, record)| {
+                    record.microcredits().unwrap_or(0) >= amount && {
+                        if let Some(found_nonces) = found_nonces {
+                            !found_nonces.contains(record.nonce())
+                        } else {
+                            true
+                        }
+                    }
+                })
+                .ok_or_else(|| anyhow!("Insufficient funds"));
+
+            if let Ok(record) = result {
+                return Ok(record.1);
+            }
+            end_height = start_height;
+            start_height = start_height.saturating_sub(step_size);
+        }
+        bail!("Insufficient funds")
     }
 
     /// Attempt to resolve records with specific gate values specified as a vector of u64s. If the

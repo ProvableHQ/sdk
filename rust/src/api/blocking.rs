@@ -74,7 +74,7 @@ impl<N: Network> AleoAPIClient<N> {
 
     /// Retrieve a transaction by via its transaction id
     pub fn get_transaction(&self, transaction_id: &str) -> Result<Transaction<N>> {
-        let url = format!("{}/{}/transaction/{transaction_id}", self.base_url, self.network_id);
+        let url = format!("{}/{}/transaction/{transaction_id}", self.base_url, self.network_id).replace('"', "");
         match self.client.get(&url).call()?.into_json() {
             Ok(transaction) => Ok(transaction),
             Err(error) => bail!("Failed to parse transaction '{transaction_id}': {error}"),
