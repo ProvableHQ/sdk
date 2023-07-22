@@ -95,6 +95,7 @@ function App() {
                         style={{
                             margin: "16px",
                             fontWeight: "bold",
+                            whiteSpace: "nowrap",
                         }}
                     >
                         Aleo SDK
@@ -111,10 +112,10 @@ function App() {
                             marginTop: "24px",
                             marginLeft: "24px",
                         }}
-                        checked={!darkMode}
-                        onChange={(value) => setDarkMode(!value)}
-                        checkedChildren="Light"
-                        unCheckedChildren="Dark"
+                        checked={darkMode}
+                        onChange={(value) => setDarkMode(value)}
+                        checkedChildren="Dark"
+                        unCheckedChildren="Light"
                     />
                 </Sider>
                 <Layout>

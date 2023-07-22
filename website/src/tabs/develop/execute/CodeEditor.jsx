@@ -16,7 +16,7 @@ const aleoSyntaxHighlight = {
             token: "atom",
         },
         {
-            regex: /(?:^|\s)(abs\\.w|abs|add\\.w|add|and|assert\\.eq|assert\\.neq|block\\.height|branch\\.eq|branch\\.neq|call|cast|cast\\.loosy|commit\\.bhp256|commit\\.bhp512|commit\\.bhp768|commit\\.bhp1024|commit\\.ped64|commit\\.ped128|div\\.w|div|double|gt|gte|hash\\.bhp256|hash\\.bhp512|hash\\.bhp768|hash\\.bhp1024|hash\\.ped64|hash\\.ped128|hash\\.psd2|hash\\.psd4|hash\\.psd8|inv|input|is\\.eq|is\\.neq|lt|lte|key|mod|mul\\.w|mul|nand|neg|nor|not|or|output|position|pow\\.w|pow|rand\\.chacha|rem\\.w|rem|shl\\.w|shl|shr\\.w|srh|sqrt|sub\\.w|sub|square|ternary|value|xor|get\\.or_use|get|set|contains|remove)(?:$|\s)/,
+            regex: /(?:^|\s)(abs.w|abs|add.w|add|and|assert|assert.eq|assert.neq|block.height|branch.eq|branch.neq|call|cast|cast.loosy|commit.bhp256|commit.bhp512|commit.bhp768|commit.bhp1024|commit.ped64|commit.ped128|div.w|div|double|gt|gte|hash.bhp256|hash.bhp512|hash.bhp768|hash.bhp1024|hash.ped64|hash.ped128|hash.psd2|hash.psd4|hash.psd8|inv|input|is.eq|is.neq|lt|lte|key|mod|mul.w|mul|nand|neg|nor|not|or|output|position|pow.w|pow|rand.chacha|rem.w|rem|shl.w|shl|shr.w|srh|sqrt|sub.w|sub|square|ternary|value|xor|get.or_use|get|set|contains|remove)(?:$|\s)/,
             token: "property",
         },
         {
@@ -25,6 +25,10 @@ const aleoSyntaxHighlight = {
         },
         {
             regex: /\.(constant|public|private|record|aleo)\b/,
+            token: "type",
+        },
+        {
+            regex: /(?:^|\s)(record)(?:$|\s)/,
             token: "type",
         },
         {
@@ -37,15 +41,6 @@ const aleoSyntaxHighlight = {
         },
     ],
 };
-
-const program =
-    "program hello_hello.aleo;\n" +
-    "\n" +
-    "function hello:\n" +
-    "    input r0 as u32.public;\n" +
-    "    input r1 as u32.private;\n" +
-    "    add r0 r1 into r2;\n" +
-    "    output r2 as u32.private;";
 
 export function CodeEditor({ value, onChange }) {
     const [isFocused, setIsFocused] = useState(false);
@@ -75,7 +70,7 @@ export function CodeEditor({ value, onChange }) {
                 extensions={[
                     StreamLanguage.define(simpleMode(aleoSyntaxHighlight)),
                 ]}
-                theme={okaidia}
+                theme={token.colorBgBase === "#000" ? okaidia : "light"}
                 height="200px"
                 onChange={onChange}
                 option={{ indentUnit: 4 }}
