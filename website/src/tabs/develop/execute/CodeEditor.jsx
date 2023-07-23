@@ -1,5 +1,6 @@
 import CodeMirror from "@uiw/react-codemirror";
 import { okaidia } from "@uiw/codemirror-theme-okaidia";
+import { noctisLilac } from "@uiw/codemirror-theme-noctis-lilac";
 import { simpleMode } from "@codemirror/legacy-modes/mode/simple-mode";
 import { StreamLanguage } from "@codemirror/language";
 import { theme } from "antd";
@@ -59,6 +60,7 @@ export function CodeEditor({ value, onChange }) {
                           token.controlOutline
                       }`
                     : "none",
+                height: "200px",
             }}
         >
             <CodeMirror
@@ -70,9 +72,9 @@ export function CodeEditor({ value, onChange }) {
                 extensions={[
                     StreamLanguage.define(simpleMode(aleoSyntaxHighlight)),
                 ]}
-                theme={token.colorBgBase === "#000" ? okaidia : "light"}
-                height="200px"
+                theme={token.colorBgBase === "#000" ? okaidia : noctisLilac}
                 onChange={onChange}
+                minHeight="200px"
                 option={{ indentUnit: 4 }}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}

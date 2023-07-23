@@ -13,6 +13,13 @@ export const LoadProgram = () => {
             return;
         }
 
+        if (!value.endsWith(".aleo")) {
+            value += ".aleo";
+            form.setFieldsValue({
+                programid: value,
+            });
+        }
+
         setIsLoading(true);
         const url = `https://vm.aleo.org/api/testnet3/program/${value}`;
 
