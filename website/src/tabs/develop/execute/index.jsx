@@ -1,4 +1,4 @@
-import { Button, Card, Divider, Form, Input, Select } from "antd";
+import { Button, Card, Checkbox, Divider, Form, Input, Select } from "antd";
 import { LoadProgram } from "./LoadProgram.jsx";
 import { CodeEditor } from "./CodeEditor.jsx";
 
@@ -42,9 +42,6 @@ export const Execute = () => {
                 form={form}
                 name="execute"
                 {...layout}
-                initialValues={{
-                    remember: false,
-                }}
                 onFinish={onFinish}
                 onFinishFailed={onFinishFailed}
                 autoComplete="off"
@@ -62,7 +59,7 @@ export const Execute = () => {
                 >
                     <CodeEditor />
                 </Form.Item>
-                <Divider />
+                <Divider dashed />
                 <Form.Item
                     label="Private Key"
                     name="private_key"
@@ -75,6 +72,38 @@ export const Execute = () => {
                 >
                     <Input.Password />
                 </Form.Item>
+                <Divider dashed />
+                <Form.Item
+                    label="Execute On-Chain"
+                    name="execute_onchain"
+                    valuePropName="checked"
+                >
+                    <Checkbox />
+                </Form.Item>
+                <Form.Item
+                    noStyle
+                    shouldUpdate={(prevValues, currentValues) =>
+                        prevValues.execute_onchain !==
+                        currentValues.execute_onchain
+                    }
+                >
+                    {({ getFieldValue }) =>
+                        getFieldValue("execute_onchain") === true ? (
+                            <>
+                                <Form.Item label="Peer URL" name="peer_url">
+                                    <Input />
+                                </Form.Item>
+                                <Form.Item label="Fee" name="fee">
+                                    <Input.Search enterButton="Estimate Fee" />
+                                </Form.Item>
+                                <Form.Item label="Fee Record" name="fee_record">
+                                    <Input.TextArea />
+                                </Form.Item>
+                            </>
+                        ) : null
+                    }
+                </Form.Item>
+                <Divider dashed />
                 <Form.Item
                     wrapperCol={{
                         xs: {
