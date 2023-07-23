@@ -13,7 +13,7 @@ export const LoadProgram = () => {
             return;
         }
 
-        if (!value.endsWith(".aleo")) {
+        if (!value.endsWith(".aleo") && !value.includes(".")) {
             value += ".aleo";
             form.setFieldsValue({
                 programid: value,
