@@ -62,7 +62,7 @@ export function CodeEditor({ value, onChange }) {
                     : "none",
                 minHeight: "200px",
                 height: "200px",
-                maxHeight: "1000px",
+                maxHeight: "400px",
                 resize: "vertical",
             }}
         >
@@ -77,7 +77,7 @@ export function CodeEditor({ value, onChange }) {
                 ]}
                 theme={token.colorBgBase === "#000" ? okaidia : noctisLilac}
                 onChange={onChange}
-                minHeight="1000px"
+                minHeight="400px"
                 option={{ indentUnit: 4 }}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}

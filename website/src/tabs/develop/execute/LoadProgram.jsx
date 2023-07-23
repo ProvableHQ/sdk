@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Form, Input } from "antd";
 import axios from "axios";
 
-export const LoadProgram = () => {
+export const LoadProgram = ({ onResponse }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const form = Form.useFormInstance();
@@ -16,7 +16,7 @@ export const LoadProgram = () => {
         if (!value.endsWith(".aleo") && !value.includes(".")) {
             value += ".aleo";
             form.setFieldsValue({
-                programid: value,
+                program_id: value,
             });
         }
 
@@ -28,29 +28,24 @@ export const LoadProgram = () => {
             .then((response) => {
                 setIsLoading(false);
                 setError(null);
-                form.setFieldsValue({
-                    program: response.data,
-                });
+                onResponse(response.data);
             })
             .catch((error) => {
                 setIsLoading(false);
                 setError(error.response?.data || error.message);
-                form.setFieldsValue({
-                    program: "",
-                });
+                onResponse("");
             });
     };
 
     return (
         <Form.Item
             label="Load Program"
-            name="programid"
+            name="program_id"
             tooltip="Optionally load program from REST API"
             help={error || ""}
             validateStatus={error ? "warning" : ""}
         >
             <Input.Search
-                name="program_id"
                 placeholder="Program ID"
                 onSearch={onProgramSearch}
                 disabled={isLoading}
