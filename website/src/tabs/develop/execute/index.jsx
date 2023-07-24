@@ -33,16 +33,29 @@ export const Execute = () => {
 
     const [program, setProgram] = useState(null);
     const [functions, setFunctions] = useState([]);
-    const onLoadProgram = (value) => {
-        form.setFieldsValue({
-            program: value,
-        });
-        onProgramChange(value);
+    const onLoadProgram = async (value) => {
+        if (value) {
+            form.setFieldsValue({
+                program: value,
+            });
+            await onProgramChange(value);
+        }
+    };
+    const onProgramEdit = async (value) => {
+        await onProgramChange(value);
     };
 
     const onProgramChange = async (value) => {
-        const processedProgram = await aleoWASM.Program.fromString(value);
-        setProgram(processedProgram);
+        let processedProgram;
+        try {
+            processedProgram = await aleoWASM.Program.fromString(value);
+            setProgram(processedProgram);
+        } catch (e) {
+            console.log(e);
+            setProgram(null);
+            setFunctions([]);
+            return;
+        }
         const functionNames = processedProgram.getFunctions();
         const functionItems = functionNames.map((func, index) => {
             const functionInputs = processedProgram.getFunctionInputs(func);
@@ -94,7 +107,7 @@ export const Execute = () => {
                         },
                     ]}
                 >
-                    <CodeEditor onChange={onProgramChange} />
+                    <CodeEditor onChange={onProgramEdit} />
                 </Form.Item>
                 <Divider dashed />
                 <Form.Item
@@ -107,7 +120,7 @@ export const Execute = () => {
                         },
                     ]}
                 >
-                    <Input.Password />
+                    <Input />
                 </Form.Item>
                 <Divider dashed />
                 <Form.Item
@@ -158,11 +171,9 @@ const renderInput = (input, inputIndex) => {
                 key={`${inputIndex}-${memberIndex}`}
                 label={`r${inputIndex} as record (${member.name}.${member.visibility})`}
                 name={`r${inputIndex}`}
-                rules={[
-                    { required: true, message: "Please input your value!" },
-                ]}
+                rules={[{ required: true, message: "Please input a value" }]}
             >
-                <Input placeholder={`Enter a ${member.type}`} />
+                <Input placeholder={`Enter ${member.type}`} />
             </Form.Item>
         ));
     } else {
@@ -171,11 +182,9 @@ const renderInput = (input, inputIndex) => {
                 key={inputIndex}
                 label={`r${inputIndex} as ${input.type}.${input.visibility}`}
                 name={`r${inputIndex}`}
-                rules={[
-                    { required: true, message: "Please input your value!" },
-                ]}
+                rules={[{ required: true, message: "Please input a value" }]}
             >
-                <Input placeholder={`Enter a ${input.type}`} />
+                <Input placeholder={`Enter ${input.type}`} />
             </Form.Item>
         );
     }
