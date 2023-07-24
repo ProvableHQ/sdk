@@ -14,8 +14,9 @@ import { CodeEditor } from "./CodeEditor.jsx";
 import { useAleoWASM } from "../../../aleo-wasm-hook";
 import { useState } from "react";
 
+const layout = { labelCol: { span: 4 }, wrapperCol: { span: 18 } };
+
 export const Execute = () => {
-    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 18 } };
     const [form] = Form.useForm();
 
     const aleoWASM = useAleoWASM();
@@ -59,6 +60,7 @@ export const Execute = () => {
         const functionNames = processedProgram.getFunctions();
         const functionItems = functionNames.map((func, index) => {
             const functionInputs = processedProgram.getFunctionInputs(func);
+            console.log(functionInputs);
             return {
                 key: index,
                 label: func,
@@ -165,22 +167,21 @@ export const Execute = () => {
 };
 
 const renderInput = (input, inputIndex) => {
-    if (input.type === "record") {
-        return input.members.map((member, memberIndex) => (
-            <Form.Item
-                key={`${inputIndex}-${memberIndex}`}
-                label={`r${inputIndex} as record (${member.name}.${member.visibility})`}
-                name={`r${inputIndex}`}
-                rules={[{ required: true, message: "Please input a value" }]}
-            >
-                <Input placeholder={`Enter ${member.type}`} />
-            </Form.Item>
-        ));
+    if (input.members) {
+        return (
+            <>
+                <Card title={input.name}>
+                    {input.members.map((member, memberIndex) =>
+                        renderInput(member, memberIndex),
+                    )}
+                </Card>
+            </>
+        );
     } else {
         return (
             <Form.Item
-                key={inputIndex}
-                label={`r${inputIndex} as ${input.type}.${input.visibility}`}
+                key={`${inputIndex}-${input.type}`}
+                label={`${input.name ? input.name : `r${inputIndex}`}`}
                 name={`r${inputIndex}`}
                 rules={[{ required: true, message: "Please input a value" }]}
             >
@@ -196,36 +197,10 @@ const functionForm = (func, funcInputs) => (
         onFinish={() => console.log("on finish")}
         onFinishFailed={() => console.log("on failed")}
         autoComplete="off"
-        layout="vertical"
-        labelCol={{
-            xs: {
-                offset: 0,
-            },
-            sm: {
-                offset: 2,
-            },
-        }}
-        wrapperCol={{
-            xs: {
-                offset: 0,
-            },
-            sm: {
-                offset: 2,
-                span: 20,
-            },
-        }}
+        {...layout}
     >
         {funcInputs.map(renderInput)}
-        <Form.Item
-            wrapperCol={{
-                xs: {
-                    offset: 0,
-                },
-                sm: {
-                    offset: 2,
-                },
-            }}
-        >
+        <Form.Item>
             <Button type="primary" htmlType="submit">
                 Run
             </Button>
