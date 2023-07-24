@@ -1,4 +1,5 @@
 import {
+    Alert,
     Button,
     Card,
     Collapse,
@@ -158,7 +159,11 @@ export const Execute = () => {
             </Form>
             <Divider dashed>Program Functions</Divider>
             {functions.length > 0 ? (
-                <Collapse bordered={false} items={functions} />
+                <Collapse
+                    bordered={false}
+                    items={functions}
+                    style={{ fontWeight: "bold" }}
+                />
             ) : (
                 <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
             )}
@@ -166,26 +171,30 @@ export const Execute = () => {
     );
 };
 
-const renderInput = (input, inputIndex) => {
+const renderInput = (input, inputIndex, parent = "") => {
     if (input.members) {
         return (
-            <>
-                <Card title={input.name}>
-                    {input.members.map((member, memberIndex) =>
-                        renderInput(member, memberIndex),
-                    )}
-                </Card>
-            </>
+            <div key={inputIndex}>
+                <Divider orientation="left" dashed plain>
+                    {parent}
+                    {parent && " / "}
+                    {input.name} {!parent && `(${input.type})`}{" "}
+                    {parent && inputIndex}
+                </Divider>
+                {input.members.map((member, memberIndex) =>
+                    renderInput(member, memberIndex, input.name),
+                )}
+            </div>
         );
     } else {
         return (
             <Form.Item
-                key={`${inputIndex}-${input.type}`}
+                key={inputIndex}
                 label={`${input.name ? input.name : `r${inputIndex}`}`}
                 name={`r${inputIndex}`}
                 rules={[{ required: true, message: "Please input a value" }]}
             >
-                <Input placeholder={`Enter ${input.type}`} />
+                <Input placeholder={`${input.type}`} />
             </Form.Item>
         );
     }
@@ -199,8 +208,39 @@ const functionForm = (func, funcInputs) => (
         autoComplete="off"
         {...layout}
     >
-        {funcInputs.map(renderInput)}
-        <Form.Item>
+        {funcInputs.length > 0 ? (
+            funcInputs.map((member, memberIndex) =>
+                renderInput(member, memberIndex),
+            )
+        ) : (
+            <Form.Item
+                wrapperCol={{
+                    xs: {
+                        offset: 0,
+                    },
+                    sm: {
+                        offset: 4,
+                        span: 18,
+                    },
+                }}
+            >
+                <Alert
+                    message={`The \`${func}\` function does not take any inputs.`}
+                    type="info"
+                    showIcon
+                />
+            </Form.Item>
+        )}
+        <Form.Item
+            wrapperCol={{
+                xs: {
+                    offset: 0,
+                },
+                sm: {
+                    offset: 4,
+                },
+            }}
+        >
             <Button type="primary" htmlType="submit">
                 Run
             </Button>
