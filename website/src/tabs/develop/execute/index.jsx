@@ -159,11 +159,7 @@ export const Execute = () => {
             </Form>
             <Divider dashed>Program Functions</Divider>
             {functions.length > 0 ? (
-                <Collapse
-                    bordered={false}
-                    items={functions}
-                    style={{ fontWeight: "bold" }}
-                />
+                <Collapse bordered={false} items={functions} />
             ) : (
                 <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
             )}
@@ -171,18 +167,18 @@ export const Execute = () => {
     );
 };
 
-const renderInput = (input, inputIndex, parent = "") => {
+const renderInput = (input, inputIndex, parent, parentIndex) => {
     if (input.members) {
         return (
             <div key={inputIndex}>
                 <Divider orientation="left" dashed plain>
-                    {parent}
-                    {parent && " / "}
-                    {input.name} {!parent && `(${input.type})`}{" "}
-                    {parent && inputIndex}
+                    {parent.name}
+                    {parent.name && " / "}
+                    {input.name}
+                    {parent.name && inputIndex}
                 </Divider>
                 {input.members.map((member, memberIndex) =>
-                    renderInput(member, memberIndex, input.name),
+                    renderInput(member, memberIndex, input, inputIndex),
                 )}
             </div>
         );
@@ -191,7 +187,10 @@ const renderInput = (input, inputIndex, parent = "") => {
             <Form.Item
                 key={inputIndex}
                 label={`${input.name ? input.name : `r${inputIndex}`}`}
-                name={`r${inputIndex}`}
+                name={[
+                    `${inputIndex}`,
+                    `${input.name}${parent.name && inputIndex}`,
+                ]}
                 rules={[{ required: true, message: "Please input a value" }]}
             >
                 <Input placeholder={`${input.type}`} />
@@ -203,15 +202,13 @@ const renderInput = (input, inputIndex, parent = "") => {
 const functionForm = (func, funcInputs) => (
     <Form
         name={func}
-        onFinish={() => console.log("on finish")}
+        onFinish={(values) => console.log("Success:", values)}
         onFinishFailed={() => console.log("on failed")}
         autoComplete="off"
         {...layout}
     >
         {funcInputs.length > 0 ? (
-            funcInputs.map((member, memberIndex) =>
-                renderInput(member, memberIndex),
-            )
+            renderInput({ members: funcInputs }, 0, {}, 0)
         ) : (
             <Form.Item
                 wrapperCol={{
