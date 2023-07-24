@@ -60,10 +60,6 @@ export function CodeEditor({ value, onChange }) {
                           token.controlOutline
                       }`
                     : "none",
-                minHeight: "200px",
-                height: "200px",
-                maxHeight: "400px",
-                resize: "vertical",
             }}
         >
             <CodeMirror
@@ -77,7 +73,7 @@ export function CodeEditor({ value, onChange }) {
                 ]}
                 theme={token.colorBgBase === "#000" ? okaidia : noctisLilac}
                 onChange={onChange}
-                minHeight="400px"
+                height="300px"
                 option={{ indentUnit: 4 }}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}

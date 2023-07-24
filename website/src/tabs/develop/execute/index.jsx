@@ -1,12 +1,13 @@
 import {
     Button,
     Card,
-    Checkbox,
+    Collapse,
     Divider,
+    Empty,
     Form,
     Input,
     Select,
-    Space,
+    Switch,
 } from "antd";
 import { LoadProgram } from "./LoadProgram.jsx";
 import { CodeEditor } from "./CodeEditor.jsx";
@@ -17,7 +18,7 @@ export const Execute = () => {
     const layout = { labelCol: { span: 4 }, wrapperCol: { span: 18 } };
     const [form] = Form.useForm();
 
-    const aleo = useAleoWASM();
+    const aleoWASM = useAleoWASM();
 
     const onFinish = (values) => {
         console.log("Success:", values);
@@ -31,7 +32,7 @@ export const Execute = () => {
     };
 
     const [program, setProgram] = useState(null);
-    const [functions, setFunctions] = useState(null);
+    const [functions, setFunctions] = useState([]);
     const onLoadProgram = (value) => {
         form.setFieldsValue({
             program: value,
@@ -40,7 +41,7 @@ export const Execute = () => {
     };
 
     const onProgramChange = async (value) => {
-        const processedProgram = await aleo.Program.fromString(value);
+        const processedProgram = await aleoWASM.Program.fromString(value);
         setProgram(processedProgram);
         const functionNames = processedProgram.getFunctions();
         const functionItems = functionNames.map((func, index) => {
@@ -51,6 +52,7 @@ export const Execute = () => {
                 children: functionForm(func, functionInputs),
             };
         });
+        setFunctions(functionItems);
     };
 
     return (
@@ -113,7 +115,7 @@ export const Execute = () => {
                     name="execute_onchain"
                     valuePropName="checked"
                 >
-                    <Checkbox />
+                    <Switch />
                 </Form.Item>
                 <Form.Item
                     noStyle
@@ -139,70 +141,17 @@ export const Execute = () => {
                     }
                 </Form.Item>
             </Form>
-            <Divider />
-            <>
-                {program !== null
-                    ? program.getFunctions().map((func, index) => {
-                          const inputs = program.getFunctionInputs(func);
-                          return (
-                              <>
-                                  <Form
-                                      name={func}
-                                      onFinish={onFinish}
-                                      onFinishFailed={onFinishFailed}
-                                      autoComplete="off"
-                                      layout="vertical"
-                                      labelCol={{
-                                          xs: {
-                                              offset: 0,
-                                          },
-                                          sm: {
-                                              offset: 4,
-                                          },
-                                      }}
-                                      wrapperCol={{
-                                          xs: {
-                                              offset: 0,
-                                          },
-                                          sm: {
-                                              offset: 4,
-                                              span: 18,
-                                          },
-                                      }}
-                                  >
-                                      <Divider orientation="left" dashed>
-                                          {func}
-                                      </Divider>
-                                      {inputs.map(renderInput)}
-                                      <Form.Item
-                                          wrapperCol={{
-                                              xs: {
-                                                  offset: 0,
-                                              },
-                                              sm: {
-                                                  offset: 4,
-                                              },
-                                          }}
-                                      >
-                                          <Button
-                                              type="primary"
-                                              htmlType="submit"
-                                          >
-                                              Submit
-                                          </Button>
-                                      </Form.Item>
-                                  </Form>
-                              </>
-                          );
-                      })
-                    : null}
-            </>
+            <Divider dashed>Program Functions</Divider>
+            {functions.length > 0 ? (
+                <Collapse bordered={false} items={functions} />
+            ) : (
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            )}
         </Card>
     );
 };
 
 const renderInput = (input, inputIndex) => {
-    console.log(input);
     if (input.type === "record") {
         return input.members.map((member, memberIndex) => (
             <Form.Item
@@ -235,8 +184,8 @@ const renderInput = (input, inputIndex) => {
 const functionForm = (func, funcInputs) => (
     <Form
         name={func}
-        onFinish={console.log("on finish")}
-        onFinishFailed={console.log("on failed")}
+        onFinish={() => console.log("on finish")}
+        onFinishFailed={() => console.log("on failed")}
         autoComplete="off"
         layout="vertical"
         labelCol={{
@@ -244,7 +193,7 @@ const functionForm = (func, funcInputs) => (
                 offset: 0,
             },
             sm: {
-                offset: 4,
+                offset: 2,
             },
         }}
         wrapperCol={{
@@ -252,14 +201,11 @@ const functionForm = (func, funcInputs) => (
                 offset: 0,
             },
             sm: {
-                offset: 4,
-                span: 18,
+                offset: 2,
+                span: 20,
             },
         }}
     >
-        <Divider orientation="left" dashed>
-            {func}
-        </Divider>
         {funcInputs.map(renderInput)}
         <Form.Item
             wrapperCol={{
@@ -267,12 +213,12 @@ const functionForm = (func, funcInputs) => (
                     offset: 0,
                 },
                 sm: {
-                    offset: 4,
+                    offset: 2,
                 },
             }}
         >
             <Button type="primary" htmlType="submit">
-                Submit
+                Run
             </Button>
         </Form.Item>
     </Form>
