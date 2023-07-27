@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Account, Block, Transaction, Transition } from ".";
-import { RecordCiphertext, RecordPlaintext, PrivateKey } from "@aleohq/nodejs";
+import {Account, Block, CREDITS_PROGRAM_KEYS, Transaction, Transition} from ".";
+import { RecordCiphertext, Program, ProvingKey, RecordPlaintext, PrivateKey, Transaction as wasmTransaction, VerifyingKey} from "@aleohq/wasm";
 
 /**
  * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
@@ -17,6 +17,7 @@ import { RecordCiphertext, RecordPlaintext, PrivateKey } from "@aleohq/nodejs";
 export class AleoNetworkClient {
   host: string;
   account: Account | undefined;
+
 
   constructor(host: string) {
     this.host = host + "/testnet3";
@@ -40,19 +41,30 @@ export class AleoNetworkClient {
    * @example
    * let account = connection.getAccount();
    */
-   getAccount(): Account | undefined {
+  getAccount(): Account | undefined {
     return this.account;
   }
 
   async fetchData<Type>(
-    url = "/",
+      url = "/",
   ): Promise<Type> {
-     try {
-       const response = await axios.get<Type>(this.host + url);
-       return response.data;
-     } catch (error) {
-       throw new Error("Error fetching data.");
-     }
+    try {
+      const response = await axios.get<Type>(this.host + url);
+      return response.data;
+    } catch (error) {
+      throw new Error("Error fetching data.");
+    }
+  }
+
+  async fetchBytes(
+      url = "/",
+  ): Promise<Uint8Array> {
+    try {
+      const response = await axios.get(this.host + url, {responseType: 'arraybuffer'});
+      return new Uint8Array(response.data);
+    } catch (error) {
+      throw new Error("Error fetching data.");
+    }
   }
 
   /**
@@ -251,6 +263,88 @@ export class AleoNetworkClient {
   }
 
   /**
+   * Returns the proving and verifying keys for a specified function in an Aleo Program given the url of the prover and
+   * verifier keys
+   *
+   * @param {string} url of the proving key
+   * @param {string} url of the verifying key
+   *
+   * @returns {Promise<[ProvingKey, VerifyingKey] | Error>} Proving and verifying keys for the specified program
+   */
+  async getFunctionKeys(prover_url: string, verifier_url: string): Promise<[ProvingKey, VerifyingKey] | Error> {
+    try {
+      const proving_key = ProvingKey.fromBytes(await this.fetchBytes(prover_url))
+      const verifying_key = VerifyingKey.fromBytes(await this.fetchBytes(verifier_url));
+      return [proving_key, verifying_key];
+    } catch (error) {
+      throw new Error(`Error fetching fee proving and verifying keys from ${prover_url} and ${verifier_url}.`);
+    }
+  }
+
+  /**
+   * Returns the proving and verifying keys for the fee function in the credits.aleo program
+   *
+   * @returns {Promise<[ProvingKey, VerifyingKey] | Error>} Proving and verifying keys for the fee function
+   */
+  async feeKeys(): Promise<[ProvingKey, VerifyingKey] | Error> {
+    return await this.getFunctionKeys(CREDITS_PROGRAM_KEYS.fee.prover, CREDITS_PROGRAM_KEYS.fee.verifier);
+  }
+
+  /**
+    * Returns the proving and verifying keys for the transfer_private function in the credits.aleo program
+    *
+    * @returns {Promise<[ProvingKey, VerifyingKey] | Error>} Proving and verifying keys for the transfer_private function
+  * */
+  async transferPrivateKeys(): Promise<[ProvingKey, VerifyingKey] | Error> {
+    return await this.getFunctionKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier);
+  }
+
+  /**
+   * Returns the proving and verifying keys for the transfer_private_to_public function in the credits.aleo program
+   *
+   * @returns {Promise<[ProvingKey, VerifyingKey] | Error>} Proving and verifying keys for the transfer_private_to_public function
+   */
+  async transferPrivateToPublicKeys(): Promise<[ProvingKey, VerifyingKey] | Error> {
+    return await this.getFunctionKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier);
+  }
+
+  /**
+   * Returns the proving and verifying keys for the transfer_public function in the credits.aleo program
+   *
+   * @returns {Promise<[ProvingKey, VerifyingKey] | Error>} Proving and verifying keys for the transfer_public function
+   */
+  async transferPublicKeys(): Promise<[ProvingKey, VerifyingKey] | Error> {
+    return await this.getFunctionKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier);
+  }
+
+  /**
+   * Returns the proving and verifying keys for the transfer_public_to_private program in the credits.aleo program
+   *
+   * @returns {Promise<[ProvingKey, VerifyingKey] | Error>} Proving and verifying keys for the transfer_public_to_private function
+   */
+  async transferPublicToPrivateKeys(): Promise<[ProvingKey, VerifyingKey] | Error> {
+    return await this.getFunctionKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier);
+  }
+
+  /**
+   * Returns the proving and verifying keys for the join function in the credits.aleo program
+   *
+   * @returns {Promise<[ProvingKey, VerifyingKey] | Error>} Proving and verifying keys for the join function
+   */
+  async joinKeys(): Promise<[ProvingKey, VerifyingKey] | Error> {
+    return await this.getFunctionKeys(CREDITS_PROGRAM_KEYS.join.prover, CREDITS_PROGRAM_KEYS.join.verifier);
+  }
+
+  /**
+   * Returns the proving and verifying keys for the split function in the credits.aleo program
+   *
+   * @returns {Promise<[ProvingKey, VerifyingKey] | Error>} Proving and verifying keys for the split function
+   */
+  async splitKeys(): Promise<[ProvingKey, VerifyingKey] | Error> {
+    return await this.getFunctionKeys(CREDITS_PROGRAM_KEYS.split.prover, CREDITS_PROGRAM_KEYS.split.verifier);
+  }
+
+  /**
    * Attempts to find unspent records in the Aleo blockchain for a specified private key
    *
    * @example
@@ -268,15 +362,15 @@ export class AleoNetworkClient {
    * let records = connection.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
    */
   async findUnspentRecords(
-    startHeight: number,
-    endHeight: number | undefined,
-    privateKey: string | undefined,
-    amounts: number[] | undefined,
-    maxMicrocredits: number | undefined,
+      startHeight: number,
+      endHeight: number | undefined,
+      privateKey: string | undefined,
+      amounts: number[] | undefined,
+      maxMicrocredits: number | undefined,
   ): Promise<Array<RecordPlaintext> | Error> {
     // Ensure start height is not negative
     if (startHeight < 0) {
-        throw new Error("Start height must be greater than or equal to 0");
+      throw new Error("Start height must be greater than or equal to 0");
     }
 
     // Initialize search parameters
@@ -324,8 +418,8 @@ export class AleoNetworkClient {
     }
 
     // If the starting is greater than the ending height, return an error
-    if (startHeight > end ) {
-        throw new Error("Start height must be less than or equal to end height.");
+    if (startHeight > end) {
+      throw new Error("Start height must be less than or equal to end height.");
     }
 
     // Iterate through blocks in reverse order in chunks of 50
@@ -423,5 +517,35 @@ export class AleoNetworkClient {
       }
     }
     return records;
+  }
+  
+  async resolveProgramImports(program_source: string | Program): object {
+    const program = program_source instanceof Program ? program_source : Program.fromString(program_source);
+    program.getImports()
+  }
+
+  /**
+   * Submit a execute or deployment transaction to the Aleo network
+   *
+   * @param transaction [wasmTransaction | string] - The transaction to submit to the network
+   * @returns {string | Error} - The transaction id of the submitted transaction or the resulting error
+   */
+  async submitTransaction(transaction: wasmTransaction | string): Promise<string | Error> {
+    const transaction_string = transaction instanceof wasmTransaction ? transaction.toString() : transaction;
+    try {
+      const response = await axios
+          .post<string>(
+              this.host + "/testnet3/transaction/broadcast",
+              transaction_string,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              },
+          )
+      return response.data;
+    } catch (error) {
+      throw new Error(`Error posting transaction: ${error}`);
+    }
   }
 }
