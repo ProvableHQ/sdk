@@ -26,23 +26,41 @@ pub struct ViewKey(ViewKeyNative);
 
 #[wasm_bindgen]
 impl ViewKey {
+    /// Create a new view key from a private key
+    ///
+    /// @param {PrivateKey} private_key Private key
+    /// @returns {ViewKey} View key
     pub fn from_private_key(private_key: &PrivateKey) -> Self {
         Self(ViewKeyNative::try_from(**private_key).unwrap())
     }
 
+    /// Create a new view key from a string representation of a view key
+    ///
+    /// @param {string} view_key String representation of a view key
+    /// @returns {ViewKey} View key
     pub fn from_string(view_key: &str) -> Self {
         Self::from_str(view_key).unwrap()
     }
 
+    /// Get a string representation of a view key
+    ///
+    /// @returns {string} String representation of a view key
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
+    /// Get the address corresponding to a view key
+    ///
+    /// @returns {Address} Address
     pub fn to_address(&self) -> Address {
         Address::from_view_key(self)
     }
 
+    /// Decrypt a record ciphertext with a view key
+    ///
+    /// @param {string} ciphertext String representation of a record ciphertext
+    /// @returns {string} String representation of a record plaintext
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
         let ciphertext = RecordCiphertext::from_str(ciphertext).map_err(|error| error.to_string())?;
         match ciphertext.decrypt(self) {

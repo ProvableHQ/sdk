@@ -29,6 +29,8 @@ pub struct ExecutionResponse(ResponseNative);
 #[wasm_bindgen]
 impl ExecutionResponse {
     /// Get the outputs of the executed function
+    ///
+    /// @returns {Array} Array of strings representing the outputs of the function
     #[wasm_bindgen(js_name = "getOutputs")]
     pub fn get_outputs(&self) -> js_sys::Array {
         let array = js_sys::Array::new_with_length(0u32);
