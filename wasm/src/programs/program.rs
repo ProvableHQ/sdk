@@ -69,30 +69,44 @@ impl Program {
             .ok_or_else(|| format!("function {} not found in {}", function_name, self.0.id()))?;
         let function_inputs = Array::new_with_length(function.inputs().len() as u32);
         for (index, input) in function.inputs().iter().enumerate() {
+            let register = JsValue::from_str(&input.register().to_string());
             match input.value_type() {
                 ValueType::Constant(plaintext) => {
-                    function_inputs.set(
-                        index as u32,
-                        self.get_plaintext_input(plaintext, Some("constant".to_string()), None)?.into(),
-                    );
+                    function_inputs.set(index as u32, {
+                        let input = self.get_plaintext_input(plaintext, Some("constant".to_string()), None)?;
+                        Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
+                        input.into()
+                    });
                 }
                 ValueType::Public(plaintext) => {
-                    function_inputs.set(
-                        index as u32,
-                        self.get_plaintext_input(plaintext, Some("public".to_string()), None)?.into(),
-                    );
+                    function_inputs.set(index as u32, {
+                        let input = self.get_plaintext_input(plaintext, Some("public".to_string()), None)?;
+                        Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
+                        input.into()
+                    });
                 }
                 ValueType::Private(plaintext) => {
-                    function_inputs.set(
-                        index as u32,
-                        self.get_plaintext_input(plaintext, Some("private".to_string()), None)?.into(),
-                    );
+                    function_inputs.set(index as u32, {
+                        let input = self.get_plaintext_input(plaintext, Some("private".to_string()), None)?;
+                        Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
+                        input.into()
+                    });
                 }
                 ValueType::Record(identifier) => {
-                    function_inputs.set(index as u32, self.get_record_members(identifier.to_string())?.into());
+                    function_inputs.set(index as u32, {
+                        let input = self.get_record_members(identifier.to_string())?;
+                        Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
+                        input.into()
+                    });
                 }
                 ValueType::ExternalRecord(locator) => {
-                    function_inputs.set(index as u32, locator.to_string().into());
+                    let input = Object::new();
+                    let value_type = JsValue::from_str("external_record");
+                    Reflect::set(&input, &"type".into(), &value_type).map_err(|_| "Failed to set property")?;
+                    Reflect::set(&input, &"locator".into(), &locator.to_string().into())
+                        .map_err(|_| "Failed to set property")?;
+                    Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
+                    function_inputs.set(index as u32, input.into());
                 }
             }
         }
@@ -156,10 +170,14 @@ impl Program {
                 Reflect::set(&input, &"type".into(), &value_type).map_err(|_| "Failed to set property")?;
             }
             PlaintextType::Struct(struct_id) => {
-                let name = struct_id.to_string();
+                let struct_name = struct_id.to_string();
+                if let Some(name) = name {
+                    Reflect::set(&input, &"name".into(), &name.into()).map_err(|_| "Failed to set property")?;
+                }
                 Reflect::set(&input, &"type".into(), &"struct".into()).map_err(|_| "Failed to set property")?;
-                Reflect::set(&input, &"name".into(), &name.clone().into()).map_err(|_| "Failed to set property")?;
-                let inputs = self.get_struct_members(name)?;
+                Reflect::set(&input, &"struct_id".into(), &struct_name.as_str().into())
+                    .map_err(|_| "Failed to set property")?;
+                let inputs = self.get_struct_members(struct_name)?;
                 Reflect::set(&input, &"members".into(), &inputs.into()).map_err(|_| "Failed to set property")?;
             }
         }
@@ -181,7 +199,7 @@ impl Program {
 
         let input = Object::new();
         Reflect::set(&input, &"type".into(), &"record".into()).map_err(|_| "Failed to set property")?;
-        Reflect::set(&input, &"name".into(), &record_name.into()).map_err(|_| "Failed to set property")?;
+        Reflect::set(&input, &"record".into(), &record_name.into()).map_err(|_| "Failed to set property")?;
 
         let record_members = Array::new_with_length(record.entries().len() as u32);
 
@@ -491,12 +509,12 @@ function add_and_double:
     fn test_get_inputs() {
         let credits = Program::from(ProgramNative::credits().unwrap());
         let inputs = credits.get_function_inputs("transfer_private".to_string()).unwrap();
-        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"record","name":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"}]}), Object({"type":"address","visibility":"private"}), Object({"type":"u64","visibility":"private"})]) } }"#.to_string();
+        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"record","record":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"}],"register":"r0"}), Object({"type":"address","visibility":"private","register":"r1"}), Object({"type":"u64","visibility":"private","register":"r2"})]) } }"#.to_string();
         assert_eq!(format!("{:?}", inputs), expected);
 
         let token_issue = Program::from_string(TOKEN_ISSUE).unwrap();
         let inputs = token_issue.get_function_inputs("bump_token_version".to_string()).unwrap();
-        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"address","visibility":"private"}), Object({"type":"record","name":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"type":"struct","name":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"}]}), Object({"type":"struct","name":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"})]) } }"#;
+        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"address","visibility":"private","register":"r0"}), Object({"type":"record","record":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"name":"token_data","type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"}],"register":"r1"}), Object({"type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private","register":"r2"})]) } }"#;
         assert_eq!(format!("{:?}", inputs), expected);
     }
 
@@ -504,12 +522,12 @@ function add_and_double:
     fn test_get_record() {
         let credits = Program::from(ProgramNative::credits().unwrap());
         let members = credits.get_record_members("credits".to_string()).unwrap();
-        let expected = r#"Object { obj: JsValue(Object({"type":"record","name":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"}]})) }"#.to_string();
+        let expected = r#"Object { obj: JsValue(Object({"type":"record","record":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"}]})) }"#.to_string();
         assert_eq!(format!("{:?}", members), expected);
 
         let token_issue = Program::from_string(TOKEN_ISSUE).unwrap();
         let members = token_issue.get_record_members("Token".to_string()).unwrap();
-        let expected = r#"Object { obj: JsValue(Object({"type":"record","name":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"type":"struct","name":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"}]})) }"#;
+        let expected = r#"Object { obj: JsValue(Object({"type":"record","record":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"name":"token_data","type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"}]})) }"#;
         assert_eq!(format!("{:?}", members), expected);
     }
 
