@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1690474244304,
+  "lastUpdate": 1690474276801,
   "repoUrl": "https://github.com/AleoHQ/sdk",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -53,6 +53,60 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_encryption_decryption_roundtrip",
             "value": 728317,
             "range": "± 98375",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mturner@aleo.org",
+            "name": "Mike Turner",
+            "username": "iamalwaysuncomfortable"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2457570d9db44042ed91f785d62dde7bb241a19c",
+          "message": "[Feature] Enumerate registers for top level inputs & parameter names for nested structs",
+          "timestamp": "2023-07-27T11:54:07-04:00",
+          "tree_id": "2e24586b4cfef92f434301c8ecdd984ddf0b9de3",
+          "url": "https://github.com/AleoHQ/sdk/commit/2457570d9db44042ed91f785d62dde7bb241a19c"
+        },
+        "date": 1690474260684,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 207867,
+            "range": "± 474",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 90362,
+            "range": "± 224",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_decryption",
+            "value": 333583,
+            "range": "± 712",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption",
+            "value": 238940,
+            "range": "± 648",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption_decryption_roundtrip",
+            "value": 578313,
+            "range": "± 9198",
             "unit": "ns/iter"
           }
         ]
