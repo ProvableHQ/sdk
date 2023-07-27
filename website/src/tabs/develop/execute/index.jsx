@@ -34,7 +34,88 @@ export const Execute = () => {
     };
 
     const [program, setProgram] = useState(null);
-    const [functions, setFunctions] = useState([]);
+    const [functions, setFunctions] = useState([
+        {
+            type: "u8",
+            register: "r0",
+            visibility: "private",
+        },
+        {
+            type: "u8",
+            register: "r1",
+            visibility: "private",
+        },
+        {
+            type: "u8",
+            register: "r2",
+            visibility: "private",
+        },
+        {
+            type: "struct",
+            name: "Board",
+            register: "r3",
+            members: [
+                {
+                    type: "struct",
+                    name: "Row",
+                    register: "r1",
+                    members: [
+                        {
+                            register: "c1",
+                            type: "u8",
+                        },
+                        {
+                            register: "c2",
+                            type: "u8",
+                        },
+                        {
+                            register: "c3",
+                            type: "u8",
+                        },
+                    ],
+                },
+                {
+                    type: "struct",
+                    name: "Row",
+                    register: "r2",
+                    members: [
+                        {
+                            register: "c1",
+                            type: "u8",
+                        },
+                        {
+                            register: "c2",
+                            type: "u8",
+                        },
+                        {
+                            register: "c3",
+                            type: "u8",
+                        },
+                    ],
+                },
+                {
+                    type: "struct",
+                    name: "Row",
+                    register: "r3",
+                    members: [
+                        {
+                            register: "c1",
+                            type: "u8",
+                        },
+                        {
+                            register: "c2",
+                            type: "u8",
+                        },
+                        {
+                            register: "c3",
+                            type: "u8",
+                        },
+                    ],
+                },
+            ],
+            visibility: "private",
+        },
+    ]);
     const onLoadProgram = async (value) => {
         if (value) {
             form.setFieldsValue({
@@ -61,6 +142,89 @@ export const Execute = () => {
         const functionNames = processedProgram.getFunctions();
         const functionItems = functionNames.map((func, index) => {
             const functionInputs = processedProgram.getFunctionInputs(func);
+
+            // const functionInputs = [
+            //     {
+            //         type: "u8",
+            //         register: "r0",
+            //         visibility: "private",
+            //     },
+            //     {
+            //         type: "u8",
+            //         register: "r1",
+            //         visibility: "private",
+            //     },
+            //     {
+            //         type: "u8",
+            //         register: "r2",
+            //         visibility: "private",
+            //     },
+            //     {
+            //         type: "struct",
+            //         name: "Board",
+            //         register: "r3",
+            //         members: [
+            //             {
+            //                 type: "struct",
+            //                 name: "Row",
+            //                 register: "r1",
+            //                 members: [
+            //                     {
+            //                         register: "c1",
+            //                         type: "u8",
+            //                     },
+            //                     {
+            //                         register: "c2",
+            //                         type: "u8",
+            //                     },
+            //                     {
+            //                         register: "c3",
+            //                         type: "u8",
+            //                     },
+            //                 ],
+            //             },
+            //             {
+            //                 type: "struct",
+            //                 name: "Row",
+            //                 register: "r2",
+            //                 members: [
+            //                     {
+            //                         register: "c1",
+            //                         type: "u8",
+            //                     },
+            //                     {
+            //                         register: "c2",
+            //                         type: "u8",
+            //                     },
+            //                     {
+            //                         register: "c3",
+            //                         type: "u8",
+            //                     },
+            //                 ],
+            //             },
+            //             {
+            //                 type: "struct",
+            //                 name: "Row",
+            //                 register: "r3",
+            //                 members: [
+            //                     {
+            //                         register: "c1",
+            //                         type: "u8",
+            //                     },
+            //                     {
+            //                         register: "c2",
+            //                         type: "u8",
+            //                     },
+            //                     {
+            //                         register: "c3",
+            //                         type: "u8",
+            //                     },
+            //                 ],
+            //             },
+            //         ],
+            //         visibility: "private",
+            //     },
+            // ];
             console.log(functionInputs);
             return {
                 key: index,
@@ -167,18 +331,17 @@ export const Execute = () => {
     );
 };
 
-const renderInput = (input, inputIndex, parent, parentIndex) => {
+const renderInput = (input, inputIndex, nameArray = []) => {
     if (input.members) {
+        const members = input.members;
         return (
             <div key={inputIndex}>
                 <Divider orientation="left" dashed plain>
-                    {parent.name}
-                    {parent.name && " / "}
                     {input.name}
-                    {parent.name && inputIndex}
                 </Divider>
-                {input.members.map((member, memberIndex) =>
-                    renderInput(member, memberIndex, input, inputIndex),
+                input.nameArray.push(input.register)cccccbgjvjlgecltfrbtnuitfucbchdvjlbbecbvdevb
+                {members.map((member, memberIndex) =>
+                    renderInput(member, memberIndex, nameArray),
                 )}
             </div>
         );
@@ -186,11 +349,8 @@ const renderInput = (input, inputIndex, parent, parentIndex) => {
         return (
             <Form.Item
                 key={inputIndex}
-                label={`${input.name ? input.name : `r${inputIndex}`}`}
-                name={[
-                    `${inputIndex}`,
-                    `${input.name}${parent.name && inputIndex}`,
-                ]}
+                label={`${input.name ? input.name : `${input.register}`}`}
+                name={["inputs", nameArray]}
                 rules={[{ required: true, message: "Please input a value" }]}
             >
                 <Input placeholder={`${input.type}`} />
@@ -208,7 +368,7 @@ const functionForm = (func, funcInputs) => (
         {...layout}
     >
         {funcInputs.length > 0 ? (
-            renderInput({ members: funcInputs }, 0, {}, 0)
+            funcInputs.map(renderInput)
         ) : (
             <Form.Item
                 wrapperCol={{
