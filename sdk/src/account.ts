@@ -5,7 +5,7 @@ import {
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
-} from "@aleohq/nodejs";
+} from "@aleohq/wasm";
 
 interface AccountParam {
   privateKey?: string;
