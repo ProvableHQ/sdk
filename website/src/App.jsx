@@ -47,16 +47,6 @@ const menuItems = [
         key: "transfer",
         icon: <SwapOutlined />,
     },
-    {
-        label: <Link to="/program2form">Program2Form</Link>,
-        key: "/program2form",
-        icon: <FormatPainterOutlined />,
-    },
-    {
-        label: <Link to="/executev2">ExecuteV2</Link>,
-        key: "/executev2",
-        icon: <FireOutlined />,
-    },
 ];
 function App() {
     const [menuIndex, setMenuIndex] = useState("account");

@@ -19,7 +19,7 @@ import init, * as aleo from "@aleohq/wasm";
 
 await init();
 
-export const Execute = () => {
+export const ExecuteLegacy = () => {
     const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
     const [executeUrl, setExecuteUrl] = useState("https://vm.aleo.org/api");
     const [functionID, setFunctionID] = useState(null);
@@ -211,7 +211,9 @@ export const Execute = () => {
         setProgramResponse(null);
         setTransactionID(null);
         setExecutionError(null);
-        messageApi.info("Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network");
+        messageApi.info(
+            "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
+        );
         setTip("Estimating Execution Fee...");
         let functionInputs = [];
         try {

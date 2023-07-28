@@ -52,6 +52,7 @@ export function CodeEditor({ value, onChange }) {
             style={{
                 overflow: "auto",
                 borderRadius: token.borderRadius,
+                height: "300px",
                 outline: isFocused
                     ? `1px solid ${token.colorPrimaryHover}`
                     : "none",
