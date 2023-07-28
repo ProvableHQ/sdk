@@ -13,7 +13,7 @@ const aleoSyntaxHighlight = {
             token: "keyword",
         },
         {
-            regex: /(?:^|\s)(finalize|mapping|increment|decrement)(?:$|\s)/,
+            regex: /(?:^|\s)(finalize|mapping)(?:$|\s)/,
             token: "atom",
         },
         {
