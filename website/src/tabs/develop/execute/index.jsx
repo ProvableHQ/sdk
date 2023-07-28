@@ -57,15 +57,38 @@ export const Execute = () => {
     const execute = async (values) => {
         setOpen(true);
         setLoading(true);
-        const { program, functionName, inputs, private_key } = values;
         try {
-            await postMessagePromise(worker, {
-                type: "ALEO_EXECUTE_PROGRAM_LOCAL",
-                localProgram: program,
-                aleoFunction: functionName,
-                inputs: JSON.parse(inputs),
-                privateKey: private_key,
-            });
+            const {
+                program,
+                functionName,
+                inputs,
+                private_key,
+                fee,
+                fee_record,
+                peer_url,
+                execute_onchain,
+            } = values;
+
+            if (execute_onchain) {
+                await postMessagePromise(worker, {
+                    type: "ALEO_EXECUTE_PROGRAM_ON_CHAIN",
+                    remoteProgram: program,
+                    aleoFunction: functionName,
+                    inputs: JSON.parse(inputs),
+                    privateKey: private_key,
+                    fee: fee,
+                    feeRecord: fee_record,
+                    url: peer_url,
+                });
+            } else {
+                await postMessagePromise(worker, {
+                    type: "ALEO_EXECUTE_PROGRAM_LOCAL",
+                    localProgram: program,
+                    aleoFunction: functionName,
+                    inputs: JSON.parse(inputs),
+                    privateKey: private_key,
+                });
+            }
         } catch (error) {
             console.log(error);
         }
@@ -111,22 +134,13 @@ export const Execute = () => {
                         },
                     )
                     .then((response) => {
-                        // setFeeLoading(false);
-                        // setLoading(false);
-                        // setProgramResponse(null);
-                        // setExecutionError(null);
-                        // setTip("Executing Program...");
-                        // setTransactionID(response.data);
+                        setLoading(false);
+                        setModalResult({
+                            title: "On-Chain Execution Successsful!",
+                            status: "success",
+                            subTitle: `Transaction ID: ${response.data}`,
+                        });
                     });
-            } else if (ev.data.type == "EXECUTION_FEE_ESTIMATION_COMPLETED") {
-                // let fee = ev.data.executionFee;
-                // setFeeLoading(false);
-                // setLoading(false);
-                // setProgramResponse(null);
-                // setExecutionError(null);
-                // setTransactionID(null);
-                // setTip("Executing Program...");
-                // setExecutionFee(fee.toString());
             } else if (ev.data.type == "ERROR") {
                 setLoading(false);
                 setModalResult({
@@ -166,7 +180,7 @@ export const Execute = () => {
         const functionItems = functionNames.map((func, index) => {
             const functionInputs = processedProgram.getFunctionInputs(func);
             return {
-                key: index,
+                key: func,
                 label: func,
                 children: functionForm(func, functionInputs),
             };
@@ -198,47 +212,41 @@ export const Execute = () => {
 
     const [feeLoading, setFeeLoading] = useState(false);
     const estimateFee = async () => {
-        form.validateFields()
-            .then(async (values) => {
-                setFeeLoading(true);
-                setOpen(true);
-                setLoading(true);
-                const { program, functionName, inputs, private_key, peer_url } =
-                    values;
-                const result = await postMessagePromise(worker, {
-                    type: "ALEO_ESTIMATE_EXECUTION_FEE",
-                    privateKey: private_key,
-                    remoteProgram: program,
-                    aleoFunction: functionName,
-                    inputs: JSON.parse(inputs),
-                    url: peer_url,
-                });
-                setFeeLoading(false);
-                setLoading(false);
-                console.log(result);
-                if (result.type === "ERROR") {
-                    form.setFieldValue("fee", "");
-                    setModalResult({
-                        status: "error",
-                        title: "Fee Estimation Error",
-                        subTitle: `Error: ${
-                            result.errorMessage || "Something went wrong..."
-                        }`,
-                    });
-                } else {
-                    form.setFieldValue("fee", result.executionFee);
-                    setModalResult({
-                        status: "success",
-                        title: "Fee Estimation Success!",
-                        subTitle: `Fee set to: ${
-                            result.executionFee || "Something went wrong..."
-                        }`,
-                    });
-                }
-            })
-            .catch((e) => {
-                console.log(e);
+        setFeeLoading(true);
+        setOpen(true);
+        setLoading(true);
+        const { program, functionName, inputs, private_key, peer_url } =
+            form.getFieldsValue();
+        const result = await postMessagePromise(worker, {
+            type: "ALEO_ESTIMATE_EXECUTION_FEE",
+            privateKey: private_key,
+            remoteProgram: program,
+            aleoFunction: functionName,
+            inputs: JSON.parse(inputs),
+            url: peer_url,
+        });
+        setFeeLoading(false);
+        setLoading(false);
+        console.log(result);
+        if (result.type === "ERROR") {
+            form.setFieldValue("fee", "");
+            setModalResult({
+                status: "error",
+                title: "Fee Estimation Error",
+                subTitle: `Error: ${
+                    result.errorMessage || "Something went wrong..."
+                }`,
             });
+        } else {
+            form.setFieldValue("fee", result.executionFee);
+            setModalResult({
+                status: "success",
+                title: "Fee Estimation Success!",
+                subTitle: `Fee set to: ${
+                    result.executionFee || "Something went wrong..."
+                }`,
+            });
+        }
     };
 
     return (
@@ -349,6 +357,16 @@ export const Execute = () => {
                                     name="fee"
                                     hidden={!getFieldValue("execute_onchain")}
                                     tooltip="Fee estimation is experimental and may not represent a correct estimate on any current or future network"
+                                    rules={[
+                                        {
+                                            required:
+                                                getFieldValue(
+                                                    "execute_onchain",
+                                                ),
+                                            message:
+                                                "Fee needed for on-chain execution",
+                                        },
+                                    ]}
                                 >
                                     <Input.Search
                                         enterButton="Estimate Fee"
@@ -360,6 +378,16 @@ export const Execute = () => {
                                     label="Fee Record"
                                     name="fee_record"
                                     hidden={!getFieldValue("execute_onchain")}
+                                    rules={[
+                                        {
+                                            required:
+                                                getFieldValue(
+                                                    "execute_onchain",
+                                                ),
+                                            message:
+                                                "Fee record needed for on-chain execution",
+                                        },
+                                    ]}
                                 >
                                     <Input.TextArea />
                                 </Form.Item>
