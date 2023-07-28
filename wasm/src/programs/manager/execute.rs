@@ -53,7 +53,7 @@ impl ProgramManager {
     /// keys will be deallocated from memory after the transaction is executed.
     /// @param imports (optional) Provide a list of imports to use for the function execution in the
     /// form of a javascript object where the keys are a string of the program name and the values
-    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param proving_key (optional) Provide a verifying key to use for the function execution
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     #[wasm_bindgen]
@@ -106,11 +106,12 @@ impl ProgramManager {
     /// keys will be deallocated from memory after the transaction is executed.
     /// @param imports (optional) Provide a list of imports to use for the function execution in the
     /// form of a javascript object where the keys are a string of the program name and the values
-    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param proving_key (optional) Provide a verifying key to use for the function execution
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @returns {Transaction | Error}
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute(
@@ -202,9 +203,10 @@ impl ProgramManager {
     /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
     /// @param imports (optional) Provide a list of imports to use for the fee estimation in the
     /// form of a javascript object where the keys are a string of the program name and the values
-    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param proving_key (optional) Provide a verifying key to use for the fee estimation
     /// @param verifying_key (optional) Provide a verifying key to use for the fee estimation
+    /// @returns {u64 | Error} Fee in microcredits
     #[wasm_bindgen(js_name = estimateExecutionFee)]
     #[allow(clippy::too_many_arguments)]
     pub async fn estimate_execution_fee(
@@ -280,6 +282,7 @@ impl ProgramManager {
     ///
     /// @param program The program containing the function to estimate the finalize fee for
     /// @param function The function to estimate the finalize fee for
+    /// @returns {u64 | Error} Fee in microcredits
     #[wasm_bindgen(js_name = estimateFinalizeFee)]
     pub fn estimate_finalize_fee(&self, program: String, function: String) -> Result<u64, String> {
         log(

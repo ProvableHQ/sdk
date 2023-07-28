@@ -30,6 +30,9 @@ pub struct Transaction(TransactionNative);
 #[wasm_bindgen]
 impl Transaction {
     /// Create a transaction from a string
+    ///
+    /// @param {string} transaction String representation of a transaction
+    /// @returns {Transaction | Error}
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(transaction: &str) -> Result<Transaction, String> {
         Transaction::from_str(transaction)
@@ -37,6 +40,8 @@ impl Transaction {
 
     /// Get the transaction as a string. If you want to submit this transaction to the Aleo Network
     /// this function will create the string that should be submitted in the `POST` data.
+    ///
+    /// @returns {string} String representation of the transaction
     #[wasm_bindgen(js_name = toString)]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
@@ -48,12 +53,16 @@ impl Transaction {
     /// This value can be used to query the status of the transaction on the Aleo Network to see
     /// if it was successful. If successful, the transaction will be included in a block and this
     /// value can be used to lookup the transaction data on-chain.
+    ///
+    /// @returns {string} Transaction id
     #[wasm_bindgen(js_name = transactionId)]
     pub fn transaction_id(&self) -> String {
         self.0.id().to_string()
     }
 
     /// Get the type of the transaction (will return "deploy" or "execute")
+    ///
+    /// @returns {string} Transaction type
     #[wasm_bindgen(js_name = transactionType)]
     pub fn transaction_type(&self) -> String {
         match &self.0 {

@@ -19,6 +19,7 @@ use crate::types::{FromBytes, ProvingKeyNative, ToBytes};
 use std::ops::Deref;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// Proving key for a function within an Aleo program
 #[wasm_bindgen]
 #[derive(Clone, Debug)]
 pub struct ProvingKey(ProvingKeyNative);
@@ -26,12 +27,17 @@ pub struct ProvingKey(ProvingKeyNative);
 #[wasm_bindgen]
 impl ProvingKey {
     /// Construct a new proving key from a byte array
+    ///
+    /// @param {Uint8Array} bytes Byte array representation of a proving key
+    /// @returns {ProvingKey | Error}
     #[wasm_bindgen(js_name = "fromBytes")]
     pub fn from_bytes(bytes: &[u8]) -> Result<ProvingKey, String> {
         Ok(Self(ProvingKeyNative::from_bytes_le(bytes).map_err(|e| e.to_string())?))
     }
 
-    /// Create a byte array from a proving key
+    /// Return the byte representation of a proving key
+    ///
+    /// @returns {Uint8Array | Error} Byte array representation of a proving key
     #[wasm_bindgen(js_name = "toBytes")]
     pub fn to_bytes(&self) -> Result<Vec<u8>, String> {
         self.0.to_bytes_le().map_err(|_| "Failed to serialize proving key".to_string())
