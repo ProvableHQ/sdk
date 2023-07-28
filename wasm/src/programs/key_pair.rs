@@ -28,18 +28,26 @@ pub struct KeyPair {
 #[wasm_bindgen]
 impl KeyPair {
     /// Create new key pair from proving and verifying keys
+    ///
+    /// @param {ProvingKey} proving_key Proving key corresponding to a function in an Aleo program
+    /// @param {VerifyingKey} verifying_key Verifying key corresponding to a function in an Aleo program
+    /// @returns {KeyPair} Key pair object containing both the function proving and verifying keys
     #[wasm_bindgen(constructor)]
     pub fn new(proving_key: ProvingKey, verifying_key: VerifyingKey) -> KeyPair {
         KeyPair { proving_key: Some(proving_key), verifying_key: Some(verifying_key) }
     }
 
-    /// Get the proving key
+    /// Get the proving key. This method will remove the proving key from the key pair
+    ///
+    /// @returns {ProvingKey | Error}
     #[wasm_bindgen(js_name = "provingKey")]
     pub fn proving_key(&mut self) -> Result<ProvingKey, String> {
         self.proving_key.take().ok_or("Proving key has already been removed".to_string())
     }
 
-    /// Get the verifying key
+    /// Get the verifying key. This method will remove the verifying key from the key pair
+    ///
+    /// @returns {VerifyingKey | Error}
     #[wasm_bindgen(js_name = "verifyingKey")]
     pub fn verifying_key(&mut self) -> Result<VerifyingKey, String> {
         self.verifying_key.take().ok_or("Proving key has already been removed".to_string())

@@ -20,6 +20,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 use std::ops::Deref;
 
+/// Verifying key for a function within an Aleo program
 #[wasm_bindgen]
 #[derive(Clone, Debug)]
 pub struct VerifyingKey(VerifyingKeyNative);
@@ -27,12 +28,17 @@ pub struct VerifyingKey(VerifyingKeyNative);
 #[wasm_bindgen]
 impl VerifyingKey {
     /// Construct a new verifying key from a byte array
+    ///
+    /// @param {Uint8Array} bytes Byte representation of a verifying key
+    /// @returns {VerifyingKey | Error}
     #[wasm_bindgen(js_name = "fromBytes")]
     pub fn from_bytes(bytes: &[u8]) -> Result<VerifyingKey, String> {
         Ok(Self(VerifyingKeyNative::from_bytes_le(bytes).map_err(|e| e.to_string())?))
     }
 
     /// Create a byte array from a verifying key
+    ///
+    /// @returns {Uint8Array | Error} Byte representation of a verifying key
     #[wasm_bindgen(js_name = "toBytes")]
     pub fn to_bytes(&self) -> Result<Vec<u8>, String> {
         self.0.to_bytes_le().map_err(|_| "Failed to serialize verifying key".to_string())

@@ -51,6 +51,7 @@ impl ProgramManager {
     /// @param join_verifying_key (optional) Provide a verifying key to use for the join function
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @returns {Transaction | Error} Transaction object
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
     pub async fn join(
