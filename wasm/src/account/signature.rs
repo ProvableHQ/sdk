@@ -23,23 +23,41 @@ use core::{fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
+/// Cryptographic signature of a message signed by an Aleo account
 #[wasm_bindgen]
 pub struct Signature(SignatureNative);
 
 #[wasm_bindgen]
 impl Signature {
+    /// Sign a message with a private key
+    ///
+    /// @param {PrivateKey} private_key The private key to sign the message with
+    /// @param {Uint8Array} message Byte representation of the message to sign
+    /// @returns {Signature} Signature of the message
     pub fn sign(private_key: &PrivateKey, message: &[u8]) -> Self {
         Self(SignatureNative::sign_bytes(private_key, message, &mut StdRng::from_entropy()).unwrap())
     }
 
+    /// Verify a signature of a message with an address
+    ///
+    /// @param {Address} address The address to verify the signature with
+    /// @param {Uint8Array} message Byte representation of the message to verify
+    /// @returns {boolean} True if the signature is valid, false otherwise
     pub fn verify(&self, address: &Address, message: &[u8]) -> bool {
         self.0.verify_bytes(address, message)
     }
 
+    /// Get a signature from a string representation of a signature
+    ///
+    /// @param {string} signature String representation of a signature
+    /// @returns {Signature} Signature
     pub fn from_string(signature: &str) -> Self {
         Self::from_str(signature).unwrap()
     }
 
+    /// Get a string representation of a signature
+    ///
+    /// @returns {string} String representation of a signature
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()

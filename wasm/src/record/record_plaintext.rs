@@ -23,7 +23,7 @@ use aleo_rust::Credits;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
-/// Aleo record plaintext
+/// Plaintext representation of an Aleo record
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct RecordPlaintext(RecordPlaintextNative);
@@ -31,12 +31,17 @@ pub struct RecordPlaintext(RecordPlaintextNative);
 #[wasm_bindgen]
 impl RecordPlaintext {
     /// Return a record plaintext from a string.
+    ///
+    /// @param {string} record String representation of a plaintext representation of an Aleo record
+    /// @returns {RecordPlaintext | Error} Record plaintext
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordPlaintext, String> {
         Self::from_str(record).map_err(|_| "The record plaintext string provided was invalid".into())
     }
 
     /// Returns the record plaintext string
+    ///
+    /// @returns {string} String representation of the record plaintext
     #[allow(clippy::inherent_to_string)]
     #[wasm_bindgen(js_name = toString)]
     pub fn to_string(&self) -> String {
@@ -44,11 +49,18 @@ impl RecordPlaintext {
     }
 
     /// Returns the amount of microcredits in the record
+    ///
+    /// @returns {u64} Amount of microcredits in the record
     pub fn microcredits(&self) -> u64 {
         self.0.microcredits().unwrap_or(0)
     }
 
     /// Attempt to get the serial number of a record to determine whether or not is has been spent
+    ///
+    /// @param {PrivateKey} private_key Private key of the account that owns the record
+    /// @param {string} program_id Program ID of the program that the record is associated with
+    /// @param {string} record_name Name of the record
+    /// @returns {string | Error} Serial number of the record
     #[wasm_bindgen(js_name = serialNumberString)]
     pub fn serial_number_string(
         &self,

@@ -27,27 +27,39 @@ pub struct RecordCiphertext(RecordCiphertextNative);
 
 #[wasm_bindgen]
 impl RecordCiphertext {
-    /// Return a record ciphertext from a string.
+    /// Create a record ciphertext from a string
+    ///
+    /// @param {string} record String representation of a record ciphertext
+    /// @returns {RecordCiphertext | Error} Record ciphertext
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordCiphertext, String> {
         Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
     }
 
-    /// Return the record ciphertext string.
+    /// Return the string reprensentation of the record ciphertext
+    ///
+    /// @returns {string} String representation of the record ciphertext
     #[allow(clippy::inherent_to_string)]
     #[wasm_bindgen(js_name = toString)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
-    /// Decrypt the record ciphertext into plaintext using the view key.
+    /// Decrypt the record ciphertext into plaintext using the view key. The record will only
+    /// decrypt if the record was encrypted by the account corresponding to the view key
+    ///
+    /// @param {ViewKey} view_key View key used to decrypt the ciphertext
+    /// @returns {RecordPlaintext | Error} Record plaintext object
     pub fn decrypt(&self, view_key: &ViewKey) -> Result<RecordPlaintext, String> {
         Ok(RecordPlaintext::from(
             self.0.decrypt(view_key).map_err(|_| "Decryption failed - view key did not match record".to_string())?,
         ))
     }
 
-    /// Returns `true` if the view key can decrypt the record ciphertext.
+    /// Determines if the account corresponding to the view key is the owner of the record
+    ///
+    /// @param {ViewKey} view_key View key used to decrypt the ciphertext
+    /// @returns {boolean}
     #[wasm_bindgen(js_name = isOwner)]
     pub fn is_owner(&self, view_key: &ViewKey) -> bool {
         self.0.is_owner(view_key)
