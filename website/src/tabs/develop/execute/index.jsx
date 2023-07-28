@@ -8,6 +8,7 @@ import {
     Form,
     Input,
     Modal,
+    Result,
     Select,
     Skeleton,
     Switch,
@@ -54,23 +55,31 @@ export const Execute = () => {
     }, []);
 
     const execute = async (values) => {
+        setOpen(true);
+        setLoading(true);
         const { program, functionName, inputs, private_key } = values;
-        await postMessagePromise(worker, {
-            type: "ALEO_EXECUTE_PROGRAM_LOCAL",
-            localProgram: program,
-            aleoFunction: functionName,
-            inputs: JSON.parse(inputs),
-            privateKey: private_key,
-        });
+        try {
+            await postMessagePromise(worker, {
+                type: "ALEO_EXECUTE_PROGRAM_LOCAL",
+                localProgram: program,
+                aleoFunction: functionName,
+                inputs: JSON.parse(inputs),
+                privateKey: private_key,
+            });
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     function postMessagePromise(worker, message) {
         return new Promise((resolve, reject) => {
             worker.onmessage = (event) => {
                 resolve(event.data);
+                console.log(event);
             };
             worker.onerror = (error) => {
                 reject(error);
+                console.log(error);
             };
             worker.postMessage(message);
         });
@@ -83,13 +92,12 @@ export const Execute = () => {
         );
         worker.addEventListener("message", (ev) => {
             if (ev.data.type == "OFFLINE_EXECUTION_COMPLETED") {
-                // setFeeLoading(false);
-                // setLoading(false);
-                // setTransactionID(null);
-                // setExecutionError(null);
-                // setProgramResponse(ev.data.outputs);
-                // setTip("Executing Program...");
-                console.log("Offline execution complete " + ev.data.outputs);
+                setLoading(false);
+                setModalResult({
+                    title: "Execution Successsful!",
+                    status: "success",
+                    subTitle: `Outputs: ${ev.data.outputs}`,
+                });
             } else if (ev.data.type == "EXECUTION_TRANSACTION_COMPLETED") {
                 let [transaction, url] = ev.data.executeTransaction;
                 axios
@@ -120,12 +128,14 @@ export const Execute = () => {
                 // setTip("Executing Program...");
                 // setExecutionFee(fee.toString());
             } else if (ev.data.type == "ERROR") {
-                // setFeeLoading(false);
-                // setLoading(false);
-                // setProgramResponse(null);
-                // setTransactionID(null);
-                // setTip("Executing Program...");
-                // setExecutionError(ev.data.errorMessage);
+                setLoading(false);
+                setModalResult({
+                    status: "error",
+                    title: "Function Execution Error",
+                    subTitle: `Error: ${
+                        ev.data.errorMessage || "Something went wrong..."
+                    }`,
+                });
             }
         });
         return worker;
@@ -165,7 +175,11 @@ export const Execute = () => {
     };
 
     const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [modalResult, setModalResult] = useState({
+        status: "warning",
+        subTitle: "Sorry, something went wrong.",
+    });
     const handleOk = () => {
         setOpen(false);
     };
@@ -203,8 +217,11 @@ export const Execute = () => {
                 onOk={handleOk}
                 confirmLoading={loading}
                 onCancel={handleCancel}
+                cancelButtonProps={{ style: { display: "none" } }}
+                closeIcon={false}
+                maskClosable={false}
             >
-                <Skeleton active />
+                {loading ? <Skeleton active /> : <Result {...modalResult} />}
             </Modal>
             <Form.Provider
                 onFormFinish={(name, info) => {
