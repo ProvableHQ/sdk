@@ -46,7 +46,7 @@ impl ProgramManager {
     /// @param private_key The private key of the sender
     /// @param program The source code of the program being deployed
     /// @param imports A javascript object holding the source code of any imported programs in the
-    /// form {"program_name1": "program_source_code", "program_name2": "program_source_code", ..}.
+    /// form \{"program_name1": "program_source_code", "program_name2": "program_source_code", ..\}.
     /// Note that all imported programs must be deployed on chain before the main program in order
     /// for the deployment to succeed
     /// @param fee_credits The amount of credits to pay as a fee
@@ -55,7 +55,7 @@ impl ProgramManager {
     /// @param cache Cache the synthesized keys for future use
     /// @param imports (optional) Provide a list of imports to use for the program deployment in the
     /// form of a javascript object where the keys are a string of the program name and the values
-    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     /// @returns {Transaction | Error}
@@ -142,7 +142,7 @@ impl ProgramManager {
     /// @param cache Cache the synthesized keys for future use
     /// @param imports (optional) Provide a list of imports to use for the deployment fee estimation
     /// in the form of a javascript object where the keys are a string of the program name and the values
-    /// are a string representing the program source code { "hello.aleo": "hello.aleo source code" }
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @returns {u64 | Error}
     #[wasm_bindgen(js_name = estimateDeploymentFee)]
     pub async fn estimate_deployment_fee(
