@@ -7,7 +7,9 @@ import {
     Empty,
     Form,
     Input,
+    Modal,
     Select,
+    Skeleton,
     Switch,
 } from "antd";
 import { LoadProgram } from "./LoadProgram.jsx";
@@ -22,8 +24,21 @@ export const Execute = () => {
     const [form] = Form.useForm();
     const aleoWASM = useAleoWASM();
 
-    const demoSelect = (value) => {
-        console.log(`selected ${value}`);
+    const demoSelect = async (value) => {
+        if (value === "hello") {
+            await onLoadProgram(
+                "program hello_hello.aleo;\n" +
+                    "\n" +
+                    "function hello:\n" +
+                    "    input r0 as u32.public;\n" +
+                    "    input r1 as u32.private;\n" +
+                    "    add r0 r1 into r2;\n" +
+                    "    output r2 as u32.private;\n",
+            );
+            form.setFieldValue("manual_input", true);
+            form.setFieldValue("functionName", "hello");
+            form.setFieldValue("inputs", JSON.stringify(["5u32", "5u32"]));
+        }
     };
 
     const [worker, setWorker] = useState(null);
@@ -116,7 +131,6 @@ export const Execute = () => {
         return worker;
     }
 
-    const [program, setProgram] = useState(null);
     const [functions, setFunctions] = useState([]);
     const onLoadProgram = async (value) => {
         if (value) {
@@ -134,10 +148,7 @@ export const Execute = () => {
         let processedProgram;
         try {
             processedProgram = await aleoWASM.Program.fromString(value);
-            setProgram(processedProgram);
         } catch (e) {
-            console.log(e);
-            setProgram(null);
             setFunctions([]);
             return;
         }
@@ -153,6 +164,23 @@ export const Execute = () => {
         setFunctions(functionItems);
     };
 
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const handleOk = () => {
+        setOpen(false);
+    };
+    const handleCancel = () => {
+        console.log("Clicked cancel button");
+        setOpen(false);
+    };
+
+    const generateKey = () => {
+        form.setFieldValue(
+            "private_key",
+            new aleoWASM.PrivateKey().to_string(),
+        );
+    };
+
     return (
         <Card
             title="Execute Program"
@@ -165,14 +193,19 @@ export const Execute = () => {
                             value: "hello",
                             label: "hello_hello.aleo",
                         },
-                        {
-                            value: "credits",
-                            label: "credits.aleo",
-                        },
                     ]}
                 />
             }
         >
+            <Modal
+                title="Executing program..."
+                open={open}
+                onOk={handleOk}
+                confirmLoading={loading}
+                onCancel={handleCancel}
+            >
+                <Skeleton active />
+            </Modal>
             <Form.Provider
                 onFormFinish={(name, info) => {
                     if (name !== "execute") {
@@ -218,7 +251,10 @@ export const Execute = () => {
                             },
                         ]}
                     >
-                        <Input />
+                        <Input.Search
+                            enterButton="Generate Random Key"
+                            onSearch={generateKey}
+                        />
                     </Form.Item>
                     <Divider dashed />
                     <Form.Item
@@ -293,6 +329,21 @@ export const Execute = () => {
                                     hidden={!getFieldValue("manual_input")}
                                 >
                                     <Input.TextArea />
+                                </Form.Item>
+                                <Form.Item
+                                    wrapperCol={{
+                                        xs: {
+                                            offset: 0,
+                                        },
+                                        sm: {
+                                            offset: 4,
+                                        },
+                                    }}
+                                    hidden={!getFieldValue("manual_input")}
+                                >
+                                    <Button type="primary" htmlType="submit">
+                                        Run
+                                    </Button>
                                 </Form.Item>
                             </>
                         )}
