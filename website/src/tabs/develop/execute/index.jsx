@@ -90,7 +90,12 @@ export const Execute = () => {
                 });
             }
         } catch (error) {
-            console.log(error);
+            setLoading(false);
+            setModalResult({
+                status: "error",
+                title: "Function Execution Error",
+                subTitle: `Error: ${error || "Something went wrong..."}`,
+            });
         }
     };
 
@@ -98,11 +103,9 @@ export const Execute = () => {
         return new Promise((resolve, reject) => {
             worker.onmessage = (event) => {
                 resolve(event.data);
-                console.log(event);
             };
             worker.onerror = (error) => {
                 reject(error);
-                console.log(error);
             };
             worker.postMessage(message);
         });
@@ -197,10 +200,6 @@ export const Execute = () => {
     const handleOk = () => {
         setOpen(false);
     };
-    const handleCancel = () => {
-        console.log("Clicked cancel button");
-        setOpen(false);
-    };
 
     const generateKey = () => {
         form.setFieldValue(
@@ -227,7 +226,6 @@ export const Execute = () => {
         });
         setFeeLoading(false);
         setLoading(false);
-        console.log(result);
         if (result.type === "ERROR") {
             form.setFieldValue("fee", "");
             setModalResult({
@@ -270,7 +268,6 @@ export const Execute = () => {
                 open={open}
                 onOk={handleOk}
                 confirmLoading={loading}
-                onCancel={handleCancel}
                 cancelButtonProps={{ style: { display: "none" } }}
                 closeIcon={false}
                 maskClosable={false}
