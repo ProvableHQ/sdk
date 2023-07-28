@@ -193,6 +193,52 @@ export const Execute = () => {
             "private_key",
             new aleoWASM.PrivateKey().to_string(),
         );
+        form.validateFields(["private_key"]);
+    };
+
+    const [feeLoading, setFeeLoading] = useState(false);
+    const estimateFee = async () => {
+        form.validateFields()
+            .then(async (values) => {
+                setFeeLoading(true);
+                setOpen(true);
+                setLoading(true);
+                const { program, functionName, inputs, private_key, peer_url } =
+                    values;
+                const result = await postMessagePromise(worker, {
+                    type: "ALEO_ESTIMATE_EXECUTION_FEE",
+                    privateKey: private_key,
+                    remoteProgram: program,
+                    aleoFunction: functionName,
+                    inputs: JSON.parse(inputs),
+                    url: peer_url,
+                });
+                setFeeLoading(false);
+                setLoading(false);
+                console.log(result);
+                if (result.type === "ERROR") {
+                    form.setFieldValue("fee", "");
+                    setModalResult({
+                        status: "error",
+                        title: "Fee Estimation Error",
+                        subTitle: `Error: ${
+                            result.errorMessage || "Something went wrong..."
+                        }`,
+                    });
+                } else {
+                    form.setFieldValue("fee", result.executionFee);
+                    setModalResult({
+                        status: "success",
+                        title: "Fee Estimation Success!",
+                        subTitle: `Fee set to: ${
+                            result.executionFee || "Something went wrong..."
+                        }`,
+                    });
+                }
+            })
+            .catch((e) => {
+                console.log(e);
+            });
     };
 
     return (
@@ -263,8 +309,7 @@ export const Execute = () => {
                         rules={[
                             {
                                 required: true,
-                                message:
-                                    "Private key required to execute program",
+                                message: "Private key required",
                             },
                         ]}
                     >
@@ -294,6 +339,7 @@ export const Execute = () => {
                                 <Form.Item
                                     label="Peer URL"
                                     name="peer_url"
+                                    initialValue="https://vm.aleo.org/api"
                                     hidden={!getFieldValue("execute_onchain")}
                                 >
                                     <Input />
@@ -302,8 +348,13 @@ export const Execute = () => {
                                     label="Fee"
                                     name="fee"
                                     hidden={!getFieldValue("execute_onchain")}
+                                    tooltip="Fee estimation is experimental and may not represent a correct estimate on any current or future network"
                                 >
-                                    <Input.Search enterButton="Estimate Fee" />
+                                    <Input.Search
+                                        enterButton="Estimate Fee"
+                                        onSearch={estimateFee}
+                                        loading={feeLoading}
+                                    />
                                 </Form.Item>
                                 <Form.Item
                                     label="Fee Record"
