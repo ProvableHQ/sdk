@@ -55,7 +55,7 @@ export const Execute = () => {
     }, []);
 
     const execute = async (values) => {
-        setOpen(true);
+        setModalModalOpen(true);
         setLoading(true);
         try {
             const {
@@ -191,14 +191,14 @@ export const Execute = () => {
         setFunctions(functionItems);
     };
 
-    const [open, setOpen] = useState(false);
+    const [modalOpen, setModalModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [modalResult, setModalResult] = useState({
         status: "warning",
         subTitle: "Sorry, something went wrong.",
     });
     const handleOk = () => {
-        setOpen(false);
+        setModalModalOpen(false);
     };
 
     const generateKey = () => {
@@ -212,7 +212,7 @@ export const Execute = () => {
     const [feeLoading, setFeeLoading] = useState(false);
     const estimateFee = async () => {
         setFeeLoading(true);
-        setOpen(true);
+        setModalModalOpen(true);
         setLoading(true);
         const { program, functionName, inputs, private_key, peer_url } =
             form.getFieldsValue();
@@ -265,7 +265,7 @@ export const Execute = () => {
         >
             <Modal
                 title="Executing program..."
-                open={open}
+                open={modalOpen}
                 onOk={handleOk}
                 confirmLoading={loading}
                 cancelButtonProps={{ style: { display: "none" } }}
