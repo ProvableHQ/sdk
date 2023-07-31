@@ -113,7 +113,9 @@ finalize mint_public:
     // Increments `account[r0]` by `r1`.
     // If `account[r0]` does not exist, it will be created.
     // If `account[r0] + r1` overflows, `mint_public` is reverted.
-    increment account[r0] by r1;
+    get.or_init account[r0] 0u64 into r2;
+    add r2 r1 into r3;
+    set r3 into account[r0];
 
 // The function `mint_private` initializes a new record with the
 // specified amount of tokens in `r1` for the receiver in `r0`.
@@ -150,12 +152,16 @@ finalize transfer_public:
     // Decrements `account[r0]` by `r2`.
     // If `account[r0]` does not exist, it will be created.
     // If `account[r0] - r2` underflows, `transfer_public` is reverted.
-    decrement account[r0] by r2;
+    get.or_init account[r0] 0u64 into r3;
+    sub r3 r2 into r4;
+    set r4 into account[r0];
 
     // Increments `account[r1]` by `r2`.
     // If `account[r1]` does not exist, it will be created.
     // If `account[r1] + r2` overflows, `transfer_public` is reverted.
-    increment account[r1] by r2;
+    get.or_init account[r1] 0u64 into r5;
+    add r5 r2 into r6;
+    set r6 into account[r1];
 
 // The function `transfer_private` sends the specified token amount
 // to the token receiver from the specified token record.
@@ -221,7 +227,9 @@ finalize transfer_private_to_public:
     // Increments `account[r0]` by `r1`.
     // If `account[r0]` does not exist, it will be created.
     // If `account[r0] + r1` overflows, `transfer_private_to_public` is reverted.
-    increment account[r0] by r1;
+    get.or_init account[r0] 0u64 into r2;
+    add r2 r1 into r3;
+    set r3 into account[r0];
 
 // The function `transfer_public_to_private` turns a specified token amount
 // from `account` into a token record for the specified receiver.
@@ -252,4 +260,6 @@ finalize transfer_public_to_private:
     // Decrements `account[r0]` by `r1`.
     // If `account[r0]` does not exist, it will be created.
     // If `account[r0] - r1` underflows, `transfer_public_to_private` is reverted.
-    decrement account[r0] by r1;
+    get.or_init account[r0] 0u64 into r2;
+    sub r2 r1 into r3;
+    set r3 into account[r0];

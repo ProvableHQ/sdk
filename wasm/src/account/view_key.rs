@@ -1,18 +1,18 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{Address, PrivateKey};
 use crate::{record::RecordCiphertext, types::ViewKeyNative};
@@ -26,23 +26,41 @@ pub struct ViewKey(ViewKeyNative);
 
 #[wasm_bindgen]
 impl ViewKey {
+    /// Create a new view key from a private key
+    ///
+    /// @param {PrivateKey} private_key Private key
+    /// @returns {ViewKey} View key
     pub fn from_private_key(private_key: &PrivateKey) -> Self {
         Self(ViewKeyNative::try_from(**private_key).unwrap())
     }
 
+    /// Create a new view key from a string representation of a view key
+    ///
+    /// @param {string} view_key String representation of a view key
+    /// @returns {ViewKey} View key
     pub fn from_string(view_key: &str) -> Self {
         Self::from_str(view_key).unwrap()
     }
 
+    /// Get a string representation of a view key
+    ///
+    /// @returns {string} String representation of a view key
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
+    /// Get the address corresponding to a view key
+    ///
+    /// @returns {Address} Address
     pub fn to_address(&self) -> Address {
         Address::from_view_key(self)
     }
 
+    /// Decrypt a record ciphertext with a view key
+    ///
+    /// @param {string} ciphertext String representation of a record ciphertext
+    /// @returns {string} String representation of a record plaintext
     pub fn decrypt(&self, ciphertext: &str) -> Result<String, String> {
         let ciphertext = RecordCiphertext::from_str(ciphertext).map_err(|error| error.to_string())?;
         match ciphertext.decrypt(self) {
@@ -80,15 +98,13 @@ mod tests {
 
     use wasm_bindgen_test::*;
 
-    const OWNER_PLAINTEXT: &str = r"{
-  owner: aleo1y50whk20gjtltkte2qcqz9dd6uaet8thhlj3t8utewp0j3hhmg8qae7s5a.public,
-  gates: 1159017656332810u64.public,
-  a: 6875465154712544327395236939215127424077297244802949502285127742492653680374field.private,
-  b: 603076889203566020456049671526074557206943911693533670547825725507132399266scalar.private,
-  _nonce: 1635890755607797813652478911794003479783620859881520791852904112255813473142group.public
+    const RECORD_PLAINTEXT: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 1500000000000000u64.private,
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
 }";
-    const OWNER_CIPHERTEXT: &str = "record1qqj3a67efazf0awe09grqqg44htnh9vaw7l729vl309c972x7ldquqq2k2cax8s7qsqqyqtpgvqqyqsq4seyrzvfa98fkggzccqr68af8e9m0q8rzeqh8a8aqql3a854v58sgrygdv4jn9s8ckwfd48vujrmv0rtfasqh8ygn88ch34ftck8szspvfpsqqszqzvxx9t8s9g66teeepgxmvnw5ymgapcwt2lpy9d5eus580k08wpq544jcl437wjv206u5pxst6few9ll4yhufwldgpx80rlwq8nhssqywmfsd85skg564vqhm3gxsp8q6r30udmqxrxmxx2v8xycdg8pn5ps3dhfvv";
-    const OWNER_VIEW_KEY: &str = "AViewKey1ghtvuJQQzQ31xSiVh6X1PK8biEVhQBygRGV4KdYmq4JT";
+    const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
+    const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
 
     #[wasm_bindgen_test]
@@ -104,8 +120,9 @@ mod tests {
     pub fn test_decrypt_success() {
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
         let plaintext = view_key.decrypt(OWNER_CIPHERTEXT);
+        plaintext.clone().unwrap();
         assert!(plaintext.is_ok());
-        assert_eq!(OWNER_PLAINTEXT, plaintext.unwrap())
+        assert_eq!(RECORD_PLAINTEXT, plaintext.unwrap())
     }
 
     #[wasm_bindgen_test]

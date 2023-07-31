@@ -1,4 +1,4 @@
-import { Address, PrivateKey, ViewKey, RecordCiphertext, } from "@aleohq/wasm";
+import { Address, PrivateKey, ViewKey, PrivateKeyCiphertext, RecordCiphertext, } from "@aleohq/wasm";
 /**
  * Key Management class. Enables the creation of a new Aleo Account, importation of an existing account from
  * an existing private key or seed, and message signing and verification functionality.
@@ -32,34 +32,35 @@ var Account = /** @class */ (function () {
     function Account(params) {
         if (params === void 0) { params = {}; }
         try {
-            this.pk = this.privateKeyFromParams(params);
+            this._privateKey = this.privateKeyFromParams(params);
         }
         catch (e) {
             console.error("Wrong parameter", e);
             throw new Error("Wrong Parameter");
         }
-        this.vk = ViewKey.from_private_key(this.pk);
-        this.adr = Address.from_private_key(this.pk);
+        this._viewKey = ViewKey.from_private_key(this._privateKey);
+        this._address = Address.from_private_key(this._privateKey);
     }
-    // /**
-    //  * Attempts to create an account from a private key ciphertext
-    //  * @param {PrivateKeyCiphertext | string} ciphertext
-    //  * @param {string} password
-    //  * @returns {PrivateKey | Error}
-    //  *
-    //  * @example
-    //  * let ciphertext = PrivateKey.newEncrypted("password");
-    //  * let account = Account.fromCiphertext(ciphertext, "password");
-    //  */
-    // public static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string) {
-    //   try {
-    //     ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
-    //     const pk = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
-    //     return new Account({ privateKey: pk.to_string() });
-    //   } catch(e) {
-    //     throw new Error("Wrong password or invalid ciphertext");
-    //   }
-    // }
+    /**
+     * Attempts to create an account from a private key ciphertext
+     * @param {PrivateKeyCiphertext | string} ciphertext
+     * @param {string} password
+     * @returns {PrivateKey | Error}
+     *
+     * @example
+     * let ciphertext = PrivateKey.newEncrypted("password");
+     * let account = Account.fromCiphertext(ciphertext, "password");
+     */
+    Account.fromCiphertext = function (ciphertext, password) {
+        try {
+            ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
+            var _privateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
+            return new Account({ privateKey: _privateKey.to_string() });
+        }
+        catch (e) {
+            throw new Error("Wrong password or invalid ciphertext");
+        }
+    };
     Account.prototype.privateKeyFromParams = function (params) {
         if (params.seed) {
             return PrivateKey.from_seed_unchecked(params.seed);
@@ -70,29 +71,29 @@ var Account = /** @class */ (function () {
         return new PrivateKey();
     };
     Account.prototype.privateKey = function () {
-        return this.pk;
+        return this._privateKey;
     };
     Account.prototype.viewKey = function () {
-        return this.vk;
+        return this._viewKey;
     };
     Account.prototype.address = function () {
-        return this.adr;
+        return this._address;
     };
     Account.prototype.toString = function () {
         return this.address().to_string();
     };
-    // /**
-    //  * Encrypt the account's private key with a password
-    //  * @param {string} ciphertext
-    //  * @returns {PrivateKeyCiphertext}
-    //  *
-    //  * @example
-    //  * let account = new Account();
-    //  * let ciphertext = account.encryptAccount("password");
-    //  */
-    // encryptAccount(password: string) {
-    //   return this.pk.toCiphertext(password);
-    // }
+    /**
+     * Encrypt the account's private key with a password
+     * @param {string} ciphertext
+     * @returns {PrivateKeyCiphertext}
+     *
+     * @example
+     * let account = new Account();
+     * let ciphertext = account.encryptAccount("password");
+     */
+    Account.prototype.encryptAccount = function (password) {
+        return this._privateKey.toCiphertext(password);
+    };
     /**
      * Decrypts a Record in ciphertext form into plaintext
      * @param {string} ciphertext
@@ -103,7 +104,7 @@ var Account = /** @class */ (function () {
      * let record = account.decryptRecord("record1ciphertext");
      */
     Account.prototype.decryptRecord = function (ciphertext) {
-        return this.vk.decrypt(ciphertext);
+        return this._viewKey.decrypt(ciphertext);
     };
     /**
      * Decrypts an array of Records in ciphertext form into plaintext
@@ -116,7 +117,7 @@ var Account = /** @class */ (function () {
      */
     Account.prototype.decryptRecords = function (ciphertexts) {
         var _this = this;
-        return ciphertexts.map(function (ciphertext) { return _this.vk.decrypt(ciphertext); });
+        return ciphertexts.map(function (ciphertext) { return _this._viewKey.decrypt(ciphertext); });
     };
     /**
      * Determines whether the account owns a ciphertext record
@@ -144,14 +145,14 @@ var Account = /** @class */ (function () {
         if (typeof ciphertext === 'string') {
             try {
                 var ciphertextObject = RecordCiphertext.fromString(ciphertext);
-                return ciphertextObject.isOwner(this.vk);
+                return ciphertextObject.isOwner(this._viewKey);
             }
             catch (e) {
                 return false;
             }
         }
         else {
-            return ciphertext.isOwner(this.vk);
+            return ciphertext.isOwner(this._viewKey);
         }
     };
     /**
@@ -167,7 +168,7 @@ var Account = /** @class */ (function () {
      * account.sign(message);
      */
     Account.prototype.sign = function (message) {
-        return this.pk.sign(message);
+        return this._privateKey.sign(message);
     };
     /**
      * Verifies the Signature on a message.
@@ -183,7 +184,7 @@ var Account = /** @class */ (function () {
      * account.verify(message, signature);
      */
     Account.prototype.verify = function (message, signature) {
-        return this.adr.verify(message, signature);
+        return this._address.verify(message, signature);
     };
     return Account;
 }());

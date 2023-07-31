@@ -1,18 +1,18 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{Aleo, CurrentNetwork};
 use snarkvm::{
@@ -24,6 +24,7 @@ use anyhow::Result;
 use clap::Parser;
 use colored::Colorize;
 use core::str::FromStr;
+use snarkvm::console::account::PrivateKey;
 use std::collections::HashMap;
 
 pub const LOCALE: &num_format::Locale = &num_format::Locale::en;
@@ -32,17 +33,12 @@ pub const LOCALE: &num_format::Locale = &num_format::Locale::en;
 #[derive(Debug, Parser)]
 pub struct Run {
     /// The function name.
-    #[clap(parse(try_from_str))]
     function: Identifier<CurrentNetwork>,
     /// The function inputs.
-    #[clap(parse(try_from_str))]
     inputs: Vec<Value<CurrentNetwork>>,
-    /// Uses the specified endpoint.
-    #[clap(long)]
-    endpoint: Option<String>,
-    /// Toggles offline mode.
-    #[clap(long)]
-    offline: bool,
+    /// Optional Private key to run the program with
+    #[clap(short = 'k', long)]
+    private_key: Option<PrivateKey<CurrentNetwork>>,
 }
 
 impl Run {
@@ -55,17 +51,14 @@ impl Run {
         // Load the package.
         let package = Package::open(&path)?;
 
+        // Use a provided private key or generate a temporary one
+        let private_key = self.private_key.unwrap_or(PrivateKey::new(&mut rand::thread_rng()).unwrap());
+
         // Initialize an RNG.
         let rng = &mut rand::thread_rng();
 
         // Execute the request.
-        let (response, _transition, _inclusion, metrics) = package.run::<Aleo, _>(
-            self.endpoint,
-            package.manifest_file().development_private_key(),
-            self.function,
-            &self.inputs,
-            rng,
-        )?;
+        let (response, metrics) = package.run::<Aleo, _>(&private_key, self.function, &self.inputs, rng)?;
 
         // Count the number of times a function is called.
         let mut program_frequency = HashMap::<String, usize>::new();
@@ -91,7 +84,7 @@ impl Run {
         // Log the metrics.
         use num_format::ToFormattedString;
 
-        println!("\n⛓  Constraints\n");
+        println!("⛓  Constraints\n");
         for (function_constraints, counter) in program_frequency {
             // Log the constraints
             let counter_string = match counter {
@@ -118,6 +111,6 @@ impl Run {
         // Prepare the path string.
         let path_string = format!("(in \"{}\")", path.display());
 
-        Ok(format!("✅ Executed '{}' {}", locator.to_string().bold(), path_string.dimmed()))
+        Ok(format!("✅ Finished '{}' {}", locator.to_string().bold(), path_string.dimmed()))
     }
 }

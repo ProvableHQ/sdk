@@ -2,9 +2,9 @@
 **/*.idea/
 
 ## Build Artifacts
+**/node_modules
 **/target
 wasm/Cargo.lock
-**/package-lock.json
 **/build
 **/dist
 storage*/
@@ -15,3 +15,6 @@ storage*/
 rust/src/.DS_Store
 rust/src/program/.DS_Store
 
+
+# Local Netlify folder
+.netlify

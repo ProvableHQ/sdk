@@ -1,5 +1,15 @@
-import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "@aleohq/wasm";
-import { seed, message, privateKeyString, viewKeyString, addressString, recordCiphertextString, foreignViewKeyString, recordPlaintextString } from './data/account-data';
+import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "@aleohq/nodejs";
+import {
+    seed,
+    message,
+    privateKeyString,
+    viewKeyString,
+    addressString,
+    recordCiphertextString,
+    foreignViewKeyString,
+    recordPlaintextString,
+    beaconPrivateKeyString
+} from './data/account-data';
 
 
 describe('WASM Objects', () => {
@@ -78,7 +88,7 @@ describe('WASM Objects', () => {
             // Ensure the private key is a PrivateKey instance
             expect(privateKey).toBeInstanceOf(PrivateKey);
             // Ensure the private key is the correct value
-            expect(privateKey.to_string()).toMatch(privateKeyString);
+            expect(privateKey.to_string()).toMatch(beaconPrivateKeyString);
         });
 
         it('constructs properly from a private key string', () => {
@@ -343,13 +353,15 @@ describe('WASM Objects', () => {
     });
 
     describe('RecordPlaintext', () => {
-        it('can be created from a string gives the correct number of gates, and can export to a string', () => {
+        it('can be created from a string gives the correct number of microcredits, and can export to a string', () => {
             const plaintext = RecordPlaintext.fromString(recordPlaintextString);
 
             // Ensure the string matches the string the record was created from
             expect(plaintext.toString()).toEqual(recordPlaintextString);
-            // Ensure the record has the correct number of gates
-            expect(plaintext.gates()).toEqual(BigInt(550000000000000));
+            // Ensure the record has the correct number of microcredits
+            expect(plaintext.microcredits()).toEqual(BigInt(1500000000000000));
         });
     });
+
+    
 });

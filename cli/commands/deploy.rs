@@ -1,20 +1,20 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::CurrentNetwork;
+use crate::{Aleo, CurrentNetwork};
 use aleo_rust::{AleoAPIClient, Encryptor, ProgramManager, RecordFinder};
 use snarkvm::prelude::{Ciphertext, Plaintext, PrivateKey, ProgramID, Record};
 
@@ -26,17 +26,20 @@ use colored::Colorize;
 #[derive(Debug, Parser)]
 pub struct Deploy {
     /// The program identifier
-    #[clap(parse(try_from_str))]
     program_id: ProgramID<CurrentNetwork>,
+    /// Estimate the deployment fee in credits. If set, this will estimate the fee for deploying the
+    /// program but will NOT deploy the program
+    #[clap(long)]
+    estimate_fee: bool,
     /// Directory containing the program files
     #[clap(short, long)]
     directory: Option<std::path::PathBuf>,
     /// Aleo Network peer to broadcast the deployment to
     #[clap(short, long)]
     endpoint: Option<String>,
-    /// Deployment fee in credits, defaults to 0
+    /// Deployment fee in credits
     #[clap(short, long)]
-    fee: f64,
+    fee: Option<f64>,
     /// The record to spend the fee from
     #[clap(short, long)]
     record: Option<Record<CurrentNetwork, Plaintext<CurrentNetwork>>>,
@@ -44,32 +47,44 @@ pub struct Deploy {
     #[clap(short='k', long, conflicts_with_all = &["ciphertext", "password"])]
     private_key: Option<PrivateKey<CurrentNetwork>>,
     /// Private key ciphertext used to generate the deployment (requires password to decrypt)
-    #[clap(short, long, conflicts_with = "private-key", requires = "password")]
+    #[clap(short, long, conflicts_with = "private_key", requires = "password")]
     ciphertext: Option<Ciphertext<CurrentNetwork>>,
     /// Password to decrypt the private key
-    #[clap(short, long, conflicts_with = "private-key", requires = "ciphertext")]
+    #[clap(short, long, conflicts_with = "private_key", requires = "ciphertext")]
     password: Option<String>,
 }
 
 impl Deploy {
     pub fn parse(self) -> Result<String> {
+        if self.estimate_fee {
+            println!(
+                "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network"
+            );
+        }
+
         // Check for config errors
         ensure!(
             !(self.private_key.is_none() && self.ciphertext.is_none()),
             "Private key or private key ciphertext required to deploy a program"
         );
 
-        // Convert deployment fee to gates
-        let fee_gates = (self.fee * 1000000.0) as u64;
-
         // Get strings for the program for logging
         let program_string = self.program_id.to_string();
 
-        println!(
-            "{}",
-            format!("Attempting to deploy program '{}' with a fee of {} credits", &program_string, self.fee)
-                .bright_blue()
-        );
+        // Ensure a fee is specified if deploying a program
+        let fee_microcredits = if !self.estimate_fee {
+            ensure!(self.fee.is_some(), "Fee must be specified when deploying a program");
+            let fee = self.fee.unwrap();
+            ensure!(fee > 0.0, "Deployment fee must be greater than 0");
+            println!(
+                "{}",
+                format!("Attempting to deploy program '{}' with a fee of {} credits", &program_string, fee)
+                    .bright_blue()
+            );
+            (fee * 1000000.0) as u64
+        } else {
+            0u64
+        };
 
         // Setup the API client to use configured peer or default to https://vm.aleo.org/api/testnet3
         let api_client = self
@@ -103,6 +118,28 @@ impl Deploy {
             Some(program_directory),
         )?;
 
+        // Estimate the fee if specified
+        if self.estimate_fee {
+            let program = program_manager.find_program_on_disk(&self.program_id)?;
+            let (total, (storage, namespace)) = program_manager.estimate_deployment_fee::<Aleo>(&program)?;
+            let (total, storage, namespace) =
+                ((total as f64) / 1_000_000.0, (storage as f64) / 1_000_000.0, (namespace as f64) / 1_000_000.0);
+            let program_id = program.id();
+            println!(
+                "\n{} {} {} {} {} {} {} {} {}",
+                "Program".bright_green(),
+                format!("{program_id}").bright_blue(),
+                "has a storage fee of".bright_green(),
+                format!("{storage}").bright_blue(),
+                "credits and a namespace fee of".bright_green(),
+                format!("{namespace}").bright_blue(),
+                "credits for a total deployment fee of".bright_green(),
+                format!("{total}").bright_blue(),
+                "credits".bright_green()
+            );
+            return Ok("".to_string());
+        }
+
         // Find a fee record to pay the fee if necessary
         let fee_record = if self.record.is_none() {
             println!("Searching for a record to spend the deployment fee from, this may take a while..");
@@ -113,14 +150,15 @@ impl Deploy {
                 Encryptor::decrypt_private_key_with_secret(ciphertext, self.password.as_ref().unwrap())?
             };
             let record_finder = RecordFinder::new(api_client);
-            record_finder.find_one_record(&private_key, fee_gates)?
+            record_finder.find_one_record(&private_key, fee_microcredits)?
         } else {
             self.record.unwrap()
         };
 
         // Deploy the program
         println!("Attempting to deploy program: {}", program_string.bright_blue());
-        let result = program_manager.deploy_program(self.program_id, fee_gates, fee_record, self.password.as_deref());
+        let result =
+            program_manager.deploy_program(self.program_id, fee_microcredits, fee_record, self.password.as_deref());
 
         // Inform the user of the result of the program deployment
         if result.is_err() {
@@ -163,7 +201,7 @@ mod tests {
             "password",
         ]);
 
-        assert_eq!(deploy_conflicting_inputs.unwrap_err().kind(), clap::ErrorKind::ArgumentConflict);
+        assert_eq!(deploy_conflicting_inputs.unwrap_err().kind(), clap::error::ErrorKind::ArgumentConflict);
 
         // Assert deploy fails if a ciphertext is provided without a password
         let ciphertext = Some(Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap());
@@ -176,13 +214,13 @@ mod tests {
             &ciphertext.as_ref().unwrap().to_string(),
         ]);
 
-        assert_eq!(deploy_no_password.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
+        assert_eq!(deploy_no_password.unwrap_err().kind(), clap::error::ErrorKind::MissingRequiredArgument);
 
         // Assert deploy fails if only a password is provided
         let deploy_password_only =
             Deploy::try_parse_from(["aleo", "hello.aleo", "-f", "0.5", "--password", "password"]);
 
-        assert_eq!(deploy_password_only.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
+        assert_eq!(deploy_password_only.unwrap_err().kind(), clap::error::ErrorKind::MissingRequiredArgument);
 
         // Assert deploy fails if invalid peer is specified
         let deploy_bad_peer = Deploy::try_parse_from([

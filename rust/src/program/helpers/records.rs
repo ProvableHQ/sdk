@@ -1,28 +1,23 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::AleoAPIClient;
-use snarkvm_console::{
-    account::{PrivateKey, ViewKey},
-    network::Network,
-    program::{Plaintext, Record},
-};
+use super::*;
 
-use anyhow::{anyhow, bail, Result};
-
+/// Helper struct for finding records on chain during program development
+#[derive(Clone)]
 pub struct RecordFinder<N: Network> {
     api_client: AleoAPIClient<N>,
 }
@@ -53,13 +48,13 @@ impl<N: Network> RecordFinder<N> {
         let amounts = vec![amount];
         self.find_unspent_records_on_chain(Some(&amounts), None, private_key)?
             .into_iter()
-            .find(|record| ***record.gates() >= amount)
+            .find(|record| record.microcredits().unwrap_or(0) >= amount)
             .ok_or_else(|| anyhow!("Insufficient funds"))
     }
 
     /// Attempt to resolve records with specific gate values specified as a vector of u64s. If the
     /// function is successful at resolving the records, it will return a vector of records with
-    /// gates equal to or greater than the specified amounts. If it cannot resolve records
+    /// microcredits equal to or greater than the specified amounts. If it cannot resolve records
     /// with the specified amounts, it will return an error.
     pub fn find_record_amounts(
         &self,
@@ -72,12 +67,11 @@ impl<N: Network> RecordFinder<N> {
     pub fn find_unspent_records_on_chain(
         &self,
         amounts: Option<&Vec<u64>>,
-        max_gates: Option<u64>,
+        max_microcredits: Option<u64>,
         private_key: &PrivateKey<N>,
     ) -> Result<Vec<Record<N, Plaintext<N>>>> {
-        let view_key = ViewKey::try_from(private_key)?;
         let latest_height = self.api_client.latest_height()?;
-        let records = self.api_client.get_unspent_records(private_key, 0..latest_height, max_gates, amounts)?;
-        Ok(records.into_iter().filter_map(|(_, record)| record.decrypt(&view_key).ok()).collect())
+        let records = self.api_client.get_unspent_records(private_key, 0..latest_height, max_microcredits, amounts)?;
+        Ok(records.into_iter().map(|(_, record)| record).collect())
     }
 }

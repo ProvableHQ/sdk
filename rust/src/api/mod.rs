@@ -1,26 +1,25 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+
+//! API clients for interacting with Aleo Network endpoints
+
+use super::*;
 
 pub mod blocking;
 pub use blocking::*;
-
-use snarkvm_console::program::Network;
-
-use anyhow::{ensure, Result};
-use std::marker::PhantomData;
 
 /// Aleo API client for interacting with the Aleo Beacon API
 #[derive(Clone, Debug)]
@@ -51,7 +50,7 @@ impl<N: Network> AleoAPIClient<N> {
     }
 
     pub fn local_testnet3(port: &str) -> Self {
-        Self::new(&format!("http://localhost:{}", port), "testnet3").unwrap()
+        Self::new(&format!("http://0.0.0.0:{}", port), "testnet3").unwrap()
     }
 
     /// Get base URL

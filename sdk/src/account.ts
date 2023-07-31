@@ -5,7 +5,7 @@ import {
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
-} from "@aleohq/wasm";
+} from "@aleohq/nodejs";
 
 interface AccountParam {
   privateKey?: string;
@@ -42,19 +42,19 @@ interface AccountParam {
  * myRandomAccount.verify(hello_world, signature)
  */
 export class Account {
-  pk: PrivateKey;
-  vk: ViewKey;
-  adr: Address;
+  _privateKey: PrivateKey;
+  _viewKey: ViewKey;
+  _address: Address;
 
   constructor(params: AccountParam = {}) {
     try {
-      this.pk = this.privateKeyFromParams(params);
+      this._privateKey = this.privateKeyFromParams(params);
     } catch (e) {
       console.error("Wrong parameter", e);
       throw new Error("Wrong Parameter");
     }
-    this.vk = ViewKey.from_private_key(this.pk);
-    this.adr = Address.from_private_key(this.pk);
+    this._viewKey = ViewKey.from_private_key(this._privateKey);
+    this._address = Address.from_private_key(this._privateKey);
   }
 
   /**
@@ -70,8 +70,8 @@ export class Account {
   public static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string) {
     try {
       ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
-      const pk = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
-      return new Account({ privateKey: pk.to_string() });
+      const _privateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
+      return new Account({ privateKey: _privateKey.to_string() });
     } catch(e) {
       throw new Error("Wrong password or invalid ciphertext");
     }
@@ -88,15 +88,15 @@ export class Account {
   }
 
   privateKey() {
-    return this.pk;
+    return this._privateKey;
   }
 
   viewKey() {
-    return this.vk;
+    return this._viewKey;
   }
 
   address() {
-    return this.adr;
+    return this._address;
   }
 
   toString() {
@@ -113,7 +113,7 @@ export class Account {
    * let ciphertext = account.encryptAccount("password");
    */
   encryptAccount(password: string) {
-    return this.pk.toCiphertext(password);
+    return this._privateKey.toCiphertext(password);
   }
 
   /**
@@ -126,7 +126,7 @@ export class Account {
    * let record = account.decryptRecord("record1ciphertext");
    */
   decryptRecord(ciphertext: string) {
-    return this.vk.decrypt(ciphertext);
+    return this._viewKey.decrypt(ciphertext);
   }
 
   /**
@@ -139,7 +139,7 @@ export class Account {
    * let record = account.decryptRecords(["record1ciphertext", "record2ciphertext"]);
    */
   decryptRecords(ciphertexts: string[]) {
-    return ciphertexts.map((ciphertext) => this.vk.decrypt(ciphertext));
+    return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext));
   }
 
   /**
@@ -168,14 +168,14 @@ export class Account {
     if (typeof ciphertext === 'string') {
       try {
         const ciphertextObject = RecordCiphertext.fromString(ciphertext);
-        return ciphertextObject.isOwner(this.vk);
+        return ciphertextObject.isOwner(this._viewKey);
       }
       catch (e) {
         return false;
       }
     }
     else {
-      return ciphertext.isOwner(this.vk);
+      return ciphertext.isOwner(this._viewKey);
     }
   }
 
@@ -192,7 +192,7 @@ export class Account {
    * account.sign(message);
    */
   sign(message: Uint8Array) {
-    return this.pk.sign(message);
+    return this._privateKey.sign(message);
   }
 
   /**
@@ -209,6 +209,6 @@ export class Account {
    * account.verify(message, signature);
    */
   verify(message: Uint8Array, signature: Signature) {
-    return this.adr.verify(message, signature);
+    return this._address.verify(message, signature);
   }
 }

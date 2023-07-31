@@ -1,15 +1,30 @@
-const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CopyPlugin = require("copy-webpack-plugin");
+import CopyPlugin from "copy-webpack-plugin";
 
-module.exports = {
-    mode: 'production',
+import HtmlWebpackPlugin from "html-webpack-plugin";
+
+import path from "path";
+
+const appConfig = {
+    mode: "production",
+    entry: {
+        index: "./src/index.jsx",
+    },
     output: {
-        path: path.join(__dirname, '/dist'),
-        filename: 'index.bundle.js'
+        path: path.resolve("dist"),
+        filename: "[name].bundle.js",
+    },
+    resolve: {
+        extensions: [".js", ".wasm", ".jsx"],
     },
     devServer: {
         port: 3000,
+        headers: {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+        },
+        client: {
+            overlay: false,
+        },
     },
     module: {
         rules: [
@@ -17,31 +32,36 @@ module.exports = {
                 test: /\.(js|jsx)$/,
                 exclude: /nodeModules/,
                 use: {
-                    loader: 'babel-loader'
-                }
+                    loader: "babel-loader",
+                },
             },
             {
                 test: /\.css$/,
-                use: ['style-loader', 'css-loader']
-            }
-        ]
+                use: ["style-loader", "css-loader"],
+            },
+        ],
     },
     plugins: [
         new CopyPlugin({
-            patterns: [
-                { from: "public", to: "public" }
-            ]
+            patterns: [{ from: "public", to: "public" }],
         }),
-        new HtmlWebpackPlugin(
-        {
-            template: './public/index.html'
-        })],
+        new HtmlWebpackPlugin({
+            template: "./index.html",
+        }),
+    ],
     performance: {
-        maxEntrypointSize: 8388608,
-        maxAssetSize: 8388608
+        hints: false,
+        maxAssetSize: 13 * 1024 * 1024, // 12 MiB
+        maxEntrypointSize: 13 * 1024 * 1024, // 12 MiB
+    },
+    stats: {
+        warnings: false,
     },
     experiments: {
-        asyncWebAssembly: true
+        asyncWebAssembly: true,
+        topLevelAwait: true,
     },
-    devtool: false,
-}
+    devtool: "source-map",
+};
+
+export default [appConfig];

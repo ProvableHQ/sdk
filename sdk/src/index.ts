@@ -1,5 +1,13 @@
 import { Account } from "./account";
-import { NodeConnection } from "./node_connection";
-import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/wasm";
+import { AleoNetworkClient } from "./aleo_network_client";
+import { Block } from "./models/block";
+import { Execution} from "./models/execution";
+import { Input} from "./models/input";
+import { Output} from "./models/output";
+import { Transaction } from "./models/transaction";
+import { Transition } from "./models/transition";
+import { DevelopmentClient } from "./development_client";
 
-export { Account, NodeConnection, PrivateKey, Signature, ViewKey, Address };
+import { Address, PrivateKey, Signature, ViewKey } from "@aleohq/nodejs";
+
+export { Account, Address, AleoNetworkClient, Block, DevelopmentClient, Execution, Input, PrivateKey, Output, Signature, Transaction, Transition, ViewKey };

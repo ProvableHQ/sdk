@@ -1,29 +1,22 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AleoAPIClient, Encryptor};
-use snarkvm_console::{
-    account::PrivateKey,
-    program::{Ciphertext, Network, ProgramID},
-};
-use snarkvm_synthesizer::Program;
+//! Tools for deploying, executing, and managing programs on the Aleo network
 
-use anyhow::{anyhow, bail, Result};
-use indexmap::IndexMap;
-use std::path::PathBuf;
+use super::*;
 
 pub mod deploy;
 pub use deploy::*;
@@ -85,6 +78,34 @@ impl<N: Network> ProgramManager<N> {
         Ok(())
     }
 
+    /// Initialize a SnarkVM instance with a program and its imports
+    pub fn initialize_vm(
+        api_client: &AleoAPIClient<N>,
+        program: &Program<N>,
+        initialize_execution: bool,
+    ) -> Result<VM<N, ConsensusMemory<N>>> {
+        // Create an ephemeral SnarkVM to store the programs
+        // Initialize an RNG and query object for the transaction
+        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
+        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
+
+        // Resolve imports
+        let credits_id = ProgramID::<N>::from_str("credits.aleo")?;
+        api_client.get_program_imports_from_source(program)?.iter().try_for_each(|(_, import)| {
+            if import.id() != &credits_id {
+                vm.process().write().add_program(import)?
+            }
+            Ok::<_, Error>(())
+        })?;
+
+        // If the initialization is for an execution, add the program. Otherwise, don't add it as
+        // it will be added during the deployment process
+        if initialize_execution {
+            vm.process().write().add_program(program)?;
+        }
+        Ok(vm)
+    }
+
     /// Manually add a program to the program manager if it does not already exist or update
     /// it if it does
     pub fn update_program(&mut self, program: &Program<N>) -> Option<Program<N>> {
@@ -130,17 +151,14 @@ impl<N: Network> ProgramManager<N> {
 }
 
 #[cfg(test)]
+#[cfg(not(feature = "wasm"))]
 mod tests {
 
     use super::*;
     use crate::{
         test_utils::{HELLO_PROGRAM, HELLO_PROGRAM_2},
-        Encryptor,
         RECIPIENT_PRIVATE_KEY,
     };
-    use snarkvm_console::network::Testnet3;
-
-    use std::str::FromStr;
 
     #[test]
     fn test_constructors_fail_with_multiple_keys_or_no_keys() {
@@ -243,5 +261,36 @@ mod tests {
 
         let recovered_private_key = program_manager.get_private_key(Some("password")).unwrap();
         assert_eq!(recovered_private_key, private_key);
+    }
+
+    #[test]
+    fn test_import_resolution() {
+        let api_client = AleoAPIClient::<Testnet3>::testnet3();
+        let top_level_program = api_client.get_program("imported_add_mul.aleo").unwrap();
+        let add_program = api_client.get_program("addition_test.aleo").unwrap();
+        let multiply_program = api_client.get_program("multiply_test.aleo").unwrap();
+        let double_program = api_client.get_program("double_test.aleo").unwrap();
+        let vm_execute = ProgramManager::<Testnet3>::initialize_vm(&api_client, &top_level_program, true).unwrap();
+        let vm_deploy = ProgramManager::<Testnet3>::initialize_vm(&api_client, &top_level_program, false).unwrap();
+
+        // Ensure the initialization contained all imported programs
+        let top_program = vm_execute.process().read().get_program("imported_add_mul.aleo").unwrap().clone();
+        assert_eq!(top_level_program, top_program);
+        let add_import = vm_execute.process().read().get_program("addition_test.aleo").unwrap().clone();
+        assert_eq!(add_program, add_import);
+        let multiply_import = vm_execute.process().read().get_program("multiply_test.aleo").unwrap().clone();
+        assert_eq!(multiply_program, multiply_import);
+        let double_import = vm_execute.process().read().get_program("double_test.aleo").unwrap().clone();
+        assert_eq!(double_program, double_import);
+
+        // Ensure the initialization contained all imported programs except the top level program
+        let top_program = vm_deploy.process().read().get_program("imported_add_mul.aleo").cloned();
+        assert!(top_program.is_err());
+        let add_import = vm_deploy.process().read().get_program("addition_test.aleo").unwrap().clone();
+        assert_eq!(add_program, add_import);
+        let multiply_import = vm_deploy.process().read().get_program("multiply_test.aleo").unwrap().clone();
+        assert_eq!(multiply_program, multiply_import);
+        let double_import = vm_deploy.process().read().get_program("double_test.aleo").unwrap().clone();
+        assert_eq!(double_program, double_import);
     }
 }

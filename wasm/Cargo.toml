@@ -1,10 +1,10 @@
 [package]
 name = "aleo-wasm"
-version = "0.3.6"
+version = "0.5.1"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
-description = "Toolkit for exporting key Aleo functionality and cryptography to WebAssembly"
+description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"
-repository = "https://github.com/AleoHQ/aleo"
+repository = "https://github.com/AleoHQ/sdk"
 keywords = [
   "aleo",
   "cryptography",
@@ -19,12 +19,11 @@ edition = "2021"
 
 [lib]
 crate-type = [ "cdylib", "rlib" ]
+doctest = false
 
 [dependencies.aleo-rust]
-version = "0.3.6"
-path = "../rust"
 features = [ "wasm" ]
-default-features = false
+workspace = true
 
 [dependencies.anyhow]
 version = "1.0"
@@ -33,11 +32,27 @@ version = "1.0"
 version = "0.2"
 features = [ "js" ]
 
+[dependencies.indexmap]
+version = "2.0.0"
+
+[dependencies.lazy_static]
+version = "1.4.0"
+
 [dependencies.hex]
 version = "0.4.3"
 
+[dependencies.js-sys]
+version = "0.3"
+
 [dependencies.rand]
 version = "0.8"
+
+[dependencies.rayon]
+version = "1.5"
+optional = true
+
+[dependencies.reqwest]
+version = "0.11.18"
 
 [dependencies.serde_json]
 version = "1.0"
@@ -50,8 +65,40 @@ features = [ "console", "fields", "utilities" ]
 version = "0.2"
 features = [ "serde-serialize" ]
 
+[dependencies.wasm-bindgen-futures]
+version = "0.4.37"
+
+[dependencies.wasm-bindgen-rayon]
+version = "1.0.3"
+optional = true
+
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
 
+[dependencies.serde]
+version = "1.0.179"
+
 [dev-dependencies.wasm-bindgen-test]
-version = "0.3.33"
+version = "0.3.37"
+
+[features]
+default = [ "serial", "browser" ]
+serial = [ "aleo-rust/serial" ]
+parallel = [ "wasm-bindgen-rayon", "rayon" ]
+browser = [ ]
+
+## Profiles
+[profile.release]
+opt-level = 3
+lto = true
+
+[profile.dev]
+opt-level = 3
+lto = "thin"
+incremental = true
+
+[package.metadata.wasm-pack.profile.debug]
+wasm-opt = ["-O3"]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O3"]

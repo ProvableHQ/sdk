@@ -1,52 +1,43 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ProgramManager;
-use snarkvm_console::{
-    account::Address,
-    program::{Network, Plaintext, Record, Value},
-};
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Query, Transaction, VM};
-
-use anyhow::{ensure, Result};
-use std::str::FromStr;
+use super::*;
 
 impl<N: Network> ProgramManager<N> {
     /// Executes a transfer to the specified recipient_address with the specified amount and fee.
     /// Specify 0 for no fee.
+    #[allow(clippy::too_many_arguments)]
     pub fn transfer(
         &self,
         amount: u64,
         fee: u64,
         recipient_address: Address<N>,
+        transfer_type: TransferType,
         password: Option<&str>,
-        input_record: Record<N, Plaintext<N>>,
-        fee_record: Option<Record<N, Plaintext<N>>>,
+        amount_record: Option<Record<N, Plaintext<N>>>,
+        fee_record: Record<N, Plaintext<N>>,
     ) -> Result<String> {
-        ensure!(amount > 0, "Amount must be greater than 0");
-
-        let additional_fee = if fee > 0 {
-            ensure!(fee_record.is_some(), "If a fee is specified, a fee record must be specified to pay for it");
-            Some((fee_record.unwrap(), fee))
-        } else {
-            if fee_record.is_some() {
-                println!("⚠️ Warning: Fee record specified but fee is 0, the fee record will not be used");
-            }
-            None
-        };
+        // Ensure records provided have enough credits to cover the transfer amount and fee
+        if let Some(amount_record) = amount_record.as_ref() {
+            ensure!(
+                amount_record.microcredits()? >= amount,
+                "Credits in amount record must greater than transfer amount specified"
+            );
+        }
+        ensure!(fee_record.microcredits()? >= fee, "Fee must be greater than the fee specified in the record");
 
         // Specify the network state query
         let query = Query::from(self.api_client.as_ref().unwrap().base_url());
@@ -63,20 +54,53 @@ impl<N: Network> ProgramManager<N> {
             let vm = VM::from(store)?;
 
             // Prepare the inputs for a transfer.
-            let inputs = vec![
-                Value::Record(input_record),
-                Value::from_str(&recipient_address.to_string())?,
-                Value::from_str(&format!("{}u64", amount))?,
-            ];
+            let (transfer_function, inputs) = match transfer_type {
+                TransferType::Public => {
+                    let inputs = vec![
+                        Value::from_str(&recipient_address.to_string())?,
+                        Value::from_str(&format!("{}u64", amount))?,
+                    ];
+                    ("transfer_public", inputs)
+                }
+                TransferType::Private => {
+                    if amount_record.is_none() {
+                        bail!("Amount record must be specified for private transfers");
+                    } else {
+                        let inputs = vec![
+                            Value::Record(amount_record.unwrap()),
+                            Value::from_str(&recipient_address.to_string())?,
+                            Value::from_str(&format!("{}u64", amount))?,
+                        ];
+                        ("transfer_private", inputs)
+                    }
+                }
+                TransferType::PublicToPrivate => {
+                    let inputs = vec![
+                        Value::from_str(&recipient_address.to_string())?,
+                        Value::from_str(&format!("{}u64", amount))?,
+                    ];
+                    ("transfer_public_to_private", inputs)
+                }
+                TransferType::PrivateToPublic => {
+                    if amount_record.is_none() {
+                        bail!("Amount record must be specified for private transfers");
+                    } else {
+                        let inputs = vec![
+                            Value::Record(amount_record.unwrap()),
+                            Value::from_str(&recipient_address.to_string())?,
+                            Value::from_str(&format!("{}u64", amount))?,
+                        ];
+                        ("transfer_private_to_public", inputs)
+                    }
+                }
+            };
 
             // Create a new transaction.
-            Transaction::execute(
-                &vm,
+            vm.execute(
                 &private_key,
-                "credits.aleo",
-                "transfer",
+                ("credits.aleo", transfer_function),
                 inputs.iter(),
-                additional_fee,
+                Some((fee_record, fee)),
                 Some(query),
                 rng,
             )?
@@ -90,58 +114,192 @@ impl<N: Network> ProgramManager<N> {
 mod tests {
     use super::*;
     use crate::{test_utils::BEACON_PRIVATE_KEY, AleoAPIClient, RecordFinder};
-    use snarkvm_console::{
-        account::{Address, PrivateKey, ViewKey},
-        network::Testnet3,
-    };
+    use snarkvm_console::network::Testnet3;
 
     use std::{str::FromStr, thread};
 
-    #[test]
-    #[ignore]
-    fn test_transfer() {
+    // Attempt to transfer the specified amount from the sender to the recipient.
+    fn try_transfer(
+        sender: &PrivateKey<Testnet3>,
+        recipient: &Address<Testnet3>,
+        amount: u64,
+        visibility: TransferType,
+    ) {
+        println!("Attempting to transfer of type: {visibility:?} of {amount} to {recipient:?}");
         let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
-        let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY).unwrap();
-        let rng = &mut rand::thread_rng();
-        let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
-        let recipient_view_key = ViewKey::try_from(&recipient_private_key).unwrap();
-        let recipient_address = Address::try_from(&recipient_view_key).unwrap();
         let program_manager =
-            ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client.clone()), None).unwrap();
+            ProgramManager::<Testnet3>::new(Some(*sender), None, Some(api_client.clone()), None).unwrap();
         let record_finder = RecordFinder::new(api_client);
-        // Wait for the chain to to start
-        thread::sleep(std::time::Duration::from_secs(60));
-
-        // Make several transactions from the genesis account since the genesis account keeps spending records,
-        // it may take a few tries to transfer successfully
+        let fee = 5_000_000;
         for i in 0..10 {
-            let record = record_finder.find_one_record(&beacon_private_key, 100);
-            if record.is_err() {
-                println!("Record not found: {} - retrying", record.unwrap_err());
-                thread::sleep(std::time::Duration::from_secs(3));
-                continue;
-            }
-            let input_record = record.unwrap();
-            let result = program_manager.transfer(100, 0, recipient_address, None, input_record, None);
+            let (amount_record, fee_record) = match &visibility {
+                TransferType::Public => {
+                    let fee_record = record_finder.find_one_record(sender, fee);
+                    if fee_record.is_err() {
+                        println!("Record not found: {} - retrying", fee_record.unwrap_err());
+                        thread::sleep(std::time::Duration::from_secs(3));
+                        if i == 9 {
+                            panic!("Transfer failed after 10 attempts");
+                        }
+                        continue;
+                    }
+                    (None, fee_record.unwrap())
+                }
+                TransferType::PublicToPrivate => {
+                    let fee_record = record_finder.find_one_record(sender, fee);
+                    if fee_record.is_err() {
+                        println!("Record not found: {} - retrying", fee_record.unwrap_err());
+                        thread::sleep(std::time::Duration::from_secs(3));
+                        if i == 9 {
+                            panic!("Transfer failed after 10 attempts");
+                        }
+                        continue;
+                    }
+                    (None, fee_record.unwrap())
+                }
+                _ => {
+                    let record = record_finder.find_amount_and_fee_records(amount, fee, sender);
+                    if record.is_err() {
+                        println!("Record not found: {} - retrying", record.unwrap_err());
+                        thread::sleep(std::time::Duration::from_secs(3));
+                        continue;
+                    }
+                    let (amount_record, fee_record) = record.unwrap();
+                    (Some(amount_record), fee_record)
+                }
+            };
+
+            let result = program_manager.transfer(amount, fee, *recipient, visibility, None, amount_record, fee_record);
             if result.is_err() {
                 println!("Transfer error: {} - retrying", result.unwrap_err());
-            } else if i > 6 {
+                if i == 9 {
+                    panic!("Transfer failed after 10 attempts");
+                }
+            } else {
                 break;
             }
-
-            // Wait 2 seconds before trying again
-            thread::sleep(std::time::Duration::from_secs(2));
         }
+    }
 
-        // Wait for the chain to update blocks
-        thread::sleep(std::time::Duration::from_secs(35));
+    // Check that the specified amount has been transferred from the sender to the recipient.
+    fn verify_transfer(
+        amount: u64,
+        api_client: &AleoAPIClient<Testnet3>,
+        recipient_private_key: &PrivateKey<Testnet3>,
+        visibility: TransferType,
+    ) {
+        for i in 0..10 {
+            println!("Attempting to verify transfer of visibility: {visibility:?} for amount: {amount}");
+            let height = api_client.latest_height().unwrap();
+            let records = api_client.get_unspent_records(recipient_private_key, 0..height, None, None).unwrap();
+            let mut is_verified = false;
+            if !records.is_empty() {
+                for record in records.iter() {
+                    let (_, record) = record;
+                    let record_amount = record.microcredits().unwrap();
+                    println!("Found amount: {record_amount} - expected: {amount}");
+                    if amount == record_amount {
+                        println!("✅ Transfer of {amount} verified for transfer type: {visibility:?}");
+                        is_verified = true;
+                        break;
+                    }
+                }
+                if is_verified {
+                    break;
+                }
+            }
+            thread::sleep(std::time::Duration::from_secs(3));
+            if i > 8 {
+                let error =
+                    format!("❌ Failed to verify transfer of visibility: {visibility:?} after 8 transfer errors");
+                panic!("{error}");
+            }
+        }
+    }
 
-        // Check the balance of the recipient
-        let api_client = program_manager.api_client().unwrap();
-        let height = api_client.latest_height().unwrap();
-        let records = api_client.get_unspent_records(&recipient_private_key, 0..height, None, None).unwrap();
-        let (_, record) = &records[0];
-        let record_plaintext = record.decrypt(&recipient_view_key).unwrap();
-        assert_eq!(***record_plaintext.gates(), 100);
+    #[test]
+    #[ignore]
+    fn test_transfer_roundtrip() {
+        // Initialize necessary key material
+        // Use the beacon private key to make the initial transfer
+        let beacon_private_key = PrivateKey::<Testnet3>::from_str(BEACON_PRIVATE_KEY).unwrap();
+        let amount = 16_666_666;
+        let amount_str = "16666666u64";
+        let fee = 26_666_666;
+        // Create a unique recipient for each transfer type so we can unique identify each transfer
+        let private_recipient_private_key =
+            PrivateKey::<Testnet3>::from_str("APrivateKey1zkpCF24vGLohfHWNZam1z7qDhDq5Bp1u8WPFhh9q2wWoNh8").unwrap();
+        let private_recipient_view_key = ViewKey::try_from(&private_recipient_private_key).unwrap();
+        let private_recipient_address = Address::try_from(&private_recipient_view_key).unwrap();
+        let private_to_public_recipient_private_key =
+            PrivateKey::<Testnet3>::from_str("APrivateKey1zkpFkojCEFsw3LaozkqaVkMuxdTq2DEsUV88WGexXoWGuNA").unwrap();
+        let private_to_public_recipient_view_key = ViewKey::try_from(&private_to_public_recipient_private_key).unwrap();
+        let private_to_public_recipient_address = Address::try_from(&private_to_public_recipient_view_key).unwrap();
+        let public_recipient_private_key =
+            PrivateKey::<Testnet3>::from_str("APrivateKey1zkp6rwhE5Jxz16cv32kM8Z8VMsLe78BCK8LU3FM7htmSsis").unwrap();
+        let public_recipient_view_key = ViewKey::try_from(&public_recipient_private_key).unwrap();
+        let public_recipient_address = Address::try_from(&public_recipient_view_key).unwrap();
+        let public_to_private_recipient_private_key =
+            PrivateKey::<Testnet3>::from_str("APrivateKey1zkp3NchSbrypyf2UoJSGyag58biAFPvtd1WtpM5M9pqoifK").unwrap();
+        let public_to_private_recipient_view_key = ViewKey::try_from(&public_to_private_recipient_private_key).unwrap();
+        let public_to_private_recipient_address = Address::try_from(&public_to_private_recipient_view_key).unwrap();
+        let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
+        let public_address_literal = Literal::<Testnet3>::from_str(&public_recipient_address.to_string()).unwrap();
+        let private_to_public_address_literal =
+            Literal::<Testnet3>::from_str(&private_to_public_recipient_address.to_string()).unwrap();
+        let expected_value = Value::from(Plaintext::<Testnet3>::from_str(amount_str).unwrap());
+        let zero_value = Value::from(Plaintext::<Testnet3>::from_str("0u64").unwrap());
+
+        println!("Private recipient private_key: {}", private_recipient_private_key);
+        println!("Private recipient address: {}", private_recipient_address);
+        println!("Private to public recipient private_key: {}", private_to_public_recipient_private_key);
+        println!("Private to public recipient address: {}", private_to_public_recipient_address);
+        println!("Public recipient private_key: {}", public_recipient_private_key);
+        println!("Public recipient address: {}", public_recipient_address);
+        println!("Public to private recipient private_key: {}", public_to_private_recipient_private_key);
+        println!("Public to private recipient address: {}", public_to_private_recipient_address);
+
+        // Transfer funds to the private recipient and confirm that the transaction is on chain
+        try_transfer(&beacon_private_key, &private_recipient_address, amount, TransferType::Private);
+
+        // Transfer funds to each of the other recipients to pay the fee with
+        try_transfer(&beacon_private_key, &private_recipient_address, fee, TransferType::Private);
+        try_transfer(&beacon_private_key, &private_to_public_recipient_address, fee, TransferType::Private);
+        try_transfer(&beacon_private_key, &public_recipient_address, fee, TransferType::Private);
+        try_transfer(&beacon_private_key, &public_to_private_recipient_address, fee, TransferType::Private);
+        thread::sleep(std::time::Duration::from_secs(20));
+
+        // Verify private transfer
+        verify_transfer(amount, &api_client, &private_recipient_private_key, TransferType::Private);
+
+        // Transfer funds to the private_to_public recipient
+        try_transfer(
+            &private_recipient_private_key,
+            &private_to_public_recipient_address,
+            amount,
+            TransferType::PrivateToPublic,
+        );
+        thread::sleep(std::time::Duration::from_secs(25));
+        let value =
+            api_client.get_mapping_value("credits.aleo", "account", &private_to_public_address_literal).unwrap();
+        assert!(value.eq(&expected_value));
+
+        try_transfer(&private_to_public_recipient_private_key, &public_recipient_address, amount, TransferType::Public);
+        thread::sleep(std::time::Duration::from_secs(25));
+        let value = api_client.get_mapping_value("credits.aleo", "account", public_address_literal).unwrap();
+        assert!(value.eq(&expected_value));
+        let value =
+            api_client.get_mapping_value("credits.aleo", "account", &private_to_public_address_literal).unwrap();
+        assert!(value.eq(&zero_value));
+
+        // Transfer funds to the public_to_private recipient and ensure the funds made the entire journey
+        try_transfer(
+            &public_recipient_private_key,
+            &public_to_private_recipient_address,
+            amount,
+            TransferType::PublicToPrivate,
+        );
+        thread::sleep(std::time::Duration::from_secs(25));
+        verify_transfer(amount, &api_client, &public_to_private_recipient_private_key, TransferType::PublicToPrivate);
     }
 }

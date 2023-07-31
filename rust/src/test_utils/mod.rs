@@ -1,20 +1,20 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AleoAPIClient, ProgramManager, RecordFinder};
+use crate::{AleoAPIClient, ProgramManager, RecordFinder, TransferType};
 use snarkvm::file::Manifest;
 use snarkvm_console::{
     account::{PrivateKey, ViewKey},
@@ -23,13 +23,14 @@ use snarkvm_console::{
 };
 
 use anyhow::Result;
-use snarkvm_synthesizer::Program;
+use snarkvm::synthesizer::Program;
 use std::{fs, fs::File, io::Write, ops::Add, panic::catch_unwind, path::PathBuf, str::FromStr, thread::sleep};
 
 pub const RECIPIENT_PRIVATE_KEY: &str = "APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6";
+pub const RECIPIENT_ADDRESS: &str = "aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4";
 pub const BEACON_PRIVATE_KEY: &str = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
 
-pub const DUAL_IMPORT_PROGRAM: &str = "import hello.aleo;
+pub const IMPORT_PROGRAM: &str = "
 import credits.aleo;
 program aleo_test.aleo;
 
@@ -38,6 +39,34 @@ function test:
     input r1 as u32.private;
     add r0 r1 into r2;
     output r2 as u32.private;
+";
+
+pub const FINALIZE_TEST_PROGRAM: &str = "program finalize_test.aleo;
+
+mapping monotonic_counter:
+    // Counter key
+    key id as u32.public;
+    // Counter value
+    value counter as u32.public;
+
+function increase_counter:
+    // Counter index
+    input r0 as u32.public;
+    // Value to increment by
+    input r1 as u32.public;
+    finalize r0 r1;
+
+finalize increase_counter:
+    // Counter index
+    input r0 as u32.public;
+    // Value to increment by
+    input r1 as u32.public;
+    // Get or initialize counter key
+    get.or_use monotonic_counter[r0] 0u32 into r2;
+    // Add r1 to into the existing counter value
+    add r1 r2 into r3;
+    // Set r3 into account[r0];
+    set r3 into monotonic_counter[r0];
 ";
 
 pub const CREDITS_IMPORT_TEST_PROGRAM: &str = "import credits.aleo;
@@ -52,7 +81,7 @@ function test:
 
 pub const HELLO_PROGRAM: &str = "program hello.aleo;
 
-function main:
+function hello:
     input r0 as u32.public;
     input r1 as u32.private;
     add r0 r1 into r2;
@@ -61,7 +90,7 @@ function main:
 
 pub const HELLO_PROGRAM_2: &str = "program hello.aleo;
 
-function main:
+function hello:
     input r0 as u32.public;
     input r1 as u32.private;
     mul r0 r1 into r2;
@@ -77,16 +106,39 @@ function fabulous:
     output r2 as u32.private;
 ";
 
-pub const RECORD_2000000001_GATES: &str = r"{
-  owner: aleo1crhv6td6mr82ams6kvtlfyup866c7vu8xm3uy3r8j0xjm4utmvzqxp888h.private,
-  gates: 2000000001u64.private,
-  _nonce: 203531555240288878851874459727809404436723984555169378819192539433895099097group.public
+pub const MULTIPLY_PROGRAM: &str =
+    "// The 'multiply_test.aleo' program which is imported by the 'double_test.aleo' program.
+program multiply_test.aleo;
+
+function multiply:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    mul r0 r1 into r2;
+    output r2 as u32.private;
+";
+
+pub const MULTIPLY_IMPORT_PROGRAM: &str =
+    "// The 'double_test.aleo' program that uses a single import from another program to perform doubling.
+import multiply_test.aleo;
+
+program double_test.aleo;
+
+function double_it:
+    input r0 as u32.private;
+    call multiply_test.aleo/multiply 2u32 r0 into r1;
+    output r1 as u32.private;
+";
+
+pub const RECORD_2000000001_MICROCREDITS: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 2000000001u64.private,
+  _nonce: 440655410641037118713377218645355605135385337348439127168929531052605977026group.public
 }";
 
-pub const RECORD_5_GATES: &str = r"{
-  owner: aleo1pe9hh2eqnnyezs945pjl5ck8ya8tmyx6v49lmsa07pkr6959turqnedugx.private,
-  gates: 5u64.private,
-  _nonce: 5147545248698489716132031289429810645682104673612481324838467895012926021670group.public
+pub const RECORD_5_MICROCREDITS: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 5u64.private,
+  _nonce: 3700202890700295811197086261814785945731964545546334348117582517467189701159group.public
 }";
 
 /// Get a random program id
@@ -166,18 +218,27 @@ pub fn transfer_to_test_account(
     let program_manager =
         ProgramManager::<Testnet3>::new(Some(beacon_private_key), None, Some(api_client), None).unwrap();
 
+    let fee = 500_000;
     let mut transfer_successes = 0;
     let mut retries = 0;
     loop {
-        let input_record = record_finder.find_one_record(&beacon_private_key, amount);
+        let input_record = record_finder.find_amount_and_fee_records(amount, fee, &beacon_private_key);
         if input_record.is_err() {
             println!("No records found, retrying");
             retries += 1;
             sleep(std::time::Duration::from_secs(3));
             continue;
         }
-        let input_record = input_record.unwrap();
-        let result = program_manager.transfer(amount, 0, recipient_address, None, input_record, None);
+        let (input_record, fee_record) = input_record.unwrap();
+        let result = program_manager.transfer(
+            amount,
+            500_000,
+            recipient_address,
+            TransferType::Private,
+            None,
+            Some(input_record),
+            fee_record,
+        );
         if result.is_ok() {
             println!("Transfer succeeded");
             transfer_successes += 1;
@@ -189,8 +250,8 @@ pub fn transfer_to_test_account(
             println!("{} transfers succeeded exiting", transfer_successes);
             break;
         }
-        if retries > 10 {
-            println!("exceeded 10 retries, exiting with found records");
+        if retries > 15 {
+            println!("exceeded 15 retries, exiting with found records");
             break;
         }
         sleep(std::time::Duration::from_secs(3));
@@ -199,5 +260,5 @@ pub fn transfer_to_test_account(
     let client = program_manager.api_client()?;
     let latest_height = client.latest_height()?;
     let records = client.get_unspent_records(&recipient_private_key, 0..latest_height, None, None)?;
-    Ok(records.iter().map(|(_cm, record)| record.decrypt(&recipient_view_key).unwrap()).collect())
+    Ok(records.into_iter().map(|(_cm, record)| record).collect())
 }

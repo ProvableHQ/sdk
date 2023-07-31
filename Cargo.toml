@@ -1,10 +1,10 @@
 [package]
 name = "aleo"
-version = "0.3.6"
+version = "0.5.1"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Aleo"
 homepage = "https://aleo.org"
-repository = "https://github.com/AleoHQ/aleo"
+repository = "https://github.com/AleoHQ/sdk"
 keywords = [
   "aleo",
   "cryptography",
@@ -18,14 +18,39 @@ license = "GPL-3.0"
 edition = "2021"
 
 [workspace]
-members = [ "rust", "wasm" ]
+members = [ "rust", "wasm", "rust/develop"]
+
+[workspace.dependencies.aleo-rust]
+version = "0.5.1"
+path = "rust"
+default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "0.9.14"
+version = "=0.14.5"
+
+[workspace.dependencies.snarkvm-circuit-network]
+version = "=0.14.5"
+
+[workspace.dependencies.snarkvm-console]
+version = "=0.14.5"
+
+[workspace.dependencies.snarkvm-console-network]
+version = "=0.14.5"
+
+[workspace.dependencies.snarkvm-synthesizer]
+version = "=0.14.5"
+
+[workspace.dependencies.snarkvm-ledger-block]
+version = "=0.14.5"
+
+[workspace.dependencies.snarkvm-ledger-store]
+version = "=0.14.5"
+
+[workspace.dependencies.snarkvm-ledger-query]
+version = "=0.14.5"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "0.9.14"
-default-features = false
+version = "=0.14.5"
 
 [lib]
 path = "cli/lib.rs"
@@ -38,15 +63,18 @@ path = "cli/main.rs"
 default = [ ]
 
 [dependencies.aleo-rust]
-path = "rust"
-version = "0.3.6"
+features = [ "default" ]
+workspace = true
 
 [dependencies.anyhow]
 version = "1.0"
 
+[workspace.dependencies.clap]
+version = "4.3.19"
+features = [ "derive", "string" ]
+
 [dependencies.clap]
-version = "3.2"
-features = [ "derive" ]
+workspace = true
 
 [dependencies.colored]
 version = "2"
@@ -69,7 +97,8 @@ default-features = false
 version = "7.2.0"
 
 [dependencies.self_update]
-version = "0.36"
+version = "0.37"
+features = [ "archive-zip" ]
 
 [dependencies.serde]
 version = "1"
@@ -83,15 +112,15 @@ features = [
 "aleo-cli",
 "circuit",
 "console",
-"parallel",
-"snarkvm-synthesizer"
+"snarkvm-synthesizer",
+"snarkvm-utilities",
 ]
 
 [dependencies.thiserror]
 version = "1.0"
 
 [dependencies.tokio]
-version = "1.27"
+version = "1.29"
 features = [ "rt" ]
 
 [dependencies.warp]

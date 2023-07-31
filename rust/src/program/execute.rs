@@ -1,29 +1,93 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ProgramManager;
-use snarkvm_console::{
-    account::PrivateKey,
-    program::{Identifier, Network, Plaintext, ProgramID, Record, Value},
-};
-use snarkvm_synthesizer::{ConsensusMemory, ConsensusStore, Program, Query, Transaction, VM};
-
-use anyhow::{anyhow, bail, ensure, Result};
+use super::*;
+use snarkvm::prelude::AleoID;
 
 impl<N: Network> ProgramManager<N> {
+    /// Create an offline execution of a program to share with a third party.
+    ///
+    /// DISCLAIMER: Offline executions will not interact with the Aleo network and cannot use all
+    /// of the features of the Leo programming language or Aleo instructions. Any code written
+    /// inside finalize blocks will not be executed, mappings cannot be initialized, updated or read,
+    /// and a chain of records cannot be created.
+    ///
+    /// Offline executions however can be used to verify that program outputs follow from program
+    /// inputs and that the program was executed correctly. If this is the aim and no chain
+    /// interaction is desired, this function can be used.
+    #[allow(clippy::too_many_arguments)]
+    pub fn execute_program_offline<A: Aleo<Network = N>>(
+        &self,
+        private_key: &PrivateKey<N>,
+        program: &Program<N>,
+        function: impl TryInto<Identifier<N>>,
+        imports: &[Program<N>],
+        inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
+        include_outputs: bool,
+        url: &str,
+    ) -> Result<OfflineExecution<N>> {
+        // Initialize an RNG and query object for the transaction
+        let rng = &mut rand::thread_rng();
+        let query = Query::<N, BlockMemory<N>>::from(url);
+
+        // Check that the function exists in the program
+        let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
+        let program_id = program.id();
+        println!("Checking function {function_name:?} exists in {program_id:?}");
+        ensure!(
+            program.contains_function(&function_name),
+            "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
+        );
+
+        // Create an ephemeral SnarkVM to store the programs
+        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
+        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
+        let credits_id = ProgramID::<N>::from_str("credits.aleo")?;
+        imports.iter().try_for_each(|program| {
+            if &credits_id != program.id() {
+                vm.process().write().add_program(program)?
+            }
+            Ok::<(), Error>(())
+        })?;
+        let _ = vm.process().write().add_program(program);
+
+        // Compute the authorization.
+        let authorization = vm.authorize(private_key, program_id, function_name, inputs, rng)?;
+
+        // Compute the trace
+        let locator = Locator::new(*program_id, function_name);
+        let (response, mut trace) = vm.process().write().execute::<A>(authorization)?;
+        trace.prepare(query)?;
+        let execution = trace.prove_execution::<A, _>(&locator.to_string(), &mut rand::thread_rng())?;
+
+        // Get the public outputs
+        let mut public_outputs = vec![];
+        response.outputs().iter().zip(response.output_ids().iter()).for_each(|(output, output_id)| {
+            if let OutputID::Public(_) = output_id {
+                public_outputs.push(output.clone());
+            }
+        });
+
+        // If all outputs are requested, include them
+        let response = if include_outputs { Some(response) } else { None };
+
+        // Return the execution
+        Ok(OfflineExecution::new(execution, response, trace, Some(public_outputs)))
+    }
+
     /// Execute a program function on the Aleo Network.
     ///
     /// To run this function successfully, the program must already be deployed on the Aleo Network
@@ -32,17 +96,17 @@ impl<N: Network> ProgramManager<N> {
         program_id: impl TryInto<ProgramID<N>>,
         function: impl TryInto<Identifier<N>>,
         inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
-        fee: u64,
-        fee_record: Option<Record<N, Plaintext<N>>>,
+        priority_fee: u64,
+        fee_record: Record<N, Plaintext<N>>,
         password: Option<&str>,
     ) -> Result<String> {
-        // Ensure network config is set, otherwise execution is not possible
+        // Ensure a network client is set, otherwise online execution is not possible
         ensure!(
             self.api_client.is_some(),
             "❌ Network client not set. A network client must be set before execution in order to send an execution transaction to the Aleo network"
         );
 
-        // Check program and function has a valid name
+        // Check program and function have valid names
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
         let function_id = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
         let function_name = function_id.to_string();
@@ -53,20 +117,18 @@ impl<N: Network> ProgramManager<N> {
             .get_program(program_id)
             .map_err(|_| anyhow!("Program {program_id:?} does not exist on the Aleo Network. Try deploying the program first before executing."))?;
 
-        // Try to get the private key configured in the program manager
+        // Create the execution transaction
         let private_key = self.get_private_key(password)?;
-
-        // Attempt to construct the execution transaction
-        println!("Building transaction..");
-        let query = self.api_client.as_ref().unwrap().base_url();
+        let node_url = self.api_client.as_ref().unwrap().base_url().to_string();
         let transaction = Self::create_execute_transaction(
             &private_key,
-            fee,
+            priority_fee,
             inputs,
             fee_record,
             &program,
             function_id,
-            query.to_string(),
+            node_url,
+            self.api_client()?,
         )?;
 
         // Broadcast the execution transaction to the network
@@ -83,19 +145,21 @@ impl<N: Network> ProgramManager<N> {
         execution
     }
 
-    /// Create an execute transaction
+    /// Create an execute transaction without initializing a program manager instance
+    #[allow(clippy::too_many_arguments)]
     pub fn create_execute_transaction(
         private_key: &PrivateKey<N>,
-        fee: u64,
+        priority_fee: u64,
         inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
-        fee_record: Option<Record<N, Plaintext<N>>>,
+        fee_record: Record<N, Plaintext<N>>,
         program: &Program<N>,
         function: impl TryInto<Identifier<N>>,
-        query: String,
+        node_url: String,
+        api_client: &AleoAPIClient<N>,
     ) -> Result<Transaction<N>> {
         // Initialize an RNG and query object for the transaction
         let rng = &mut rand::thread_rng();
-        let query = Query::from(query);
+        let query = Query::from(node_url);
 
         // Check that the function exists in the program
         let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
@@ -106,40 +170,67 @@ impl<N: Network> ProgramManager<N> {
             "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
         );
 
-        // Check that the fees are valid
-        let additional_fee = match fee_record {
-            Some(record) => {
-                let record_amount = ***record.gates();
-                // Ensure a fee record is set
-                ensure!(
-                    record_amount > fee,
-                    "❌ The record supplied has balance of {record_amount:?} gates which is insufficient to pay the specified fee of {fee:?} gates"
-                );
-                if fee == 0 {
-                    println!("⚠️ A fee record was supplied but a fee of 0 was specified, the record will not be used");
-                    None
-                } else {
-                    Some((record, fee))
-                }
-            }
-            None => {
-                if fee > 0 {
-                    bail!("A fee of {fee:?} gates was specified but no record was specified to pay the fee")
-                }
-                None
-            }
-        };
+        // Initialize the VM
+        let vm = Self::initialize_vm(api_client, program, true)?;
+
+        // Create an execution transaction
+        vm.execute(private_key, (program_id, function_name), inputs, Some((fee_record, priority_fee)), Some(query), rng)
+    }
+
+    /// Estimate the cost of executing a program with the given inputs in microcredits. The response
+    /// will be in the form of (total_cost, (storage_cost, finalize_cost))
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    pub fn estimate_execution_fee<A: Aleo<Network = N>>(
+        &self,
+        program: &Program<N>,
+        function: impl TryInto<Identifier<N>>,
+        inputs: impl ExactSizeIterator<Item = impl TryInto<Value<N>>>,
+    ) -> Result<(u64, (u64, u64))> {
+        let url = self.api_client.as_ref().map_or_else(
+            || bail!("A network client must be configured to estimate a program execution fee"),
+            |api_client| Ok(api_client.base_url()),
+        )?;
+
+        // Check that the function exists in the program
+        let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
+        let program_id = program.id();
+        println!("Checking function {function_name:?} exists in {program_id:?}");
+        ensure!(
+            program.contains_function(&function_name),
+            "Program {program_id:?} does not contain function {function_name:?}, aborting execution"
+        );
 
         // Create an ephemeral SnarkVM to store the programs
-        let store = ConsensusStore::<N, ConsensusMemory<N>>::open(None)?;
-        let vm = VM::<N, ConsensusMemory<N>>::from(store)?;
-        if &program.id().to_string() != "credits.aleo" {
-            let deployment = vm.deploy(program, rng)?;
-            vm.process().write().finalize_deployment(vm.program_store(), &deployment)?;
-        };
+        // Initialize an RNG and query object for the transaction
+        let rng = &mut rand::thread_rng();
+        let query = Query::<N, BlockMemory<N>>::from(url);
+        let vm = Self::initialize_vm(self.api_client()?, program, true)?;
 
-        // Create a new execution transaction.
-        Transaction::execute(&vm, private_key, program_id, function_name, inputs, additional_fee, Some(query), rng)
+        // Create an ephemeral private key for the sample execution
+        let private_key = PrivateKey::<N>::new(rng)?;
+
+        // Compute the authorization.
+        let authorization = vm.authorize(&private_key, program_id, function_name, inputs, rng)?;
+
+        let locator = Locator::new(*program_id, function_name);
+        let (_, mut trace) = vm.process().write().execute::<A>(authorization)?;
+        trace.prepare(query)?;
+        let execution = trace.prove_execution::<A, _>(&locator.to_string(), &mut rand::thread_rng())?;
+        execution_cost(&vm, &execution)
+    }
+
+    /// Estimate the finalize fee component for executing a function. This fee is additional to the
+    /// size of the execution of the program in bytes. If the function does not have a finalize
+    /// step, then the finalize fee is 0.
+    ///
+    /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+    pub fn estimate_finalize_fee(&self, program: &Program<N>, function: impl TryInto<Identifier<N>>) -> Result<u64> {
+        let function_name = function.try_into().map_err(|_| anyhow!("Invalid function name"))?;
+        match program.get_function(&function_name)?.finalize() {
+            Some((_, finalize)) => cost_in_microcredits(finalize),
+            None => Ok(0u64),
+        }
     }
 }
 
@@ -147,59 +238,169 @@ impl<N: Network> ProgramManager<N> {
 #[cfg(not(feature = "wasm"))]
 mod tests {
     use super::*;
-    use crate::{random_program_id, AleoAPIClient, RECORD_5_GATES};
+    use crate::{random_program, random_program_id, AleoAPIClient, RECORD_5_MICROCREDITS};
+    use snarkvm::circuit::AleoV0;
     use snarkvm_console::network::Testnet3;
-    use std::str::FromStr;
 
     #[test]
-    fn test_execution() {
-        let rng = &mut rand::thread_rng();
-        let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
-        let encrypted_private_key =
-            crate::Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap();
+    fn test_fee_estimation() {
+        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
+        let program_manager =
+            ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client.clone()), None).unwrap();
+
+        let finalize_program = program_manager.api_client.as_ref().unwrap().get_program("lottery_first.aleo").unwrap();
+        let hello_hello = program_manager.api_client.as_ref().unwrap().get_program("hello_hello.aleo").unwrap();
+        // Ensure a finalize scope program execution fee is estimated correctly
+        let (total, (storage, finalize)) = program_manager
+            .estimate_execution_fee::<AleoV0>(&finalize_program, "play", Vec::<&str>::new().into_iter())
+            .unwrap();
+        let finalize_only = program_manager.estimate_finalize_fee(&finalize_program, "play").unwrap();
+        assert!(finalize_only > 0);
+        assert!(finalize > storage);
+        assert_eq!(finalize, finalize_only);
+        assert_eq!(total, finalize_only + storage);
+        assert_eq!(storage, total - finalize_only);
+
+        // Ensure a non-finalize scope program execution fee is estimated correctly
+        let (total, (storage, finalize)) = program_manager
+            .estimate_execution_fee::<AleoV0>(&hello_hello, "hello", vec!["5u32", "5u32"].into_iter())
+            .unwrap();
+        let finalize_only = program_manager.estimate_finalize_fee(&hello_hello, "hello").unwrap();
+        assert!(storage > 0);
+        assert_eq!(finalize_only, 0);
+        assert_eq!(finalize, finalize_only);
+        assert_eq!(total, finalize_only + storage);
+        assert_eq!(storage, total - finalize_only);
+
+        // Ensure a deployment fee is estimated correctly
+        let random = random_program();
+        let (total, (storage, namespace)) = program_manager.estimate_deployment_fee::<AleoV0>(&random).unwrap();
+        let namespace_only = ProgramManager::estimate_namespace_fee(random.id()).unwrap();
+        assert_eq!(namespace, 1000000);
+        assert_eq!(namespace, namespace_only);
+        assert_eq!(total, namespace_only + storage);
+        assert_eq!(storage, total - namespace_only);
+
+        // Ensure a program with imports is estimated correctly
+        let nested_import_program = api_client.get_program("imported_add_mul.aleo").unwrap();
+        let finalize_only = program_manager.estimate_finalize_fee(&nested_import_program, "add_and_double").unwrap();
+        let (total, (storage, finalize)) = program_manager
+            .estimate_execution_fee::<AleoV0>(
+                &nested_import_program,
+                "add_and_double",
+                vec!["5u32", "5u32"].into_iter(),
+            )
+            .unwrap();
+        assert!(storage > 0);
+        assert_eq!(finalize_only, 0);
+        assert_eq!(finalize, finalize_only);
+        assert_eq!(total, finalize_only + storage);
+        assert_eq!(storage, total - finalize_only);
+
+        let (total, (storage, namespace)) =
+            program_manager.estimate_deployment_fee::<AleoV0>(&nested_import_program).unwrap();
+        let namespace_only = ProgramManager::estimate_namespace_fee(nested_import_program.id()).unwrap();
+        assert_eq!(namespace, 1000000);
+        assert_eq!(namespace, namespace_only);
+        assert_eq!(total, namespace_only + storage);
+        assert_eq!(storage, total - namespace_only);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_execution() {
+        let private_key = PrivateKey::<Testnet3>::from_str(RECIPIENT_PRIVATE_KEY).unwrap();
+        let encrypted_private_key =
+            crate::Encryptor::encrypt_private_key_with_secret(&private_key, "password").unwrap();
+        let api_client = AleoAPIClient::<Testnet3>::local_testnet3("3030");
+        let record_finder = RecordFinder::new(api_client.clone());
         let mut program_manager =
-            ProgramManager::<Testnet3>::new(Some(recipient_private_key), None, Some(api_client.clone()), None).unwrap();
+            ProgramManager::<Testnet3>::new(Some(private_key), None, Some(api_client.clone()), None).unwrap();
 
-        // Test execution of a on chain program is successful
-        let execution = program_manager.execute_program(
-            "hello.aleo",
-            "main",
-            ["1312u32", "62131112u32"].into_iter(),
-            0,
-            None,
-            None,
-        );
+        let fee = 2_500_000;
+        let finalize_fee = 8_000_000;
 
-        assert!(execution.is_ok());
+        // Test execution of an on chain program is successful
+        for i in 0..5 {
+            let fee_record = record_finder.find_one_record(&private_key, fee).unwrap();
+            // Test execution of a on chain program is successful
+            let execution = program_manager.execute_program(
+                "credits_import_test.aleo",
+                "test",
+                ["1312u32", "62131112u32"].into_iter(),
+                fee,
+                fee_record,
+                None,
+            );
+            println!("{:?}", execution);
 
-        // Test execution of a second on chain program is successful
-        let execution = program_manager.execute_program(
-            "compare.aleo",
-            "main",
-            ["1u32", "2u32", "3u32", "4u32", "5u32"].into_iter(),
-            0,
-            None,
-            None,
-        );
-
-        assert!(execution.is_ok());
+            if execution.is_ok() {
+                break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
+            }
+        }
 
         // Test programs can be executed with an encrypted private key
         let mut program_manager =
             ProgramManager::<Testnet3>::new(None, Some(encrypted_private_key), Some(api_client), None).unwrap();
 
-        // Test execution of an on chain program is successful using an encrypted private key
-        let execution = program_manager.execute_program(
-            "hello.aleo",
-            "main",
-            ["1337u32", "42u32"].into_iter(),
-            0,
-            None,
-            Some("password"),
-        );
+        for i in 0..5 {
+            let fee_record = record_finder.find_one_record(&private_key, fee).unwrap();
+            // Test execution of an on chain program is successful using an encrypted private key
+            let execution = program_manager.execute_program(
+                "credits_import_test.aleo",
+                "test",
+                ["1337u32", "42u32"].into_iter(),
+                fee,
+                fee_record,
+                Some("password"),
+            );
+            if execution.is_ok() {
+                break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
+            }
+        }
 
-        assert!(execution.is_ok());
+        // Test execution with a finalize scope can be done
+        for i in 0..5 {
+            let fee_record = record_finder.find_one_record(&private_key, finalize_fee).unwrap();
+            // Test execution of an on chain program is successful using an encrypted private key
+            let execution = program_manager.execute_program(
+                "finalize_test.aleo",
+                "increase_counter",
+                ["0u32", "42u32"].into_iter(),
+                finalize_fee,
+                fee_record,
+                Some("password"),
+            );
+            if execution.is_ok() {
+                break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
+            }
+        }
+
+        // Test execution of a program with imports other than credits.aleo is successful
+        for i in 0..5 {
+            let fee_record = record_finder.find_one_record(&private_key, finalize_fee).unwrap();
+            // Test execution of an on chain program is successful using an encrypted private key
+            let execution = program_manager.execute_program(
+                "double_test.aleo",
+                "double_it",
+                ["42u32"].into_iter(),
+                finalize_fee,
+                fee_record,
+                Some("password"),
+            );
+            if execution.is_ok() {
+                break;
+            } else if i == 4 {
+                panic!("{}", format!("Execution failed after 5 attempts with error: {:?}", execution));
+            }
+        }
     }
 
     #[test]
@@ -207,27 +408,35 @@ mod tests {
         let rng = &mut rand::thread_rng();
         let recipient_private_key = PrivateKey::<Testnet3>::new(rng).unwrap();
         let api_client = AleoAPIClient::<Testnet3>::testnet3();
-        let record_5_gates = Record::<Testnet3, Plaintext<Testnet3>>::from_str(RECORD_5_GATES).unwrap();
+        let record_5_microcredits = Record::<Testnet3, Plaintext<Testnet3>>::from_str(RECORD_5_MICROCREDITS).unwrap();
+        let record_2000000001_microcredits =
+            Record::<Testnet3, Plaintext<Testnet3>>::from_str(RECORD_2000000001_MICROCREDITS).unwrap();
 
         // Ensure that program manager creation fails if no key is provided
         let mut program_manager =
             ProgramManager::<Testnet3>::new(Some(recipient_private_key), None, Some(api_client), None).unwrap();
 
-        // Assert that execution fails if record's available gates are below the fee
+        // Assert that execution fails if record's available microcredits are below the fee
         let execution = program_manager.execute_program(
             "hello.aleo",
-            "main",
+            "hello",
             ["5u32", "6u32"].into_iter(),
-            200,
-            Some(record_5_gates),
+            500000,
+            record_5_microcredits,
             None,
         );
 
         assert!(execution.is_err());
 
         // Assert that execution fails if a fee is specified but no records are
-        let execution =
-            program_manager.execute_program("hello.aleo", "main", ["5u32", "6u32"].into_iter(), 200, None, None);
+        let execution = program_manager.execute_program(
+            "hello.aleo",
+            "hello",
+            ["5u32", "6u32"].into_iter(),
+            200,
+            record_2000000001_microcredits.clone(),
+            None,
+        );
 
         assert!(execution.is_err());
 
@@ -235,10 +444,10 @@ mod tests {
         let randomized_program_id = random_program_id(16);
         let execution = program_manager.execute_program(
             &randomized_program_id,
-            "main",
+            "hello",
             ["5u32", "6u32"].into_iter(),
-            0,
-            None,
+            500000,
+            record_2000000001_microcredits.clone(),
             None,
         );
 
@@ -249,8 +458,8 @@ mod tests {
             "hello.aleo",
             "random_function",
             ["5u32", "6u32"].into_iter(),
-            0,
-            None,
+            500000,
+            record_2000000001_microcredits.clone(),
             None,
         );
 
@@ -261,8 +470,8 @@ mod tests {
             "hello.aleo",
             "random_function",
             ["5u32", "6u32"].into_iter(),
-            0,
-            None,
+            500000,
+            record_2000000001_microcredits,
             None,
         );
 

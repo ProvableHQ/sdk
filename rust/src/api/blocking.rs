@@ -1,33 +1,25 @@
 // Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo library.
+// This file is part of the Aleo SDK library.
 
-// The Aleo library is free software: you can redistribute it and/or modify
+// The Aleo SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo library is distributed in the hope that it will be useful,
+// The Aleo SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::AleoAPIClient;
-use snarkvm_console::{
-    account::{PrivateKey, ViewKey},
-    program::{Ciphertext, Network, ProgramID, Record},
-    types::Field,
-};
-use snarkvm_synthesizer::{Block, Program, Transaction};
-
-use anyhow::{anyhow, bail, ensure, Result};
-use std::{convert::TryInto, ops::Range};
+use super::*;
 
 #[cfg(not(feature = "async"))]
 #[allow(clippy::type_complexity)]
 impl<N: Network> AleoAPIClient<N> {
+    /// Get the latest block height
     pub fn latest_height(&self) -> Result<u32> {
         let url = format!("{}/{}/latest/height", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -36,6 +28,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get the latest block hash
     pub fn latest_hash(&self) -> Result<N::BlockHash> {
         let url = format!("{}/{}/latest/hash", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -44,6 +37,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get the latest block
     pub fn latest_block(&self) -> Result<Block<N>> {
         let url = format!("{}/{}/latest/block", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -52,6 +46,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get the block matching the specific height from the network
     pub fn get_block(&self, height: u32) -> Result<Block<N>> {
         let url = format!("{}/{}/block/{height}", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -60,6 +55,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get a range of blocks from the network (limited 50 blocks at a time)
     pub fn get_blocks(&self, start_height: u32, end_height: u32) -> Result<Vec<Block<N>>> {
         if start_height >= end_height {
             bail!("Start height must be less than end height");
@@ -76,6 +72,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Retrieve a transaction by via its transaction id
     pub fn get_transaction(&self, transaction_id: N::TransactionID) -> Result<Transaction<N>> {
         let url = format!("{}/{}/transaction/{transaction_id}", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -84,6 +81,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get pending transactions currently in the mempool.
     pub fn get_memory_pool_transactions(&self) -> Result<Vec<Transaction<N>>> {
         let url = format!("{}/{}/memoryPool/transactions", self.base_url, self.network_id);
         match self.client.get(&url).call()?.into_json() {
@@ -92,6 +90,7 @@ impl<N: Network> AleoAPIClient<N> {
         }
     }
 
+    /// Get a program from the network by its ID. This method will return an error if it does not exist.
     pub fn get_program(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Program<N>> {
         // Prepare the program ID.
         let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
@@ -100,6 +99,64 @@ impl<N: Network> AleoAPIClient<N> {
         match self.client.get(&url).call()?.into_json() {
             Ok(program) => Ok(program),
             Err(error) => bail!("Failed to parse program {program_id}: {error}"),
+        }
+    }
+
+    /// Resolve imports of a program in a depth-first-search order from a program id
+    pub fn get_program_imports(
+        &self,
+        program_id: impl TryInto<ProgramID<N>>,
+    ) -> Result<IndexMap<ProgramID<N>, Program<N>>> {
+        let program = self.get_program(program_id)?;
+        self.get_program_imports_from_source(&program)
+    }
+
+    /// Resolve imports of a program in a depth-first-search order from program source code
+    pub fn get_program_imports_from_source(&self, program: &Program<N>) -> Result<IndexMap<ProgramID<N>, Program<N>>> {
+        let mut found_imports = IndexMap::new();
+        for (import_id, _) in program.imports().iter() {
+            let imported_program = self.get_program(import_id)?;
+            let nested_imports = self.get_program_imports_from_source(&imported_program)?;
+            for (id, import) in nested_imports.into_iter() {
+                found_imports.contains_key(&id).then(|| anyhow!("Circular dependency discovered in program imports"));
+                found_imports.insert(id, import);
+            }
+            found_imports.contains_key(import_id).then(|| anyhow!("Circular dependency discovered in program imports"));
+            found_imports.insert(*import_id, imported_program);
+        }
+        Ok(found_imports)
+    }
+
+    /// Get all mappings associated with a program.
+    pub fn get_program_mappings(&self, program_id: impl TryInto<ProgramID<N>>) -> Result<Vec<Identifier<N>>> {
+        // Prepare the program ID.
+        let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
+        // Perform the request.
+        let url = format!("{}/{}/program/{program_id}/mappings", self.base_url, self.network_id);
+        match self.client.get(&url).call()?.into_json() {
+            Ok(program_mappings) => Ok(program_mappings),
+            Err(error) => bail!("Failed to parse program {program_id}: {error}"),
+        }
+    }
+
+    /// Get the current value of a mapping given a specific program, mapping name, and mapping key
+    pub fn get_mapping_value(
+        &self,
+        program_id: impl TryInto<ProgramID<N>>,
+        mapping_name: impl TryInto<Identifier<N>>,
+        key: impl TryInto<Plaintext<N>>,
+    ) -> Result<Value<N>> {
+        // Prepare the program ID.
+        let program_id = program_id.try_into().map_err(|_| anyhow!("Invalid program ID"))?;
+        // Prepare the mapping name.
+        let mapping_name = mapping_name.try_into().map_err(|_| anyhow!("Invalid mapping name"))?;
+        // Prepare the key.
+        let key = key.try_into().map_err(|_| anyhow!("Invalid key"))?;
+        // Perform the request.
+        let url = format!("{}/{}/program/{program_id}/mapping/{mapping_name}/{key}", self.base_url, self.network_id);
+        match self.client.get(&url).call()?.into_json() {
+            Ok(transition_id) => Ok(transition_id),
+            Err(error) => bail!("Failed to parse transition ID: {error}"),
         }
     }
 
@@ -175,9 +232,19 @@ impl<N: Network> AleoAPIClient<N> {
         block_heights: Range<u32>,
         max_gates: Option<u64>,
         specified_amounts: Option<&Vec<u64>>,
-    ) -> Result<Vec<(Field<N>, Record<N, Ciphertext<N>>)>> {
+    ) -> Result<Vec<(Field<N>, Record<N, Plaintext<N>>)>> {
         let view_key = ViewKey::try_from(private_key)?;
         let address_x_coordinate = view_key.to_address().to_x_coordinate();
+
+        let step_size = 49;
+        let required_amounts = if let Some(amounts) = specified_amounts {
+            ensure!(!amounts.is_empty(), "If specific amounts are specified, there must be one amount specified");
+            let mut required_amounts = amounts.clone();
+            required_amounts.sort_by(|a, b| b.cmp(a));
+            required_amounts
+        } else {
+            vec![]
+        };
 
         ensure!(
             block_heights.start < block_heights.end,
@@ -185,13 +252,13 @@ impl<N: Network> AleoAPIClient<N> {
         );
 
         // Initialize a vector for the records.
-        let mut records = Vec::new();
+        let mut records = vec![];
 
         let mut total_gates = 0u64;
         let mut end_height = block_heights.end;
-        let mut start_height = block_heights.end.saturating_sub(50);
+        let mut start_height = block_heights.end.saturating_sub(step_size);
 
-        for _ in (block_heights.start..block_heights.end).step_by(50) {
+        for _ in (block_heights.start..block_heights.end).step_by(step_size as usize) {
             println!("Searching blocks {} to {} for records...", start_height, end_height);
             // Get blocks
             let records_iter =
@@ -199,27 +266,23 @@ impl<N: Network> AleoAPIClient<N> {
 
             // Search in reverse order from the latest block to the earliest block
             end_height = start_height;
-            start_height = start_height.saturating_sub(50);
+            start_height = start_height.saturating_sub(step_size);
             if start_height < block_heights.start {
                 start_height = block_heights.start
             };
-
             // Filter the records by the view key.
             records.extend(records_iter.filter_map(|(commitment, record)| {
                 match record.is_owner_with_address_x_coordinate(&view_key, &address_x_coordinate) {
                     true => {
                         let sn = Record::<N, Ciphertext<N>>::serial_number(*private_key, commitment).ok()?;
                         if self.find_transition_id(sn).is_err() {
-                            if max_gates.is_some() {
-                                let _ = record
-                                    .decrypt(&view_key)
-                                    .map(|record| {
-                                        total_gates += ***record.gates();
-                                        record
-                                    })
-                                    .ok();
+                            let record = record.decrypt(&view_key);
+                            if let Ok(record) = record {
+                                total_gates += record.microcredits().unwrap_or(0);
+                                Some((commitment, record))
+                            } else {
+                                None
                             }
-                            Some((commitment, record))
                         } else {
                             None
                         }
@@ -229,31 +292,35 @@ impl<N: Network> AleoAPIClient<N> {
             }));
             // If a maximum number of gates is specified, stop searching when the total gates
             // exceeds the specified limit
-            if max_gates.is_some() && total_gates > max_gates.unwrap() {
+            if max_gates.is_some() && total_gates >= max_gates.unwrap() {
                 break;
             }
             // If a list of specified amounts is specified, stop searching when records matching
             // those amounts are found
-            if let Some(specified_amounts) = specified_amounts {
-                let found_records = specified_amounts
-                    .iter()
-                    .filter_map(|amount| {
-                        let position = records.iter().position(|(_, record)| {
-                            if let Ok(decrypted_record) = record.decrypt(&view_key) {
-                                ***decrypted_record.gates() > *amount
-                            } else {
-                                false
-                            }
-                        });
-                        position.map(|index| records.remove(index))
-                    })
-                    .collect::<Vec<_>>();
-                if found_records.len() >= specified_amounts.len() {
+            if !required_amounts.is_empty() {
+                records.sort_by(|(_, first), (_, second)| {
+                    second.microcredits().unwrap_or(0).cmp(&first.microcredits().unwrap_or(0))
+                });
+                let mut found_indices = std::collections::HashSet::<usize>::new();
+                required_amounts.iter().for_each(|amount| {
+                    for (pos, (_, found_record)) in records.iter().enumerate() {
+                        let found_amount = found_record.microcredits().unwrap_or(0);
+                        if !found_indices.contains(&pos) && found_amount >= *amount {
+                            found_indices.insert(pos);
+                        }
+                    }
+                });
+                if found_indices.len() >= required_amounts.len() {
+                    let found_records = records[0..required_amounts.len()].to_vec();
                     return Ok(found_records);
                 }
             }
         }
-
+        if !required_amounts.is_empty() {
+            bail!(
+                "Could not find enough records with the specified amounts, consider splitting records into smaller amounts"
+            );
+        }
         Ok(records)
     }
 
@@ -280,6 +347,9 @@ impl<N: Network> AleoAPIClient<N> {
                     Transaction::Execute(..) => {
                         bail!("❌ Failed to broadcast execution to {}: {}", &url, error_message)
                     }
+                    Transaction::Fee(..) => {
+                        bail!("❌ Failed to broadcast fee execution to {}: {}", &url, error_message)
+                    }
                 }
             }
         }
@@ -289,11 +359,6 @@ impl<N: Network> AleoAPIClient<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use snarkvm_console::{account::PrivateKey, network::Testnet3};
-
-    use std::{convert::TryFrom, str::FromStr};
-
-    type N = Testnet3;
 
     #[test]
     fn test_api_get_blocks() {
@@ -311,33 +376,30 @@ mod tests {
     }
 
     #[test]
-    fn test_scan() {
-        // Initialize the api client
+    fn test_mappings_query() {
         let client = AleoAPIClient::<Testnet3>::testnet3();
+        let mappings = client.get_program_mappings("credits.aleo").unwrap();
+        // Assert there's only one mapping in credits.aleo
+        assert_eq!(mappings.len(), 1);
 
-        // Derive the view key.
-        let private_key =
-            PrivateKey::<N>::from_str("APrivateKey1zkp5fCUVzS9b7my34CdraHBF9XzB58xYiPzFJQvjhmvv7A8").unwrap();
-        let view_key = ViewKey::<N>::try_from(&private_key).unwrap();
+        let identifier = mappings[0];
+        // Assert the identifier is "account"
+        assert_eq!(identifier.to_string(), "account");
+    }
 
-        // Scan the ledger at this range.
-        let records = client.scan(private_key, 14200..14250, None).unwrap();
-        assert_eq!(records.len(), 1);
+    #[test]
+    fn test_import_resolution() {
+        let client = AleoAPIClient::<Testnet3>::testnet3();
+        let imports = client.get_program_imports("imported_add_mul.aleo").unwrap();
+        let id1 = ProgramID::<Testnet3>::from_str("multiply_test.aleo").unwrap();
+        let id2 = ProgramID::<Testnet3>::from_str("double_test.aleo").unwrap();
+        let id3 = ProgramID::<Testnet3>::from_str("addition_test.aleo").unwrap();
 
-        // Check the commitment.
-        let (commitment, record) = records[0].clone();
-        assert_eq!(
-            commitment.to_string(),
-            "310298409899964034200900546312426933043797406211272306332560156413249565239field"
-        );
-
-        // Decrypt the record.
-        let record = record.decrypt(&view_key).unwrap();
-        let expected = r"{
-  owner: aleo18x0yenrkceapvt85e6aqw2v8hq37hpt4ew6k6cgum6xlpmaxt5xqwnkuja.private,
-  gates: 1099999999999864u64.private,
-  _nonce: 3859911413360468505092363429199432421222291175370483298628506550397056121761group.public
-}";
-        assert_eq!(record.to_string(), expected);
+        let keys = imports.keys();
+        println!("Imports: {keys:?}");
+        assert!(imports.contains_key(&id1));
+        assert!(imports.contains_key(&id2));
+        assert!(imports.contains_key(&id3));
+        assert_eq!(keys.len(), 3);
     }
 }

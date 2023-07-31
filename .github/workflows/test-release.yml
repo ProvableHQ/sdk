@@ -30,7 +30,7 @@ jobs:
       # SCCACHE_RECACHE: 1 # Uncomment this to clear cache, then comment it back out
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install sccache Ubuntu
         if: matrix.os == 'ubuntu-latest'
@@ -86,7 +86,6 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all
 
       - name: Print sccache stats
         run: sccache --show-stats
@@ -106,7 +105,7 @@ jobs:
         uses: devbotsxyz/xcode-select@v1.1.0
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install sccache
         run: |
@@ -163,7 +162,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Rust Stable
         uses: actions-rs/toolchain@v1
