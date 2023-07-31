@@ -278,9 +278,12 @@ export const Execute = () => {
                 onFormFinish={(name, info) => {
                     if (name !== "execute") {
                         form.setFieldValue("functionName", name);
+                        let translatedArray = info.values.inputs.map((item) => {
+                            return JSON.stringify(item).replaceAll('"', "");
+                        });
                         form.setFieldValue(
                             "inputs",
-                            JSON.stringify(info.values.inputs),
+                            JSON.stringify(translatedArray),
                         );
                         form.submit();
                     }
