@@ -34,7 +34,6 @@ let transferPublicToPrivateVerifyingKey = null;
 await init();
 await aleo.initThreadPool(10);
 const aleoProgramManager = new aleo.ProgramManager();
-console.log("worker ready");
 
 self.postMessage({
     type: "ALEO_WORKER_READY",
