@@ -1,6 +1,6 @@
 import init, * as aleo from "@aleohq/wasm";
 
-//await init();
+await init();
 
 // Get program source code from the Aleo network
 async function getProgram(name) {

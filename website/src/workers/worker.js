@@ -35,6 +35,11 @@ let transferPublicToPrivateVerifyingKey = null;
 await init();
 await aleo.initThreadPool(10);
 const aleoProgramManager = new aleo.ProgramManager();
+console.log("worker ready");
+
+self.postMessage({
+    type: "ALEO_WORKER_READY",
+});
 
 const getFunctionKeys = async (proverUrl, verifierUrl) => {
     console.log(
@@ -113,7 +118,7 @@ self.addEventListener("message", (ev) => {
                     aleoFunction,
                     inputs,
                     true,
-                    imports
+                    imports,
                 );
 
                 console.log(
@@ -123,10 +128,16 @@ self.addEventListener("message", (ev) => {
                 );
                 let outputs = response.getOutputs();
                 console.log(`Function execution response: ${outputs}`);
-                self.postMessage({ type: "OFFLINE_EXECUTION_COMPLETED", outputs });
+                self.postMessage({
+                    type: "OFFLINE_EXECUTION_COMPLETED",
+                    outputs,
+                });
             } catch (error) {
                 console.log(error);
-                self.postMessage({ type: "ERROR", errorMessage: error.toString() });
+                self.postMessage({
+                    type: "ERROR",
+                    errorMessage: error.toString(),
+                });
             }
         })();
     } else if (ev.data.type === "ALEO_EXECUTE_PROGRAM_ON_CHAIN") {
@@ -179,7 +190,7 @@ self.addEventListener("message", (ev) => {
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
                     true,
-                    imports
+                    imports,
                 );
 
                 console.log(
@@ -274,7 +285,7 @@ self.addEventListener("message", (ev) => {
                     await aleoProgramManager.estimateDeploymentFee(
                         program,
                         false,
-                        imports
+                        imports,
                     );
 
                 console.log(
@@ -307,7 +318,9 @@ self.addEventListener("message", (ev) => {
             url,
         } = ev.data;
 
-        console.log(`Web worker: Creating transfer of type ${transfer_type}...`);
+        console.log(
+            `Web worker: Creating transfer of type ${transfer_type}...`,
+        );
         let startTime = performance.now();
 
         (async function () {
@@ -434,7 +447,10 @@ self.addEventListener("message", (ev) => {
                     );
                 }
 
-                let transferAmountRecord = amountRecord !== undefined ? aleo.RecordPlaintext.fromString(amountRecord) : undefined;
+                let transferAmountRecord =
+                    amountRecord !== undefined
+                        ? aleo.RecordPlaintext.fromString(amountRecord)
+                        : undefined;
 
                 let transferTransaction = await aleoProgramManager.transfer(
                     aleo.PrivateKey.from_string(privateKey),
@@ -512,7 +528,7 @@ self.addEventListener("message", (ev) => {
                     aleo.RecordPlaintext.fromString(feeRecord),
                     url,
                     true,
-                    imports
+                    imports,
                 );
 
                 console.log(

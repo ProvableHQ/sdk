@@ -13,9 +13,6 @@ import {
     Space,
 } from "antd";
 import axios from "axios";
-import init, * as aleo from "@aleohq/wasm";
-
-//await init();
 
 export const Deploy = () => {
     const [deploymentFeeRecord, setDeploymentFeeRecord] = useState(null);
