@@ -13,7 +13,7 @@ const WorkerProvider = ({ children }) => {
 
         worker.onmessage = (event) => {
             if (event.data.type === "ALEO_WORKER_READY") {
-                setWorkerReady(true); // Worker is ready, update the state
+                setWorkerReady(true);
             }
         };
 
