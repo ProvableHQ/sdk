@@ -1,15 +1,3 @@
-.logo {
-    height: 32px;
-    margin: 16px;
-}
-
-.logo:before {
-    content: "Aleo SDK";
-    color: white;
-    font-size: 20px;
-    font-weight: bold;
-}
-
 /*
  * Input (disabled) - Make box appear not disabled
  *
@@ -17,10 +5,4 @@
  */
 input[type="text"]:disabled {
     cursor: text;
-}
-
-/* Copy to clipboard icon formatting */
-.ant-input-group-addon:last-child {
-    border-radius: 20px;
-    width: 42px;
 }
