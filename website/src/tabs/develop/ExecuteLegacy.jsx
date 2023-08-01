@@ -19,7 +19,7 @@ import init, * as aleo from "@aleohq/wasm";
 
 //await init();
 
-export const Execute = () => {
+export const ExecuteLegacy = () => {
     const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
     const [executeUrl, setExecuteUrl] = useState("https://vm.aleo.org/api");
     const [functionID, setFunctionID] = useState(null);

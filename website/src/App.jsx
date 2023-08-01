@@ -1,7 +1,7 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import { ConfigProvider, Layout, Menu, theme } from "antd";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { ConfigProvider, Layout, Menu, Switch, theme, Typography } from "antd";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import {
     ApiOutlined,
@@ -10,10 +10,44 @@ import {
     SwapOutlined,
     ToolOutlined,
     UserOutlined,
+    FormatPainterOutlined,
+    FireOutlined,
 } from "@ant-design/icons";
 
 const { Content, Footer, Sider } = Layout;
 
+const menuItems = [
+    {
+        label: <Link to="/account">Account</Link>,
+        key: "/account",
+        icon: <UserOutlined />,
+    },
+    {
+        label: <Link to="/record">Record</Link>,
+        key: "/record",
+        icon: <ProfileOutlined />,
+    },
+    {
+        label: <Link to="/rest">REST API</Link>,
+        key: "/rest",
+        icon: <ApiOutlined />,
+    },
+    {
+        label: <Link to="/advanced">Advanced</Link>,
+        key: "/advanced",
+        icon: <ToolOutlined />,
+    },
+    {
+        label: <Link to="/develop">Develop</Link>,
+        key: "/develop",
+        icon: <CodeOutlined />,
+    },
+    {
+        label: <Link to="/transfer">Transfer</Link>,
+        key: "transfer",
+        icon: <SwapOutlined />,
+    },
+];
 function App() {
     const [menuIndex, setMenuIndex] = useState("account");
 
@@ -30,43 +64,14 @@ function App() {
         }
     }, [location, navigate]);
 
-    const menuItems = [
-        {
-            label: "Account",
-            key: "/account",
-            icon: <UserOutlined />,
-        },
-        {
-            label: "Record",
-            key: "/record",
-            icon: <ProfileOutlined />,
-        },
-        {
-            label: "REST API",
-            key: "/rest",
-            icon: <ApiOutlined />,
-        },
-        {
-            label: "Advanced",
-            key: "/advanced",
-            icon: <ToolOutlined />,
-        },
-        {
-            label: "Develop",
-            key: "/develop",
-            icon: <CodeOutlined />,
-        },
-        {
-            label: "Transfer",
-            key: "transfer",
-            icon: <SwapOutlined />,
-        },
-    ];
+    const [darkMode, setDarkMode] = useState(true);
 
     return (
         <ConfigProvider
             theme={{
-                algorithm: theme.darkAlgorithm,
+                algorithm: darkMode
+                    ? theme.darkAlgorithm
+                    : theme.defaultAlgorithm,
                 token: {
                     colorPrimary: "#18e48f",
                 },
@@ -74,12 +79,33 @@ function App() {
         >
             <Layout style={{ minHeight: "100vh" }}>
                 <Sider breakpoint="lg" collapsedWidth="0" theme="light">
-                    <div alt="Aleo SDK Logo" className="logo"></div>
+                    <Typography.Title
+                        level={4}
+                        alt="Aleo SDK Logo"
+                        style={{
+                            margin: "16px",
+                            fontWeight: "bold",
+                            whiteSpace: "nowrap",
+                        }}
+                    >
+                        Aleo SDK
+                    </Typography.Title>
                     <Menu
+                        theme="light"
                         mode="inline"
                         selectedKeys={[menuIndex]}
                         items={menuItems}
                         onClick={onClick}
+                    />
+                    <Switch
+                        style={{
+                            marginTop: "24px",
+                            marginLeft: "24px",
+                        }}
+                        checked={darkMode}
+                        onChange={(value) => setDarkMode(value)}
+                        checkedChildren="Dark"
+                        unCheckedChildren="Light"
                     />
                 </Sider>
                 <Layout>

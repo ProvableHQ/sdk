@@ -14,11 +14,12 @@ import { GetProgram } from "./tabs/rest/GetProgram.jsx";
 import { GetTransaction } from "./tabs/rest/GetTransaction.jsx";
 import { EncryptAccount } from "./tabs/advanced/EncryptAccount.jsx";
 import { DecryptAccount } from "./tabs/advanced/DecryptAccount.jsx";
-import { Execute } from "./tabs/develop/Execute.jsx";
+import { ExecuteLegacy } from "./tabs/develop/ExecuteLegacy.jsx";
 import { Deploy } from "./tabs/develop/Deploy.jsx";
 import { Transfer } from "./tabs/develop/Transfer.jsx";
 import { Split } from "./tabs/develop/Split.jsx";
 import { Join } from "./tabs/develop/Join.jsx";
+import { Execute } from "./tabs/develop/execute/";
 import { GetMappingNames } from "./tabs/rest/GetMappingNames.jsx";
 import { GetMappingValue } from "./tabs/rest/GetMappingValue.jsx";
 
@@ -105,6 +106,14 @@ export const router = createBrowserRouter([
                         <Split />
                         <br />
                         <Join />
+                    </>
+                ),
+            },
+            {
+                path: "/execute_legacy",
+                element: (
+                    <>
+                        <ExecuteLegacy />
                     </>
                 ),
             },
