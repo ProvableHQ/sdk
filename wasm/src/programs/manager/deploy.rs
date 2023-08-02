@@ -59,7 +59,7 @@ impl ProgramManager {
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     /// @returns {Transaction | Error}
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = buildDeploymentTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn deploy(
         &mut self,
