@@ -56,9 +56,9 @@ impl ProgramManager {
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param proving_key (optional) Provide a verifying key to use for the function execution
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = executeFunctionOffline)]
     #[allow(clippy::too_many_arguments)]
-    pub fn execute_local(
+    pub fn execute_function_offline(
         &mut self,
         private_key: PrivateKey,
         program: String,
@@ -112,7 +112,7 @@ impl ProgramManager {
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     /// @returns {Transaction | Error}
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = buildExecutionTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute(
         &mut self,

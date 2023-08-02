@@ -211,4 +211,5 @@ export class Account {
   verify(message: Uint8Array, signature: Signature) {
     return this._address.verify(message, signature);
   }
+
 }
