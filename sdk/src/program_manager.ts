@@ -336,8 +336,10 @@ class ProgramManager extends WasmProgramManager {
             nonces.push(feeRecord.nonce());
         } else {
             if (this.recordProvider) {
-                const record = await this.recordProvider.findCreditsRecord(fee, true, []);
-                nonces.push(record.nonce());
+                const feeRecord = await this.recordProvider.findCreditsRecord(fee, true, []);
+                if (feeRecord instanceof RecordPlaintext) {
+                    nonces.push(feeRecord.nonce());
+                }
             } else {
                 throw("No record provider set and no fee record provided");
             }
