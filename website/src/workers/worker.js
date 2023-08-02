@@ -690,6 +690,7 @@ async function resolveImports(program_code) {
     }
     return imports;
 }
+
 async function getProgram(name) {
     const response = await fetch(
         `https://vm.aleo.org/api/testnet3/program/${name}`,
