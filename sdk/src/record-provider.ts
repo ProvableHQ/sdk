@@ -37,7 +37,7 @@ interface RecordProvider {
      * const record2 = await recordProvider.findCreditsRecord(5000, true, [record.nonce()]);
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
-     * // fee records and amount records for value transfers so they do not need to be specified manually
+     * // fee records and amount records for value transfers so that they do not need to be specified manually
      * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
@@ -60,7 +60,7 @@ interface RecordProvider {
      * // found again if a subsequent search is performed
      * const nonces = [];
      * records.forEach(record => { nonces.push(record.nonce()) });
-     * const records2 = await recordProvider.findCreditsRecord(5000, true, records);
+     * const records2 = await recordProvider.findCreditsRecord(5000, true, nonces);
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
      * // fee records and amount records for value transfers so that they do not need to be specified manually
@@ -88,12 +88,10 @@ interface RecordProvider {
      *     start_height: number;
      *     end_height: number;
      *     amount: number;
-     *     max_records: number;
      *     constructor(start_height: number, end_height: number, credits: number, max_records: number) {
      *         this.start_height = start_height;
      *         this.end_height = end_height;
      *         this.amount = amount;
-     *         this.max_records = max_records;
      *     }
      * }
      *
@@ -236,6 +234,20 @@ class NetworkRecordProvider implements RecordProvider {
 /**
  * BlockHeightSearch is a RecordSearchParams implementation that allows for searching for records within a given
  * block height range.
+ *
+ * @example
+ * // Create a new BlockHeightSearch
+ * const params = new BlockHeightSearch(89995, 99995);
+ *
+ * // Create a new NetworkRecordProvider
+ * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+ * const keyProvider = new AleoKeyProvider(networkClient);
+ * const recordProvider = new NetworkRecordProvider(account, networkClient);
+ *
+ * // The record provider can be used to find records with a given number of microcredits and the block height search
+ * // can be used to find records within a given block height range
+ * const record = await recordProvider.findCreditsRecord(5000, true, [], params);
+ *
  */
 class BlockHeightSearch implements RecordSearchParams {
     start_height: number;

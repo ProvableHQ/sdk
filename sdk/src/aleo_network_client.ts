@@ -18,7 +18,6 @@ export class AleoNetworkClient {
   host: string;
   account: Account | undefined;
 
-
   constructor(host: string) {
     this.host = host + "/testnet3";
   }
@@ -64,201 +63,6 @@ export class AleoNetworkClient {
       return new Uint8Array(response.data);
     } catch (error) {
       throw new Error("Error fetching data.");
-    }
-  }
-
-  /**
-   * Returns the block contents of the block at the specified block height
-   *
-   * @param {number} height
-   * @example
-   * const block = connection.getBlock(1234);
-   */
-  async getBlock(height: number): Promise<Block | Error> {
-    try {
-      const block = await this.fetchData<Block>("/block/" + height);
-      return block;
-    } catch (error) {
-      throw new Error("Error fetching block.");
-    }
-  }
-
-  /**
-   * Returns a range of blocks between the specified block heights
-   *
-   * @param {number} start
-   * @param {number} end
-   * @example
-   * const blockRange = connection.getBlockRange(2050, 2100);
-   */
-  async getBlockRange(start: number, end: number): Promise<Array<Block> | Error> {
-    try {
-      return await this.fetchData<Array<Block>>("/blocks?start=" + start + "&end=" + end);
-    } catch (error) {
-      const errorMessage = "Error fetching blocks between " + start + " and " + end + "."
-      throw new Error(errorMessage);
-    }
-  }
-
-  /**
-   * Returns the source code of a program
-   *
-   * @param {string} programId
-   * @example
-   * const program = connection.getProgram("foo.aleo");
-   */
-  async getProgram(programId: string): Promise<string | Error> {
-    try {
-      return await this.fetchData<string>("/program/" + programId)
-    } catch (error) {
-      throw new Error("Error fetching program");
-    }
-  }
-
-  /**
-   * Returns the names of the mappings of a program
-   *
-   * @param {string} programId
-   * @example
-   * const mappings = connection.getProgramMappingNames("credits.aleo");
-   */
-  async getProgramMappingNames(programId: string): Promise<Array<string> | Error> {
-    try {
-      return await this.fetchData<Array<string>>("/program/" + programId + "/mappings")
-    } catch (error) {
-      throw new Error("Error fetching program mappings - ensure the program exists on chain before trying again");
-    }
-  }
-
-  /**
-   * Returns the value of a program's mapping for a specific key
-   *
-   * @param {string} programId
-   * @param {string} mappingName
-   * @param {string} key
-   * @example
-   * ## Get public balance of an account
-   * const mappingValue = connection.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
-   */
-  async getMappingValue(programId: string, mappingName: string, key: string): Promise<string | Error> {
-    try {
-      return await this.fetchData<string>("/program/" + programId + "/mapping/" + mappingName + "/" + key)
-    } catch (error) {
-      throw new Error("Error fetching mapping value - ensure the mapping exists and the key is correct");
-    }
-  }
-
-  /**
-   * Returns the block contents of the latest block
-   *
-   * @example
-   * const latestHeight = connection.getLatestBlock();
-   */
-  async getLatestBlock(): Promise<Block | Error> {
-    try {
-      return await this.fetchData<Block>("/latest/block") as Block;
-    } catch (error) {
-      throw new Error("Error fetching latest block.");
-    }
-  }
-
-  /**
-   * Returns the hash of the last published block
-   *
-   * @example
-   * const latestHash = connection.getLatestHash();
-   */
-  async getLatestHash(): Promise<string | Error> {
-    try {
-      return await this.fetchData<string>("/latest/hash");
-    } catch (error) {
-      throw new Error("Error fetching latest hash.");
-    }
-  }
-
-  /**
-   * Returns the latest block height
-   *
-   * @example
-   * const latestHeight = connection.getLatestHeight();
-   */
-  async getLatestHeight(): Promise<number | Error> {
-    try {
-      return await this.fetchData<number>("/latest/height");
-    } catch (error) {
-      throw new Error("Error fetching latest height.");
-    }
-  }
-
-  /**
-   * Returns the latest state/merkle root of the Aleo blockchain
-   *
-   * @example
-   * const stateRoot = connection.getStateRoot();
-   */
-  async getStateRoot(): Promise<string | Error> {
-    try {
-      return await this.fetchData<string>("/latest/stateRoot");
-    } catch (error) {
-      throw new Error("Error fetching Aleo state root");
-    }
-  }
-
-  /**
-   * Returns a transaction by its unique identifier
-   *
-   * @param {string} id
-   * @example
-   * const transaction = connection.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
-   */
-  async getTransaction(id: string): Promise<Transaction | Error> {
-    try {
-      return await this.fetchData<Transaction>("/transaction/" + id);
-    } catch (error) {
-      throw new Error("Error fetching transaction.");
-    }
-  }
-
-  /**
-   * Returns the transactions present at the specified block height
-   *
-   * @param {number} height
-   * @example
-   * const transactions = connection.getTransactions(654);
-   */
-  async getTransactions(height: number): Promise<Array<Transaction> | Error> {
-    try {
-      return await this.fetchData<Array<Transaction>>("/block/" + height.toString() + "/transactions");
-    } catch (error) {
-      throw new Error("Error fetching transactions.");
-    }
-  }
-
-  /**
-   * Returns the transactions in the memory pool.
-   *
-   * @example
-   * const transactions = connection.getTransactionsInMempool();
-   */
-  async getTransactionsInMempool(): Promise<Array<Transaction> | Error> {
-    try {
-      return await this.fetchData<Array<Transaction>>("/memoryPool/transactions");
-    } catch (error) {
-      throw new Error("Error fetching transactions from mempool.");
-    }
-  }
-
-  /**
-   * Returns the transition id by its unique identifier
-   *
-   * @example
-   * const transition = connection.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
-   */
-  async getTransitionId(transition_id: string): Promise<Transition | Error> {
-    try {
-      return await this.fetchData<Transition>("/find/transitionID/" + transition_id);
-    } catch (error) {
-      throw new Error("Error fetching transition ID.");
     }
   }
 
@@ -447,14 +251,244 @@ export class AleoNetworkClient {
     }
     return records;
   }
-  
-  async resolveProgramImports(program_source: string | Program): object {
-    const program = program_source instanceof Program ? program_source : Program.fromString(program_source);
-    program.getImports()
+
+  /**
+   * Returns the block contents of the block at the specified block height
+   *
+   * @param {number} height
+   * @example
+   * const block = connection.getBlock(1234);
+   */
+  async getBlock(height: number): Promise<Block | Error> {
+    try {
+      const block = await this.fetchData<Block>("/block/" + height);
+      return block;
+    } catch (error) {
+      throw new Error("Error fetching block.");
+    }
   }
 
   /**
-   * Submit a execute or deployment transaction to the Aleo network
+   * Returns a range of blocks between the specified block heights
+   *
+   * @param {number} start
+   * @param {number} end
+   * @example
+   * const blockRange = connection.getBlockRange(2050, 2100);
+   */
+  async getBlockRange(start: number, end: number): Promise<Array<Block> | Error> {
+    try {
+      return await this.fetchData<Array<Block>>("/blocks?start=" + start + "&end=" + end);
+    } catch (error) {
+      const errorMessage = "Error fetching blocks between " + start + " and " + end + "."
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Returns the block contents of the latest block
+   *
+   * @example
+   * const latestHeight = connection.getLatestBlock();
+   */
+  async getLatestBlock(): Promise<Block | Error> {
+    try {
+      return await this.fetchData<Block>("/latest/block") as Block;
+    } catch (error) {
+      throw new Error("Error fetching latest block.");
+    }
+  }
+
+  /**
+   * Returns the hash of the last published block
+   *
+   * @example
+   * const latestHash = connection.getLatestHash();
+   */
+  async getLatestHash(): Promise<string | Error> {
+    try {
+      return await this.fetchData<string>("/latest/hash");
+    } catch (error) {
+      throw new Error("Error fetching latest hash.");
+    }
+  }
+
+  /**
+   * Returns the latest block height
+   *
+   * @example
+   * const latestHeight = connection.getLatestHeight();
+   */
+  async getLatestHeight(): Promise<number | Error> {
+    try {
+      return await this.fetchData<number>("/latest/height");
+    } catch (error) {
+      throw new Error("Error fetching latest height.");
+    }
+  }
+
+  /**
+   * Returns the source code of a program
+   *
+   * @param {string} programId
+   * @example
+   * const program = connection.getProgram("foo.aleo");
+   */
+  async getProgram(programId: string): Promise<string | Error> {
+    try {
+      return await this.fetchData<string>("/program/" + programId)
+    } catch (error) {
+      throw new Error("Error fetching program");
+    }
+  }
+
+  /**
+   *
+   * @param program
+   */
+  async getProgramImports(program: Program | string): Promise<{ [key: string]: string | Program }> {
+    const imports: { [key: string]: any } = {};
+
+    program = program instanceof Program ? program : Program.fromString(program);
+    const importList = await this.getProgramImportNames(program);
+    for (let i = 0; i < importList.length; i++) {
+      const import_id = importList[i];
+      if (!imports.hasOwnProperty(import_id)) {
+        const programSource = await this.getProgram(import_id);
+        if (programSource instanceof Error) {
+          throw "Error fetching imported program: " + import_id;
+        }
+        const importedProgram = Program.fromString(programSource);
+        const nestedImports = await this.getProgramImports(importedProgram);
+        for (const key in nestedImports) {
+          if (!imports.hasOwnProperty(key)) {
+            imports[key] = nestedImports[key];
+          }
+        }
+        imports[import_id] = importedProgram;
+      }
+    }
+    return imports;
+  }
+
+  /**
+   * Get a list of the program names that a program imports
+   *
+   * @param program [Program | string] - The program or program source code to get the imports of
+   * @returns {string[]} - The list of program names that the program imports
+   */
+  async getProgramImportNames(program: Program | string): Promise<string[]> {
+    program = program instanceof Program ? program : Program.fromString(program);
+    return program.getImports();
+  }
+
+  /**
+   * Returns the names of the mappings of a program
+   *
+   * @param {string} programId
+   * @example
+   * const mappings = connection.getProgramMappingNames("credits.aleo");
+   */
+  async getProgramMappingNames(programId: string): Promise<Array<string> | Error> {
+    try {
+      return await this.fetchData<Array<string>>("/program/" + programId + "/mappings")
+    } catch (error) {
+      throw new Error("Error fetching program mappings - ensure the program exists on chain before trying again");
+    }
+  }
+
+  /**
+   * Returns the value of a program's mapping for a specific key
+   *
+   * @param {string} programId
+   * @param {string} mappingName
+   * @param {string} key
+   * @example
+   * ## Get public balance of an account
+   * const mappingValue = connection.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+   */
+  async getProgramMappingValue(programId: string, mappingName: string, key: string): Promise<string | Error> {
+    try {
+      return await this.fetchData<string>("/program/" + programId + "/mapping/" + mappingName + "/" + key)
+    } catch (error) {
+      throw new Error("Error fetching mapping value - ensure the mapping exists and the key is correct");
+    }
+  }
+
+  /**
+   * Returns the latest state/merkle root of the Aleo blockchain
+   *
+   * @example
+   * const stateRoot = connection.getStateRoot();
+   */
+  async getStateRoot(): Promise<string | Error> {
+    try {
+      return await this.fetchData<string>("/latest/stateRoot");
+    } catch (error) {
+      throw new Error("Error fetching Aleo state root");
+    }
+  }
+
+  /**
+   * Returns a transaction by its unique identifier
+   *
+   * @param {string} id
+   * @example
+   * const transaction = connection.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+   */
+  async getTransaction(id: string): Promise<Transaction | Error> {
+    try {
+      return await this.fetchData<Transaction>("/transaction/" + id);
+    } catch (error) {
+      throw new Error("Error fetching transaction.");
+    }
+  }
+
+  /**
+   * Returns the transactions present at the specified block height
+   *
+   * @param {number} height
+   * @example
+   * const transactions = connection.getTransactions(654);
+   */
+  async getTransactions(height: number): Promise<Array<Transaction> | Error> {
+    try {
+      return await this.fetchData<Array<Transaction>>("/block/" + height.toString() + "/transactions");
+    } catch (error) {
+      throw new Error("Error fetching transactions.");
+    }
+  }
+
+  /**
+   * Returns the transactions in the memory pool.
+   *
+   * @example
+   * const transactions = connection.getTransactionsInMempool();
+   */
+  async getTransactionsInMempool(): Promise<Array<Transaction> | Error> {
+    try {
+      return await this.fetchData<Array<Transaction>>("/memoryPool/transactions");
+    } catch (error) {
+      throw new Error("Error fetching transactions from mempool.");
+    }
+  }
+
+  /**
+   * Returns the transition id by its unique identifier
+   *
+   * @example
+   * const transition = connection.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
+   */
+  async getTransitionId(transition_id: string): Promise<Transition | Error> {
+    try {
+      return await this.fetchData<Transition>("/find/transitionID/" + transition_id);
+    } catch (error) {
+      throw new Error("Error fetching transition ID.");
+    }
+  }
+
+  /**
+   * Submit an execute or deployment transaction to the Aleo network
    *
    * @param transaction [wasmTransaction | string] - The transaction to submit to the network
    * @returns {string | Error} - The transaction id of the submitted transaction or the resulting error

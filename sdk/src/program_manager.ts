@@ -128,7 +128,7 @@ class ProgramManager extends WasmProgramManager {
         const [feeProvingKey, feeVerifyingKey] = result;
 
         // Resolve the program imports
-        const imports = this.networkClient.resolveProgramImports(program);
+        const imports = this.networkClient.getProgramImports(program);
 
         // Deploy the program and submit the transaction to the network
         const tx = await this.buildDeploymentTransaction(deploymentPrivateKey, program, fee, record, this.host, false, imports, feeProvingKey, feeVerifyingKey);
@@ -180,7 +180,7 @@ class ProgramManager extends WasmProgramManager {
         const [feeProvingKey, feeVerifyingKey] = result;
 
         // Resolve the program imports if they exist
-        const imports = this.networkClient.resolveProgramImports(program);
+        const imports = this.networkClient.getProgramImports(program);
 
         // Deploy the program and submit the transaction to the network
         const tx = await this.buildExecutionTransaction(executionPrivateKey, program, function_name, inputs, fee, record, this.host, false, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey);
@@ -214,7 +214,7 @@ class ProgramManager extends WasmProgramManager {
             throw("No private key provided and no private key set in the ProgramManager");
         }
 
-        const imports = this.networkClient.resolveProgramImports(program);
+        const imports = this.networkClient.getProgramImports(program);
 
         // Deploy the program and submit the transaction to the network
         return await this.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, false, imports, provingKey, verifyingKey);
@@ -336,9 +336,13 @@ class ProgramManager extends WasmProgramManager {
             nonces.push(feeRecord.nonce());
         } else {
             if (this.recordProvider) {
-                const feeRecord = await this.recordProvider.findCreditsRecord(fee, true, []);
-                if (feeRecord instanceof RecordPlaintext) {
+                const record = await this.recordProvider.findCreditsRecord(fee, true, []);
+                if (record instanceof RecordPlaintext) {
+                    feeRecord = record;
                     nonces.push(feeRecord.nonce());
+                } else {
+                    console.log("Record provider did not return a valid record with error:", record);
+                    throw("The record provider did not return a valid record");
                 }
             } else {
                 throw("No record provider set and no fee record provided");
@@ -350,12 +354,15 @@ class ProgramManager extends WasmProgramManager {
             amountRecord = amountRecord instanceof RecordPlaintext ? amountRecord : RecordPlaintext.fromString(amountRecord);
         } else {
             if (this.recordProvider && requiresAmountRecord(transfer_type)) {
-                amountRecord = await this.recordProvider.findCreditsRecord(amount, true, nonces);
+                const record = await this.recordProvider.findCreditsRecord(amount, true, nonces);
+                if (record instanceof RecordPlaintext) {
+                    amountRecord = record;
+                } else {
+                    console.log("Record provider did not return a valid record with error:", record);
+                    throw("The record provider did not return a valid record");
+                }
             } else {
                 throw("No record provider set and no amount record provided");
-            }
-            if (typeof amountRecord == "string") {
-                amountRecord = undefined;
             }
         }
 

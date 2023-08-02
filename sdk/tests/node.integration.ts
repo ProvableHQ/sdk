@@ -58,7 +58,7 @@ describe('NodeConnection', () => {
             if (!(mappings instanceof Error)) {
                 expect(mappings[0]).toBe("account");
             }
-            const mappingValue = await localApiClient.getMappingValue("credits.aleo", "account", "aleo1zrtqrkrr9l09lgnj2qvzyr9sjgs6r5rfqneaj4a9kh7l7tsn2c9qeevqcm");
+            const mappingValue = await localApiClient.getProgramMappingValue("credits.aleo", "account", "aleo1zrtqrkrr9l09lgnj2qvzyr9sjgs6r5rfqneaj4a9kh7l7tsn2c9qeevqcm");
             if (!(mappingValue instanceof Error)) {
                 expect(mappingValue).toBe("0u64");
             }
