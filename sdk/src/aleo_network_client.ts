@@ -285,7 +285,9 @@ export class AleoNetworkClient {
       privateKey: string | undefined,
       amounts: number[] | undefined,
       maxMicrocredits: number | undefined,
+      nonces: string[] | undefined,
   ): Promise<Array<RecordPlaintext> | Error> {
+    nonces = nonces || [];
     // Ensure start height is not negative
     if (startHeight < 0) {
       throw new Error("Start height must be greater than or equal to 0");
@@ -379,6 +381,15 @@ export class AleoNetworkClient {
                               if (record.isOwner(viewKey)) {
                                 // Decrypt the record and get the serial number
                                 const recordPlaintext = record.decrypt(viewKey);
+
+                                // If the record has already been found, skip it
+                                const nonce = recordPlaintext.nonce();
+                                if (nonces.includes(nonce)) {
+                                  continue;
+                                }
+
+                                // Otherwise record the nonce that has been found
+                                nonces.push(nonce);
                                 const serialNumber = recordPlaintext.serialNumberString(resolvedPrivateKey, "credits.aleo", "credits");
                                 // Attempt to see if the serial number is spent
                                 try {
