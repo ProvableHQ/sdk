@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
+import init, * as aleo from "@aleohq/wasm";
 
+await init();
 export const useAleoWASM = () => {
-    const [aleo, setAleo] = useState(null);
+    const [aleoInstance, setAleoInstance] = useState(null);
 
     useEffect(() => {
-        if (aleo === null) {
-            import("@aleohq/wasm").then((module) => setAleo(module));
+        if (aleoInstance === null) {
+            setAleoInstance(aleo);
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
-    return aleo;
+    return aleoInstance;
 };

@@ -15,9 +15,7 @@ import {
 } from "antd";
 import { FormGenerator } from "../../components/InputForm";
 import axios from "axios";
-import init, * as aleo from "@aleohq/wasm";
-
-await init();
+import { useAleoWASM } from "../../aleo-wasm-hook";
 
 export const ExecuteLegacy = () => {
     const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
@@ -39,6 +37,7 @@ export const ExecuteLegacy = () => {
     const [executeOnline, setExecuteOnline] = useState(false);
     const [programInputs, setProgramInputs] = useState(null);
     const [tip, setTip] = useState("Executing Program...");
+    const aleo = useAleoWASM();
 
     const getProgramInputs = () => {
         const programManifest = [];
