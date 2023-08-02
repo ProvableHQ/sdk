@@ -9,10 +9,10 @@ import { RecordCiphertext, Program, ProvingKey, RecordPlaintext, PrivateKey, Tra
  * @param {string} host
  * @example
  * // Connection to a local node
- * let local_connection = new AleoNetworkClient("http://localhost:3030");
+ * const local_connection = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * let public_connection = new AleoNetworkClient("https://vm.aleo.org/api");
+ * const public_connection = new AleoNetworkClient("https://vm.aleo.org/api");
  */
 export class AleoNetworkClient {
   host: string;
@@ -28,7 +28,7 @@ export class AleoNetworkClient {
    *
    * @param {Account} account
    * @example
-   * let account = new Account();
+   * const account = new Account();
    * connection.setAccount(account);
    */
   setAccount(account: Account) {
@@ -39,7 +39,7 @@ export class AleoNetworkClient {
    * Return the Aleo account used in the node connection
    *
    * @example
-   * let account = connection.getAccount();
+   * const account = connection.getAccount();
    */
   getAccount(): Account | undefined {
     return this.account;
@@ -72,7 +72,7 @@ export class AleoNetworkClient {
    *
    * @param {number} height
    * @example
-   * let block = connection.getBlock(1234);
+   * const block = connection.getBlock(1234);
    */
   async getBlock(height: number): Promise<Block | Error> {
     try {
@@ -89,7 +89,7 @@ export class AleoNetworkClient {
    * @param {number} start
    * @param {number} end
    * @example
-   * let blockRange = connection.getBlockRange(2050, 2100);
+   * const blockRange = connection.getBlockRange(2050, 2100);
    */
   async getBlockRange(start: number, end: number): Promise<Array<Block> | Error> {
     try {
@@ -105,7 +105,7 @@ export class AleoNetworkClient {
    *
    * @param {string} programId
    * @example
-   * let program = connection.getProgram("foo.aleo");
+   * const program = connection.getProgram("foo.aleo");
    */
   async getProgram(programId: string): Promise<string | Error> {
     try {
@@ -120,7 +120,7 @@ export class AleoNetworkClient {
    *
    * @param {string} programId
    * @example
-   * let mappings = connection.getProgramMappingNames("credits.aleo");
+   * const mappings = connection.getProgramMappingNames("credits.aleo");
    */
   async getProgramMappingNames(programId: string): Promise<Array<string> | Error> {
     try {
@@ -138,7 +138,7 @@ export class AleoNetworkClient {
    * @param {string} key
    * @example
    * ## Get public balance of an account
-   * let mappingValue = connection.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+   * const mappingValue = connection.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
    */
   async getMappingValue(programId: string, mappingName: string, key: string): Promise<string | Error> {
     try {
@@ -152,7 +152,7 @@ export class AleoNetworkClient {
    * Returns the block contents of the latest block
    *
    * @example
-   * let latestHeight = connection.getLatestBlock();
+   * const latestHeight = connection.getLatestBlock();
    */
   async getLatestBlock(): Promise<Block | Error> {
     try {
@@ -166,7 +166,7 @@ export class AleoNetworkClient {
    * Returns the hash of the last published block
    *
    * @example
-   * let latestHash = connection.getLatestHash();
+   * const latestHash = connection.getLatestHash();
    */
   async getLatestHash(): Promise<string | Error> {
     try {
@@ -180,7 +180,7 @@ export class AleoNetworkClient {
    * Returns the latest block height
    *
    * @example
-   * let latestHeight = connection.getLatestHeight();
+   * const latestHeight = connection.getLatestHeight();
    */
   async getLatestHeight(): Promise<number | Error> {
     try {
@@ -194,7 +194,7 @@ export class AleoNetworkClient {
    * Returns the latest state/merkle root of the Aleo blockchain
    *
    * @example
-   * let stateRoot = connection.getStateRoot();
+   * const stateRoot = connection.getStateRoot();
    */
   async getStateRoot(): Promise<string | Error> {
     try {
@@ -209,7 +209,7 @@ export class AleoNetworkClient {
    *
    * @param {string} id
    * @example
-   * let transaction = connection.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+   * const transaction = connection.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
    */
   async getTransaction(id: string): Promise<Transaction | Error> {
     try {
@@ -224,7 +224,7 @@ export class AleoNetworkClient {
    *
    * @param {number} height
    * @example
-   * let transactions = connection.getTransactions(654);
+   * const transactions = connection.getTransactions(654);
    */
   async getTransactions(height: number): Promise<Array<Transaction> | Error> {
     try {
@@ -238,7 +238,7 @@ export class AleoNetworkClient {
    * Returns the transactions in the memory pool.
    *
    * @example
-   * let transactions = connection.getTransactionsInMempool();
+   * const transactions = connection.getTransactionsInMempool();
    */
   async getTransactionsInMempool(): Promise<Array<Transaction> | Error> {
     try {
@@ -252,7 +252,7 @@ export class AleoNetworkClient {
    * Returns the transition id by its unique identifier
    *
    * @example
-   * let transition = connection.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
+   * const transition = connection.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
    */
   async getTransitionId(transition_id: string): Promise<Transition | Error> {
     try {
@@ -268,16 +268,16 @@ export class AleoNetworkClient {
    * @example
    * // Find all unspent records
    * const privateKey = "[PRIVATE_KEY]";
-   * let records = connection.findUnspentRecords(0, undefined, privateKey);
+   * const records = connection.findUnspentRecords(0, undefined, privateKey);
    *
    * // Find specific amounts
    * const startHeight = 500000;
    * const amounts = [600000, 1000000];
-   * let records = connection.findUnspentRecords(startHeight, undefined, privateKey, amounts);
+   * const records = connection.findUnspentRecords(startHeight, undefined, privateKey, amounts);
    *
    * // Find specific amounts with a maximum number of cumulative microcredits
    * const maxMicrocredits = 100000;
-   * let records = connection.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
+   * const records = connection.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
    */
   async findUnspentRecords(
       startHeight: number,
