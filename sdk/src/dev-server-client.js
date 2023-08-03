@@ -1,77 +1,37 @@
+import { __awaiter, __generator } from "tslib";
 import axios from 'axios';
-
-interface DeployRequest {
-    program: string;
-    private_key?: string;
-    password?: string;
-    fee: number;
-    fee_record?: string;
-}
-
-interface ExecuteRequest {
-    program_id: string;
-    program_function: string;
-    inputs: string[];
-    private_key?: string;
-    password?: string;
-    fee: number;
-    fee_record?: string;
-}
-
-interface TransferRequest {
-    amount: number;
-    fee: number;
-    recipient: string;
-    transfer_type: string;
-    private_key?: string;
-    password?: string;
-    fee_record?: string;
-    amount_record?: string;
-}
-
-const config = {
+var config = {
     headers: {
         "Content-type": "application/json; charset=UTF-8",
         "Referrer-Policy": "no-referrer"
-    },
+    }
 };
-
-export class DevelopmentClient {
+var DevServerClient = /** @class */ (function () {
     /**
-     * Aleo Development Client for usage with an Aleo Development Server. This client is meant
-     * to provide a typescript & javascript api for deploying and executing programs on the
-     * Aleo Network using an Aleo Development Server. An Aleo Development Server is a rust-based
-     * server which runs all the proving & verification operations needed to deploy and execute
-     * programs and then posts program deployments and executions to the Aleo Network. This client
-     * will send RESTful requests to that server and return the resulting transaction_id.
-     *
-     * It requires an Aleo Development Server to be running locally. If one is not running, this
-     * client will not work.
-     *
-     * Information on how to run an Aleo Development Server can be found here:
-     * https://github.com/AleoHQ/sdk/rust/develop/README.md
-     */
-    baseURL: string;
-
-    /**
-     * Creates a new DevelopmentClient to interact with an Aleo Development Server.
+     * Creates a new DevServerClient to interact with an Aleo Development Server.
      *
      * @param {string} baseURL The URL of the Aleo Development Server
      */
-    constructor(baseURL: string) {
+    function DevServerClient(baseURL) {
         this.baseURL = baseURL;
     }
-
-
-    async sendRequest<T>(path: string, request: any): Promise<T> {
-        const response = await axios.post(`${this.baseURL}/testnet3${path}`, request, config);
-
-        if (!(response.statusText = "200")) {throw new Error(`Error sending request: ${response.statusText}`);
-        }
-
-        return await response.data;
-    }
-
+    DevServerClient.prototype.sendRequest = function (path, request) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, axios.post("".concat(this.baseURL, "/testnet3").concat(path), request, config)];
+                    case 1:
+                        response = _a.sent();
+                        if (!(response.statusText = "200")) {
+                            throw new Error("Error sending request: ".concat(response.statusText));
+                        }
+                        return [4 /*yield*/, response.data];
+                    case 2: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
     /**
      * Deploys a program on the Aleo Network via an Aleo development server.
      * It requires an Aleo Development Server to be running remotely or locally.
@@ -88,26 +48,28 @@ export class DevelopmentClient {
      *
      * @example
      * const Program = 'program yourprogram.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n';
-     * const client = new DevelopmentClient("http://0.0.0.0:4040");
+     * const client = new DevServerClient("http://0.0.0.0:4040");
      * const transaction_id = await client.deployProgram(Program, 6000000, privateKeyString);
      */
-    async deployProgram(
-        program: string,
-        fee: number,
-        privateKey?: string,
-        password?: string,
-        feeRecord?: string
-    ): Promise<string> {
-        const request: DeployRequest = {
-            program,
-            private_key: privateKey,
-            password,
-            fee: fee*1000000,
-            fee_record: feeRecord,
-        };
-        return await this.sendRequest('/deploy', request);
-    }
-
+    DevServerClient.prototype.deployProgram = function (program, fee, privateKey, password, feeRecord) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        request = {
+                            program: program,
+                            private_key: privateKey,
+                            password: password,
+                            fee: fee * 1000000,
+                            fee_record: feeRecord
+                        };
+                        return [4 /*yield*/, this.sendRequest('/deploy', request)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
     /**
      * Executes a program on the Aleo Network via an Aleo development server.
      * It requires an Aleo Development Server to be running remotely or locally.
@@ -126,30 +88,30 @@ export class DevelopmentClient {
      *
      * @example
      * const privateKey = "your private key";
-     * const client = new DevelopmentClient("http://0.0.0.0:4040");
+     * const client = new DevServerClient("http://0.0.0.0:4040");
      * const transaction_id = await client.executeProgram("hello.aleo", "hello", 0, ["5u32", "5u32"], privateKeyString);
      */
-    async executeProgram(
-        programId: string,
-        programFunction: string,
-        fee: number,
-        inputs: string[],
-        privateKey?: string,
-        password?: string,
-        feeRecord?: string
-    ): Promise<string> {
-        const request: ExecuteRequest = {
-            program_id: programId,
-            program_function: programFunction,
-            inputs,
-            private_key: privateKey,
-            password,
-            fee: fee*1000000,
-            fee_record: feeRecord
-        }
-        return await this.sendRequest('/execute', request);
-    }
-
+    DevServerClient.prototype.executeProgram = function (programId, programFunction, fee, inputs, privateKey, password, feeRecord) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        request = {
+                            program_id: programId,
+                            program_function: programFunction,
+                            inputs: inputs,
+                            private_key: privateKey,
+                            password: password,
+                            fee: fee * 1000000,
+                            fee_record: feeRecord
+                        };
+                        return [4 /*yield*/, this.sendRequest('/execute', request)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
     /**
      * Sends an amount in credits to a specified recipient on the Aleo Network
      * via an Aleo development server. It requires an Aleo Development Server
@@ -171,31 +133,33 @@ export class DevelopmentClient {
      * @example
      * const privateKey = "your private key";
      * const recipient = "recipient's address";
-     * const client = new DevelopmentClient("http://0.0.0.0:4040");
+     * const client = new DevServerClient("http://0.0.0.0:4040");
      * const transaction_id = await client.transfer(1.5, 0, recipient, privateKey);
      */
-    async transfer(
-        amount: number,
-        fee: number,
-        recipient: string,
-        transfer_type: string,
-        privateKey?: string,
-        password?: string,
-        feeRecord?: string,
-        amountRecord?: string
-    ): Promise<string> {
-        const request: TransferRequest = {
-            amount: amount*1000000,
-            fee: fee*1000000,
-            transfer_type,
-            recipient,
-            private_key: privateKey,
-            password,
-            fee_record: feeRecord,
-            amount_record: amountRecord
-        }
-        return await this.sendRequest('/transfer', request);
-    }
-}
-
-export default DevelopmentClient;
+    DevServerClient.prototype.transfer = function (amount, fee, recipient, transfer_type, privateKey, password, feeRecord, amountRecord) {
+        return __awaiter(this, void 0, void 0, function () {
+            var request;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        request = {
+                            amount: amount * 1000000,
+                            fee: fee * 1000000,
+                            transfer_type: transfer_type,
+                            recipient: recipient,
+                            private_key: privateKey,
+                            password: password,
+                            fee_record: feeRecord,
+                            amount_record: amountRecord
+                        };
+                        return [4 /*yield*/, this.sendRequest('/transfer', request)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    return DevServerClient;
+}());
+export { DevServerClient };
+export default DevServerClient;
+//# sourceMappingURL=dev-server-client.js.map

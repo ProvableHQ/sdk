@@ -1,22 +1,17 @@
 import init, {
     initThreadPool,
-    Program,
     ProgramManager as WasmProgramManager,
-    ProvingKey,
-    VerifyingKey,
-    RecordPlaintext,
-    ExecutionResponse
 } from '@aleohq/wasm'
-import { Account, AleoKeyProvider, AleoNetworkClient, KeyProvider, PrivateKey} from "./index";
+import { Account, AleoKeyProvider, AleoNetworkClient, ExecutionResponse, FunctionKeyProvider, RecordPlaintext, PrivateKey, Program, ProvingKey, VerifyingKey} from ".";
 import {RecordProvider} from "./record-provider";
 
 class ProgramManager extends WasmProgramManager {
     account: Account | undefined;
-    keyProvider: KeyProvider;
+    keyProvider: FunctionKeyProvider;
     host: string;
     networkClient: AleoNetworkClient;
     recordProvider: RecordProvider | undefined;
-    constructor(host: string | undefined, keyProvider: KeyProvider | undefined, recordProvider: RecordProvider | undefined) {
+    constructor(host: string | undefined, keyProvider: FunctionKeyProvider | undefined, recordProvider: RecordProvider | undefined) {
         if (process.env.NODE_ENV === 'production') {
             throw("ProgramManager is not available in NodeJS")
         }
@@ -31,7 +26,7 @@ class ProgramManager extends WasmProgramManager {
         }
 
         if (typeof keyProvider === "undefined") {
-            this.keyProvider = new AleoKeyProvider(this.networkClient);
+            this.keyProvider = new AleoKeyProvider();
         } else {
             this.keyProvider = keyProvider;
         }
@@ -51,9 +46,9 @@ class ProgramManager extends WasmProgramManager {
     /**
      * Set the key provider that provides the proving and verifying keys for programs
      *
-     * @param keyProvider {KeyProvider}
+     * @param keyProvider {FunctionKeyProvider}
      */
-    setKeyProvider(keyProvider: KeyProvider) {
+    setKeyProvider(keyProvider: FunctionKeyProvider) {
         this.keyProvider = keyProvider;
     }
 
@@ -91,7 +86,7 @@ class ProgramManager extends WasmProgramManager {
     }
 
     /**
-     * Deploy an Aleo instructions program to the network
+     * Deploy an Aleo program to the Aleo network
      *
      * @param program {string} Program source code
      * @param fee {number} Fee to pay for the transaction
@@ -99,6 +94,18 @@ class ProgramManager extends WasmProgramManager {
      * @param feeRecord {string | RecordPlaintext} Fee record to use for the transaction
      * @param privateKey {PrivateKey | undefined} Optional private key to use for the transaction
      * @returns {string | Error} The transaction id of the deployed program or a failure message from the network
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for deployments
+     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
+     * const tx_id = await programManager.deploy(program, fee, feeRecord)
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
     async deploy(
         program: string,
@@ -136,7 +143,7 @@ class ProgramManager extends WasmProgramManager {
     }
 
     /**
-     * Execute an Aleo instructions program on the Aleo network
+     * Execute an Aleo program on the Aleo network
      *
      * @param program {string} Program source code containing the function to be executed
      * @param function_name {string} Function name to execute
@@ -147,13 +154,25 @@ class ProgramManager extends WasmProgramManager {
      * @param provingKey {ProvingKey | undefined} Optional proving key to use for the transaction
      * @param verifyingKey {VerifyingKey | undefined} Optional verifying key to use for the transaction
      * @returns {Promise<string | Error>}
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
+     * const tx_id = await programManager.execute(program, "hello_hello", 0.020, ["5u32", "5u32"])
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
     async execute(
         program: string,
         function_name: string,
         fee: number,
         inputs: string[],
-        feeRecord: string | RecordPlaintext,
+        feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
         provingKey?: ProvingKey,
         verifyingKey?: VerifyingKey,
@@ -170,7 +189,7 @@ class ProgramManager extends WasmProgramManager {
         }
 
         // Get the fee record from the account if it is not provided in the parameters
-        const record = feeRecord instanceof RecordPlaintext ? feeRecord : RecordPlaintext.fromString(feeRecord);
+        const record = feeRecord instanceof RecordPlaintext ? feeRecord : RecordPlaintext.fromString(<string>feeRecord);
 
         // Get the proving and verifying keys from the key provider
         const result = await this.keyProvider.feeKeys();
@@ -188,7 +207,7 @@ class ProgramManager extends WasmProgramManager {
     }
 
     /**
-     * Execute an Aleo instructions in offline mode
+     * Execute an Aleo program in offline mode
      *
      * @param program {string} Program source code containing the function to be executed
      * @param function_name {string} Function name to execute

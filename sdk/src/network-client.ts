@@ -1,20 +1,21 @@
 import axios from "axios";
-import {Account, Block, CREDITS_PROGRAM_KEYS, Transaction, Transition} from ".";
-import { RecordCiphertext, Program, ProvingKey, RecordPlaintext, PrivateKey, Transaction as wasmTransaction, VerifyingKey} from "@aleohq/wasm";
+import {Account, Block, RecordCiphertext, Program, RecordPlaintext, PrivateKey, WasmTransaction, Transaction, Transition} from ".";
+
+type ProgramImports = { [key: string]: string | Program };
 
 /**
- * Connection management class that encapsulates REST calls to publicly exposed endpoints of Aleo nodes.
- * The methods provided in this class provide information on the Aleo Blockchain
+ * Client library that encapsulates REST calls to publicly exposed endpoints of Aleo nodes. The methods provided in this
+ * allow users to query public information from the Aleo blockchain and submit transactions to the network.
  *
  * @param {string} host
  * @example
  * // Connection to a local node
- * const local_connection = new AleoNetworkClient("http://localhost:3030");
+ * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * const public_connection = new AleoNetworkClient("https://vm.aleo.org/api");
+ * const publicnetworkClient = new AleoNetworkClient("https://vm.aleo.org/api");
  */
-export class AleoNetworkClient {
+class AleoNetworkClient {
   host: string;
   account: Account | undefined;
 
@@ -28,17 +29,17 @@ export class AleoNetworkClient {
    * @param {Account} account
    * @example
    * const account = new Account();
-   * connection.setAccount(account);
+   * networkClient.setAccount(account);
    */
   setAccount(account: Account) {
     this.account = account;
   }
 
   /**
-   * Return the Aleo account used in the node connection
+   * Return the Aleo account used in the networkClient
    *
    * @example
-   * const account = connection.getAccount();
+   * const account = networkClient.getAccount();
    */
   getAccount(): Account | undefined {
     return this.account;
@@ -72,16 +73,16 @@ export class AleoNetworkClient {
    * @example
    * // Find all unspent records
    * const privateKey = "[PRIVATE_KEY]";
-   * const records = connection.findUnspentRecords(0, undefined, privateKey);
+   * const records = networkClient.findUnspentRecords(0, undefined, privateKey);
    *
    * // Find specific amounts
    * const startHeight = 500000;
    * const amounts = [600000, 1000000];
-   * const records = connection.findUnspentRecords(startHeight, undefined, privateKey, amounts);
+   * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, amounts);
    *
    * // Find specific amounts with a maximum number of cumulative microcredits
    * const maxMicrocredits = 100000;
-   * const records = connection.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
+   * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
    */
   async findUnspentRecords(
       startHeight: number,
@@ -257,7 +258,7 @@ export class AleoNetworkClient {
    *
    * @param {number} height
    * @example
-   * const block = connection.getBlock(1234);
+   * const block = networkClient.getBlock(1234);
    */
   async getBlock(height: number): Promise<Block | Error> {
     try {
@@ -274,7 +275,7 @@ export class AleoNetworkClient {
    * @param {number} start
    * @param {number} end
    * @example
-   * const blockRange = connection.getBlockRange(2050, 2100);
+   * const blockRange = networkClient.getBlockRange(2050, 2100);
    */
   async getBlockRange(start: number, end: number): Promise<Array<Block> | Error> {
     try {
@@ -289,7 +290,7 @@ export class AleoNetworkClient {
    * Returns the block contents of the latest block
    *
    * @example
-   * const latestHeight = connection.getLatestBlock();
+   * const latestHeight = networkClient.getLatestBlock();
    */
   async getLatestBlock(): Promise<Block | Error> {
     try {
@@ -303,7 +304,7 @@ export class AleoNetworkClient {
    * Returns the hash of the last published block
    *
    * @example
-   * const latestHash = connection.getLatestHash();
+   * const latestHash = networkClient.getLatestHash();
    */
   async getLatestHash(): Promise<string | Error> {
     try {
@@ -317,7 +318,7 @@ export class AleoNetworkClient {
    * Returns the latest block height
    *
    * @example
-   * const latestHeight = connection.getLatestHeight();
+   * const latestHeight = networkClient.getLatestHeight();
    */
   async getLatestHeight(): Promise<number | Error> {
     try {
@@ -330,9 +331,13 @@ export class AleoNetworkClient {
   /**
    * Returns the source code of a program
    *
-   * @param {string} programId
+   * @param {string} programId The program ID of a program deployed to the Aleo Network
+   * @return {Promise<string>} Source code of the program
+   *
    * @example
-   * const program = connection.getProgram("foo.aleo");
+   * const program = networkClient.getProgram("hello_hello.aleo");
+   * const expectedSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
+   * assert.equal(program, expectedSource);
    */
   async getProgram(programId: string): Promise<string | Error> {
     try {
@@ -343,32 +348,46 @@ export class AleoNetworkClient {
   }
 
   /**
+   *  Returns an object containing the source code of a program and the source code of all programs it imports
    *
-   * @param program
+   * @param programName
+   * @returns {Promise<ProgramImports>} Source code of the program and all programs it imports
+   *
+   * @example
+   * const programImports = networkClient.getProgramImports("imported_add_mul.aleo");
+   * const expectedImports = {
+   *     "multiply_test.aleo": "program multiply_test.aleo;\n\nfunction multiply:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n    output r2 as u32.private;\n"
+   * }
+   * assert.deepStrictEqual(programImports, expectedImports);
    */
-  async getProgramImports(program: Program | string): Promise<{ [key: string]: string | Program }> {
-    const imports: { [key: string]: any } = {};
+  async getProgramImports(programName: string): Promise<ProgramImports> {
+    try {
+      // Get the program source code from the network
+      const imports: { [key: string]: any } = {};
+      const program = await this.getProgram(programName);
 
-    program = program instanceof Program ? program : Program.fromString(program);
-    const importList = await this.getProgramImportNames(program);
-    for (let i = 0; i < importList.length; i++) {
-      const import_id = importList[i];
-      if (!imports.hasOwnProperty(import_id)) {
-        const programSource = await this.getProgram(import_id);
-        if (programSource instanceof Error) {
-          throw "Error fetching imported program: " + import_id;
-        }
-        const importedProgram = Program.fromString(programSource);
-        const nestedImports = await this.getProgramImports(importedProgram);
-        for (const key in nestedImports) {
-          if (!imports.hasOwnProperty(key)) {
-            imports[key] = nestedImports[key];
+      // Get the list of programs that the program imports
+      const importList = Program.fromString(<string>program).getImports();
+
+      // Recursively get any imports that the imported programs have in a depth first search order
+      for (let i = 0; i < importList.length; i++) {
+        const import_id = importList[i];
+        if (!imports.hasOwnProperty(import_id)) {
+          const programSource = await this.getProgram(import_id);
+          const nestedImports = await this.getProgramImports(import_id);
+          for (const key in nestedImports) {
+            if (!imports.hasOwnProperty(key)) {
+              imports[key] = nestedImports[key];
+            }
           }
+          imports[import_id] = programSource;
         }
-        imports[import_id] = importedProgram;
       }
+      return imports;
+    } catch (error) {
+      console.error("Error fetching program imports: " + error);
+      throw new Error("Error fetching program imports" + error);
     }
-    return imports;
   }
 
   /**
@@ -376,10 +395,19 @@ export class AleoNetworkClient {
    *
    * @param program [Program | string] - The program or program source code to get the imports of
    * @returns {string[]} - The list of program names that the program imports
+   *
+   * @example
+   * const programImportsNames = networkClient.getProgramImports("imported_add_mul.aleo");
+   * const expectedImportsNames = ["multiply_test.aleo"];
+   * assert.deepStrictEqual(programImportsNames, expectedImportsNames);
    */
-  async getProgramImportNames(program: Program | string): Promise<string[]> {
-    program = program instanceof Program ? program : Program.fromString(program);
-    return program.getImports();
+  async getProgramImportNames(program_name: string): Promise<string[] | Error> {
+    try {
+      const program = await this.getProgram(program_name);
+      return Program.fromString(<string>program).getImports();
+    } catch (error) {
+      throw new Error("Error fetching program imports with error: " + error);
+    }
   }
 
   /**
@@ -387,7 +415,9 @@ export class AleoNetworkClient {
    *
    * @param {string} programId
    * @example
-   * const mappings = connection.getProgramMappingNames("credits.aleo");
+   * const mappings = networkClient.getProgramMappingNames("credits.aleo");
+   * const expectedMappings = ["account"];
+   * assert.deepStrictEqual(mappings, expectedMappings);
    */
   async getProgramMappingNames(programId: string): Promise<Array<string> | Error> {
     try {
@@ -403,9 +433,13 @@ export class AleoNetworkClient {
    * @param {string} programId
    * @param {string} mappingName
    * @param {string} key
+   * @return {Promise<string>} String representation of the value of the mapping
+   *
    * @example
-   * ## Get public balance of an account
-   * const mappingValue = connection.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+   * // Get public balance of an account
+   * const mappingValue = networkClient.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+   * const expectedValue = "0u64";
+   * assert.equal(mappingValue, expectedValue);
    */
   async getProgramMappingValue(programId: string, mappingName: string, key: string): Promise<string | Error> {
     try {
@@ -419,7 +453,7 @@ export class AleoNetworkClient {
    * Returns the latest state/merkle root of the Aleo blockchain
    *
    * @example
-   * const stateRoot = connection.getStateRoot();
+   * const stateRoot = networkClient.getStateRoot();
    */
   async getStateRoot(): Promise<string | Error> {
     try {
@@ -434,7 +468,7 @@ export class AleoNetworkClient {
    *
    * @param {string} id
    * @example
-   * const transaction = connection.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+   * const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
    */
   async getTransaction(id: string): Promise<Transaction | Error> {
     try {
@@ -449,7 +483,7 @@ export class AleoNetworkClient {
    *
    * @param {number} height
    * @example
-   * const transactions = connection.getTransactions(654);
+   * const transactions = networkClient.getTransactions(654);
    */
   async getTransactions(height: number): Promise<Array<Transaction> | Error> {
     try {
@@ -463,7 +497,7 @@ export class AleoNetworkClient {
    * Returns the transactions in the memory pool.
    *
    * @example
-   * const transactions = connection.getTransactionsInMempool();
+   * const transactions = networkClient.getTransactionsInMempool();
    */
   async getTransactionsInMempool(): Promise<Array<Transaction> | Error> {
     try {
@@ -477,7 +511,7 @@ export class AleoNetworkClient {
    * Returns the transition id by its unique identifier
    *
    * @example
-   * const transition = connection.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
+   * const transition = networkClient.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
    */
   async getTransitionId(transition_id: string): Promise<Transition | Error> {
     try {
@@ -493,8 +527,8 @@ export class AleoNetworkClient {
    * @param transaction [wasmTransaction | string] - The transaction to submit to the network
    * @returns {string | Error} - The transaction id of the submitted transaction or the resulting error
    */
-  async submitTransaction(transaction: wasmTransaction | string): Promise<string | Error> {
-    const transaction_string = transaction instanceof wasmTransaction ? transaction.toString() : transaction;
+  async submitTransaction(transaction: WasmTransaction | string): Promise<string | Error> {
+    const transaction_string = transaction instanceof WasmTransaction ? transaction.toString() : transaction;
     try {
       const response = await axios
           .post<string>(
@@ -512,3 +546,5 @@ export class AleoNetworkClient {
     }
   }
 }
+
+export { AleoNetworkClient, ProgramImports }

@@ -1,14 +1,15 @@
 import { Account } from "./account";
-import { AleoNetworkClient } from "./aleo_network_client";
+import { AleoNetworkClient, ProgramImports } from "./network-client";
 import { Block } from "./models/block";
 import { Execution } from "./models/execution";
 import { Input } from "./models/input";
 import { Output } from "./models/output";
 import { Transaction } from "./models/transaction";
 import { Transition } from "./models/transition";
-import { DevelopmentClient } from "./development_client";
-import { AleoKeyProvider, KeyProvider } from "./key-provider"
-import { Address, PrivateKey, Program, Signature, ViewKey } from '@aleohq/wasm';
+import { DevServerClient } from "./dev-server-client";
+import { AleoKeyProvider, FunctionKeyPair, FunctionKeyProvider } from "./function-key-provider"
+import { BlockHeightSearch, NetworkRecordProvider, RecordProvider } from "./record-provider";
+import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey} from '@aleohq/wasm';
 
 const KEY_STORE = "https://testnet3.parameters.aleo.org/";
 const CREDITS_PROGRAM_KEYS = {
@@ -21,4 +22,4 @@ const CREDITS_PROGRAM_KEYS = {
     fee: {prover: KEY_STORE + "fee.prover.36542ce", verifier: KEY_STORE + "fee.verifier.2de311b"},
 }
 
-export { Account, Address, AleoKeyProvider, AleoNetworkClient, Block, DevelopmentClient, Execution, Input, KeyProvider, PrivateKey, Program, Output, Signature, Transaction, Transition, ViewKey, CREDITS_PROGRAM_KEYS, KEY_STORE}
+export { Account, Address, AleoKeyProvider, AleoNetworkClient, Block, BlockHeightSearch, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, Input, FunctionKeyProvider, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE}
