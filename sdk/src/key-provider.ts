@@ -70,6 +70,11 @@ interface KeyProvider {
     feeKeys(): Promise<[ProvingKey, VerifyingKey] | Error>;
 }
 
+/**
+ * AleoKeyProvider class. Implements the KeyProvider interface. Enables the retrieval of arbitrary proving keys from
+ * stored as bytes and obtaining public proving and verifying keys for the credits.aleo program from official Aleo
+ * sources over http.
+ */
 class AleoKeyProvider implements KeyProvider {
     cache: Map<string, [ProvingKey, VerifyingKey]>;
     cacheOption: boolean;
@@ -83,10 +88,16 @@ class AleoKeyProvider implements KeyProvider {
         this.cacheOption = false;
     }
 
-    useCache(useCache: boolean) {
+    /// Set whether to store keys in local memory
+    cacheKeys(useCache: boolean) {
         this.cacheOption = useCache;
+        if (!this.cacheOption) {
+            this.cache.clear();
+        }
     }
 
+    /// Fetch program keys from their stored byte representation and return the corresponding proving and verifying key
+    /// objects
     async fetchFunctionKeys(proverUrl: string, verifierUrl: string): Promise<[ProvingKey, VerifyingKey] | Error> {
         const proving_key = ProvingKey.fromBytes(await this.networkClient.fetchBytes(proverUrl))
         const verifying_key = VerifyingKey.fromBytes(await this.networkClient.fetchBytes(verifierUrl));
