@@ -88,8 +88,8 @@ export class AleoNetworkClient {
       endHeight: number | undefined,
       privateKey: string | undefined,
       amounts: number[] | undefined,
-      maxMicrocredits: number | undefined,
-      nonces: string[] | undefined,
+      maxMicrocredits?: number | undefined,
+      nonces?: string[] | undefined,
   ): Promise<Array<RecordPlaintext> | Error> {
     nonces = nonces || [];
     // Ensure start height is not negative

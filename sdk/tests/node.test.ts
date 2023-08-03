@@ -120,14 +120,14 @@ describe('NodeConnection', () => {
 
     describe('findUnspentRecords', () => {
         it('should fail if block heights or private keys are incorrectly specified', async () => {
-            await expect(connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined)).rejects.toThrow();
-            await expect(connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined)).rejects.toThrow();
-            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined)).rejects.toThrow();
-            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined, [])).rejects.toThrow();
         }, 60000);
 
         it('should search a range correctly and not find records where none exist', async () => {
-            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined);
+            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
             expect(Array.isArray(records)).toBe(true);
             if (!(records instanceof Error)) {
                 expect(records.length).toBe(0);
