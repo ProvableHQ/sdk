@@ -1,37 +1,26 @@
-import { __awaiter, __generator } from "tslib";
-import axios from 'axios';
-var config = {
-    headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        "Referrer-Policy": "no-referrer"
-    }
-};
-var DevelopmentClient = /** @class */ (function () {
+export declare class DevServerClient {
     /**
-     * Creates a new DevelopmentClient to interact with an Aleo Development Server.
+     * Aleo Development Server Client for usage with an Aleo Development Server. This client is meant
+     * to provide a typescript & javascript api for deploying and executing programs on the
+     * Aleo Network using an Aleo Development Server. An Aleo Development Server is a rust-based
+     * server which runs all the proving & verification operations needed to deploy and execute
+     * programs and then posts program deployments and executions to the Aleo Network. This client
+     * will send RESTful requests to that server and return the resulting transaction_id.
+     *
+     * It requires an Aleo Development Server to be running locally. If one is not running, this
+     * client will not work.
+     *
+     * Information on how to run an Aleo Development Server can be found here:
+     * https://github.com/AleoHQ/sdk/rust/develop/README.md
+     */
+    baseURL: string;
+    /**
+     * Creates a new DevServerClient to interact with an Aleo Development Server.
      *
      * @param {string} baseURL The URL of the Aleo Development Server
      */
-    function DevelopmentClient(baseURL) {
-        this.baseURL = baseURL;
-    }
-    DevelopmentClient.prototype.sendRequest = function (path, request) {
-        return __awaiter(this, void 0, void 0, function () {
-            var response;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, axios.post("".concat(this.baseURL, "/testnet3").concat(path), request, config)];
-                    case 1:
-                        response = _a.sent();
-                        if (!(response.statusText = "200")) {
-                            throw new Error("Error sending request: ".concat(response.statusText));
-                        }
-                        return [4 /*yield*/, response.data];
-                    case 2: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
+    constructor(baseURL: string);
+    sendRequest<T>(path: string, request: any): Promise<T>;
     /**
      * Deploys a program on the Aleo Network via an Aleo development server.
      * It requires an Aleo Development Server to be running remotely or locally.
@@ -48,28 +37,10 @@ var DevelopmentClient = /** @class */ (function () {
      *
      * @example
      * const Program = 'program yourprogram.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n';
-     * const client = new DevelopmentClient("http://0.0.0.0:4040");
+     * const client = new DevServerClient("http://0.0.0.0:4040");
      * const transaction_id = await client.deployProgram(Program, 6000000, privateKeyString);
      */
-    DevelopmentClient.prototype.deployProgram = function (program, fee, privateKey, password, feeRecord) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        request = {
-                            program: program,
-                            private_key: privateKey,
-                            password: password,
-                            fee: fee * 1000000,
-                            fee_record: feeRecord
-                        };
-                        return [4 /*yield*/, this.sendRequest('/deploy', request)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
+    deployProgram(program: string, fee: number, privateKey?: string, password?: string, feeRecord?: string): Promise<string>;
     /**
      * Executes a program on the Aleo Network via an Aleo development server.
      * It requires an Aleo Development Server to be running remotely or locally.
@@ -88,30 +59,10 @@ var DevelopmentClient = /** @class */ (function () {
      *
      * @example
      * const privateKey = "your private key";
-     * const client = new DevelopmentClient("http://0.0.0.0:4040");
+     * const client = new DevServerClient("http://0.0.0.0:4040");
      * const transaction_id = await client.executeProgram("hello.aleo", "hello", 0, ["5u32", "5u32"], privateKeyString);
      */
-    DevelopmentClient.prototype.executeProgram = function (programId, programFunction, fee, inputs, privateKey, password, feeRecord) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        request = {
-                            program_id: programId,
-                            program_function: programFunction,
-                            inputs: inputs,
-                            private_key: privateKey,
-                            password: password,
-                            fee: fee * 1000000,
-                            fee_record: feeRecord
-                        };
-                        return [4 /*yield*/, this.sendRequest('/execute', request)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
+    executeProgram(programId: string, programFunction: string, fee: number, inputs: string[], privateKey?: string, password?: string, feeRecord?: string): Promise<string>;
     /**
      * Sends an amount in credits to a specified recipient on the Aleo Network
      * via an Aleo development server. It requires an Aleo Development Server
@@ -123,6 +74,7 @@ var DevelopmentClient = /** @class */ (function () {
      * @param {string} amount The amount of credits to be sent (e.g. 1.5)
      * @param {number} fee Optional Fee to be paid for the transfer, specify 0 for no fee
      * @param {string} recipient The recipient of the transfer
+     * @param {string} transfer_type The type of the transfer (possible values are "private", "public", "private_to_public", "public_to_private")
      * @param {string | undefined} privateKey Optional private key of the user who is sending the transfer
      * @param {string | undefined} password If the development server is started with an encrypted private key, the password is required
      * @param {string | undefined} feeRecord Optional record in text format to be used for the fee. If not provided, the server will search the network for a suitable record to pay the fee.
@@ -132,32 +84,9 @@ var DevelopmentClient = /** @class */ (function () {
      * @example
      * const privateKey = "your private key";
      * const recipient = "recipient's address";
-     * const client = new DevelopmentClient("http://0.0.0.0:4040");
+     * const client = new DevServerClient("http://0.0.0.0:4040");
      * const transaction_id = await client.transfer(1.5, 0, recipient, privateKey);
      */
-    DevelopmentClient.prototype.transfer = function (amount, fee, recipient, privateKey, password, feeRecord, amountRecord) {
-        return __awaiter(this, void 0, void 0, function () {
-            var request;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        request = {
-                            amount: amount * 1000000,
-                            fee: fee * 1000000,
-                            recipient: recipient,
-                            private_key: privateKey,
-                            password: password,
-                            fee_record: feeRecord,
-                            amount_record: amountRecord
-                        };
-                        return [4 /*yield*/, this.sendRequest('/transfer', request)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
-    return DevelopmentClient;
-}());
-export { DevelopmentClient };
-export default DevelopmentClient;
-//# sourceMappingURL=development_client.js.map
+    transfer(amount: number, fee: number, recipient: string, transfer_type: string, privateKey?: string, password?: string, feeRecord?: string, amountRecord?: string): Promise<string>;
+}
+export default DevServerClient;

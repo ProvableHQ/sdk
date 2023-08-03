@@ -1,15 +1,13 @@
 import { RecordPlaintext } from ".";
 import { AleoNetworkClient } from "./network-client";
-import {Account} from "./account";
-
+import { Account } from "./account";
 /**
  * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
  * implementations.
  */
 interface RecordSearchParams {
-    [key: string]: any; // This allows for arbitrary keys with any type values
+    [key: string]: any;
 }
-
 /**
  * Interface for a record provider. A record provider is used to find records for use in deployment and execution
  * transactions on the Aleo Network. A default implementation is provided by the NetworkRecordProvider class. However,
@@ -17,8 +15,7 @@ interface RecordSearchParams {
  * implementing this interface.
  */
 interface RecordProvider {
-    account: Account
-
+    account: Account;
     /**
      * Find a credits record with a given number of microcredits from the chosen provider
      *
@@ -41,8 +38,7 @@ interface RecordProvider {
      * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
-    findCreditsRecord(microcredits: number, unspent: boolean,  nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error>;
-
+    findCreditsRecord(microcredits: number, unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error>;
     /**
      * Find a list of credit records with a given number of microcredits from the chosen provider
      *
@@ -68,7 +64,6 @@ interface RecordProvider {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
     findCreditsRecords(microcreditAmounts: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error>;
-
     /**
      * Find an arbitrary record
      * // A class implementing record provider can be used to find a record from arbitrary programs
@@ -100,7 +95,6 @@ interface RecordProvider {
      * const record = await recordProvider.findRecord(true, [], params);
      */
     findRecord(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error>;
-
     /**
      * Find multiple records from arbitrary programs
      *
@@ -130,24 +124,16 @@ interface RecordProvider {
      */
     findRecords(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error>;
 }
-
-class NetworkRecordProvider implements RecordProvider {
+declare class NetworkRecordProvider implements RecordProvider {
     account: Account;
     networkClient: AleoNetworkClient;
-    constructor(account: Account, networkClient: AleoNetworkClient) {
-        this.account = account;
-        this.networkClient = networkClient;
-    }
-
+    constructor(account: Account, networkClient: AleoNetworkClient);
     /**
      * Set the account used to search for records
      *
      * @param account {Account} The account to use for searching for records
      */
-    setAccount(account: Account) {
-        this.account = account;
-    }
-
+    setAccount(account: Account): void;
     /**
      * Find a list of credit records with a given number of microcredits by via the official Aleo API
      *
@@ -176,30 +162,7 @@ class NetworkRecordProvider implements RecordProvider {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * */
-    async findCreditsRecords(creditAmounts: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error> {
-        let startHeight = 0;
-        let endHeight = 0;
-
-        if (searchParameters) {
-            if (searchParameters["startHeight"] && typeof searchParameters["endHeight"] == "number") {
-                startHeight = searchParameters["startHeight"];
-            }
-
-            if (searchParameters["endHeight"] && typeof searchParameters["endHeight"] == "number") {
-                endHeight = searchParameters["endHeight"];
-            } else {
-                const end = await this.networkClient.getLatestHeight();
-                if (end instanceof Error) {
-                    console.error("Error getting latest height", end);
-                    throw "Unable to get current block height"
-                }
-                endHeight = end;
-            }
-        }
-
-        return await this.networkClient.findUnspentRecords(startHeight, endHeight, this.account.privateKey().toString(), creditAmounts, undefined, nonces);
-    }
-
+    findCreditsRecords(creditAmounts: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error>;
     /**
      * Find a credit record with a given number of microcredits by via the official Aleo API
      *
@@ -209,31 +172,16 @@ class NetworkRecordProvider implements RecordProvider {
      * @param searchParameters {RecordSearchParams} Additional parameters to search for
      * @returns {Promise<RecordPlaintext | Error>} The record if found, otherwise an error
      */
-    async findCreditsRecord(creditAmount: number, unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error> {
-        const records = await this.findCreditsRecords([creditAmount], unspent, nonces, searchParameters);
-        if (!(records instanceof Error) && records.length > 0) {
-            return records[0];
-        }
-        console.error("Record not found with error:", records);
-        return new Error("Record not found");
-    }
-
+    findCreditsRecord(creditAmount: number, unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error>;
     /**
      * Find an arbitrary record. WARNING: This function is not implemented yet and will throw an error.
      */
-    async findRecord(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error> {
-        throw new Error("Method not implemented.");
-    }
-
+    findRecord(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error>;
     /**
      * Find multiple arbitrary records. WARNING: This function is not implemented yet and will throw an error.
      */
-    async findRecords(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error> {
-        throw new Error("Method not implemented.");
-    }
-
+    findRecords(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error>;
 }
-
 /**
  * BlockHeightSearch is a RecordSearchParams implementation that allows for searching for records within a given
  * block height range.
@@ -252,13 +200,9 @@ class NetworkRecordProvider implements RecordProvider {
  * const record = await recordProvider.findCreditsRecord(5000, true, [], params);
  *
  */
-class BlockHeightSearch implements RecordSearchParams {
+declare class BlockHeightSearch implements RecordSearchParams {
     startHeight: number;
     endHeight: number;
-    constructor(startHeight: number, endHeight: number) {
-        this.startHeight = startHeight;
-        this.endHeight = endHeight;
-    }
+    constructor(startHeight: number, endHeight: number);
 }
-
-export { BlockHeightSearch, NetworkRecordProvider, RecordProvider, RecordSearchParams};
+export { BlockHeightSearch, NetworkRecordProvider, RecordProvider, RecordSearchParams };

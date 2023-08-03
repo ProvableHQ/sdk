@@ -133,5 +133,28 @@ describe('NodeConnection', () => {
                 expect(records.length).toBe(0);
             }
         }, 90000);
+
+    });
+
+    describe('getProgramImports', () => {
+        it('should return the correct program import names', async () => {
+            const importNames = connection.getProgramImportNames("imported_add_mul.aleo");
+            const expectedNames = ["double_test.aleo", "addition_test.aleo"];
+            expect(importNames).toEqual(expectedNames);
+
+            const creditImports = connection.getProgramImportNames("credits.aleo");
+            const expectedCreditImports: string[] = [];
+            expect(creditImports).toEqual(expectedCreditImports);
+        }, 60000);
+
+        it('should return all nested imports', async () => {
+            const importNames = connection.getProgramImports("nested_imports.aleo");
+            const expectedImports = {
+                "double_test.aleo": "\"import multiply_test.aleo;\\n\\nprogram double_test.aleo;\\n\\nfunction double_it:\\n    input r0 as u32.private;\\n    call multiply_test.aleo/multiply 2u32 r0 into r1;\\n    output r1 as u32.private;\\n\"",
+                "multiply_test.aleo": "program multiply_test.aleo;\n\nfunction multiply:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n    output r2 as u32.private;\n",
+                "addition_test.aleo": "\"program addition_test.aleo;\\n\\nfunction binary_add:\\n    input r0 as u32.public;\\n    input r1 as u32.private;\\n    add r0 r1 into r2;\\n    output r2 as u32.private;\\n\"",
+            }
+            expect(importNames).toEqual(expectedImports);
+        }, 60000);
     });
 });

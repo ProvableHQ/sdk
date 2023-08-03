@@ -5,7 +5,7 @@ import {
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
-} from "@aleohq/wasm";
+} from ".";
 
 interface AccountParam {
   privateKey?: string;

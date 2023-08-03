@@ -53,6 +53,32 @@ describe('NodeConnection', () => {
             }
         }, 60000);
 
+        it('should not find records with existing nonces', async () => {
+            const nonces = [];
+            let records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, []);
+            expect(Array.isArray(records)).toBe(true);
+
+            // Find two records and store their nonces
+            if (!(records instanceof Error)) {
+                expect(records.length).toBe(2);
+
+                records.forEach((record) => {
+                    nonces.push(record.nonce);
+                });
+
+                // Check the next records found do not have the same nonces
+                records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, nonces);
+                expect(Array.isArray(records)).toBe(true);
+                if (!(records instanceof Error)) {
+                    expect(records.length).toBe(2);
+                    records.forEach((record) => {
+                        expect(nonces.includes(record.nonce)).toBe(false);
+                    });
+                }
+            }
+
+        }, 60000);
+
         it('should find finalize scope values', async () => {
             const mappings = await localApiClient.getProgramMappingNames("credits.aleo");
             if (!(mappings instanceof Error)) {
