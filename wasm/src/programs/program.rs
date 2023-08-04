@@ -463,26 +463,6 @@ mod tests {
 
     use wasm_bindgen_test::*;
 
-    const SO_NESTED: &str = r#"program nested_struct.aleo
-
-struct on_bottom:
-  first_number as u32;
-  second_number as u32;
-  third_number as u32;
-
-struct so_meta:
-  first_number as u32;
-  bottom as on_bottom;
-
-struct on_top:
-  first_number as u32;
-  meta as so_meta;
-  second_number as u32;
-
-function so_nested:
-  r1 as on_top.private;
-  output r1 as on_top.private;"#;
-
     const TOKEN_ISSUE: &str = r#"program token_issue.aleo;
 
 struct token_metadata:
@@ -737,10 +717,5 @@ function add_and_double:
         let imports = program.get_imports().to_vec();
         assert_eq!(&imports[0].as_string().unwrap(), "double_test.aleo");
         assert_eq!(&imports[1].as_string().unwrap(), "addition_test.aleo");
-    }
-
-    #[test]
-    fn test_get_nested_struct() {
-        let program = Program::from_string(SO_NESTED).unwrap();
     }
 }

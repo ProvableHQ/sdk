@@ -11,8 +11,8 @@ interface FunctionKeyProvider {
     /**
      * Get arbitrary function keys from a provider
      *
-     * @param proverUri the uri of the function's proving key
-     * @param verifierUri the uri of the function's verifying key
+     * @param proverUri Uri of the function's proving key
+     * @param verifierUri Uri of the function's verifying key
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the specified program
      *
      * @example
@@ -22,7 +22,7 @@ interface FunctionKeyProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually
@@ -33,7 +33,7 @@ interface FunctionKeyProvider {
     /**
      * Get keys for a variant of the transfer function from the credits.aleo program
      *
-     * @param visibility the visibility of the transfer function (private, public, privateToPublic, publicToPrivate)
+     * @param visibility Visibility of the transfer function (private, public, privateToPublic, publicToPrivate)
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the specified transfer function
      *
      * @example
@@ -43,7 +43,7 @@ interface FunctionKeyProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually
@@ -88,8 +88,6 @@ class AleoKeyProvider implements FunctionKeyProvider {
     ): Promise<Uint8Array> {
         try {
             const response = await axios.get(url, { responseType: "arraybuffer" });
-            log("Fetched data from " + url);
-            log(response.data);
             return new Uint8Array(<ArrayBuffer>response.data);
         } catch (error) {
             throw new Error("Error fetching data." + error);
@@ -142,7 +140,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually
@@ -187,7 +185,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually
@@ -195,9 +193,9 @@ class AleoKeyProvider implements FunctionKeyProvider {
      */
     async transferKeys(visibility: string): Promise<FunctionKeyPair | Error> {
         switch (visibility) {
-            case "private" || "transfer_private" || "Private" || "transferPrivate":
+            case "private" || "transfer_private" || "transferPrivate":
                 return await this.functionKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier);
-            case "public" || "transfer_public" || "Public" || "transferPublic":
+            case "public" || "transfer_public" || "transferPublic":
                 return await this.functionKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier);
             case "private_to_public" || "transfer_private_to_public" || "privateToPublic" || "transferPrivateToPublic":
                 return await this.functionKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier);

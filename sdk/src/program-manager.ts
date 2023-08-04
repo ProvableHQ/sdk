@@ -139,10 +139,10 @@ class ProgramManager extends WasmProgramManager {
                 console.log(`Program ${programObject.id()} does not exist on the network, deploying...`);
             }
             if (typeof programSource == "string") {
-                logAndThrow(`Program ${programObject.id()} already exists on the network, please rename your program`);
+                throw (`Program ${programObject.id()} already exists on the network, please rename your program`);
             }
         } catch (e) {
-            logAndThrow(`Error validating program: ${e}`);
+            throw logAndThrow(`Error validating program: ${e}`);
         }
 
         // Convert the fee to microcredits
@@ -469,10 +469,16 @@ class ProgramManager extends WasmProgramManager {
 
         // Get the amount and fee record from the account if it is not provided in the parameters
         try {
-            amountRecord = <RecordPlaintext>await this.getCreditsRecord(fee, [], amountRecord);
             // Track the nonces of the records found so no duplicate records are used
-            const nonces = [];
-            nonces.push(amountRecord.nonce());
+            const nonces: string[] = [];
+            if (requiresAmountRecord(transferType)) {
+                // If the transfer type is private and requires an amount record, get it from the record provider
+                amountRecord = <RecordPlaintext>await this.getCreditsRecord(fee, [], amountRecord);
+                nonces.push(amountRecord.nonce());
+            } else {
+                amountRecord = undefined;
+            }
+
             feeRecord = <RecordPlaintext>await this.getCreditsRecord(fee, nonces, feeRecord);
         } catch (e) {
             throw logAndThrow(`Error finding fee record. Record finder response: '${e}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
@@ -517,8 +523,8 @@ class ProgramManager extends WasmProgramManager {
     }
 }
 
-function requiresAmountRecord(record_type: string): boolean {
-    switch (record_type) {
+function requiresAmountRecord(transferType: string): boolean {
+    switch (transferType) {
         case "transfer_private" || "private" || "transferPrivate":
             return true;
         case "transfer_private_to_public" || "privateToPublic" || "transferPrivateToPublic":

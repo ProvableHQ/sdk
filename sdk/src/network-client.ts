@@ -254,7 +254,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the block contents of the block at the specified block height
+   * Returns the contents of the block at the specified block height
    *
    * @param {number} height
    * @example
@@ -287,7 +287,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the block contents of the latest block
+   * Returns the contents of the latest block
    *
    * @example
    * const latestHeight = networkClient.getLatestBlock();
@@ -329,7 +329,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the source code of a program give a program ID
+   * Returns the source code of a program given a program ID
    *
    * @param {string} programId The program ID of a program deployed to the Aleo Network
    * @return {Promise<string>} Source code of the program
@@ -380,7 +380,7 @@ class AleoNetworkClient {
    *  Returns an object containing the source code of a program and the source code of all programs it imports
    *
    * @param inputProgram {Program | string} The program ID or program source code of a program deployed to the Aleo Network
-   * @returns {Promise<ProgramImports>} Source code of the program and all programs it imports
+   * @returns {Promise<ProgramImports>} Object of the form { "program_id": "program_source", .. } containing program id & source code for all program imports
    *
    * @example
    * const double_test_source = "import multiply_test.aleo;\n\nprogram double_test.aleo;\n\nfunction double_it:\n    input r0 as u32.private;\n    call multiply_test.aleo/multiply 2u32 r0 into r1;\n    output r1 as u32.private;\n"
@@ -434,7 +434,7 @@ class AleoNetworkClient {
   /**
    * Get a list of the program names that a program imports
    *
-   * @param inputProgram [Program | string] - The program id or program source code to get the imports of
+   * @param inputProgram {Program | string} - The program id or program source code to get the imports of
    * @returns {string[]} - The list of program names that the program imports
    *
    * @example
@@ -454,7 +454,7 @@ class AleoNetworkClient {
   /**
    * Returns the names of the mappings of a program
    *
-   * @param {string} programId
+   * @param {string} programId - The program ID to get the mappings of (e.g. "credits.aleo")
    * @example
    * const mappings = networkClient.getProgramMappingNames("credits.aleo");
    * const expectedMappings = ["account"];
@@ -471,9 +471,9 @@ class AleoNetworkClient {
   /**
    * Returns the value of a program's mapping for a specific key
    *
-   * @param {string} programId
-   * @param {string} mappingName
-   * @param {string} key
+   * @param {string} programId - The program ID to get the mapping value of (e.g. "credits.aleo")
+   * @param {string} mappingName - The name of the mapping to get the value of (e.g. "account")
+   * @param {string} key - The key of the mapping to get the value of (e.g. "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
    * @return {Promise<string>} String representation of the value of the mapping
    *
    * @example
