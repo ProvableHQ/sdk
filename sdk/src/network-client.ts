@@ -194,35 +194,40 @@ class AleoNetworkClient {
                                 }
 
                                 // Otherwise record the nonce that has been found
-                                nonces.push(nonce);
                                 const serialNumber = recordPlaintext.serialNumberString(resolvedPrivateKey, "credits.aleo", "credits");
                                 // Attempt to see if the serial number is spent
                                 try {
                                   await this.getTransitionId(serialNumber);
                                 } catch (error) {
                                   // If it's not found, add it to the list of unspent records
-                                  records.push(recordPlaintext);
-                                  // If the user specified a maximum number of microcredits, check if the search has found enough
-                                  if (typeof maxMicrocredits === "number") {
-                                    totalRecordValue = recordPlaintext.microcredits();
-                                    // Exit if the search has found the amount specified
-                                    if (totalRecordValue >= BigInt(maxMicrocredits)) {
-                                      return records;
+                                  if (!amounts) {
+                                    records.push(recordPlaintext);
+                                    // If the user specified a maximum number of microcredits, check if the search has found enough
+                                    if (typeof maxMicrocredits === "number") {
+                                      totalRecordValue += recordPlaintext.microcredits();
+                                      // Exit if the search has found the amount specified
+                                      if (totalRecordValue >= BigInt(maxMicrocredits)) {
+                                        return records;
+                                      }
                                     }
                                   }
                                   // If the user specified a list of amounts, check if the search has found them
-                                  if (!(typeof amounts == "undefined")) {
+                                  if (!(typeof amounts === "undefined") && amounts.length > 0) {
                                     let amounts_found = 0;
-                                    for (let m = 0; m < amounts.length; m++) {
-                                      for (let n = 0; m < records.length; n++) {
-                                        if (records[n].microcredits() >= BigInt(amounts[m])) {
-                                          amounts_found++;
-                                          // Exit if the search has found the amounts specified
-                                          if (amounts_found >= amounts.length) {
+                                    if (recordPlaintext.microcredits() > amounts[amounts_found]) {
+                                        amounts_found += 1;
+                                        records.push(recordPlaintext);
+                                        // If the user specified a maximum number of microcredits, check if the search has found enough
+                                        if (typeof maxMicrocredits === "number") {
+                                          totalRecordValue += recordPlaintext.microcredits();
+                                          // Exit if the search has found the amount specified
+                                          if (totalRecordValue >= BigInt(maxMicrocredits)) {
                                             return records;
                                           }
                                         }
-                                      }
+                                        if (records.length >= amounts.length) {
+                                          return records;
+                                        }
                                     }
                                   }
                                 }
@@ -241,11 +246,11 @@ class AleoNetworkClient {
         }
       } catch (error) {
         // If there is an error fetching blocks, log it and keep searching
-        console.log("Error fetching blocks in range: " + start.toString() + "-" + end.toString());
-        console.log("Error: ", error);
+        console.warn("Error fetching blocks in range: " + start.toString() + "-" + end.toString());
+        console.warn("Error: ", error);
         failures += 1;
         if (failures > 10) {
-          console.log("10 failures fetching records reached. Returning records fetched so far");
+          console.warn("10 failures fetching records reached. Returning records fetched so far");
           return records;
         }
       }

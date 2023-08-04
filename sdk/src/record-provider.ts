@@ -1,6 +1,6 @@
-import { RecordPlaintext } from ".";
+import { logAndThrow, RecordPlaintext } from ".";
+import { Account } from "./account";
 import { AleoNetworkClient } from "./network-client";
-import {Account} from "./account";
 
 /**
  * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
@@ -157,7 +157,7 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find a list of credit records with a given number of microcredits by via the official Aleo API
      *
-     * @param microcredits {number} The number of microcredits to search for
+     * @param microcredits {number[]} The number of microcredits to search for
      * @param unspent {boolean} Whether or not the record is unspent
      * @param nonces {string[]} Nonces of records already found so that they are not found again
      * @param searchParameters {RecordSearchParams} Additional parameters to search for
@@ -182,7 +182,7 @@ class NetworkRecordProvider implements RecordProvider {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * */
-    async findCreditsRecords(creditAmounts: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error> {
+    async findCreditsRecords(microcredits: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error> {
         let startHeight = 0;
         let endHeight = 0;
 
@@ -193,17 +193,24 @@ class NetworkRecordProvider implements RecordProvider {
 
             if (searchParameters["endHeight"] && typeof searchParameters["endHeight"] == "number") {
                 endHeight = searchParameters["endHeight"];
-            } else {
-                const end = await this.networkClient.getLatestHeight();
-                if (end instanceof Error) {
-                    console.error("Error getting latest height", end);
-                    throw "Unable to get current block height"
-                }
-                endHeight = end;
             }
         }
 
-        return await this.networkClient.findUnspentRecords(startHeight, endHeight, this.account.privateKey(), creditAmounts, undefined, nonces);
+        // If the end height is not specified, use the current block height
+        if (endHeight == 0) {
+            const end = await this.networkClient.getLatestHeight();
+            if (end instanceof Error) {
+                throw logAndThrow("Unable to get current block height from the network")
+            }
+            endHeight = end;
+        }
+
+        // If the start height is greater than the end height, throw an error
+        if (startHeight >= endHeight) {
+            throw logAndThrow("Start height must be less than end height");
+        }
+
+        return await this.networkClient.findUnspentRecords(startHeight, endHeight, this.account.privateKey(), microcredits, undefined, nonces);
     }
 
     /**
