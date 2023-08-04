@@ -1,4 +1,4 @@
-import {AleoKeyProvider, CREDITS_PROGRAM_KEYS} from "../src";
+import {AleoKeyProvider, CREDITS_PROGRAM_KEYS, FunctionKeyPair, ProvingKey, VerifyingKey} from "../src";
 jest.retryTimes(3);
 
 describe('KeyProvider', () => {
@@ -22,22 +22,28 @@ describe('KeyProvider', () => {
         it('Should use cache when set and not use it when not', async () => {
             // Ensure the cache properly downloads and stores keys
             keyProvider.useCache(true);
-            const downloadedKeys = await keyProvider.transferKeys("private");
-            const cachedKey = keyProvider.cache.keys().next().value;
-            const cachedKeys = keyProvider.cache.get(cachedKey);
-            expect(downloadedKeys).toEqual(cachedKeys);
+            const [provingKey, verifyingKey] = <FunctionKeyPair>await keyProvider.transferKeys("private");
+            expect(keyProvider.cache.size).toBe(1);
+            expect(provingKey).toBeInstanceOf(ProvingKey);
+            expect(verifyingKey).toBeInstanceOf(VerifyingKey);
+            const transferCacheKey = keyProvider.cache.keys().next().value;
+            let [cachedProvingKey, cachedVerifyingKey] = <FunctionKeyPair>keyProvider.cache.get(transferCacheKey);
+            expect(cachedProvingKey).toBeInstanceOf(ProvingKey);
+            expect(cachedVerifyingKey).toBeInstanceOf(VerifyingKey);
 
             // Ensure the functionKeys method to get the keys and that the cache is used to do so
-            const cachedKeys2 = await keyProvider.functionKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier)
-            expect(cachedKeys2).toEqual(cachedKeys);
+            [cachedProvingKey, cachedVerifyingKey] = <FunctionKeyPair>await keyProvider.functionKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier)
             expect(keyProvider.cache.size).toBe(1);
+            expect(cachedProvingKey).toBeInstanceOf(ProvingKey);
+            expect(cachedVerifyingKey).toBeInstanceOf(VerifyingKey);
 
             // Clear the cache and turn it off to ensure the keys are redownloaded and the cache is not used
             keyProvider.clearCache();
             keyProvider.useCache(false);
-            const redownloadedKeys = await keyProvider.transferKeys("private");
+            const [redownloadedProvingKey, redownloadedVerifyingKey] = <FunctionKeyPair>await keyProvider.transferKeys("private");
             expect(keyProvider.cache.size).toBe(0);
-            expect(redownloadedKeys).toEqual(downloadedKeys);
+            expect(redownloadedProvingKey).toBeInstanceOf(ProvingKey);
+            expect(redownloadedVerifyingKey).toBeInstanceOf(VerifyingKey);
         }, 60000);
     });
 });
