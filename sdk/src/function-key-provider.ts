@@ -1,4 +1,6 @@
 import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE} from ".";
+import axios from 'axios';
+import {log} from "console";
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 
@@ -85,15 +87,10 @@ class AleoKeyProvider implements FunctionKeyProvider {
         url = "/",
     ): Promise<Uint8Array> {
         try {
-            const response = await fetch("https://testnet3.parameters.aleo.org/" + url, {
-                headers: {
-                    "Accept":"*/*",
-                    "Connection":"keep-alive",
-                    "User-Agent":"python-requests/2.31.0",
-                    "Accept-Encoding":"gzip, deflate"
-                }
-            });
-            return new Uint8Array(await response.arrayBuffer());
+            const response = await axios.get(url, { responseType: "arraybuffer" });
+            log("Fetched data from " + url);
+            log(response.data);
+            return new Uint8Array(<ArrayBuffer>response.data);
         } catch (error) {
             throw new Error("Error fetching data." + error);
         }

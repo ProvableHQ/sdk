@@ -1,5 +1,16 @@
 import axios from "axios";
-import {Account, Block, RecordCiphertext, Program, RecordPlaintext, PrivateKey, WasmTransaction, Transaction, Transition} from ".";
+import {
+  Account,
+  Block,
+  RecordCiphertext,
+  Program,
+  RecordPlaintext,
+  PrivateKey,
+  WasmTransaction,
+  Transaction,
+  Transition,
+  logAndThrow
+} from ".";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -318,7 +329,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the source code of a program
+   * Returns the source code of a program give a program ID
    *
    * @param {string} programId The program ID of a program deployed to the Aleo Network
    * @return {Promise<string>} Source code of the program
@@ -337,33 +348,75 @@ class AleoNetworkClient {
   }
 
   /**
+   * Returns a program object from a program ID or program source code
+   *
+   * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
+   * @return {Promise<Program | Error>} Source code of the program
+   *
+   * @example
+   * const programID = "hello_hello.aleo";
+   * const programSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
+   *
+   * // Get program object from program ID or program source code
+   * const programObjectFromID = await networkClient.getProgramObject(programID);
+   * const programObjectFromSource = await networkClient.getProgramObject(programSource);
+   *
+   * // Both program objects should be equal
+   * assert.equal(programObjectFromID.to_string(), programObjectFromSource.to_string());
+   */
+  async getProgramObject(inputProgram: string): Promise<Program | Error> {
+    try {
+      return Program.fromString(inputProgram);
+    } catch (error) {
+      try {
+        return Program.fromString(<string>(await this.getProgram(inputProgram)));
+      } catch (error) {
+        throw new Error(`${inputProgram} is neither a program name or a valid program`);
+      }
+    }
+  }
+
+  /**
    *  Returns an object containing the source code of a program and the source code of all programs it imports
    *
-   * @param programName
+   * @param inputProgram {Program | string} The program ID or program source code of a program deployed to the Aleo Network
    * @returns {Promise<ProgramImports>} Source code of the program and all programs it imports
    *
    * @example
-   * const programImports = networkClient.getProgramImports("double_test.aleo");
+   * const double_test_source = "import multiply_test.aleo;\n\nprogram double_test.aleo;\n\nfunction double_it:\n    input r0 as u32.private;\n    call multiply_test.aleo/multiply 2u32 r0 into r1;\n    output r1 as u32.private;\n"
+   * const double_test = Program.fromString(double_test_source);
    * const expectedImports = {
    *     "multiply_test.aleo": "program multiply_test.aleo;\n\nfunction multiply:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n    output r2 as u32.private;\n"
    * }
+   *
+   * // Imports can be fetched using the program ID, source code, or program object
+   * let programImports = await networkClient.getProgramImports("double_test.aleo");
+   * assert.deepStrictEqual(programImports, expectedImports);
+   *
+   * // Using the program source code
+   * programImports = await networkClient.getProgramImports(double_test_source);
+   * assert.deepStrictEqual(programImports, expectedImports);
+   *
+   * // Using the program object
+   * programImports = await networkClient.getProgramImports(double_test);
    * assert.deepStrictEqual(programImports, expectedImports);
    */
-  async getProgramImports(programName: string): Promise<ProgramImports> {
+  async getProgramImports(inputProgram: Program | string): Promise<ProgramImports | Error> {
     try {
-      // Get the program source code from the network
-      const imports: { [key: string]: any } = {};
-      const program = await this.getProgram(programName);
+      const imports: ProgramImports = {};
+
+      // Get the program object or fail if the program is not valid or does not exist
+      const program = inputProgram instanceof Program ? inputProgram : <Program>(await this.getProgramObject(inputProgram));
 
       // Get the list of programs that the program imports
-      const importList = Program.fromString(<string>program).getImports();
+      const importList = program.getImports();
 
       // Recursively get any imports that the imported programs have in a depth first search order
       for (let i = 0; i < importList.length; i++) {
         const import_id = importList[i];
         if (!imports.hasOwnProperty(import_id)) {
-          const programSource = await this.getProgram(import_id);
-          const nestedImports = await this.getProgramImports(import_id);
+          const programSource = <string>await this.getProgram(import_id);
+          const nestedImports = <ProgramImports>await this.getProgramImports(import_id);
           for (const key in nestedImports) {
             if (!imports.hasOwnProperty(key)) {
               imports[key] = nestedImports[key];
@@ -374,15 +427,14 @@ class AleoNetworkClient {
       }
       return imports;
     } catch (error) {
-      console.error("Error fetching program imports: " + error);
-      throw new Error("Error fetching program imports" + error);
+      throw logAndThrow("Error fetching program imports: " + error)
     }
   }
 
   /**
    * Get a list of the program names that a program imports
    *
-   * @param program [Program | string] - The program or program source code to get the imports of
+   * @param inputProgram [Program | string] - The program id or program source code to get the imports of
    * @returns {string[]} - The list of program names that the program imports
    *
    * @example
@@ -390,10 +442,10 @@ class AleoNetworkClient {
    * const expectedImportsNames = ["multiply_test.aleo"];
    * assert.deepStrictEqual(programImportsNames, expectedImportsNames);
    */
-  async getProgramImportNames(program_name: string): Promise<string[] | Error> {
+  async getProgramImportNames(inputProgram: Program | string): Promise<string[] | Error> {
     try {
-      const program = await this.getProgram(program_name);
-      return Program.fromString(<string>program).getImports();
+      const program = inputProgram instanceof Program ? inputProgram : <Program>(await this.getProgramObject(inputProgram));
+      return program.getImports();
     } catch (error) {
       throw new Error("Error fetching program imports with error: " + error);
     }

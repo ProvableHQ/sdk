@@ -54,7 +54,7 @@ describe('NodeConnection', () => {
         }, 60000);
 
         it('should not find records with existing nonces', async () => {
-            const nonces = [];
+            const nonces: string[] = [];
             let records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, []);
             expect(Array.isArray(records)).toBe(true);
 
@@ -63,7 +63,7 @@ describe('NodeConnection', () => {
                 expect(records.length).toBe(2);
 
                 records.forEach((record) => {
-                    nonces.push(record.nonce);
+                    nonces.push(record.nonce());
                 });
 
                 // Check the next records found do not have the same nonces
@@ -72,7 +72,7 @@ describe('NodeConnection', () => {
                 if (!(records instanceof Error)) {
                     expect(records.length).toBe(2);
                     records.forEach((record) => {
-                        expect(nonces.includes(record.nonce)).toBe(false);
+                        expect(nonces.includes(record.nonce())).toBe(false);
                     });
                 }
             }
