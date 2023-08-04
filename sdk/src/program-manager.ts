@@ -2,8 +2,7 @@ import init, {
     initThreadPool,
     ProgramManager as WasmProgramManager,
 } from '@aleohq/wasm'
-import { Account, AleoKeyProvider, AleoNetworkClient, ExecutionResponse, FunctionKeyProvider, RecordPlaintext, PrivateKey, Program, ProvingKey, VerifyingKey} from ".";
-import {RecordProvider} from "./record-provider";
+import { Account, AleoKeyProvider, AleoNetworkClient, ExecutionResponse, FunctionKeyProvider, RecordPlaintext, RecordProvider, PrivateKey, Program, ProvingKey, VerifyingKey} from ".";
 
 class ProgramManager extends WasmProgramManager {
     account: Account | undefined;

@@ -1,12 +1,12 @@
 import {Account, AleoNetworkClient, BlockHeightSearch, NetworkRecordProvider} from "../src";
 import {beaconPrivateKeyString} from "./data/account-data";
+import {log} from "console";
 jest.retryTimes(3);
 
 describe('RecordProvider', () => {
     let account: Account;
     let networkClient: AleoNetworkClient;
     let recordProvider: NetworkRecordProvider;
-
     beforeEach(() => {
         account = new Account({privateKey: beaconPrivateKeyString});
         networkClient = new AleoNetworkClient("http://vm.aleo.org/api");
@@ -20,6 +20,7 @@ describe('RecordProvider', () => {
                 const records = await recordProvider.findCreditsRecords([100, 200], true, [], params);
                 expect(<object>records).toEqual([])
             } catch (e) {
+                log(e)
                 throw e;
             }
         }, 60000);

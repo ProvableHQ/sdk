@@ -1,5 +1,6 @@
 import {Account, Block, AleoNetworkClient, Transaction} from "../src";
 import {beaconPrivateKeyString} from "./data/account-data";
+import {log} from "console";
 jest.retryTimes(3);
 
 describe('NodeConnection', () => {
@@ -138,23 +139,42 @@ describe('NodeConnection', () => {
 
     describe('getProgramImports', () => {
         it('should return the correct program import names', async () => {
-            const importNames = connection.getProgramImportNames("imported_add_mul.aleo");
+            const importNames = await connection.getProgramImportNames("imported_add_mul.aleo");
             const expectedNames = ["double_test.aleo", "addition_test.aleo"];
             expect(importNames).toEqual(expectedNames);
 
-            const creditImports = connection.getProgramImportNames("credits.aleo");
+            const creditImports = await connection.getProgramImportNames("credits.aleo");
             const expectedCreditImports: string[] = [];
             expect(creditImports).toEqual(expectedCreditImports);
         }, 60000);
 
         it('should return all nested imports', async () => {
-            const importNames = connection.getProgramImports("nested_imports.aleo");
+            const imports = await connection.getProgramImports("imported_add_mul.aleo");
             const expectedImports = {
-                "double_test.aleo": "\"import multiply_test.aleo;\\n\\nprogram double_test.aleo;\\n\\nfunction double_it:\\n    input r0 as u32.private;\\n    call multiply_test.aleo/multiply 2u32 r0 into r1;\\n    output r1 as u32.private;\\n\"",
-                "multiply_test.aleo": "program multiply_test.aleo;\n\nfunction multiply:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n    output r2 as u32.private;\n",
-                "addition_test.aleo": "\"program addition_test.aleo;\\n\\nfunction binary_add:\\n    input r0 as u32.public;\\n    input r1 as u32.private;\\n    add r0 r1 into r2;\\n    output r2 as u32.private;\\n\"",
-            }
-            expect(importNames).toEqual(expectedImports);
+                'multiply_test.aleo': 'program multiply_test.aleo;\n' +
+                    '\n' +
+                    'function multiply:\n' +
+                    '    input r0 as u32.public;\n' +
+                    '    input r1 as u32.private;\n' +
+                    '    mul r0 r1 into r2;\n' +
+                    '    output r2 as u32.private;\n',
+                'double_test.aleo': 'import multiply_test.aleo;\n' +
+                    '\n' +
+                    'program double_test.aleo;\n' +
+                    '\n' +
+                    'function double_it:\n' +
+                    '    input r0 as u32.private;\n' +
+                    '    call multiply_test.aleo/multiply 2u32 r0 into r1;\n' +
+                    '    output r1 as u32.private;\n',
+                'addition_test.aleo': 'program addition_test.aleo;\n' +
+                    '\n' +
+                    'function binary_add:\n' +
+                    '    input r0 as u32.public;\n' +
+                    '    input r1 as u32.private;\n' +
+                    '    add r0 r1 into r2;\n' +
+                    '    output r2 as u32.private;\n'
+            };
+            expect(imports).toEqual(expectedImports);
         }, 60000);
     });
 });

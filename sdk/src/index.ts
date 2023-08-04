@@ -9,7 +9,9 @@ import { Transition } from "./models/transition";
 import { DevServerClient } from "./dev-server-client";
 import { AleoKeyProvider, FunctionKeyPair, FunctionKeyProvider } from "./function-key-provider"
 import { BlockHeightSearch, NetworkRecordProvider, RecordProvider } from "./record-provider";
-import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey} from '@aleohq/wasm';
+// import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey} from '@aleohq/wasm'; // Uncomment and remove the next line this line if building for browser targets
+import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey} from '@aleohq/nodejs';
+
 
 const KEY_STORE = "https://testnet3.parameters.aleo.org/";
 const CREDITS_PROGRAM_KEYS = {
