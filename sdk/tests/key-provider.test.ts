@@ -10,8 +10,13 @@ describe('KeyProvider', () => {
 
     describe('getKeys', () => {
         it('should not fetch invalid transfer keys', async () => {
-            const keys = await keyProvider.transferKeys("invalid");
-            expect(keys).toBeInstanceOf(Error);
+            try {
+                const keys = await keyProvider.transferKeys("invalid");
+                // This should never be reached
+                expect(true).toBe(false);
+            } catch (e) {
+                expect(e).toBeInstanceOf(Error);
+            }
         }, 60000);
 
         it('Should use cache when set and not use it when not', async () => {

@@ -56,17 +56,6 @@ class AleoNetworkClient {
     }
   }
 
-  async fetchBytes(
-      url = "/",
-  ): Promise<Uint8Array> {
-    try {
-      const response = await axios.get(this.host + url, {responseType: 'arraybuffer'});
-      return new Uint8Array(response.data);
-    } catch (error) {
-      throw new Error("Error fetching data.");
-    }
-  }
-
   /**
    * Attempts to find unspent records in the Aleo blockchain for a specified private key
    *
@@ -87,7 +76,7 @@ class AleoNetworkClient {
   async findUnspentRecords(
       startHeight: number,
       endHeight: number | undefined,
-      privateKey: string | undefined,
+      privateKey: string | PrivateKey | undefined,
       amounts: number[] | undefined,
       maxMicrocredits?: number | undefined,
       nonces?: string[] | undefined,
@@ -116,7 +105,7 @@ class AleoNetworkClient {
       }
     } else {
       try {
-        resolvedPrivateKey = PrivateKey.from_string(privateKey);
+        resolvedPrivateKey = privateKey instanceof PrivateKey ? privateKey : PrivateKey.from_string(privateKey);
       } catch (error) {
         throw new Error("Error parsing private key provided.");
       }
@@ -354,7 +343,7 @@ class AleoNetworkClient {
    * @returns {Promise<ProgramImports>} Source code of the program and all programs it imports
    *
    * @example
-   * const programImports = networkClient.getProgramImports("imported_add_mul.aleo");
+   * const programImports = networkClient.getProgramImports("double_test.aleo");
    * const expectedImports = {
    *     "multiply_test.aleo": "program multiply_test.aleo;\n\nfunction multiply:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n    output r2 as u32.private;\n"
    * }
@@ -397,7 +386,7 @@ class AleoNetworkClient {
    * @returns {string[]} - The list of program names that the program imports
    *
    * @example
-   * const programImportsNames = networkClient.getProgramImports("imported_add_mul.aleo");
+   * const programImportsNames = networkClient.getProgramImports("double_test.aleo");
    * const expectedImportsNames = ["multiply_test.aleo"];
    * assert.deepStrictEqual(programImportsNames, expectedImportsNames);
    */

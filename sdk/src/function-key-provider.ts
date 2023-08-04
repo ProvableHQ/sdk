@@ -1,5 +1,4 @@
 import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE} from ".";
-import axios from "axios";
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 
@@ -86,10 +85,17 @@ class AleoKeyProvider implements FunctionKeyProvider {
         url = "/",
     ): Promise<Uint8Array> {
         try {
-            const response = await axios.get("https://testnet3.parameters.aleo.org/" + url, {responseType: 'arraybuffer'});
-            return new Uint8Array(response.data);
+            const response = await fetch("https://testnet3.parameters.aleo.org/" + url, {
+                headers: {
+                    "Accept":"*/*",
+                    "Connection":"keep-alive",
+                    "User-Agent":"python-requests/2.31.0",
+                    "Accept-Encoding":"gzip, deflate"
+                }
+            });
+            return new Uint8Array(await response.arrayBuffer());
         } catch (error) {
-            throw new Error("Error fetching data.");
+            throw new Error("Error fetching data." + error);
         }
     }
 
@@ -158,7 +164,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
                     if (!(keys instanceof Error)) {
                         this.cache.set(cacheKey, keys);
                     } else {
-                        throw "Error fetching keys";
+                        throw "Error fetching keys: " + keys.message;
                     }
                     return keys;
                 }
@@ -168,7 +174,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 return await this.fetchFunctionKeys(proverUrl, verifierUrl);
             }
         } catch (error) {
-            throw new Error(`Error fetching fee proving and verifying keys from ${proverUrl} and ${verifierUrl}.`);
+            throw new Error(`Error: ${error} fetching fee proving and verifying keys from ${proverUrl} and ${verifierUrl}.`);
         }
     }
 

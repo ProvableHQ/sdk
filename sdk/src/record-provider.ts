@@ -197,7 +197,7 @@ class NetworkRecordProvider implements RecordProvider {
             }
         }
 
-        return await this.networkClient.findUnspentRecords(startHeight, endHeight, this.account.privateKey().toString(), creditAmounts, undefined, nonces);
+        return await this.networkClient.findUnspentRecords(startHeight, endHeight, this.account.privateKey(), creditAmounts, undefined, nonces);
     }
 
     /**
