@@ -1,5 +1,5 @@
-import {Account, AleoNetworkClient, NetworkRecordProvider, RecordPlaintext} from "../src";
-import {beaconPrivateKeyString} from "./data/account-data";
+import { beaconPrivateKeyString } from "./data/account-data";
+import { Account, AleoNetworkClient, NetworkRecordProvider, RecordPlaintext } from "../src";
 jest.retryTimes(3);
 
 describe('RecordProvider', () => {
@@ -17,7 +17,7 @@ describe('RecordProvider', () => {
         it('should find credits records', async () => {
             try {
                 // Find two records with findCreditsRecords
-                const nonces = [];
+                const nonces: string[] = [];
                 const records = await recordProvider.findCreditsRecords([100, 200], true, []);
                 if (Array.isArray(records)) {
                     expect(records.length).toEqual(2);

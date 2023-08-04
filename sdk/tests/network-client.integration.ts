@@ -1,5 +1,5 @@
-import {Account, AleoNetworkClient} from "../src";
 import {beaconPrivateKeyString} from "./data/account-data";
+import {Account, AleoNetworkClient} from "../src";
 jest.retryTimes(3);
 
 describe('NodeConnection', () => {
@@ -55,7 +55,7 @@ describe('NodeConnection', () => {
 
         it('should not find records with existing nonces', async () => {
             const nonces: string[] = [];
-            let records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, []);
+            const records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, []);
             expect(Array.isArray(records)).toBe(true);
 
             // Find two records and store their nonces
@@ -65,13 +65,12 @@ describe('NodeConnection', () => {
                 records.forEach((record) => {
                     nonces.push(record.nonce());
                 });
-
                 // Check the next records found do not have the same nonces
-                records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, nonces);
+                const new_records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, nonces);
                 expect(Array.isArray(records)).toBe(true);
-                if (!(records instanceof Error)) {
-                    expect(records.length).toBe(2);
-                    records.forEach((record) => {
+                if (!(new_records instanceof Error)) {
+                    expect(new_records.length).toBe(2);
+                    new_records.forEach((record) => {
                         expect(nonces.includes(record.nonce())).toBe(false);
                     });
                 }

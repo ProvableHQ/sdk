@@ -1,6 +1,5 @@
 import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE} from ".";
 import axios from 'axios';
-import {log} from "console";
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 
