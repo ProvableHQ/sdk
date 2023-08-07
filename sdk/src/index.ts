@@ -23,14 +23,14 @@ import { Output } from "./models/output";
 import { Transaction } from "./models/transaction";
 import { Transition } from "./models/transition";
 import { DevServerClient } from "./dev-server-client";
-import { AleoKeyProvider, FunctionKeyPair, FunctionKeyProvider } from "./function-key-provider"
-import { BlockHeightSearch, NetworkRecordProvider, RecordProvider } from "./record-provider";
+import { AleoKeyProvider, FunctionKeyPair, FunctionKeyProvider, KeySearchParams } from "./function-key-provider"
+import { BlockHeightSearch, NetworkRecordProvider, RecordProvider, RecordSearchParams } from "./record-provider";
 
 // If using the SDK in a browser context, uncomment these three lines
 // import { ProgramManager } from "./program-manager";
-// import init, { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, ProgramManager, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey} from '@aleohq/wasm';
-// export { Account, Address, AleoKeyProvider, AleoNetworkClient, Block, BlockHeightSearch, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, Input, FunctionKeyProvider, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProgramManager, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, init, logAndThrow};
+// import init, { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, ProgramManager as ProgramManagerBase, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey, initThreadPool } from '@aleohq/wasm';
+// export { Account, Address, AleoKeyProvider, AleoNetworkClient, Block, BlockHeightSearch, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProgramManager, ProgramManagerBase, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, init, initThreadPool, logAndThrow};
 
 // The following imports and exports are for a NodeJS context - if using the SDK in a browser context, delete or comment out these lines
 import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey} from '@aleohq/nodejs';
-export { Account, Address, AleoKeyProvider, AleoNetworkClient, Block, BlockHeightSearch, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, Input, FunctionKeyProvider, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, logAndThrow}
+export { Account, Address, AleoKeyProvider, AleoNetworkClient, Block, BlockHeightSearch, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, logAndThrow}

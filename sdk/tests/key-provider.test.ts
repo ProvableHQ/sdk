@@ -32,7 +32,7 @@ describe('KeyProvider', () => {
             expect(cachedVerifyingKey).toBeInstanceOf(VerifyingKey);
 
             // Ensure the functionKeys method to get the keys and that the cache is used to do so
-            [cachedProvingKey, cachedVerifyingKey] = <FunctionKeyPair>await keyProvider.functionKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier)
+            [cachedProvingKey, cachedVerifyingKey] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier)
             expect(keyProvider.cache.size).toBe(1);
             expect(cachedProvingKey).toBeInstanceOf(ProvingKey);
             expect(cachedVerifyingKey).toBeInstanceOf(VerifyingKey);
@@ -44,6 +44,6 @@ describe('KeyProvider', () => {
             expect(keyProvider.cache.size).toBe(0);
             expect(redownloadedProvingKey).toBeInstanceOf(ProvingKey);
             expect(redownloadedVerifyingKey).toBeInstanceOf(VerifyingKey);
-        }, 60000);
+        }, 200000);
     });
 });

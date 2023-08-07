@@ -22,10 +22,10 @@ interface RecordProvider {
     /**
      * Find a credits.aleo record with a given number of microcredits from the chosen provider
      *
-     * @param microcredits {number} The number of microcredits to search for
-     * @param unspent {boolean} Whether or not the record is unspent
-     * @param nonces {string[]} Nonces of records already found so they are not found again
-     * @param searchParameters {RecordSearchParams} Additional parameters to search for
+     * @param {number} microcredits The number of microcredits to search for
+     * @param {boolean} unspent Whether or not the record is unspent
+     * @param {string[]} nonces Nonces of records already found so they are not found again
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for
      * @returns {Promise<RecordPlaintext | Error>} The record if found, otherwise an error
      *
      * @example
@@ -46,11 +46,11 @@ interface RecordProvider {
     /**
      * Find a list of credit.aleo records with a given number of microcredits from the chosen provider
      *
-     * @param microcredits {number} The number of microcredits to search for
-     * @param unspent {boolean} Whether or not the record is unspent
-     * @param nonces {string[]} Nonces of records already found so that they are not found again
-     * @param searchParameters {RecordSearchParams} Additional parameters to search for
-     * @returns {Promise<RecordPlaintext | Error>} The record if found, otherwise an error
+     * @param {number} microcreditAmounts A list of separate microcredit amounts to search for (e.g. [5000, 100000])
+     * @param {boolean} unspent Whether or not the record is unspent
+     * @param {string[]} nonces Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for
+     * @returns {Promise<RecordPlaintext[] | Error>} A list of records with a value greater or equal to the amounts specified if such records exist, otherwise an error
      *
      * @example
      * // A class implementing record provider can be used to find a record with a given number of microcredits
@@ -71,9 +71,9 @@ interface RecordProvider {
 
     /**
      * Find an arbitrary record
-     * @param unspent {boolean} Whether or not the record is unspent
-     * @param nonces {string[]} Nonces of records already found so that they are not found again
-     * @param searchParameters {RecordSearchParams} Additional parameters to search for
+     * @param {boolean} unspent Whether or not the record is unspent
+     * @param {string[]} nonces Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for
      * @returns {Promise<RecordPlaintext | Error>} The record if found, otherwise an error
      *
      * @example
@@ -105,9 +105,9 @@ interface RecordProvider {
     /**
      * Find multiple records from arbitrary programs
      *
-     * @param unspent {boolean} Whether or not the record is unspent
-     * @param nonces {string[]} Nonces of records already found so that they are not found again
-     * @param searchParameters {RecordSearchParams} Additional parameters to search for
+     * @param {boolean} unspent Whether or not the record is unspent
+     * @param {string[]} nonces Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for
      * @returns {Promise<RecordPlaintext | Error>} The record if found, otherwise an error
      *
      * // The RecordSearchParams interface can be used to create parameters for custom record searches which can then
@@ -148,7 +148,7 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Set the account used to search for records
      *
-     * @param account {Account} The account to use for searching for records
+     * @param {Account} account The account to use for searching for records
      */
     setAccount(account: Account) {
         this.account = account;
@@ -157,10 +157,10 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find a list of credit records with a given number of microcredits by via the official Aleo API
      *
-     * @param microcredits {number[]} The number of microcredits to search for
-     * @param unspent {boolean} Whether or not the record is unspent
-     * @param nonces {string[]} Nonces of records already found so that they are not found again
-     * @param searchParameters {RecordSearchParams} Additional parameters to search for
+     * @param {number[]} microcredits The number of microcredits to search for
+     * @param {boolean} unspent Whether or not the record is unspent
+     * @param {string[]} nonces Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for
      * @returns {Promise<RecordPlaintext | Error>} The record if found, otherwise an error
      *
      * @example
@@ -187,11 +187,11 @@ class NetworkRecordProvider implements RecordProvider {
         let endHeight = 0;
 
         if (searchParameters) {
-            if (searchParameters["startHeight"] && typeof searchParameters["endHeight"] == "number") {
+            if ("startHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
                 startHeight = searchParameters["startHeight"];
             }
 
-            if (searchParameters["endHeight"] && typeof searchParameters["endHeight"] == "number") {
+            if ("endHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
                 endHeight = searchParameters["endHeight"];
             }
         }
@@ -216,10 +216,10 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find a credit record with a given number of microcredits by via the official Aleo API
      *
-     * @param microcredits {number} The number of microcredits to search for
-     * @param unspent {boolean} Whether or not the record is unspent
-     * @param nonces {string[]} Nonces of records already found so that they are not found again
-     * @param searchParameters {RecordSearchParams} Additional parameters to search for
+     * @param {number} microcredits The number of microcredits to search for
+     * @param {boolean} unspent Whether or not the record is unspent
+     * @param {string[]} nonces Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for
      * @returns {Promise<RecordPlaintext | Error>} The record if found, otherwise an error
      *
      * @example
@@ -240,8 +240,8 @@ class NetworkRecordProvider implements RecordProvider {
      * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
-    async findCreditsRecord(creditAmount: number, unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error> {
-        const records = await this.findCreditsRecords([creditAmount], unspent, nonces, searchParameters);
+    async findCreditsRecord(microcredits: number, unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error> {
+        const records = await this.findCreditsRecords([microcredits], unspent, nonces, searchParameters);
         if (!(records instanceof Error) && records.length > 0) {
             return records[0];
         }
