@@ -4,20 +4,96 @@ import axios from 'axios';
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 
 /**
+ * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
+ * implementations.
+ */
+interface KeySearchParams {
+    [key: string]: any; // This allows for arbitrary keys with any type values
+}
+
+/**
+ * AleoKeyProviderParams search parameter for the AleoKeyProvider. It allows for the specification of a proverUri and
+ * verifierUri to fetch keys via HTTP from a remote resource as well as a unique cacheKey to store the keys in memory.
+ */
+class AleoKeyProviderParams implements KeySearchParams {
+    proverUri: string | undefined;
+    verifierUri: string | undefined;
+    cacheKey: string | undefined;
+
+    /**
+     * Create a new AleoKeyProviderParams object which implements the KeySearchParams interface. Users can optionally
+     * specify a url for the proverUri & verifierUri to fetch keys via HTTP from a remote resource as well as a unique
+     * cacheKey to store the keys in memory for future use. If no proverUri or verifierUri is specified, a cachekey must
+     * be provided.
+     *
+     * @param { proverUri?: string, verifierUri?: string, cacheKey?: string } params - Optional search parameters
+     */
+    constructor(params: {proverUri?: string, verifierUri?: string, cacheKey?: string}) {
+        this.proverUri = params.proverUri;
+        this.verifierUri = params.verifierUri;
+        this.cacheKey = params.cacheKey;
+    }
+}
+
+/**
  * KeyProvider interface. Enables the retrieval of public proving and verifying keys for Aleo Programs.
  */
 interface FunctionKeyProvider {
     /**
      * Get arbitrary function keys from a provider
      *
-     * @param proverUri Uri of the function's proving key
-     * @param verifierUri Uri of the function's verifying key
+     * @param {KeySearchParams | undefined} params - Optional search parameters for the key provider
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the specified program
      *
      * @example
+     * // Create a search object which implements the KeySearchParams interface
+     * class IndexDbSearch implements KeySearchParams {
+     *     db: string
+     *     keyId: string
+     *     constructor(params: {db: string, keyId: string}) {
+     *         this.db = params.db;
+     *         this.keyId = params.keyId;
+     *     }
+     * }
+     *
      * // Create a new object which implements the KeyProvider interface
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * class IndexDbKeyProvider implements FunctionKeyProvider {
+     *     async functionKeys(params: KeySearchParams): Promise<FunctionKeyPair | Error> {
+     *         return new Promise((resolve, reject) => {
+     *             const request = indexedDB.open(params.db, 1);
+     *
+     *             request.onupgradeneeded = function(e) {
+     *                 const db = e.target.result;
+     *                 if (!db.objectStoreNames.contains('keys')) {
+     *                     db.createObjectStore('keys', { keyPath: 'id' });
+     *                 }
+     *             };
+     *
+     *             request.onsuccess = function(e) {
+     *                 const db = e.target.result;
+     *                 const transaction = db.transaction(["keys"], "readonly");
+     *                 const store = transaction.objectStore("keys");
+     *                 const request = store.get(params.keyId);
+     *                 request.onsuccess = function(e) {
+     *                     if (request.result) {
+     *                         resolve(request.result as FunctionKeyPair);
+     *                     } else {
+     *                         reject(new Error("Key not found"));
+     *                     }
+     *                 };
+     *                 request.onerror = function(e) { reject(new Error("Error fetching key")); };
+     *             };
+     *
+     *             request.onerror = function(e) { reject(new Error("Error opening database")); };
+     *         });
+     *     }
+     *
+     *     // implement the other methods...
+     * }
+     *
+     *
      * const keyProvider = new AleoKeyProvider();
+     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
@@ -25,14 +101,15 @@ interface FunctionKeyProvider {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually
-     * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.functionKeys("https://testnet3.parameters.aleo.org/transfer_private.prover.2a9a6f2", "https://testnet3.parameters.aleo.org/transfer_private.verifier.3a59762");
+     * const searchParams = new IndexDbSearch({db: "keys", keyId: "credits.aleo:transferPrivate"});
+     * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.functionKeys(searchParams);
      */
-    functionKeys(proverUri: string, verifierUri: string): Promise<FunctionKeyPair | Error>;
+    functionKeys(params?: KeySearchParams): Promise<FunctionKeyPair | Error>;
 
     /**
      * Get keys for a variant of the transfer function from the credits.aleo program
      *
-     * @param visibility Visibility of the transfer function (private, public, privateToPublic, publicToPrivate)
+     * @param {string} visibility Visibility of the transfer function (private, public, privateToPublic, publicToPrivate)
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the specified transfer function
      *
      * @example
@@ -74,8 +151,8 @@ interface FunctionKeyProvider {
 
 /**
  * AleoKeyProvider class. Implements the KeyProvider interface. Enables the retrieval of Aleo program proving and
- * verifying keys stored as bytes as well as proving and verifying keys for the credits.aleo program over http from
- * official Aleo sources.
+ * verifying keys for the credits.aleo program over http from official Aleo sources and storing and retrieving function
+ * keys from a local memory cache.
  */
 class AleoKeyProvider implements FunctionKeyProvider {
     cache: Map<string, FunctionKeyPair>;
@@ -102,7 +179,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
     /**
      * Use local memory to store keys
      *
-     * @param useCache whether to store keys in local memory
+     * @param {boolean} useCache whether to store keys in local memory
      */
     useCache(useCache: boolean) {
         this.cacheOption = useCache;
@@ -115,20 +192,106 @@ class AleoKeyProvider implements FunctionKeyProvider {
         this.cache.clear();
     }
 
-    /// Fetch program keys from their stored byte representation and return the corresponding proving and verifying key
-    /// objects
-    async fetchFunctionKeys(proverUrl: string, verifierUrl: string): Promise<FunctionKeyPair | Error> {
-        const provingKey = ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
-        const verifyingKey = VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
-        return [provingKey, verifyingKey];
+    /**
+     * Cache a set of keys. This will overwrite any existing keys with the same keyId. The user can check if a keyId
+     * exists in the cache using the containsKeys method prior to calling this method if overwriting is not desired.
+     *
+     * @param {string} keyId access key for the cache
+     * @param {FunctionKeyPair} keys keys to cache
+     */
+    cacheKeys(keyId: string, keys: FunctionKeyPair) {
+        this.cache.set(keyId, keys);
     }
 
     /**
-     * Returns the proving and verifying keys for a specified function in an Aleo Program given the url of the proving
-     * and verifying keys
+     * Determine if a keyId exists in the cache
      *
-     * @param {string} url of the proving key
-     * @param {string} url of the verifying key
+     * @param {string} keyId keyId of a proving and verifying key pair
+     * @returns {boolean} true if the keyId exists in the cache, false otherwise
+     */
+    containsKeys(keyId: string): boolean {
+        return this.cache.has(keyId)
+    }
+
+    /**
+     * Delete a set of keys from the cache
+     *
+     * @param {string} keyId keyId of a proving and verifying key pair to delete from memory
+     * @returns {boolean} true if the keyId exists in the cache and was deleted, false if the key did not exist
+     */
+    deleteKeys(keyId: string): boolean {
+        return this.cache.delete(keyId)
+    }
+
+    /**
+     * Get a set of keys from the cache
+     * @param keyId keyId of a proving and verifying key pair
+     *
+     * @returns {FunctionKeyPair | Error} Proving and verifying keys for the specified program
+     */
+    getKeys(keyId: string): FunctionKeyPair | Error {
+        if (this.cache.has(keyId)) {
+            return <FunctionKeyPair>this.cache.get(keyId);
+        } else {
+            return new Error("Key not found in cache.");
+        }
+    }
+
+    /**
+     * Get arbitrary function keys from a provider
+     *
+     * @param {KeySearchParams} params parameters for the key search in form of: {proverUri: string, verifierUri: string, cacheKey: string}
+     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the specified program
+     *
+     * @example
+     * // Create a new object which implements the KeyProvider interface
+     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const AleoProviderParams = new AleoProviderParams("https://testnet3.parameters.aleo.org/transfer_private.");
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     *
+     * // Keys can also be fetched manually using the key provider
+     * const keySearchParams = { "cacheKey": "myProgram:myFunction" };
+     * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.functionKeys(keySearchParams);
+     */
+    async functionKeys(params?: KeySearchParams): Promise<FunctionKeyPair | Error> {
+        if (params) {
+            let proverUrl;
+            let verifierUrl;
+            let cacheKey;
+            if ("proverUrl" in params && typeof params["proverUrl"] == "string") {
+                proverUrl = params["proverUrl"];
+            }
+
+            if ("verifierUrl" in params && typeof params["verifierUrl"] == "string") {
+                verifierUrl = params["verifierUrl"];
+            }
+
+            if ("cacheKey" in params && typeof params["cacheKey"] == "string") {
+                cacheKey = params["cacheKey"];
+            }
+
+            if (proverUrl && verifierUrl) {
+                return this.fetchKeys(proverUrl, verifierUrl, cacheKey);
+            }
+
+            if (cacheKey) {
+                return this.getKeys(cacheKey);
+            }
+        }
+        throw Error("Invalid parameters provided, must provide either a cacheKey and/or a proverUrl and a verifierUrl");
+    }
+
+    /**
+     * Returns the proving and verifying keys for a specified program from a specified url.
+     *
+     * @param {string} verifierUrl Url of the proving key
+     * @param {string} proverUrl Url the verifying key
+     * @param {string} cacheKey Key to store the keys in the cache
      *
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the specified program
      *
@@ -143,29 +306,30 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually
-     * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.functionKeys("https://testnet3.parameters.aleo.org/transfer_private.prover.2a9a6f2", "https://testnet3.parameters.aleo.org/transfer_private.verifier.3a59762");
+     * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchKeys("https://testnet3.parameters.aleo.org/transfer_private.prover.2a9a6f2", "https://testnet3.parameters.aleo.org/transfer_private.verifier.3a59762");
      */
-    async functionKeys(proverUrl: string, verifierUrl: string): Promise<FunctionKeyPair | Error> {
+    async fetchKeys(proverUrl: string, verifierUrl: string, cacheKey?: string): Promise<FunctionKeyPair | Error> {
         try {
             // If cache is enabled, check if the keys have already been fetched and return them if they have
             if (this.cacheOption) {
-                const cacheKey = proverUrl + verifierUrl;
+                if (!cacheKey) {
+                    cacheKey = proverUrl + verifierUrl;
+                }
                 const value = this.cache.get(cacheKey);
                 if (typeof value !== "undefined") {
                     return value
                 } else {
-                    const keys = await this.fetchFunctionKeys(proverUrl, verifierUrl);
-                    if (!(keys instanceof Error)) {
-                        this.cache.set(cacheKey, keys);
-                    } else {
-                        throw "Error fetching keys: " + keys.message;
-                    }
-                    return keys;
+                    const provingKey = <ProvingKey>ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
+                    const verifyingKey = <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
+                    this.cache.set(cacheKey, [provingKey, verifyingKey]);
+                    return [provingKey, verifyingKey];
                 }
             }
             else {
                 // If cache is disabled, fetch the keys and return them
-                return await this.fetchFunctionKeys(proverUrl, verifierUrl);
+                const provingKey = <ProvingKey>ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
+                const verifyingKey = <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
+                return [provingKey, verifyingKey];
             }
         } catch (error) {
             throw new Error(`Error: ${error} fetching fee proving and verifying keys from ${proverUrl} and ${verifierUrl}.`);
@@ -193,13 +357,13 @@ class AleoKeyProvider implements FunctionKeyProvider {
     async transferKeys(visibility: string): Promise<FunctionKeyPair | Error> {
         switch (visibility) {
             case "private" || "transfer_private" || "transferPrivate":
-                return await this.functionKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier);
+                return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier);
             case "public" || "transfer_public" || "transferPublic":
-                return await this.functionKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier);
+                return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier);
             case "private_to_public" || "transfer_private_to_public" || "privateToPublic" || "transferPrivateToPublic":
-                return await this.functionKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier);
+                return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier);
             case "public_to_private" || "transfer_public_to_private" || "publicToPrivate" || "transferPublicToPrivate":
-                return await this.functionKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier);
+                return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier);
             default:
                 throw new Error("Invalid visibility type");
         }
@@ -211,7 +375,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
      */
     async joinKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.functionKeys(CREDITS_PROGRAM_KEYS.join.prover, CREDITS_PROGRAM_KEYS.join.verifier);
+        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.join.prover, CREDITS_PROGRAM_KEYS.join.verifier);
     }
 
     /**
@@ -220,7 +384,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the split function
      * */
     async splitKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.functionKeys(CREDITS_PROGRAM_KEYS.split.prover, CREDITS_PROGRAM_KEYS.split.verifier);
+        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.split.prover, CREDITS_PROGRAM_KEYS.split.verifier);
     }
 
     /**
@@ -229,8 +393,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the fee function
      */
     async feeKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.functionKeys(CREDITS_PROGRAM_KEYS.fee.prover, CREDITS_PROGRAM_KEYS.fee.verifier);
+        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee.prover, CREDITS_PROGRAM_KEYS.fee.verifier);
     }
 }
 
-export {AleoKeyProvider, FunctionKeyPair, FunctionKeyProvider}
+export {AleoKeyProvider, FunctionKeyPair, FunctionKeyProvider, KeySearchParams}

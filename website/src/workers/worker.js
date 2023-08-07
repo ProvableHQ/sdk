@@ -1,4 +1,4 @@
-import init, * as aleo from "@aleohq/wasm";
+import init, * as aleo from "@aleohq/sdk";
 import {
     FEE_PROVER_URL,
     FEE_VERIFIER_URL,
@@ -33,65 +33,20 @@ let transferPublicToPrivateVerifyingKey = null;
 
 await init();
 await aleo.initThreadPool(10);
-const aleoProgramManager = new aleo.ProgramManager();
+import { AleoNetworkClient } from "@aleohq/sdk/src/network-client.js";
+import { NetworkRecordProvider } from "@aleohq/sdk/src/record-provider.js";
+import { ProgramManager } from "@aleohq/sdk/src/program-manager.js";
+import { AleoKeyProvider } from "@aleohq/sdk/src/function-key-provider.js";
+
+const keyProvider = new AleoKeyProvider();
+keyProvider.useCache(true);
+const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, undefined);
 
 self.postMessage({
     type: "ALEO_WORKER_READY",
 });
 
-const getFunctionKeys = async (proverUrl, verifierUrl) => {
-    console.log(
-        "Downloading proving and verifying keys from: ",
-        proverUrl,
-        verifierUrl,
-    );
-    let proofResponse = await fetch(proverUrl);
-    console.log("Getting array buffer");
-    let proofBuffer = await proofResponse.arrayBuffer();
-    let verificationResponse = await fetch(verifierUrl);
-    let verificationBuffer = await verificationResponse.arrayBuffer();
-    console.log("Proving and verifying key binaries downloaded");
-    console.log("Creating proving and verifying keys...");
-    let provingKey = aleo.ProvingKey.fromBytes(new Uint8Array(proofBuffer));
-    let verifyingKey = aleo.VerifyingKey.fromBytes(
-        new Uint8Array(verificationBuffer),
-    );
-    console.log("Proving and verifying keys created");
-    return [provingKey, verifyingKey];
-};
-
-const validateProgram = (programString) => {
-    try {
-        return aleo.Program.fromString(programString);
-    } catch (error) {
-        console.log(error);
-        throw `Program input is not a valid Aleo program`;
-    }
-};
-
-const programMatchesOnChain = async (programString, url) => {
-    const program = validateProgram(programString);
-    let onlineProgramText;
-    try {
-        const program_id = program.id();
-        const program_url = `${url}/testnet3/program/${program_id}`;
-        const programResponse = await fetch(program_url);
-        onlineProgramText = await programResponse.json();
-    } catch (error) {
-        console.log(error);
-        throw `Program does not exist on chain`;
-    }
-
-    try {
-        const onlineProgram = aleo.Program.fromString(onlineProgramText);
-        return program.isEqual(onlineProgram);
-    } catch (error) {
-        console.log(error);
-        throw `Could not parse program from chain`;
-    }
-};
 let lastLocalProgram = null;
-
 self.addEventListener("message", (ev) => {
     if (ev.data.type === "ALEO_EXECUTE_PROGRAM_LOCAL") {
         const { localProgram, aleoFunction, inputs, privateKey } = ev.data;
@@ -101,16 +56,20 @@ self.addEventListener("message", (ev) => {
 
         (async function () {
             try {
-                validateProgram(localProgram);
-                const imports = await resolveImports(localProgram);
+                if (!programManager.verifyProgram(localProgram)) {
+                    throw `Program is not valid`;
+                }
+                const imports = programManager.networkClient.getProgramImports(localProgram);
                 if (lastLocalProgram === null) {
                     lastLocalProgram = localProgram;
                 } else if (lastLocalProgram !== localProgram) {
-                    aleoProgramManager.clearKeyCache();
+                    const keys = programManager.synthesizeKeypair(localProgram, aleoFunction);
+                    const keyPair = [keys.provingKey(), keys.verifyingKey()];
+                    programManager.keyProvider.cacheKeys(localProgram+aleoFunction, keyPair);
                     lastLocalProgram = localProgram;
                 }
 
-                let response = aleoProgramManager.executeFunctionOffline(
+                let response = programManager.executeFunctionOffline(
                     aleo.PrivateKey.from_string(privateKey),
                     localProgram,
                     aleoFunction,
