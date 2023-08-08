@@ -1,9 +1,4 @@
-import { Account } from "./account";
-import { AleoNetworkClient } from "./network-client";
-import { DevServerClient } from "./dev-server-client";
-import { AleoKeyProvider } from "./function-key-provider";
-import { BlockHeightSearch, NetworkRecordProvider } from "./record-provider";
-import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey } from '@aleohq/wasm';
+import { __awaiter, __generator } from "tslib";
 var KEY_STORE = "https://testnet3.parameters.aleo.org/";
 var CREDITS_PROGRAM_KEYS = {
     transfer_private: { prover: KEY_STORE + "transfer_private.prover.2a9a6f2", verifier: KEY_STORE + "transfer_private.verifier.3a59762" },
@@ -14,5 +9,35 @@ var CREDITS_PROGRAM_KEYS = {
     split: { prover: KEY_STORE + "split.prover.8c585f2", verifier: KEY_STORE + "split.verifier.8281688" },
     fee: { prover: KEY_STORE + "fee.prover.36542ce", verifier: KEY_STORE + "fee.verifier.2de311b" }
 };
-export { Account, Address, AleoKeyProvider, AleoNetworkClient, BlockHeightSearch, DevServerClient, ExecutionResponse, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE };
+function logAndThrow(message) {
+    console.error(message);
+    throw message;
+}
+import { Account } from "./account";
+import { AleoNetworkClient } from "./network-client";
+import { DevServerClient } from "./dev-server-client";
+import { AleoKeyProvider, AleoKeyProviderParams } from "./function-key-provider";
+import { BlockHeightSearch, NetworkRecordProvider } from "./record-provider";
+// If using the SDK in a browser context, uncomment these three lines
+import { ProgramManager } from "./program-manager";
+import init from '@aleohq/wasm';
+/**
+ * Initialize Aleo WebAssembly into the browser. The SDK requires its Wasm Instance to be initialized before operating
+ * so this function must be called before any other SDK functions are called.
+ */
+function initializeWasm() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, init()];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+}
+import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, ProgramManager as ProgramManagerBase, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey, initThreadPool } from '@aleohq/wasm';
+export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoNetworkClient, BlockHeightSearch, DevServerClient, ExecutionResponse, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramManager, ProgramManagerBase, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, initThreadPool, initializeWasm, logAndThrow };
+// The following imports and exports are for a NodeJS context - if using the SDK in a browser context, delete or comment out these lines
+// import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey} from '@aleohq/nodejs';
+// export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoNetworkClient, Block, BlockHeightSearch, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, logAndThrow}
 //# sourceMappingURL=index.js.map

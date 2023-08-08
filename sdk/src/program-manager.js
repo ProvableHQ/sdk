@@ -1,15 +1,24 @@
 import { __awaiter, __extends, __generator } from "tslib";
-import init, { initThreadPool, ProgramManager as WasmProgramManager, } from '@aleohq/wasm';
-import { AleoKeyProvider, AleoNetworkClient, RecordPlaintext, Program } from ".";
+import { ProgramManager as WasmProgramManager, } from '@aleohq/wasm';
+import { AleoKeyProvider, AleoNetworkClient, RecordPlaintext, Program, logAndThrow } from ".";
+/**
+ * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
+ */
 var ProgramManager = /** @class */ (function (_super) {
     __extends(ProgramManager, _super);
+    /** Create a new instance of the ProgramManager
+     *
+     * @param { string | undefined } host A host uri running the official Aleo API
+     * @param { FunctionKeyProvider | undefined } keyProvider A key provider that implements {@link FunctionKeyProvider} interface
+     * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
+     */
     function ProgramManager(host, keyProvider, recordProvider) {
         var _this = this;
         if (process.env.NODE_ENV === 'production') {
             throw ("ProgramManager is not available in NodeJS");
         }
         _this = _super.call(this) || this;
-        if (typeof host === "undefined") {
+        if (!host) {
             _this.host = "http://vm.aleo.org/api";
             _this.networkClient = new AleoNetworkClient(_this.host);
         }
@@ -17,7 +26,7 @@ var ProgramManager = /** @class */ (function (_super) {
             _this.host = host;
             _this.networkClient = new AleoNetworkClient(host);
         }
-        if (typeof keyProvider === "undefined") {
+        if (!keyProvider) {
             _this.keyProvider = new AleoKeyProvider();
         }
         else {
@@ -29,7 +38,7 @@ var ProgramManager = /** @class */ (function (_super) {
     /**
      * Set the account to use for transaction submission to the Aleo network
      *
-     * @param account {Account} Account to use for transaction submission
+     * @param {Account} account Account to use for transaction submission
      */
     ProgramManager.prototype.setAccount = function (account) {
         this.account = account;
@@ -37,7 +46,7 @@ var ProgramManager = /** @class */ (function (_super) {
     /**
      * Set the key provider that provides the proving and verifying keys for programs
      *
-     * @param keyProvider {FunctionKeyProvider}
+     * @param {FunctionKeyProvider} keyProvider
      */
     ProgramManager.prototype.setKeyProvider = function (keyProvider) {
         this.keyProvider = keyProvider;
@@ -54,45 +63,19 @@ var ProgramManager = /** @class */ (function (_super) {
     /**
      * Set the record provider that provides records for transactions
      *
-     * @param recordProvider {RecordProvider}
+     * @param {RecordProvider} recordProvider
      */
     ProgramManager.prototype.setRecordProvider = function (recordProvider) {
         this.recordProvider = recordProvider;
     };
     /**
-     * Initialize the program manager. This step is NECESSARY before any other methods can be called.
-     *
-     * @param threads {number | undefined} Number of threads to use for the thread pool. If undefined, defaults to 8.
-     */
-    ProgramManager.prototype.initialize = function (threads) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, init()];
-                    case 1:
-                        _a.sent();
-                        if (!(typeof threads === "undefined")) return [3 /*break*/, 3];
-                        return [4 /*yield*/, initThreadPool(8)];
-                    case 2:
-                        _a.sent();
-                        return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, initThreadPool(threads)];
-                    case 4:
-                        _a.sent();
-                        _a.label = 5;
-                    case 5: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
      * Deploy an Aleo program to the Aleo network
      *
-     * @param program {string} Program source code
-     * @param fee {number} Fee to pay for the transaction
-     * @param cache {boolean} Whether to cache the program in memory
-     * @param feeRecord {string | RecordPlaintext} Fee record to use for the transaction
-     * @param privateKey {PrivateKey | undefined} Optional private key to use for the transaction
+     * @param {string} program Program source code
+     * @param {number} fee Fee to pay for the transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use for the transaction
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {string | Error} The transaction id of the deployed program or a failure message from the network
      *
      * @example
@@ -103,16 +86,35 @@ var ProgramManager = /** @class */ (function (_super) {
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * await programManager.initialize();
      * const tx_id = await programManager.deploy(program, fee, feeRecord)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    ProgramManager.prototype.deploy = function (program, fee, feeRecord, privateKey) {
+    ProgramManager.prototype.deploy = function (program, fee, recordSearchParams, feeRecord, privateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var deploymentPrivateKey, record, result, _a, feeProvingKey, feeVerifyingKey, imports, tx;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var programObject, programSource, deploymentPrivateKey, e_1, feeKeys, e_2, feeProvingKey, feeVerifyingKey, imports, e_3, tx;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
+                        // Ensure the program is valid and does not exist on the network
+                        try {
+                            programObject = Program.fromString(program);
+                            programSource = void 0;
+                            try {
+                                programSource = this.networkClient.getProgram(programObject.id());
+                            }
+                            catch (e) {
+                                // Program does not exist on the network, deployment can proceed
+                                console.log("Program ".concat(programObject.id(), " does not exist on the network, deploying..."));
+                            }
+                            if (typeof programSource == "string") {
+                                throw ("Program ".concat(programObject.id(), " already exists on the network, please rename your program"));
+                            }
+                        }
+                        catch (e) {
+                            throw logAndThrow("Error validating program: ".concat(e));
+                        }
                         // Convert the fee to microcredits
                         fee = Math.floor(fee * 1000000);
                         deploymentPrivateKey = privateKey;
@@ -122,26 +124,42 @@ var ProgramManager = /** @class */ (function (_super) {
                         else {
                             throw ("No private key provided and no private key set in the ProgramManager");
                         }
-                        record = feeRecord instanceof RecordPlaintext ? feeRecord : RecordPlaintext.fromString(feeRecord);
-                        if (!this.keyExists("credits.aleo", "fee")) return [3 /*break*/, 1];
-                        _a = [undefined, undefined];
-                        return [3 /*break*/, 3];
-                    case 1: return [4 /*yield*/, this.keyProvider.feeKeys()];
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.getCreditsRecord(fee, [], feeRecord, recordSearchParams)];
                     case 2:
-                        _a = _b.sent();
-                        _b.label = 3;
+                        feeRecord = (_a.sent());
+                        return [3 /*break*/, 4];
                     case 3:
-                        result = _a;
-                        if (result instanceof Error) {
-                            throw (result);
-                        }
-                        feeProvingKey = result[0], feeVerifyingKey = result[1];
-                        imports = this.networkClient.getProgramImports(program);
-                        return [4 /*yield*/, this.buildDeploymentTransaction(deploymentPrivateKey, program, fee, record, this.host, false, imports, feeProvingKey, feeVerifyingKey)];
+                        e_1 = _a.sent();
+                        throw logAndThrow("Error finding fee record. Record finder response: '".concat(e_1, "'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists."));
                     case 4:
-                        tx = _b.sent();
+                        _a.trys.push([4, 6, , 7]);
+                        return [4 /*yield*/, this.keyProvider.feeKeys()];
+                    case 5:
+                        feeKeys = (_a.sent());
+                        return [3 /*break*/, 7];
+                    case 6:
+                        e_2 = _a.sent();
+                        throw logAndThrow("Error finding fee keys. Key finder response: '".concat(e_2, "'. Please ensure your key provider is configured correctly."));
+                    case 7:
+                        feeProvingKey = feeKeys[0], feeVerifyingKey = feeKeys[1];
+                        _a.label = 8;
+                    case 8:
+                        _a.trys.push([8, 10, , 11]);
+                        return [4 /*yield*/, this.networkClient.getProgramImports(program)];
+                    case 9:
+                        imports = _a.sent();
+                        return [3 /*break*/, 11];
+                    case 10:
+                        e_3 = _a.sent();
+                        throw logAndThrow("Error finding program imports. Network response: '".concat(e_3, "'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network."));
+                    case 11: return [4 /*yield*/, this.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, false, imports, feeProvingKey, feeVerifyingKey)];
+                    case 12:
+                        tx = _a.sent();
                         return [4 /*yield*/, this.networkClient.submitTransaction(tx)];
-                    case 5: return [2 /*return*/, _b.sent()];
+                    case 13: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -149,34 +167,48 @@ var ProgramManager = /** @class */ (function (_super) {
     /**
      * Execute an Aleo program on the Aleo network
      *
-     * @param program {string} Program source code containing the function to be executed
-     * @param function_name {string} Function name to execute
-     * @param fee {number} Fee to pay for the transaction
-     * @param inputs {string[]} Inputs to the function
-     * @param feeRecord {string | RecordPlaintext} Fee record to use for the transaction
-     * @param privateKey {PrivateKey | undefined} Optional private key to use for the transaction
-     * @param provingKey {ProvingKey | undefined} Optional proving key to use for the transaction
-     * @param verifyingKey {VerifyingKey | undefined} Optional verifying key to use for the transaction
+     * @param {string} programName Program name containing the function to be executed
+     * @param {string} functionName Function name to execute
+     * @param {number} fee Fee to pay for the transaction
+     * @param {string[]} inputs Inputs to the function
+     * @param {RecordSearchParams} recordSearchParams Optional parameters for searching for a record to use for the transaction
+     * @param {KeySearchParams} keySearchParams Optional parameters for finding the matching proving & verifying keys for the function
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
+     * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {Promise<string | Error>}
      *
      * @example
-     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
      * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
      * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager(networkClient, keyProvider, recordProvider);
-     * const tx_id = await programManager.execute(program, "hello_hello", 0.020, ["5u32", "5u32"])
+     * const programName = "hello_hello.aleo";
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const keySearchParams = { "cacheKey": "hello_hello:hello" };
+     * const tx_id = await programManager.execute(programName, "hello_hello", 0.020, ["5u32", "5u32"], undefined, undefined, undefined, keySearchParams);
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    ProgramManager.prototype.execute = function (program, function_name, fee, inputs, feeRecord, privateKey, provingKey, verifyingKey) {
+    ProgramManager.prototype.execute = function (programName, functionName, fee, inputs, recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var executionPrivateKey, record, result, feeProvingKey, feeVerifyingKey, imports, tx;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var program, e_4, executionPrivateKey, e_5, feeKeys, e_6, feeProvingKey, feeVerifyingKey, e_7, imports, e_8, tx;
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
+                        _b.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.networkClient.getProgram(programName)];
+                    case 1:
+                        program = (_b.sent());
+                        return [3 /*break*/, 3];
+                    case 2:
+                        e_4 = _b.sent();
+                        throw logAndThrow("Error finding ".concat(programName, ". Network response: '").concat(e_4, "'. Please ensure you're connected to a valid Aleo network the program is deployed to the network."));
+                    case 3:
                         // Convert the fee to microcredits
                         fee = Math.floor(fee * 1000000);
                         executionPrivateKey = privateKey;
@@ -186,20 +218,53 @@ var ProgramManager = /** @class */ (function (_super) {
                         else {
                             throw ("No private key provided and no private key set in the ProgramManager");
                         }
-                        record = feeRecord instanceof RecordPlaintext ? feeRecord : RecordPlaintext.fromString(feeRecord);
+                        _b.label = 4;
+                    case 4:
+                        _b.trys.push([4, 6, , 7]);
+                        return [4 /*yield*/, this.getCreditsRecord(fee, [], feeRecord, recordSearchParams)];
+                    case 5:
+                        feeRecord = (_b.sent());
+                        return [3 /*break*/, 7];
+                    case 6:
+                        e_5 = _b.sent();
+                        throw logAndThrow("Error finding fee record. Record finder response: '".concat(e_5, "'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists."));
+                    case 7:
+                        _b.trys.push([7, 9, , 10]);
                         return [4 /*yield*/, this.keyProvider.feeKeys()];
-                    case 1:
-                        result = _a.sent();
-                        if (result instanceof Error) {
-                            throw (result);
-                        }
-                        feeProvingKey = result[0], feeVerifyingKey = result[1];
-                        imports = this.networkClient.getProgramImports(program);
-                        return [4 /*yield*/, this.buildExecutionTransaction(executionPrivateKey, program, function_name, inputs, fee, record, this.host, false, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey)];
-                    case 2:
-                        tx = _a.sent();
+                    case 8:
+                        feeKeys = (_b.sent());
+                        return [3 /*break*/, 10];
+                    case 9:
+                        e_6 = _b.sent();
+                        throw logAndThrow("Error finding fee keys. Key finder response: '".concat(e_6, "'. Please ensure your key provider is configured correctly."));
+                    case 10:
+                        feeProvingKey = feeKeys[0], feeVerifyingKey = feeKeys[1];
+                        if (!(!provingKey || !verifyingKey)) return [3 /*break*/, 14];
+                        _b.label = 11;
+                    case 11:
+                        _b.trys.push([11, 13, , 14]);
+                        return [4 /*yield*/, this.keyProvider.functionKeys(keySearchParams)];
+                    case 12:
+                        _a = (_b.sent()), provingKey = _a[0], verifyingKey = _a[1];
+                        return [3 /*break*/, 14];
+                    case 13:
+                        e_7 = _b.sent();
+                        console.log("Function keys not found. Key finder response: '".concat(e_7, "'. The function keys will be synthesized"));
+                        return [3 /*break*/, 14];
+                    case 14:
+                        _b.trys.push([14, 16, , 17]);
+                        return [4 /*yield*/, this.networkClient.getProgramImports(programName)];
+                    case 15:
+                        imports = _b.sent();
+                        return [3 /*break*/, 17];
+                    case 16:
+                        e_8 = _b.sent();
+                        throw logAndThrow("Error finding program imports. Network response: '".concat(e_8, "'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network."));
+                    case 17: return [4 /*yield*/, this.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, false, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey)];
+                    case 18:
+                        tx = _b.sent();
                         return [4 /*yield*/, this.networkClient.submitTransaction(tx)];
-                    case 3: return [2 /*return*/, _a.sent()];
+                    case 19: return [2 /*return*/, _b.sent()];
                 }
             });
         });
@@ -207,99 +272,29 @@ var ProgramManager = /** @class */ (function (_super) {
     /**
      * Execute an Aleo program in offline mode
      *
-     * @param program {string} Program source code containing the function to be executed
-     * @param function_name {string} Function name to execute
-     * @param inputs {string[]} Inputs to the function
-     * @param privateKey {PrivateKey | undefined} Optional private key to use for the transaction
-     * @param provingKey {ProvingKey | undefined} Optional proving key to use for the transaction
-     * @param verifyingKey {VerifyingKey | undefined} Optional verifying key to use for the transaction
+     * @param {string} program Program source code containing the function to be executed
+     * @param {string} function_name Function name to execute
+     * @param {string[]} inputs Inputs to the function
+     * @param {string[] | undefined} imports Optional imports to the program
+     * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving &
+     * verifying keys for the function
+     * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
+     * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {Promise<string | Error>}
-     */
-    ProgramManager.prototype.executeOffline = function (program, function_name, inputs, privateKey, provingKey, verifyingKey) {
-        return __awaiter(this, void 0, void 0, function () {
-            var executionPrivateKey, imports;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        executionPrivateKey = privateKey;
-                        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
-                            executionPrivateKey = this.account.privateKey();
-                        }
-                        else {
-                            throw ("No private key provided and no private key set in the ProgramManager");
-                        }
-                        imports = this.networkClient.getProgramImports(program);
-                        return [4 /*yield*/, this.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, false, imports, provingKey, verifyingKey)];
-                    case 1: 
-                    // Deploy the program and submit the transaction to the network
-                    return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
-    /**
-     * Join two credits records into a single credits record
      *
-     * @param recordOne {RecordPlaintext | string} First credits record to join
-     * @param recordTwo {RecordPlaintext | string} Second credits record to join
-     * @param fee {number} Fee in credits pay for the join transaction
-     * @param feeRecord {RecordPlaintext | string} Fee record to use for the join transaction
-     * @param privateKey {PrivateKey | undefined} Private key to use for the join transaction
-     * @returns {Promise<string | Error>}
-     */
-    ProgramManager.prototype.join = function (recordOne, recordTwo, fee, feeRecord, privateKey) {
-        var _a, _b;
-        return __awaiter(this, void 0, void 0, function () {
-            var executionPrivateKey, feeKeys, joinKeys, feeProvingKey, feeVerifyingKey, joinProvingKey, joinVerifyingKey, tx;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        // Convert the fee to microcredits
-                        fee = Math.floor(fee * 1000000);
-                        executionPrivateKey = privateKey;
-                        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
-                            executionPrivateKey = this.account.privateKey();
-                        }
-                        else {
-                            throw ("No private key provided and no private key set in the ProgramManager");
-                        }
-                        return [4 /*yield*/, ((_a = this.keyProvider) === null || _a === void 0 ? void 0 : _a.feeKeys())];
-                    case 1:
-                        feeKeys = _c.sent();
-                        return [4 /*yield*/, ((_b = this.keyProvider) === null || _b === void 0 ? void 0 : _b.joinKeys())];
-                    case 2:
-                        joinKeys = _c.sent();
-                        if (feeKeys instanceof Error || joinKeys instanceof Error) {
-                            throw ("Failed to get keys");
-                        }
-                        feeProvingKey = feeKeys[0], feeVerifyingKey = feeKeys[1];
-                        joinProvingKey = joinKeys[0], joinVerifyingKey = joinKeys[1];
-                        // Get record
-                        recordOne = recordOne instanceof RecordPlaintext ? recordOne : RecordPlaintext.fromString(recordOne);
-                        recordTwo = recordTwo instanceof RecordPlaintext ? recordTwo : RecordPlaintext.fromString(recordTwo);
-                        feeRecord = feeRecord instanceof RecordPlaintext ? feeRecord : RecordPlaintext.fromString(feeRecord);
-                        return [4 /*yield*/, this.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, false, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey)];
-                    case 3:
-                        tx = _c.sent();
-                        return [4 /*yield*/, this.networkClient.submitTransaction(tx)];
-                    case 4: return [2 /*return*/, _c.sent()];
-                }
-            });
-        });
-    };
-    /**
-     * Split credits into two new credits records
+     * @example
+     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager();
+     * const executionResponse = await programManager.executeOffline(program, "hello_hello", ["5u32", "5u32"]);
      *
-     * @param splitAmount {number} Amount to split from the original credits record
-     * @param recipient {string} Recipient of the split transaction
-     * @param amountRecord {RecordPlaintext | string} Amount record to use for the split transaction
-     * @param privateKey {PrivateKey | undefined} Private key to use for the split transaction
-     * @returns {Promise<string | Error>}
+     * const result = executionResponse.getOutputs();
+     * assert(result === ["10u32"]);
      */
-    ProgramManager.prototype.split = function (splitAmount, amountRecord, privateKey) {
-        var _a;
+    ProgramManager.prototype.executeOffline = function (program, function_name, inputs, imports, keySearchParams, provingKey, verifyingKey, privateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var executionPrivateKey, splitKeys, splitProvingKey, splitVerifyingKey, tx;
+            var executionPrivateKey, e_9;
+            var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -310,20 +305,154 @@ var ProgramManager = /** @class */ (function (_super) {
                         else {
                             throw ("No private key provided and no private key set in the ProgramManager");
                         }
-                        return [4 /*yield*/, ((_a = this.keyProvider) === null || _a === void 0 ? void 0 : _a.splitKeys())];
+                        if (!(!provingKey || !verifyingKey)) return [3 /*break*/, 4];
+                        _b.label = 1;
                     case 1:
-                        splitKeys = _b.sent();
-                        if (splitKeys instanceof Error) {
-                            throw ("Failed to get keys");
-                        }
-                        splitProvingKey = splitKeys[0], splitVerifyingKey = splitKeys[1];
-                        // Get record
-                        amountRecord = amountRecord instanceof RecordPlaintext ? amountRecord : RecordPlaintext.fromString(amountRecord);
-                        return [4 /*yield*/, this.buildSplitTransaction(executionPrivateKey, splitAmount, amountRecord, this.host, false, splitProvingKey, splitVerifyingKey)];
+                        _b.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.keyProvider.functionKeys(keySearchParams)];
                     case 2:
-                        tx = _b.sent();
+                        _a = (_b.sent()), provingKey = _a[0], verifyingKey = _a[1];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        e_9 = _b.sent();
+                        console.log("Function keys not found. Key finder response: '".concat(e_9, "'. The function keys will be synthesized"));
+                        return [3 /*break*/, 4];
+                    case 4: 
+                    // Run the program offline and return the result
+                    return [2 /*return*/, this.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, false, imports, provingKey, verifyingKey)];
+                }
+            });
+        });
+    };
+    /**
+     * Join two credits records into a single credits record
+     *
+     * @param {RecordPlaintext | string} recordOne First credits record to join
+     * @param {RecordPlaintext | string} recordTwo Second credits record to join
+     * @param {number} fee Fee in credits pay for the join transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record for the join transaction
+     * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
+     * @param {PrivateKey | undefined} privateKey Private key to use for the join transaction
+     * @returns {Promise<string | Error>}
+     */
+    ProgramManager.prototype.join = function (recordOne, recordTwo, fee, recordSearchParams, feeRecord, privateKey) {
+        return __awaiter(this, void 0, void 0, function () {
+            var executionPrivateKey, feeKeys, joinKeys, e_10, feeProvingKey, feeVerifyingKey, joinProvingKey, joinVerifyingKey, e_11, tx;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        // Convert the fee to microcredits
+                        fee = Math.floor(fee * 1000000);
+                        executionPrivateKey = privateKey;
+                        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
+                            executionPrivateKey = this.account.privateKey();
+                        }
+                        else {
+                            throw ("No private key provided and no private key set in the ProgramManager");
+                        }
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 4, , 5]);
+                        return [4 /*yield*/, this.keyProvider.feeKeys()];
+                    case 2:
+                        feeKeys = (_a.sent());
+                        return [4 /*yield*/, this.keyProvider.joinKeys()];
+                    case 3:
+                        joinKeys = (_a.sent());
+                        return [3 /*break*/, 5];
+                    case 4:
+                        e_10 = _a.sent();
+                        throw logAndThrow("Error finding fee keys. Key finder response: '".concat(e_10, "'. Please ensure your key provider is configured correctly."));
+                    case 5:
+                        feeProvingKey = feeKeys[0], feeVerifyingKey = feeKeys[1];
+                        joinProvingKey = joinKeys[0], joinVerifyingKey = joinKeys[1];
+                        _a.label = 6;
+                    case 6:
+                        _a.trys.push([6, 8, , 9]);
+                        return [4 /*yield*/, this.getCreditsRecord(fee, [], feeRecord, recordSearchParams)];
+                    case 7:
+                        feeRecord = (_a.sent());
+                        return [3 /*break*/, 9];
+                    case 8:
+                        e_11 = _a.sent();
+                        throw logAndThrow("Error finding fee record. Record finder response: '".concat(e_11, "'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists."));
+                    case 9:
+                        // Validate the records provided are valid plaintext records
+                        try {
+                            recordOne = recordOne instanceof RecordPlaintext ? recordOne : RecordPlaintext.fromString(recordOne);
+                            recordTwo = recordTwo instanceof RecordPlaintext ? recordTwo : RecordPlaintext.fromString(recordTwo);
+                        }
+                        catch (e) {
+                            throw logAndThrow('Records provided are not valid. Please ensure they are valid plaintext records.');
+                        }
+                        return [4 /*yield*/, this.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, false, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey)];
+                    case 10:
+                        tx = _a.sent();
                         return [4 /*yield*/, this.networkClient.submitTransaction(tx)];
-                    case 3: return [2 /*return*/, _b.sent()];
+                    case 11: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    /**
+     * Split credits into two new credits records
+     *
+     * @param {number} splitAmount Amount in microcredits to split from the original credits record
+     * @param {RecordPlaintext | string} amountRecord Amount record to use for the split transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the split transaction
+     * @returns {Promise<string | Error>}
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programName = "hello_hello.aleo";
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * await programManager.initialize();
+     * const record = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
+     * const tx_id = await programManager.split(25000000, record);
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     */
+    ProgramManager.prototype.split = function (splitAmount, amountRecord, privateKey) {
+        return __awaiter(this, void 0, void 0, function () {
+            var executionPrivateKey, splitKeys, e_12, splitProvingKey, splitVerifyingKey, tx;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        executionPrivateKey = privateKey;
+                        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
+                            executionPrivateKey = this.account.privateKey();
+                        }
+                        else {
+                            throw ("No private key provided and no private key set in the ProgramManager");
+                        }
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.keyProvider.splitKeys()];
+                    case 2:
+                        splitKeys = (_a.sent());
+                        return [3 /*break*/, 4];
+                    case 3:
+                        e_12 = _a.sent();
+                        throw logAndThrow("Error finding fee keys. Key finder response: '".concat(e_12, "'. Please ensure your key provider is configured correctly."));
+                    case 4:
+                        splitProvingKey = splitKeys[0], splitVerifyingKey = splitKeys[1];
+                        // Validate the record to be split
+                        try {
+                            amountRecord = amountRecord instanceof RecordPlaintext ? amountRecord : RecordPlaintext.fromString(amountRecord);
+                        }
+                        catch (e) {
+                            throw logAndThrow("Record provided is not valid. Please ensure it is a valid plaintext record.");
+                        }
+                        return [4 /*yield*/, this.buildSplitTransaction(executionPrivateKey, splitAmount, amountRecord, this.host, false, splitProvingKey, splitVerifyingKey)];
+                    case 5:
+                        tx = _a.sent();
+                        return [4 /*yield*/, this.networkClient.submitTransaction(tx)];
+                    case 6: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -331,22 +460,37 @@ var ProgramManager = /** @class */ (function (_super) {
     /**
      * Transfer credits to another account
      *
-     * @param amount {number} The amount of credits to transfer
-     * @param recipient {string} The recipient of the transfer
-     * @param transfer_type
-     * @param fee
-     * @param amountRecord
-     * @param feeRecord
-     * @param privateKey
-     * @returns {Promise<string | Error>}
+     * @param {number} amount The amount of credits to transfer
+     * @param {string} recipient The recipient of the transfer
+     * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
+     * @param {number} fee The fee to pay for the transfer
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record for the join transaction
+     * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
+     * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
+     * @returns {Promise<string | Error>} The transaction id of the transfer transaction
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programName = "hello_hello.aleo";
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * await programManager.initialize();
+     * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    ProgramManager.prototype.transfer = function (amount, recipient, transfer_type, fee, amountRecord, feeRecord, privateKey) {
-        var _a, _b;
+    ProgramManager.prototype.transfer = function (amount, recipient, transferType, fee, recordSearchParams, amountRecord, feeRecord, privateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var executionPrivateKey, feeKeys, transferKeys, feeProvingKey, feeVerifyingKey, transferProvingKey, transferVerifyingKey, nonces, record, record, tx;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var executionPrivateKey, feeKeys, transferKeys, e_13, feeProvingKey, feeVerifyingKey, transferProvingKey, transferVerifyingKey, nonces, e_14, tx;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
+                        // Validate the transfer type
+                        transferType = validateTransferType(transferType);
                         // Convert the fee and amount to microcredits
                         amount = Math.floor(amount * 1000000);
                         fee = Math.floor(fee * 1000000);
@@ -357,60 +501,48 @@ var ProgramManager = /** @class */ (function (_super) {
                         else {
                             throw ("No private key provided and no private key set in the ProgramManager");
                         }
-                        return [4 /*yield*/, ((_a = this.keyProvider) === null || _a === void 0 ? void 0 : _a.feeKeys())];
+                        _a.label = 1;
                     case 1:
-                        feeKeys = _c.sent();
-                        return [4 /*yield*/, ((_b = this.keyProvider) === null || _b === void 0 ? void 0 : _b.transferKeys(transfer_type))];
+                        _a.trys.push([1, 4, , 5]);
+                        return [4 /*yield*/, this.keyProvider.feeKeys()];
                     case 2:
-                        transferKeys = _c.sent();
-                        if (feeKeys instanceof Error || transferKeys instanceof Error) {
-                            throw ("Failed to get keys");
-                        }
+                        feeKeys = (_a.sent());
+                        return [4 /*yield*/, this.keyProvider.transferKeys(transferType)];
+                    case 3:
+                        transferKeys = (_a.sent());
+                        return [3 /*break*/, 5];
+                    case 4:
+                        e_13 = _a.sent();
+                        throw logAndThrow("Error finding fee keys. Key finder response: '".concat(e_13, "'. Please ensure your key provider is configured correctly."));
+                    case 5:
                         feeProvingKey = feeKeys[0], feeVerifyingKey = feeKeys[1];
                         transferProvingKey = transferKeys[0], transferVerifyingKey = transferKeys[1];
-                        nonces = [];
-                        if (!feeRecord) return [3 /*break*/, 3];
-                        feeRecord = feeRecord instanceof RecordPlaintext ? feeRecord : RecordPlaintext.fromString(feeRecord);
-                        nonces.push(feeRecord.nonce());
-                        return [3 /*break*/, 6];
-                    case 3:
-                        if (!this.recordProvider) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this.recordProvider.findCreditsRecord(fee, true, [])];
-                    case 4:
-                        record = _c.sent();
-                        if (record instanceof RecordPlaintext) {
-                            feeRecord = record;
-                            nonces.push(feeRecord.nonce());
-                        }
-                        else {
-                            console.log("Record provider did not return a valid record with error:", record);
-                            throw ("The record provider did not return a valid record");
-                        }
-                        return [3 /*break*/, 6];
-                    case 5: throw ("No record provider set and no fee record provided");
+                        _a.label = 6;
                     case 6:
-                        if (!amountRecord) return [3 /*break*/, 7];
-                        amountRecord = amountRecord instanceof RecordPlaintext ? amountRecord : RecordPlaintext.fromString(amountRecord);
-                        return [3 /*break*/, 10];
+                        _a.trys.push([6, 11, , 12]);
+                        nonces = [];
+                        if (!requiresAmountRecord(transferType)) return [3 /*break*/, 8];
+                        return [4 /*yield*/, this.getCreditsRecord(fee, [], amountRecord, recordSearchParams)];
                     case 7:
-                        if (!(this.recordProvider && requiresAmountRecord(transfer_type))) return [3 /*break*/, 9];
-                        return [4 /*yield*/, this.recordProvider.findCreditsRecord(amount, true, nonces)];
+                        // If the transfer type is private and requires an amount record, get it from the record provider
+                        amountRecord = (_a.sent());
+                        nonces.push(amountRecord.nonce());
+                        return [3 /*break*/, 9];
                     case 8:
-                        record = _c.sent();
-                        if (record instanceof RecordPlaintext) {
-                            amountRecord = record;
-                        }
-                        else {
-                            console.log("Record provider did not return a valid record with error:", record);
-                            throw ("The record provider did not return a valid record");
-                        }
-                        return [3 /*break*/, 10];
-                    case 9: throw ("No record provider set and no amount record provided");
-                    case 10: return [4 /*yield*/, this.buildTransferTransaction(executionPrivateKey, amount, recipient, transfer_type, amountRecord, fee, feeRecord, this.host, false, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey)];
+                        amountRecord = undefined;
+                        _a.label = 9;
+                    case 9: return [4 /*yield*/, this.getCreditsRecord(fee, nonces, feeRecord, recordSearchParams)];
+                    case 10:
+                        feeRecord = (_a.sent());
+                        return [3 /*break*/, 12];
                     case 11:
-                        tx = _c.sent();
+                        e_14 = _a.sent();
+                        throw logAndThrow("Error finding fee record. Record finder response: '".concat(e_14, "'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists."));
+                    case 12: return [4 /*yield*/, this.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, false, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey)];
+                    case 13:
+                        tx = _a.sent();
                         return [4 /*yield*/, this.networkClient.submitTransaction(tx)];
-                    case 12: return [2 /*return*/, _c.sent()];
+                    case 14: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -418,7 +550,7 @@ var ProgramManager = /** @class */ (function (_super) {
     /**
      * Create a program object from a program's source code
      *
-     * @param program {string} Program source code
+     * @param {string} program Program source code
      * @returns {Program | Error} The program object
      */
     ProgramManager.prototype.createProgramFromSource = function (program) {
@@ -432,16 +564,66 @@ var ProgramManager = /** @class */ (function (_super) {
     ProgramManager.prototype.creditsProgram = function () {
         return Program.getCreditsProgram();
     };
+    /**
+     * Verify a program is valid
+     *
+     * @param {string} program The program source code
+     */
+    ProgramManager.prototype.verifyProgram = function (program) {
+        try {
+            Program.fromString(program);
+            return true;
+        }
+        catch (e) {
+            return false;
+        }
+    };
+    // Internal utility function for getting a credits.aleo record
+    ProgramManager.prototype.getCreditsRecord = function (amount, nonces, record, params) {
+        return __awaiter(this, void 0, void 0, function () {
+            var e_15, recordProvider, e_16;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 1, , 6]);
+                        return [2 /*return*/, record instanceof RecordPlaintext ? record : RecordPlaintext.fromString(record)];
+                    case 1:
+                        e_15 = _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        recordProvider = this.recordProvider;
+                        return [4 /*yield*/, recordProvider.findCreditsRecord(amount, true, nonces, params)];
+                    case 3: return [2 /*return*/, (_a.sent())];
+                    case 4:
+                        e_16 = _a.sent();
+                        throw logAndThrow("Error finding fee record. Record finder response: '".concat(e_16, "'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists."));
+                    case 5: return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
     return ProgramManager;
 }(WasmProgramManager));
-function requiresAmountRecord(record_type) {
-    switch (record_type) {
+function requiresAmountRecord(transferType) {
+    switch (transferType) {
         case "transfer_private" || "private" || "transferPrivate":
             return true;
         case "transfer_private_to_public" || "privateToPublic" || "transferPrivateToPublic":
             return true;
         default:
             return false;
+    }
+}
+function validateTransferType(transferType) {
+    switch (transferType) {
+        case "transfer_private" || "private" || "transferPrivate" || "transfer_private_to_public" || "privateToPublic"
+            || "transferPrivateToPublic" || "transfer_public" || "public" || "transferPublic" || "transfer_public_to_private"
+            || "publicToPrivate" || "transferPublicToPrivate":
+            return transferType;
+        default:
+            throw logAndThrow("Invalid transfer type '".concat(transferType, "'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'."));
     }
 }
 export { ProgramManager };

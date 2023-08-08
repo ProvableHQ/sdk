@@ -338,7 +338,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
 
     /**
      * Returns the proving and verifying keys for the transfer functions in the credits.aleo program
-     *
+     * @param {string} visibility Visibility of the transfer function
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the transfer functions
      *
      * @example
@@ -397,4 +397,4 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 }
 
-export {AleoKeyProvider, FunctionKeyPair, FunctionKeyProvider, KeySearchParams}
+export {AleoKeyProvider, AleoKeyProviderParams, FunctionKeyPair, FunctionKeyProvider, KeySearchParams}

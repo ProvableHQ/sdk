@@ -33,8 +33,8 @@ class ProgramManager extends WasmProgramManager {
     /** Create a new instance of the ProgramManager
      *
      * @param { string | undefined } host A host uri running the official Aleo API
-     * @param keyProvider { FunctionKeyProvider | undefined } A key provider that implements {@link FunctionKeyProvider} interface
-     * @param recordProvider { RecordProvider | undefined } A record provider that implements {@link RecordProvider} interface
+     * @param { FunctionKeyProvider | undefined } keyProvider A key provider that implements {@link FunctionKeyProvider} interface
+     * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
      */
     constructor(host: string | undefined, keyProvider: FunctionKeyProvider | undefined, recordProvider: RecordProvider | undefined) {
         if (process.env.NODE_ENV === 'production') {
@@ -62,7 +62,7 @@ class ProgramManager extends WasmProgramManager {
     /**
      * Set the account to use for transaction submission to the Aleo network
      *
-     * @param account {Account} Account to use for transaction submission
+     * @param {Account} account Account to use for transaction submission
      */
     setAccount(account: Account) {
         this.account = account;
@@ -71,7 +71,7 @@ class ProgramManager extends WasmProgramManager {
     /**
      * Set the key provider that provides the proving and verifying keys for programs
      *
-     * @param keyProvider {FunctionKeyProvider}
+     * @param {FunctionKeyProvider} keyProvider
      */
     setKeyProvider(keyProvider: FunctionKeyProvider) {
         this.keyProvider = keyProvider;
@@ -90,7 +90,7 @@ class ProgramManager extends WasmProgramManager {
     /**
      * Set the record provider that provides records for transactions
      *
-     * @param recordProvider {RecordProvider}
+     * @param {RecordProvider} recordProvider
      */
     setRecordProvider(recordProvider: RecordProvider) {
         this.recordProvider = recordProvider;
@@ -101,9 +101,8 @@ class ProgramManager extends WasmProgramManager {
      *
      * @param {string} program Program source code
      * @param {number} fee Fee to pay for the transaction
-     * @param {boolean} cache Whether to cache the program in memory
-     * @param {string | RecordPlaintext} feeRecord Optional Fee record to use for the transaction
-     * @param {RecordSearchParams} recordSearchParams Optional parameters for searching for a record to use for the transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use for the transaction
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {string | Error} The transaction id of the deployed program or a failure message from the network
      *
@@ -123,8 +122,8 @@ class ProgramManager extends WasmProgramManager {
     async deploy(
         program: string,
         fee: number,
-        feeRecord?: string | RecordPlaintext,
         recordSearchParams?: RecordSearchParams,
+        feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
     ): Promise<string | Error> {
         // Ensure the program is valid and does not exist on the network
@@ -191,11 +190,11 @@ class ProgramManager extends WasmProgramManager {
      * @param {string} functionName Function name to execute
      * @param {number} fee Fee to pay for the transaction
      * @param {string[]} inputs Inputs to the function
-     * @param {string | RecordPlaintext} feeRecord Fee record to use for the transaction
-     * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
-     * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {RecordSearchParams} recordSearchParams Optional parameters for searching for a record to use for the transaction
      * @param {KeySearchParams} keySearchParams Optional parameters for finding the matching proving & verifying keys for the function
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
+     * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {Promise<string | Error>}
      *
@@ -218,11 +217,11 @@ class ProgramManager extends WasmProgramManager {
         functionName: string,
         fee: number,
         inputs: string[],
+        recordSearchParams?: RecordSearchParams,
+        keySearchParams?: KeySearchParams,
         feeRecord?: string | RecordPlaintext,
         provingKey?: ProvingKey,
         verifyingKey?: VerifyingKey,
-        recordSearchParams?: RecordSearchParams,
-        keySearchParams?: KeySearchParams,
         privateKey?: PrivateKey,
     ): Promise<string | Error> {
         // Ensure the function exists on the network
@@ -288,10 +287,11 @@ class ProgramManager extends WasmProgramManager {
      * @param {string} program Program source code containing the function to be executed
      * @param {string} function_name Function name to execute
      * @param {string[]} inputs Inputs to the function
-     * @param {string[]} imports Optional imports to the program
+     * @param {string[] | undefined} imports Optional imports to the program
+     * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving &
+     * verifying keys for the function
      * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
-     * @param {KeySearchParams} keySearchParams Optional parameters for finding the matching proving & verifying keys for the function
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {Promise<string | Error>}
      *
@@ -308,9 +308,9 @@ class ProgramManager extends WasmProgramManager {
         function_name: string,
         inputs: string[],
         imports?: ProgramImports,
+        keySearchParams?: KeySearchParams,
         provingKey?: ProvingKey,
         verifyingKey?: VerifyingKey,
-        keySearchParams?: KeySearchParams,
         privateKey?: PrivateKey,
     ): Promise<ExecutionResponse> {
         // Get the private key from the account if it is not provided in the parameters
@@ -339,16 +339,17 @@ class ProgramManager extends WasmProgramManager {
      * @param {RecordPlaintext | string} recordOne First credits record to join
      * @param {RecordPlaintext | string} recordTwo Second credits record to join
      * @param {number} fee Fee in credits pay for the join transaction
-     * @param {RecordPlaintext | string} feeRecord Fee record to use for the join transaction
-     * @param {RecordSearchParams} recordSearchParams Optional parameters for finding the fee record for the join transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record for the join transaction
+     * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
      * @param {PrivateKey | undefined} privateKey Private key to use for the join transaction
      * @returns {Promise<string | Error>}
      */
     async join(
         recordOne: RecordPlaintext | string,
         recordTwo: RecordPlaintext | string,
-        fee: number, feeRecord?: RecordPlaintext | string,
-        recordSearchParams?: RecordSearchParams,
+        fee: number,
+        recordSearchParams?: RecordSearchParams | undefined,
+        feeRecord?: RecordPlaintext | string | undefined,
         privateKey?: PrivateKey
     ): Promise<string | Error> {
         // Convert the fee to microcredits
@@ -453,9 +454,9 @@ class ProgramManager extends WasmProgramManager {
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record for the join transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
-     * @param {RecordSearchParams} recordSearchParams Optional parameters for finding the fee record for the join transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @returns {Promise<string | Error>} The transaction id of the transfer transaction
      *
@@ -472,7 +473,10 @@ class ProgramManager extends WasmProgramManager {
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    async transfer(amount: number, recipient: string, transferType: string, fee: number, amountRecord?: RecordPlaintext | string, feeRecord?: RecordPlaintext | string, recordSearchParams?: RecordSearchParams, privateKey?: PrivateKey): Promise<string | Error> {
+    async transfer(amount: number, recipient: string, transferType: string, fee: number, recordSearchParams?: RecordSearchParams, amountRecord?: RecordPlaintext | string, feeRecord?: RecordPlaintext | string, privateKey?: PrivateKey): Promise<string | Error> {
+        // Validate the transfer type
+        transferType = <string>validateTransferType(transferType);
+
         // Convert the fee and amount to microcredits
         amount = Math.floor(amount * 1000000);
         fee = Math.floor(fee * 1000000);
@@ -575,6 +579,17 @@ function requiresAmountRecord(transferType: string): boolean {
             return true;
         default:
             return false;
+    }
+}
+
+function validateTransferType(transferType: string): string | Error {
+    switch (transferType) {
+        case "transfer_private" || "private" || "transferPrivate" || "transfer_private_to_public" || "privateToPublic"
+        || "transferPrivateToPublic" || "transfer_public" || "public" || "transferPublic" || "transfer_public_to_private"
+        || "publicToPrivate" || "transferPublicToPrivate":
+            return transferType;
+        default:
+            throw logAndThrow(`Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`);
     }
 }
 
