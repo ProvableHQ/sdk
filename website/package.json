@@ -13,7 +13,6 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@aleohq/wasm": "file:../wasm/pkg-parallel",
         "@aleohq/sdk": "file:../sdk",
         "@ant-design/icons": "^4.4.0",
         "@codemirror/language": "^6.8.0",
