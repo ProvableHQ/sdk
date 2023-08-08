@@ -137,6 +137,10 @@ interface RecordProvider {
     findRecords(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error>;
 }
 
+/**
+ * A record provider implementation that uses the official Aleo API to find records for usage in program execution and
+ * deployment, wallet functionality, and other use cases.
+ */
 class NetworkRecordProvider implements RecordProvider {
     account: Account;
     networkClient: AleoNetworkClient;

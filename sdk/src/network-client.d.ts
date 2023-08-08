@@ -1,4 +1,4 @@
-import { Account, Block, Program, RecordPlaintext, WasmTransaction, Transaction, Transition } from ".";
+import { Account, Block, Program, RecordPlaintext, PrivateKey, WasmTransaction, Transaction, Transition } from ".";
 type ProgramImports = {
     [key: string]: string | Program;
 };
@@ -19,7 +19,7 @@ declare class AleoNetworkClient {
     account: Account | undefined;
     constructor(host: string);
     /**
-     * Set an account
+     * Set an account to use in networkClient calls
      *
      * @param {Account} account
      * @example
@@ -35,9 +35,14 @@ declare class AleoNetworkClient {
      */
     getAccount(): Account | undefined;
     fetchData<Type>(url?: string): Promise<Type>;
-    fetchBytes(url?: string): Promise<Uint8Array>;
     /**
      * Attempts to find unspent records in the Aleo blockchain for a specified private key
+     * @param {number} startHeight - The height at which to start searching for unspent records
+     * @param {number} endHeight - The height at which to stop searching for unspent records
+     * @param {string | PrivateKey} privateKey - The private key to use to find unspent records
+     * @param {number[]} amounts - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
+     * @param {number} maxMicrocredits - The maximum number of microcredits to search for
+     * @param {string[]} nonces - The nonces of already found records to exclude from the search
      *
      * @example
      * // Find all unspent records
@@ -53,9 +58,9 @@ declare class AleoNetworkClient {
      * const maxMicrocredits = 100000;
      * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
      */
-    findUnspentRecords(startHeight: number, endHeight: number | undefined, privateKey: string | undefined, amounts: number[] | undefined, maxMicrocredits?: number | undefined, nonces?: string[] | undefined): Promise<Array<RecordPlaintext> | Error>;
+    findUnspentRecords(startHeight: number, endHeight: number | undefined, privateKey: string | PrivateKey | undefined, amounts: number[] | undefined, maxMicrocredits?: number | undefined, nonces?: string[] | undefined): Promise<Array<RecordPlaintext> | Error>;
     /**
-     * Returns the block contents of the block at the specified block height
+     * Returns the contents of the block at the specified block height
      *
      * @param {number} height
      * @example
@@ -72,7 +77,7 @@ declare class AleoNetworkClient {
      */
     getBlockRange(start: number, end: number): Promise<Array<Block> | Error>;
     /**
-     * Returns the block contents of the latest block
+     * Returns the contents of the latest block
      *
      * @example
      * const latestHeight = networkClient.getLatestBlock();
@@ -93,7 +98,7 @@ declare class AleoNetworkClient {
      */
     getLatestHeight(): Promise<number | Error>;
     /**
-     * Returns the source code of a program
+     * Returns the source code of a program given a program ID
      *
      * @param {string} programId The program ID of a program deployed to the Aleo Network
      * @return {Promise<string>} Source code of the program
@@ -105,35 +110,65 @@ declare class AleoNetworkClient {
      */
     getProgram(programId: string): Promise<string | Error>;
     /**
-     *  Returns an object containing the source code of a program and the source code of all programs it imports
+     * Returns a program object from a program ID or program source code
      *
-     * @param programName
-     * @returns {Promise<ProgramImports>} Source code of the program and all programs it imports
+     * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
+     * @return {Promise<Program | Error>} Source code of the program
      *
      * @example
-     * const programImports = networkClient.getProgramImports("imported_add_mul.aleo");
+     * const programID = "hello_hello.aleo";
+     * const programSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
+     *
+     * // Get program object from program ID or program source code
+     * const programObjectFromID = await networkClient.getProgramObject(programID);
+     * const programObjectFromSource = await networkClient.getProgramObject(programSource);
+     *
+     * // Both program objects should be equal
+     * assert.equal(programObjectFromID.to_string(), programObjectFromSource.to_string());
+     */
+    getProgramObject(inputProgram: string): Promise<Program | Error>;
+    /**
+     *  Returns an object containing the source code of a program and the source code of all programs it imports
+     *
+     * @param {Program | string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
+     * @returns {Promise<ProgramImports>} Object of the form { "program_id": "program_source", .. } containing program id & source code for all program imports
+     *
+     * @example
+     * const double_test_source = "import multiply_test.aleo;\n\nprogram double_test.aleo;\n\nfunction double_it:\n    input r0 as u32.private;\n    call multiply_test.aleo/multiply 2u32 r0 into r1;\n    output r1 as u32.private;\n"
+     * const double_test = Program.fromString(double_test_source);
      * const expectedImports = {
      *     "multiply_test.aleo": "program multiply_test.aleo;\n\nfunction multiply:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n    output r2 as u32.private;\n"
      * }
+     *
+     * // Imports can be fetched using the program ID, source code, or program object
+     * let programImports = await networkClient.getProgramImports("double_test.aleo");
+     * assert.deepStrictEqual(programImports, expectedImports);
+     *
+     * // Using the program source code
+     * programImports = await networkClient.getProgramImports(double_test_source);
+     * assert.deepStrictEqual(programImports, expectedImports);
+     *
+     * // Using the program object
+     * programImports = await networkClient.getProgramImports(double_test);
      * assert.deepStrictEqual(programImports, expectedImports);
      */
-    getProgramImports(programName: string): Promise<ProgramImports>;
+    getProgramImports(inputProgram: Program | string): Promise<ProgramImports | Error>;
     /**
      * Get a list of the program names that a program imports
      *
-     * @param program [Program | string] - The program or program source code to get the imports of
+     * @param {Program | string} inputProgram - The program id or program source code to get the imports of
      * @returns {string[]} - The list of program names that the program imports
      *
      * @example
-     * const programImportsNames = networkClient.getProgramImports("imported_add_mul.aleo");
+     * const programImportsNames = networkClient.getProgramImports("double_test.aleo");
      * const expectedImportsNames = ["multiply_test.aleo"];
      * assert.deepStrictEqual(programImportsNames, expectedImportsNames);
      */
-    getProgramImportNames(program_name: string): Promise<string[] | Error>;
+    getProgramImportNames(inputProgram: Program | string): Promise<string[] | Error>;
     /**
      * Returns the names of the mappings of a program
      *
-     * @param {string} programId
+     * @param {string} programId - The program ID to get the mappings of (e.g. "credits.aleo")
      * @example
      * const mappings = networkClient.getProgramMappingNames("credits.aleo");
      * const expectedMappings = ["account"];
@@ -143,9 +178,9 @@ declare class AleoNetworkClient {
     /**
      * Returns the value of a program's mapping for a specific key
      *
-     * @param {string} programId
-     * @param {string} mappingName
-     * @param {string} key
+     * @param {string} programId - The program ID to get the mapping value of (e.g. "credits.aleo")
+     * @param {string} mappingName - The name of the mapping to get the value of (e.g. "account")
+     * @param {string} key - The key of the mapping to get the value of (e.g. "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
      * @return {Promise<string>} String representation of the value of the mapping
      *
      * @example
@@ -187,6 +222,7 @@ declare class AleoNetworkClient {
     getTransactionsInMempool(): Promise<Array<Transaction> | Error>;
     /**
      * Returns the transition id by its unique identifier
+     * @param {string} transition_id - The transition id to get
      *
      * @example
      * const transition = networkClient.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
@@ -195,7 +231,7 @@ declare class AleoNetworkClient {
     /**
      * Submit an execute or deployment transaction to the Aleo network
      *
-     * @param transaction [wasmTransaction | string] - The transaction to submit to the network
+     * @param {WasmTransaction | string} transaction  - The transaction to submit to the network
      * @returns {string | Error} - The transaction id of the submitted transaction or the resulting error
      */
     submitTransaction(transaction: WasmTransaction | string): Promise<string | Error>;

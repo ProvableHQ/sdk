@@ -1,6 +1,6 @@
 import { __awaiter, __generator } from "tslib";
 import axios from "axios";
-import { RecordCiphertext, Program, PrivateKey, WasmTransaction } from ".";
+import { RecordCiphertext, Program, PrivateKey, WasmTransaction, logAndThrow } from ".";
 /**
  * Client library that encapsulates REST calls to publicly exposed endpoints of Aleo nodes. The methods provided in this
  * allow users to query public information from the Aleo blockchain and submit transactions to the network.
@@ -18,7 +18,7 @@ var AleoNetworkClient = /** @class */ (function () {
         this.host = host + "/testnet3";
     }
     /**
-     * Set an account
+     * Set an account to use in networkClient calls
      *
      * @param {Account} account
      * @example
@@ -57,28 +57,14 @@ var AleoNetworkClient = /** @class */ (function () {
             });
         });
     };
-    AleoNetworkClient.prototype.fetchBytes = function (url) {
-        if (url === void 0) { url = "/"; }
-        return __awaiter(this, void 0, void 0, function () {
-            var response, error_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, axios.get(this.host + url, { responseType: 'arraybuffer' })];
-                    case 1:
-                        response = _a.sent();
-                        return [2 /*return*/, new Uint8Array(response.data)];
-                    case 2:
-                        error_2 = _a.sent();
-                        throw new Error("Error fetching data.");
-                    case 3: return [2 /*return*/];
-                }
-            });
-        });
-    };
     /**
      * Attempts to find unspent records in the Aleo blockchain for a specified private key
+     * @param {number} startHeight - The height at which to start searching for unspent records
+     * @param {number} endHeight - The height at which to stop searching for unspent records
+     * @param {string | PrivateKey} privateKey - The private key to use to find unspent records
+     * @param {number[]} amounts - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
+     * @param {number} maxMicrocredits - The maximum number of microcredits to search for
+     * @param {string[]} nonces - The nonces of already found records to exclude from the search
      *
      * @example
      * // Find all unspent records
@@ -96,7 +82,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.findUnspentRecords = function (startHeight, endHeight, privateKey, amounts, maxMicrocredits, nonces) {
         return __awaiter(this, void 0, void 0, function () {
-            var records, start, end, resolvedPrivateKey, failures, totalRecordValue, latestHeight, viewKey, blockHeight, error_3, blocks, i, block, transactions, j, confirmedTransaction, transaction, k, transition, l, output, record, recordPlaintext, nonce, serialNumber, error_4, amounts_found, m, n, error_5, error_6;
+            var records, start, end, resolvedPrivateKey, failures, totalRecordValue, latestHeight, viewKey, blockHeight, error_2, blocks, i, block, transactions, j, confirmedTransaction, transaction, k, transition, l, output, record, recordPlaintext, nonce, serialNumber, error_3, amounts_found, error_4, error_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -119,7 +105,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         }
                         else {
                             try {
-                                resolvedPrivateKey = PrivateKey.from_string(privateKey);
+                                resolvedPrivateKey = privateKey instanceof PrivateKey ? privateKey : PrivateKey.from_string(privateKey);
                             }
                             catch (error) {
                                 throw new Error("Error parsing private key provided.");
@@ -140,7 +126,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         }
                         return [3 /*break*/, 4];
                     case 3:
-                        error_3 = _a.sent();
+                        error_2 = _a.sent();
                         throw new Error("Error fetching latest block height.");
                     case 4:
                         // If no end height is specified or is greater than the latest height, set the end height to the latest height
@@ -210,8 +196,6 @@ var AleoNetworkClient = /** @class */ (function () {
                         if (nonces.includes(nonce)) {
                             return [3 /*break*/, 18];
                         }
-                        // Otherwise record the nonce that has been found
-                        nonces.push(nonce);
                         serialNumber = recordPlaintext.serialNumberString(resolvedPrivateKey, "credits.aleo", "credits");
                         _a.label = 13;
                     case 13:
@@ -221,36 +205,42 @@ var AleoNetworkClient = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 16];
                     case 15:
-                        error_4 = _a.sent();
+                        error_3 = _a.sent();
                         // If it's not found, add it to the list of unspent records
-                        records.push(recordPlaintext);
-                        // If the user specified a maximum number of microcredits, check if the search has found enough
-                        if (typeof maxMicrocredits === "number") {
-                            totalRecordValue = recordPlaintext.microcredits();
-                            // Exit if the search has found the amount specified
-                            if (totalRecordValue >= BigInt(maxMicrocredits)) {
-                                return [2 /*return*/, records];
+                        if (!amounts) {
+                            records.push(recordPlaintext);
+                            // If the user specified a maximum number of microcredits, check if the search has found enough
+                            if (typeof maxMicrocredits === "number") {
+                                totalRecordValue += recordPlaintext.microcredits();
+                                // Exit if the search has found the amount specified
+                                if (totalRecordValue >= BigInt(maxMicrocredits)) {
+                                    return [2 /*return*/, records];
+                                }
                             }
                         }
                         // If the user specified a list of amounts, check if the search has found them
-                        if (!(typeof amounts == "undefined")) {
+                        if (!(typeof amounts === "undefined") && amounts.length > 0) {
                             amounts_found = 0;
-                            for (m = 0; m < amounts.length; m++) {
-                                for (n = 0; m < records.length; n++) {
-                                    if (records[n].microcredits() >= BigInt(amounts[m])) {
-                                        amounts_found++;
-                                        // Exit if the search has found the amounts specified
-                                        if (amounts_found >= amounts.length) {
-                                            return [2 /*return*/, records];
-                                        }
+                            if (recordPlaintext.microcredits() > amounts[amounts_found]) {
+                                amounts_found += 1;
+                                records.push(recordPlaintext);
+                                // If the user specified a maximum number of microcredits, check if the search has found enough
+                                if (typeof maxMicrocredits === "number") {
+                                    totalRecordValue += recordPlaintext.microcredits();
+                                    // Exit if the search has found the amount specified
+                                    if (totalRecordValue >= BigInt(maxMicrocredits)) {
+                                        return [2 /*return*/, records];
                                     }
+                                }
+                                if (records.length >= amounts.length) {
+                                    return [2 /*return*/, records];
                                 }
                             }
                         }
                         return [3 /*break*/, 16];
                     case 16: return [3 /*break*/, 18];
                     case 17:
-                        error_5 = _a.sent();
+                        error_4 = _a.sent();
                         return [3 /*break*/, 18];
                     case 18:
                         l++;
@@ -266,13 +256,13 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [3 /*break*/, 8];
                     case 22: return [3 /*break*/, 24];
                     case 23:
-                        error_6 = _a.sent();
+                        error_5 = _a.sent();
                         // If there is an error fetching blocks, log it and keep searching
-                        console.log("Error fetching blocks in range: " + start.toString() + "-" + end.toString());
-                        console.log("Error: ", error_6);
+                        console.warn("Error fetching blocks in range: " + start.toString() + "-" + end.toString());
+                        console.warn("Error: ", error_5);
                         failures += 1;
                         if (failures > 10) {
-                            console.log("10 failures fetching records reached. Returning records fetched so far");
+                            console.warn("10 failures fetching records reached. Returning records fetched so far");
                             return [2 /*return*/, records];
                         }
                         return [3 /*break*/, 24];
@@ -283,7 +273,7 @@ var AleoNetworkClient = /** @class */ (function () {
         });
     };
     /**
-     * Returns the block contents of the block at the specified block height
+     * Returns the contents of the block at the specified block height
      *
      * @param {number} height
      * @example
@@ -291,7 +281,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getBlock = function (height) {
         return __awaiter(this, void 0, void 0, function () {
-            var block, error_7;
+            var block, error_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -301,7 +291,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         block = _a.sent();
                         return [2 /*return*/, block];
                     case 2:
-                        error_7 = _a.sent();
+                        error_6 = _a.sent();
                         throw new Error("Error fetching block.");
                     case 3: return [2 /*return*/];
                 }
@@ -318,7 +308,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getBlockRange = function (start, end) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_8, errorMessage;
+            var error_7, errorMessage;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -326,7 +316,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/blocks?start=" + start + "&end=" + end)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_8 = _a.sent();
+                        error_7 = _a.sent();
                         errorMessage = "Error fetching blocks between " + start + " and " + end + ".";
                         throw new Error(errorMessage);
                     case 3: return [2 /*return*/];
@@ -335,14 +325,14 @@ var AleoNetworkClient = /** @class */ (function () {
         });
     };
     /**
-     * Returns the block contents of the latest block
+     * Returns the contents of the latest block
      *
      * @example
      * const latestHeight = networkClient.getLatestBlock();
      */
     AleoNetworkClient.prototype.getLatestBlock = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var error_9;
+            var error_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -350,7 +340,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/latest/block")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_9 = _a.sent();
+                        error_8 = _a.sent();
                         throw new Error("Error fetching latest block.");
                     case 3: return [2 /*return*/];
                 }
@@ -365,7 +355,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getLatestHash = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var error_10;
+            var error_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -373,7 +363,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/latest/hash")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_10 = _a.sent();
+                        error_9 = _a.sent();
                         throw new Error("Error fetching latest hash.");
                     case 3: return [2 /*return*/];
                 }
@@ -388,7 +378,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getLatestHeight = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var error_11;
+            var error_10;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -396,7 +386,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/latest/height")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_11 = _a.sent();
+                        error_10 = _a.sent();
                         throw new Error("Error fetching latest height.");
                     case 3: return [2 /*return*/];
                 }
@@ -404,7 +394,7 @@ var AleoNetworkClient = /** @class */ (function () {
         });
     };
     /**
-     * Returns the source code of a program
+     * Returns the source code of a program given a program ID
      *
      * @param {string} programId The program ID of a program deployed to the Aleo Network
      * @return {Promise<string>} Source code of the program
@@ -416,7 +406,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getProgram = function (programId) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_12;
+            var error_11;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -424,7 +414,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/program/" + programId)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_12 = _a.sent();
+                        error_11 = _a.sent();
                         throw new Error("Error fetching program");
                     case 3: return [2 /*return*/];
                 }
@@ -432,58 +422,117 @@ var AleoNetworkClient = /** @class */ (function () {
         });
     };
     /**
-     *  Returns an object containing the source code of a program and the source code of all programs it imports
+     * Returns a program object from a program ID or program source code
      *
-     * @param programName
-     * @returns {Promise<ProgramImports>} Source code of the program and all programs it imports
+     * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
+     * @return {Promise<Program | Error>} Source code of the program
      *
      * @example
-     * const programImports = networkClient.getProgramImports("imported_add_mul.aleo");
+     * const programID = "hello_hello.aleo";
+     * const programSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
+     *
+     * // Get program object from program ID or program source code
+     * const programObjectFromID = await networkClient.getProgramObject(programID);
+     * const programObjectFromSource = await networkClient.getProgramObject(programSource);
+     *
+     * // Both program objects should be equal
+     * assert.equal(programObjectFromID.to_string(), programObjectFromSource.to_string());
+     */
+    AleoNetworkClient.prototype.getProgramObject = function (inputProgram) {
+        return __awaiter(this, void 0, void 0, function () {
+            var error_12, _a, _b, error_13;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        _c.trys.push([0, 1, , 6]);
+                        return [2 /*return*/, Program.fromString(inputProgram)];
+                    case 1:
+                        error_12 = _c.sent();
+                        _c.label = 2;
+                    case 2:
+                        _c.trys.push([2, 4, , 5]);
+                        _b = (_a = Program).fromString;
+                        return [4 /*yield*/, this.getProgram(inputProgram)];
+                    case 3: return [2 /*return*/, _b.apply(_a, [(_c.sent())])];
+                    case 4:
+                        error_13 = _c.sent();
+                        throw new Error("".concat(inputProgram, " is neither a program name or a valid program"));
+                    case 5: return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     *  Returns an object containing the source code of a program and the source code of all programs it imports
+     *
+     * @param {Program | string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
+     * @returns {Promise<ProgramImports>} Object of the form { "program_id": "program_source", .. } containing program id & source code for all program imports
+     *
+     * @example
+     * const double_test_source = "import multiply_test.aleo;\n\nprogram double_test.aleo;\n\nfunction double_it:\n    input r0 as u32.private;\n    call multiply_test.aleo/multiply 2u32 r0 into r1;\n    output r1 as u32.private;\n"
+     * const double_test = Program.fromString(double_test_source);
      * const expectedImports = {
      *     "multiply_test.aleo": "program multiply_test.aleo;\n\nfunction multiply:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n    output r2 as u32.private;\n"
      * }
+     *
+     * // Imports can be fetched using the program ID, source code, or program object
+     * let programImports = await networkClient.getProgramImports("double_test.aleo");
+     * assert.deepStrictEqual(programImports, expectedImports);
+     *
+     * // Using the program source code
+     * programImports = await networkClient.getProgramImports(double_test_source);
+     * assert.deepStrictEqual(programImports, expectedImports);
+     *
+     * // Using the program object
+     * programImports = await networkClient.getProgramImports(double_test);
      * assert.deepStrictEqual(programImports, expectedImports);
      */
-    AleoNetworkClient.prototype.getProgramImports = function (programName) {
+    AleoNetworkClient.prototype.getProgramImports = function (inputProgram) {
         return __awaiter(this, void 0, void 0, function () {
-            var imports, program, importList, i, import_id, programSource, nestedImports, key, error_13;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var imports, program, _a, importList, i, import_id, programSource, nestedImports, key, error_14;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
-                        _a.trys.push([0, 7, , 8]);
+                        _b.trys.push([0, 9, , 10]);
                         imports = {};
-                        return [4 /*yield*/, this.getProgram(programName)];
-                    case 1:
-                        program = _a.sent();
-                        importList = Program.fromString(program).getImports();
-                        i = 0;
-                        _a.label = 2;
+                        if (!(inputProgram instanceof Program)) return [3 /*break*/, 1];
+                        _a = inputProgram;
+                        return [3 /*break*/, 3];
+                    case 1: return [4 /*yield*/, this.getProgramObject(inputProgram)];
                     case 2:
-                        if (!(i < importList.length)) return [3 /*break*/, 6];
-                        import_id = importList[i];
-                        if (!!imports.hasOwnProperty(import_id)) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this.getProgram(import_id)];
+                        _a = (_b.sent());
+                        _b.label = 3;
                     case 3:
-                        programSource = _a.sent();
-                        return [4 /*yield*/, this.getProgramImports(import_id)];
+                        program = _a;
+                        importList = program.getImports();
+                        i = 0;
+                        _b.label = 4;
                     case 4:
-                        nestedImports = _a.sent();
+                        if (!(i < importList.length)) return [3 /*break*/, 8];
+                        import_id = importList[i];
+                        if (!!imports.hasOwnProperty(import_id)) return [3 /*break*/, 7];
+                        return [4 /*yield*/, this.getProgram(import_id)];
+                    case 5:
+                        programSource = _b.sent();
+                        return [4 /*yield*/, this.getProgramImports(import_id)];
+                    case 6:
+                        nestedImports = _b.sent();
                         for (key in nestedImports) {
                             if (!imports.hasOwnProperty(key)) {
                                 imports[key] = nestedImports[key];
                             }
                         }
                         imports[import_id] = programSource;
-                        _a.label = 5;
-                    case 5:
-                        i++;
-                        return [3 /*break*/, 2];
-                    case 6: return [2 /*return*/, imports];
+                        _b.label = 7;
                     case 7:
-                        error_13 = _a.sent();
-                        console.error("Error fetching program imports: " + error_13);
-                        throw new Error("Error fetching program imports" + error_13);
-                    case 8: return [2 /*return*/];
+                        i++;
+                        return [3 /*break*/, 4];
+                    case 8: return [2 /*return*/, imports];
+                    case 9:
+                        error_14 = _b.sent();
+                        throw logAndThrow("Error fetching program imports: " + error_14);
+                    case 10: return [2 /*return*/];
                 }
             });
         });
@@ -491,29 +540,35 @@ var AleoNetworkClient = /** @class */ (function () {
     /**
      * Get a list of the program names that a program imports
      *
-     * @param program [Program | string] - The program or program source code to get the imports of
+     * @param {Program | string} inputProgram - The program id or program source code to get the imports of
      * @returns {string[]} - The list of program names that the program imports
      *
      * @example
-     * const programImportsNames = networkClient.getProgramImports("imported_add_mul.aleo");
+     * const programImportsNames = networkClient.getProgramImports("double_test.aleo");
      * const expectedImportsNames = ["multiply_test.aleo"];
      * assert.deepStrictEqual(programImportsNames, expectedImportsNames);
      */
-    AleoNetworkClient.prototype.getProgramImportNames = function (program_name) {
+    AleoNetworkClient.prototype.getProgramImportNames = function (inputProgram) {
         return __awaiter(this, void 0, void 0, function () {
-            var program, error_14;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var program, _a, error_15;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.getProgram(program_name)];
-                    case 1:
-                        program = _a.sent();
-                        return [2 /*return*/, Program.fromString(program).getImports()];
+                        _b.trys.push([0, 4, , 5]);
+                        if (!(inputProgram instanceof Program)) return [3 /*break*/, 1];
+                        _a = inputProgram;
+                        return [3 /*break*/, 3];
+                    case 1: return [4 /*yield*/, this.getProgramObject(inputProgram)];
                     case 2:
-                        error_14 = _a.sent();
-                        throw new Error("Error fetching program imports with error: " + error_14);
-                    case 3: return [2 /*return*/];
+                        _a = (_b.sent());
+                        _b.label = 3;
+                    case 3:
+                        program = _a;
+                        return [2 /*return*/, program.getImports()];
+                    case 4:
+                        error_15 = _b.sent();
+                        throw new Error("Error fetching program imports with error: " + error_15);
+                    case 5: return [2 /*return*/];
                 }
             });
         });
@@ -521,7 +576,7 @@ var AleoNetworkClient = /** @class */ (function () {
     /**
      * Returns the names of the mappings of a program
      *
-     * @param {string} programId
+     * @param {string} programId - The program ID to get the mappings of (e.g. "credits.aleo")
      * @example
      * const mappings = networkClient.getProgramMappingNames("credits.aleo");
      * const expectedMappings = ["account"];
@@ -529,7 +584,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getProgramMappingNames = function (programId) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_15;
+            var error_16;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -537,7 +592,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/program/" + programId + "/mappings")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_15 = _a.sent();
+                        error_16 = _a.sent();
                         throw new Error("Error fetching program mappings - ensure the program exists on chain before trying again");
                     case 3: return [2 /*return*/];
                 }
@@ -547,9 +602,9 @@ var AleoNetworkClient = /** @class */ (function () {
     /**
      * Returns the value of a program's mapping for a specific key
      *
-     * @param {string} programId
-     * @param {string} mappingName
-     * @param {string} key
+     * @param {string} programId - The program ID to get the mapping value of (e.g. "credits.aleo")
+     * @param {string} mappingName - The name of the mapping to get the value of (e.g. "account")
+     * @param {string} key - The key of the mapping to get the value of (e.g. "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
      * @return {Promise<string>} String representation of the value of the mapping
      *
      * @example
@@ -560,7 +615,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getProgramMappingValue = function (programId, mappingName, key) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_16;
+            var error_17;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -568,7 +623,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/program/" + programId + "/mapping/" + mappingName + "/" + key)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_16 = _a.sent();
+                        error_17 = _a.sent();
                         throw new Error("Error fetching mapping value - ensure the mapping exists and the key is correct");
                     case 3: return [2 /*return*/];
                 }
@@ -583,7 +638,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getStateRoot = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var error_17;
+            var error_18;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -591,7 +646,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/latest/stateRoot")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_17 = _a.sent();
+                        error_18 = _a.sent();
                         throw new Error("Error fetching Aleo state root");
                     case 3: return [2 /*return*/];
                 }
@@ -607,7 +662,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getTransaction = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_18;
+            var error_19;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -615,7 +670,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/transaction/" + id)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_18 = _a.sent();
+                        error_19 = _a.sent();
                         throw new Error("Error fetching transaction.");
                     case 3: return [2 /*return*/];
                 }
@@ -631,7 +686,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getTransactions = function (height) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_19;
+            var error_20;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -639,7 +694,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/block/" + height.toString() + "/transactions")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_19 = _a.sent();
+                        error_20 = _a.sent();
                         throw new Error("Error fetching transactions.");
                     case 3: return [2 /*return*/];
                 }
@@ -654,7 +709,7 @@ var AleoNetworkClient = /** @class */ (function () {
      */
     AleoNetworkClient.prototype.getTransactionsInMempool = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var error_20;
+            var error_21;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -662,7 +717,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/memoryPool/transactions")];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_20 = _a.sent();
+                        error_21 = _a.sent();
                         throw new Error("Error fetching transactions from mempool.");
                     case 3: return [2 /*return*/];
                 }
@@ -671,13 +726,14 @@ var AleoNetworkClient = /** @class */ (function () {
     };
     /**
      * Returns the transition id by its unique identifier
+     * @param {string} transition_id - The transition id to get
      *
      * @example
      * const transition = networkClient.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
      */
     AleoNetworkClient.prototype.getTransitionId = function (transition_id) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_21;
+            var error_22;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -685,7 +741,7 @@ var AleoNetworkClient = /** @class */ (function () {
                         return [4 /*yield*/, this.fetchData("/find/transitionID/" + transition_id)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        error_21 = _a.sent();
+                        error_22 = _a.sent();
                         throw new Error("Error fetching transition ID.");
                     case 3: return [2 /*return*/];
                 }
@@ -695,12 +751,12 @@ var AleoNetworkClient = /** @class */ (function () {
     /**
      * Submit an execute or deployment transaction to the Aleo network
      *
-     * @param transaction [wasmTransaction | string] - The transaction to submit to the network
+     * @param {WasmTransaction | string} transaction  - The transaction to submit to the network
      * @returns {string | Error} - The transaction id of the submitted transaction or the resulting error
      */
     AleoNetworkClient.prototype.submitTransaction = function (transaction) {
         return __awaiter(this, void 0, void 0, function () {
-            var transaction_string, response, error_22;
+            var transaction_string, response, error_23;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -718,8 +774,8 @@ var AleoNetworkClient = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.data];
                     case 3:
-                        error_22 = _a.sent();
-                        throw new Error("Error posting transaction: ".concat(error_22));
+                        error_23 = _a.sent();
+                        throw new Error("Error posting transaction: ".concat(error_23));
                     case 4: return [2 /*return*/];
                 }
             });

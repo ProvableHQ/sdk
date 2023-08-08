@@ -35,7 +35,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Set an account
+   * Set an account to use in networkClient calls
    *
    * @param {Account} account
    * @example
@@ -69,6 +69,12 @@ class AleoNetworkClient {
 
   /**
    * Attempts to find unspent records in the Aleo blockchain for a specified private key
+   * @param {number} startHeight - The height at which to start searching for unspent records
+   * @param {number} endHeight - The height at which to stop searching for unspent records
+   * @param {string | PrivateKey} privateKey - The private key to use to find unspent records
+   * @param {number[]} amounts - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
+   * @param {number} maxMicrocredits - The maximum number of microcredits to search for
+   * @param {string[]} nonces - The nonces of already found records to exclude from the search
    *
    * @example
    * // Find all unspent records
@@ -384,7 +390,7 @@ class AleoNetworkClient {
   /**
    *  Returns an object containing the source code of a program and the source code of all programs it imports
    *
-   * @param inputProgram {Program | string} The program ID or program source code of a program deployed to the Aleo Network
+   * @param {Program | string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
    * @returns {Promise<ProgramImports>} Object of the form { "program_id": "program_source", .. } containing program id & source code for all program imports
    *
    * @example
@@ -439,7 +445,7 @@ class AleoNetworkClient {
   /**
    * Get a list of the program names that a program imports
    *
-   * @param inputProgram {Program | string} - The program id or program source code to get the imports of
+   * @param {Program | string} inputProgram - The program id or program source code to get the imports of
    * @returns {string[]} - The list of program names that the program imports
    *
    * @example
@@ -555,6 +561,7 @@ class AleoNetworkClient {
 
   /**
    * Returns the transition id by its unique identifier
+   * @param {string} transition_id - The transition id to get
    *
    * @example
    * const transition = networkClient.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
@@ -570,7 +577,7 @@ class AleoNetworkClient {
   /**
    * Submit an execute or deployment transaction to the Aleo network
    *
-   * @param transaction [wasmTransaction | string] - The transaction to submit to the network
+   * @param {WasmTransaction | string} transaction  - The transaction to submit to the network
    * @returns {string | Error} - The transaction id of the submitted transaction or the resulting error
    */
   async submitTransaction(transaction: WasmTransaction | string): Promise<string | Error> {
