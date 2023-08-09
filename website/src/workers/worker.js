@@ -1,6 +1,6 @@
-import init, * as aleo from "@aleohq/sdk";
+import * as aleo from "@aleohq/sdk";
 
-await init();
+await aleo.initializeWasm();
 const defaultHost = "https://vm.aleo.org/api";
 await aleo.initThreadPool(10);
 import { ProgramManager } from "@aleohq/sdk/src/program-manager.js";

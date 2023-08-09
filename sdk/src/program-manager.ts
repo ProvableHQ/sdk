@@ -37,9 +37,9 @@ class ProgramManager extends WasmProgramManager {
      * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
      */
     constructor(host: string | undefined, keyProvider: FunctionKeyProvider | undefined, recordProvider: RecordProvider | undefined) {
-        if (process.env.NODE_ENV === 'production') {
-            throw("ProgramManager is not available in NodeJS")
-        }
+        // if (process.env.NODE_ENV === 'production') {
+        //     throw("ProgramManager is not available in NodeJS")
+        // }
 
         super()
         if (!host) {
