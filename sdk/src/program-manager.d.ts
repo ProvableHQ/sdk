@@ -3,12 +3,13 @@ import { Account, AleoNetworkClient, ExecutionResponse, FunctionKeyProvider, Key
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
  */
-declare class ProgramManager extends WasmProgramManager {
+declare class ProgramManager {
     account: Account | undefined;
     keyProvider: FunctionKeyProvider;
     host: string;
     networkClient: AleoNetworkClient;
     recordProvider: RecordProvider | undefined;
+    executionEngine: WasmProgramManager;
     /** Create a new instance of the ProgramManager
      *
      * @param { string | undefined } host A host uri running the official Aleo API

@@ -23,12 +23,13 @@ import {
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
  */
-class ProgramManager extends WasmProgramManager {
+class ProgramManager {
     account: Account | undefined;
     keyProvider: FunctionKeyProvider;
     host: string;
     networkClient: AleoNetworkClient;
     recordProvider: RecordProvider | undefined;
+    executionEngine: WasmProgramManager;
 
     /** Create a new instance of the ProgramManager
      *
@@ -37,11 +38,6 @@ class ProgramManager extends WasmProgramManager {
      * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
      */
     constructor(host: string | undefined, keyProvider: FunctionKeyProvider | undefined, recordProvider: RecordProvider | undefined) {
-        // if (process.env.NODE_ENV === 'production') {
-        //     throw("ProgramManager is not available in NodeJS")
-        // }
-
-        super()
         if (!host) {
             this.host = "http://vm.aleo.org/api";
             this.networkClient = new AleoNetworkClient(this.host);
@@ -56,6 +52,7 @@ class ProgramManager extends WasmProgramManager {
             this.keyProvider = keyProvider;
         }
 
+        this.executionEngine = new WasmProgramManager();
         this.recordProvider = recordProvider;
     }
 
@@ -150,7 +147,9 @@ class ProgramManager extends WasmProgramManager {
         let deploymentPrivateKey = privateKey;
         if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
             deploymentPrivateKey = this.account.privateKey();
-        } else {
+        }
+
+        if (typeof deploymentPrivateKey === "undefined") {
             throw("No private key provided and no private key set in the ProgramManager");
         }
 
@@ -179,7 +178,7 @@ class ProgramManager extends WasmProgramManager {
         }
 
         // Build a deployment transaction and submit it to the network
-        const tx = await this.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, false, imports, feeProvingKey, feeVerifyingKey);
+        const tx = await this.executionEngine.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, false, imports, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -239,7 +238,9 @@ class ProgramManager extends WasmProgramManager {
         let executionPrivateKey = privateKey;
         if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
             executionPrivateKey = this.account.privateKey();
-        } else {
+        }
+
+        if (typeof executionPrivateKey === "undefined") {
             throw("No private key provided and no private key set in the ProgramManager");
         }
 
@@ -277,7 +278,7 @@ class ProgramManager extends WasmProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await this.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, false, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await this.executionEngine.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, false, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -317,7 +318,9 @@ class ProgramManager extends WasmProgramManager {
         let executionPrivateKey = privateKey;
         if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
             executionPrivateKey = this.account.privateKey();
-        } else {
+        }
+
+        if (typeof executionPrivateKey === "undefined") {
             throw("No private key provided and no private key set in the ProgramManager");
         }
 
@@ -330,7 +333,8 @@ class ProgramManager extends WasmProgramManager {
         }
 
         // Run the program offline and return the result
-        return this.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, false, imports, provingKey, verifyingKey);
+        console.log("Running program offline")
+        return this.executionEngine.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, false, imports, provingKey, verifyingKey);
     }
 
     /**
@@ -359,7 +363,9 @@ class ProgramManager extends WasmProgramManager {
         let executionPrivateKey = privateKey;
         if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
             executionPrivateKey = this.account.privateKey();
-        } else {
+        }
+
+        if (typeof executionPrivateKey === "undefined") {
             throw("No private key provided and no private key set in the ProgramManager");
         }
 
@@ -391,7 +397,7 @@ class ProgramManager extends WasmProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await this.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, false, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await this.executionEngine.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, false, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -420,9 +426,11 @@ class ProgramManager extends WasmProgramManager {
     async split(splitAmount: number, amountRecord: RecordPlaintext | string, privateKey?: PrivateKey): Promise<string | Error> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
-        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
+        if (typeof executionPrivateKey === "undefined" && typeof this.account !== "undefined") {
             executionPrivateKey = this.account.privateKey();
-        } else {
+        }
+
+        if (typeof executionPrivateKey === "undefined") {
             throw("No private key provided and no private key set in the ProgramManager");
         }
 
@@ -443,7 +451,7 @@ class ProgramManager extends WasmProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await this.buildSplitTransaction(executionPrivateKey, splitAmount, amountRecord, this.host, false, splitProvingKey, splitVerifyingKey);
+        const tx = await this.executionEngine.buildSplitTransaction(executionPrivateKey, splitAmount, amountRecord, this.host, false, splitProvingKey, splitVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -483,9 +491,11 @@ class ProgramManager extends WasmProgramManager {
 
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
-        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
+        if (typeof executionPrivateKey === "undefined" && typeof this.account !== "undefined") {
             executionPrivateKey = this.account.privateKey();
-        } else {
+        }
+
+        if (typeof executionPrivateKey === "undefined") {
             throw("No private key provided and no private key set in the ProgramManager");
         }
 
@@ -519,7 +529,7 @@ class ProgramManager extends WasmProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await this.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, false, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await this.executionEngine.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, false, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 

@@ -1,11 +1,11 @@
-import { __awaiter, __generator } from "tslib";
+import { __awaiter } from "tslib";
 import { logAndThrow } from ".";
 /**
  * A record provider implementation that uses the official Aleo API to find records for usage in program execution and
  * deployment, wallet functionality, and other use cases.
  */
-var NetworkRecordProvider = /** @class */ (function () {
-    function NetworkRecordProvider(account, networkClient) {
+class NetworkRecordProvider {
+    constructor(account, networkClient) {
         this.account = account;
         this.networkClient = networkClient;
     }
@@ -14,9 +14,9 @@ var NetworkRecordProvider = /** @class */ (function () {
      *
      * @param {Account} account The account to use for searching for records
      */
-    NetworkRecordProvider.prototype.setAccount = function (account) {
+    setAccount(account) {
         this.account = account;
-    };
+    }
     /**
      * Find a list of credit records with a given number of microcredits by via the official Aleo API
      *
@@ -45,42 +45,33 @@ var NetworkRecordProvider = /** @class */ (function () {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * */
-    NetworkRecordProvider.prototype.findCreditsRecords = function (microcredits, unspent, nonces, searchParameters) {
-        return __awaiter(this, void 0, void 0, function () {
-            var startHeight, endHeight, end;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        startHeight = 0;
-                        endHeight = 0;
-                        if (searchParameters) {
-                            if ("startHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
-                                startHeight = searchParameters["startHeight"];
-                            }
-                            if ("endHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
-                                endHeight = searchParameters["endHeight"];
-                            }
-                        }
-                        if (!(endHeight == 0)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.networkClient.getLatestHeight()];
-                    case 1:
-                        end = _a.sent();
-                        if (end instanceof Error) {
-                            throw logAndThrow("Unable to get current block height from the network");
-                        }
-                        endHeight = end;
-                        _a.label = 2;
-                    case 2:
-                        // If the start height is greater than the end height, throw an error
-                        if (startHeight >= endHeight) {
-                            throw logAndThrow("Start height must be less than end height");
-                        }
-                        return [4 /*yield*/, this.networkClient.findUnspentRecords(startHeight, endHeight, this.account.privateKey(), microcredits, undefined, nonces)];
-                    case 3: return [2 /*return*/, _a.sent()];
+    findCreditsRecords(microcredits, unspent, nonces, searchParameters) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let startHeight = 0;
+            let endHeight = 0;
+            if (searchParameters) {
+                if ("startHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+                    startHeight = searchParameters["startHeight"];
                 }
-            });
+                if ("endHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+                    endHeight = searchParameters["endHeight"];
+                }
+            }
+            // If the end height is not specified, use the current block height
+            if (endHeight == 0) {
+                const end = yield this.networkClient.getLatestHeight();
+                if (end instanceof Error) {
+                    throw logAndThrow("Unable to get current block height from the network");
+                }
+                endHeight = end;
+            }
+            // If the start height is greater than the end height, throw an error
+            if (startHeight >= endHeight) {
+                throw logAndThrow("Start height must be less than end height");
+            }
+            return yield this.networkClient.findUnspentRecords(startHeight, endHeight, this.account.privateKey(), microcredits, undefined, nonces);
         });
-    };
+    }
     /**
      * Find a credit record with a given number of microcredits by via the official Aleo API
      *
@@ -108,45 +99,33 @@ var NetworkRecordProvider = /** @class */ (function () {
      * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
-    NetworkRecordProvider.prototype.findCreditsRecord = function (microcredits, unspent, nonces, searchParameters) {
-        return __awaiter(this, void 0, void 0, function () {
-            var records;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.findCreditsRecords([microcredits], unspent, nonces, searchParameters)];
-                    case 1:
-                        records = _a.sent();
-                        if (!(records instanceof Error) && records.length > 0) {
-                            return [2 /*return*/, records[0]];
-                        }
-                        console.error("Record not found with error:", records);
-                        return [2 /*return*/, new Error("Record not found")];
-                }
-            });
+    findCreditsRecord(microcredits, unspent, nonces, searchParameters) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const records = yield this.findCreditsRecords([microcredits], unspent, nonces, searchParameters);
+            if (!(records instanceof Error) && records.length > 0) {
+                return records[0];
+            }
+            console.error("Record not found with error:", records);
+            return new Error("Record not found");
         });
-    };
+    }
     /**
      * Find an arbitrary record. WARNING: This function is not implemented yet and will throw an error.
      */
-    NetworkRecordProvider.prototype.findRecord = function (unspent, nonces, searchParameters) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                throw new Error("Method not implemented.");
-            });
+    findRecord(unspent, nonces, searchParameters) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new Error("Method not implemented.");
         });
-    };
+    }
     /**
      * Find multiple arbitrary records. WARNING: This function is not implemented yet and will throw an error.
      */
-    NetworkRecordProvider.prototype.findRecords = function (unspent, nonces, searchParameters) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                throw new Error("Method not implemented.");
-            });
+    findRecords(unspent, nonces, searchParameters) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new Error("Method not implemented.");
         });
-    };
-    return NetworkRecordProvider;
-}());
+    }
+}
 /**
  * BlockHeightSearch is a RecordSearchParams implementation that allows for searching for records within a given
  * block height range.
@@ -165,12 +144,11 @@ var NetworkRecordProvider = /** @class */ (function () {
  * const record = await recordProvider.findCreditsRecord(5000, true, [], params);
  *
  */
-var BlockHeightSearch = /** @class */ (function () {
-    function BlockHeightSearch(startHeight, endHeight) {
+class BlockHeightSearch {
+    constructor(startHeight, endHeight) {
         this.startHeight = startHeight;
         this.endHeight = endHeight;
     }
-    return BlockHeightSearch;
-}());
+}
 export { BlockHeightSearch, NetworkRecordProvider };
 //# sourceMappingURL=record-provider.js.map

@@ -22,22 +22,10 @@ export const Join = () => {
         );
         worker.addEventListener("message", (ev) => {
             if (ev.data.type == "JOIN_TRANSACTION_COMPLETED") {
-                let [transaction, url] = ev.data.joinTransaction;
-                axios
-                    .post(
-                        url + "/testnet3/transaction/broadcast",
-                        transaction,
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        },
-                    )
-                    .then((response) => {
-                        setLoading(false);
-                        setJoinError(null);
-                        setTransactionID(response.data);
-                    });
+                const transactionId = ev.data.joinTransaction;
+                setLoading(false);
+                setJoinError(null);
+                setTransactionID(transactionId);
             } else if (ev.data.type == "ERROR") {
                 setJoinError(ev.data.errorMessage);
                 setLoading(false);

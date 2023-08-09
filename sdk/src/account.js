@@ -28,9 +28,8 @@ import { Address, PrivateKey, ViewKey, PrivateKeyCiphertext, RecordCiphertext, }
  * // Verify a signature
  * myRandomAccount.verify(hello_world, signature)
  */
-var Account = /** @class */ (function () {
-    function Account(params) {
-        if (params === void 0) { params = {}; }
+export class Account {
+    constructor(params = {}) {
         try {
             this._privateKey = this.privateKeyFromParams(params);
         }
@@ -51,17 +50,17 @@ var Account = /** @class */ (function () {
      * const ciphertext = PrivateKey.newEncrypted("password");
      * const account = Account.fromCiphertext(ciphertext, "password");
      */
-    Account.fromCiphertext = function (ciphertext, password) {
+    static fromCiphertext(ciphertext, password) {
         try {
             ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
-            var _privateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
+            const _privateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
             return new Account({ privateKey: _privateKey.to_string() });
         }
         catch (e) {
             throw new Error("Wrong password or invalid ciphertext");
         }
-    };
-    Account.prototype.privateKeyFromParams = function (params) {
+    }
+    privateKeyFromParams(params) {
         if (params.seed) {
             return PrivateKey.from_seed_unchecked(params.seed);
         }
@@ -69,19 +68,19 @@ var Account = /** @class */ (function () {
             return PrivateKey.from_string(params.privateKey);
         }
         return new PrivateKey();
-    };
-    Account.prototype.privateKey = function () {
+    }
+    privateKey() {
         return this._privateKey;
-    };
-    Account.prototype.viewKey = function () {
+    }
+    viewKey() {
         return this._viewKey;
-    };
-    Account.prototype.address = function () {
+    }
+    address() {
         return this._address;
-    };
-    Account.prototype.toString = function () {
+    }
+    toString() {
         return this.address().to_string();
-    };
+    }
     /**
      * Encrypt the account's private key with a password
      * @param {string} ciphertext
@@ -91,9 +90,9 @@ var Account = /** @class */ (function () {
      * const account = new Account();
      * const ciphertext = account.encryptAccount("password");
      */
-    Account.prototype.encryptAccount = function (password) {
+    encryptAccount(password) {
         return this._privateKey.toCiphertext(password);
-    };
+    }
     /**
      * Decrypts a Record in ciphertext form into plaintext
      * @param {string} ciphertext
@@ -103,9 +102,9 @@ var Account = /** @class */ (function () {
      * const account = new Account();
      * const record = account.decryptRecord("record1ciphertext");
      */
-    Account.prototype.decryptRecord = function (ciphertext) {
+    decryptRecord(ciphertext) {
         return this._viewKey.decrypt(ciphertext);
-    };
+    }
     /**
      * Decrypts an array of Records in ciphertext form into plaintext
      * @param {string[]} ciphertexts
@@ -115,10 +114,9 @@ var Account = /** @class */ (function () {
      * const account = new Account();
      * const record = account.decryptRecords(["record1ciphertext", "record2ciphertext"]);
      */
-    Account.prototype.decryptRecords = function (ciphertexts) {
-        var _this = this;
-        return ciphertexts.map(function (ciphertext) { return _this._viewKey.decrypt(ciphertext); });
-    };
+    decryptRecords(ciphertexts) {
+        return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext));
+    }
     /**
      * Determines whether the account owns a ciphertext record
      * @param {RecordCipherText | string} ciphertext
@@ -141,10 +139,10 @@ var Account = /** @class */ (function () {
      *     // Etc.
      * }
      */
-    Account.prototype.ownsRecordCiphertext = function (ciphertext) {
+    ownsRecordCiphertext(ciphertext) {
         if (typeof ciphertext === 'string') {
             try {
-                var ciphertextObject = RecordCiphertext.fromString(ciphertext);
+                const ciphertextObject = RecordCiphertext.fromString(ciphertext);
                 return ciphertextObject.isOwner(this._viewKey);
             }
             catch (e) {
@@ -154,7 +152,7 @@ var Account = /** @class */ (function () {
         else {
             return ciphertext.isOwner(this._viewKey);
         }
-    };
+    }
     /**
      * Signs a message with the account's private key.
      * Returns a Signature.
@@ -167,9 +165,9 @@ var Account = /** @class */ (function () {
      * const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
      * account.sign(message);
      */
-    Account.prototype.sign = function (message) {
+    sign(message) {
         return this._privateKey.sign(message);
-    };
+    }
     /**
      * Verifies the Signature on a message.
      *
@@ -183,10 +181,8 @@ var Account = /** @class */ (function () {
      * const signature = account.sign(message);
      * account.verify(message, signature);
      */
-    Account.prototype.verify = function (message, signature) {
+    verify(message, signature) {
         return this._address.verify(message, signature);
-    };
-    return Account;
-}());
-export { Account };
+    }
+}
 //# sourceMappingURL=account.js.map
