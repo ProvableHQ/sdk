@@ -230,6 +230,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {FunctionKeyPair | Error} Proving and verifying keys for the specified program
      */
     getKeys(keyId: string): FunctionKeyPair | Error {
+        console.debug(`Checking if key exists in cache. KeyId: ${keyId}`)
         if (this.cache.has(keyId)) {
             return <FunctionKeyPair>this.cache.get(keyId);
         } else {
@@ -276,10 +277,11 @@ class AleoKeyProvider implements FunctionKeyProvider {
             }
 
             if (proverUrl && verifierUrl) {
-                return this.fetchKeys(proverUrl, verifierUrl, cacheKey);
+                return await this.fetchKeys(proverUrl, verifierUrl, cacheKey);
             }
 
             if (cacheKey) {
+                console.debug("Fetching keys from cache");
                 return this.getKeys(cacheKey);
             }
         }

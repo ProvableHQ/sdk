@@ -79,25 +79,13 @@ export const ExecuteLegacy = () => {
                 setProgramResponse(ev.data.outputs);
                 setTip("Executing Program...");
             } else if (ev.data.type == "EXECUTION_TRANSACTION_COMPLETED") {
-                let [transaction, url] = ev.data.executeTransaction;
-                axios
-                    .post(
-                        url + "/testnet3/transaction/broadcast",
-                        transaction,
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        },
-                    )
-                    .then((response) => {
-                        setFeeLoading(false);
-                        setLoading(false);
-                        setProgramResponse(null);
-                        setExecutionError(null);
-                        setTip("Executing Program...");
-                        setTransactionID(response.data);
-                    });
+                const transactionId = ev.data.executeTransaction;
+                setFeeLoading(false);
+                setLoading(false);
+                setProgramResponse(null);
+                setExecutionError(null);
+                setTip("Executing Program...");
+                setTransactionID(transactionId);
             } else if (ev.data.type == "EXECUTION_FEE_ESTIMATION_COMPLETED") {
                 let fee = ev.data.executionFee;
                 setFeeLoading(false);

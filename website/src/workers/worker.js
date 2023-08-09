@@ -1,14 +1,14 @@
 import * as aleo from "@aleohq/sdk";
 
 await aleo.initializeWasm();
-const defaultHost = "https://vm.aleo.org/api";
 await aleo.initThreadPool(10);
-import { ProgramManager } from "@aleohq/sdk/src/program-manager.js";
-import { AleoKeyProvider, AleoKeyProviderParams } from "@aleohq/sdk/src/function-key-provider.js";
 
-const keyProvider = new AleoKeyProvider();
+const defaultHost = "https://vm.aleo.org/api";
+const keyProvider = new aleo.AleoKeyProvider();
+const programManager = new aleo.ProgramManager(defaultHost, keyProvider, undefined);
+
+console.log(keyProvider);
 keyProvider.useCache(true);
-const programManager = new ProgramManager(defaultHost, keyProvider, undefined);
 
 self.postMessage({
     type: "ALEO_WORKER_READY",
@@ -25,7 +25,8 @@ self.addEventListener("message", (ev) => {
         (async function () {
             try {
                 // Ensure the program is valid and that it contains the function specified
-                const program = aleo.Program.from_string(localProgram);
+                console.log(programManager);
+                const program = programManager.createProgramFromSource(localProgram);
                 const program_id = program.id();
                 if (!program.hasFunction(aleoFunction)) {
                     throw `Program ${program_id} does not contain function ${aleoFunction}`;
@@ -34,31 +35,28 @@ self.addEventListener("message", (ev) => {
 
                 // Get the program imports
                 const imports = programManager.networkClient.getProgramImports(localProgram);
-                if (lastLocalProgram === null) {
-                    lastLocalProgram = localProgram;
-                }
 
                 // Get the proving and verifying keys for the function
                 if (lastLocalProgram !== localProgram) {
-                    const keys = programManager.synthesizeKeypair(program, aleoFunction);
+                    const keys = programManager.executionEngine.synthesizeKeypair(localProgram, aleoFunction);
                     programManager.keyProvider.cacheKeys(cacheKey, [keys.provingKey(), keys.verifyingKey()]);
                     lastLocalProgram = localProgram;
                 }
 
                 // Pass the cache key to the execute function
-                const keyParams = new AleoKeyProviderParams({"cacheKey": cacheKey})
+                const keyParams = new aleo.AleoKeyProviderParams({"cacheKey": cacheKey});
 
                 // Execute the function locally
-                let response = programManager.executeOffline(
-                    program,
+                let response = await programManager.executeOffline(
+                    localProgram,
                     aleoFunction,
                     inputs,
                     imports,
                     keyParams,
                     undefined,
                     undefined,
-                    privateKey
-                )
+                    aleo.PrivateKey.from_string(privateKey)
+                );
 
                 // Return the outputs to the main thread
                 console.log(`Web worker: Local execution completed in ${performance.now() - startTime} ms`);
@@ -103,16 +101,27 @@ self.addEventListener("message", (ev) => {
                 const cacheKey = `${program_id}:${aleoFunction}`;
                 if (programManager.keyProvider.containsKeys(cacheKey)) {
                     console.log(`Web worker: Synthesizing proving & verifying keys for: '${program_id}:${aleoFunction}'`);
-                    const keys = programManager.synthesizeKeypair(program, aleoFunction);
+                    const keys = programManager.executionEngine.synthesizeKeypair(remoteProgram, aleoFunction);
                     programManager.keyProvider.cacheKeys(cacheKey, [keys.provingKey(), keys.verifyingKey()]);
                 }
 
                 // Pass the cache key to the execute function
-                const keyParams = new AleoKeyProviderParams({"cacheKey": cacheKey})
+                const keyParams = new aleo.AleoKeyProviderParams({"cacheKey": cacheKey})
 
                 // Set the host to the provided URL if provided
                 if (typeof url === "string") { programManager.networkClient.setHost(url); }
-                const transaction = programManager.execute(program_id, aleoFunction, fee, inputs, undefined, keyParams, feeRecord, undefined, undefined, privateKey);
+                const transaction = await programManager.execute(
+                    program_id,
+                    aleoFunction,
+                    fee,
+                    inputs,
+                    undefined,
+                    keyParams,
+                    feeRecord,
+                    undefined,
+                    undefined,
+                    aleo.PrivateKey.from_string(privateKey)
+                );
 
                 // Return the transaction id to the main thread
                 console.log(`Web worker: On-chain execution transaction created in ${performance.now() - startTime} ms`);
@@ -146,12 +155,12 @@ self.addEventListener("message", (ev) => {
                     throw `Program ${program_id} does not contain function ${aleoFunction}`;
                 }
                 const cacheKey = `${program_id}:${aleoFunction}`;
-                const imports = programManager.networkClient.getProgramImports(remoteProgram);
+                const imports = await programManager.networkClient.getProgramImports(remoteProgram);
 
                 // Get the proving and verifying keys for the function
                 if (!programManager.keyProvider.containsKeys(cacheKey)) {
                     console.log(`Web worker: Synthesizing proving & verifying keys for: '${program_id}:${aleoFunction}'`);
-                    const keys = programManager.synthesizeKeypair(program, aleoFunction);
+                    const keys = programManager.executionEngine.synthesizeKeypair(remoteProgram, aleoFunction);
                     programManager.keyProvider.cacheKeys(cacheKey, [keys.provingKey(), keys.verifyingKey()]);
                 }
 
@@ -243,7 +252,15 @@ self.addEventListener("message", (ev) => {
 
                 // Create the transfer transaction and submit it to the network
                 const transaction = await programManager.transfer(
-                    amountCredits, recipient, transfer_type, fee, undefined, amountRecord, feeRecord, privateKey);
+                    amountCredits,
+                    recipient,
+                    transfer_type,
+                    fee,
+                    undefined,
+                    amountRecord,
+                    feeRecord,
+                    aleo.PrivateKey.from_string(privateKey)
+                );
 
                 // Return the transaction id to the main thread
                 console.log(`Web worker: Transfer transaction ${transaction} created in ${performance.now() - startTime} ms`);
