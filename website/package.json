@@ -8,6 +8,7 @@
         "dev": "vite",
         "build": "webpack --config webpack.config.js",
         "build:vite": "vite build",
+        "dev:webpack": "webpack-dev-server",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0 && prettier . --check",
         "pretty": "prettier . --write",
         "preview": "vite preview"
@@ -50,7 +51,8 @@
         "style-loader": "^3.3.1",
         "vite": "^4.3.9",
         "webpack": "^5.76.0",
-        "webpack-cli": "^5.1.4"
+        "webpack-cli": "^5.1.4",
+        "webpack-dev-server": "^4.15.1"
     },
     "homepage": "https://aleo.tools"
 }
