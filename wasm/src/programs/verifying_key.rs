@@ -43,6 +43,14 @@ impl VerifyingKey {
     pub fn to_bytes(&self) -> Result<Vec<u8>, String> {
         self.0.to_bytes_le().map_err(|_| "Failed to serialize verifying key".to_string())
     }
+
+    /// Create a copy of the verifying key
+    ///
+    /// @returns {VerifyingKey} A copy of the verifying key
+    #[wasm_bindgen]
+    pub fn copy(&self) -> VerifyingKey {
+        self.0.clone().into()
+    }
 }
 
 impl Deref for VerifyingKey {

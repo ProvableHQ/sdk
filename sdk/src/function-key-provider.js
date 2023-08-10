@@ -64,7 +64,8 @@ class AleoKeyProvider {
      * @param {FunctionKeyPair} keys keys to cache
      */
     cacheKeys(keyId, keys) {
-        this.cache.set(keyId, keys);
+        const [provingKey, verifyingKey] = keys;
+        this.cache.set(keyId, [provingKey.toBytes(), verifyingKey.toBytes()]);
     }
     /**
      * Determine if a keyId exists in the cache
@@ -91,13 +92,12 @@ class AleoKeyProvider {
      * @returns {FunctionKeyPair | Error} Proving and verifying keys for the specified program
      */
     getKeys(keyId) {
-        console.log(`Checking if key exists in cache. KeyId: ${keyId}`);
+        console.debug(`Checking if key exists in cache. KeyId: ${keyId}`);
         if (this.cache.has(keyId)) {
-            console.log(`Checking if key exists in cache. KeyId: ${keyId}`);
-            return this.cache.get(keyId);
+            const [provingKeyBytes, verifyingKeyBytes] = this.cache.get(keyId);
+            return [ProvingKey.fromBytes(provingKeyBytes), VerifyingKey.fromBytes(verifyingKeyBytes)];
         }
         else {
-            console.log("Throwing error.");
             return new Error("Key not found in cache.");
         }
     }
@@ -141,7 +141,6 @@ class AleoKeyProvider {
                     return yield this.fetchKeys(proverUrl, verifierUrl, cacheKey);
                 }
                 if (cacheKey) {
-                    console.log("Fetching keys from cache");
                     return this.getKeys(cacheKey);
                 }
             }
@@ -180,12 +179,14 @@ class AleoKeyProvider {
                     }
                     const value = this.cache.get(cacheKey);
                     if (typeof value !== "undefined") {
-                        return value;
+                        return [ProvingKey.fromBytes(value[0]), VerifyingKey.fromBytes(value[1])];
                     }
                     else {
+                        console.debug("Fetching proving keys from url " + proverUrl);
                         const provingKey = ProvingKey.fromBytes(yield this.fetchBytes(proverUrl));
+                        console.debug("Fetching verifying keys from url " + verifierUrl);
                         const verifyingKey = VerifyingKey.fromBytes(yield this.fetchBytes(verifierUrl));
-                        this.cache.set(cacheKey, [provingKey, verifyingKey]);
+                        this.cache.set(cacheKey, [provingKey.toBytes(), verifyingKey.toBytes()]);
                         return [provingKey, verifyingKey];
                     }
                 }

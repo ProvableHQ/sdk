@@ -1,4 +1,4 @@
-import {AleoKeyProvider, CREDITS_PROGRAM_KEYS, FunctionKeyPair, ProvingKey, VerifyingKey} from "../src";
+import {AleoKeyProvider, CachedKeyPair, CREDITS_PROGRAM_KEYS, FunctionKeyPair, ProvingKey, VerifyingKey} from "../src";
 jest.retryTimes(3);
 
 describe('KeyProvider', () => {
@@ -27,15 +27,15 @@ describe('KeyProvider', () => {
             expect(provingKey).toBeInstanceOf(ProvingKey);
             expect(verifyingKey).toBeInstanceOf(VerifyingKey);
             const transferCacheKey = keyProvider.cache.keys().next().value;
-            let [cachedProvingKey, cachedVerifyingKey] = <FunctionKeyPair>keyProvider.cache.get(transferCacheKey);
-            expect(cachedProvingKey).toBeInstanceOf(ProvingKey);
-            expect(cachedVerifyingKey).toBeInstanceOf(VerifyingKey);
+            const [cachedProvingKey, cachedVerifyingKey] = <CachedKeyPair>keyProvider.cache.get(transferCacheKey);
+            expect(cachedProvingKey).toBeInstanceOf(Uint8Array);
+            expect(cachedVerifyingKey).toBeInstanceOf(Uint8Array);
 
             // Ensure the functionKeys method to get the keys and that the cache is used to do so
-            [cachedProvingKey, cachedVerifyingKey] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier)
+            const [fetchedProvingKey, fetchedVerifyingKey] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier)
             expect(keyProvider.cache.size).toBe(1);
-            expect(cachedProvingKey).toBeInstanceOf(ProvingKey);
-            expect(cachedVerifyingKey).toBeInstanceOf(VerifyingKey);
+            expect(fetchedProvingKey).toBeInstanceOf(ProvingKey);
+            expect(fetchedVerifyingKey).toBeInstanceOf(VerifyingKey);
 
             // Clear the cache and turn it off to ensure the keys are redownloaded and the cache is not used
             keyProvider.clearCache();

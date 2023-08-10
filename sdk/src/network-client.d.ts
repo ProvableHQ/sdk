@@ -34,6 +34,13 @@ declare class AleoNetworkClient {
      * const account = networkClient.getAccount();
      */
     getAccount(): Account | undefined;
+    /**
+     * Set a new host for the networkClient
+     *
+     * @param {string} host The address of a node hosting the Aleo API
+     * @param host
+     */
+    setHost(host: string): void;
     fetchData<Type>(url?: string): Promise<Type>;
     /**
      * Attempts to find unspent records in the Aleo blockchain for a specified private key

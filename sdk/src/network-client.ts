@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, {AxiosError} from "axios";
 import {
   Account,
   Block,
@@ -54,6 +54,16 @@ class AleoNetworkClient {
    */
   getAccount(): Account | undefined {
     return this.account;
+  }
+
+  /**
+   * Set a new host for the networkClient
+   *
+   * @param {string} host The address of a node hosting the Aleo API
+   * @param host
+   */
+  setHost(host: string) {
+    this.host = host + "/testnet3";
   }
 
   async fetchData<Type>(
@@ -585,7 +595,7 @@ class AleoNetworkClient {
     try {
       const response = await axios
           .post<string>(
-              this.host + "/testnet3/transaction/broadcast",
+              this.host + "/transaction/broadcast",
               transaction_string,
               {
                 headers: {
@@ -595,7 +605,14 @@ class AleoNetworkClient {
           )
       return response.data;
     } catch (error) {
-      throw new Error(`Error posting transaction: ${error}`);
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        throw new Error(`Error posting transaction. Aleo network response: ${JSON.stringify(axiosError.response.data)}`);
+      } else if (axiosError.request) {
+        throw new Error(`Error posting transaction. No response received: ${axiosError.message}`);
+      } else {
+        throw new Error(`Error setting up transaction request: ${axiosError.message}`);
+      }
     }
   }
 }

@@ -4,17 +4,16 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "preinstall": "cd ../sdk && npm run build",
+        "preinstall": "cd ../wasm && export RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--max-memory=4294967296' && rustup run nightly-2023-05-24 wasm-pack build --release --target web --scope aleohq --out-dir pkg-parallel -- --features \"parallel, browser\" --no-default-features -Z build-std=panic_abort,std",
         "dev": "vite",
         "build": "webpack --config webpack.config.js",
         "build:vite": "vite build",
-        "dev:webpack": "webpack-dev-server",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0 && prettier . --check",
         "pretty": "prettier . --write",
         "preview": "vite preview"
     },
     "dependencies": {
-        "@aleohq/sdk": "file:../sdk",
+        "@aleohq/wasm": "file:../wasm/pkg-parallel",
         "@ant-design/icons": "^4.4.0",
         "@codemirror/language": "^6.8.0",
         "@codemirror/legacy-modes": "^6.3.3",
@@ -51,8 +50,7 @@
         "style-loader": "^3.3.1",
         "vite": "^4.3.9",
         "webpack": "^5.76.0",
-        "webpack-cli": "^5.1.4",
-        "webpack-dev-server": "^4.15.1"
+        "webpack-cli": "^5.1.4"
     },
     "homepage": "https://aleo.tools"
 }

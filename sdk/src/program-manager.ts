@@ -20,6 +20,11 @@ import {
     logAndThrow, RecordSearchParams
 } from ".";
 
+const privateTransferTypes = new Set(["transfer_private", "private", "transferPrivate", "transfer_private_to_public", "privateToPublic", "transferPrivateToPublic"]);
+const validTransferTypes = new Set(["transfer_private", "private", "transferPrivate", "transfer_private_to_public",
+    "privateToPublic", "transferPrivateToPublic", "transfer_public", "public", "transferPublic",
+    "transfer_public_to_private", "publicToPrivate", "transferPublicToPrivate"]);
+
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
  */
@@ -39,7 +44,7 @@ class ProgramManager {
      */
     constructor(host: string | undefined, keyProvider: FunctionKeyProvider | undefined, recordProvider: RecordProvider | undefined) {
         if (!host) {
-            this.host = "http://vm.aleo.org/api";
+            this.host = "https://vm.aleo.org/api";
             this.networkClient = new AleoNetworkClient(this.host);
         } else {
             this.host = host;
@@ -81,7 +86,7 @@ class ProgramManager {
      */
     setHost(host: string) {
         this.host = host;
-        this.networkClient.host = host;
+        this.networkClient.setHost(host);
     }
 
     /**
@@ -139,9 +144,6 @@ class ProgramManager {
         } catch (e) {
             throw logAndThrow(`Error validating program: ${e}`);
         }
-
-        // Convert the fee to microcredits
-        fee = Math.floor(fee * 1000000);
 
         // Get the private key from the account if it is not provided in the parameters
         let deploymentPrivateKey = privateKey;
@@ -231,9 +233,6 @@ class ProgramManager {
             throw logAndThrow(`Error finding ${programName}. Network response: '${e}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`);
         }
 
-        // Convert the fee to microcredits
-        fee = Math.floor(fee * 1000000);
-
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
@@ -278,6 +277,10 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
+        console.log("Proving key: ", provingKey);
+        console.log("Verifying key: ", verifyingKey);
+        console.log("Fee proving key: ", feeProvingKey);
+        console.log("Fee verifying key: ", feeVerifyingKey);
         const tx = await this.executionEngine.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, false, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
@@ -334,6 +337,8 @@ class ProgramManager {
 
         // Run the program offline and return the result
         console.log("Running program offline")
+        console.log("Proving key: ", provingKey);
+        console.log("Verifying key: ", verifyingKey);
         return this.executionEngine.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, false, imports, provingKey, verifyingKey);
     }
 
@@ -356,9 +361,6 @@ class ProgramManager {
         feeRecord?: RecordPlaintext | string | undefined,
         privateKey?: PrivateKey
     ): Promise<string | Error> {
-        // Convert the fee to microcredits
-        fee = Math.floor(fee * 1000000);
-
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
@@ -485,10 +487,6 @@ class ProgramManager {
         // Validate the transfer type
         transferType = <string>validateTransferType(transferType);
 
-        // Convert the fee and amount to microcredits
-        amount = Math.floor(amount * 1000000);
-        fee = Math.floor(fee * 1000000);
-
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (typeof executionPrivateKey === "undefined" && typeof this.account !== "undefined") {
@@ -581,26 +579,15 @@ class ProgramManager {
     }
 }
 
+// Ensure the transfer type requires an amount record
 function requiresAmountRecord(transferType: string): boolean {
-    switch (transferType) {
-        case "transfer_private" || "private" || "transferPrivate":
-            return true;
-        case "transfer_private_to_public" || "privateToPublic" || "transferPrivateToPublic":
-            return true;
-        default:
-            return false;
-    }
+    return privateTransferTypes.has(transferType);
 }
 
+// Validate the transfer type
 function validateTransferType(transferType: string): string | Error {
-    switch (transferType) {
-        case "transfer_private" || "private" || "transferPrivate" || "transfer_private_to_public" || "privateToPublic"
-        || "transferPrivateToPublic" || "transfer_public" || "public" || "transferPublic" || "transfer_public_to_private"
-        || "publicToPrivate" || "transferPublicToPrivate":
-            return transferType;
-        default:
-            throw logAndThrow(`Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`);
-    }
+    return validTransferTypes.has(transferType) ? transferType :
+        logAndThrow(`Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`);
 }
 
 export { ProgramManager }
