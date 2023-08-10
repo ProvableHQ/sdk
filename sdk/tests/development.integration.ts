@@ -1,4 +1,4 @@
-import { AleoNetworkClient, DevelopmentClient } from '../src';
+import { AleoNetworkClient, DevServerClient } from '../src';
 import {
     fundedAddressString,
     fundedPrivateKeyString,
@@ -13,14 +13,14 @@ function wait(ms: number): Promise<void> {
 }
 
 describe('DevelopmentServer', () => {
-    let devClient: DevelopmentClient;
+    let devClient: DevServerClient;
     let localApiClient: AleoNetworkClient;
-    let privateDevClient: DevelopmentClient;
+    let privateDevClient: DevServerClient;
 
     beforeEach(() => {
-        devClient = new DevelopmentClient("http://0.0.0.0:4040");
+        devClient = new DevServerClient("http://0.0.0.0:4040");
         localApiClient = new AleoNetworkClient("http://0.0.0.0:3030");
-        privateDevClient = new DevelopmentClient("http://0.0.0.0:5050");
+        privateDevClient = new DevServerClient("http://0.0.0.0:5050");
     });
 
     describe('Deploy & Execute', () => {

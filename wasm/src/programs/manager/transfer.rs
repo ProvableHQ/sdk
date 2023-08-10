@@ -55,7 +55,7 @@ impl ProgramManager {
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     /// @returns {Transaction | Error}
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = buildTransferTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn transfer(
         &mut self,
@@ -89,7 +89,7 @@ impl ProgramManager {
         log(transfer_type);
 
         let (transfer_type, inputs) = match transfer_type {
-            "private" => {
+            "private" | "transfer_private" | "transferPrivate" => {
                 if amount_record.is_none() {
                     return Err("Amount record must be provided for private transfers".to_string());
                 }
@@ -109,7 +109,7 @@ impl ProgramManager {
                 inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
                 ("transfer_private_to_public", inputs)
             }
-            "public" => {
+            "public" | "transfer_public" | "transferPublic" => {
                 let inputs = Array::new_with_length(2);
                 inputs.set(0u32, wasm_bindgen::JsValue::from_str(&recipient));
                 inputs.set(1u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
