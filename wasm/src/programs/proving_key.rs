@@ -42,6 +42,14 @@ impl ProvingKey {
     pub fn to_bytes(&self) -> Result<Vec<u8>, String> {
         self.0.to_bytes_le().map_err(|_| "Failed to serialize proving key".to_string())
     }
+
+    /// Create a copy of the proving key
+    ///
+    /// @returns {ProvingKey} A copy of the proving key
+    #[wasm_bindgen]
+    pub fn copy(&self) -> ProvingKey {
+        self.0.clone().into()
+    }
 }
 
 impl Deref for ProvingKey {

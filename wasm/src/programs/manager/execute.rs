@@ -140,19 +140,6 @@ impl ProgramManager {
         let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
 
-        let stack = process.get_stack("credits.aleo").map_err(|e| e.to_string())?;
-        let fee_identifier = IdentifierNative::from_str("fee").map_err(|e| e.to_string())?;
-        if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some() {
-            let fee_proving_key = fee_proving_key.clone().unwrap();
-            let fee_verifying_key = fee_verifying_key.clone().unwrap();
-            stack
-                .insert_proving_key(&fee_identifier, ProvingKeyNative::from(fee_proving_key))
-                .map_err(|e| e.to_string())?;
-            stack
-                .insert_verifying_key(&fee_identifier, VerifyingKeyNative::from(fee_verifying_key))
-                .map_err(|e| e.to_string())?;
-        }
-
         log("Executing program");
         let (_, mut trace) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);

@@ -2,6 +2,7 @@ import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE} from ".";
 import axios from 'axios';
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
+type CachedKeyPair = [Uint8Array, Uint8Array];
 
 /**
  * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
@@ -155,7 +156,7 @@ interface FunctionKeyProvider {
  * keys from a local memory cache.
  */
 class AleoKeyProvider implements FunctionKeyProvider {
-    cache: Map<string, FunctionKeyPair>;
+    cache: Map<string, CachedKeyPair>;
     cacheOption: boolean;
     keyUris: string;
 
@@ -172,7 +173,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
 
     constructor() {
         this.keyUris = KEY_STORE;
-        this.cache = new Map<string, FunctionKeyPair>();
+        this.cache = new Map<string, CachedKeyPair>();
         this.cacheOption = false;
     }
 
@@ -200,7 +201,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @param {FunctionKeyPair} keys keys to cache
      */
     cacheKeys(keyId: string, keys: FunctionKeyPair) {
-        this.cache.set(keyId, keys);
+        const [provingKey, verifyingKey] = keys;
+        this.cache.set(keyId, [provingKey.toBytes(), verifyingKey.toBytes()]);
     }
 
     /**
@@ -232,7 +234,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
     getKeys(keyId: string): FunctionKeyPair | Error {
         console.debug(`Checking if key exists in cache. KeyId: ${keyId}`)
         if (this.cache.has(keyId)) {
-            return <FunctionKeyPair>this.cache.get(keyId);
+            const [provingKeyBytes, verifyingKeyBytes] = <CachedKeyPair>this.cache.get(keyId);
+            return [ProvingKey.fromBytes(provingKeyBytes), VerifyingKey.fromBytes(verifyingKeyBytes)];
         } else {
             return new Error("Key not found in cache.");
         }
@@ -281,7 +284,6 @@ class AleoKeyProvider implements FunctionKeyProvider {
             }
 
             if (cacheKey) {
-                console.debug("Fetching keys from cache");
                 return this.getKeys(cacheKey);
             }
         }
@@ -319,11 +321,13 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 }
                 const value = this.cache.get(cacheKey);
                 if (typeof value !== "undefined") {
-                    return value
+                    return [ProvingKey.fromBytes(value[0]), VerifyingKey.fromBytes(value[1])];
                 } else {
+                    console.debug("Fetching proving keys from url " + proverUrl);
                     const provingKey = <ProvingKey>ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
+                    console.debug("Fetching verifying keys from url " + verifierUrl);
                     const verifyingKey = <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
-                    this.cache.set(cacheKey, [provingKey, verifyingKey]);
+                    this.cache.set(cacheKey, [provingKey.toBytes(), verifyingKey.toBytes()]);
                     return [provingKey, verifyingKey];
                 }
             }
@@ -399,4 +403,4 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 }
 
-export {AleoKeyProvider, AleoKeyProviderParams, FunctionKeyPair, FunctionKeyProvider, KeySearchParams}
+export {AleoKeyProvider, AleoKeyProviderParams, CachedKeyPair, FunctionKeyPair, FunctionKeyProvider, KeySearchParams}

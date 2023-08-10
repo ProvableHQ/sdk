@@ -20,10 +20,22 @@ export const Split = () => {
         );
         worker.addEventListener("message", (ev) => {
             if (ev.data.type == "SPLIT_TRANSACTION_COMPLETED") {
-                const transactionId = ev.data.splitTransaction;
-                setLoading(false);
-                setSplitError(null);
-                setTransactionID(transactionId);
+                let [transaction, url] = ev.data.splitTransaction;
+                axios
+                    .post(
+                        url + "/testnet3/transaction/broadcast",
+                        transaction,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        },
+                    )
+                    .then((response) => {
+                        setLoading(false);
+                        setSplitError(null);
+                        setTransactionID(response.data);
+                    });
             } else if (ev.data.type == "ERROR") {
                 setSplitError(ev.data.errorMessage);
                 setLoading(false);
