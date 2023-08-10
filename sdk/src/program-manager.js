@@ -227,10 +227,6 @@ class ProgramManager {
                 throw logAndThrow(`Error finding program imports. Network response: '${e}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
             }
             // Build an execution transaction and submit it to the network
-            console.log("Proving key: ", provingKey);
-            console.log("Verifying key: ", verifyingKey);
-            console.log("Fee proving key: ", feeProvingKey);
-            console.log("Fee verifying key: ", feeVerifyingKey);
             const tx = yield this.executionEngine.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, false, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey);
             return yield this.networkClient.submitTransaction(tx);
         });
@@ -509,9 +505,11 @@ class ProgramManager {
         });
     }
 }
+// Ensure the transfer type requires an amount record
 function requiresAmountRecord(transferType) {
     return privateTransferTypes.has(transferType);
 }
+// Validate the transfer type
 function validateTransferType(transferType) {
     return validTransferTypes.has(transferType) ? transferType :
         logAndThrow(`Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`);

@@ -12,7 +12,7 @@ class AleoKeyProviderParams {
      * cacheKey to store the keys in memory for future use. If no proverUri or verifierUri is specified, a cachekey must
      * be provided.
      *
-     * @param { proverUri?: string, verifierUri?: string, cacheKey?: string } params - Optional search parameters
+     * @param { AleoKeyProviderInitParams } params - Optional search parameters
      */
     constructor(params) {
         this.proverUri = params.proverUri;

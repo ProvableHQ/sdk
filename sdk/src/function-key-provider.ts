@@ -3,6 +3,11 @@ import axios from 'axios';
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 type CachedKeyPair = [Uint8Array, Uint8Array];
+type AleoKeyProviderInitParams = {
+    proverUri?: string;
+    verifierUri?: string;
+    cacheKey?: string;
+};
 
 /**
  * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
@@ -27,7 +32,7 @@ class AleoKeyProviderParams implements KeySearchParams {
      * cacheKey to store the keys in memory for future use. If no proverUri or verifierUri is specified, a cachekey must
      * be provided.
      *
-     * @param { proverUri?: string, verifierUri?: string, cacheKey?: string } params - Optional search parameters
+     * @param { AleoKeyProviderInitParams } params - Optional search parameters
      */
     constructor(params: {proverUri?: string, verifierUri?: string, cacheKey?: string}) {
         this.proverUri = params.proverUri;
