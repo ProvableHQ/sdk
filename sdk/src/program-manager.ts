@@ -277,6 +277,10 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
+        console.log("Proving key: ", provingKey);
+        console.log("Verifying key: ", verifyingKey);
+        console.log("Fee proving key: ", feeProvingKey);
+        console.log("Fee verifying key: ", feeVerifyingKey);
         const tx = await this.executionEngine.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, false, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }

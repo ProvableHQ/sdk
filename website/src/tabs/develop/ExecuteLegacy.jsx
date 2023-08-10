@@ -230,7 +230,6 @@ export const ExecuteLegacy = () => {
         if (executeOnline) {
             await postMessagePromise(worker, {
                 type: "ALEO_ESTIMATE_EXECUTION_FEE",
-                privateKey: privateKeyString(),
                 remoteProgram: programString(),
                 aleoFunction: functionIDString(),
                 inputs: functionInputs,
