@@ -1,5 +1,6 @@
 import {Account, Block, AleoNetworkClient, Transaction} from "../src";
 import {beaconPrivateKeyString} from "./data/account-data";
+import {log} from "console";
 jest.retryTimes(3);
 
 describe('NodeConnection', () => {
@@ -120,18 +121,60 @@ describe('NodeConnection', () => {
 
     describe('findUnspentRecords', () => {
         it('should fail if block heights or private keys are incorrectly specified', async () => {
-            await expect(connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined)).rejects.toThrow();
-            await expect(connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined)).rejects.toThrow();
-            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined)).rejects.toThrow();
-            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined)).rejects.toThrow();
+            await expect(connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined, [])).rejects.toThrow();
         }, 60000);
 
         it('should search a range correctly and not find records where none exist', async () => {
-            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined);
+            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
             expect(Array.isArray(records)).toBe(true);
             if (!(records instanceof Error)) {
                 expect(records.length).toBe(0);
             }
         }, 90000);
+
+    });
+
+    describe('getProgramImports', () => {
+        it('should return the correct program import names', async () => {
+            const importNames = await connection.getProgramImportNames("imported_add_mul.aleo");
+            const expectedNames = ["double_test.aleo", "addition_test.aleo"];
+            expect(importNames).toEqual(expectedNames);
+
+            const creditImports = await connection.getProgramImportNames("credits.aleo");
+            const expectedCreditImports: string[] = [];
+            expect(creditImports).toEqual(expectedCreditImports);
+        }, 60000);
+
+        it('should return all nested imports', async () => {
+            const imports = await connection.getProgramImports("imported_add_mul.aleo");
+            const expectedImports = {
+                'multiply_test.aleo': 'program multiply_test.aleo;\n' +
+                    '\n' +
+                    'function multiply:\n' +
+                    '    input r0 as u32.public;\n' +
+                    '    input r1 as u32.private;\n' +
+                    '    mul r0 r1 into r2;\n' +
+                    '    output r2 as u32.private;\n',
+                'double_test.aleo': 'import multiply_test.aleo;\n' +
+                    '\n' +
+                    'program double_test.aleo;\n' +
+                    '\n' +
+                    'function double_it:\n' +
+                    '    input r0 as u32.private;\n' +
+                    '    call multiply_test.aleo/multiply 2u32 r0 into r1;\n' +
+                    '    output r1 as u32.private;\n',
+                'addition_test.aleo': 'program addition_test.aleo;\n' +
+                    '\n' +
+                    'function binary_add:\n' +
+                    '    input r0 as u32.public;\n' +
+                    '    input r1 as u32.private;\n' +
+                    '    add r0 r1 into r2;\n' +
+                    '    output r2 as u32.private;\n'
+            };
+            expect(imports).toEqual(expectedImports);
+        }, 60000);
     });
 });
