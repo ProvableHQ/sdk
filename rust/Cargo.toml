@@ -1,6 +1,6 @@
 [package]
 name = "aleo-rust"
-version = "0.5.1"
+version = "0.5.5"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Rust SDK for managing Aleo programs and communicating with the Aleo network"
 homepage = "https://aleo.org"
