@@ -90,6 +90,7 @@ self.addEventListener("message", (ev) => {
 
         (async function () {
             try {
+                const privateKeyObject = aleo.PrivateKey.from_string(privateKey)
                 // Ensure the program is valid and that it contains the function specified
                 const program = await programManager.networkClient.getProgramObject(remoteProgram);
                 const program_id = program.id();
@@ -99,7 +100,7 @@ self.addEventListener("message", (ev) => {
 
                 // Get the proving and verifying keys for the function
                 const cacheKey = `${program_id}:${aleoFunction}`;
-                if (programManager.keyProvider.containsKeys(cacheKey)) {
+                if (!programManager.keyProvider.containsKeys(cacheKey)) {
                     console.log(`Web worker: Synthesizing proving & verifying keys for: '${program_id}:${aleoFunction}'`);
                     const keys = programManager.executionEngine.synthesizeKeypair(remoteProgram, aleoFunction);
                     programManager.keyProvider.cacheKeys(cacheKey, [keys.provingKey(), keys.verifyingKey()]);
@@ -109,7 +110,7 @@ self.addEventListener("message", (ev) => {
                 const keyParams = new aleo.AleoKeyProviderParams({"cacheKey": cacheKey})
 
                 // Set the host to the provided URL if provided
-                if (typeof url === "string") { programManager.networkClient.setHost(url); }
+                if (typeof url === "string") { programManager.setHost(url); }
                 const transaction = await programManager.execute(
                     program_id,
                     aleoFunction,
@@ -120,7 +121,7 @@ self.addEventListener("message", (ev) => {
                     feeRecord,
                     undefined,
                     undefined,
-                    aleo.PrivateKey.from_string(privateKey)
+                    privateKeyObject
                 );
 
                 // Return the transaction id to the main thread
@@ -136,11 +137,11 @@ self.addEventListener("message", (ev) => {
                     errorMessage: error.toString(),
                 });
             } finally {
-                programManager.networkClient.setHost(defaultHost);
+                programManager.setHost(defaultHost);
             }
         })();
     } else if (ev.data.type === "ALEO_ESTIMATE_EXECUTION_FEE") {
-        const { privateKey, remoteProgram, aleoFunction, inputs, url } =
+        const { remoteProgram, aleoFunction, inputs, url } =
             ev.data;
 
         console.log("Web worker: Estimating execution fee...");
@@ -166,13 +167,13 @@ self.addEventListener("message", (ev) => {
 
                 // Estimate the execution fee
                 const [provingKey, verifyingKey] = programManager.keyProvider.getKeys(cacheKey);
-                let executeFee = await programManager.estimateExecutionFee(
-                    aleo.PrivateKey.from_string(privateKey),
+                let executeFee = await programManager.executionEngine.estimateExecutionFee(
+                    new aleo.PrivateKey(),
                     remoteProgram,
                     aleoFunction,
                     inputs,
                     url,
-                    true,
+                    false,
                     imports,
                     provingKey,
                     verifyingKey,
@@ -201,11 +202,10 @@ self.addEventListener("message", (ev) => {
         let startTime = performance.now();
         (async function () {
             try {
-                if (typeof url === "string") { programManager.networkClient.setHost(url); }
                 const imports = await programManager.networkClient.getProgramImports(program);
                 console.log("Estimating deployment fee..");
                 let deploymentFee =
-                    await programManager.estimateDeploymentFee(
+                    await programManager.executionEngine.estimateDeploymentFee(
                         program,
                         false,
                         imports,
@@ -224,8 +224,6 @@ self.addEventListener("message", (ev) => {
                     type: "ERROR",
                     errorMessage: error.toString(),
                 });
-            } finally {
-                programManager.networkClient.setHost(defaultHost);
             }
         })();
     } else if (ev.data.type === "ALEO_TRANSFER") {
@@ -248,7 +246,7 @@ self.addEventListener("message", (ev) => {
         (async function () {
             try {
                 // Set the host to the provided URL if provided
-                if (typeof url === "string") { programManager.networkClient.setHost(url); }
+                if (typeof url === "string") { programManager.setHost(url); }
 
                 // Create the transfer transaction and submit it to the network
                 const transaction = await programManager.transfer(
@@ -275,7 +273,7 @@ self.addEventListener("message", (ev) => {
                     errorMessage: error.toString(),
                 });
             } finally {
-                programManager.networkClient.setHost(defaultHost);
+                programManager.setHost(defaultHost);
             }
         })();
     } else if (ev.data.type === "ALEO_DEPLOY") {
@@ -287,7 +285,7 @@ self.addEventListener("message", (ev) => {
         (async function () {
             try {
                 // Set the network client host if specified
-                if (typeof url === "string") { programManager.networkClient.setHost(url); }
+                if (typeof url === "string") { programManager.setHost(url); }
 
                 // Check if the program is valid
                 const programObject = programManager.createProgramFromSource(program);
@@ -305,6 +303,7 @@ self.addEventListener("message", (ev) => {
                     );
                 }
 
+                console.log("fee is: ", fee);
                 // Create the deployment transaction and submit it to the network
                 let transaction = await programManager.deploy(
                     program,
@@ -327,7 +326,7 @@ self.addEventListener("message", (ev) => {
                     errorMessage: error.toString(),
                 });
             } finally {
-                programManager.networkClient.setHost(defaultHost);
+                programManager.setHost(defaultHost);
             }
         })();
     } else if (ev.data.type === "ALEO_SPLIT") {
@@ -339,7 +338,7 @@ self.addEventListener("message", (ev) => {
         (async function () {
             try {
                 // Set the network client host if specified
-                if (typeof url === "string") { programManager.networkClient.setHost(url); }
+                if (typeof url === "string") { programManager.setHost(url); }
 
                 // Create the split transaction and submit to the network
                 const transaction = await programManager.split(
@@ -361,7 +360,7 @@ self.addEventListener("message", (ev) => {
                     errorMessage: error.toString(),
                 });
             } finally {
-                programManager.networkClient.setHost(defaultHost);
+                programManager.setHost(defaultHost);
             }
         })();
     } else if (ev.data.type === "ALEO_JOIN") {
@@ -375,7 +374,7 @@ self.addEventListener("message", (ev) => {
 
             try {
                 // Set the network client host if specified
-                if (typeof url === "string") { programManager.networkClient.setHost(url); }
+                if (typeof url === "string") { programManager.setHost(url); }
 
                 // Create the join transaction and submit it to the network
                 const transaction = await programManager.join(
@@ -400,7 +399,7 @@ self.addEventListener("message", (ev) => {
                     errorMessage: error.toString(),
                 });
             } finally {
-                programManager.networkClient.setHost(defaultHost);
+                programManager.setHost(defaultHost);
             }
         })();
     }

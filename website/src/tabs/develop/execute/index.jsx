@@ -201,11 +201,10 @@ export const Execute = () => {
         setFeeLoading(true);
         setModalModalOpen(true);
         setLoading(true);
-        const { program, functionName, inputs, private_key, peer_url } =
+        const { program, functionName, inputs, peer_url } =
             form.getFieldsValue();
         const result = await postMessagePromise(worker, {
             type: "ALEO_ESTIMATE_EXECUTION_FEE",
-            privateKey: private_key,
             remoteProgram: program,
             aleoFunction: functionName,
             inputs: JSON.parse(inputs),

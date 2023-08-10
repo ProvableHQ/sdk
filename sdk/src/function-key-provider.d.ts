@@ -1,5 +1,6 @@
 import { ProvingKey, VerifyingKey } from ".";
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
+type CachedKeyPair = [Uint8Array, Uint8Array];
 /**
  * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
  * implementations.
@@ -144,7 +145,7 @@ interface FunctionKeyProvider {
  * keys from a local memory cache.
  */
 declare class AleoKeyProvider implements FunctionKeyProvider {
-    cache: Map<string, FunctionKeyPair>;
+    cache: Map<string, CachedKeyPair>;
     cacheOption: boolean;
     keyUris: string;
     fetchBytes(url?: string): Promise<Uint8Array>;

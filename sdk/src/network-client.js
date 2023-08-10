@@ -37,6 +37,15 @@ class AleoNetworkClient {
     getAccount() {
         return this.account;
     }
+    /**
+     * Set a new host for the networkClient
+     *
+     * @param {string} host The address of a node hosting the Aleo API
+     * @param host
+     */
+    setHost(host) {
+        this.host = host + "/testnet3";
+    }
     fetchData(url = "/") {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -591,7 +600,7 @@ class AleoNetworkClient {
             const transaction_string = transaction instanceof WasmTransaction ? transaction.toString() : transaction;
             try {
                 const response = yield axios
-                    .post(this.host + "/testnet3/transaction/broadcast", transaction_string, {
+                    .post(this.host + "/transaction/broadcast", transaction_string, {
                     headers: {
                         "Content-Type": "application/json",
                     },
@@ -599,7 +608,16 @@ class AleoNetworkClient {
                 return response.data;
             }
             catch (error) {
-                throw new Error(`Error posting transaction: ${error}`);
+                const axiosError = error;
+                if (axiosError.response) {
+                    throw new Error(`Error posting transaction. Aleo network response: ${JSON.stringify(axiosError.response.data)}`);
+                }
+                else if (axiosError.request) {
+                    throw new Error(`Error posting transaction. No response received: ${axiosError.message}`);
+                }
+                else {
+                    throw new Error(`Error setting up transaction request: ${axiosError.message}`);
+                }
             }
         });
     }
