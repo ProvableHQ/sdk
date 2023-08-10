@@ -21,36 +21,36 @@ edition = "2021"
 members = [ "rust", "wasm", "rust/develop"]
 
 [workspace.dependencies.aleo-rust]
-version = "0.5.1"
+version = "0.5.5"
 path = "rust"
 default-features = false
 
 [workspace.dependencies.snarkvm]
-version = "=0.14.5"
+version = "=0.14.6"
 
 [workspace.dependencies.snarkvm-circuit-network]
-version = "=0.14.5"
+version = "=0.14.6"
 
 [workspace.dependencies.snarkvm-console]
-version = "=0.14.5"
+version = "=0.14.6"
 
 [workspace.dependencies.snarkvm-console-network]
-version = "=0.14.5"
+version = "=0.14.6"
 
 [workspace.dependencies.snarkvm-synthesizer]
-version = "=0.14.5"
+version = "=0.14.6"
 
 [workspace.dependencies.snarkvm-ledger-block]
-version = "=0.14.5"
+version = "=0.14.6"
 
 [workspace.dependencies.snarkvm-ledger-store]
-version = "=0.14.5"
+version = "=0.14.6"
 
 [workspace.dependencies.snarkvm-ledger-query]
-version = "=0.14.5"
+version = "=0.14.6"
 
 [workspace.dependencies.snarkvm-wasm]
-version = "=0.14.5"
+version = "=0.14.6"
 
 [lib]
 path = "cli/lib.rs"

@@ -111,10 +111,10 @@ jobs:
       - run:
           no_output_timeout: 30m
           command: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
             export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install 18.16.0
-            nvm use 18.16.0
+            nvm install 20.3.1
+            nvm use 20.3.1
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
             cd wasm && wasm-pack test --node --lib
             # cargo test --target wasm32-unknown-unknown
