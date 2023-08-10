@@ -1,6 +1,11 @@
 import { ProvingKey, VerifyingKey } from ".";
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 type CachedKeyPair = [Uint8Array, Uint8Array];
+type AleoKeyProviderInitParams = {
+    proverUri?: string;
+    verifierUri?: string;
+    cacheKey?: string;
+};
 /**
  * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
  * implementations.
@@ -272,4 +277,4 @@ declare class AleoKeyProvider implements FunctionKeyProvider {
      */
     feeKeys(): Promise<FunctionKeyPair | Error>;
 }
-export { AleoKeyProvider, AleoKeyProviderParams, CachedKeyPair, FunctionKeyPair, FunctionKeyProvider, KeySearchParams };
+export { AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, CachedKeyPair, FunctionKeyPair, FunctionKeyProvider, KeySearchParams };

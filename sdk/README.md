@@ -10,28 +10,31 @@ and node.js.
 Aleo provides the ability to run programs in zero knowledge. The Aleo SDK provides the tools to use these programs 
 within the browser and all other levels of the web stack to build privacy protecting applications.
 
-The Aleo SDK provides:
-* Tools for executing, deploying, and interacting with Aleo programs in the browser
-* Management of program state and data
-* Aleo account creation and Aleo account data management
-* Communication with the Aleo network
+What the Aleo SDK provides (Click to see examples):
+* [Tools for executing, deploying, and interacting with Aleo programs in the browser](https://aleo.tools/develop)
+* [Aleo account creation and Aleo account data management](https://aleo.tools/account)
+* [Management of program state and data](https://aleo.tools/record)
+* [Communication with the Aleo network](https://aleo.tools/rest)
 
 This package is published at [**@aleohq/sdk**](https://www.npmjs.com/package/@aleohq/sdk) and makes use of
 [**@aleohq/wasm**](https://www.npmjs.com/package/@aleohq/wasm) under the hood.
 
 ## Build Guide
 
-1. To build the project, go to the project's root and execute `npm install && npm run build`.
+To build the project from source, go to the project's root and execute `npm install && npm run build`.
 
 ## Documentation
 
-1. To view the documentation, open `docs/index.html`.
-2. To regenerate the documentation, run `npx jsdoc --configure jsdoc.json --verbose`
+API documentation for this package can be found on the [Aleo Developer Hub](https://developer.aleo.org/sdk/typescript/overview). 
 
-## Aleo Tools
+To view the documentation locally, open `docs/index.html`. To regenerate the documentation, run `npx jsdoc --configure jsdoc.json --verbose`
 
-[Aleo SDK account generator](https://aleohq.github.io/aleo/)
+## Usage
 
-[Aleo Home](https://www.aleo.org/)
+This SDK is used to power [Aleo.tools](https://aleo.tools/develop). Aleo.tools is open source and can be used as a 
+reference for how to use the SDK to build your own zero knowledge web app.
 
-You can visit the [SnarkVM repo](https://github.com/AleoHQ/snarkVM) and [SnarkOS repo](https://github.com/AleoHQ/snarkOS) to go deep into the code of aleo infrastructure
+Sources can be found here: https://github.com/AleoHQ/sdk/tree/testnet3/website
+
+You can visit the [SnarkVM repo](https://github.com/AleoHQ/snarkVM) and [SnarkOS repo](https://github.com/AleoHQ/snarkOS) 
+if you're interested in learning more about the architecture that powers the Aleo SDK.

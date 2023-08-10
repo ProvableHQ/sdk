@@ -34,7 +34,7 @@ import { BlockHeightSearch, NetworkRecordProvider, RecordProvider, RecordSearchP
  * so this function must be called before any other SDK functions are called.
  */
 // async function initializeWasm() {
-//    return await init();
+//     return await init();
 // }
 // import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, ProgramManager as ProgramManagerBase, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey, initThreadPool } from '@aleohq/wasm';
 // export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, AleoNetworkClient, Block, BlockHeightSearch, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProgramManager, ProgramManagerBase, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, initThreadPool, initializeWasm, logAndThrow};

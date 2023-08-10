@@ -1,3 +1,4 @@
+import { __awaiter } from "tslib";
 const KEY_STORE = "https://testnet3.parameters.aleo.org/";
 const CREDITS_PROGRAM_KEYS = {
     transfer_private: { prover: KEY_STORE + "transfer_private.prover.2a9a6f2", verifier: KEY_STORE + "transfer_private.verifier.3a59762" },
@@ -18,18 +19,20 @@ import { DevServerClient } from "./dev-server-client";
 import { AleoKeyProvider, AleoKeyProviderParams } from "./function-key-provider";
 import { BlockHeightSearch, NetworkRecordProvider } from "./record-provider";
 // If using the SDK in a browser context, uncomment these lines
-// import { ProgramManager } from "./program-manager";
-//import init from '@aleohq/wasm';
+import { ProgramManager } from "./program-manager";
+import init from '@aleohq/wasm';
 /**
  * Initialize Aleo WebAssembly into the browser. The SDK requires its Wasm Instance to be initialized before operating
  * so this function must be called before any other SDK functions are called.
  */
-// async function initializeWasm() {
-//    return await init();
-// }
-// import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, ProgramManager as ProgramManagerBase, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey, initThreadPool } from '@aleohq/wasm';
-// export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoNetworkClient, Block, BlockHeightSearch, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProgramManager, ProgramManagerBase, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, initThreadPool, initializeWasm, logAndThrow};
+function initializeWasm() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield init();
+    });
+}
+import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, ProgramManager as ProgramManagerBase, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey, initThreadPool } from '@aleohq/wasm';
+export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoNetworkClient, BlockHeightSearch, DevServerClient, ExecutionResponse, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramManager, ProgramManagerBase, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, initThreadPool, initializeWasm, logAndThrow };
 // The following imports and exports are for a NodeJS context - if using the SDK in a browser context, delete or comment out these lines
-import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey } from '@aleohq/nodejs';
-export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoNetworkClient, BlockHeightSearch, DevServerClient, ExecutionResponse, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, logAndThrow };
+// import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey} from '@aleohq/nodejs';
+// export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, AleoNetworkClient, Block, BlockHeightSearch, CachedKeyPair, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, logAndThrow}
 //# sourceMappingURL=index.js.map
