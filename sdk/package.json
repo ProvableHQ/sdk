@@ -1,6 +1,6 @@
 {
   "name": "@aleohq/sdk",
-  "version": "0.5.2",
+  "version": "0.5.4",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
     "The Aleo Team <hello@aleo.org>"
@@ -36,8 +36,8 @@
   },
   "homepage": "https://github.com/AleoHQ/sdk#readme",
   "dependencies": {
-    "@aleohq/nodejs": "0.5.2",
-    "@aleohq/wasm": "file:../wasm/pkg-parallel",
+    "@aleohq/nodejs": "0.5.4",
+    "@aleohq/wasm": "0.5.4",
     "axios": "^1.1.3",
     "jsdoc": "^3.6.11",
     "unfetch": "^5.0.0"
