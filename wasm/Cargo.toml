@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.5.2"
+version = "0.5.5"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"
@@ -76,7 +76,7 @@ optional = true
 version = "0.1.7"
 
 [dependencies.serde]
-version = "1.0.181"
+version = "1.0.183"
 
 [dev-dependencies.wasm-bindgen-test]
 version = "0.3.37"
