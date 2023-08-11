@@ -7,7 +7,6 @@ const defaultHost = "https://vm.aleo.org/api";
 const keyProvider = new aleo.AleoKeyProvider();
 const programManager = new aleo.ProgramManager(defaultHost, keyProvider, undefined);
 
-console.log(keyProvider);
 keyProvider.useCache(true);
 
 self.postMessage({
@@ -25,7 +24,6 @@ self.addEventListener("message", (ev) => {
         (async function () {
             try {
                 // Ensure the program is valid and that it contains the function specified
-                console.log(programManager);
                 const program = programManager.createProgramFromSource(localProgram);
                 const program_id = program.id();
                 if (!program.hasFunction(aleoFunction)) {

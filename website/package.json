@@ -4,6 +4,7 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "preinstall": "cd ../sdk && npm run build",
         "dev": "vite",
         "build": "webpack --config webpack.config.js",
         "build:vite": "vite build",
@@ -13,7 +14,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@aleohq/sdk": "0.5.5",
+        "@aleohq/sdk": "file:../sdk",
         "@ant-design/icons": "^4.4.0",
         "@codemirror/language": "^6.8.0",
         "@codemirror/legacy-modes": "^6.3.3",
