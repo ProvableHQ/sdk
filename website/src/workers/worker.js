@@ -291,16 +291,18 @@ self.addEventListener("message", (ev) => {
                 const programObject = programManager.createProgramFromSource(program);
 
                 // Check if the program already exists on the network. If so, throw an error
+                let programExists = false;
                 try {
                     await programManager.networkClient.getProgram(programObject.id());
-                    throw `A program with the same name already exists on the Aleo Network, cannot deploy`;
+                    programExists = true;
                 } catch (e) {
-                    if (e !== `A program with the same name already exists on the Aleo Network, cannot deploy`) {
-                        throw e;
-                    }
                     console.log(
                         `Program not found on the Aleo Network - proceeding with deployment...`,
                     );
+                }
+
+                if (programExists) {
+                    throw `Program ${programObject.id()} already exists on the network`;
                 }
 
                 console.log("fee is: ", fee);
@@ -381,8 +383,8 @@ self.addEventListener("message", (ev) => {
                     recordOne,
                     recordTwo,
                     fee,
+                    undefined,
                     feeRecord,
-                    url,
                     aleo.PrivateKey.from_string(privateKey),
                 );
 
