@@ -1,12 +1,23 @@
 # Aleo SDK
 
-[**@aleohq/sdk**](https://www.npmjs.com/package/@aleohq/sdk)
+## Tools for Building Zero Knowledge Web Apps
 
-Aleo high-level utilities in javascript to handle Accounts, Records, and Node connections in the browser.
+The Aleo SDK is a collection of JavaScript libraries for building zero knowledge web applications in both the browser 
+and node.js. 
 
-Makes use of [**@aleohq/wasm**](https://www.npmjs.com/package/@aleohq/wasm) under the hood.
+## Overview
 
-Happy hacking!
+Aleo provides the ability to run programs in zero knowledge. The Aleo SDK provides the tools to use these programs 
+within the browser and all other levels of the web stack to build privacy protecting applications.
+
+The Aleo SDK provides:
+* Tools for executing, deploying, and interacting with Aleo programs in the browser
+* Management of program state and data
+* Aleo account creation and Aleo account data management
+* Communication with the Aleo network
+
+This package is published at [**@aleohq/sdk**](https://www.npmjs.com/package/@aleohq/sdk) and makes use of
+[**@aleohq/wasm**](https://www.npmjs.com/package/@aleohq/wasm) under the hood.
 
 ## Build Guide
 

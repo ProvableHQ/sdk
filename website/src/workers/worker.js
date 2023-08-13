@@ -110,7 +110,7 @@ self.addEventListener("message", (ev) => {
                     lastLocalProgram = localProgram;
                 }
 
-                let response = aleoProgramManager.execute_local(
+                let response = aleoProgramManager.executeFunctionOffline(
                     aleo.PrivateKey.from_string(privateKey),
                     localProgram,
                     aleoFunction,
@@ -179,7 +179,7 @@ self.addEventListener("message", (ev) => {
                     );
                 }
 
-                let executeTransaction = await aleoProgramManager.execute(
+                let executeTransaction = await aleoProgramManager.buildExecutionTransaction(
                     aleo.PrivateKey.from_string(privateKey),
                     remoteProgram,
                     aleoFunction,
@@ -450,7 +450,7 @@ self.addEventListener("message", (ev) => {
                         ? aleo.RecordPlaintext.fromString(amountRecord)
                         : undefined;
 
-                let transferTransaction = await aleoProgramManager.transfer(
+                let transferTransaction = await aleoProgramManager.buildTransferTransaction(
                     aleo.PrivateKey.from_string(privateKey),
                     amountCredits,
                     recipient,
@@ -572,7 +572,7 @@ self.addEventListener("message", (ev) => {
                         splitVerifyingKey,
                     );
                 }
-                let splitTransaction = await aleoProgramManager.split(
+                let splitTransaction = await aleoProgramManager.buildSplitTransaction(
                     aleo.PrivateKey.from_string(privateKey),
                     splitAmount,
                     aleo.RecordPlaintext.fromString(record),
@@ -638,7 +638,7 @@ self.addEventListener("message", (ev) => {
             }
 
             try {
-                let joinTransaction = await aleoProgramManager.join(
+                let joinTransaction = await aleoProgramManager.buildJoinTransaction(
                     aleo.PrivateKey.from_string(privateKey),
                     aleo.RecordPlaintext.fromString(recordOne),
                     aleo.RecordPlaintext.fromString(recordTwo),

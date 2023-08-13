@@ -1,6 +1,6 @@
 {
   "source": {
-    "include": ["src/account.ts", "src/aleo_network_client.ts", "src/development_client.ts"],
+    "include": ["src/account.ts", "src/dev-server-client.ts", "src/key-provider.ts", "src/network-client.ts", "src/program-manager.ts", "src/record-provider.ts"],
     "includePattern": ".+\\.ts?$"
   },
   "tags": {

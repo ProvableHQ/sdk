@@ -55,6 +55,14 @@ impl RecordPlaintext {
         self.0.microcredits().unwrap_or(0)
     }
 
+    /// Returns the nonce of the record. This can be used to uniquely identify a record.
+    ///
+    /// @returns {string} Nonce of the record
+    #[wasm_bindgen(js_name = nonce)]
+    pub fn nonce(&self) -> String {
+        self.0.nonce().to_string()
+    }
+
     /// Attempt to get the serial number of a record to determine whether or not is has been spent
     ///
     /// @param {PrivateKey} private_key Private key of the account that owns the record

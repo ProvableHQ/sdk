@@ -5,7 +5,7 @@ import {
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
-} from "@aleohq/nodejs";
+} from ".";
 
 interface AccountParam {
   privateKey?: string;
@@ -25,18 +25,18 @@ interface AccountParam {
  *
  * @example
  * // Create a new account
- * let myRandomAccount = new Account();
+ * const myRandomAccount = new Account();
  *
  * // Create an account from a randomly generated seed
- * let seed = new Uint8Array([94, 91, 52, 251, 240, 230, 226, 35, 117, 253, 224, 210, 175, 13, 205, 120, 155, 214, 7, 169, 66, 62, 206, 50, 188, 40, 29, 122, 40, 250, 54, 18]);
- * let mySeededAccount = new Account({seed: seed});
+ * const seed = new Uint8Array([94, 91, 52, 251, 240, 230, 226, 35, 117, 253, 224, 210, 175, 13, 205, 120, 155, 214, 7, 169, 66, 62, 206, 50, 188, 40, 29, 122, 40, 250, 54, 18]);
+ * const mySeededAccount = new Account({seed: seed});
  *
  * // Create an account from an existing private key
- * let myExistingAccount = new Account({privateKey: 'myExistingPrivateKey'})
+ * const myExistingAccount = new Account({privateKey: 'myExistingPrivateKey'})
  *
  * // Sign a message
- * let hello_world = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
- * let signature = myRandomAccount.sign(hello_world)
+ * const hello_world = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
+ * const signature = myRandomAccount.sign(hello_world)
  *
  * // Verify a signature
  * myRandomAccount.verify(hello_world, signature)
@@ -64,8 +64,8 @@ export class Account {
    * @returns {PrivateKey | Error}
    *
    * @example
-   * let ciphertext = PrivateKey.newEncrypted("password");
-   * let account = Account.fromCiphertext(ciphertext, "password");
+   * const ciphertext = PrivateKey.newEncrypted("password");
+   * const account = Account.fromCiphertext(ciphertext, "password");
    */
   public static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string) {
     try {
@@ -109,8 +109,8 @@ export class Account {
    * @returns {PrivateKeyCiphertext}
    *
    * @example
-   * let account = new Account();
-   * let ciphertext = account.encryptAccount("password");
+   * const account = new Account();
+   * const ciphertext = account.encryptAccount("password");
    */
   encryptAccount(password: string) {
     return this._privateKey.toCiphertext(password);
@@ -122,8 +122,8 @@ export class Account {
    * @returns {Record}
    *
    * @example
-   * let account = new Account();
-   * let record = account.decryptRecord("record1ciphertext");
+   * const account = new Account();
+   * const record = account.decryptRecord("record1ciphertext");
    */
   decryptRecord(ciphertext: string) {
     return this._viewKey.decrypt(ciphertext);
@@ -135,8 +135,8 @@ export class Account {
    * @returns {Record[]}
    *
    * @example
-   * let account = new Account();
-   * let record = account.decryptRecords(["record1ciphertext", "record2ciphertext"]);
+   * const account = new Account();
+   * const record = account.decryptRecords(["record1ciphertext", "record2ciphertext"]);
    */
   decryptRecords(ciphertexts: string[]) {
     return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext));
@@ -149,12 +149,12 @@ export class Account {
    *
    * @example
    * // Create a connection to the Aleo network and an account
-   * let connection = new NodeConnection("vm.aleo.org/api");
-   * let account = Account.fromCiphertext("ciphertext", "password");
+   * const connection = new NodeConnection("vm.aleo.org/api");
+   * const account = Account.fromCiphertext("ciphertext", "password");
    *
    * // Get a record from the network
-   * let record = connection.getBlock(1234);
-   * let recordCipherText = record.transactions[0].execution.transitions[0].id;
+   * const record = connection.getBlock(1234);
+   * const recordCipherText = record.transactions[0].execution.transitions[0].id;
    *
    * // Check if the account owns the record
    * if account.ownsRecord(recordCipherText) {
@@ -187,8 +187,8 @@ export class Account {
    * @returns {Signature}
    *
    * @example
-   * let account = new Account();
-   * let message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
+   * const account = new Account();
+   * const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
    * account.sign(message);
    */
   sign(message: Uint8Array) {
@@ -203,12 +203,13 @@ export class Account {
    * @returns {boolean}
    *
    * @example
-   * let account = new Account();
-   * let message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
-   * let signature = account.sign(message);
+   * const account = new Account();
+   * const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
+   * const signature = account.sign(message);
    * account.verify(message, signature);
    */
   verify(message: Uint8Array, signature: Signature) {
     return this._address.verify(message, signature);
   }
+
 }
