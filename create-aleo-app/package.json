@@ -24,11 +24,11 @@
     "node": "^14.18.0 || >=16.0.0"
   },
   "devDependencies": {
-    "unbuild": "^1.2.1",
     "@types/minimist": "^1.2.2",
     "@types/prompts": "^2.4.4",
     "kolorist": "^1.8.0",
     "minimist": "^1.2.8",
-    "prompts": "^2.4.2"
+    "prompts": "^2.4.2",
+    "unbuild": "^1.2.1"
   }
 }
