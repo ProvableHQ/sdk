@@ -1,10 +1,6 @@
 import { __awaiter } from "tslib";
 import { ProgramManager as WasmProgramManager, } from '@aleohq/wasm';
-import { AleoKeyProvider, AleoNetworkClient, RecordPlaintext, Program, logAndThrow } from ".";
-const privateTransferTypes = new Set(["transfer_private", "private", "transferPrivate", "transfer_private_to_public", "privateToPublic", "transferPrivateToPublic"]);
-const validTransferTypes = new Set(["transfer_private", "private", "transferPrivate", "transfer_private_to_public",
-    "privateToPublic", "transferPrivateToPublic", "transfer_public", "public", "transferPublic",
-    "transfer_public_to_private", "publicToPrivate", "transferPublicToPrivate"]);
+import { AleoKeyProvider, AleoNetworkClient, RecordPlaintext, Program, PRIVATE_TRANSFER_TYPES, VALID_TRANSFER_TYPES, logAndThrow, } from ".";
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
  */
@@ -507,11 +503,11 @@ class ProgramManager {
 }
 // Ensure the transfer type requires an amount record
 function requiresAmountRecord(transferType) {
-    return privateTransferTypes.has(transferType);
+    return PRIVATE_TRANSFER_TYPES.has(transferType);
 }
 // Validate the transfer type
 function validateTransferType(transferType) {
-    return validTransferTypes.has(transferType) ? transferType :
+    return VALID_TRANSFER_TYPES.has(transferType) ? transferType :
         logAndThrow(`Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`);
 }
 export { ProgramManager };

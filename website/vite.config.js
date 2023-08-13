@@ -11,9 +11,12 @@ export default defineConfig({
         target: "esnext",
         sourcemap: true,
     },
+    optimizeDeps: {
+        exclude: ["@aleohq/wasm"],
+    },
     server: {
         fs: {
-            allow: [searchForWorkspaceRoot(process.cwd()), "../wasm"],
+            allow: [searchForWorkspaceRoot(process.cwd()), "../sdk"],
         },
         headers: {
             "Cross-Origin-Opener-Policy": "same-origin",
