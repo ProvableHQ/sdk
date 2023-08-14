@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692027204880,
+  "lastUpdate": 1692027356955,
   "repoUrl": "https://github.com/AleoHQ/sdk",
   "entries": {
     "Aleo SDK Benchmarks": [
@@ -53,6 +53,60 @@ window.BENCHMARK_DATA = {
             "name": "testnet3_private_key_encryption_decryption_roundtrip",
             "value": 598565,
             "range": "± 2484",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mturner@aleo.org",
+            "name": "Mike Turner",
+            "username": "iamalwaysuncomfortable"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f5455073a365235d1cb4d209bc599074199df5c3",
+          "message": "[Feature] Integrate Aleo Javascript SDK into aleo.tools",
+          "timestamp": "2023-08-14T11:24:12-04:00",
+          "tree_id": "eedd643a6fe902d409520ef71bcfb434df5f280b",
+          "url": "https://github.com/AleoHQ/sdk/commit/f5455073a365235d1cb4d209bc599074199df5c3"
+        },
+        "date": 1692027339689,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "testnet3_address_from_private_key",
+            "value": 265884,
+            "range": "± 25614",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_new",
+            "value": 115857,
+            "range": "± 9017",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_decryption",
+            "value": 425493,
+            "range": "± 58166",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption",
+            "value": 299988,
+            "range": "± 26659",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "testnet3_private_key_encryption_decryption_roundtrip",
+            "value": 728883,
+            "range": "± 145697",
             "unit": "ns/iter"
           }
         ]
