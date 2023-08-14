@@ -24,7 +24,7 @@
     "@babel/preset-react": "^7.16.7",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
-    "@vitejs/plugin-react-swc": "^3.3.2",
+    "@vitejs/plugin-react": "^4.0.4",
     "babel-loader": "^8.2.3",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.6.0",
