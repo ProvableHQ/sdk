@@ -34,23 +34,11 @@ export const Deploy = () => {
         );
         worker.addEventListener("message", (ev) => {
             if (ev.data.type == "DEPLOY_TRANSACTION_COMPLETED") {
-                let [deployTransaction, url] = ev.data.deployTransaction;
-                axios
-                    .post(
-                        url + "/testnet3/transaction/broadcast",
-                        deployTransaction,
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        },
-                    )
-                    .then((response) => {
-                        setFeeLoading(false);
-                        setLoading(false);
-                        setDeploymentError(null);
-                        setTransactionID(response.data);
-                    });
+                let transactionId = ev.data.deployTransaction;
+                setFeeLoading(false);
+                setLoading(false);
+                setDeploymentError(null);
+                setTransactionID(transactionId);
             } else if (ev.data.type == "DEPLOYMENT_FEE_ESTIMATION_COMPLETED") {
                 let fee = ev.data.deploymentFee;
                 setFeeLoading(false);

@@ -17,7 +17,6 @@ import { LoadProgram } from "./LoadProgram.jsx";
 import { CodeEditor } from "./CodeEditor.jsx";
 import { useAleoWASM } from "../../../aleo-wasm-hook";
 import { useEffect, useState } from "react";
-import axios from "axios";
 
 const layout = { labelCol: { span: 4 }, wrapperCol: { span: 18 } };
 
@@ -125,25 +124,13 @@ export const Execute = () => {
                     subTitle: `Outputs: ${ev.data.outputs}`,
                 });
             } else if (ev.data.type == "EXECUTION_TRANSACTION_COMPLETED") {
-                let [transaction, url] = ev.data.executeTransaction;
-                axios
-                    .post(
-                        url + "/testnet3/transaction/broadcast",
-                        transaction,
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        },
-                    )
-                    .then((response) => {
-                        setLoading(false);
-                        setModalResult({
-                            title: "On-Chain Execution Successsful!",
-                            status: "success",
-                            subTitle: `Transaction ID: ${response.data}`,
-                        });
-                    });
+                const transactionId = ev.data.executeTransaction;
+                setLoading(false);
+                setModalResult({
+                    title: "On-Chain Execution Successsful!",
+                    status: "success",
+                    subTitle: `Transaction ID: ${transactionId}`,
+                });
             } else if (ev.data.type == "ERROR") {
                 setLoading(false);
                 setModalResult({
@@ -214,11 +201,10 @@ export const Execute = () => {
         setFeeLoading(true);
         setModalModalOpen(true);
         setLoading(true);
-        const { program, functionName, inputs, private_key, peer_url } =
+        const { program, functionName, inputs, peer_url } =
             form.getFieldsValue();
         const result = await postMessagePromise(worker, {
             type: "ALEO_ESTIMATE_EXECUTION_FEE",
-            privateKey: private_key,
             remoteProgram: program,
             aleoFunction: functionName,
             inputs: JSON.parse(inputs),

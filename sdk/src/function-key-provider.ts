@@ -1,4 +1,4 @@
-import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE} from ".";
+import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER} from ".";
 import axios from 'axios';
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
@@ -366,17 +366,16 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * const [transferPublicProvingKey, transferPublicVerifyingKey] = await keyProvider.transferKeys("public");
      */
     async transferKeys(visibility: string): Promise<FunctionKeyPair | Error> {
-        switch (visibility) {
-            case "private" || "transfer_private" || "transferPrivate":
-                return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier);
-            case "public" || "transfer_public" || "transferPublic":
-                return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier);
-            case "private_to_public" || "transfer_private_to_public" || "privateToPublic" || "transferPrivateToPublic":
-                return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier);
-            case "public_to_private" || "transfer_public_to_private" || "publicToPrivate" || "transferPublicToPrivate":
-                return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier);
-            default:
-                throw new Error("Invalid visibility type");
+        if (PRIVATE_TRANSFER.has(visibility)) {
+            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier);
+        } else if (PRIVATE_TO_PUBLIC_TRANSFER.has(visibility)) {
+            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier);
+        } else if (PUBLIC_TRANSFER.has(visibility)) {
+            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier);
+        } else if (PUBLIC_TO_PRIVATE_TRANSFER.has(visibility)) {
+            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier);
+        } else {
+            throw new Error("Invalid visibility type");
         }
     }
 

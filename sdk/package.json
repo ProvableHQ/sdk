@@ -1,6 +1,6 @@
 {
   "name": "@aleohq/sdk",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
     "The Aleo Team <hello@aleo.org>"

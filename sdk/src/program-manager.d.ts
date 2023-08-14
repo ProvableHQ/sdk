@@ -1,5 +1,5 @@
 import { ProgramManager as WasmProgramManager } from '@aleohq/wasm';
-import { Account, AleoNetworkClient, ExecutionResponse, FunctionKeyProvider, KeySearchParams, RecordPlaintext, RecordProvider, PrivateKey, Program, ProvingKey, VerifyingKey, ProgramImports, RecordSearchParams } from ".";
+import { Account, AleoNetworkClient, ExecutionResponse, FunctionKeyProvider, KeySearchParams, RecordPlaintext, RecordProvider, RecordSearchParams, PrivateKey, Program, ProgramImports, ProvingKey, VerifyingKey } from ".";
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
  */
