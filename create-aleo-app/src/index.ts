@@ -58,11 +58,6 @@ const FRAMEWORKS: Framework[] = [
         display: "JavaScript",
         color: yellow,
       },
-      {
-        name: "react-leo-adapter",
-        display: "JavaScript",
-        color: blue,
-      },
     ],
   },
   // {
