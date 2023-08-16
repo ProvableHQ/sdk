@@ -105,7 +105,7 @@ belongs to an individual user.
 A key that can be used to trustlessly run applications and generate transactions on a user's behalf.
 #### Address
 A public address that can be used to trustlessly identify a user in order for that user to receive official
-aleo credits or unique data defined by other zero-knolwedge Aleo programs.
+Aleo credits or unique data defined by other zero-knowledge Aleo programs.
 
 All of these keys can be created using the account object:
 ```typescript
@@ -307,7 +307,7 @@ of the `KeyProvider` interface via the `AleoKeyProvider` class.
 2. **RecordProvider:** When programs execute, they will often need to read and write records. The `RecordProvider` 
 interface allows users of the SDK to provide their own record storage and retrieval mechanism. The SDK provides a
 default implementation of the `RecordProvider` interface via the `NetworkRecordProvider` class which searches the Aleo
-network for records uniquely belong to a user.
+network for records uniquely belonging to a user.
 
 The `ProgramManager` class is capable of taking a `KeyProvider` and `RecordProvider` as arguments and will use them to
 find the correct keys and records for a program execution.
@@ -726,7 +726,7 @@ graph LR
 #### 3. transfer_public
 
 Subtracts an amount of `credits` stored in the `account` mapping of the `credits.aleo program`, and 
-adds that amount to the `account` mapping of the receiver. This function is %100 public and does not consume or generate
+adds that amount to the `account` mapping of the receiver. This function is 100% public and does not consume or generate
 any records.
 
 ```mermaid
