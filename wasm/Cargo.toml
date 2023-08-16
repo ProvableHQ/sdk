@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.5.5"
+version = "0.5.7"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"
@@ -42,6 +42,10 @@ version = "0.14.6"
 version = "0.14.6"
 features = [ "async" ]
 
+[dependencies.snarkvm-wasm]
+version = "0.14.6"
+features = [ "console", "fields", "utilities" ]
+
 [dependencies.anyhow]
 version = "1.0"
 
@@ -77,9 +81,8 @@ version = "0.11.18"
 [dependencies.serde_json]
 version = "1.0"
 
-[dependencies.snarkvm-wasm]
-workspace = true
-features = [ "console", "fields", "utilities" ]
+[build-dependencies.walkdir]
+version = "2"
 
 [dependencies.wasm-bindgen]
 version = "0.2"

@@ -165,6 +165,9 @@ pub(crate) mod types;
 
 use wasm_bindgen::prelude::*;
 
+use std::str::FromStr;
+
+use crate::types::RecordPlaintextNative;
 #[cfg(feature = "parallel")]
 pub use wasm_bindgen_rayon::init_thread_pool;
 
@@ -174,4 +177,27 @@ extern "C" {
     // Log a &str the console in the browser or console.log in nodejs
     #[wasm_bindgen(js_namespace = console)]
     pub fn log(s: &str);
+}
+
+/// A trait providing convenient methods for accessing the amount of Aleo present in a record
+pub trait Credits {
+    /// Get the amount of credits in the record if the record possesses Aleo credits
+    fn credits(&self) -> Result<f64, String> {
+        Ok(self.microcredits()? as f64 / 1_000_000.0)
+    }
+
+    /// Get the amount of microcredits in the record if the record possesses Aleo credits
+    fn microcredits(&self) -> Result<u64, String>;
+}
+
+impl Credits for RecordPlaintextNative {
+    fn microcredits(&self) -> Result<u64, String> {
+        match self
+            .find(&[types::IdentifierNative::from_str("microcredits").map_err(|e| e.to_string())?])
+            .map_err(|e| e.to_string())?
+        {
+            types::Entry::Private(types::PlaintextNative::Literal(types::LiteralNative::U64(amount), _)) => Ok(*amount),
+            _ => Err("The record provided does not contain a microcredits field".to_string()),
+        }
+    }
 }
