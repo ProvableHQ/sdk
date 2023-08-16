@@ -131,7 +131,7 @@ was run correctly. Keeping program inputs and outputs private allows developers 
 Zero-Knowledge programs are written in one of two languages: 
 1. [Leo](https://developer.aleo.org/leo/language): A high level, developer friendly language for developing
 zero knowledge programs.
-2. [Aleo Instructions](https://developer.aleo.org/aleo/instructions): An low level language that provides developers fine
+2. [Aleo Instructions](https://developer.aleo.org/aleo/instructions): A low level language that provides developers fine
 grained control over the execution flow of zero knowledge programs. Leo programs are compiled into Aleo Instructions
 under the hood.
 
@@ -197,14 +197,17 @@ graph LR
     in-memory-program-."ZK result (Optional)".->Aleo-Network
 ```
 
-### 2.3 Wasm Initialization
+### 2.3 WebAssembly Initialization
 
-Much of the Aleo SDK is powered by Aleo code implementing ZkSnarks written in Rust that is compiled to WebAssembly. 
-JavaScript bindings to this WebAssembly enables zero knowledge program execution can be run directly in the browser.
+❗WebAssembly must be initialized before any SDK functions can be called. 
 
-Before any logic within the SDK is run within the browser, the WebAssembly module the SDK contains must be initialized
-before any SDK functions can be executed. This is done simply by calling the `initializeWasm` function at a point in 
-your code before any other SDK functions are called:
+Aleo programs are made zero knowledge through the usage of `ZkSnarks`. The Rust code behind Aleo programs and the ZkSnarks 
+that make them zero knowledge are hosted in the [SnarkVM Repostiory](https://github.com/AleoHQ/SnarkVM). The Aleo SDK 
+compiles this code to WebAssembly and creates JavaScript bindings, enabling Aleo programs to run directly in the browser.
+
+ Before any logic within the SDK is run within the browser however, the WebAssembly module the SDK contains must be 
+initialized before any SDK functions can be executed. This is done simply by calling the `initializeWasm` function at a
+point in your code before any other SDK functions are called:
 ```typescript
 import { Account, initializeWasm } from '@aleohq/sdk';
 
@@ -242,10 +245,11 @@ network that anyone can trustlessly verify.
 
 This process can be thought of being executed in three steps:
 1. A program is run locally
-2. A proof transcript is generated client-side containing encrypted proof data (see [Section 2.6](#4-managing-records-and-private-state))
+2. A proof that the program was executed correctly and that the outputs follow from the inputs is generated
+3. A transcript of the proof is generated client-side containing encrypted proof data (see [Section 2.6](#4-managing-records-and-private-state))
 and any public outputs or state the user of the program wishes to reveal
-3. The proof transcript is posted and verified by the Aleo network in a trustless manner
-4. If the proof is valid, it is stored and anyone can later verify the proof and read the outputs the author of the
+4. The proof transcript is posted to the Aleo network and verified by the Aleo validator nodes in a trustless manner
+5. If the proof is valid, it is stored and anyone can later verify the proof and read the outputs the author of the
 program has chosen to make public. Private inputs will remain encrypted, but the author of the proof can also choose to
 retrieve this encrypted state at any point and decrypt it locally for their own use.
 
@@ -275,16 +279,17 @@ const transaction = await programManager.networkClient.getTransaction(tx_id);
 ```
 
 A reader of the above example may notice the `RecordProvider` and `KeyProvider` classes that were not present in the local 
-execution example. The `KeyProvider` class helps users of the SDK find `Proving Keys` for programs which allow zero 
-knowledge proofs to be created about programs. The `RecordProvider` class helps find `Records` which are private data 
-associated with programs which can be updated by users. These two concepts are explained in more detail below.
+execution example. The `KeyProvider` class helps users of the SDK find `Proving Keys` for programs. `Proving Keys` 
+allow zero knowledge proofs that the programs were executed correctly to be created. The `RecordProvider` class helps 
+find `Records` which are private data associated with programs that can be changed and updated throughout time. 
+These two concepts are explained in more detail below.
 
 ### 2.6 Program Proving Keys & Program Records
 
 Executing Aleo programs in zero knowledge requires two additional pieces of information.
 
 1. **Function Proving & Verifying Keys:** Proving and Verifying keys are cryptographic keys that are generated when a 
-   program function is executed. These keys are public and unique for each program. The proving key allows any party to 
+   program function is executed. These keys are public and unique for each function in a program. The proving key allows any party to 
    execute the program and generate a proof that the program was executed correctly. The verifying keys allow any party 
    to verify that the proof was generated correctly and the execution is correct. These keys are required to create the 
    zero knowledge property of program execution.
@@ -304,10 +309,10 @@ make a zero knowledge proof. However, these keys are large and expensive to gene
 want to store these keys and re-use them for future execution. The `KeyProvider` interface provides the ability for
 users of the SDK to provide their own key storage and retrieval mechanism. The SDK provides a default implementation
 of the `KeyProvider` interface via the `AleoKeyProvider` class. 
-2. **RecordProvider:** When programs execute, they will often need to read and write records. The `RecordProvider` 
-interface allows users of the SDK to provide their own record storage and retrieval mechanism. The SDK provides a
-default implementation of the `RecordProvider` interface via the `NetworkRecordProvider` class which searches the Aleo
-network for records uniquely belonging to a user.
+2. **RecordProvider:** When programs execute, they will often need to find records that belong to a user. The 
+`RecordProvider` interface allows users of the SDK to implement their own record storage and retrieval mechanism. The 
+SDK provides a default implementation of the `RecordProvider` interface via the `NetworkRecordProvider` class which 
+searches the Aleo network for records uniquely belonging to a user.
 
 The `ProgramManager` class is capable of taking a `KeyProvider` and `RecordProvider` as arguments and will use them to
 find the correct keys and records for a program execution.
@@ -667,7 +672,7 @@ deployed to the Aleo Network and defines data structures representing Aleo credi
 
 There are two ways to hold Aleo credits. 
 
-#### Method 1 - Private Balance via credits.aleo records
+#### 1 - Private balances via credits.aleo records
 The first method is owning a `credits` record which enables a participant in the Aleo
 network to hold a private balance of Aleo credits. 
 ```
@@ -676,7 +681,10 @@ record credits:
     microcredits as u64.private;
 ```
 
-#### Method 2 - Public Balance via credits.aleo account mapping
+A user's total private credits balance will consist of all unspent `credits` records owned by the user with a nonzero
+`microcredits` value.
+
+#### 2 - Public balances via credits.aleo account mapping
 The second is by holding a `balance` in the `account` mapping in the `credits.aleo` program on the Aleo Network.
 
 ```
@@ -684,6 +692,10 @@ mapping account:
     key owner as address.public;
     value microcredits as u64.public;
 ```
+
+The total public credits balance of a user is the value of account mapping at the user's address.
+
+Users can hold both private and public balances simultaneously. 
 
 More information about `records` and `mappings` and how they related to private and public balances are explained in the
 [Managing Program Data and Private State](#4-managing-program-data-and-private-state) section.

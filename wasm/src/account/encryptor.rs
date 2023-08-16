@@ -46,7 +46,7 @@ impl Encryptor {
         ciphertext: &CiphertextNative,
         secret: &str,
     ) -> Result<PrivateKeyNative, String> {
-        let seed = Self::decrypt_field(ciphertext, secret, "private_key").map_err(|e| e.to_string())?;
+        let seed = Self::decrypt_field(ciphertext, secret, "private_key")?;
         PrivateKeyNative::try_from(seed).map_err(|e| e.to_string())
     }
 
@@ -84,8 +84,8 @@ impl Encryptor {
         let domain = FieldNative::new_domain_separator(domain);
         let secret = FieldNative::new_domain_separator(secret);
         let decrypted = ciphertext.decrypt_symmetric(secret).map_err(|e| e.to_string())?;
-        let recovered_key = Self::extract_value(&decrypted, "key").map_err(|e| e.to_string())?;
-        let recovered_nonce = Self::extract_value(&decrypted, "nonce").map_err(|e| e.to_string())?;
+        let recovered_key = Self::extract_value(&decrypted, "key")?;
+        let recovered_nonce = Self::extract_value(&decrypted, "nonce")?;
         let recovered_blinding =
             CurrentNetwork::hash_psd2(&[domain, recovered_nonce, secret]).map_err(|e| e.to_string())?;
         Ok(recovered_key / recovered_blinding)

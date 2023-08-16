@@ -91,15 +91,6 @@ commands:
           cache_key: << parameters.cache_key >>
 
 jobs:
-  rust_stable:
-    docker:
-      - image: cimg/rust:1.70
-    resource_class: xlarge
-    steps:
-      - run_serial:
-          workspace_member: .
-          cache_key: aleo-stable-cache
-
   wasm:
     docker:
       - image: cimg/rust:1.71.1-node
@@ -115,7 +106,7 @@ jobs:
             cd wasm && wasm-pack test --node --lib
             # cargo test --target wasm32-unknown-unknown
             wasm-pack build --target nodejs
-            npm install --global typescript
+            sudo npm install --global typescript
             cd ../sdk && npm install
             sleep 5
             npm test
@@ -173,14 +164,14 @@ jobs:
             cd wasm
             wasm-pack build --target nodejs -- --features serial --no-default-features
             cd ..
-            npm install --global typescript
-            docker pull aleohq/snarkos:latest
-            docker run -d --name snarkods aleohq/snarkos:latest /aleo/bin/snarkos start --beacon APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --nodisplay --dev 0
-            cargo install aleo-develop
+            sudo npm install --global typescript
+            cargo install snarkos
+            snarkos start --dev 0 --beacon APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --nodisplay 1> /dev/null &
+            cargo install aleo-development-server
             aleo-develop start --server-address 0.0.0.0:4040 --peer http://localhost:3030 -d 1> /dev/null &
             aleo-develop start --server-address 0.0.0.0:5050 --peer http://localhost:3030 -d -k ciphertext1qvqgkey2cxklg4g5qjnkk4dy50zypte5ewp5kwdm9pt833eyext32pu07dgkxqzmn0wnpxx8kvh2phws6j5njsu6zrys20xpvqmqhw9gpngs50mpe9e0nkp6uyzctzdq3fs2n4p9d3kvaps6mg6xu0sef0xpzm028m7 1> /dev/null &
-            cd ../sdk && npm install
-            sleep 30
+            cd sdk && npm install
+            sleep 200
             npm run integration
 
 workflows:
@@ -188,7 +179,6 @@ workflows:
 
   main-workflow:
     jobs:
-      - rust_stable
       - wasm
       - check-fmt
       - check-clippy
