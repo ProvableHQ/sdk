@@ -30,7 +30,7 @@ The official Aleo SDK providing Javascript/Typescript tools for creating zero kn
 
 ### ⚡ Build your own app
 
-Start here with the [Aleo SDK Readme](https://github.com/AleoHQ/sdk/tree/testnet3/sdk#readme) get started building your 
+Start here with the [Aleo SDK Readme](https://github.com/AleoHQ/sdk/tree/testnet3/sdk#readme) to get started building your 
 first zero knowledge web app.
 
 #### Source: [`sdk/sdk`](https://github.com/AleoHQ/sdk/tree/testnet3/sdk)

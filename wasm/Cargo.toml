@@ -21,9 +21,26 @@ edition = "2021"
 crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
-[dependencies.aleo-rust]
+[dependencies.snarkvm-circuit-network]
+version = "0.14.6"
+
+[dependencies.snarkvm-console]
+version = "0.14.6"
 features = [ "wasm" ]
-workspace = true
+
+[dependencies.snarkvm-ledger-block]
+version = "0.14.6"
+
+[dependencies.snarkvm-ledger-query]
+version = "0.14.6"
+features = [ "async" ]
+
+[dependencies.snarkvm-ledger-store]
+version = "0.14.6"
+
+[dependencies.snarkvm-synthesizer]
+version = "0.14.6"
+features = [ "async" ]
 
 [dependencies.anyhow]
 version = "1.0"
@@ -43,6 +60,9 @@ version = "0.4.3"
 
 [dependencies.js-sys]
 version = "0.3"
+
+[dependencies.once_cell]
+version = "1.18.0"
 
 [dependencies.rand]
 version = "0.8"
@@ -83,7 +103,7 @@ version = "0.3.37"
 
 [features]
 default = [ "serial", "browser" ]
-serial = [ "aleo-rust/serial" ]
+serial = [ "snarkvm-console/serial", "snarkvm-synthesizer/serial", "snarkvm-ledger-query/serial", "snarkvm-ledger-block/serial", "snarkvm-ledger-store/serial" ]
 parallel = [ "wasm-bindgen-rayon", "rayon" ]
 browser = [ ]
 

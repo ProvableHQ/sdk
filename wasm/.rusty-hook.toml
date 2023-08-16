@@ -1,0 +1,5 @@
+[hooks]
+pre-commit = "cargo clippy -p aleo-wasm --all-targets --features serial && cargo +nightly fmt --all -- --check"
+
+[logging]
+verbose = true
