@@ -4,7 +4,6 @@
 ## Build Artifacts
 **/node_modules
 **/target
-wasm/Cargo.lock
 **/build
 **/dist
 storage*/
