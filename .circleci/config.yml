@@ -93,7 +93,7 @@ commands:
 jobs:
   wasm:
     docker:
-      - image: cimg/rust:1.71.1-node
+      - image: cimg/rust:1.70
     resource_class: 2xlarge
     steps:
       - checkout
@@ -102,11 +102,15 @@ jobs:
       - run:
           no_output_timeout: 30m
           command: |
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+            export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install 20.3.1
+            nvm use 20.3.1
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
             cd wasm && wasm-pack test --node --lib
             # cargo test --target wasm32-unknown-unknown
             wasm-pack build --target nodejs
-            sudo npm install --global typescript
+            npm install --global typescript
             cd ../sdk && npm install
             sleep 5
             npm test
