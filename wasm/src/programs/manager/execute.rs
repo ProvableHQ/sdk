@@ -29,7 +29,6 @@ use crate::{
     Transaction,
 };
 
-use indexmap::IndexMap;
 use js_sys::{Array, Object};
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;

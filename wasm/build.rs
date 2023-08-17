@@ -19,7 +19,7 @@ use std::{fs::File, io::Read, path::Path};
 use walkdir::WalkDir;
 
 // The following license text that should be present at the beginning of every source file.
-const EXPECTED_LICENSE_TEXT: &[u8] = include_bytes!(".resources/license_header");
+const EXPECTED_LICENSE_TEXT: &[u8] = include_bytes!("../.resources/license_header");
 
 // The following directories will be excluded from the license scan.
 const DIRS_TO_SKIP: [&str; 8] = [".cargo", ".circleci", ".git", ".github", ".resources", "examples", "sdk", "target"];
@@ -60,5 +60,5 @@ fn check_file_licenses<P: AsRef<Path>>(path: P) {
 // The build script; it currently only checks the licenses.
 fn main() {
     // Check licenses in the current folder.
-    check_file_licenses(".");
+    check_file_licenses("..");
 }

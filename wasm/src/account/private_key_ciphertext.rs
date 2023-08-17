@@ -15,8 +15,8 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    account::PrivateKey,
-    types::{CiphertextNative, Encryptor},
+    account::{Encryptor, PrivateKey},
+    types::CiphertextNative,
 };
 
 use std::{ops::Deref, str::FromStr};

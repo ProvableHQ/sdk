@@ -1,7 +1,6 @@
 import { AleoNetworkClient, DevServerClient } from '../src';
 import {
-    fundedAddressString,
-    fundedPrivateKeyString,
+    beaconAddressString, beaconPrivateKeyString,
     helloProgram,
     helloProgramId,
     helloProgramMainFunction
@@ -29,17 +28,17 @@ describe('DevelopmentServer', () => {
             for (let i = 0; i < 4; i++) {
                 try {
                     log("Attempting to make a value transfer");
-                    transaction_id = await devClient.transfer(3, 1, fundedAddressString, "private", fundedPrivateKeyString);
+                    transaction_id = await devClient.transfer(3, 1, beaconAddressString, "private_to_public", beaconPrivateKeyString);
                     break;
                 } catch (e) {
-                    log("Transaction failed, retrying in 5 seconds");
-                    await wait(5000);
+                    log("Transaction failed, retrying in 10 seconds");
+                    await wait(10000);
                 }
             }
 
             // If the transaction failed above, try one more time
             if (transaction_id === "") {
-                transaction_id = await devClient.transfer(3, 1, fundedAddressString, "private", fundedPrivateKeyString);
+                transaction_id = await devClient.transfer(20, 1, beaconAddressString, "private", beaconPrivateKeyString);
             }
             expect(transaction_id).toBeTruthy();
         }, 120000);
@@ -49,7 +48,7 @@ describe('DevelopmentServer', () => {
             for (let i = 0; i < 4; i++) {
                 try {
                     log("Attempting to deploy " + helloProgram);
-                    deploy_transaction_id = await devClient.deployProgram(helloProgram, 8, fundedPrivateKeyString);
+                    deploy_transaction_id = await devClient.deployProgram(helloProgram, 8, beaconPrivateKeyString);
                     log("Deploy transaction id: " + deploy_transaction_id);
                     await wait(45000);
                     const program = await localApiClient.getProgram(helloProgramId);
@@ -65,7 +64,7 @@ describe('DevelopmentServer', () => {
             // If the transaction failed above, try one more time
             if (deploy_transaction_id === "") {
                 log("Attempting to deploy " + helloProgramId + " one final time")
-                await devClient.deployProgram(helloProgram, 8, fundedPrivateKeyString);
+                await devClient.deployProgram(helloProgram, 8, beaconPrivateKeyString);
                 await wait(30000);
                 const program = await localApiClient.getProgram(helloProgramId);
                 log("Program: " + program);
@@ -77,7 +76,7 @@ describe('DevelopmentServer', () => {
             for (let i = 0; i < 3; i++) {
                 try {
                     log("Attempting to execute " + helloProgramId + " - " + helloProgramMainFunction + "..");
-                    execute_transaction_id = await devClient.executeProgram(helloProgramId, helloProgramMainFunction, 5, ["5u32", "5u32"], fundedPrivateKeyString);
+                    execute_transaction_id = await devClient.executeProgram(helloProgramId, helloProgramMainFunction, 5, ["5u32", "5u32"], beaconPrivateKeyString);
                     log("Execute transaction id: " + execute_transaction_id);
                     expect(execute_transaction_id).toBeTruthy();
                     break;
@@ -90,7 +89,7 @@ describe('DevelopmentServer', () => {
             // If the transaction failed above, try one more time
             if (execute_transaction_id === "") {
                 log("Attempting to execute " + helloProgramId + " - " + helloProgramMainFunction +" one final time..");
-                execute_transaction_id = await devClient.executeProgram(helloProgramId, helloProgramMainFunction, 5, ["5u32", "5u32"], fundedPrivateKeyString);
+                execute_transaction_id = await devClient.executeProgram(helloProgramId, helloProgramMainFunction, 5, ["5u32", "5u32"], beaconPrivateKeyString);
                 expect(execute_transaction_id).toBeTruthy();
             }
         }, 300000);

@@ -91,18 +91,9 @@ commands:
           cache_key: << parameters.cache_key >>
 
 jobs:
-  rust_stable:
-    docker:
-      - image: cimg/rust:1.70
-    resource_class: xlarge
-    steps:
-      - run_serial:
-          workspace_member: .
-          cache_key: aleo-stable-cache
-
   wasm:
     docker:
-      - image: cimg/rust:1.70
+      - image: cimg/rust:1.71.1-node
     resource_class: 2xlarge
     steps:
       - checkout
@@ -111,15 +102,11 @@ jobs:
       - run:
           no_output_timeout: 30m
           command: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
-            export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install 20.3.1
-            nvm use 20.3.1
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
             cd wasm && wasm-pack test --node --lib
             # cargo test --target wasm32-unknown-unknown
             wasm-pack build --target nodejs
-            npm install --global typescript
+            sudo npm install --global typescript
             cd ../sdk && npm install
             sleep 5
             npm test
@@ -139,6 +126,7 @@ jobs:
           no_output_timeout: 35m
           command: |
             rustup toolchain install nightly-x86_64-unknown-linux-gnu
+            cd wasm
             cargo +nightly fmt --all -- --check
       - clear_environment:
           cache_key: aleo-fmt-cache
@@ -155,81 +143,43 @@ jobs:
           name: Check lint
           no_output_timeout: 35m
           command: |
-            cargo clippy --workspace --all-targets --all-features --exclude aleo-wasm
-            cargo clippy -p aleo-wasm --all-targets --features serial
+            cd wasm
+            cargo clippy --all-targets --features serial
       - clear_environment:
           cache_key: aleo-clippy-cache
 
-  aleo-deploy-and-execute:
+  aleo-sdk-integration-tests:
     docker:
-      - image: cimg/rust:1.70
+      - image: cimg/rust:1.71.1-node
     resource_class: xlarge
     steps:
       - checkout
       - setup_environment:
           cache_key: aleo-executable-cache
       - run:
-          name: Install snarkos and test deploy & execute
+          name: Aleo SDK Integration Tests
           no_output_timeout: 30m
           command: |
-            sudo apt install git-all
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-            export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install 18.16.0
-            nvm use 18.16.0
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
             cd wasm
             wasm-pack build --target nodejs -- --features serial --no-default-features
             cd ..
-            npm install --global typescript
-            git clone https://github.com/AleoHQ/snarkOS.git
-            cargo install --path snarkOS --root . --locked
-            rm -rf snarkOS
-            ./bin/snarkos start --dev 0 --beacon APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --nodisplay 1> /dev/null &
-            cargo install --path rust/develop --root . --locked
-            ./bin/aleo-develop start --server-address 0.0.0.0:4040 --peer http://localhost:3030 -d 1> /dev/null &
-            ./bin/aleo-develop start --server-address 0.0.0.0:5050 --peer http://localhost:3030 -d -k ciphertext1qvqgkey2cxklg4g5qjnkk4dy50zypte5ewp5kwdm9pt833eyext32pu07dgkxqzmn0wnpxx8kvh2phws6j5njsu6zrys20xpvqmqhw9gpngs50mpe9e0nkp6uyzctzdq3fs2n4p9d3kvaps6mg6xu0sef0xpzm028m7 1> /dev/null &
-            sleep 60
-            cd rust
-            cargo test test_mappings_query -- --ignored --nocapture --test-threads=1
-            cargo test test_transfer_roundtrip -- --ignored --nocapture --test-threads=1
-            cargo test test_deploy -- --ignored --nocapture --test-threads=1
-            cargo test test_execution -- --ignored --nocapture --test-threads=1
-            cd ../sdk && npm install
-            sleep 5
+            sudo npm install --global typescript
+            cargo install snarkos
+            snarkos start --dev 0 --beacon APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH --nodisplay 1> /dev/null &
+            cargo install aleo-development-server
+            aleo-develop start --server-address 0.0.0.0:4040 --peer http://localhost:3030 -d 1> /dev/null &
+            aleo-develop start --server-address 0.0.0.0:5050 --peer http://localhost:3030 -d -k ciphertext1qvqgkey2cxklg4g5qjnkk4dy50zypte5ewp5kwdm9pt833eyext32pu07dgkxqzmn0wnpxx8kvh2phws6j5njsu6zrys20xpvqmqhw9gpngs50mpe9e0nkp6uyzctzdq3fs2n4p9d3kvaps6mg6xu0sef0xpzm028m7 1> /dev/null &
+            cd sdk && npm install
+            sleep 200
             npm run integration
-
-  aleo-executable:
-    docker:
-      - image: cimg/rust:1.70
-    resource_class: xlarge
-    steps:
-      - checkout
-      - setup_environment:
-          cache_key: aleo-executable-cache
-      - run:
-          name: Build and install Aleo CLI
-          no_output_timeout: 30m
-          command: |
-            cargo install --path . --root . --locked
-            export ALEO=/home/circleci/project/bin/aleo
-            ./.circleci/aleo-new.sh
-
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/
-      - clear_environment:
-          cache_key: aleo-executable-cache
 
 workflows:
   version: 2
 
   main-workflow:
     jobs:
-      - rust_stable
       - wasm
       - check-fmt
       - check-clippy
-      - aleo-executable
-      - aleo-deploy-and-execute
+      - aleo-sdk-integration-tests

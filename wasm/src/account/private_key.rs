@@ -15,8 +15,8 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    account::{Address, PrivateKeyCiphertext, Signature, ViewKey},
-    types::{CurrentNetwork, Encryptor, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
+    account::{Address, Encryptor, PrivateKeyCiphertext, Signature, ViewKey},
+    types::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
 };
 
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};

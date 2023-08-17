@@ -17,9 +17,9 @@
 use crate::{
     account::PrivateKey,
     types::{IdentifierNative, ProgramIDNative, RecordPlaintextNative},
+    Credits,
 };
 
-use aleo_rust::Credits;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 

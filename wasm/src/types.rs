@@ -14,40 +14,47 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub use aleo_rust::{
+pub use snarkvm_circuit_network::{Aleo, AleoV0};
+pub use snarkvm_console::{
+    account::{Address, PrivateKey, Signature, ViewKey},
+    network::{Network, Testnet3},
+    program::{
+        Ciphertext,
+        Entry,
+        EntryType,
+        Identifier,
+        Literal,
+        Plaintext,
+        PlaintextType,
+        ProgramID,
+        ProgramOwner,
+        Record,
+        Response,
+        ValueType,
+    },
+    types::Field,
+};
+pub use snarkvm_ledger_block::Transaction;
+pub use snarkvm_ledger_query::Query;
+pub use snarkvm_ledger_store::helpers::memory::BlockMemory;
+pub use snarkvm_synthesizer::{
     cost_in_microcredits,
     deployment_cost,
-    Address,
-    AleoV0,
-    BlockMemory,
-    Ciphertext,
-    Encryptor,
-    Identifier,
-    Plaintext,
-    PrivateKey,
+    snark::{ProvingKey, VerifyingKey},
     Process,
     Program,
-    ProgramID,
-    ProgramOwner,
-    ProvingKey,
-    Query,
-    Record,
-    Response,
-    Signature,
-    Testnet3,
-    Transaction,
-    VerifyingKey,
-    ViewKey,
     VM,
 };
-
-pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
+pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes, Uniform};
 
 // Account types
 pub type AddressNative = Address<CurrentNetwork>;
 pub type PrivateKeyNative = PrivateKey<CurrentNetwork>;
 pub type SignatureNative = Signature<CurrentNetwork>;
 pub type ViewKeyNative = ViewKey<CurrentNetwork>;
+
+// Algebraic types
+pub type FieldNative = Field<CurrentNetwork>;
 
 // Network types
 pub type CurrentNetwork = Testnet3;
@@ -62,6 +69,7 @@ pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 // Program types
 type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
+pub type LiteralNative = Literal<CurrentNetwork>;
 pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;
 pub type ProgramNative = Program<CurrentNetwork>;

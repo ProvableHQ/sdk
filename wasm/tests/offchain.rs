@@ -16,7 +16,6 @@
 
 use aleo_wasm::{PrivateKey, Program, ProgramManager, ProvingKey, RecordPlaintext, VerifyingKey};
 use js_sys::{Array, Object, Reflect};
-use std::str::FromStr;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 wasm_bindgen_test_configure!(run_in_browser);
