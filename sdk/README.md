@@ -70,9 +70,7 @@ To build the project from source, go to this project's root and execute:
 
 `npm install && npm run build`
 
-## Usage
-
-## Zero Knowledge Web App Examples
+## Getting Started: Zero Knowledge Web App Examples
 
 ### Create Aleo App
 A set of fully functional examples of zero knowledge web apps can be found in 
@@ -88,24 +86,27 @@ Additionally, the SDK powers [aleo.tools](https://aleo.tools) - a React app that
 of the functionality provided by the SDK and can be used as a reference for usage of the SDK. Source code for aleo.tools
 can be found [in the SDK repo here](https://github.com/AleoHQ/sdk/tree/testnet3/website)
 
+## Usage
+
 ## 1. Create an Aleo Account
 
-The first step in operating a zero knowledge web application is creating a cryptographic identity for a user. In the
-context of Aleo, this process starts by generating a private key. From this private key, several keys that enable a user
-to interact with Aleo programs can be derived.
+The first step in operating a zero knowledge web application is creating a private key which serves as a cryptographic 
+identity for a user. After a private key is generated, several keys that enable specialized methods of interacting with 
+Aleo programs can be derived.
 
 These keys include:
 #### Private Key
-The key used to represent an identity of an individual user. This key is used to authorize zero 
-knowledge program execution.
+The `Private Key` can be treated as the identity of a user. It is used for critical functions like authorizing zero knowledge
+program execution, decrypting private data, and proving ownership of data.
+ownership over user data
 #### View Key
-This key is derived from the private key and can be used to identify all records and transaction data that
-belongs to an individual user.
+The `View Key` is derived from the private key and can be used to both decrypt encrypted data owned by a user and prove 
+ownership of that data.
 #### Compute Key
-A key that can be used to trustlessly run applications and generate transactions on a user's behalf.
+The `Compute Key` can be used to trustlessly run applications and generate transactions on a user's behalf.
 #### Address
-A public address that can be used to trustlessly identify a user in order for that user to receive official
-Aleo credits or unique data defined by other zero-knowledge Aleo programs.
+The `Address` is a user's unique public identifier. It serves as an address for a user to receive both official Aleo
+credits and data from other zero-knowledge Aleo programs.
 
 All of these keys can be created using the account object:
 ```typescript
@@ -162,19 +163,19 @@ function hello:
 
 ### 2.2 Program Execution Model
 
-The SDK provides the ability execute Aleo Instructions programs %100 client-side within the browser.
+The SDK provides the ability execute `Aleo Instructions` programs %100 client-side within the browser.
 
 The `ProgramManager` object encapsulates the functionality for executing programs and making zero knowledge proofs about
-them. Under the hood it uses cryptographic code compiled from [SnarkVM](https://developer.aleo.org/aleo) into WebAssembly.
-JavaScript bindings to this WebAssembly code allows execution of programs in zero knowledge fully within the browser
-without requiring any external communication with the internet. Users interested in lower level details how this is
-achieved can visit the [aleo-wasm](https://github.com/AleoHQ/sdk/tree/testnet3/wasm) crate.
+them. Under the hood it uses cryptographic code compiled from [SnarkVM](https://developer.aleo.org/aleo) into WebAssembly
+with JavaScript bindings that allow execution of Aleo programs fully within the browser. Users interested in lower level
+details how this is achieved can visit the [aleo-wasm](https://github.com/AleoHQ/sdk/tree/testnet3/wasm) crate.
 
 The basic execution flow of a program is as follows:
 1. A web app is loaded with an instance of the `ProgramManager` object
+2. The SDK wasm modules are loaded into the browser's WebAssembly runtime
 2. An Aleo program in `Aleo Instructions` format is loaded into the `ProgramManager` as a wasm object
 3. The web app provides a user input form for the program
-4. The user submits the inputs and the zero knowledge execution is performed client-side within WebAssembly
+4. The user submits the inputs and the zero knowledge execution is performed entirely within the browser via WebAssembly
 5. The result is returned to the user
 6. (Optional) A fully encrypted zero knowledge transcript of the execution is optionally sent to the Aleo network
 
@@ -199,29 +200,27 @@ graph LR
 
 ### 2.3 WebAssembly Initialization
 
-❗WebAssembly must be initialized before any SDK functions can be called. 
+❗WebAssembly must be initialized before any SDK functions can be called.
 
-Aleo programs are made zero knowledge through the usage of `ZkSnarks`. The Rust code behind Aleo programs and the ZkSnarks 
-that make them zero knowledge are hosted in the [SnarkVM Repostiory](https://github.com/AleoHQ/SnarkVM). The Aleo SDK 
-compiles this code to WebAssembly and creates JavaScript bindings, enabling Aleo programs to run directly in the browser.
-
- Before any logic within the SDK is run within the browser however, the WebAssembly module the SDK contains must be 
-initialized before any SDK functions can be executed. This is done simply by calling the `initializeWasm` function at a
-point in your code before any other SDK functions are called:
+Before using any SDK objects or functions, the WebAssembly module the SDK contains must be initialized into the browser's 
+`WebAssembly.Module` & `WebAssembly.Instance` objects. This is done in a single call by calling the SDK's `initializeWasm` 
+function at a point in your code before any other SDK functions are called:
 ```typescript
 import { Account, initializeWasm } from '@aleohq/sdk';
 
 // Assuming top-level await is enabled. This can also be initialized within a promise.
 await initializeWasm();
 
-/// Create a new Aleo account
+// Create a new Aleo account
 const account = new Account();
+
+// Perform further program logic...
 ````
 
 An example of how to initialize WebAssembly in a React app is shown in [Section 2.7](#27-React-Example)
 
 ### 2.4 Local Program Execution
-A simple example of running the hello world program within the web browser is shown below:
+A simple example of running the hello world program within the web browser and capturing its outputs is shown below:
 ```typescript
 import { Account, Program } from '@aleohq/sdk';
 
@@ -240,10 +239,10 @@ assert(result === ["10u32"]);
 ```
 
 ### 2.5 Program execution on the Aleo Network
-The SDK also provides the ability to execute programs and record an encrypted transcript of the execution on the Aleo
+The SDK provides the ability to execute programs and store an encrypted transcript of the execution on the Aleo
 network that anyone can trustlessly verify.
 
-This process can be thought of being executed in three steps:
+This process can be thought of being executed in the following steps:
 1. A program is run locally
 2. A proof that the program was executed correctly and that the outputs follow from the inputs is generated
 3. A transcript of the proof is generated client-side containing encrypted proof data (see [Section 2.6](#4-managing-records-and-private-state))
@@ -253,8 +252,8 @@ and any public outputs or state the user of the program wishes to reveal
 program has chosen to make public. Private inputs will remain encrypted, but the author of the proof can also choose to
 retrieve this encrypted state at any point and decrypt it locally for their own use.
 
-This process of posting the execution to the Aleo Network serves as a globally trustless and verifiable record of
-program execution. It also provides a global record of any state changes made to either records or data stored on the Aleo network.
+Posting an execution to the Aleo Network serves as a globally trustless and verifiable record of a program execution and
+any resulting state changes in private or public data.
 
 A simple example of running the hello world program on the Aleo network is shown below:
 ```typescript
@@ -304,9 +303,9 @@ For this reason, all programs will need proving and verifying keys to operate an
 require records as inputs. To simplify the process of managing keys and records, the Aleo SDK provides two abstractions
 for managing these concepts:
 
-1. **KeyProvider:** When programs execute, by default, they will synthesize the proving and verifying keys needed to
-make a zero knowledge proof. However, these keys are large and expensive to generate. For this reason, applications may
-want to store these keys and re-use them for future execution. The `KeyProvider` interface provides the ability for
+1. **KeyProvider:** When program functions execute, by default, they will synthesize the proving and verifying keys needed to
+make a zero knowledge proof of the execution. However, these keys are large and expensive to generate. For this reason, applications may
+want to store these keys and re-use them in future executions. The `KeyProvider` interface provides the ability for
 users of the SDK to provide their own key storage and retrieval mechanism. The SDK provides a default implementation
 of the `KeyProvider` interface via the `AleoKeyProvider` class. 
 2. **RecordProvider:** When programs execute, they will often need to find records that belong to a user. The 
