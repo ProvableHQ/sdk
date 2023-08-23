@@ -296,6 +296,8 @@ class ProgramManager {
      * @param {string} program Program source code containing the function to be executed
      * @param {string} function_name Function name to execute
      * @param {string[]} inputs Inputs to the function
+     * @param {number} proveExecution Whether to prove the execution of the function and return an execution transcript
+     * that contains the proof.
      * @param {string[] | undefined} imports Optional imports to the program
      * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving &
      * verifying keys for the function
@@ -324,6 +326,7 @@ class ProgramManager {
         program: string,
         function_name: string,
         inputs: string[],
+        proveExecution: boolean,
         imports?: ProgramImports,
         keySearchParams?: KeySearchParams,
         provingKey?: ProvingKey,
@@ -353,7 +356,7 @@ class ProgramManager {
         console.log("Running program offline")
         console.log("Proving key: ", provingKey);
         console.log("Verifying key: ", verifyingKey);
-        return this.executionEngine.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, false, imports, provingKey, verifyingKey);
+        return this.executionEngine.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution,false, imports, provingKey, verifyingKey);
     }
 
     /**

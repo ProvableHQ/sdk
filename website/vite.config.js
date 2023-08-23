@@ -16,7 +16,7 @@ export default defineConfig({
     },
     server: {
         fs: {
-            allow: [searchForWorkspaceRoot(process.cwd()), "../sdk"],
+            allow: [searchForWorkspaceRoot(process.cwd()), "../sdk", "../wasm/pkg", "../wasm/pkg-parallel"],
         },
         headers: {
             "Cross-Origin-Opener-Policy": "same-origin",

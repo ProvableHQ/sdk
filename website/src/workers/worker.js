@@ -49,6 +49,7 @@ self.addEventListener("message", (ev) => {
                     localProgram,
                     aleoFunction,
                     inputs,
+                    false,
                     imports,
                     keyParams,
                     undefined,
@@ -59,10 +60,19 @@ self.addEventListener("message", (ev) => {
                 // Return the outputs to the main thread
                 console.log(`Web worker: Local execution completed in ${performance.now() - startTime} ms`);
                 const outputs = response.getOutputs();
+                let execution = response.getExecution();
+                if (execution) {
+                    aleo.verifyFunctionExecution(execution, keyProvider.getKeys(cacheKey)[1], program, "hello");
+                    execution = execution.toString();
+                    console.log("Execution verified successfully: " + execution);
+                } else {
+                    execution = "";
+                }
+
                 console.log(`Function execution response: ${outputs}`);
                 self.postMessage({
                     type: "OFFLINE_EXECUTION_COMPLETED",
-                    outputs,
+                    outputs: {outputs: outputs, execution: execution}
                 });
             } catch (error) {
                 console.error(error);
