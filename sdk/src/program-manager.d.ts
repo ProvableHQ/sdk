@@ -111,7 +111,7 @@ declare class ProgramManager {
      * @param {string} function_name Function name to execute
      * @param {string[]} inputs Inputs to the function
      * @param {number} proveExecution Whether to prove the execution of the function and return an execution transcript
-     * with the proof
+     * that contains the proof.
      * @param {string[] | undefined} imports Optional imports to the program
      * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving &
      * verifying keys for the function
