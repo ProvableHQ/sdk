@@ -1,5 +1,5 @@
+<img alt="Aleo SDK" width="1412" src="./.resources/banner.png">
 <p align="center">
-    <img alt="snarkVM" width="1412" src="https://raw.githubusercontent.com/iamalwaysuncomfortable/imagestorage/main/AleoSdk.png">
     <a href="https://developer.aleo.org"> <img alt="Website" src="https://img.shields.io/badge/Developer_Docs-online-blue"></a>
     <a href="https://circleci.com/gh/AleoHQ/aleo"><img src="https://circleci.com/gh/AleoHQ/sdk.svg?style=svg"></a>
     <a href="https://discord.gg/5v2ynrw2ds"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
