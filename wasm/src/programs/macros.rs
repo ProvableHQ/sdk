@@ -83,7 +83,7 @@ macro_rules! execute_program {
 
         log("Executing program");
         let result = $process
-            .execute::<CurrentAleo>(authorization)
+            .execute_async::<CurrentAleo>(authorization).await
             .map_err(|err| err.to_string())?;
 
         result
@@ -120,18 +120,22 @@ macro_rules! execute_fee {
         };
 
         log("Executing fee program");
-        let fee_record_native = RecordPlaintextNative::from_str(&$fee_record.to_string()).unwrap();
-        let (_, _, mut trace) = $process
-            .execute_fee::<CurrentAleo, _>(
-                &$private_key,
-                fee_record_native,
-                $fee_microcredits,
-                $execution_id,
-                &mut StdRng::from_entropy(),
-            )
-            .map_err(|err| err.to_string())?;
+        let fee_record_native = RecordPlaintextNative::from_str(&$fee_record.to_string()).map_err(|e|e.to_string())?;
 
+        log("Creating fee authorization");
+        let authorization = $process.authorize_fee_private(
+            &$private_key,
+            fee_record_native,
+            $fee_microcredits,
+            $execution_id,
+            &mut StdRng::from_entropy(),
+        ).map_err(|e|e.to_string())?;
+
+        log("Executing fee program");
         let query = QueryNative::from(&$submission_url);
+        let (_, mut trace) = $process.execute_async::<CurrentAleo>(authorization.clone()).await.map_err(|e|e.to_string())?;
+
+        log("Proving fee");
         trace.prepare_async(query).await.map_err(|err| err.to_string())?;
         let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 

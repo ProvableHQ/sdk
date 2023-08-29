@@ -22,28 +22,35 @@ crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
 [dependencies.snarkvm-circuit-network]
-version = "0.14.6"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "a051444536e030288b5184b6b16f0a4f28afb9fb"
 
 [dependencies.snarkvm-console]
-version = "0.14.6"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "a051444536e030288b5184b6b16f0a4f28afb9fb"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-ledger-block]
-version = "0.14.6"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "a051444536e030288b5184b6b16f0a4f28afb9fb"
 
 [dependencies.snarkvm-ledger-query]
-version = "0.14.6"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "a051444536e030288b5184b6b16f0a4f28afb9fb"
 features = [ "async" ]
 
 [dependencies.snarkvm-ledger-store]
-version = "0.14.6"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "a051444536e030288b5184b6b16f0a4f28afb9fb"
 
 [dependencies.snarkvm-synthesizer]
-version = "0.14.6"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "a051444536e030288b5184b6b16f0a4f28afb9fb"
 features = [ "async" ]
 
 [dependencies.snarkvm-wasm]
-version = "0.14.6"
+git = "https://github.com/AleoHQ/snarkVM.git"
+rev = "a051444536e030288b5184b6b16f0a4f28afb9fb"
 features = [ "console", "fields", "utilities" ]
 
 [dependencies.anyhow]
@@ -76,7 +83,7 @@ version = "1.5"
 optional = true
 
 [dependencies.reqwest]
-version = "0.11.18"
+version = "0.11.20"
 
 [dependencies.serde_json]
 version = "1.0"

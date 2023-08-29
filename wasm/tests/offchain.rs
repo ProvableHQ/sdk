@@ -152,6 +152,7 @@ async fn test_cache_functionality() {
             None,
             None,
         )
+        .await
         .unwrap();
 
     let record = RecordPlaintext::from_string(&result.get_outputs().get(0u32).as_string().unwrap()).unwrap();
@@ -203,6 +204,7 @@ async fn test_key_synthesis() {
             None,
             None,
         )
+        .await
         .unwrap();
 
     // Ensure the output is correct
@@ -333,6 +335,7 @@ async fn test_program_execution_with_cache_and_external_keys() {
             None,
             None,
         )
+        .await
         .unwrap();
     let outputs = result.get_outputs().to_vec();
     console_log!("outputs: {:?}", outputs);
@@ -357,6 +360,7 @@ async fn test_program_execution_with_cache_and_external_keys() {
             None,
             None,
         )
+        .await
         .unwrap();
 
     // Ensure the output using cached keys is correct
@@ -389,6 +393,7 @@ async fn test_program_execution_with_cache_and_external_keys() {
             Some(retrieved_proving_key.clone()),
             Some(retrieved_verifying_key.clone()),
         )
+        .await
         .unwrap();
 
     // Ensure the finalize fee is zero for a program without a finalize scope
@@ -435,6 +440,7 @@ async fn test_program_execution_with_cache_and_external_keys() {
             None,
             None,
         )
+        .await
         .unwrap();
 
     let outputs = result.get_outputs().to_vec();
@@ -513,6 +519,7 @@ async fn test_import_resolution() {
             None,
             None,
         )
+        .await
         .unwrap();
 
     let outputs = result.get_outputs().to_vec();

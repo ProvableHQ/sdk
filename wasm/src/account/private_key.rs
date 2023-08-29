@@ -16,11 +16,12 @@
 
 use crate::{
     account::{Address, Encryptor, PrivateKeyCiphertext, Signature, ViewKey},
-    types::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
+    types::{CurrentNetwork, FromBytes, PrivateKeyNative, ToBytes},
 };
 
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
+use snarkvm_console::types::Field;
 use wasm_bindgen::prelude::*;
 
 /// Private key of an Aleo account
@@ -49,7 +50,7 @@ impl PrivateKey {
         // Cast into a fixed-size byte array. Note: This is a **hard** requirement for security.
         let seed: [u8; 32] = seed.try_into().unwrap();
         // Recover the field element deterministically.
-        let field = <CurrentNetwork as Environment>::Field::from_bytes_le_mod_order(&seed);
+        let field = Field::<CurrentNetwork>::from_bytes_le(&seed).unwrap();
         // Cast and recover the private key from the seed.
         Self(PrivateKeyNative::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).unwrap())
     }

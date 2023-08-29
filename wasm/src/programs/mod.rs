@@ -19,9 +19,7 @@ mod macros;
 pub mod key_pair;
 pub use key_pair::*;
 
-#[cfg(feature = "browser")]
 pub mod manager;
-#[cfg(feature = "browser")]
 pub use manager::*;
 
 pub mod response;

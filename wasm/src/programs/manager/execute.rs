@@ -57,7 +57,7 @@ impl ProgramManager {
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     #[wasm_bindgen(js_name = executeFunctionOffline)]
     #[allow(clippy::too_many_arguments)]
-    pub fn execute_function_offline(
+    pub async fn execute_function_offline(
         &mut self,
         private_key: PrivateKey,
         program: String,
