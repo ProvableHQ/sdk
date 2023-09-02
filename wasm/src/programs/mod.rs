@@ -30,6 +30,9 @@ pub use response::*;
 pub mod program;
 pub use program::*;
 
+pub mod execution;
+pub use execution::*;
+
 pub mod proving_key;
 pub use proving_key::*;
 

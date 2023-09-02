@@ -76,7 +76,7 @@ export const ExecuteLegacy = () => {
                 setLoading(false);
                 setTransactionID(null);
                 setExecutionError(null);
-                setProgramResponse(ev.data.outputs);
+                setProgramResponse(ev.data.outputs.outputs);
                 setTip("Executing Program...");
             } else if (ev.data.type == "EXECUTION_TRANSACTION_COMPLETED") {
                 const transactionId = ev.data.executeTransaction;

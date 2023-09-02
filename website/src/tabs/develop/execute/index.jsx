@@ -121,7 +121,7 @@ export const Execute = () => {
                 setModalResult({
                     title: "Execution Successsful!",
                     status: "success",
-                    subTitle: `Outputs: ${ev.data.outputs}`,
+                    subTitle: `Outputs: ${ev.data.outputs.outputs}`,
                 });
             } else if (ev.data.type == "EXECUTION_TRANSACTION_COMPLETED") {
                 const transactionId = ev.data.executeTransaction;

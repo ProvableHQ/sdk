@@ -67,7 +67,8 @@ class ProgramManager {
      *
      * @param {string} program Program source code
      * @param {number} fee Fee to pay for the transaction
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use for the transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
+     * pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {string | Error} The transaction id of the deployed program or a failure message from the network
@@ -81,8 +82,14 @@ class ProgramManager {
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
      * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
-     * await programManager.initialize();
-     * const tx_id = await programManager.deploy(program, fee, feeRecord)
+     *
+     * // Define a fee in credits
+     * const fee = 1.2;
+     *
+     * // Deploy the program
+     * const tx_id = await programManager.deploy(program, fee);
+     *
+     * // Verify the transaction was successful
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
     deploy(program, fee, recordSearchParams, feeRecord, privateKey) {
@@ -149,8 +156,10 @@ class ProgramManager {
      * @param {string} functionName Function name to execute
      * @param {number} fee Fee to pay for the transaction
      * @param {string[]} inputs Inputs to the function
-     * @param {RecordSearchParams} recordSearchParams Optional parameters for searching for a record to use for the transaction
-     * @param {KeySearchParams} keySearchParams Optional parameters for finding the matching proving & verifying keys for the function
+     * @param {RecordSearchParams} recordSearchParams Optional parameters for searching for a record to pay the fee for
+     * the execution transaction
+     * @param {KeySearchParams} keySearchParams Optional parameters for finding the matching proving & verifying keys
+     * for the function
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
@@ -233,6 +242,8 @@ class ProgramManager {
      * @param {string} program Program source code containing the function to be executed
      * @param {string} function_name Function name to execute
      * @param {string[]} inputs Inputs to the function
+     * @param {number} proveExecution Whether to prove the execution of the function and return an execution transcript
+     * that contains the proof.
      * @param {string[] | undefined} imports Optional imports to the program
      * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving &
      * verifying keys for the function
@@ -242,14 +253,22 @@ class ProgramManager {
      * @returns {Promise<string | Error>}
      *
      * @example
-     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager();
-     * const executionResponse = await programManager.executeOffline(program, "hello_hello", ["5u32", "5u32"]);
+     * import { Account, Program } from '@aleohq/sdk';
      *
+     * /// Create the source for the "helloworld" program
+     * const program = "program helloworld.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager();
+     *
+     * /// Create a temporary account for the execution of the program
+     * const account = new Account();
+     * programManager.setAccount(account);
+     *
+     * /// Get the response and ensure that the program executed correctly
+     * const executionResponse = await programManager.executeOffline(program, "hello", ["5u32", "5u32"]);
      * const result = executionResponse.getOutputs();
      * assert(result === ["10u32"]);
      */
-    executeOffline(program, function_name, inputs, imports, keySearchParams, provingKey, verifyingKey, privateKey) {
+    executeOffline(program, function_name, inputs, proveExecution, imports, keySearchParams, provingKey, verifyingKey, privateKey) {
         return __awaiter(this, void 0, void 0, function* () {
             // Get the private key from the account if it is not provided in the parameters
             let executionPrivateKey = privateKey;
@@ -259,6 +278,7 @@ class ProgramManager {
             if (typeof executionPrivateKey === "undefined") {
                 throw ("No private key provided and no private key set in the ProgramManager");
             }
+            // If the function proving and verifying keys are not provided, attempt to find them using the key provider
             if (!provingKey || !verifyingKey) {
                 try {
                     [provingKey, verifyingKey] = (yield this.keyProvider.functionKeys(keySearchParams));
@@ -271,7 +291,7 @@ class ProgramManager {
             console.log("Running program offline");
             console.log("Proving key: ", provingKey);
             console.log("Verifying key: ", verifyingKey);
-            return this.executionEngine.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, false, imports, provingKey, verifyingKey);
+            return this.executionEngine.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution, false, imports, provingKey, verifyingKey);
         });
     }
     /**
@@ -280,7 +300,8 @@ class ProgramManager {
      * @param {RecordPlaintext | string} recordOne First credits record to join
      * @param {RecordPlaintext | string} recordTwo Second credits record to join
      * @param {number} fee Fee in credits pay for the join transaction
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record for the join transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record to use
+     * to pay the fee for the join transaction
      * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
      * @param {PrivateKey | undefined} privateKey Private key to use for the join transaction
      * @returns {Promise<string | Error>}
@@ -344,7 +365,6 @@ class ProgramManager {
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
      * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
-     * await programManager.initialize();
      * const record = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
      * const tx_id = await programManager.split(25000000, record);
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -387,7 +407,8 @@ class ProgramManager {
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record for the join transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
+     * records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction

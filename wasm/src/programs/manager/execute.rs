@@ -37,32 +37,32 @@ use std::str::FromStr;
 impl ProgramManager {
     /// Execute an arbitrary function locally
     ///
-    /// @param private_key The private key of the sender
-    /// @param program The source code of the program being executed
-    /// @param function The name of the function to execute
-    /// @param inputs A javascript array of inputs to the function
-    /// @param amount_record The record to fund the amount from
-    /// @param fee_credits The amount of credits to pay as a fee
-    /// @param fee_record The record to spend the fee from
-    /// @param url The url of the Aleo network node to send the transaction to
-    /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
+    /// @param {PrivateKey} private_key The private key of the sender
+    /// @param {string} program The source code of the program being executed
+    /// @param {string} function The name of the function to execute
+    /// @param {Array} inputs A javascript array of inputs to the function
+    /// @param {boolean} prove_execution If true, the execution will be proven and an execution object
+    /// containing the proof and the encrypted inputs and outputs needed to verify the proof offline
+    /// will be returned.
+    /// @param {boolean} cache Cache the proving and verifying keys in the ProgramManager's memory.
     /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
     /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
     /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
     /// keys will be deallocated from memory after the transaction is executed.
-    /// @param imports (optional) Provide a list of imports to use for the function execution in the
+    /// @param {Object | undefined} imports (optional) Provide a list of imports to use for the function execution in the
     /// form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
-    /// @param proving_key (optional) Provide a verifying key to use for the function execution
-    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
+    /// @param {ProvingKey | undefined} proving_key (optional) Provide a verifying key to use for the function execution
+    /// @param {VerifyingKey | undefined} verifying_key (optional) Provide a verifying key to use for the function execution
     #[wasm_bindgen(js_name = executeFunctionOffline)]
     #[allow(clippy::too_many_arguments)]
-    pub fn execute_function_offline(
+    pub async fn execute_function_offline(
         &mut self,
         private_key: PrivateKey,
         program: String,
         function: String,
         inputs: Array,
+        prove_execution: bool,
         cache: bool,
         imports: Option<Object>,
         proving_key: Option<ProvingKey>,
@@ -78,15 +78,24 @@ impl ProgramManager {
         let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
 
-        let (response, _) =
+        let (response, mut trace) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
 
-        log("Creating execution response");
-        let outputs = js_sys::Array::new_with_length(response.outputs().len() as u32);
-        for (i, output) in response.outputs().iter().enumerate() {
-            outputs.set(i as u32, wasm_bindgen::JsValue::from_str(&output.to_string()));
+        if prove_execution {
+            log("Preparing inclusion proofs for execution");
+            let query = QueryNative::from("https://vm.aleo.org/api");
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+
+            log("Proving execution");
+            let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
+            let locator = program.id().to_string().add("/").add(&function);
+            let execution = trace
+                .prove_execution::<CurrentAleo, _>(&locator, &mut StdRng::from_entropy())
+                .map_err(|e| e.to_string())?;
+            Ok(ExecutionResponse::from((response, execution)))
+        } else {
+            Ok(ExecutionResponse::from(response))
         }
-        Ok(ExecutionResponse::from(response))
     }
 
     /// Execute Aleo function and create an Aleo execution transaction

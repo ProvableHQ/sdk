@@ -34,7 +34,7 @@ pub use snarkvm_console::{
     },
     types::Field,
 };
-pub use snarkvm_ledger_block::Transaction;
+pub use snarkvm_ledger_block::{Execution, Transaction};
 pub use snarkvm_ledger_query::Query;
 pub use snarkvm_ledger_store::helpers::memory::BlockMemory;
 pub use snarkvm_synthesizer::{
@@ -68,6 +68,7 @@ pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 
 // Program types
 type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
+pub type ExecutionNative = Execution<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
 pub type LiteralNative = Literal<CurrentNetwork>;
 pub type ProcessNative = Process<CurrentNetwork>;
