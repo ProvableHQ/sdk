@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import App from "./App.jsx";
+import Main from "./main.jsx";
 import { NewAccount } from "./tabs/account/NewAccount.jsx";
 import { AccountFromPrivateKey } from "./tabs/account/AccountFromPrivateKey.jsx";
 import { AddressFromViewKey } from "./tabs/account/AddressFromViewKey.jsx";
@@ -25,7 +25,7 @@ import { GetMappingValue } from "./tabs/rest/GetMappingValue.jsx";
 
 export const router = createBrowserRouter([
     {
-        element: <App />,
+        element: <Main />,
         children: [
             {
                 path: "/",

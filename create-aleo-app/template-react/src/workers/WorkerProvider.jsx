@@ -22,16 +22,6 @@ const WorkerProvider = ({ children }) => {
         };
     }, []);
 
-    if (!workerReady) {
-        return (
-            <>
-                <div className="spinner">
-                    <div className="dot1"></div>
-                </div>
-            </>
-        );
-    }
-
     return (
         <WorkerContext.Provider value={worker}>
             {children}
