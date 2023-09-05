@@ -18,7 +18,7 @@ export function WasmLoadingMessage() {
             message.open({
                 key: "wasmLoading",
                 type: 'success',
-                content: 'WASM Loaded!',
+                content: 'Aleo.tools Loaded!',
                 duration: 2,
             });
         }
