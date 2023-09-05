@@ -5,7 +5,7 @@ import { useAleoWASM } from "../../aleo-wasm-hook";
 
 export const AccountFromPrivateKey = () => {
     const [accountFromPrivateKey, setAccountFromPrivateKey] = useState(null);
-    const aleo = useAleoWASM();
+    const [aleo] = useAleoWASM();
 
     const onChange = (event) => {
         setAccountFromPrivateKey(null);

@@ -6,7 +6,7 @@ import { useAleoWASM } from "../../aleo-wasm-hook";
 export const NewAccount = () => {
     const [account, setAccount] = useState(null);
     const [loading, setLoading] = useState(false);
-    const aleo = useAleoWASM();
+    const [aleo] = useAleoWASM();
 
     const generateAccount = async () => {
         setLoading(true);

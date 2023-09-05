@@ -37,7 +37,7 @@ export const ExecuteLegacy = () => {
     const [executeOnline, setExecuteOnline] = useState(false);
     const [programInputs, setProgramInputs] = useState(null);
     const [tip, setTip] = useState("Executing Program...");
-    const aleo = useAleoWASM();
+    const [aleo] = useAleoWASM();
 
     const getProgramInputs = () => {
         const programManifest = [];

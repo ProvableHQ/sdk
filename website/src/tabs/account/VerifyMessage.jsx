@@ -8,7 +8,7 @@ export const VerifyMessage = () => {
     const [signatureInput, setSignatureInput] = useState(null);
     const [messageInput, setMessageInput] = useState(null);
     const didMount = useRef(false);
-    const aleo = useAleoWASM();
+    const [aleo] = useAleoWASM();
     const textEncoder = new TextEncoder();
 
     const attemptVerify = () => {

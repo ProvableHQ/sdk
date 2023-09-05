@@ -8,7 +8,7 @@ export const EncryptAccount = () => {
     const [encryptedAccount, setEncryptedAccount] = useState(null);
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState(null);
-    const aleo = useAleoWASM();
+    const [aleo] = useAleoWASM();
 
     const generateAccount = async () => {
         setLoading(true);

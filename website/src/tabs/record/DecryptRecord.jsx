@@ -8,7 +8,7 @@ export const DecryptRecord = () => {
     const [viewKey, setViewKey] = useState(null);
     const [plaintext, setPlaintext] = useState(null);
     const [_isOwner, setIsOwner] = useState(null);
-    const aleo = useAleoWASM();
+    const [aleo] = useAleoWASM();
 
     const onCiphertextChange = (event) => {
         setCiphertext(null);

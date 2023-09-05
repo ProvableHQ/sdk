@@ -7,7 +7,7 @@ export const DecryptAccount = () => {
     const [accountFromCiphertext, setAccountFromCiphertext] = useState(null);
     const [inputCiphertext, setInputCiphertext] = useState(null);
     const [inputPassword, setInputPassword] = useState(null);
-    const aleo = useAleoWASM();
+    const [aleo] = useAleoWASM();
 
     const onCiphertextChange = (event) => {
         try {

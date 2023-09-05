@@ -7,7 +7,7 @@ export const SignMessage = () => {
     const [signingAccount, setSigningAccount] = useState(null);
     const [signingKey, setSigningKey] = useState(null);
     const [message, setMessage] = useState(null);
-    const aleo = useAleoWASM();
+    const [aleo] = useAleoWASM();
     const textEncoder = new TextEncoder();
 
     const onKeyChange = (event) => {
