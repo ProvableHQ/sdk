@@ -11,7 +11,7 @@ export function WasmLoadingMessage() {
             message.open({
                 key: "wasmLoading",
                 type: 'loading',
-                content: 'Loading WASM...some functionality may not be available yet...',
+                content: 'Loading... some functionality may not be available yet...',
                 duration: 0,
             });
         } else {
