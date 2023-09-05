@@ -1,14 +1,38 @@
 import { useEffect, useState } from "react";
-import * as sdk from "@aleohq/sdk";
 
-await sdk.initializeWasm();
+let loadingPromise = null;
+let loadedSDK = null;
+
 export const useAleoWASM = () => {
-    const [aleoInstance, setAleoInstance] = useState(null);
+    const [aleoInstance, setAleoInstance] = useState(loadedSDK);
+    const [loading, setLoading] = useState(!loadedSDK);
 
     useEffect(() => {
-        if (aleoInstance === null) {
-            setAleoInstance(sdk);
+        if (loadedSDK) {
+            setAleoInstance(loadedSDK);
+            setLoading(false);
+            return;
         }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
-    return aleoInstance;
+
+        if (!loadingPromise) {
+            loadingPromise = import("@aleohq/sdk")
+                .then(async (sdk) => {
+                    await sdk.initializeWasm();
+                    loadedSDK = sdk; // Save the loaded SDK
+                    setAleoInstance(sdk);
+                    setLoading(false);
+                })
+                .catch((error) => {
+                    console.error("Failed to load the SDK:", error);
+                    setLoading(false);
+                });
+        } else {
+            loadingPromise.then(() => {
+                setAleoInstance(loadedSDK);
+                setLoading(false);
+            });
+        }
+    }, []);
+
+    return [aleoInstance, loading];
 };

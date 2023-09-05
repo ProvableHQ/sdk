@@ -5,7 +5,7 @@ import { useAleoWASM } from "../../aleo-wasm-hook";
 
 export const AddressFromViewKey = () => {
     const [addressFromViewKey, setAddressFromViewKey] = useState(null);
-    const aleo = useAleoWASM();
+    const [aleo] = useAleoWASM();
 
     const onChange = (event) => {
         setAddressFromViewKey(null);

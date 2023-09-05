@@ -6,7 +6,7 @@ import { useAleoWASM } from "./aleo-wasm-hook";
 
 function App() {
   const [count, setCount] = useState(0);
-  const aleo = useAleoWASM();
+  const [aleo, aleoLoading] = useAleoWASM();
   const [account, setAccount] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -83,10 +83,13 @@ function App() {
           count is {count}
         </button>
         <p>
-          <button onClick={generateAccount}>
-            {account
-              ? `Account is ${JSON.stringify(account.to_string())}`
-              : `Click to generate account`}
+          <button disabled={aleoLoading} onClick={generateAccount}>
+            {aleoLoading
+                ? "Aleo WASM loading..."
+                : (account
+                    ? `Account is ${JSON.stringify(account.to_string())}`
+                    : `Click to generate account`)
+            }
           </button>
         </p>
         <p>
