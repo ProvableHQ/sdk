@@ -22,7 +22,7 @@ const layout = { labelCol: { span: 4 }, wrapperCol: { span: 18 } };
 
 export const Execute = () => {
     const [form] = Form.useForm();
-    const aleoWASM = useAleoWASM();
+    const [aleoWASM] = useAleoWASM();
 
     const demoSelect = async (value) => {
         if (value === "hello") {
