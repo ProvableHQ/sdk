@@ -13,16 +13,16 @@ const programManager = new aleo.ProgramManager(
 
 keyProvider.useCache(true);
 
-self.postMessage({
-    type: "ALEO_WORKER_READY",
-});
+// self.postMessage({
+//     type: "ALEO_WORKER_READY",
+// });
 
-let lastLocalProgram: aleo.Program | null = null;
+let lastLocalProgram: string = "";
 async function aleoExecuteOffline(
-    localProgram,
-    aleoFunction,
-    inputs,
-    privateKey
+    localProgram : string,
+    aleoFunction : string,
+    inputs: string[],
+    privateKey: string
 ) {
     console.log("Web worker: Executing function locally...");
     let startTime = performance.now();
