@@ -153,6 +153,15 @@ interface FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
      */
     feeKeys(): Promise<FunctionKeyPair | Error>;
+
+    /**
+     * Cache a set of keys. This will overwrite any existing keys with the same keyId. The user can check if a keyId
+     * exists in the cache using the containsKeys method prior to calling this method if overwriting is not desired.
+     *
+     * @param {string} keyId access key for the cache
+     * @param {FunctionKeyPair} keys keys to cache
+     */
+    cacheKeys(keyId: string, keys: FunctionKeyPair): void;
 }
 
 /**
