@@ -6,8 +6,6 @@ import WorkerProvider from "./workers/WorkerProvider.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <WorkerProvider>
       <App />
-    </WorkerProvider>
   </React.StrictMode>,
 );

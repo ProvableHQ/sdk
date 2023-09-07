@@ -111,17 +111,14 @@ async function aleoExecuteOffline(
         }
 
         console.log(`Function execution response: ${outputs}`);
-        self.postMessage({
-            type: "OFFLINE_EXECUTION_COMPLETED",
-            outputs: { outputs: outputs, execution: executionString },
-        });
+
+        return { outputs: outputs, execution: executionString }
+
     } catch (error) {
         console.error(error);
-        self.postMessage({
-            type: "ERROR",
-            errorMessage: error ? error.toString() : "Unknown error",
-        });
+        return error ? error.toString() : "Unknown error"
     }
 }
 
-expose(aleoExecuteOffline)
+const api = { aleoExecuteOffline, aleo };
+expose(api);

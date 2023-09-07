@@ -1,23 +1,80 @@
 const KEY_STORE = "https://testnet3.parameters.aleo.org/";
 
 const CREDITS_PROGRAM_KEYS = {
-    transfer_private: {prover: KEY_STORE + "transfer_private.prover.2a9a6f2", verifier: KEY_STORE + "transfer_private.verifier.3a59762" },
-    transfer_private_to_public: {prover:KEY_STORE + "transfer_private_to_public.prover.cf3b952", verifier: KEY_STORE + "transfer_private_to_public.verifier.5bd459b"},
-    transfer_public: {prover:KEY_STORE + "transfer_public.prover.1117f0a", verifier: KEY_STORE + "transfer_public.verifier.d63af11"},
-    transfer_public_to_private: {prover: KEY_STORE + "transfer_public_to_private.prover.7b763af", verifier: KEY_STORE + "transfer_public_to_private.verifier.25f6542"},
-    join: {prover: KEY_STORE + "join.prover.da05baf", verifier: KEY_STORE + "join.verifier.1489109"},
-    split: {prover: KEY_STORE + "split.prover.8c585f2", verifier: KEY_STORE + "split.verifier.8281688"},
-    fee: {prover: KEY_STORE + "fee.prover.36542ce", verifier: KEY_STORE + "fee.verifier.2de311b"},
-}
+    transfer_private: {
+        prover: KEY_STORE + "transfer_private.prover.2a9a6f2",
+        verifier: KEY_STORE + "transfer_private.verifier.3a59762",
+    },
+    transfer_private_to_public: {
+        prover: KEY_STORE + "transfer_private_to_public.prover.cf3b952",
+        verifier: KEY_STORE + "transfer_private_to_public.verifier.5bd459b",
+    },
+    transfer_public: {
+        prover: KEY_STORE + "transfer_public.prover.1117f0a",
+        verifier: KEY_STORE + "transfer_public.verifier.d63af11",
+    },
+    transfer_public_to_private: {
+        prover: KEY_STORE + "transfer_public_to_private.prover.7b763af",
+        verifier: KEY_STORE + "transfer_public_to_private.verifier.25f6542",
+    },
+    join: {
+        prover: KEY_STORE + "join.prover.da05baf",
+        verifier: KEY_STORE + "join.verifier.1489109",
+    },
+    split: {
+        prover: KEY_STORE + "split.prover.8c585f2",
+        verifier: KEY_STORE + "split.verifier.8281688",
+    },
+    fee: {
+        prover: KEY_STORE + "fee.prover.36542ce",
+        verifier: KEY_STORE + "fee.verifier.2de311b",
+    },
+};
 
-const PRIVATE_TRANSFER_TYPES = new Set(["transfer_private", "private", "transferPrivate", "transfer_private_to_public", "privateToPublic", "transferPrivateToPublic"]);
-const VALID_TRANSFER_TYPES = new Set(["transfer_private", "private", "transferPrivate", "transfer_private_to_public",
-    "privateToPublic", "transferPrivateToPublic", "transfer_public", "public", "transferPublic",
-    "transfer_public_to_private", "publicToPrivate", "transferPublicToPrivate"]);
-const PRIVATE_TRANSFER = new Set(["private", "transfer_private", "transferPrivate"]);
-const PRIVATE_TO_PUBLIC_TRANSFER = new Set(["private_to_public", "privateToPublic", "transfer_private_to_public", "transferPrivateToPublic"]);
-const PUBLIC_TRANSFER = new Set(["public", "transfer_public", "transferPublic"]);
-const PUBLIC_TO_PRIVATE_TRANSFER = new Set(["public_to_private", "publicToPrivate", "transfer_public_to_private", "transferPublicToPrivate"]);
+const PRIVATE_TRANSFER_TYPES = new Set([
+    "transfer_private",
+    "private",
+    "transferPrivate",
+    "transfer_private_to_public",
+    "privateToPublic",
+    "transferPrivateToPublic",
+]);
+const VALID_TRANSFER_TYPES = new Set([
+    "transfer_private",
+    "private",
+    "transferPrivate",
+    "transfer_private_to_public",
+    "privateToPublic",
+    "transferPrivateToPublic",
+    "transfer_public",
+    "public",
+    "transferPublic",
+    "transfer_public_to_private",
+    "publicToPrivate",
+    "transferPublicToPrivate",
+]);
+const PRIVATE_TRANSFER = new Set([
+    "private",
+    "transfer_private",
+    "transferPrivate",
+]);
+const PRIVATE_TO_PUBLIC_TRANSFER = new Set([
+    "private_to_public",
+    "privateToPublic",
+    "transfer_private_to_public",
+    "transferPrivateToPublic",
+]);
+const PUBLIC_TRANSFER = new Set([
+    "public",
+    "transfer_public",
+    "transferPublic",
+]);
+const PUBLIC_TO_PRIVATE_TRANSFER = new Set([
+    "public_to_private",
+    "publicToPrivate",
+    "transfer_public_to_private",
+    "transferPublicToPrivate",
+]);
 
 function logAndThrow(message: string): Error {
     console.error(message);
@@ -33,45 +90,132 @@ import { Output } from "./models/output";
 import { Transaction } from "./models/transaction";
 import { Transition } from "./models/transition";
 import { DevServerClient } from "./dev-server-client";
-import { AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, CachedKeyPair, FunctionKeyPair, FunctionKeyProvider, KeySearchParams } from "./function-key-provider"
-import { BlockHeightSearch, NetworkRecordProvider, RecordProvider, RecordSearchParams } from "./record-provider";
+import {
+    AleoKeyProvider,
+    AleoKeyProviderParams,
+    AleoKeyProviderInitParams,
+    CachedKeyPair,
+    FunctionKeyPair,
+    FunctionKeyProvider,
+    KeySearchParams,
+} from "./function-key-provider";
+import {
+    BlockHeightSearch,
+    NetworkRecordProvider,
+    RecordProvider,
+    RecordSearchParams,
+} from "./record-provider";
 
 // If using the SDK in a browser context, uncomment these lines
 import { ProgramManager } from "./program-manager";
-import init from '@aleohq/wasm';
+import init from "@aleohq/wasm";
 /**
  * Initialize Aleo WebAssembly into the browser. The SDK requires its Wasm Instance to be initialized before operating
  * so this function must be called before any other SDK functions are called.
  */
 async function initializeWasm() {
- return await init();
+    return await init();
 }
-import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, ProgramManager as ProgramManagerBase, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey, initThreadPool, verifyFunctionExecution } from '@aleohq/wasm';
-export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, AleoNetworkClient, Block, BlockHeightSearch, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProgramManager, ProgramManagerBase, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PRIVATE_TRANSFER_TYPES, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER, VALID_TRANSFER_TYPES, initThreadPool, initializeWasm, logAndThrow, verifyFunctionExecution};
+import {
+    Address,
+    ExecutionResponse,
+    PrivateKey,
+    PrivateKeyCiphertext,
+    Program,
+    ProvingKey,
+    RecordCiphertext,
+    RecordPlaintext,
+    ProgramManager as ProgramManagerBase,
+    Signature,
+    Transaction as WasmTransaction,
+    ViewKey,
+    VerifyingKey,
+    initThreadPool,
+    verifyFunctionExecution,
+} from "@aleohq/wasm";
+export {
+    Account,
+    Address,
+    AleoKeyProvider,
+    AleoKeyProviderParams,
+    AleoKeyProviderInitParams,
+    AleoNetworkClient,
+    Block,
+    BlockHeightSearch,
+    DevServerClient,
+    Execution,
+    ExecutionResponse,
+    FunctionKeyPair,
+    FunctionKeyProvider,
+    Input,
+    KeySearchParams,
+    NetworkRecordProvider,
+    PrivateKey,
+    PrivateKeyCiphertext,
+    Program,
+    ProgramImports,
+    ProgramManager,
+    ProgramManagerBase,
+    ProvingKey,
+    Output,
+    RecordCiphertext,
+    RecordPlaintext,
+    RecordProvider,
+    RecordSearchParams,
+    Signature,
+    Transaction,
+    Transition,
+    VerifyingKey,
+    ViewKey,
+    WasmTransaction,
+    CREDITS_PROGRAM_KEYS,
+    KEY_STORE,
+    PRIVATE_TRANSFER,
+    PRIVATE_TO_PUBLIC_TRANSFER,
+    PRIVATE_TRANSFER_TYPES,
+    PUBLIC_TRANSFER,
+    PUBLIC_TO_PRIVATE_TRANSFER,
+    VALID_TRANSFER_TYPES,
+    initThreadPool,
+    initializeWasm,
+    logAndThrow,
+    verifyFunctionExecution,
+};
 // The following imports and exports are for a NodeJS context - if using the SDK in a browser context, delete or comment out these lines
 // import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey, verifyFunctionExecution } from '@aleohq/nodejs';
 // export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, AleoNetworkClient, Block, BlockHeightSearch, CachedKeyPair, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PRIVATE_TRANSFER_TYPES, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER, VALID_TRANSFER_TYPES, logAndThrow, verifyFunctionExecution}
 
+import { wrap } from "comlink";
 
 interface WorkerAPI {
-    aleoExecuteOffline(data: any): Promise<any>;
+    aleoExecuteOffline(
+        localProgram: string,
+        aleoFunction: string,
+        inputs: string[],
+        privateKey: string
+    ): Promise<any>;
 }
 
-import { wrap } from 'comlink';
+const createWorker = (): WorkerAPI => {
+    const worker = new Worker(new URL("worker.js", import.meta.url), {
+        type: "module",
+    });
+    return wrap<WorkerAPI>(worker);
+};
 
-class YourLibrary {
-    private worker: Worker;
-    private api: WorkerAPI;
+const doTask = (
+    api: WorkerAPI,
+    localProgram: string,
+    aleoFunction: string,
+    inputs: string[],
+    privateKey: string
+): Promise<any> => {
+    return api.aleoExecuteOffline(
+        localProgram,
+        aleoFunction,
+        inputs,
+        privateKey
+    );
+};
 
-    constructor() {
-        this.worker = new Worker(new URL('worker.ts', import.meta.url));
-        this.api = wrap<WorkerAPI>(this.worker);
-    }
-
-    async doTask(data: any): Promise<any> {
-        return await this.api.aleoExecuteOffline(data);
-    }
-}
-
-// Exporting the library
-export { YourLibrary };
+export { createWorker, doTask };
