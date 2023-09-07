@@ -1,4 +1,5 @@
 import * as aleo from "./index";
+import { expose } from 'comlink';
 
 await aleo.initializeWasm();
 await aleo.initThreadPool(10);
@@ -122,3 +123,5 @@ async function aleoExecuteOffline(
         });
     }
 }
+
+expose(aleoExecuteOffline)

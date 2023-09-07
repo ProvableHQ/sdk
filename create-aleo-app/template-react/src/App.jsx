@@ -3,6 +3,7 @@ import reactLogo from "./assets/react.svg";
 import aleoLogo from "./assets/aleo.png";
 import "./App.css";
 import { useAleoWASM } from "./aleo-wasm-hook";
+import { YourLibrary } from "@aleohq/sdk";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -15,6 +16,8 @@ function App() {
   };
 
   const [worker, setWorker] = useState(null);
+
+  const lib = new YourLibrary();
 
   useEffect(() => {
     if (worker === null) {

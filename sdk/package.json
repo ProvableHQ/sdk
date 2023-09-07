@@ -39,6 +39,7 @@
     "@aleohq/nodejs": "0.5.9",
     "@aleohq/wasm": "0.5.9",
     "axios": "^1.1.3",
+    "comlink": "^4.4.1",
     "jsdoc": "^3.6.11",
     "unfetch": "^5.0.0"
   },

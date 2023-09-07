@@ -51,3 +51,27 @@ export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoKeyProvid
 // The following imports and exports are for a NodeJS context - if using the SDK in a browser context, delete or comment out these lines
 // import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey, verifyFunctionExecution } from '@aleohq/nodejs';
 // export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, AleoNetworkClient, Block, BlockHeightSearch, CachedKeyPair, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PRIVATE_TRANSFER_TYPES, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER, VALID_TRANSFER_TYPES, logAndThrow, verifyFunctionExecution}
+
+
+interface WorkerAPI {
+    aleoExecuteOffline(data: any): Promise<any>;
+}
+
+import { wrap } from 'comlink';
+
+class YourLibrary {
+    private worker: Worker;
+    private api: WorkerAPI;
+
+    constructor() {
+        this.worker = new Worker(new URL('worker.ts', import.meta.url));
+        this.api = wrap<WorkerAPI>(this.worker);
+    }
+
+    async doTask(data: any): Promise<any> {
+        return await this.api.aleoExecuteOffline(data);
+    }
+}
+
+// Exporting the library
+export { YourLibrary };
