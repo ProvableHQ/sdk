@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "build": "rollup -c rollup.config.node.js",
-    "build:broweser": "rollup -c rollup.config.browser.js",
+    "build:browser": "rollup -c rollup.config.browser.js",
     "clear_jest": "jest --clearCache",
     "dev": "tsc --watch",
     "test": "jest --config jest-config.json",
