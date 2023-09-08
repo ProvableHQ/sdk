@@ -116,6 +116,7 @@ import init from "@aleohq/wasm";
 async function initializeWasm() {
     return await init();
 }
+import { createAleoWorker } from "./managed-worker";
 import {
     Address,
     ExecutionResponse,
@@ -180,42 +181,8 @@ export {
     initializeWasm,
     logAndThrow,
     verifyFunctionExecution,
+    createAleoWorker
 };
 // The following imports and exports are for a NodeJS context - if using the SDK in a browser context, delete or comment out these lines
 // import { Address, ExecutionResponse, PrivateKey, PrivateKeyCiphertext, Program, ProvingKey, RecordCiphertext, RecordPlaintext, Signature, Transaction as WasmTransaction, ViewKey, VerifyingKey, verifyFunctionExecution } from '@aleohq/nodejs';
 // export { Account, Address, AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, AleoNetworkClient, Block, BlockHeightSearch, CachedKeyPair, DevServerClient, Execution, ExecutionResponse, FunctionKeyPair, FunctionKeyProvider, Input, KeySearchParams, NetworkRecordProvider, PrivateKey, PrivateKeyCiphertext, Program, ProgramImports, ProvingKey, Output, RecordCiphertext, RecordPlaintext, RecordProvider, RecordSearchParams, Signature, Transaction, Transition, VerifyingKey, ViewKey, WasmTransaction, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PRIVATE_TRANSFER_TYPES, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER, VALID_TRANSFER_TYPES, logAndThrow, verifyFunctionExecution}
-
-import { wrap } from "comlink";
-
-interface WorkerAPI {
-    aleoExecuteOffline(
-        localProgram: string,
-        aleoFunction: string,
-        inputs: string[],
-        privateKey: string
-    ): Promise<any>;
-}
-
-const createWorker = (): WorkerAPI => {
-    const worker = new Worker(new URL("worker.js", import.meta.url), {
-        type: "module",
-    });
-    return wrap<WorkerAPI>(worker);
-};
-
-const doTask = (
-    api: WorkerAPI,
-    localProgram: string,
-    aleoFunction: string,
-    inputs: string[],
-    privateKey: string
-): Promise<any> => {
-    return api.aleoExecuteOffline(
-        localProgram,
-        aleoFunction,
-        inputs,
-        privateKey
-    );
-};
-
-export { createWorker, doTask };

@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import aleoLogo from "./assets/aleo.png";
 import "./App.css";
-import { createWorker, doTask } from "@aleohq/sdk";
+import { createAleoWorker } from "@aleohq/sdk";
 
-const api = createWorker();
+const aleoWorker = createAleoWorker();
 
 function App() {
   const [count, setCount] = useState(0);
@@ -12,14 +12,11 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const generateAccount = async () => {
-    // console.log(await obj.counter);
-    // console.log(await obj.inc());
-    // setAccount(new aleo.PrivateKey());
+    const privateKey = await aleoWorker.getPrivateKey();
+    setAccount(privateKey);
   };
 
   async function execute() {
-    // console.log(await obj.counter);
-    // console.log(await obj.inc());
     const hello_hello_program =
         "program hello_hello.aleo;\n" +
         "\n" +
@@ -30,14 +27,7 @@ function App() {
         "    output r2 as u32.private;\n";
 
     setLoading(true);
-    const result = await doTask(api, hello_hello_program,"hello", ["5u32", "5u32"], "APrivateKey1zkp778oUFSck3PZA5xppgp4trFwkkD6xnUXtxcBCfsq4URJ")
-    // const result = await postMessagePromise(worker, {
-    //   type: "ALEO_EXECUTE_PROGRAM_LOCAL",
-    //   localProgram: hello_hello_program,
-    //   aleoFunction: "hello",
-    //   inputs: ["5u32", "5u32"],
-    //   privateKey: "APrivateKey1zkp778oUFSck3PZA5xppgp4trFwkkD6xnUXtxcBCfsq4URJ",
-    // });
+    const result = await aleoWorker.executeOffline(hello_hello_program,"hello", ["5u32", "5u32"], "APrivateKey1zkp778oUFSck3PZA5xppgp4trFwkkD6xnUXtxcBCfsq4URJ")
     setLoading(false);
 
     alert(JSON.stringify(result));
@@ -62,13 +52,13 @@ function App() {
             <button onClick={generateAccount}>
               {
                   (account
-                      ? `Account is ${JSON.stringify(account.to_string())}`
+                      ? `Account is ${JSON.stringify(account)}`
                       : `Click to generate account`)
               }
             </button>
           </p>
           <p>
-            <button disabled={loading} onClick={execute}>
+            <button disabled={!account || loading} onClick={execute}>
               {loading
                   ? `Executing...check console for details...`
                   : `Execute hello_hello.aleo`}

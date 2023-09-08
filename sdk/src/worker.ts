@@ -1,5 +1,5 @@
 import * as aleo from "./index";
-import { expose } from 'comlink';
+import { expose } from "comlink";
 
 await aleo.initializeWasm();
 await aleo.initThreadPool(10);
@@ -18,10 +18,26 @@ keyProvider.useCache(true);
 //     type: "ALEO_WORKER_READY",
 // });
 
+export interface WorkerAPI {
+    additionalFunction1: () => Promise<string>;
+    additionalFunction2: (data: any) => Promise<any>;
+}
+
 let lastLocalProgram: string = "";
-async function aleoExecuteOffline(
-    localProgram : string,
-    aleoFunction : string,
+
+export interface WorkerAPI {
+    executeOffline: (
+        localProgram: string,
+        aleoFunction: string,
+        inputs: string[],
+        privateKey: string
+    ) => Promise<{ outputs: any; execution: string } | string>;
+
+    getPrivateKey: () => Promise<aleo.PrivateKey>;
+}
+async function executeOffline(
+    localProgram: string,
+    aleoFunction: string,
     inputs: string[],
     privateKey: string
 ) {
@@ -112,13 +128,17 @@ async function aleoExecuteOffline(
 
         console.log(`Function execution response: ${outputs}`);
 
-        return { outputs: outputs, execution: executionString }
-
+        return { outputs: outputs, execution: executionString };
     } catch (error) {
         console.error(error);
-        return error ? error.toString() : "Unknown error"
+        return error ? error.toString() : "Unknown error";
     }
 }
 
-const api = { aleoExecuteOffline, aleo };
-expose(api);
+async function getPrivateKey() {
+    const privateKey = new aleo.PrivateKey();
+    return privateKey.to_string();
+}
+
+const workerAPI = { executeOffline, getPrivateKey };
+expose(workerAPI);
