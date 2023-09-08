@@ -1,21 +1,36 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import aleoLogo from "./assets/aleo.png";
 import "./App.css";
 import { useAleoWASM } from "./aleo-wasm-hook";
-import WorkerContext from './workers/WorkerContext';
 
 function App() {
   const [count, setCount] = useState(0);
-  const aleo = useAleoWASM();
+  const [aleo, aleoLoading] = useAleoWASM();
   const [account, setAccount] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { worker, workerReady } = useContext(WorkerContext);
 
   const generateAccount = () => {
     setAccount(new aleo.PrivateKey());
-    console.log(aleo.ALEO_VERSION);
   };
+
+  const [worker, setWorker] = useState(null);
+
+  useEffect(() => {
+    if (worker === null) {
+      const spawnedWorker = spawnWorker();
+      setWorker(spawnedWorker);
+      return () => {
+        spawnedWorker.terminate();
+      };
+    }
+  }, []);
+
+  function spawnWorker() {
+    return new Worker(new URL("workers/worker.js", import.meta.url), {
+      type: "module",
+    });
+  }
 
   function postMessagePromise(worker, message) {
     return new Promise((resolve, reject) => {
@@ -68,14 +83,17 @@ function App() {
           count is {count}
         </button>
         <p>
-          <button onClick={generateAccount}>
-            {account
-              ? `Account is ${JSON.stringify(account.to_string())}`
-              : `Click to generate account`}
+          <button disabled={aleoLoading} onClick={generateAccount}>
+            {aleoLoading
+                ? "Aleo WASM loading..."
+                : (account
+                    ? `Account is ${JSON.stringify(account.to_string())}`
+                    : `Click to generate account`)
+            }
           </button>
         </p>
         <p>
-          <button disabled={!account || loading || !workerReady} onClick={execute}>
+          <button disabled={!account || loading} onClick={execute}>
             {loading
               ? `Executing...check console for details...`
               : `Execute hello_hello.aleo`}

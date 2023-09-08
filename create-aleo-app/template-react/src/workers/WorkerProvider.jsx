@@ -23,7 +23,7 @@ const WorkerProvider = ({ children }) => {
     }, []);
 
     return (
-        <WorkerContext.Provider value={{ worker, workerReady }}>
+        <WorkerContext.Provider value={worker}>
             {children}
         </WorkerContext.Provider>
     );
