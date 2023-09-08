@@ -6,8 +6,9 @@
     "The Aleo Team <hello@aleo.org>"
   ],
   "license": "GPL-3.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "browser": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "type": "module",
   "files": [
     "src",
@@ -16,7 +17,8 @@
     "tsconfig.json"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c rollup.config.node.js",
+    "build:broweser": "rollup -c rollup.config.browser.js",
     "clear_jest": "jest --clearCache",
     "dev": "tsc --watch",
     "test": "jest --config jest-config.json",

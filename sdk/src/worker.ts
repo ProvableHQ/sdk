@@ -1,12 +1,13 @@
-import * as aleo from "./index";
+import { initializeWasm, initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution } from "./browser";
+import { AleoKeyProvider, AleoKeyProviderParams} from "./function-key-provider";
 import { expose } from "comlink";
 
-await aleo.initializeWasm();
-await aleo.initThreadPool(10);
+await initializeWasm();
+await initThreadPool(10);
 
 const defaultHost = "https://vm.aleo.org/api";
-const keyProvider = new aleo.AleoKeyProvider();
-const programManager = new aleo.ProgramManager(
+const keyProvider = new AleoKeyProvider();
+const programManager = new ProgramManager(
     defaultHost,
     keyProvider,
     undefined
@@ -33,7 +34,7 @@ export interface WorkerAPI {
         privateKey: string
     ) => Promise<{ outputs: any; execution: string } | string>;
 
-    getPrivateKey: () => Promise<aleo.PrivateKey>;
+    getPrivateKey: () => Promise<PrivateKey>;
 }
 async function executeOffline(
     localProgram: string,
@@ -78,7 +79,7 @@ async function executeOffline(
         }
 
         // Pass the cache key to the execute function
-        const keyParams = new aleo.AleoKeyProviderParams({
+        const keyParams = new AleoKeyProviderParams({
             cacheKey: cacheKey,
         });
 
@@ -92,7 +93,7 @@ async function executeOffline(
             keyParams,
             undefined,
             undefined,
-            aleo.PrivateKey.from_string(privateKey)
+            PrivateKey.from_string(privateKey)
         );
 
         // Return the outputs to the main thread
@@ -114,7 +115,7 @@ async function executeOffline(
         const verifyingKey = keys[1];
 
         if (execution) {
-            aleo.verifyFunctionExecution(
+            verifyFunctionExecution(
                 execution,
                 verifyingKey,
                 program,
@@ -136,7 +137,7 @@ async function executeOffline(
 }
 
 async function getPrivateKey() {
-    const privateKey = new aleo.PrivateKey();
+    const privateKey = new PrivateKey();
     return privateKey.to_string();
 }
 
