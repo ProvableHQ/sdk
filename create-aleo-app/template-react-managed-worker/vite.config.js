@@ -8,6 +8,10 @@ export default defineConfig({
     exclude: ["@aleohq/wasm"],
   },
   server: {
+    // Needed if you are linking local packages for development
+    fs: {
+      allow: [searchForWorkspaceRoot(process.cwd()), "../../sdk"],
+    },
     headers: {
       "Cross-Origin-Opener-Policy": "same-origin",
       "Cross-Origin-Embedder-Policy": "require-corp",
