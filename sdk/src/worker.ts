@@ -41,6 +41,7 @@ async function executeOffline(
     aleoFunction: string,
     inputs: string[],
     privateKey: string
+    proveExecution: boolean = false
 ) {
     console.log("Web worker: Executing function locally...");
     let startTime = performance.now();
