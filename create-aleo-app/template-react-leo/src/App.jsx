@@ -1,59 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import aleoLogo from "./assets/aleo.svg";
 import "./App.css";
-import { useAleoWASM } from "./aleo-wasm-hook";
-import helloworld_program from '../helloworld/build/main.aleo?raw';
+import helloworld_program from "../helloworld/build/main.aleo?raw";
+import { AleoWorker } from "./workers/AleoWorker.js";
 
+const aleoWorker = AleoWorker();
 function App() {
   const [count, setCount] = useState(0);
-  const [aleo, aleoLoading] = useAleoWASM();
   const [account, setAccount] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const generateAccount = () => {
-    setAccount(new aleo.PrivateKey());
+  const generateAccount = async () => {
+    const key = await aleoWorker.getPrivateKey()
+    console.log(key)
+    //setAccount(await key.to_string());
   };
 
-  const [worker, setWorker] = useState(null);
-
-  useEffect(() => {
-    if (worker === null) {
-      const spawnedWorker = spawnWorker();
-      setWorker(spawnedWorker);
-      return () => {
-        spawnedWorker.terminate();
-      };
-    }
-  }, []);
-
-  function spawnWorker() {
-    return new Worker(new URL("workers/worker.js", import.meta.url), {
-      type: "module",
-    });
-  }
-
-  function postMessagePromise(worker, message) {
-    return new Promise((resolve, reject) => {
-      worker.onmessage = (event) => {
-        resolve(event.data);
-      };
-      worker.onerror = (error) => {
-        reject(error);
-      };
-      worker.postMessage(message);
-    });
-  }
-
   async function execute() {
-    setLoading(true);
-    const result = await postMessagePromise(worker, {
-      type: "ALEO_EXECUTE_PROGRAM_LOCAL",
-      localProgram: helloworld_program,
-      aleoFunction: "main",
-      inputs: ["5u32", "5u32"],
-      privateKey: account.to_string(),
-    });
+    setLoading(true)
+    const result = await aleoWorker.localProgramExecution(helloworld_program)
+    // const result = await postMessagePromise(worker, {
+    //   type: "ALEO_EXECUTE_PROGRAM_LOCAL",
+    //   localProgram: helloworld_program,
+    //   aleoFunction: "main",
+    //   inputs: ["5u32", "5u32"],
+    //   privateKey: account.to_string(),
+    // });
     setLoading(false);
 
     alert(JSON.stringify(result));
@@ -75,13 +48,10 @@ function App() {
           count is {count}
         </button>
         <p>
-          <button disabled={aleoLoading} onClick={generateAccount}>
-            {aleoLoading
-                ? "Aleo WASM loading..."
-                : (account
-                    ? `Account is ${JSON.stringify(account.to_string())}`
-                    : `Click to generate account`)
-            }
+          <button onClick={generateAccount}>
+            {account
+              ? `Account is ${JSON.stringify(account)}`
+              : `Click to generate account`}
           </button>
         </p>
         <p>
