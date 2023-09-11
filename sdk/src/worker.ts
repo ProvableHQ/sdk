@@ -15,15 +15,6 @@ const programManager = new ProgramManager(
 
 keyProvider.useCache(true);
 
-// self.postMessage({
-//     type: "ALEO_WORKER_READY",
-// });
-
-export interface WorkerAPI {
-    additionalFunction1: () => Promise<string>;
-    additionalFunction2: (data: any) => Promise<any>;
-}
-
 let lastLocalProgram: string = "";
 
 export interface WorkerAPI {
@@ -40,7 +31,7 @@ async function executeOffline(
     localProgram: string,
     aleoFunction: string,
     inputs: string[],
-    privateKey: string
+    privateKey: string,
     proveExecution: boolean = false
 ) {
     console.log("Web worker: Executing function locally...");
@@ -89,7 +80,7 @@ async function executeOffline(
             localProgram,
             aleoFunction,
             inputs,
-            false,
+            proveExecution,
             imports,
             keyParams,
             undefined,
