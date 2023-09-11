@@ -13,20 +13,12 @@ function App() {
 
   const generateAccount = async () => {
     const key = await aleoWorker.getPrivateKey()
-    console.log(key)
-    //setAccount(await key.to_string());
+    setAccount(await key.to_string());
   };
 
   async function execute() {
     setLoading(true)
-    const result = await aleoWorker.localProgramExecution(helloworld_program)
-    // const result = await postMessagePromise(worker, {
-    //   type: "ALEO_EXECUTE_PROGRAM_LOCAL",
-    //   localProgram: helloworld_program,
-    //   aleoFunction: "main",
-    //   inputs: ["5u32", "5u32"],
-    //   privateKey: account.to_string(),
-    // });
+    const result = await aleoWorker.localProgramExecution(helloworld_program, "main", ["5u32", "5u32"])
     setLoading(false);
 
     alert(JSON.stringify(result));

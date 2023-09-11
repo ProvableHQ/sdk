@@ -1,6 +1,5 @@
 import {
   Account,
-  Program,
   ProgramManager,
   PrivateKey,
   initializeWasm,
@@ -11,26 +10,21 @@ import { expose, proxy } from "comlink";
 await initializeWasm();
 await initThreadPool(10);
 
-// const defaultHost = "https://vm.aleo.org/api";
-// const keyProvider = new aleo.AleoKeyProvider();
-// const programManager = new aleo.ProgramManager(
-//   defaultHost,
-//   keyProvider,
-//   undefined,
-// );
-//
-// keyProvider.useCache(true);
-
-async function localProgramExecution(program) {
+async function localProgramExecution(
+  program,
+  aleoFunction,
+  inputs
+) {
   const programManager = new ProgramManager();
 
+  // Create a temporary account for the execution of the program
   const account = new Account();
   programManager.setAccount(account);
 
   const executionResponse = await programManager.executeOffline(
     program,
-    "main",
-    ["5u32", "5u32"],
+    aleoFunction,
+    inputs,
     false,
   );
   return executionResponse.getOutputs();
