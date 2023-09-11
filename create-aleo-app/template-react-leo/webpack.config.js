@@ -62,11 +62,15 @@ const appConfig = {
           },
         ],
       },
+      {
+        test: /\.aleo$/i,
+        use: 'raw-loader',
+      },
     ],
   },
   plugins: [
     new CopyPlugin({
-      patterns: [{ from: "public", to: "public" }],
+      patterns: [{ from: "public", to: "public" }, { from: "_headers", to: "." }],
     }),
     new HtmlWebpackPlugin({
       template: "./index.html",

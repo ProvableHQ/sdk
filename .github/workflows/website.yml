@@ -41,8 +41,6 @@ jobs:
           cd website
           npm install
           npm run build
-          cp _headers dist/_headers
-          cp _redirects dist/_redirects
         env:
           CI: ""
 

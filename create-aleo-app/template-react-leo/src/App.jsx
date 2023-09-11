@@ -3,6 +3,7 @@ import reactLogo from "./assets/react.svg";
 import aleoLogo from "./assets/aleo.svg";
 import "./App.css";
 import { useAleoWASM } from "./aleo-wasm-hook";
+import helloworld_program from '../helloworld/build/main.aleo?raw';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -45,20 +46,11 @@ function App() {
   }
 
   async function execute() {
-    const hello_hello_program =
-      "program hello_hello.aleo;\n" +
-      "\n" +
-      "function hello:\n" +
-      "    input r0 as u32.public;\n" +
-      "    input r1 as u32.private;\n" +
-      "    add r0 r1 into r2;\n" +
-      "    output r2 as u32.private;\n";
-
     setLoading(true);
     const result = await postMessagePromise(worker, {
       type: "ALEO_EXECUTE_PROGRAM_LOCAL",
-      localProgram: hello_hello_program,
-      aleoFunction: "hello",
+      localProgram: helloworld_program,
+      aleoFunction: "main",
       inputs: ["5u32", "5u32"],
       privateKey: account.to_string(),
     });
@@ -96,7 +88,7 @@ function App() {
           <button disabled={!account || loading} onClick={execute}>
             {loading
               ? `Executing...check console for details...`
-              : `Execute hello_hello.aleo`}
+              : `Execute helloworld.aleo`}
           </button>
         </p>
         <p>
