@@ -4,7 +4,6 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "preinstall": "cd ../sdk && npm install && npm run build",
         "dev": "vite",
         "build": "webpack --config webpack.config.js",
         "build:vite": "vite build",
