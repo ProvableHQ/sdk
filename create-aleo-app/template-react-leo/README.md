@@ -35,8 +35,8 @@ Your app should be running on http://localhost:5173/
 
 3. Follow instructions to install Leo here: https://github.com/AleoHQ/leo
 
-4. Edit `helloworld/src/main.leo` and run `leo run` to compile and update the
-   Aleo instructions under `build`.
+4. You can edit `helloworld/src/main.leo` and run `leo run` to compile and update the
+   Aleo instructions under `build` which are loaded by the web app.
 
 ## Deploy program from web app
 
@@ -47,7 +47,7 @@ Your app should be running on http://localhost:5173/
 Information on generating a private key, seeding a wallet with funds, and finding a spendable record can be found here
 if you are unfamiliar: https://developer.aleo.org/testnet/getting_started/deploy_execute_demo
 
-Aleo programs deployed require unique names, make sure to edit the program's name to something unique in `helloworld/src/main.leo` and rebuild.
+Aleo programs deployed require unique names, make sure to edit the program's name to something unique in `helloworld/src/main.leo`, `helloworld/program.json`, rename `helloworld/inputs/helloworld.in` and rebuild.
 
 1. In the `worker.js` file modify the privateKey to be an account with available
    funds

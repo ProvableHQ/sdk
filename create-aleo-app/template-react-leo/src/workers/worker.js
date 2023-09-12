@@ -64,6 +64,8 @@ async function deployProgram(program) {
   // const feeRecord = "{  owner: aleo1xxx...xxx.private,  microcredits: 2000000u64.private,  _nonce: 123...789group.public}";
   // const tx_id = await programManager.deploy(program, fee, undefined, feeRecord);
 
+  program = "program hello_hello_brent.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+
   // Deploy the program to the Aleo network
   const tx_id = await programManager.deploy(program, fee);
 
