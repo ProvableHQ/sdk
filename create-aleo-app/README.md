@@ -26,6 +26,7 @@ npm create aleo-app@latest my-aleo-app -- --template react
 Currently supported template presets include:
 
 - `react`
+- `react-leo`
 
 You can use `.` for the project name to scaffold in the current directory.
 

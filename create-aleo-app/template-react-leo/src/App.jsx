@@ -9,27 +9,36 @@ const aleoWorker = AleoWorker();
 function App() {
   const [count, setCount] = useState(0);
   const [account, setAccount] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [executing, setExecuting] = useState(false);
+  const [deploying, setDeploying] = useState(false);
 
   const generateAccount = async () => {
-    const key = await aleoWorker.getPrivateKey()
+    const key = await aleoWorker.getPrivateKey();
     setAccount(await key.to_string());
   };
 
   async function execute() {
-    setLoading(true)
-    const result = await aleoWorker.localProgramExecution(helloworld_program, "main", ["5u32", "5u32"])
-    setLoading(false);
+    setExecuting(true);
+    const result = await aleoWorker.localProgramExecution(
+      helloworld_program,
+      "main",
+      ["5u32", "5u32"],
+    );
+    setExecuting(false);
 
     alert(JSON.stringify(result));
   }
 
   async function deploy() {
-    setLoading(true)
-    const result = await aleoWorker.deployProgram()
-    setLoading(false);
-
-    alert(JSON.stringify(result));
+    setDeploying(true);
+    try {
+      const result = await aleoWorker.deployProgram(helloworld_program);
+      alert(JSON.stringify(result));
+    } catch (e) {
+      console.log(e)
+      alert("Error with deployment, please check console for details");
+    }
+    setDeploying(false);
   }
 
   return (
@@ -55,21 +64,31 @@ function App() {
           </button>
         </p>
         <p>
-          <button disabled={!account || loading} onClick={execute}>
+          <button disabled={executing} onClick={execute}>
             {loading
               ? `Executing...check console for details...`
               : `Execute helloworld.aleo`}
           </button>
         </p>
         <p>
-          <button disabled={loading} onClick={deploy}>
-            {loading
-                ? `Deploying...check console for details...`
-                : `Deploy helloworld.aleo`}
-          </button>
+          Edit <code>src/App.jsx</code> and save to test HMR
+        </p>
+      </div>
+
+      {/* Advanced Section */}
+      <div className="card">
+        <h2>Advanced Actions</h2>
+        <p>
+          Deployment on Aleo requires certain prerequisites like Seeding your
+          wallet with credits and retrieving a fee record. Check README for more
+          details.
         </p>
         <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
+          <button disabled={deploying} onClick={deploy}>
+            {loading
+              ? `Deploying...check console for details...`
+              : `Deploy helloworld.aleo`}
+          </button>
         </p>
       </div>
       <p className="read-the-docs">
