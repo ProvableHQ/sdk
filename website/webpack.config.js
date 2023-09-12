@@ -43,7 +43,10 @@ const appConfig = {
     },
     plugins: [
         new CopyPlugin({
-            patterns: [{ from: "public", to: "public" }],
+            patterns: [
+                { from: "public", to: "public" },
+                { from: "_headers", to: "." },
+                { from: "_redirects", to: "." }],
         }),
         new HtmlWebpackPlugin({
             template: "./index.html",

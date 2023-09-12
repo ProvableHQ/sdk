@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
-import aleoLogo from "./assets/aleo.png";
+import aleoLogo from "./assets/aleo.svg";
 import "./App.css";
 import { useAleoWASM } from "./aleo-wasm-hook";
 
