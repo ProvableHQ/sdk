@@ -327,14 +327,21 @@ import { Account, AleoNetworkClient, NetworkRecordProvider, ProgramManager, KeyS
 
 // Create a key provider that will be used to find public proving & verifying keys for Aleo programs
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a record provider that will be used to find records and transaction data for Aleo programs
 const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+
+// Use existing account with funds
+const account = new Account({
+    privateKey: "user1PrivateKey",
+});
+
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager to talk to the Aleo network with the configured key and record providers
 const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+programManager.setAccount(account)
 
 // Define an Aleo program to deploy
 const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -347,6 +354,19 @@ const tx_id = await programManager.deploy(program, fee);
 
 // Verify the transaction was successful
 const transaction = await programManager.networkClient.getTransaction(tx_id);
+```
+
+The NetworkRecordProvider will attempt to scan the network for a fee record for the account provided. Doing a recent
+public transfer to the deploying account will ensure a record is found quickly, or you can provide a fee record manually
+by [scanning](https://developer.aleo.org/testnet/getting_started/deploy_execute/#scan) for a record and passing it as a
+string.
+
+```typescript
+// Set fee record manually
+const feeRecord = "{  owner: aleo1xxx...xxx.private,  microcredits: 2000000u64.private,  _nonce: 123...789group.public}";
+
+// Deploy the program to the Aleo network
+const tx_id = await programManager.deploy(program, fee, undefined, feeRecord);
 ```
 
 ### 2.8 React Example

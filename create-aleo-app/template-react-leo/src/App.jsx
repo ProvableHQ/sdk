@@ -24,6 +24,14 @@ function App() {
     alert(JSON.stringify(result));
   }
 
+  async function deploy() {
+    setLoading(true)
+    const result = await aleoWorker.deployProgram()
+    setLoading(false);
+
+    alert(JSON.stringify(result));
+  }
+
   return (
     <>
       <div>
@@ -51,6 +59,13 @@ function App() {
             {loading
               ? `Executing...check console for details...`
               : `Execute helloworld.aleo`}
+          </button>
+        </p>
+        <p>
+          <button disabled={loading} onClick={deploy}>
+            {loading
+                ? `Deploying...check console for details...`
+                : `Deploy helloworld.aleo`}
           </button>
         </p>
         <p>
