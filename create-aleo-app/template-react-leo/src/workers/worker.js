@@ -58,20 +58,16 @@ async function deployProgram(program) {
   programManager.setAccount(account);
 
   // Define a fee to pay to deploy the program
-  const fee = 1.8; // 1.8 Aleo credits
+  const fee = 1.9; // 1.9 Aleo credits
+
+  // Deploy the program to the Aleo network
+  const tx_id = await programManager.deploy(program, fee);
 
   // Optional: Pass in fee record manually to avoid long scan times
   // const feeRecord = "{  owner: aleo1xxx...xxx.private,  microcredits: 2000000u64.private,  _nonce: 123...789group.public}";
   // const tx_id = await programManager.deploy(program, fee, undefined, feeRecord);
 
-  program = "program hello_hello_brent.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-
-  // Deploy the program to the Aleo network
-  const tx_id = await programManager.deploy(program, fee);
-
-  // Verify the transaction was successful
-  const transaction = await programManager.networkClient.getTransaction(tx_id);
-  return {tx_id, transaction};
+  return tx_id;
 }
 
 const workerMethods = { localProgramExecution, getPrivateKey, deployProgram };
