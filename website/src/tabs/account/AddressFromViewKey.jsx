@@ -27,8 +27,7 @@ export const AddressFromViewKey = () => {
         return (
             <Card
                 title="Load Address from View Key"
-                style={{ width: "100%", borderRadius: "20px" }}
-                bordered={false}
+                style={{ width: "100%" }}
             >
                 <Form {...layout}>
                     <Form.Item label="View Key" colon={false}>
@@ -38,7 +37,6 @@ export const AddressFromViewKey = () => {
                             placeholder="View Key"
                             allowClear
                             onChange={onChange}
-                            style={{ borderRadius: "20px" }}
                         />
                     </Form.Item>
                 </Form>
@@ -53,7 +51,6 @@ export const AddressFromViewKey = () => {
                                 addonAfter={
                                     <CopyButton
                                         data={address()}
-                                        style={{ borderRadius: "20px" }}
                                     />
                                 }
                                 disabled

@@ -27,14 +27,13 @@ export const GetLatestBlock = () => {
     return (
         <Card
             title="Get Latest Block"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%" }}
         >
             <Row justify="center">
                 <Col>
                     <Button
                         type="primary"
-                        shape="round"
+                        
                         size="middle"
                         onClick={tryRequest}
                     >

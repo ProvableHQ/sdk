@@ -130,8 +130,7 @@ export const Split = () => {
     return (
         <Card
             title="Split Record"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%"}}
         >
             <Form {...layout}>
                 <Form.Item
@@ -190,7 +189,7 @@ export const Split = () => {
                     <Col justify="center">
                         <Button
                             type="primary"
-                            shape="round"
+                            
                             size="middle"
                             onClick={split}
                         >

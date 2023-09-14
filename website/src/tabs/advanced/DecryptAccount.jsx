@@ -62,8 +62,7 @@ export const DecryptAccount = () => {
         return (
             <Card
                 title="Decrypt Account Ciphertext with Password"
-                style={{ width: "100%", borderRadius: "20px" }}
-                bordered={false}
+                style={{ width: "100%" }}
             >
                 <Form {...layout}>
                     <Form.Item label="Private Key Ciphertext" colon={false}>
@@ -73,7 +72,6 @@ export const DecryptAccount = () => {
                             placeholder="Private Key Ciphertext"
                             allowClear
                             onChange={onCiphertextChange}
-                            style={{ borderRadius: "20px" }}
                         />
                     </Form.Item>
                     <Form.Item
@@ -87,7 +85,6 @@ export const DecryptAccount = () => {
                             size="large"
                             placeholder="Password"
                             onChange={onPasswordChange}
-                            style={{ borderRadius: "20px" }}
                         />
                     </Form.Item>
                 </Form>
@@ -102,7 +99,6 @@ export const DecryptAccount = () => {
                                 addonAfter={
                                     <CopyButton
                                         data={privateKey()}
-                                        style={{ borderRadius: "20px" }}
                                     />
                                 }
                                 disabled
@@ -116,7 +112,6 @@ export const DecryptAccount = () => {
                                 addonAfter={
                                     <CopyButton
                                         data={viewKey()}
-                                        style={{ borderRadius: "20px" }}
                                     />
                                 }
                                 disabled
@@ -130,7 +125,6 @@ export const DecryptAccount = () => {
                                 addonAfter={
                                     <CopyButton
                                         data={address()}
-                                        style={{ borderRadius: "20px" }}
                                     />
                                 }
                                 disabled

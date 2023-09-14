@@ -49,8 +49,7 @@ export const GetBlockByHeight = () => {
     return (
         <Card
             title="Get Block By Height"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%" }}
         >
             <Form {...layout}>
                 <Form.Item
@@ -64,7 +63,6 @@ export const GetBlockByHeight = () => {
                         placeholder="Block Height"
                         allowClear
                         onSearch={onSearch}
-                        style={{ borderRadius: "20px" }}
                     />
                 </Form.Item>
             </Form>

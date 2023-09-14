@@ -33,8 +33,7 @@ export const AccountFromPrivateKey = () => {
         return (
             <Card
                 title="Load Account from Private Key"
-                style={{ width: "100%", borderRadius: "20px" }}
-                bordered={false}
+                style={{ width: "100%" }}
             >
                 <Form {...layout}>
                     <Form.Item label="Private Key" colon={false}>
@@ -44,7 +43,6 @@ export const AccountFromPrivateKey = () => {
                             placeholder="Private Key"
                             allowClear
                             onChange={onChange}
-                            style={{ borderRadius: "20px" }}
                         />
                     </Form.Item>
                 </Form>
@@ -59,7 +57,6 @@ export const AccountFromPrivateKey = () => {
                                 addonAfter={
                                     <CopyButton
                                         data={viewKey()}
-                                        style={{ borderRadius: "20px" }}
                                     />
                                 }
                                 disabled
@@ -73,7 +70,6 @@ export const AccountFromPrivateKey = () => {
                                 addonAfter={
                                     <CopyButton
                                         data={address()}
-                                        style={{ borderRadius: "20px" }}
                                     />
                                 }
                                 disabled

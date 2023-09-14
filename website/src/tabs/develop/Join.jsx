@@ -153,8 +153,7 @@ export const Join = () => {
     return (
         <Card
             title="Join Records"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%" }}
         >
             <Form {...layout}>
                 <Form.Item
@@ -241,7 +240,7 @@ export const Join = () => {
                     <Col justify="center">
                         <Button
                             type="primary"
-                            shape="round"
+                            
                             size="middle"
                             onClick={join}
                         >
