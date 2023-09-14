@@ -83,7 +83,7 @@ function Main() {
                         <img
                             src={
                                 darkMode
-                                    ? "../public/aleosdk.svg"
+                                    ? "../public/aleosdklight.svg"
                                     : "../public/aleosdkdark.svg"
                             }
                             alt="Aleo SDK Logo"
