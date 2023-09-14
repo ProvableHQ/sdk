@@ -60,12 +60,11 @@ export const GetProgram = () => {
     return (
         <Card
             title="Get Program"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%" }}
             extra={
                 <Button
                     type="primary"
-                    shape="round"
+                    
                     size="middle"
                     onClick={() => {
                         tryRequest("credits.aleo");
@@ -89,7 +88,6 @@ export const GetProgram = () => {
                         onSearch={onSearch}
                         onChange={onChange}
                         value={programIDString()}
-                        style={{ borderRadius: "20px" }}
                     />
                 </Form.Item>
             </Form>

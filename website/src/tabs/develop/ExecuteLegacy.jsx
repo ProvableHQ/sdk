@@ -386,12 +386,11 @@ export const ExecuteLegacy = () => {
     return (
         <Card
             title="Execute Program"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%" }}
             extra={
                 <Button
                     type="primary"
-                    shape="round"
+                    
                     size="middle"
                     onClick={demo}
                 >
@@ -413,7 +412,6 @@ export const ExecuteLegacy = () => {
                         onSearch={onSearch}
                         onChange={onChange}
                         value={programIDString()}
-                        style={{ borderRadius: "20px" }}
                     />
                 </Form.Item>
             </Form>
@@ -546,7 +544,7 @@ export const ExecuteLegacy = () => {
                         <Space>
                             <Button
                                 type="primary"
-                                shape="round"
+                                
                                 size="middle"
                                 onClick={execute}
                             >
@@ -556,7 +554,7 @@ export const ExecuteLegacy = () => {
                             {executeOnline && (
                                 <Button
                                     type="primary"
-                                    shape="round"
+                                    
                                     size="middle"
                                     onClick={estimate}
                                 >

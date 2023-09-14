@@ -83,12 +83,11 @@ export const DecryptRecord = () => {
         return (
             <Card
                 title="Decrypt Record"
-                style={{ width: "100%", borderRadius: "20px" }}
-                bordered={false}
+                style={{ width: "100%" }}
                 extra={
                     <Button
                         type="primary"
-                        shape="round"
+                        
                         size="middle"
                         onClick={populateForm}
                     >
@@ -105,7 +104,6 @@ export const DecryptRecord = () => {
                             allowClear
                             onChange={onCiphertextChange}
                             value={recordCipherTextString()}
-                            style={{ borderRadius: "20px" }}
                         />
                     </Form.Item>
                     <Form.Item label="View Key" colon={false}>
@@ -116,7 +114,6 @@ export const DecryptRecord = () => {
                             allowClear
                             onChange={onViewKeyChange}
                             value={viewKeyString()}
-                            style={{ borderRadius: "20px" }}
                         />
                     </Form.Item>
                 </Form>
@@ -124,7 +121,7 @@ export const DecryptRecord = () => {
                     <Row justify="center">
                         <Col>
                             <Button
-                                shape="round"
+                                
                                 size="middle"
                                 onClick={clearForm}
                             >

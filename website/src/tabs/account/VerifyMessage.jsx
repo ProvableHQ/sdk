@@ -67,8 +67,7 @@ export const VerifyMessage = () => {
         return (
             <Card
                 title="Verify a Message"
-                style={{ width: "100%", borderRadius: "20px" }}
-                bordered={false}
+                style={{ width: "100%"}}
             >
                 <Form {...layout}>
                     <Form.Item label="Address" colon={false}>
@@ -78,7 +77,6 @@ export const VerifyMessage = () => {
                             placeholder="Address"
                             allowClear
                             onChange={onAddressChange}
-                            style={{ borderRadius: "20px" }}
                         />
                     </Form.Item>
                     <Form.Item label="Message" colon={false}>
@@ -87,7 +85,6 @@ export const VerifyMessage = () => {
                             size="large"
                             placeholder="Message"
                             value={messageString()}
-                            style={{ borderRadius: "20px" }}
                             onChange={onMessageChange}
                         />
                     </Form.Item>
@@ -102,7 +99,6 @@ export const VerifyMessage = () => {
                             size="large"
                             placeholder="Signature"
                             value={signatureString()}
-                            style={{ borderRadius: "20px" }}
                             onChange={onSignatureChange}
                         />
                     </Form.Item>

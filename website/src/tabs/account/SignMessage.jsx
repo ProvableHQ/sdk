@@ -44,8 +44,7 @@ export const SignMessage = () => {
         return (
             <Card
                 title="Sign a Message"
-                style={{ width: "100%", borderRadius: "20px" }}
-                bordered={false}
+                style={{ width: "100%" }}
             >
                 <Form {...layout}>
                     <Form.Item label="Private Key" colon={false}>
@@ -55,7 +54,6 @@ export const SignMessage = () => {
                             placeholder="Private Key"
                             allowClear
                             onChange={onKeyChange}
-                            style={{ borderRadius: "20px" }}
                         />
                     </Form.Item>
                     <Form.Item label="Message" colon={false}>
@@ -65,7 +63,6 @@ export const SignMessage = () => {
                             placeholder="Message"
                             value={messageString()}
                             allowClear={true}
-                            style={{ borderRadius: "20px" }}
                             onChange={onMessageChange}
                         />
                     </Form.Item>

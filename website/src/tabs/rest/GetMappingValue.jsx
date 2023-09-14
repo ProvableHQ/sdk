@@ -88,12 +88,11 @@ export const GetMappingValue = () => {
     return (
         <Card
             title="Get Mapping Value"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%" }}
             extra={
                 <Button
                     type="primary"
-                    shape="round"
+                    
                     size="middle"
                     onClick={() => {
                         setDefaultRequest(
@@ -115,7 +114,6 @@ export const GetMappingValue = () => {
                         placeholder="Program ID"
                         value={programIDString()}
                         allowClear={true}
-                        style={{ borderRadius: "20px" }}
                         onChange={onProgramIDChange}
                     />
                 </Form.Item>
@@ -126,7 +124,6 @@ export const GetMappingValue = () => {
                         placeholder="Mapping Name"
                         value={mappingNameString()}
                         allowClear={true}
-                        style={{ borderRadius: "20px" }}
                         onChange={onMappingNameChange}
                     />
                 </Form.Item>
@@ -137,7 +134,6 @@ export const GetMappingValue = () => {
                         placeholder="Mapping Key"
                         value={mappingKeyString()}
                         allowClear={true}
-                        style={{ borderRadius: "20px" }}
                         onChange={onMappingKeyChange}
                     />
                 </Form.Item>
@@ -146,7 +142,7 @@ export const GetMappingValue = () => {
                 <Col>
                     <Button
                         type="primary"
-                        shape="round"
+                        
                         size="middle"
                         onClick={tryRequest}
                     >

@@ -217,8 +217,7 @@ export const Transfer = () => {
     return (
         <Card
             title="Transfer"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%"}}
             extra={
             <Dropdown menu={{ items, onClick }}>
                 <a onClick={(e) => e.preventDefault()}>
@@ -324,7 +323,7 @@ export const Transfer = () => {
                     <Col justify="center">
                         <Button
                             type="primary"
-                            shape="round"
+                            
                             size="middle"
                             onClick={transfer}
                         >

@@ -27,14 +27,13 @@ export const GetLatestBlockHeight = () => {
     return (
         <Card
             title="Get Latest Block Height"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%" }}
         >
             <Row justify="center">
                 <Col>
                     <Button
                         type="primary"
-                        shape="round"
+                        
                         size="middle"
                         onClick={tryRequest}
                     >
@@ -54,7 +53,6 @@ export const GetLatestBlockHeight = () => {
                             addonAfter={
                                 <CopyButton
                                     data={latestHeightString()}
-                                    style={{ borderRadius: "20px" }}
                                 />
                             }
                             disabled

@@ -47,8 +47,7 @@ export const GetTransaction = () => {
     return (
         <Card
             title="Get Transaction"
-            style={{ width: "100%", borderRadius: "20px" }}
-            bordered={false}
+            style={{ width: "100%" }}
         >
             <Form {...layout}>
                 <Form.Item
@@ -62,7 +61,6 @@ export const GetTransaction = () => {
                         placeholder="Transaction ID"
                         allowClear
                         onSearch={onSearch}
-                        style={{ borderRadius: "20px" }}
                     />
                 </Form.Item>
             </Form>
