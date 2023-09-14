@@ -1,14 +1,6 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import {
-    App,
-    ConfigProvider,
-    Layout,
-    Menu,
-    Switch,
-    theme,
-    Typography
-} from "antd";
+import { App, ConfigProvider, Layout, Menu, Switch, theme } from "antd";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import {
@@ -17,7 +9,7 @@ import {
     ProfileOutlined,
     SwapOutlined,
     ToolOutlined,
-    UserOutlined
+    UserOutlined,
 } from "@ant-design/icons";
 import { WasmLoadingMessage } from "./components/WasmLoadingMessage.jsx";
 
@@ -85,20 +77,23 @@ function Main() {
             }}
         >
             <App>
-                <WasmLoadingMessage/>
+                <WasmLoadingMessage />
                 <Layout style={{ minHeight: "100vh" }}>
                     <Sider breakpoint="lg" collapsedWidth="0" theme="light">
-                        <Typography.Title
-                            level={4}
+                        <img
+                            src={
+                                darkMode
+                                    ? "../public/aleosdk.svg"
+                                    : "../public/aleosdkdark.svg"
+                            }
                             alt="Aleo SDK Logo"
                             style={{
+                                height: "32px",
                                 margin: "16px",
                                 fontWeight: "bold",
                                 whiteSpace: "nowrap",
                             }}
-                        >
-                            Aleo SDK
-                        </Typography.Title>
+                        />
                         <Menu
                             theme="light"
                             mode="inline"
