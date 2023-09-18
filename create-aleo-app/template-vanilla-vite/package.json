@@ -8,7 +8,11 @@
     "build": "vite build",
     "preview": "vite preview"
   },
+  "peerDependencies": {
+    "tslib": "^2.6.1"
+  },
   "devDependencies": {
+    "@aleohq/sdk": "^0.5.10",
     "vite": "^4.4.5"
   }
 }

@@ -1,7 +1,22 @@
 import './style.css'
 import javascriptLogo from './javascript.svg'
 import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+
+const worker = new Worker("worker.js", {
+    type: "module",
+});
+
+worker.onmessage = function(e) {
+    console.log(e.data)
+}
+
+window.execute = () => {
+    worker.postMessage("execute");
+}
+
+window.key = () => {
+    worker.postMessage("key");
+}
 
 document.querySelector('#app').innerHTML = `
   <div>
@@ -13,12 +28,11 @@ document.querySelector('#app').innerHTML = `
     </a>
     <h1>Hello Vite!</h1>
     <div class="card">
-      <button id="counter" type="button"></button>
+      <button onclick="window.execute()">Call Execute Function</button>
+      <button onclick="window.key()">Get Private Key</button>
     </div>
     <p class="read-the-docs">
       Click on the Vite logo to learn more
     </p>
   </div>
 `
-
-setupCounter(document.querySelector('#counter'))
