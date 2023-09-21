@@ -121,6 +121,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Hamzakh777"><img src="https://avatars.githubusercontent.com/u/40059557?v=4?s=100" width="100px;" alt="Hamza Khchichine"/><br /><sub><b>Hamza Khchichine</b></sub></a><br /><a href="https://github.com/AleoHQ/sdk/commits?author=Hamzakh777" title="Code">💻</a></td>
     </tr>
     <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/KendrickDrews"><img src="https://avatars.githubusercontent.com/u/15710081?v=4s=100" width="100px;" alt="Kendrick"/><br /><sub><b>Kendrick</b></sub></a><br /><a href="https://github.com/AleoHQ/sdk/commits?author=KendrickDrews" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/features/security"><img src="https://avatars.githubusercontent.com/u/27347476?v=4?s=100" width="100px;" alt="Dependabot"/><br /><sub><b>Dependabot</b></sub></a><br /><a href="https://github.com/AleoHQ/sdk/commits?author=dependabot" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://allcontributors.org/"><img src="https://avatars.githubusercontent.com/u/46410174?v=4?s=100" width="100px;" alt="All Contributors"/><br /><sub><b>All Contributors</b></sub></a><br /><a href="https://github.com/AleoHQ/sdk/commits?author=all-contributors" title="Documentation">📖</a></td>
     </tr>
