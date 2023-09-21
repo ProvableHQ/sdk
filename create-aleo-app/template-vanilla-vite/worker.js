@@ -1,4 +1,10 @@
-import {Account, initializeWasm, initThreadPool, PrivateKey, ProgramManager,} from "@aleohq/sdk";
+import {
+    Account,
+    initializeWasm,
+    initThreadPool,
+    PrivateKey,
+    ProgramManager,
+} from "@aleohq/sdk";
 
 await initializeWasm();
 await initThreadPool(10);
@@ -34,10 +40,10 @@ function getPrivateKey() {
 
 onmessage = async function (e) {
     if (e.data === "execute") {
-        const result = await localProgramExecution()
+        const result = await localProgramExecution();
         postMessage(result);
-    } else if(e.data === "key") {
+    } else if (e.data === "key") {
         const result = getPrivateKey();
         postMessage(result);
     }
-}
+};

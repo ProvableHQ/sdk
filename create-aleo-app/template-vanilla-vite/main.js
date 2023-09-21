@@ -1,26 +1,26 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import aleoLogo from '/aleo.svg'
-import viteLogo from '/vite.svg'
+import "./style.css";
+import javascriptLogo from "./javascript.svg";
+import aleoLogo from "/aleo.svg";
+import viteLogo from "/vite.svg";
 
 const worker = new Worker("worker.js", {
     type: "module",
 });
 
-worker.onmessage = function(e) {
-    console.log(e.data)
-    alert(e.data)
-}
+worker.onmessage = function (e) {
+    console.log(e.data);
+    alert(e.data);
+};
 
 window.execute = () => {
     worker.postMessage("execute");
-}
+};
 
 window.key = () => {
     worker.postMessage("key");
-}
+};
 
-document.querySelector('#app').innerHTML = `
+document.querySelector("#app").innerHTML = `
   <div>
     <a href="https://vitejs.dev" target="_blank">
       <img src="${viteLogo}" class="logo" alt="Vite logo" />
@@ -40,4 +40,4 @@ document.querySelector('#app').innerHTML = `
       Click on the Aleo logo to learn more
     </p>
   </div>
-`
+`;
