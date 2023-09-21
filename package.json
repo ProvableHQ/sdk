@@ -1,0 +1,11 @@
+{
+  "name": "root",
+  "version": "0.0.0",
+  "scripts": {
+    "lint": "prettier . --check",
+    "pretty": "prettier . --write"
+  },
+  "devDependencies": {
+    "prettier": "3.0.3"
+  }
+}
