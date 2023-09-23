@@ -220,7 +220,7 @@ export const Deploy = () => {
                     size="middle"
                     onClick={demo}
                 >
-                    Demo
+                    Insert Demo Program
                 </Button>
             }
         >
@@ -231,6 +231,7 @@ export const Deploy = () => {
                     <Form.Item
                         label="Program"
                         name="program"
+                        tooltip={"This must be an Aleo Instructions program."}
                         rules={[
                             {
                                 required: true,
@@ -282,6 +283,12 @@ export const Deploy = () => {
                 <Form.Item
                     label="Fee Record"
                     colon={false}
+                    tooltip={`This is the record you will use to pay your tx fee and must be in plaintext format. Record plaintext can be obtained by decrypting an unspent record.
+                          Ie: {
+                          owner: aleo1j7...,
+                          microcredits: 15000...,
+                         _nonce: 30774...
+                        }`}
                     validateStatus={status}
                 >
                     <Input.TextArea
