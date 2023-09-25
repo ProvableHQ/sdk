@@ -283,12 +283,9 @@ export const Deploy = () => {
                 <Form.Item
                     label="Fee Record"
                     colon={false}
-                    tooltip={`This is the record you will use to pay your tx fee and must be in plaintext format. Record plaintext can be obtained by decrypting an unspent record.
-                          Ie: {
-                          owner: aleo1j7...,
-                          microcredits: 15000...,
-                         _nonce: 30774...
-                        }`}
+                    tooltip={`Use this plaintext record to pay your tx fee,
+                     e.g., { owner: aleo1j7..., microcredits: 15000..., _nonce: 30774... }.
+                      Obtain it by decrypting an unspent record in the 'Record' tab.`}
                     validateStatus={status}
                 >
                     <Input.TextArea
