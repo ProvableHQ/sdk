@@ -313,6 +313,13 @@ impl Program {
         }
 
         Reflect::set(&input, &"members".into(), &record_members).map_err(|_| "Failed to set property")?;
+
+        // Adding _nonce object to record
+        let _nonce = Object::new();
+        Reflect::set(&_nonce, &"name".into(), &"_nonce".into()).map_err(|_| "Failed to set property")?;
+        Reflect::set(&_nonce, &"type".into(), &"group".into()).map_err(|_| "Failed to set property")?;
+        Reflect::set(&_nonce, &"visibility".into(), &"public".into()).map_err(|_| "Failed to set property")?;
+
         Ok(input)
     }
 
