@@ -320,6 +320,8 @@ impl Program {
         Reflect::set(&_nonce, &"type".into(), &"group".into()).map_err(|_| "Failed to set property")?;
         Reflect::set(&_nonce, &"visibility".into(), &"public".into()).map_err(|_| "Failed to set property")?;
 
+        Reflect::set(&input, &"_nonce".into(), &_nonce).map_err(|_| "Failed to set property")?;
+
         Ok(input)
     }
 
