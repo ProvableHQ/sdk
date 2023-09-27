@@ -683,12 +683,12 @@ function add_and_double:
     fn test_get_inputs() {
         let credits = Program::from(ProgramNative::credits().unwrap());
         let inputs = credits.get_function_inputs("transfer_private".to_string()).unwrap();
-        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"record","record":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"}],"register":"r0"}), Object({"type":"address","visibility":"private","register":"r1"}), Object({"type":"u64","visibility":"private","register":"r2"})]) } }"#.to_string();
+        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"record","record":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"}],"_nonce":{"name":"_nonce","type":"group","visibility":"public"},"register":"r0"}), Object({"type":"address","visibility":"private","register":"r1"}), Object({"type":"u64","visibility":"private","register":"r2"})]) } }"#.to_string();
         assert_eq!(format!("{:?}", inputs), expected);
 
         let token_issue = Program::from_string(TOKEN_ISSUE).unwrap();
         let inputs = token_issue.get_function_inputs("bump_token_version".to_string()).unwrap();
-        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"address","visibility":"private","register":"r0"}), Object({"type":"record","record":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"name":"token_data","type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"}],"register":"r1"}), Object({"type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private","register":"r2"})]) } }"#;
+        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"address","visibility":"private","register":"r0"}), Object({"type":"record","record":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"name":"token_data","type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"}],"_nonce":{"name":"_nonce","type":"group","visibility":"public"},"register":"r1"}), Object({"type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private","register":"r2"})]) } }"#;
         assert_eq!(format!("{:?}", inputs), expected);
     }
 
@@ -696,12 +696,12 @@ function add_and_double:
     fn test_get_record() {
         let credits = Program::from(ProgramNative::credits().unwrap());
         let members = credits.get_record_members("credits".to_string()).unwrap();
-        let expected = r#"Object { obj: JsValue(Object({"type":"record","record":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"}]})) }"#.to_string();
+        let expected = r#"Object { obj: JsValue(Object({"type":"record","record":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"}],"_nonce":{"name":"_nonce","type":"group","visibility":"public"}})) }"#.to_string();
         assert_eq!(format!("{:?}", members), expected);
 
         let token_issue = Program::from_string(TOKEN_ISSUE).unwrap();
         let members = token_issue.get_record_members("Token".to_string()).unwrap();
-        let expected = r#"Object { obj: JsValue(Object({"type":"record","record":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"name":"token_data","type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"}]})) }"#;
+        let expected = r#"Object { obj: JsValue(Object({"type":"record","record":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"name":"token_data","type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"}],"_nonce":{"name":"_nonce","type":"group","visibility":"public"}})) }"#;
         assert_eq!(format!("{:?}", members), expected);
     }
 
