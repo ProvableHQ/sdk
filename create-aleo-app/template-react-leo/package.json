@@ -8,7 +8,8 @@
     "build": "webpack --config webpack.config.js",
     "build:vite": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "install-leo": "./install.sh"
   },
   "dependencies": {
     "@aleohq/sdk": "^0.5.10",
