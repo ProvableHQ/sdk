@@ -121,6 +121,49 @@ import {
     RecordSearchParams,
 } from "./record-provider";
 
+import { initThreadPool as wasmInitThreadPool } from "@aleohq/wasm";
+
+
+// @TODO: This function is no longer needed, remove it.
+async function initializeWasm() {
+    console.warn("initializeWasm is deprecated, you no longer need to use it");
+}
+
+/**
+ * Initializes a thread pool of Workers. This enables multi-threading, which significantly improves performance.
+ */
+async function initThreadPool(threads: number) {
+    await wasmInitThreadPool(new URL("thread.js", import.meta.url), threads);
+}
+
+
+export { createAleoWorker } from "./managed-worker";
+
+export { ProgramManager } from "./program-manager";
+
+export {
+    PrivateKey,
+    ViewKey,
+    Address,
+    Private,
+    PrivateKeyCiphertext,
+    RecordCiphertext,
+    Signature,
+    ProvingKey,
+    VerifyingKey,
+    Program,
+    RecordPlaintext,
+    Transaction as WasmTransaction,
+    ExecutionResponse,
+    ProgramManager as ProgramManagerBase,
+    verifyFunctionExecution,
+} from "@aleohq/wasm";
+
+export {
+    initializeWasm,
+    initThreadPool,
+};
+
 export {
     Account,
     AleoKeyProvider,
@@ -151,9 +194,3 @@ export {
     VALID_TRANSFER_TYPES,
     logAndThrow,
 };
-
-// If using the SDK in a browser context, uncomment this line and run `npm run build:browser`
-// export * from './browser';
-
-// The following imports and exports are for a NodeJS context - if using the SDK in a browser context, delete or comment out this line
-export * from './node';
