@@ -1,6 +1,6 @@
 {
   "name": "@aleohq/wasm",
-  "version": "1.0.0",
+  "version": "0.6.0",
   "description": "Wasm build for the SDK",
   "collaborators": [
     "The Aleo Team <hello@aleo.org>"
@@ -20,7 +20,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "rimraf dist && rollup -c rollup.config.js && cpr js/types dist"
+    "build": "rimraf dist && rollup -c rollup.config.js && cpr js/types dist",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
