@@ -130,9 +130,3 @@ lto = true
 opt-level = 3
 lto = "thin"
 incremental = true
-
-[package.metadata.wasm-pack.profile.debug]
-wasm-opt = ["-O3"]
-
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-O3"]
