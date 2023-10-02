@@ -16,7 +16,7 @@
 
 #[macro_export]
 macro_rules! execute_program {
-    ($process: expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $proving_key:expr, $verifying_key:expr) => {{
+    ($process: expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $proving_key:expr, $verifying_key:expr, $rng:expr) => {{
         if (($proving_key.is_some() && $verifying_key.is_none())
             || ($proving_key.is_none() && $verifying_key.is_some()))
         {
@@ -77,7 +77,7 @@ macro_rules! execute_program {
                 program.id(),
                 function_name,
                 inputs_native.iter(),
-                &mut StdRng::from_entropy(),
+                $rng,
             )
             .map_err(|err| err.to_string())?;
 
@@ -92,7 +92,7 @@ macro_rules! execute_program {
 
 #[macro_export]
 macro_rules! execute_fee {
-    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr) => {{
+    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr) => {{
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
@@ -119,16 +119,26 @@ macro_rules! execute_fee {
             }
         };
 
-        log("Executing fee program");
-        let fee_record_native = RecordPlaintextNative::from_str(&$fee_record.to_string()).unwrap();
-        let (_, _, mut trace) = $process
-            .execute_fee::<CurrentAleo, _>(
-                &$private_key,
-                fee_record_native,
-                $fee_microcredits,
-                $execution_id,
-                &mut StdRng::from_entropy(),
-            )
+        log("Authorizing Fee");
+        let fee_authorization = match $fee_record {
+            Some(fee_record) => {
+                let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string()).unwrap();
+                $process.authorize_fee_private(
+                    $private_key,
+                    fee_record_native,
+                    $fee_microcredits,
+                    $execution_id,
+                    $rng,
+                ).map_err(|e| e.to_string())?
+            }
+            None => {
+                $process.authorize_fee_public($private_key, $fee_microcredits, $execution_id, $rng).map_err(|e| e.to_string())?
+            }
+        };
+
+        log("Executing fee");
+        let (_, mut trace) = $process
+            .execute::<CurrentAleo>(fee_authorization)
             .map_err(|err| err.to_string())?;
 
         let query = QueryNative::from(&$submission_url);

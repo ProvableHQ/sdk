@@ -66,7 +66,7 @@ impl ProgramManager {
         private_key: PrivateKey,
         program: String,
         fee_credits: f64,
-        fee_record: RecordPlaintext,
+        fee_record: Option<RecordPlaintext>,
         url: String,
         cache: bool,
         imports: Option<Object>,
@@ -75,10 +75,10 @@ impl ProgramManager {
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
         // Convert fee to microcredits and check that the fee record has enough credits to pay it
-        let fee_microcredits = Self::validate_amount(fee_credits, &fee_record, true)?;
-        if fee_record.microcredits() < fee_microcredits {
-            return Err("Fee record does not have enough credits to pay the specified fee".to_string());
-        }
+        let fee_microcredits = match &fee_record {
+            Some(fee_record) => Self::validate_amount(fee_credits, &fee_record, true)?,
+            None => (fee_credits as u64) * 1_000_000,
+        };
 
         let mut new_process;
         let process = get_process!(self, cache, new_process);
@@ -88,10 +88,10 @@ impl ProgramManager {
 
         log("Checking program imports are valid and add them to the process");
         ProgramManager::resolve_imports(process, &program, imports)?;
+        let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
-        let deployment =
-            process.deploy::<CurrentAleo, _>(&program, &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
+        let deployment = process.deploy::<CurrentAleo, _>(&program, rng).map_err(|err| err.to_string())?;
         if deployment.program().functions().is_empty() {
             return Err("Attempted to create an empty transaction deployment".to_string());
         }
@@ -110,13 +110,14 @@ impl ProgramManager {
 
         let fee = execute_fee!(
             process,
-            private_key,
+            &private_key,
             fee_record,
             fee_microcredits,
             url,
             fee_proving_key,
             fee_verifying_key,
-            deployment_id
+            deployment_id,
+            rng
         );
 
         // Create the program owner

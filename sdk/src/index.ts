@@ -89,7 +89,6 @@ import { Input } from "./models/input";
 import { Output } from "./models/output";
 import { Transaction } from "./models/transaction";
 import { Transition } from "./models/transition";
-import { DevServerClient } from "./dev-server-client";
 import {
     AleoKeyProvider,
     AleoKeyProviderParams,
@@ -113,7 +112,6 @@ export {
     AleoNetworkClient,
     Block,
     BlockHeightSearch,
-    DevServerClient,
     Execution,
     FunctionKeyPair,
     FunctionKeyProvider,

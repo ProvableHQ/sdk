@@ -108,13 +108,13 @@ mod tests {
     use super::*;
     use wasm_bindgen_test::*;
 
-    const FEE_VERIFIER_URL: &str = "https://testnet3.parameters.aleo.org/fee.verifier.2de311b";
+    const JOIN_VERIFYING_KEY_STRING: &str = "verifier1qygqqqqqqqqqqqqqeuqqqqqqqqqz3ncqqqqqqqqqgvkqzqqqqqqqq590qyqqqqqqqzwn5qgqqqqqqqqvqqqqqqqqqqqpkgztrguz0x8mpfjhsnmqqsnwl764jw73ll0nxcg7pzt59lpd7zsjlmrprw3w6r7npmx4ck4kz3qq7mslfg4rhc9anmgza3dvms2qjhz0hatprzdgmsk3usxkttpep7wej007nzrhzzdmcca2603z4f4cp80q7drqtqw3quvqu5z4nnzspqca272csmxknz9mlwu4u6f9u2zha5rwjgv2hp0l8dlc7aa32dggq9afa5hkqmwnptqmhavy050nf48ndcl6vmjlm95c582wqyws2z5fckxsw6stcxdxxhj7v26padsumqpk58n2f6fejx3k80j2shqa642hulj3sx08ywtxg506n8dnm6nu2ltp4z5apf6wtam9kzaadackjjq6vnahqmqlkuncyslzeml246ajhy5yldyc20p9pf84gn6zdwlq79azygr4fwtvra632w333kh2e3sq4hwtk967gz8zxtsgph0nlncfhqz6wmt5cccd64qwpezp2yuglkrp7jmk4ggkefa5aw09lvhe646gpt0lkjn984uqg6r46a8q3u9vcezmtnq090xkgq0euqtkjrgjks6cxqz9hqw339k8jzepd9nxlhu7sqtv0n0uvz8p3e8wxc784jsvpf4dp92kndr2e6n9p85q8ty4z93l0fn4k7wv6neqkj9y6drya0284qv98y4lthmredwtdlm7p2489etmf473zehyhgpgmu094h97dcyzj22uzwvvayxfjlrv4qlnag2zgcqlma4j7cte6uhsfc98kf54jneuqktsmsacz7gftk9s0cunkevaamkcrt0e086j9lf9vd8eqvkn6esqfsfpjxk4lq94a5mqxgg0eazejt2wtda86l7hj2zxn9k5cy65jp6e97yp8ahakzf6vm0z53te7x9srqeupscxgx8vxla4rqse8srw9ypv3h4q902szlneeuuh4rm46rjnltvt9k";
 
     #[wasm_bindgen_test]
     async fn test_verifying_key_roundtrip() {
-        let fee_verifying_key_bytes = reqwest::get(FEE_VERIFIER_URL).await.unwrap().bytes().await.unwrap().to_vec();
-        let fee_verifying_key = VerifyingKey::from_bytes(&fee_verifying_key_bytes).unwrap();
-        let bytes = fee_verifying_key.to_bytes().unwrap();
-        assert_eq!(bytes, fee_verifying_key_bytes);
+        let join_verifier_bytes = snarkvm_parameters::testnet3::JoinVerifier::load_bytes().unwrap();
+        let join_verifier = VerifyingKey::from_bytes(&join_verifier_bytes).unwrap();
+        let join_key_string = join_verifier.to_string();
+        assert_eq!(join_key_string, JOIN_VERIFYING_KEY_STRING);
     }
 }
