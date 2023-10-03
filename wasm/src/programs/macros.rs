@@ -104,7 +104,11 @@ macro_rules! execute_fee {
 
         if let Some(fee_proving_key) = $fee_proving_key {
             let credits = ProgramIDNative::from_str("credits.aleo").unwrap();
-            let fee = IdentifierNative::from_str("fee").unwrap();
+            let fee = if $fee_record.is_some() {
+                IdentifierNative::from_str("fee_private").unwrap()
+            } else {
+                IdentifierNative::from_str("fee_public").unwrap()
+            };
             if Self::contains_key($process, &credits, &fee) {
                 log("Fee proving & verifying keys were specified but a key already exists in the cache. Using cached keys");
             } else {
