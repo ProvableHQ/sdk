@@ -63,7 +63,7 @@ export const Execute = () => {
                 inputs,
                 private_key,
                 fee,
-                privateFee,
+                private_fee,
                 fee_record,
                 peer_url,
                 execute_onchain,
@@ -77,7 +77,7 @@ export const Execute = () => {
                     inputs: JSON.parse(inputs),
                     privateKey: private_key,
                     fee: fee,
-                    privateFee: privateFee,
+                    privateFee: private_fee,
                     feeRecord: fee_record,
                     url: peer_url,
                 });
