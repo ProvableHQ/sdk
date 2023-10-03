@@ -89,6 +89,7 @@ export const Transfer = () => {
             recipient: recipientString(),
             amountRecord: amountRecord,
             fee: feeAmount,
+            privateFee: privateFee,
             feeRecord: feeRecordString(),
             url: peerUrl(),
         });

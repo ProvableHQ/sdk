@@ -67,6 +67,7 @@ export const Join = () => {
             recordOne: recordOneString(),
             recordTwo: recordTwoString(),
             fee: feeAmount,
+            privateFee: privateFee,
             feeRecord: feeRecordString(),
             privateKey: privateKeyString(),
             url: peerUrl(),
