@@ -11,10 +11,9 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "files": [
-    "src",
+    "dist",
     "LICENSE",
-    "README.md",
-    "tsconfig.json"
+    "README.md"
   ],
   "scripts": {
     "build": "rollup -c rollup.config.node.js",
