@@ -173,6 +173,15 @@ impl Program {
                     Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
                     function_inputs.set(index as u32, input.into());
                 }
+                ValueType::Future(locator) => {
+                    let input = Object::new();
+                    let value_type = JsValue::from_str("future");
+                    Reflect::set(&input, &"type".into(), &value_type).map_err(|_| "Failed to set property")?;
+                    Reflect::set(&input, &"locator".into(), &locator.to_string().into())
+                        .map_err(|_| "Failed to set property")?;
+                    Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
+                    function_inputs.set(index as u32, input.into());
+                }
             }
         }
         Ok(function_inputs)
@@ -204,11 +213,7 @@ impl Program {
             let mapping_object = Object::new();
             Reflect::set(&mapping_object, &"name".into(), &name.to_string().into())
                 .map_err(|_| "Failed to set property")?;
-            Reflect::set(&mapping_object, &"key_name".into(), &mapping.key().name().to_string().into())
-                .map_err(|_| "Failed to set property")?;
             Reflect::set(&mapping_object, &"key_type".into(), &mapping.key().plaintext_type().to_string().into())
-                .map_err(|_| "Failed to set property")?;
-            Reflect::set(&mapping_object, &"value_name".into(), &mapping.value().name().to_string().into())
                 .map_err(|_| "Failed to set property")?;
             Reflect::set(&mapping_object, &"value_type".into(), &mapping.value().plaintext_type().to_string().into())
                 .map_err(|_| "Failed to set property")?;
@@ -228,6 +233,18 @@ impl Program {
     ) -> Result<Object, String> {
         let input = Object::new();
         match plaintext {
+            PlaintextType::Array(array_type) => {
+                if let Some(name) = name {
+                    Reflect::set(&input, &"name".into(), &name.into()).map_err(|_| "Failed to set property")?;
+                }
+                Reflect::set(&input, &"type".into(), &"array".into()).map_err(|_| "Failed to set property")?;
+
+                // Set the element types of the Array and record the length
+                let element_type = self.get_plaintext_input(array_type.base_element_type(), None, None)?;
+                let length = **array_type.length();
+                Reflect::set(&input, &"element_type".into(), &element_type).map_err(|_| "Failed to set property")?;
+                Reflect::set(&input, &"length".into(), &length.into()).map_err(|_| "Failed to set property")?;
+            }
             PlaintextType::Literal(literal_type) => {
                 if let Some(name) = name {
                     Reflect::set(&input, &"name".into(), &name.into()).map_err(|_| "Failed to set property")?;
@@ -508,63 +525,6 @@ function bump_token_version:
     cast r0 r1.microcredits r1.amount r2 into r3 as Token.record;
     output r3 as Token.record;"#;
 
-    const MAPPING_EXAMPLE: &str = r#"program mappings_example.aleo;
-
-mapping address_mapping:
-    key address_key as address.public;
-    value integer_value as u64.public;
-
-function address_mapping_update:
-    input r0 as u64.private;
-    finalize self.caller r0;
-
-finalize address_mapping_update:
-    input r0 as address.public;
-    input r1 as u64.public;
-    set r1 into address_mapping[r0];
-
-mapping integer_key_mapping:
-    key integer_key as u64.public;
-    value integer_value as u64.public;
-
-function integer_key_mapping_update:
-    input r0 as u64.public;
-    input r1 as u64.public;
-    finalize r0 r1;
-
-finalize integer_key_mapping_update:
-    input r0 as u64.public;
-    input r1 as u64.public;
-    set r1 into integer_key_mapping[r0];
-
-mapping field_mapping:
-    key field_key as field.public;
-    value integer_value as u64.public;
-
-function field_mapping_update:
-    input r0 as field.public;
-    input r1 as u64.public;
-    finalize r0 r1;
-
-finalize field_mapping_update:
-    input r0 as field.public;
-    input r1 as u64.public;
-    set r1 into field_mapping[r0];
-
-mapping signed_integer_mapping:
-    key signed_integer_key as i64.public;
-    value boolean_value as bool.public;
-
-function signed_integer_update:
-    input r0 as i64.public;
-    input r1 as bool.public;
-    finalize r0 r1;
-
-finalize signed_integer_update:
-    input r0 as i64.public;
-    input r1 as bool.public;
-    set r1 into signed_integer_mapping[r0];"#;
-
     pub const NESTED_IMPORT_PROGRAM: &str = r#"// The 'imported_add_mul.aleo' program uses a nested series of imports. It imports the 'double_test.aleo' program
 // which then imports the 'multiply_test.aleo' program and implicitly uses that to perform the doubling.
 import double_test.aleo;
@@ -583,67 +543,33 @@ function add_and_double:
     #[wasm_bindgen_test]
     fn test_mappings() {
         // Get the mappings from the program
-        let program = Program::from_string(MAPPING_EXAMPLE).unwrap();
+        let program = Program::get_credits_program();
         let mappings = program.get_mappings().unwrap();
 
         // Create the expected mappings
+        let account = Object::new();
         let array = Array::new();
-        let address_mapping_object = Object::new();
-        let integer_mapping_object = Object::new();
-        let field_mapping_object = Object::new();
-        let signed_integer_mapping_object = Object::new();
+        let bonded = Object::new();
+        let committee = Object::new();
+        let unbonding = Object::new();
 
-        Reflect::set(&address_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("address_mapping"))
-            .unwrap();
-        Reflect::set(&address_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("address_key"))
-            .unwrap();
-        Reflect::set(&address_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
-        Reflect::set(&address_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value"))
-            .unwrap();
-        Reflect::set(&address_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
+        Reflect::set(&account, &JsValue::from_str("name"), &JsValue::from_str("account")).unwrap();
+        Reflect::set(&account, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
+        Reflect::set(&account, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
+        Reflect::set(&bonded, &JsValue::from_str("name"), &JsValue::from_str("bonded")).unwrap();
+        Reflect::set(&bonded, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
+        Reflect::set(&bonded, &JsValue::from_str("value_type"), &JsValue::from_str("bond_state")).unwrap();
+        Reflect::set(&committee, &JsValue::from_str("name"), &JsValue::from_str("committee")).unwrap();
+        Reflect::set(&committee, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
+        Reflect::set(&committee, &JsValue::from_str("value_type"), &JsValue::from_str("committee_state")).unwrap();
+        Reflect::set(&unbonding, &JsValue::from_str("name"), &JsValue::from_str("unbonding")).unwrap();
+        Reflect::set(&unbonding, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
+        Reflect::set(&unbonding, &JsValue::from_str("value_type"), &JsValue::from_str("unbond_state")).unwrap();
 
-        Reflect::set(&integer_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("integer_key_mapping"))
-            .unwrap();
-        Reflect::set(&integer_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("integer_key"))
-            .unwrap();
-        Reflect::set(&integer_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("u64")).unwrap();
-        Reflect::set(&integer_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value"))
-            .unwrap();
-        Reflect::set(&integer_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
-
-        Reflect::set(&field_mapping_object, &JsValue::from_str("name"), &JsValue::from_str("field_mapping")).unwrap();
-        Reflect::set(&field_mapping_object, &JsValue::from_str("key_name"), &JsValue::from_str("field_key")).unwrap();
-        Reflect::set(&field_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("field")).unwrap();
-        Reflect::set(&field_mapping_object, &JsValue::from_str("value_name"), &JsValue::from_str("integer_value"))
-            .unwrap();
-        Reflect::set(&field_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
-
-        Reflect::set(
-            &signed_integer_mapping_object,
-            &JsValue::from_str("name"),
-            &JsValue::from_str("signed_integer_mapping"),
-        )
-        .unwrap();
-        Reflect::set(
-            &signed_integer_mapping_object,
-            &JsValue::from_str("key_name"),
-            &JsValue::from_str("signed_integer_key"),
-        )
-        .unwrap();
-        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("key_type"), &JsValue::from_str("i64"))
-            .unwrap();
-        Reflect::set(
-            &signed_integer_mapping_object,
-            &JsValue::from_str("value_name"),
-            &JsValue::from_str("boolean_value"),
-        )
-        .unwrap();
-        Reflect::set(&signed_integer_mapping_object, &JsValue::from_str("value_type"), &JsValue::from_str("bool"))
-            .unwrap();
-        array.push(&address_mapping_object);
-        array.push(&integer_mapping_object);
-        array.push(&field_mapping_object);
-        array.push(&signed_integer_mapping_object);
+        array.push(&committee);
+        array.push(&bonded);
+        array.push(&unbonding);
+        array.push(&account);
 
         // Assert that the mappings are equal
         assert_eq!(format!("{:?}", mappings.to_vec()), format!("{:?}", array.to_vec()));
@@ -657,26 +583,10 @@ function add_and_double:
 
     #[wasm_bindgen_test]
     fn test_get_functions() {
-        let program = Program::from(ProgramNative::credits().unwrap());
-        let mint = JsValue::from_str("mint");
-        let transfer_public = JsValue::from_str("transfer_public");
-        let transfer_private = JsValue::from_str("transfer_private");
-        let transfer_private_to_public = JsValue::from_str("transfer_private_to_public");
-        let transfer_public_to_private = JsValue::from_str("transfer_public_to_private");
-        let join = JsValue::from_str("join");
-        let split = JsValue::from_str("split");
-        let fee = JsValue::from_str("fee");
+        let program = Program::from_string(NESTED_IMPORT_PROGRAM).unwrap();
+        let add_and_double = JsValue::from_str("add_and_double");
 
-        assert_eq!(program.get_functions().to_vec(), vec![
-            mint,
-            transfer_public,
-            transfer_private,
-            transfer_private_to_public,
-            transfer_public_to_private,
-            join,
-            split,
-            fee
-        ]);
+        assert_eq!(program.get_functions().to_vec(), vec![add_and_double]);
     }
 
     #[wasm_bindgen_test]

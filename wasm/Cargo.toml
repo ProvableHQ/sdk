@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.5.9"
+version = "0.5.10"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"
@@ -22,28 +22,28 @@ crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
 [dependencies.snarkvm-circuit-network]
-version = "0.14.6"
+version = "0.15.0"
 
 [dependencies.snarkvm-console]
-version = "0.14.6"
+version = "0.15.0"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-ledger-block]
-version = "0.14.6"
+version = "0.15.0"
 
 [dependencies.snarkvm-ledger-query]
-version = "0.14.6"
+version = "0.15.0"
 features = [ "async" ]
 
 [dependencies.snarkvm-ledger-store]
-version = "0.14.6"
+version = "0.15.0"
 
 [dependencies.snarkvm-synthesizer]
-version = "0.14.6"
+version = "0.15.0"
 features = [ "async" ]
 
 [dependencies.snarkvm-wasm]
-version = "0.14.6"
+version = "0.15.0"
 features = [ "console", "fields", "utilities" ]
 
 [dependencies.anyhow]
@@ -100,6 +100,10 @@ version = "0.1.7"
 
 [dependencies.serde]
 version = "1.0.183"
+
+[dev-dependencies.snarkvm-parameters]
+version = "0.15.0"
+features = [ "wasm" ]
 
 [dev-dependencies.wasm-bindgen-test]
 version = "0.3.37"

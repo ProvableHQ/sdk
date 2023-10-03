@@ -70,19 +70,27 @@ impl ProgramManager {
 
         let mut new_process;
         let process = get_process!(self, cache, new_process);
+        let rng = &mut StdRng::from_entropy();
 
         log("Executing the split function");
-        let (_, mut trace) =
-            execute_program!(process, inputs, program, "split", private_key, split_proving_key, split_verifying_key);
+        let (_, mut trace) = execute_program!(
+            process,
+            inputs,
+            program,
+            "split",
+            private_key,
+            split_proving_key,
+            split_verifying_key,
+            rng
+        );
 
         log("Preparing the inclusion proof for the split execution");
         let query = QueryNative::from(&url);
         trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
         log("Proving the split execution");
-        let execution = trace
-            .prove_execution::<CurrentAleo, _>("credits.aleo/split", &mut StdRng::from_entropy())
-            .map_err(|e| e.to_string())?;
+        let execution =
+            trace.prove_execution::<CurrentAleo, _>("credits.aleo/split", rng).map_err(|e| e.to_string())?;
 
         log("Verifying the split execution");
         process.verify_execution(&execution).map_err(|err| err.to_string())?;

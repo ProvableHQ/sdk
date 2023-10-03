@@ -80,7 +80,9 @@ pub fn verify_function_execution(
     let function = IdentifierNative::from_str(&function_id).map_err(|e| e.to_string())?;
     let program_id = ProgramID::<CurrentNetwork>::from_str(&program.id()).unwrap();
     let mut process = ProcessNative::load_web().map_err(|e| e.to_string())?;
-    process.add_program(program).map_err(|e| e.to_string())?;
+    if &program.id() != "credits.aleo" {
+        process.add_program(program).map_err(|e| e.to_string())?;
+    }
     process
         .insert_verifying_key(&program_id, &function, VerifyingKeyNative::from(verifying_key))
         .map_err(|e| e.to_string())?;
@@ -92,22 +94,21 @@ mod tests {
     use super::*;
     use wasm_bindgen_test::*;
 
-    const EXECUTION: &str = r#"{"transitions":[{"id":"as1ft30ggjsmlcq8k2g0jrwpwqttzrppmsflxpahdy4j4sgw4qyjy9q8rl6g9","program":"hello.aleo","function":"hello","inputs":[{"type":"public","id":"8283321375782684809364826500642509555548612084422268052670922008177111745683field","value":"5u32"},{"type":"private","id":"5368761932371535746650746013387057027989854662434909484917682198278381300816field","value":"ciphertext1qyqpmtcduc8srqgrfkrnnly0uwp0d80zp7wlpz84ffad6gap2dqmupczpep2w"}],"outputs":[{"type":"private","id":"3693756292136946047435650150313989632920577493212047963103971996127625717831field","value":"ciphertext1qyq8279hhrglev2rdyph7q99zmk7mvr3zah7yzdwqyhkhxrg8ly6vrqut3key"}],"tpk":"3797902453576577290599111559391674628434683675500311957418919163500389690495group","tcm":"5332148962138650513930613853849801427262922921011368206485254279725063791390field"}],"global_state_root":"ar1smlrxp33w4w738jw357r8c6sjcncyngpl86429ldswd4yh9recysl3eqzw","proof":"proof1qqqsqqqqqqqqqqqpqqqqqqqqqqqz9snrqvytdx0mj8aqc0twcs3fvewzdquejx5xretgzadqs5yyee9d6unwzmzpq5hc322pwfutdxgqmukumt9q6937r6hxqrtdzhjqca43rv4u73d6use45fwyu0ggef06dr30kv4xx0sfr6gy9dfzcynsp6qyp42syzhv5rr6v8ygufq4aaamyw7yp8pkngnnl2pjkd60wg328h34qwh4nz3uesmsya4hwhplsyquve0wdy5752wevkwkva6xydxgdet9ymr84as43hywjac2dl99dwx00efcz82p5vd8qqs6gljtvjgp87w8gv9je20nh0aaz3hwk905lcfluredycwzuw0sgd6tz5pr78uam2l5n4mht4gr0wt3kcdr8gjqrs8nhged6y6nrfrzc73frr38wcp6r0vw30wsje36yzqzd6kxcmyh4kzz67rchrtxlkush8tzxgnes8urunmggsdmm979z7twuxdnjqvtpqukzmtrp7stuk2sx2v2kw82eqxjusrugyq329qjzc76nrryaqzkhvzlcxc5uul36wha8ar4clyurqytnl36cvtssyknnv7p4vdtyuyhqtr0madef6zms6cr4krjeuqxwr2akfgl2sm2mnf802qdtsena5vl6x0r5cz2fq0j8pxt4w7hvfu5la2t9vcsr7n36ym8hnzrdfvqfk3n6w25e09tcln666vslq2tala44n3hkcu4nyrmg3sf0h8w7c09275q6mka9e5k5uqjrypzle9gp93dntqwxseavpdsnq4ds6jq7fu2xwvgndyp807z2s632cswkzggjqdv2gnk85c8hkf9nx34ewygeessf4l4fekqddw0n7qxaw0kd5ptt4nfsgq43s5cjn5pjk2748tfs3f8pnyc6q7dymjenx78puxmsz4ptc0dgr7ld060pd9z6cg8xpepk49t9ryjr29qylnhpty6cfefqv9lv33qh3zjcc8mq9v82van7dryj2wlrta49jkp599hmcwma6lpzqgqqqqqqqqqqrwaspy63clz0qfvamv9y8p7ss95ac8hx2c33hyu6r2dugkvf92q267sw726nrwk5hv5m2mkk596x4xaajf8nxzl58pf4uyp2ackhfgwc2gdlvws9ffahd5txux8uw5x6h4qglg8n7atscyl38q0r08u6cpqyqqqqqqqqqqqfj7hke8qaxyxh9yhnjl7f4nffdluuwyzuf422zv934r2at3hdy8mshzc36uesx6cvak9lay0cp0cqqg582y8hhnz97l3wcazncfd03f50cc06wwfzvpcv39vnd8vkw8mpd749jxcsspc2wkkzjs4hvgzvt5hz4c0znjr66nwqhlvvyfuysmeam4hc43quf7t4dqqzwfc07uj8qgqqqhedyvj"}"#;
-    const VERIFYING_KEY: &str = "verifier1qqyqqqqqqqqqqqqpg5qqqqqqqqqqz3gqqqqqqqqqz29qqqqqqqqqq6k5qqqqqqqqqr34uqqqqqqqqqqvqqqqqqqqqqqqargtfu2ekfe6nm2nluxr7hsntw8d8pw8py4kksakmvmftekqalm0ft87zvp700l0xrwzhepgxjsqu59y2mh745q6ktvnw4ux297tkt7ulutje6x2sas2m68sv4uv8fveznpansnu2mn2ju0wzsj265acqvdgs3h3f4dzvvwey2h0llg7m2kdf0ep56d4qa35w58rqtw5dk404k0v4pxugpepcdz8tf4yn83asr506de2s8gwsfj5xvfcdm9w5cz0fydp6eta7tkt9dzy6vwy0dqda9gkh292fn68255wgfmzctkqeqgw7nk9neykf95mfnjfet5afsjdw6jujkc46zf24sayq7rkt8x6mmy9n384z25fy28xtrqd8ysqs6qrvjyce70am48hs796xn8wvsvases4skqnk9zsg4720e5sv5960d7579wzu9mkfpjar5s4nlwpw4uqqzlx4693ptsakwax2q6npajjxudzpc6ckqtyl0tkdyxa50s6deqncw3mmepgvu4rj4uzd6mku7asqt9rjkzc8vjwe5cxxsvgclm6ervsejgp8l7kl9tljd4n24kqt37g2uelzxl59vr0l5p6p4dfjnnesztj77v44g2putadwk293a887lqlxjyfy277p6c6rc2kvy39nz9rcau9vze56zdj25gpgzkxcgcl7qxm0xruxfg76p068l3j22rydy68tf4u66cddvetulmedvu55yxdsyc7a9ujdyufyru3g7cha0n425q7j0zkkej7z267zll09yewundcyj4h8rt7qj7rmlj637eyh2r6d7fxwj65nsn0yxvmfqwnl6jdvy5py4xegnqpyyk5ufe07fwlz8sk5fduencwmt2dtvk7y0ttpt0ndyjswg6h6n4p5yq7vf9ksjewyfqqrtyxk4k639mppcnxjjy7y95ze95npk0qu06c6jddu78nvrfkexhcd9x5rc";
-    const PROGRAM: &str = "program hello.aleo;
-
-function hello:
-    input r0 as u32.public;
-    input r1 as u32.private;
-    add r0 r1 into r2;
-    output r2 as u32.private;
-";
+    const EXECUTION: &str = r#"{"transitions":[{"id":"as1gvakz34j86meg8m9qty8wvd6q5g0kq4yjann9rxhrdclnudgsgzsun7fqg","program":"credits.aleo","function":"transfer_public_to_private","inputs":[{"type":"private","id":"3559404182723855987648325562772737043873359890923745236730615477378882626975field","value":"ciphertext1qgqzl88kmsf8jqk4cy2sqvm39vty9ewr67vwpxhlzmc3ajktk5a9gq9yq7aqswatm5pzh0a8cxr0quc2nfkdsttrrwt9t5kzq0a3pklvpqc92jxy"},{"type":"public","id":"8025374784680103421213924561521377858956249097395704706773833540838625702105field","value":"100000000u64"}],"outputs":[{"type":"record","id":"3277244183946285525543523584633273639940105079643779437822225084020101728660field","checksum":"8274780032857121049950687901286913283302745423768457384536132105227065290006field","value":"record1qyqsphr5jyxc0pp4w3805p04gmjgnxwg9vy3tsgfegq57v82qz3qafg0qyxx66trwfhkxun9v35hguerqqpqzqqluf6uucn2gewf2k3p6z0pper9fcg60g8nsc82lsh2fq3lhqqdqq6jan76l4jtmvdjfeync9qwkf4ql6hnqp5gpp0eu4wqj3f5ag2s657ekl3"},{"type":"future","id":"1892803943572610344093204513122467255144277953861191406986017276042122058500field","value":"{\n  program_id: credits.aleo,\n  function_name: transfer_public_to_private,\n  arguments: [\n    aleo1dreuxnmg9cny8ee9v2u0wr4v4affnwm09u2pytfwz0f2en2shgqsdsfjn6,\n    100000000u64\n  ]\n}"}],"tpk":"2476663388883037700295634254861333867987742331829418410904500131258030567772group","tcm":"7477891320807015200552190699459917336363441387680200590247086896037845762610field"}],"global_state_root":"ar1ekees06ce437zyrpy3xryal7wpfsw2zlsvwrr0rrfv3ywc8ehcrsg0tlrf","proof":"proof1qyqsqqqqqqqqqqqpqqqqqqqqqqq2dazvpa4wlcwvu4ygfjuqd26aj2tp59ueuvx3zk4xkk423la6jnr34wcmv6gmdwfgpfxp4ftjpzgpqx72njl8q2fk08ava8ytd7vdk3rnf70043dxa8dp5pqhgf48qarevw0p29268477963vn3dswz5nyqx35h0juczarc8sdfwlrn5zr7r3ralstfqa35fv6tj6wwmgrfhfyjswwwlhzdnz96a9zf86c4cz2gq9smwk5xscarjsxtuur0hajrwq336qq60pwh4q0r9exlnhw53lgnna0ksuesa66yjxh8j9khkxdevquhumm4w3lwmelthm0f3c74gwsrrwzdqjcrxpjzh4xevc59npgf4dq25m9k9u8m4p04tz5ymhy2dsrpttw4w40uuucexmu3nr8sa8ej3ymre30hkmvsw5faqkrqfnqtzdp8snqx0cftkj48v0jr2nqfkqsprd58zg4x0ypsxu74l39g6nkq65qr2khqlvy68xztnyucppzzv4a650j8f2ry705072juvynhkptqqdvn9kssrseedcrhkxxscvusl6tzrevlmd7lph5ctxyx7jlyy097ddjy0qu0qrfktwtlqxvm4sq7quhngect0czy7hnclrk3809z7kzt478h5jew3l7sqxml946qft887sg4m04udh8dwyyn56nza6slyq7uq4fmh9ze0a2wjrymp27fu426mq9axxp3gj44m2jmgv4al6ru9h75dgjjkxr8wc49t20q2x7wk0q7yh52fe5y0ma0z22735zvxczyzvjhs7xv6x2gzlxeqa0l86s8penm4kz6jrs0t44085drzvxalvpwrlmyr8mms25dy9ac7jwlr6r7um9amt55njfc3327j3ymtjg6uqdpy9rk0vhqhqy2ya2668840at8uzs4wyyyfs207qjzpkljcwcfcgh9cjmh88nme4vad0grpjaj6p6dxum9vgrrgsj950e78j7fuvcuzrn9gwnz54d7r05lgpw0x5s7mprekqysg3u54z2szwrpazfkvq2p7flajf8k0nmdxt0vw8vspw4tpkgylp38g4wt3kayrjfuyrfmwaqhdflx2lcufqd4fx02vus345pdfwl8kavh2etxxpupmvsj79g2rsls4hej4ws929rlsu24v5z8hucvhp69mavgjwksp56p5yh5nd2fq8qvqqqqqqqqqqpl5xpfl7c4x0h623asnfaj2nz4xtdwmpcup55zwjc74jn2ll40y25thhv8td7x650fwa78weeazuqqqg4ty2vuj7ewyt004l6yrzh3efus0ngm9w849syrgdjsldautacllw8auyv9wyj5w3z4gfl6nq5zqpqx5d22ctjzmmhp00w25f72lg80y6j3jvpmeer8dlnnzhz3wfwqcsy8pv2wulg77rdghefg85gkcfqzng57gsuhruz89qe92yg72e5eljljm2j68tlh4pye9qr8lmrnymqyqqya5uv8"}"#;
 
     #[wasm_bindgen_test]
     fn test_execution_verification() {
         let execution = Execution::from_string(EXECUTION).unwrap();
-        let verifying_key = VerifyingKey::from_string(VERIFYING_KEY).unwrap();
-        let program = Program::from_string(PROGRAM).unwrap();
-        assert!(verify_function_execution(&execution, &verifying_key, &program, "hello".to_string()).unwrap());
+        let verifying_key_bytes = snarkvm_parameters::testnet3::TransferPublicToPrivateVerifier::load_bytes().unwrap();
+        let verifying_key = VerifyingKey::from_bytes(&verifying_key_bytes).unwrap();
+        assert!(
+            verify_function_execution(
+                &execution,
+                &verifying_key,
+                &Program::get_credits_program(),
+                "transfer_public_to_private".to_string()
+            )
+            .unwrap()
+        );
     }
 }

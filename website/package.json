@@ -13,7 +13,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@aleohq/sdk": "0.5.10",
+        "@aleohq/sdk": "0.5.11",
         "@ant-design/icons": "^4.4.0",
         "@codemirror/language": "^6.8.0",
         "@codemirror/legacy-modes": "^6.3.3",

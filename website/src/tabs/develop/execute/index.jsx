@@ -54,6 +54,7 @@ export const Execute = () => {
     }, []);
 
     const execute = async (values) => {
+        console.log(values)
         setModalModalOpen(true);
         setLoading(true);
         try {
@@ -63,6 +64,7 @@ export const Execute = () => {
                 inputs,
                 private_key,
                 fee,
+                private_fee,
                 fee_record,
                 peer_url,
                 execute_onchain,
@@ -76,6 +78,7 @@ export const Execute = () => {
                     inputs: JSON.parse(inputs),
                     privateKey: private_key,
                     fee: fee,
+                    privateFee: private_fee,
                     feeRecord: fee_record,
                     url: peer_url,
                 });
@@ -361,21 +364,46 @@ export const Execute = () => {
                                     />
                                 </Form.Item>
                                 <Form.Item
-                                    label="Fee Record"
-                                    name="fee_record"
+                                    label="Private Fee"
+                                    name="private_fee"
+                                    valuePropName="checked"
+                                    initialValue={false}
                                     hidden={!getFieldValue("execute_onchain")}
-                                    rules={[
-                                        {
-                                            required:
-                                                getFieldValue(
-                                                    "execute_onchain",
-                                                ),
-                                            message:
-                                                "Fee record needed for on-chain execution",
-                                        },
-                                    ]}
                                 >
-                                    <Input.TextArea />
+                                    <Switch defaultChecked />
+                                </Form.Item>
+                                <Form.Item
+                                    noStyle
+                                    shouldUpdate={(prevValues, currentValues) =>
+                                        prevValues.private_fee !==
+                                        currentValues.private_fee
+                                    }
+                                >
+                                    {({ getFieldValue }) => (
+                                        <>
+                                            <Form.Item
+                                                label="Fee Record"
+                                                name="fee_record"
+                                                hidden={
+                                                    !getFieldValue(
+                                                        "private_fee"
+                                                    )
+                                                }
+                                                rules={[
+                                                    {
+                                                        required:
+                                                            getFieldValue(
+                                                                "execute_onchain"
+                                                            ),
+                                                        message:
+                                                            "Fee record needed for on-chain execution",
+                                                    },
+                                                ]}
+                                            >
+                                                <Input.TextArea />
+                                            </Form.Item>
+                                        </>
+                                    )}
                                 </Form.Item>
                             </>
                         )}
