@@ -240,7 +240,7 @@ impl Program {
                 Reflect::set(&input, &"type".into(), &"array".into()).map_err(|_| "Failed to set property")?;
 
                 // Set the element types of the Array and record the length
-                let element_type = self.get_plaintext_input(&array_type.base_element_type(), None, None)?;
+                let element_type = self.get_plaintext_input(array_type.base_element_type(), None, None)?;
                 let length = **array_type.length();
                 Reflect::set(&input, &"element_type".into(), &element_type).map_err(|_| "Failed to set property")?;
                 Reflect::set(&input, &"length".into(), &length.into()).map_err(|_| "Failed to set property")?;

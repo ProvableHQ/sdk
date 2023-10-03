@@ -1,33 +1,41 @@
 const KEY_STORE = "https://testnet3.parameters.aleo.org/";
 
 const CREDITS_PROGRAM_KEYS = {
-    transfer_private: {
-        prover: KEY_STORE + "transfer_private.prover.2a9a6f2",
-        verifier: KEY_STORE + "transfer_private.verifier.3a59762",
+    fee_private: {
+        prover: KEY_STORE + "fee_private.prover.d02301c",
+        verifier: "fee_private.verifier.00ae6a3",
     },
-    transfer_private_to_public: {
-        prover: KEY_STORE + "transfer_private_to_public.prover.cf3b952",
-        verifier: KEY_STORE + "transfer_private_to_public.verifier.5bd459b",
+    fee_public: {
+        prover: KEY_STORE + "fee_public.prover.5515650",
+        verifier: "fee_public.verifier.40ea40e",
     },
-    transfer_public: {
-        prover: KEY_STORE + "transfer_public.prover.1117f0a",
-        verifier: KEY_STORE + "transfer_public.verifier.d63af11",
-    },
-    transfer_public_to_private: {
-        prover: KEY_STORE + "transfer_public_to_private.prover.7b763af",
-        verifier: KEY_STORE + "transfer_public_to_private.verifier.25f6542",
+    inclusion: {
+        prover: KEY_STORE + "inclusion.prover.b46b287",
+        verifier: "inclusion.verifier.2fae105",
     },
     join: {
-        prover: KEY_STORE + "join.prover.da05baf",
-        verifier: KEY_STORE + "join.verifier.1489109",
+        prover: KEY_STORE + "join.prover.30895cc",
+        verifier: "join.verifier.5cb1e62",
     },
     split: {
-        prover: KEY_STORE + "split.prover.8c585f2",
-        verifier: KEY_STORE + "split.verifier.8281688",
+        prover: KEY_STORE + "split.prover.a9784b9",
+        verifier: "split.verifier.38392d9",
     },
-    fee: {
-        prover: KEY_STORE + "fee.prover.36542ce",
-        verifier: KEY_STORE + "fee.verifier.2de311b",
+    transfer_private: {
+        prover: KEY_STORE + "transfer_private.prover.deb77db",
+        verifier: "transfer_private.verifier.3088e6d",
+    },
+    transfer_private_to_public: {
+        prover: KEY_STORE + "transfer_private_to_public.prover.7ca1421",
+        verifier: "transfer_private_to_public.verifier.37dd126",
+    },
+    transfer_public: {
+        prover: KEY_STORE + "transfer_public.prover.2941ad3",
+        verifier: "transfer_public.verifier.ed98d35",
+    },
+    transfer_public_to_private: {
+        prover: KEY_STORE + "transfer_public_to_private.prover.67f57fc",
+        verifier: "transfer_public_to_private.verifier.f2aaeee",
     },
 };
 

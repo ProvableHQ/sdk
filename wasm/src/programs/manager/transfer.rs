@@ -75,11 +75,11 @@ impl ProgramManager {
     ) -> Result<Transaction, String> {
         log("Executing transfer program");
         let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, &fee_record, true)?,
+            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
             None => (fee_credits as u64) * 1_000_000,
         };
         let amount_microcredits = match &amount_record {
-            Some(amount_record) => Self::validate_amount(amount_credits, &amount_record, true)?,
+            Some(amount_record) => Self::validate_amount(amount_credits, amount_record, true)?,
             None => (fee_credits as u64) * 1_000_000,
         };
 

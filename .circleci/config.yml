@@ -171,9 +171,9 @@ jobs:
             sudo npm install --global typescript
             cargo install snarkos
             snarkos start --dev 0 --beacon --nodisplay 1> /dev/null &
-            cargo install aleo-development-server
-            aleo-develop start --server-address 0.0.0.0:4040 --peer http://localhost:3030 -d 1> /dev/null &
-            aleo-develop start --server-address 0.0.0.0:5050 --peer http://localhost:3030 -d -k ciphertext1qvqgkey2cxklg4g5qjnkk4dy50zypte5ewp5kwdm9pt833eyext32pu07dgkxqzmn0wnpxx8kvh2phws6j5njsu6zrys20xpvqmqhw9gpngs50mpe9e0nkp6uyzctzdq3fs2n4p9d3kvaps6mg6xu0sef0xpzm028m7 1> /dev/null &
+            snarkos start --dev 1 --beacon --nodisplay 1> /dev/null &
+            snarkos start --dev 2 --beacon --nodisplay 1> /dev/null &
+            snarkos start --dev 3 --beacon --nodisplay 1> /dev/null &
             cd sdk && npm install
             sleep 200
             npm run integration

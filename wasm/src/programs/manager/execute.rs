@@ -139,7 +139,7 @@ impl ProgramManager {
     ) -> Result<Transaction, String> {
         log(&format!("Executing function: {function} on-chain"));
         let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, &fee_record, true)?,
+            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
             None => (fee_credits as u64) * 1_000_000,
         };
 

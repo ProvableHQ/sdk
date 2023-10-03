@@ -38,6 +38,10 @@ features = [ "async" ]
 [dependencies.snarkvm-ledger-store]
 version = "0.15.0"
 
+[dependencies.snarkvm-parameters]
+version = "0.15.0"
+features = [ "wasm" ]
+
 [dependencies.snarkvm-synthesizer]
 version = "0.15.0"
 features = [ "async" ]
@@ -103,10 +107,6 @@ version = "1.0.183"
 
 [dev-dependencies.wasm-bindgen-test]
 version = "0.3.37"
-
-[dev-dependencies.snarkvm-parameters]
-version = "0.15.0"
-features = [ "wasm" ]
 
 [features]
 default = [ "serial", "browser" ]

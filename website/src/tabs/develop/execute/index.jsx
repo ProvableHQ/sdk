@@ -63,6 +63,7 @@ export const Execute = () => {
                 inputs,
                 private_key,
                 fee,
+                privateFee,
                 fee_record,
                 peer_url,
                 execute_onchain,
@@ -76,6 +77,7 @@ export const Execute = () => {
                     inputs: JSON.parse(inputs),
                     privateKey: private_key,
                     fee: fee,
+                    privateFee: true,
                     feeRecord: fee_record,
                     url: peer_url,
                 });
@@ -361,9 +363,17 @@ export const Execute = () => {
                                     />
                                 </Form.Item>
                                 <Form.Item
+                                    label="Private Fee?"
+                                    name="private_fee"
+                                    valuePropName="checked"
+                                    initialValue={true}
+                                >
+                                    <Switch />
+                                </Form.Item>
+                                <Form.Item
                                     label="Fee Record"
                                     name="fee_record"
-                                    hidden={!getFieldValue("execute_onchain")}
+                                    hidden={!getFieldValue("execute_onchain") || !getFieldValue("private_fee")}
                                     rules={[
                                         {
                                             required:
