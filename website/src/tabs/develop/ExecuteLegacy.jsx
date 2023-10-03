@@ -523,14 +523,6 @@ export const ExecuteLegacy = () => {
                             value={feeString()}
                         />
                     </Form.Item>
-                    <Form.Item
-                    label="Private Fee?"
-                    name="private_fee"
-                    valuePropName="checked"
-                    initialValue={true}
-                    >
-                    <Switch onChange={setPrivateFee} />
-                    </Form.Item>
                 )}
                 {executeOnline === true && (
                     <Form.Item

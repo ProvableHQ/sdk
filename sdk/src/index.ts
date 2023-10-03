@@ -144,7 +144,7 @@ export {
 };
 
 // If using the SDK in a browser context, uncomment this line and run `npm run build:browser`
-// export * from './browser';
+export * from './browser';
 
 // The following imports and exports are for a NodeJS context - if using the SDK in a browser context, delete or comment out this line
-export * from './node';
+//export * from './node';
