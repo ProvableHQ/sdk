@@ -54,8 +54,9 @@ export const Execute = () => {
     }, []);
 
     const execute = async (values) => {
+        console.log(values)
         setModalModalOpen(true);
-        setLoading(true);
+        // setLoading(true);
         try {
             const {
                 program,
@@ -366,7 +367,7 @@ export const Execute = () => {
                                     label="Private Fee"
                                     name="private_fee"
                                     valuePropName="checked"
-                                    initialValue={true}
+                                    initialValue={false}
                                     hidden={!getFieldValue("execute_onchain")}
                                 >
                                     <Switch defaultChecked />
