@@ -93,7 +93,7 @@ checksum = "7e4f181fc1a372e8ceff89612e5c9b13f72bff5b066da9f8d6827ae65af492c4"
 
 [[package]]
 name = "aleo-wasm"
-version = "0.5.7"
+version = "0.5.9"
 dependencies = [
  "anyhow",
  "console_error_panic_hook",
