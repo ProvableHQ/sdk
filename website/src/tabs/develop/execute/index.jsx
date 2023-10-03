@@ -77,7 +77,7 @@ export const Execute = () => {
                     inputs: JSON.parse(inputs),
                     privateKey: private_key,
                     fee: fee,
-                    privateFee: true,
+                    privateFee: privateFee,
                     feeRecord: fee_record,
                     url: peer_url,
                 });
