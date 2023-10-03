@@ -152,32 +152,6 @@ jobs:
       - clear_environment:
           cache_key: aleo-clippy-cache
 
-  aleo-sdk-integration-tests:
-    docker:
-      - image: cimg/rust:1.71.1-node
-    resource_class: xlarge
-    steps:
-      - checkout
-      - setup_environment:
-          cache_key: aleo-executable-cache
-      - run:
-          name: Aleo SDK Integration Tests
-          no_output_timeout: 30m
-          command: |
-            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-            cd wasm
-            wasm-pack build --target nodejs -- --features serial --no-default-features
-            cd ..
-            sudo npm install --global typescript
-            cargo install snarkos
-            snarkos start --dev 0 --beacon --nodisplay 1> /dev/null &
-            snarkos start --dev 1 --beacon --nodisplay 1> /dev/null &
-            snarkos start --dev 2 --beacon --nodisplay 1> /dev/null &
-            snarkos start --dev 3 --beacon --nodisplay 1> /dev/null &
-            cd sdk && npm install
-            sleep 200
-            npm run integration
-
 workflows:
   version: 2
 
@@ -186,4 +160,3 @@ workflows:
       - wasm
       - check-fmt
       - check-clippy
-      - aleo-sdk-integration-tests

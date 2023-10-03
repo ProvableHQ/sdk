@@ -56,7 +56,7 @@ export const Execute = () => {
     const execute = async (values) => {
         console.log(values)
         setModalModalOpen(true);
-        // setLoading(true);
+        setLoading(true);
         try {
             const {
                 program,
