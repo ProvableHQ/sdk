@@ -439,24 +439,24 @@ class AleoKeyProvider implements FunctionKeyProvider {
     // attempt to fetch it from the network
     async getVerifyingKey(verifierUrl: string): Promise<VerifyingKey | Error> {
         switch (verifierUrl) {
-            case CREDITS_PROGRAM_KEYS.transfer_private.verifier:
-                return VerifyingKey.transferPrivateVerifyingKey();
-            case CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier:
-                return VerifyingKey.transferPrivateToPublicVerifyingKey();
-            case CREDITS_PROGRAM_KEYS.transfer_public.verifier:
-                return VerifyingKey.transferPublicVerifyingKey();
-            case CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier:
-                return VerifyingKey.transferPublicToPrivateVerifyingKey();
             case CREDITS_PROGRAM_KEYS.fee_private.verifier:
-                return VerifyingKey.feePrivateVerifyingKey();
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.fee_private.verifyingKey);
             case CREDITS_PROGRAM_KEYS.fee_public.verifier:
-                return VerifyingKey.feePublicVerifyingKey();
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.fee_public.verifyingKey);
             case CREDITS_PROGRAM_KEYS.inclusion.verifier:
-                return VerifyingKey.inclusionVerifyingKey();
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.inclusion.verifyingKey);
             case CREDITS_PROGRAM_KEYS.join.verifier:
-                return VerifyingKey.joinVerifyingKey();
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.join.verifyingKey);
             case CREDITS_PROGRAM_KEYS.split.verifier:
-                return VerifyingKey.splitVerifyingKey();
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.split.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.transfer_private.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_private.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.transfer_public.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifyingKey);
             default:
                 return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
         }

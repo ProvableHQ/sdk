@@ -69,80 +69,6 @@ impl VerifyingKey {
     pub fn copy(&self) -> VerifyingKey {
         self.0.clone().into()
     }
-
-    /// Get the verifying key for the fee_private function in credits.aleo
-    ///
-    /// @returns {Number} Credits.aleo fee_private key
-    #[wasm_bindgen(js_name = "feePrivateVerifyingKey")]
-    pub fn fee_private_verifying_key() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::FeePrivateVerifier::load_bytes().unwrap()).unwrap()
-    }
-
-    /// Get the verifying key for the fee_public function in credits.aleo
-    ///
-    /// @returns {Number} Credits.aleo fee_public key
-    #[wasm_bindgen(js_name = "feePublicVerifyingKey")]
-    pub fn fee_public_verifying_key() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::FeePublicVerifier::load_bytes().unwrap()).unwrap()
-    }
-
-    /// Get the verifying key for the inclusion proving function
-    ///
-    /// @returns {Number} Credits.aleo fee_public key
-    #[wasm_bindgen(js_name = "inclusionVerifyingKey")]
-    pub fn inclusion_verifying_key() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::InclusionVerifier::load_bytes().unwrap()).unwrap()
-    }
-
-    /// Get the verifying key for the join function in credits.aleo
-    ///
-    /// @returns {Number} Credits.aleo join key
-    #[wasm_bindgen(js_name = "joinVerifyingKey")]
-    pub fn join_verifying_key() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::JoinVerifier::load_bytes().unwrap()).unwrap()
-    }
-
-    /// Get the verifying key for the split function in credits.aleo
-    ///
-    /// @returns {Number} Credits.aleo split key
-    #[wasm_bindgen(js_name = "splitVerifyingKey")]
-    pub fn split_verifying_key() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::SplitVerifier::load_bytes().unwrap()).unwrap()
-    }
-
-    /// Get the verifying key for the transfer_private function in credits.aleo
-    ///
-    /// @returns {Number} Credits.aleo join key
-    #[wasm_bindgen(js_name = "transferPrivateVerifyingKey")]
-    pub fn transfer_private_verifying_key() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPrivateVerifier::load_bytes().unwrap()).unwrap()
-    }
-
-    /// Get the verifying key for the transfer_private_to_public function in credits.aleo
-    ///
-    /// @returns {Number} Credits.aleo transfer_private_to_public key
-    #[wasm_bindgen(js_name = "transferPrivateToPublicVerifyingKey")]
-    pub fn transfer_private_to_public_verifying_key() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPrivateToPublicVerifier::load_bytes().unwrap())
-            .unwrap()
-    }
-
-    /// Get the verifying key for the transfer_public function in credits.aleo
-    ///
-    /// @returns {Number} Credits.aleo transfer_public key
-    #[wasm_bindgen(js_name = "transferPublicVerifyingKey")]
-    pub fn transfer_public_verifying_key() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPublicVerifier::load_bytes().unwrap()).unwrap()
-    }
-
-    /// Get the verifying key for the transfer_public_to_private function in credits.aleo
-    ///
-    /// @returns {Number} Credits.aleo transfer_public_to_private key
-    #[wasm_bindgen(js_name = "transferPublicToPrivateVerifyingKey")]
-    pub fn transfer_public_to_private_verifying_key() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPublicToPrivateVerifier::load_bytes().unwrap())
-            .unwrap()
-    }
 }
 
 impl Deref for VerifyingKey {
@@ -190,6 +116,5 @@ mod tests {
         let join_verifier = VerifyingKey::from_bytes(&join_verifier_bytes).unwrap();
         let join_key_string = join_verifier.to_string();
         assert_eq!(join_key_string, JOIN_VERIFYING_KEY_STRING);
-        assert_eq!(VerifyingKey::join_verifying_key(), VerifyingKey::from_string(JOIN_VERIFYING_KEY_STRING).unwrap());
     }
 }
