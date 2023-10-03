@@ -363,13 +363,13 @@ export const Execute = () => {
                                     />
                                 </Form.Item>
                                 <Form.Item
-                                    label="Private Fee?"
+                                    label="Private Fee"
                                     name="private_fee"
                                     valuePropName="checked"
-                                    initialValue={false}
+                                    initialValue={true}
                                     hidden={!getFieldValue("execute_onchain")}
                                 >
-                                    <Switch />
+                                    <Switch defaultChecked />
                                 </Form.Item>
                                 <Form.Item
                                     noStyle

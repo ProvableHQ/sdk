@@ -526,7 +526,7 @@ export const ExecuteLegacy = () => {
                 )}
                 {executeOnline === true && (
                     <Form.Item
-                        label="Private Fee?"
+                        label="Private Fee"
                         name="private_fee"
                         valuePropName="checked"
                         initialValue={true}

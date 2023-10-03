@@ -129,7 +129,11 @@ impl ProgramManager {
 
         let mut new_process;
         let process = get_process!(self, cache, new_process);
-        let fee_identifier = IdentifierNative::from_str("fee").map_err(|e| e.to_string())?;
+        let fee_identifier = if fee_record.is_some() {
+            IdentifierNative::from_str("fee_private").map_err(|e| e.to_string())?
+        } else {
+            IdentifierNative::from_str("fee_public").map_err(|e| e.to_string())?
+        };
         let stack = process.get_stack("credits.aleo").map_err(|e| e.to_string())?;
         if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some() {
             let fee_proving_key = fee_proving_key.clone().unwrap();

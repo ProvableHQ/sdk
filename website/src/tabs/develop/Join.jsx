@@ -197,7 +197,7 @@ export const Join = () => {
                     />
                 </Form.Item>
                 <Form.Item
-                    label="Private Fee?"
+                    label="Private Fee"
                     name="private_fee"
                     valuePropName="checked"
                     initialValue={true}
