@@ -366,26 +366,43 @@ export const Execute = () => {
                                     label="Private Fee?"
                                     name="private_fee"
                                     valuePropName="checked"
-                                    initialValue={true}
+                                    initialValue={false}
+                                    hidden={!getFieldValue("execute_onchain")}
                                 >
                                     <Switch />
                                 </Form.Item>
                                 <Form.Item
-                                    label="Fee Record"
-                                    name="fee_record"
-                                    hidden={!getFieldValue("execute_onchain") || !getFieldValue("private_fee")}
-                                    rules={[
-                                        {
-                                            required:
-                                                getFieldValue(
-                                                    "execute_onchain",
-                                                ),
-                                            message:
-                                                "Fee record needed for on-chain execution",
-                                        },
-                                    ]}
+                                    noStyle
+                                    shouldUpdate={(prevValues, currentValues) =>
+                                        prevValues.private_fee !==
+                                        currentValues.private_fee
+                                    }
                                 >
-                                    <Input.TextArea />
+                                    {({ getFieldValue }) => (
+                                        <>
+                                            <Form.Item
+                                                label="Fee Record"
+                                                name="fee_record"
+                                                hidden={
+                                                    !getFieldValue(
+                                                        "private_fee"
+                                                    )
+                                                }
+                                                rules={[
+                                                    {
+                                                        required:
+                                                            getFieldValue(
+                                                                "execute_onchain"
+                                                            ),
+                                                        message:
+                                                            "Fee record needed for on-chain execution",
+                                                    },
+                                                ]}
+                                            >
+                                                <Input.TextArea />
+                                            </Form.Item>
+                                        </>
+                                    )}
                                 </Form.Item>
                             </>
                         )}
