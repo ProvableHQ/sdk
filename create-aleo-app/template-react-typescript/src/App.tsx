@@ -1,9 +1,16 @@
+
 import { useState } from "react";
+import { AleoWorker } from "./workers/AleoWorker.js";
+import "./App.css";
+console.log('test');
 import reactLogo from "./assets/react.svg";
 import aleoLogo from "./assets/aleo.svg";
-import "./App.css";
 import helloworld_program from "../helloworld/build/main.aleo?raw";
-import { AleoWorker } from "./workers/AleoWorker.js";
+
+//const reactLogo = require("./assets/react.svg") as string;
+//const aleoLogo = require("./assets/aleo.svg") as string;
+//const helloworld_program = require("../helloworld/build/main.aleo?raw") as string;
+
 
 const aleoWorker = AleoWorker();
 function App() {

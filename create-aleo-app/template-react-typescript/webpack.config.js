@@ -7,14 +7,14 @@ import path from "path";
 const appConfig = {
   mode: "production",
   entry: {
-    index: "./src/main.jsx",
+    index: "./src/main.tsx",
   },
   output: {
     path: path.resolve("dist"),
     filename: "[name].bundle.js",
   },
   resolve: {
-    extensions: [".js", ".wasm", ".jsx"],
+    extensions: [".ts", ".tsx", ".js", ".wasm", ".jsx"],
   },
   devServer: {
     port: 3000,
@@ -29,10 +29,10 @@ const appConfig = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(ts|tsx|js|jsx)$/,
         exclude: /nodeModules/,
         use: {
-          loader: "babel-loader",
+          loader: "ts-loader",
         },
       },
       {

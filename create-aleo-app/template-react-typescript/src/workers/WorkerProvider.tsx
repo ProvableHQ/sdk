@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import WorkerContext from "./WorkerContext";
+import { useEffect, useState, ReactNode } from "react";
+import WorkerContext from "./WorkerContext.js";
 
-const WorkerProvider = ({ children }) => {
-    const [worker, setWorker] = useState(null);
+const WorkerProvider : React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [worker, setWorker] = useState<Worker | null>(null);
     const [workerReady, setWorkerReady] = useState(false);
 
     useEffect(() => {

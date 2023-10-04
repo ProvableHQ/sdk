@@ -8,8 +8,7 @@
     "build": "webpack --config webpack.config.js",
     "build:vite": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "install-leo": "./install.sh"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@aleohq/sdk": "^0.5.10",
@@ -24,8 +23,9 @@
     "@babel/core": "^7.17.2",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.7",
+    "@types/node": "^20.8.2",
+    "@types/react": "^18.2.24",
+    "@types/react-dom": "^18.2.9",
     "@vitejs/plugin-react": "^4.0.4",
     "babel-loader": "^8.2.3",
     "copy-webpack-plugin": "^11.0.0",
@@ -39,6 +39,8 @@
     "raw-loader": "^4.0.2",
     "style-loader": "^3.3.1",
     "svg-url-loader": "^8.0.0",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
     "vite": "^4.4.5",
     "webpack": "^5.76.0",
     "webpack-cli": "^5.1.4",

@@ -13,7 +13,7 @@ import { expose, proxy } from "comlink";
 await initializeWasm();
 await initThreadPool(10);
 
-async function localProgramExecution(program, aleoFunction, inputs) {
+async function localProgramExecution(program: string, aleoFunction: string, inputs: string[]) {
   const programManager = new ProgramManager();
 
   // Create a temporary account for the execution of the program
@@ -34,7 +34,7 @@ async function getPrivateKey() {
   return proxy(key);
 }
 
-async function deployProgram(program) {
+async function deployProgram(program: string) {
   const keyProvider = new AleoKeyProvider();
   keyProvider.useCache(true);
 
