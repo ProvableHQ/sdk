@@ -33,7 +33,7 @@ export const Execute = () => {
                     "    input r0 as u32.public;\n" +
                     "    input r1 as u32.private;\n" +
                     "    add r0 r1 into r2;\n" +
-                    "    output r2 as u32.private;\n",
+                    "    output r2 as u32.private;\n"
             );
             form.setFieldValue("manual_input", true);
             form.setFieldValue("functionName", "hello");
@@ -54,7 +54,6 @@ export const Execute = () => {
     }, []);
 
     const execute = async (values) => {
-        console.log(values)
         setModalModalOpen(true);
         setLoading(true);
         try {
@@ -116,7 +115,7 @@ export const Execute = () => {
     function spawnWorker() {
         let worker = new Worker(
             new URL("../../../workers/worker.js", import.meta.url),
-            { type: "module" },
+            { type: "module" }
         );
         worker.addEventListener("message", (ev) => {
             if (ev.data.type == "OFFLINE_EXECUTION_COMPLETED") {
@@ -194,7 +193,7 @@ export const Execute = () => {
     const generateKey = () => {
         form.setFieldValue(
             "private_key",
-            new aleoWASM.PrivateKey().to_string(),
+            new aleoWASM.PrivateKey().to_string()
         );
         form.validateFields(["private_key"]);
     };
@@ -272,7 +271,7 @@ export const Execute = () => {
                         });
                         form.setFieldValue(
                             "inputs",
-                            JSON.stringify(translatedArray),
+                            JSON.stringify(translatedArray)
                         );
                         form.submit();
                     }
@@ -350,7 +349,7 @@ export const Execute = () => {
                                         {
                                             required:
                                                 getFieldValue(
-                                                    "execute_onchain",
+                                                    "execute_onchain"
                                                 ),
                                             message:
                                                 "Fee needed for on-chain execution",
@@ -387,16 +386,22 @@ export const Execute = () => {
                                                 hidden={
                                                     !getFieldValue(
                                                         "private_fee"
+                                                    ) ||
+                                                    !getFieldValue(
+                                                        "execute_onchain"
                                                     )
                                                 }
                                                 rules={[
                                                     {
                                                         required:
                                                             getFieldValue(
+                                                                "private_fee"
+                                                            ) &&
+                                                            getFieldValue(
                                                                 "execute_onchain"
                                                             ),
                                                         message:
-                                                            "Fee record needed for on-chain execution",
+                                                            "Fee record needed for private fee",
                                                     },
                                                 ]}
                                             >
@@ -482,8 +487,8 @@ const renderInput = (input, inputIndex, nameArray = []) => {
                     renderInput(
                         member,
                         memberIndex,
-                        [].concat(nameArray).concat(input.name || inputIndex),
-                    ),
+                        [].concat(nameArray).concat(input.name || inputIndex)
+                    )
                 )}
             </div>
         );
@@ -511,7 +516,7 @@ const functionForm = (func, funcInputs) => {
         >
             {funcInputs.length > 0 ? (
                 funcInputs.map((input, inputIndex) =>
-                    renderInput(input, inputIndex, ["inputs"]),
+                    renderInput(input, inputIndex, ["inputs"])
                 )
             ) : (
                 <Form.Item
