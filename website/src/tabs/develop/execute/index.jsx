@@ -54,7 +54,6 @@ export const Execute = () => {
     }, []);
 
     const execute = async (values) => {
-        console.log(values)
         setModalModalOpen(true);
         setLoading(true);
         try {
@@ -393,10 +392,10 @@ export const Execute = () => {
                                                     {
                                                         required:
                                                             getFieldValue(
-                                                                "execute_onchain"
+                                                                "private_fee"
                                                             ),
                                                         message:
-                                                            "Fee record needed for on-chain execution",
+                                                            "Fee record needed for for private fee",
                                                     },
                                                 ]}
                                             >
