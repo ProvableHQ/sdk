@@ -89,6 +89,7 @@ self.addEventListener("message", (ev) => {
             inputs,
             privateKey,
             fee,
+            privateFee,
             feeRecord,
             url,
         } = ev.data;
@@ -123,6 +124,7 @@ self.addEventListener("message", (ev) => {
                     program_id,
                     aleoFunction,
                     fee,
+                    privateFee,
                     inputs,
                     undefined,
                     keyParams,
@@ -242,6 +244,7 @@ self.addEventListener("message", (ev) => {
             transfer_type,
             amountRecord,
             fee,
+            privateFee,
             feeRecord,
             url,
         } = ev.data;
@@ -262,6 +265,7 @@ self.addEventListener("message", (ev) => {
                     recipient,
                     transfer_type,
                     fee,
+                    privateFee,
                     undefined,
                     amountRecord,
                     feeRecord,
@@ -285,7 +289,7 @@ self.addEventListener("message", (ev) => {
             }
         })();
     } else if (ev.data.type === "ALEO_DEPLOY") {
-        const { program, privateKey, fee, feeRecord, url } = ev.data;
+        const { program, privateKey, fee, privateFee, feeRecord, url } = ev.data;
 
         console.log("Web worker: Creating deployment...");
 
@@ -318,6 +322,7 @@ self.addEventListener("message", (ev) => {
                 let transaction = await programManager.deploy(
                     program,
                     fee,
+                    privateFee,
                     undefined,
                     feeRecord,
                     aleo.PrivateKey.from_string(privateKey),
@@ -374,7 +379,7 @@ self.addEventListener("message", (ev) => {
             }
         })();
     } else if (ev.data.type === "ALEO_JOIN") {
-        const { recordOne, recordTwo, fee, feeRecord, privateKey, url } =
+        const { recordOne, recordTwo, fee, privateFee, feeRecord, privateKey, url } =
             ev.data;
 
         console.log("Web worker: Creating join...");
@@ -391,6 +396,7 @@ self.addEventListener("message", (ev) => {
                     recordOne,
                     recordTwo,
                     fee,
+                    privateFee,
                     undefined,
                     feeRecord,
                     aleo.PrivateKey.from_string(privateKey),

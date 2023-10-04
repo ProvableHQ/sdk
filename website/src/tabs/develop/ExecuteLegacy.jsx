@@ -24,6 +24,7 @@ export const ExecuteLegacy = () => {
     const [executionFee, setExecutionFee] = useState("1");
     const [inputs, setInputs] = useState(null);
     const [feeLoading, setFeeLoading] = useState(false);
+    const [privateFee, setPrivateFee] = useState(true);
     const [loading, setLoading] = useState(false);
     const [messageApi, contextHolder] = message.useMessage();
     const [privateKey, setPrivateKey] = useState(null);
@@ -525,9 +526,20 @@ export const ExecuteLegacy = () => {
                 )}
                 {executeOnline === true && (
                     <Form.Item
+                        label="Private Fee"
+                        name="private_fee"
+                        valuePropName="checked"
+                        initialValue={true}
+                    >
+                        <Switch onChange={setPrivateFee} />
+                    </Form.Item>
+                )}
+                {executeOnline === true && (
+                    <Form.Item
                         label="Fee Record"
                         colon={false}
                         validateStatus={status}
+                        hidden={!privateFee}
                     >
                         <Input.TextArea
                             name="Fee Record"

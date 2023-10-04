@@ -29,8 +29,6 @@ pub use split::*;
 pub mod transfer;
 pub use transfer::*;
 
-pub mod utils;
-
 use crate::{
     types::{
         cost_in_microcredits,
