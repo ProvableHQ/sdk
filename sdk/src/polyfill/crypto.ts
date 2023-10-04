@@ -1,3 +1,5 @@
 import { webcrypto } from "node:crypto";
 
-(globalThis as any).crypto = webcrypto;
+if ((globalThis as any).crypto == null) {
+    (globalThis as any).crypto = webcrypto;
+}
