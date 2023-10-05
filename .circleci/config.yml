@@ -109,8 +109,9 @@ jobs:
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
             cd wasm && sed -i.bak '/"type": "module"/d' package.json && wasm-pack test --node --lib
             # cargo test --target wasm32-unknown-unknown
-            wasm-pack build --target nodejs
-            npm install --global typescript
+            # wasm-pack build --target nodejs
+            # npm install --global typescript
+            npm install
             cd ../sdk && npm install
             sleep 5
             npm test
