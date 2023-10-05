@@ -107,11 +107,11 @@ jobs:
             nvm install 20.8
             nvm use 20.8
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-            cd wasm && sed -i.bak '/"type": "module"/d' package.json && wasm-pack test --node --lib
+            cd wasm && npm install
+            sed -i.bak '/"type": "module"/d' package.json && wasm-pack test --node --lib
             # cargo test --target wasm32-unknown-unknown
             # wasm-pack build --target nodejs
             # npm install --global typescript
-            npm install
             cd ../sdk && npm install
             sleep 5
             npm test
