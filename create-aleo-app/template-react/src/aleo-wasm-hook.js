@@ -6,7 +6,6 @@ export const useAleoWASM = () => {
 
     useEffect(() => {
         import("@aleohq/sdk").then(async (sdk) => {
-            await sdk.initializeWasm();
             setAleoInstance(sdk);
             setLoading(false);
         }).catch((error) => {

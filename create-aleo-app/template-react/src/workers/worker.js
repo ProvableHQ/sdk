@@ -1,6 +1,5 @@
 import * as aleo from "@aleohq/sdk";
 
-await aleo.initializeWasm();
 await aleo.initThreadPool(10);
 
 const defaultHost = "https://vm.aleo.org/api";
