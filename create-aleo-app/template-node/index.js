@@ -33,4 +33,4 @@ const result = await localProgramExecution();
 console.log(result);
 console.log("Execute finished!", Date.now() - start);
 
-process.exit();
+process.exit(0);

@@ -3,7 +3,7 @@ name: create-aleo-app template tests
 on: [push]
 
 jobs:
-  build:
+  test-node-template:
 
     runs-on: ubuntu-latest
 
