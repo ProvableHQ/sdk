@@ -3,7 +3,7 @@ import * as aleo from "@aleohq/sdk";
 await aleo.initializeWasm();
 await aleo.initThreadPool(10);
 
-const defaultHost = "https://vm.aleo.org/api";
+const defaultHost = "https://api.explorer.aleo.org/v1";
 const keyProvider = new aleo.AleoKeyProvider();
 const programManager = new aleo.ProgramManager(defaultHost, keyProvider, undefined);
 

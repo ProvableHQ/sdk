@@ -21,7 +21,7 @@ export const GetBlockByHash = () => {
         try {
             if (hash) {
                 axios
-                    .get(`https://vm.aleo.org/api/testnet3/block/${hash}`)
+                    .get(`https://api.explorer.aleo.org/v1/testnet3/block/${hash}`)
                     .then((response) => {
                         setBlockByHash(JSON.stringify(response.data, null, 2));
                         setStatus("success");

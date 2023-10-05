@@ -111,6 +111,7 @@ version = "0.3.64"
 features = [
     "Url",
     "Navigator",
+    "Window",
 ]
 
 [dev-dependencies.wasm-bindgen-test]

@@ -10,7 +10,7 @@ export const GetLatestBlock = () => {
         setLatestBlock(null);
         try {
             axios
-                .get(`https://vm.aleo.org/api/testnet3/latest/block`)
+                .get(`https://api.explorer.aleo.org/v1/testnet3/latest/block`)
                 .then((response) =>
                     setLatestBlock(JSON.stringify(response.data, null, 2)),
                 );
