@@ -13,7 +13,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-          cache: 'npm'
       - run: cd create-aleo-app/template-node
       - run: npm install
       - run: npm start
