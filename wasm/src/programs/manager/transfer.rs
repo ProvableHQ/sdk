@@ -65,7 +65,7 @@ impl ProgramManager {
         transfer_type: String,
         amount_record: Option<RecordPlaintext>,
         fee_credits: f64,
-        fee_record: RecordPlaintext,
+        fee_record: Option<RecordPlaintext>,
         url: String,
         cache: bool,
         transfer_proving_key: Option<ProvingKey>,
@@ -74,15 +74,18 @@ impl ProgramManager {
         fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
         log("Executing transfer program");
-        let amount_microcredits = if let Some(amount_record) = amount_record.as_ref() {
-            Self::validate_amount(amount_credits, amount_record, false)?
-        } else {
-            (amount_credits * 1_000_000.0) as u64
+        let fee_microcredits = match &fee_record {
+            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
+            None => (fee_credits as u64) * 1_000_000,
         };
-        let fee_microcredits = Self::validate_amount(fee_credits, &fee_record, true)?;
+        let amount_microcredits = match &amount_record {
+            Some(amount_record) => Self::validate_amount(amount_credits, amount_record, true)?,
+            None => (fee_credits as u64) * 1_000_000,
+        };
 
         log("Setup the program and inputs");
         let program = ProgramNative::credits().unwrap().to_string();
+        let rng = &mut StdRng::from_entropy();
 
         let transfer_type = transfer_type.as_str();
         log("Transfer Type is:");
@@ -126,7 +129,11 @@ impl ProgramManager {
 
         let mut new_process;
         let process = get_process!(self, cache, new_process);
-        let fee_identifier = IdentifierNative::from_str("fee").map_err(|e| e.to_string())?;
+        let fee_identifier = if fee_record.is_some() {
+            IdentifierNative::from_str("fee_private").map_err(|e| e.to_string())?
+        } else {
+            IdentifierNative::from_str("fee_public").map_err(|e| e.to_string())?
+        };
         let stack = process.get_stack("credits.aleo").map_err(|e| e.to_string())?;
         if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some() {
             let fee_proving_key = fee_proving_key.clone().unwrap();
@@ -147,7 +154,8 @@ impl ProgramManager {
             &transfer_type,
             private_key,
             transfer_proving_key,
-            transfer_verifying_key
+            transfer_verifying_key,
+            rng
         );
 
         log("Preparing the inclusion proof for the transfer execution");
@@ -155,9 +163,8 @@ impl ProgramManager {
         trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
         log("Proving the transfer execution");
-        let execution = trace
-            .prove_execution::<CurrentAleo, _>("credits.aleo/transfer", &mut StdRng::from_entropy())
-            .map_err(|e| e.to_string())?;
+        let execution =
+            trace.prove_execution::<CurrentAleo, _>("credits.aleo/transfer", rng).map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the transfer execution");
@@ -166,13 +173,14 @@ impl ProgramManager {
         log("Executing the fee");
         let fee = execute_fee!(
             process,
-            private_key,
+            &private_key,
             fee_record,
             fee_microcredits,
             url,
             fee_proving_key,
             fee_verifying_key,
-            execution_id
+            execution_id,
+            rng
         );
 
         log("Creating execution transaction for transfer");

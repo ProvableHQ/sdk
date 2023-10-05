@@ -5,7 +5,7 @@ import {
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
-} from ".";
+} from "./index";
 
 interface AccountParam {
   privateKey?: string;

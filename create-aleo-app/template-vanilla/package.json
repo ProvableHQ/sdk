@@ -13,6 +13,7 @@
     },
     "devDependencies": {
         "@aleohq/sdk": "^0.5.10",
+        "tslib": "^2.6.2",
         "vite": "^4.4.5"
     }
 }

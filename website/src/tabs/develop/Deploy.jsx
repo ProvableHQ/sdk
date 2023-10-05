@@ -10,7 +10,7 @@ import {
     Row,
     Result,
     Spin,
-    Space,
+    Space, Switch,
 } from "antd";
 import { CodeEditor } from "./execute/CodeEditor.jsx";
 import axios from "axios";
@@ -23,6 +23,7 @@ export const Deploy = () => {
     const [deploymentFee, setDeploymentFee] = useState("1");
     const [loading, setLoading] = useState(false);
     const [feeLoading, setFeeLoading] = useState(false);
+    const [privateFee, setPrivateFee] = useState(true);
     const [privateKey, setPrivateKey] = useState(null);
     const [program, setProgram] = useState(null);
     const [deploymentError, setDeploymentError] = useState(null);
@@ -110,6 +111,7 @@ export const Deploy = () => {
             program: programString(),
             privateKey: privateKeyString(),
             fee: feeAmount,
+            privateFee: privateFee,
             feeRecord: feeRecordString(),
             url: peerUrl(),
         });
@@ -281,12 +283,21 @@ export const Deploy = () => {
                     />
                 </Form.Item>
                 <Form.Item
+                    label="Private Fee"
+                    name="private_fee"
+                    valuePropName="checked"
+                    initialValue={true}
+                >
+                    <Switch onChange={setPrivateFee} />
+                </Form.Item>
+                <Form.Item
                     label="Fee Record"
                     colon={false}
                     tooltip={`Use this plaintext record to pay your tx fee,
                      e.g., { owner: aleo1j7..., microcredits: 15000..., _nonce: 30774... }.
                       Obtain it by decrypting an unspent record in the 'Record' tab.`}
                     validateStatus={status}
+                    hidden={!privateFee}
                 >
                     <Input.TextArea
                         name="Fee Record"

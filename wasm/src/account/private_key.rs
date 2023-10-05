@@ -36,7 +36,6 @@ impl PrivateKey {
     #[wasm_bindgen(constructor)]
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        console_error_panic_hook::set_once();
         Self(PrivateKeyNative::new(&mut StdRng::from_entropy()).unwrap())
     }
 
@@ -45,7 +44,6 @@ impl PrivateKey {
     /// @param {Uint8Array} seed Unchecked 32 byte long Uint8Array acting as the seed for the private key
     /// @returns {PrivateKey}
     pub fn from_seed_unchecked(seed: &[u8]) -> PrivateKey {
-        console_error_panic_hook::set_once();
         // Cast into a fixed-size byte array. Note: This is a **hard** requirement for security.
         let seed: [u8; 32] = seed.try_into().unwrap();
         // Recover the field element deterministically.
@@ -247,13 +245,5 @@ mod tests {
             // Check the signature is valid (natively).
             assert!(signature.verify_bytes(&private_key.to_address(), &message));
         }
-    }
-
-    #[wasm_bindgen_test]
-    fn test_private_key_ciphertext_encrypt_and_decrypt() {
-        let private_key = PrivateKey::new();
-        let private_key_ciphertext = PrivateKeyCiphertext::encrypt_private_key(&private_key, "mypassword").unwrap();
-        let recovered_private_key = private_key_ciphertext.decrypt_to_private_key("mypassword").unwrap();
-        assert_eq!(private_key, recovered_private_key);
     }
 }

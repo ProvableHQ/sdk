@@ -1,4 +1,4 @@
-import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER} from ".";
+import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER} from "./index";
 import axios from 'axios';
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
@@ -148,11 +148,18 @@ interface FunctionKeyProvider {
     splitKeys(): Promise<FunctionKeyPair | Error>;
 
     /**
-     * Get fee function keys from the credits.aleo program
+     * Get fee_private function keys from the credits.aleo program
      *
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
      */
-    feeKeys(): Promise<FunctionKeyPair | Error>;
+    feePrivateKeys(): Promise<FunctionKeyPair | Error>;
+
+    /**
+     * Get fee_public function keys from the credits.aleo program
+     *
+     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     */
+    feePublicKeys(): Promise<FunctionKeyPair | Error>;
 
     /**
      * Cache a set of keys. This will overwrite any existing keys with the same keyId. The user can check if a keyId
@@ -331,7 +338,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
             // If cache is enabled, check if the keys have already been fetched and return them if they have
             if (this.cacheOption) {
                 if (!cacheKey) {
-                    cacheKey = proverUrl + verifierUrl;
+                    cacheKey = proverUrl;
                 }
                 const value = this.cache.get(cacheKey);
                 if (typeof value !== "undefined") {
@@ -339,8 +346,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 } else {
                     console.debug("Fetching proving keys from url " + proverUrl);
                     const provingKey = <ProvingKey>ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
-                    console.debug("Fetching verifying keys from url " + verifierUrl);
-                    const verifyingKey = <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
+                    console.debug("Fetching verifying keys " + verifierUrl);
+                    const verifyingKey = <VerifyingKey>(await this.getVerifyingKey(verifierUrl));
                     this.cache.set(cacheKey, [provingKey.toBytes(), verifyingKey.toBytes()]);
                     return [provingKey, verifyingKey];
                 }
@@ -348,7 +355,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
             else {
                 // If cache is disabled, fetch the keys and return them
                 const provingKey = <ProvingKey>ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
-                const verifyingKey = <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
+                const verifyingKey = <VerifyingKey>(await this.getVerifyingKey(verifierUrl));
                 return [provingKey, verifyingKey];
             }
         } catch (error) {
@@ -407,12 +414,52 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 
     /**
-     * Returns the proving and verifying keys for the fee function in the credits.aleo program
+     * Returns the proving and verifying keys for the fee_private function in the credits.aleo program
      *
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the fee function
      */
-    async feeKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee.prover, CREDITS_PROGRAM_KEYS.fee.verifier);
+    async feePrivateKeys(): Promise<FunctionKeyPair | Error> {
+        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee_private.prover, CREDITS_PROGRAM_KEYS.fee_private.verifier);
+    }
+
+    /**
+     * Returns the proving and verifying keys for the fee_public function in the credits.aleo program
+     *
+     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the fee function
+     */
+    async feePublicKeys(): Promise<FunctionKeyPair | Error> {
+        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee_public.prover, CREDITS_PROGRAM_KEYS.fee_public.verifier);
+    }
+
+    /**
+     * Gets a verifying key. If the verifying key is for a credits.aleo function, get it from the wasm cache otherwise
+     *
+     * @returns {Promise<VerifyingKey | Error>} Verifying key for the function
+     */
+    // attempt to fetch it from the network
+    async getVerifyingKey(verifierUrl: string): Promise<VerifyingKey | Error> {
+        switch (verifierUrl) {
+            case CREDITS_PROGRAM_KEYS.fee_private.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.fee_private.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.fee_public.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.fee_public.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.inclusion.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.inclusion.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.join.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.join.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.split.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.split.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.transfer_private.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_private.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.transfer_public.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifyingKey);
+            default:
+                return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
+        }
     }
 }
 

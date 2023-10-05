@@ -22,7 +22,7 @@ use walkdir::WalkDir;
 const EXPECTED_LICENSE_TEXT: &[u8] = include_bytes!("../.resources/license_header");
 
 // The following directories will be excluded from the license scan.
-const DIRS_TO_SKIP: [&str; 8] = [".cargo", ".circleci", ".git", ".github", ".resources", "examples", "sdk", "target"];
+const DIRS_TO_SKIP: [&str; 9] = [".cargo", ".circleci", ".git", ".github", ".resources", "examples", "sdk", "target", "node_modules"];
 
 fn check_file_licenses<P: AsRef<Path>>(path: P) {
     let path = path.as_ref();

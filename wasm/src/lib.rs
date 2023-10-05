@@ -163,13 +163,17 @@ pub use record::*;
 
 pub(crate) mod types;
 
+#[cfg(not(test))]
+mod thread_pool;
+
 use wasm_bindgen::prelude::*;
+
+#[cfg(not(test))]
+use thread_pool::ThreadPool;
 
 use std::str::FromStr;
 
 use crate::types::RecordPlaintextNative;
-#[cfg(feature = "parallel")]
-pub use wasm_bindgen_rayon::init_thread_pool;
 
 // Facilities for cross-platform logging in both web browsers and nodeJS
 #[wasm_bindgen]
@@ -200,4 +204,21 @@ impl Credits for RecordPlaintextNative {
             _ => Err("The record provided does not contain a microcredits field".to_string()),
         }
     }
+}
+
+
+#[cfg(not(test))]
+pub use thread_pool::initialize_worker;
+
+#[cfg(not(test))]
+#[wasm_bindgen(js_name = "initThreadPool")]
+pub async fn init_thread_pool(url: web_sys::Url, num_threads: usize) -> Result<(), JsValue> {
+    console_error_panic_hook::set_once();
+
+    ThreadPool::builder()
+        .url(url)
+        .num_threads(num_threads)
+        .build_global().await?;
+
+    Ok(())
 }
