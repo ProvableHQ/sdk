@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.5.10"
+version = "0.6.0"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"
@@ -72,8 +72,7 @@ version = "1.18.0"
 version = "0.8"
 
 [dependencies.rayon]
-version = "1.5"
-optional = true
+version = "1.8"
 
 [dependencies.reqwest]
 version = "0.11.18"
@@ -91,10 +90,6 @@ features = [ "serde-serialize" ]
 [dependencies.wasm-bindgen-futures]
 version = "0.4.37"
 
-[dependencies.wasm-bindgen-rayon]
-version = "1.0.3"
-optional = true
-
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
 
@@ -105,13 +100,25 @@ version = "1.0.183"
 version = "0.15.0"
 features = [ "wasm" ]
 
+[dependencies.spmc]
+version = "0.3.0"
+
+[dependencies.futures]
+version = "0.3.28"
+
+[dependencies.web-sys]
+version = "0.3.64"
+features = [
+    "Url",
+    "Navigator",
+]
+
 [dev-dependencies.wasm-bindgen-test]
 version = "0.3.37"
 
 [features]
 default = [ "serial", "browser" ]
 serial = [ "snarkvm-console/serial", "snarkvm-synthesizer/serial", "snarkvm-ledger-query/serial", "snarkvm-ledger-block/serial", "snarkvm-ledger-store/serial" ]
-parallel = [ "wasm-bindgen-rayon", "rayon" ]
 browser = [ ]
 
 ## Profiles
@@ -123,9 +130,3 @@ lto = true
 opt-level = 3
 lto = "thin"
 incremental = true
-
-[package.metadata.wasm-pack.profile.debug]
-wasm-opt = ["-O3"]
-
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-O3"]

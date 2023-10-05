@@ -1,4 +1,4 @@
-import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER} from ".";
+import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER} from "./index";
 import axios from 'axios';
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];

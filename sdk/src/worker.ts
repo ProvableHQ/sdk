@@ -1,4 +1,4 @@
-import { initializeWasm, initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution } from "./browser";
+import { initializeWasm, initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution } from "./index";
 import { AleoKeyProvider, AleoKeyProviderParams} from "./function-key-provider";
 import { expose } from "comlink";
 

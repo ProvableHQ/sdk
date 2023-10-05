@@ -1,7 +1,3 @@
-import init, {
-    initThreadPool,
-    ProgramManager as WasmProgramManager,
-} from '@aleohq/wasm'
 import {
     Account,
     AleoKeyProvider,
@@ -21,7 +17,8 @@ import {
     PRIVATE_TRANSFER_TYPES,
     VALID_TRANSFER_TYPES,
     logAndThrow,
-} from ".";
+    ProgramManagerBase as WasmProgramManager,
+} from "./index";
 
 
 

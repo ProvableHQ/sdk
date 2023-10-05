@@ -27,94 +27,21 @@ Functionality exposed by this crate includes:
 More information on these concepts can be found at the [Aleo Developer Hub](https://developer.aleo.org/concepts).
 
 ## Usage
-The [wasm-pack](https://crates.io/crates/wasm-pack) tool is used to compile the Rust code in this crate into JavaScript
+
+The [rollup-plugin-rust](https://github.com/wasm-tool/rollup-plugin-rust/) tool is used to compile the Rust code in this crate into JavaScript
 modules which can be imported into other JavaScript projects.
 
-#### Install Wasm-Pack
-```bash
-curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-```
+#### Installation
+
+Follow the [installation instructions](https://github.com/wasm-tool/rollup-plugin-rust/#installation) on the rollup-plugin-rust README.
 
 ### Build Instructions
-The general syntax for compiling rust into WebAssembly based JavaScript modules with 
-[wasm-pack](https://crates.io/crates/wasm-pack) is as follows:
+
 ```bash
-wasm-pack build --target <target> --out-dir <out-dir> -- --features <crate-features>
+npm run build
 ```
 
-Invoking this command will build a JavaScript module in the current directory with the default name `pkg` (which can 
-be changed as necessary using the `--out-dir` flag). This folder can then be imported directly as a JavaScript module
-by other JavaScript modules.
-
-There are 3 possible JavaScript modules that [wasm-pack](https://crates.io/crates/wasm-pack) can be used to generate 
-when run within this crate:
-1. **NodeJS module:** Used to build NodeJS applications.
-2. **Single-Threaded browser module:** Used to build browser-based web applications.
-3. **Multi-Threaded browser module:** Used to build browser-based web applications which use web-worker based 
-multi-threading to achieve significant performance increases.
-
-These 3 modules and how to build them are explained in more detail below.
-
-### 1. NodeJS Module
-
-This module has the features of the NodeJS environment built-in. It is single-threaded and unfortunately cannot yet be 
-used to generate Aleo program executions or deployments due to current Aleo protocol limitations. It can however still
-be used to perform Aleo account, record, and program management tasks.
-
-#### Build Instructions
-```bash
-wasm-pack build --release --target nodejs -- --features "serial" --no-default-features
-```
-
-### 2. Single-Threaded browser module
-
-This module is very similar to the NodeJS module, however it is built to make use browser-based JavaScript environments 
-and can be used for program execution and deployment. 
-
-If used for program execution or deployment, it suggested to do so on a web-worker as these operations are long-running
-and will cause a browser window to hang if run in the main thread.
-
-#### Build Instructions
-```bash
-wasm-pack build --release --target web
-```
-
-If you are intending to use this for program execution or deployment, it is recommended to build
-with maximum or close to maximum memory allocation (which is 4 gigabytes for wasm).
-
-```bash
-RUSTFLAGS='-C link-arg=--max-memory=4294967296' wasm-pack build --release --target web
-````
-
-### 3. Multi-Threaded browser module
-
-This module is also built for browser-based JavaScript environments, however it is built to make use of Rust-native
-threading via web-workers (using the approach outlined in the `rayon-wasm-bindgen` crate). It is the most complex to use,
-but it will run significantly faster when performing Aleo program executions and deployments and should be the choice for
-performance-critical applications.
-
-To build with threading enabled, it is necessary to use `nightly Rust` and set certain `RUSTFLAGS` to enable the
-necessary threading features. The `wasm-pack` build command is shown below.
-```bash
-# Set rustflags to enable atomics, 
-# bulk-memory, and mutable-globals. 
-# Also, set the maximum memory to 
-# 4294967296 bytes (4GB).
-export RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--max-memory=4294967296'
-
-# Use rustup to run the following commands 
-# with the nightly version of Rust.
-rustup run nightly \
-
-# Use wasm-pack to build the project. 
-# Specify the 'parallel' feature for 
-# multi-threading and the 'browser' 
-# feature to enable program execution
-# and include necessary unstable options
-# using -Z
-wasm-pack build --release --target web --out-dir pkg-parallel \
--- --features "parallel, browser" --no-default-features -Z build-std=panic_abort,std
-```
+This will produce `.js` and `.wasm` files inside of the `dist` folder.
 
 ## Testing
 

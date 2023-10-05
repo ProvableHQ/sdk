@@ -1,0 +1,1 @@
+import "@aleohq/wasm/worker.js";

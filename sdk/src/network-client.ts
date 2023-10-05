@@ -10,7 +10,7 @@ import {
   Transaction,
   Transition,
   logAndThrow
-} from ".";
+} from "./index";
 
 type ProgramImports = { [key: string]: string | Program };
 
