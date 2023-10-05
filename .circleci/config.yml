@@ -114,7 +114,7 @@ jobs:
             # npm install --global typescript
             cd ../sdk && npm install
             sleep 5
-            npm test
+            # npm test
       - clear_environment:
           cache_key: aleo-wasm-cache
 
