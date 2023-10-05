@@ -115,7 +115,6 @@ jobs:
             cd ../sdk && npm install
             sleep 5
             # npm test
-            cd ../create-aleo-app/template-node && npm install && npm start
       - clear_environment:
           cache_key: aleo-wasm-cache
 

@@ -1,0 +1,21 @@
+name: create-aleo-app template tests
+
+on: [push]
+
+jobs:
+  test-node-template:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: node template test
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+      - name: Install dependencies
+        working-directory: create-aleo-app/template-node
+        run: npm install
+      - name: Run app
+        working-directory: create-aleo-app/template-node
+        run: npm start
