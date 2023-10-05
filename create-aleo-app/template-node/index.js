@@ -1,5 +1,14 @@
 import {Account, initThreadPool, PrivateKey, ProgramManager,} from "@aleohq/sdk";
 
+let threadPoolSize = 10;
+
+const threadsIndex = process.argv.indexOf('--threads');
+if (threadsIndex !== -1 && process.argv[threadsIndex + 1]) {
+    threadPoolSize = parseInt(process.argv[threadsIndex + 1], 10);
+}
+
+await initThreadPool(threadPoolSize);
+
 const hello_hello_program =
     "program hello_hello.aleo;\n" +
     "\n" +
