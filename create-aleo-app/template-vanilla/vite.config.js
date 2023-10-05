@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 export default defineConfig({
     optimizeDeps: {
-        exclude: ["@aleohq/wasm"],
+        exclude: ["@aleohq/wasm", "@aleohq/sdk"],
     },
     server: {
         headers: {
