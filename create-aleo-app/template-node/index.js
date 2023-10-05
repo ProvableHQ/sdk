@@ -1,7 +1,5 @@
 import {Account, initThreadPool, PrivateKey, ProgramManager,} from "@aleohq/sdk";
 
-await initThreadPool(10);
-
 const hello_hello_program =
     "program hello_hello.aleo;\n" +
     "\n" +
