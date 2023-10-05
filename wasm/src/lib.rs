@@ -206,7 +206,6 @@ impl Credits for RecordPlaintextNative {
     }
 }
 
-
 #[cfg(not(test))]
 pub use thread_pool::initialize_worker;
 
@@ -215,10 +214,7 @@ pub use thread_pool::initialize_worker;
 pub async fn init_thread_pool(url: web_sys::Url, num_threads: usize) -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
-    ThreadPool::builder()
-        .url(url)
-        .num_threads(num_threads)
-        .build_global().await?;
+    ThreadPool::builder().url(url).num_threads(num_threads).build_global().await?;
 
     Ok(())
 }

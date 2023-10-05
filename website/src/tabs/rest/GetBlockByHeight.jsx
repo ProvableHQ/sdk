@@ -21,7 +21,7 @@ export const GetBlockByHeight = () => {
         try {
             if (height) {
                 axios
-                    .get(`https://vm.aleo.org/api/testnet3/block/${height}`)
+                    .get(`https://api.explorer.aleo.org/v1/testnet3/block/${height}`)
                     .then((response) => {
                         setBlockByHeight(
                             JSON.stringify(response.data, null, 2),

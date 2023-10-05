@@ -77,7 +77,7 @@ impl ProgramManager {
         // Convert fee to microcredits and check that the fee record has enough credits to pay it
         let fee_microcredits = match &fee_record {
             Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
-            None => (fee_credits as u64) * 1_000_000,
+            None => (fee_credits * 1_000_000.0) as u64,
         };
 
         let mut new_process;

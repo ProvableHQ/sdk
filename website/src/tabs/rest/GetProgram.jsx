@@ -31,7 +31,7 @@ export const GetProgram = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://vm.aleo.org/api/testnet3/program/${id}`)
+                    .get(`https://api.explorer.aleo.org/v1/testnet3/program/${id}`)
                     .then((response) => {
                         setStatus("success");
                         setProgram(response.data);

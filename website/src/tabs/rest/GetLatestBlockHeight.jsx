@@ -10,7 +10,7 @@ export const GetLatestBlockHeight = () => {
         setLatestHeight(null);
         try {
             axios
-                .get(`https://vm.aleo.org/api/testnet3/latest/height`)
+                .get(`https://api.explorer.aleo.org/v1/testnet3/latest/height`)
                 .then((response) =>
                     setLatestHeight(JSON.stringify(response.data, null, 2)),
                 );
