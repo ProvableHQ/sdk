@@ -18,4 +18,4 @@ jobs:
         run: npm install
       - name: Run app
         working-directory: create-aleo-app/template-node
-        run: npm start -- --threads 2
+        run: npm start -- --threads 1
