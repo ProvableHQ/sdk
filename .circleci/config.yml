@@ -107,7 +107,7 @@ jobs:
             nvm install 20.3.1
             nvm use 20.3.1
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-            cd wasm && wasm-pack test --node --lib
+            cd wasm && sed -i.bak '/"type": "module"/d' package.json && wasm-pack test --node --lib
             # cargo test --target wasm32-unknown-unknown
             wasm-pack build --target nodejs
             npm install --global typescript
