@@ -25,8 +25,8 @@
     "prepublish": "npm run build",
     "clear_jest": "jest --clearCache",
     "dev": "tsc --watch",
-    "test": "jest --config jest-config.json",
-    "integration": "jest --config jest-integration-config.json --silent=false --runInBand"
+    "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --config jest-config.json --detectOpenHandles",
+    "integration": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --silent=false --runInBand --detectOpenHandles"
   },
   "repository": {
     "type": "git",

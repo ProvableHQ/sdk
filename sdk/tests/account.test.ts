@@ -1,4 +1,5 @@
-import { Account, Address, PrivateKey, RecordCiphertext, ViewKey } from '../src'
+import {jest} from '@jest/globals'
+import { Account, Address, PrivateKey, RecordCiphertext, ViewKey } from '../src/node'
 import { seed, message, beaconPrivateKeyString, beaconViewKeyString, beaconAddressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from './data/account-data';
 
 
