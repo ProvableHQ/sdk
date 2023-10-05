@@ -7,6 +7,6 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@aleohq/sdk": "^0.5.10"
+    "@aleohq/sdk": "^0.6.0"
   }
 }
