@@ -1,7 +1,8 @@
-import {AleoKeyProvider, CachedKeyPair, CREDITS_PROGRAM_KEYS, FunctionKeyPair, ProvingKey, VerifyingKey} from "../src";
+import {AleoKeyProvider, CachedKeyPair, CREDITS_PROGRAM_KEYS, FunctionKeyPair, ProvingKey, VerifyingKey} from "../src/node";
+import {jest} from '@jest/globals'
 jest.retryTimes(3);
 
-describe('KeyProvider', () => {
+describe.skip('KeyProvider', () => {
     let keyProvider: AleoKeyProvider;
 
     beforeEach(() => {

@@ -1,4 +1,4 @@
-import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "../src";
+import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "../src/node";
 import {
     seed,
     message,
@@ -363,5 +363,5 @@ describe('WASM Objects', () => {
         });
     });
 
-    
+
 });

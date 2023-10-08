@@ -6,6 +6,7 @@
     "sdk",
     "wasm",
     "website",
+    "create-aleo-app",
     "create-aleo-app/*"
   ],
   "scripts": {

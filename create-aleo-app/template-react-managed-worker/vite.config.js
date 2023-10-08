@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    exclude: ["@aleohq/wasm"],
+    exclude: ["@aleohq/wasm", "@aleohq/sdk"],
   },
   server: {
     // Needed if you are linking local packages for development
