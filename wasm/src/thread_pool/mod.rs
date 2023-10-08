@@ -29,6 +29,12 @@ use wasm_bindgen_futures::JsFuture;
             });
 
             worker.addEventListener("message", (event) => {
+                // When running in Node, this allows the process to exit
+                // even though the Worker is still running.
+                if (worker.unref) {
+                    worker.unref();
+                }
+
                 resolve(worker);
             }, {
                 capture: true,
@@ -153,9 +159,10 @@ impl ThreadPool {
     }
 }
 
-#[wasm_bindgen(js_name = initializeWorker)]
+#[doc(hidden)]
+#[wasm_bindgen(js_name = runRayonThread)]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub fn initialize_worker(receiver: *const Receiver<ThreadBuilder>)
+pub fn run_rayon_thread(receiver: *const Receiver<ThreadBuilder>)
 where
     Receiver<ThreadBuilder>: Sync,
 {

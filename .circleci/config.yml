@@ -1,162 +1,116 @@
 version: 2.1
 
+
+orbs:
+  node: circleci/node@5.1.0
+
+
+executors:
+  rust-node:
+    docker:
+      - image: cimg/rust:1.73-node
+
+
 commands:
-  setup_environment:
-    description: "Setup testing environment"
+  cargo_fetch:
+    description: "Fetches cargo packages with caching"
     parameters:
-      cache_key:
+      working_directory:
         type: string
-        default: aleo-stable-cache
+        default: .
+        description: >-
+          Path to the directory containing your crate.
     steps:
-      - run: set -e
-      - setup_remote_docker
-      - run:
-          name: Prepare environment and install dependencies
-          command: |
-            export SCCACHE_CACHE_SIZE=200M
-            export WORK_DIR="$CIRCLE_WORKING_DIRECTORY/.cache/sccache"
-            export SCCACHE_DIR="$CIRCLE_WORKING_DIRECTORY/.cache/sccache"
-            mkdir -p "$CIRCLE_WORKING_DIRECTORY/.bin"
-            wget https://github.com/mozilla/sccache/releases/download/0.2.13/sccache-0.2.13-x86_64-unknown-linux-musl.tar.gz
-            tar -C "$CIRCLE_WORKING_DIRECTORY/.bin" -xvf sccache-0.2.13-x86_64-unknown-linux-musl.tar.gz
-            mv $CIRCLE_WORKING_DIRECTORY/.bin/sccache-0.2.13-x86_64-unknown-linux-musl/sccache $CIRCLE_WORKING_DIRECTORY/.bin/sccache
-            export PATH="$PATH:$CIRCLE_WORKING_DIRECTORY/.bin"
-            export RUSTC_WRAPPER="sccache"
-            rm -rf "$CIRCLE_WORKING_DIRECTORY/.cargo/registry"
-            sudo apt-get update && sudo apt-get install -y clang llvm-dev llvm pkg-config xz-utils make libssl-dev libssl-dev
       - restore_cache:
           keys:
-            - << parameters.cache_key >>
-
-  clear_environment:
-    description: "Clear environment"
-    parameters:
-      cache_key:
-        type: string
-        default: aleo-stable-cache
-    steps:
-      - run: (sccache -s||true)
-      - run: set +e
+            - cargo-{{ checksum "<<parameters.working_directory>>/Cargo.lock" }}
+      - run:
+          working_directory: <<parameters.working_directory>>
+          command: cargo fetch
       - save_cache:
-          key: << parameters.cache_key >>
+          key: cargo-{{ checksum "<<parameters.working_directory>>/Cargo.lock" }}
           paths:
-            - .cache/sccache
-            - .cargo
+            - ~/.cargo
 
-  run_serial:
-    description: "Build and run tests"
-    parameters:
-      workspace_member:
-        type: string
-      cache_key:
-        type: string
-      flags:
-        type: string
-        default: ""
+
+  setup:
+    description: "Sets up job"
     steps:
       - checkout
-      - setup_environment:
-          cache_key: << parameters.cache_key >>
-      - run:
-          no_output_timeout: 30m
-          command: cd << parameters.workspace_member >> && RUST_MIN_STACK=67108864 cargo test << parameters.flags >>
-      - clear_environment:
-          cache_key: << parameters.cache_key >>
+      - cargo_fetch:
+          working_directory: wasm
+      - node/install-packages
 
-  run_parallel:
-    description: "Build and run tests (in parallel)"
-    parameters:
-      workspace_member:
-        type: string
-      cache_key:
-        type: string
-      flags:
-        type: string
-        default: ""
-    steps:
-      - checkout
-      - setup_environment:
-          cache_key: << parameters.cache_key >>
-      - run:
-          no_output_timeout: 30m
-          command: |
-            cd << parameters.workspace_member >>
-            cargo test -- --list --format terse | sed 's/: test//' > test_names.txt
-            TEST_NAMES=$(circleci tests split test_names.txt)
-            for i in $(echo $TEST_NAMES | sed "s/ / /g")
-            do
-                RUST_MIN_STACK=67108864 cargo test $i << parameters.flags >>
-            done
-      - clear_environment:
-          cache_key: << parameters.cache_key >>
 
 jobs:
-  wasm:
-    docker:
-      - image: cimg/rust:1.70
-    resource_class: 2xlarge
+  sdk:
+    executor: rust-node
     steps:
-      - checkout
-      - setup_environment:
-          cache_key: aleo-wasm-cache
-      - run:
-          no_output_timeout: 30m
-          command: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
-            export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install 20.3.1
-            nvm use 20.3.1
-            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-            cd wasm && wasm-pack test --node --lib
-            # cargo test --target wasm32-unknown-unknown
-            wasm-pack build --target nodejs
-            npm install --global typescript
-            cd ../sdk && npm install
-            sleep 5
-            npm test
-      - clear_environment:
-          cache_key: aleo-wasm-cache
+      - setup
+      - run: |
+          npm run build:all
+      - persist_to_workspace:
+          root: .
+          paths:
+            - sdk/dist/*
+            - wasm/dist/*
 
-  check-fmt:
-    docker:
-      - image: cimg/rust:1.70
-    resource_class: xlarge
+
+  sdk-test:
+    executor: rust-node
     steps:
-      - checkout
-      - setup_environment:
-          cache_key: aleo-fmt-cache
+      - setup
+      - run: |
+          npm test
+
+
+  template-node:
+    executor: rust-node
+    steps:
+      - setup
+      - attach_workspace:
+          at: .
       - run:
-          name: Check style
-          no_output_timeout: 35m
+          working_directory: create-aleo-app/template-node
           command: |
-            rustup toolchain install nightly-x86_64-unknown-linux-gnu
-            cd wasm
-            cargo +nightly fmt --all -- --check
-      - clear_environment:
-          cache_key: aleo-fmt-cache
+            npm start
+
 
   check-clippy:
-    docker:
-      - image: cimg/rust:1.70
-    resource_class: 2xlarge
+    executor: rust-node
     steps:
       - checkout
-      - setup_environment:
-          cache_key: aleo-clippy-cache
+      - cargo_fetch:
+          working_directory: wasm
       - run:
-          name: Check lint
-          no_output_timeout: 35m
+          working_directory: wasm
           command: |
-            cd wasm
-            cargo clippy --all-targets --features serial
-      - clear_environment:
-          cache_key: aleo-clippy-cache
+            cargo clippy
+
+  check-fmt:
+    executor: rust-node
+    steps:
+      - checkout
+      - cargo_fetch:
+          working_directory: wasm
+      - run:
+          working_directory: wasm
+          command: |
+            cargo fmt -- --check
+
 
 workflows:
   version: 2
 
   main-workflow:
     jobs:
-      - wasm
       - check-fmt
       - check-clippy
+      - sdk
+      - sdk-test
+      - template-node:
+          requires:
+            - sdk
+      #- test-website:
+      #    requires:
+      #      - sdk

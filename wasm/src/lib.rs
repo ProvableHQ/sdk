@@ -207,7 +207,8 @@ impl Credits for RecordPlaintextNative {
 }
 
 #[cfg(not(test))]
-pub use thread_pool::initialize_worker;
+#[doc(hidden)]
+pub use thread_pool::run_rayon_thread;
 
 #[cfg(not(test))]
 #[wasm_bindgen(js_name = "initThreadPool")]

@@ -1,11 +1,27 @@
 {
-  "name": "root",
+  "name": "sdk-root",
+  "private": true,
   "version": "0.0.0",
+  "workspaces": [
+    "sdk",
+    "wasm",
+    "website",
+    "create-aleo-app/*"
+  ],
   "scripts": {
+    "build:wasm": "cd wasm && npm run build",
+    "build:sdk": "cd sdk && npm run build",
+    "build:all": "npm run build:wasm && npm run build:sdk",
+
+    "test:wasm": "cd wasm && npm test",
+    "test:sdk": "cd sdk && npm test",
+    "test": "npm run test:wasm && npm run test:sdk",
+
     "lint": "prettier . --check",
     "pretty": "prettier . --write"
   },
   "devDependencies": {
-    "prettier": "3.0.3"
+    "prettier": "3.0.3",
+    "wasm-pack": "^0.12.1"
   }
 }

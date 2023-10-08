@@ -97,6 +97,12 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
         terminate() {
             this._worker.terminate();
         }
+
+        // This is Node-specific, it allows the process to exit
+        // even if the Worker is still running.
+        unref() {
+            this._worker.unref();
+        }
     };
 
 
