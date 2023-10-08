@@ -60,6 +60,8 @@ jobs:
     executor: rust-node
     steps:
       - setup
+      - attach_workspace:
+          at: .
       - run: |
           npm test
 
@@ -107,7 +109,9 @@ workflows:
       - check-fmt
       - check-clippy
       - sdk
-      - sdk-test
+      - sdk-test:
+          requires:
+            - sdk
       - template-node:
           requires:
             - sdk
