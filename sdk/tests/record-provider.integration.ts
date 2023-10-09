@@ -1,5 +1,6 @@
+import {jest} from '@jest/globals'
 import { beaconPrivateKeyString } from "./data/account-data";
-import { Account, AleoNetworkClient, NetworkRecordProvider, RecordPlaintext } from "../src";
+import { Account, AleoNetworkClient, NetworkRecordProvider, RecordPlaintext } from "../src/node";
 jest.retryTimes(3);
 
 describe('RecordProvider', () => {

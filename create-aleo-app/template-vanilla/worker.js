@@ -1,12 +1,10 @@
 import {
     Account,
-    initializeWasm,
     initThreadPool,
     PrivateKey,
     ProgramManager,
 } from "@aleohq/sdk";
 
-await initializeWasm();
 await initThreadPool(10);
 
 const hello_hello_program =

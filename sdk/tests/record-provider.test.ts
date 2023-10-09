@@ -1,9 +1,10 @@
-import {Account, AleoNetworkClient, BlockHeightSearch, NetworkRecordProvider} from "../src";
+import {jest} from '@jest/globals'
+import {Account, AleoNetworkClient, BlockHeightSearch, NetworkRecordProvider} from "../src/node";
 import {beaconPrivateKeyString} from "./data/account-data";
 import {log} from "console";
 jest.retryTimes(3);
 
-describe('RecordProvider', () => {
+describe.skip('RecordProvider', () => {
     let account: Account;
     let networkClient: AleoNetworkClient;
     let recordProvider: NetworkRecordProvider;

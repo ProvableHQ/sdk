@@ -2,7 +2,6 @@ import {
   Account,
   ProgramManager,
   PrivateKey,
-  initializeWasm,
   initThreadPool,
   AleoKeyProvider,
   AleoNetworkClient,
@@ -10,7 +9,6 @@ import {
 } from "@aleohq/sdk";
 import { expose, proxy } from "comlink";
 
-await initializeWasm();
 await initThreadPool(10);
 
 async function localProgramExecution(program, aleoFunction, inputs) {

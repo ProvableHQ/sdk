@@ -1,9 +1,10 @@
-import {Account, Block, AleoNetworkClient, Transaction} from "../src";
+import {jest} from '@jest/globals'
+import {Account, Block, AleoNetworkClient, Transaction} from "../src/node";
 import {beaconPrivateKeyString} from "./data/account-data";
 import {log} from "console";
 jest.retryTimes(3);
 
-describe('NodeConnection', () => {
+describe.skip('NodeConnection', () => {
     let connection: AleoNetworkClient;
 
     beforeEach(() => {

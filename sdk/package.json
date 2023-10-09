@@ -1,6 +1,6 @@
 {
   "name": "@aleohq/sdk",
-  "version": "0.5.11",
+  "version": "0.6.1",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
     "The Aleo Team <hello@aleo.org>"
@@ -23,10 +23,9 @@
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js",
     "prepublish": "npm run build",
-    "clear_jest": "jest --clearCache",
-    "dev": "tsc --watch",
-    "test": "jest --config jest-config.json",
-    "integration": "jest --config jest-integration-config.json --silent=false --runInBand"
+    "test": "node --no-warnings --experimental-vm-modules ../node_modules/jest/bin/jest.js --config jest-config.json --detectOpenHandles",
+    "integration": "node --no-warnings --experimental-vm-modules ../node_modules/jest/bin/jest.js --silent=false --runInBand --detectOpenHandles",
+    "clear_jest": "jest --clearCache"
   },
   "repository": {
     "type": "git",
@@ -51,7 +50,7 @@
     "sync-request": "^6.1.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.4.0",
+    "@types/jest": "^29.5.5",
     "@types/mime": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
     "@typescript-eslint/parser": "^5.41.0",
@@ -61,12 +60,13 @@
     "eslint": "^8.26.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
-    "jest": "^29.4.2",
+    "jest": "^29.7.0",
+    "jsdoc": "^3.6.11",
     "prettier": "2.7.1",
     "rimraf": "^5.0.1",
     "rollup": "^3.27.2",
     "rollup-plugin-typescript2": "^0.36.0",
-    "ts-jest": "^29.0.5",
+    "ts-jest": "^29.1.1",
     "typescript": "^5.2.2"
   }
 }
