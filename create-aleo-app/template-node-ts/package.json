@@ -1,0 +1,15 @@
+{
+  "name": "node-ts-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-specifier-resolution=node --loader ts-node/esm index.ts"
+  },
+  "dependencies": {
+    "@aleohq/sdk": "^0.6.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
+}
