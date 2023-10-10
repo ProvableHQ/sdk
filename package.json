@@ -10,13 +10,13 @@
     "create-aleo-app/*"
   ],
   "scripts": {
-    "build:wasm": "cd wasm && npm run build",
-    "build:sdk": "cd sdk && npm run build",
-    "build:all": "npm run build:wasm && npm run build:sdk",
+    "build:wasm": "cd wasm && yarn build",
+    "build:sdk": "cd sdk && yarn build",
+    "build:all": "yarn build:wasm && yarn build:sdk",
 
-    "test:wasm": "cd wasm && npm test",
-    "test:sdk": "cd sdk && npm test",
-    "test": "npm run test:wasm && npm run test:sdk",
+    "test:wasm": "cd wasm && yarn test",
+    "test:sdk": "cd sdk && yarn test",
+    "test": "yarn test:wasm && yarn test:sdk",
 
     "lint": "prettier . --check",
     "pretty": "prettier . --write"
