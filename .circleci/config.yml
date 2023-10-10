@@ -39,7 +39,8 @@ commands:
       - checkout
       - cargo_fetch:
           working_directory: wasm
-      - node/install-packages
+      - node/install-packages:
+          pkg-manager: yarn
 
 
 jobs:
@@ -48,7 +49,7 @@ jobs:
     steps:
       - setup
       - run: |
-          npm run build:all
+          yarn build:all
       - persist_to_workspace:
           root: .
           paths:
@@ -63,7 +64,7 @@ jobs:
       - attach_workspace:
           at: .
       - run: |
-          npm test
+          yarn test
 
 
   template-node:
@@ -75,7 +76,7 @@ jobs:
       - run:
           working_directory: create-aleo-app/template-node
           command: |
-            npm start
+            yarn start
 
 
   check-clippy:
