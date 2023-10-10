@@ -39,7 +39,8 @@ commands:
       - checkout
       - cargo_fetch:
           working_directory: wasm
-      - node/install-packages
+      - node/install-packages:
+          pkg-manager: yarn
 
 
 jobs:
