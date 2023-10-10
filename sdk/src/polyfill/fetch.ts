@@ -5,7 +5,7 @@ import $mime from "mime/lite.js";
 const oldFetch = globalThis.fetch;
 
 // We always polyfill fetch because Node's fetch doesn't support file URLs.
-globalThis.fetch = async function (resource: URL | RequestInfo, options: RequestInit | undefined): Promise<Response> {
+(globalThis.fetch as any) = async function (resource: URL | RequestInfo, options: RequestInit | undefined): Promise<Response> {
     const request = new Request(resource, options);
 
     const url = new URL(request.url);
