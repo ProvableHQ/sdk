@@ -38,7 +38,7 @@ Follow the [installation instructions](https://github.com/wasm-tool/rollup-plugi
 ### Build Instructions
 
 ```bash
-npm run build
+yarn build
 ```
 
 This will produce `.js` and `.wasm` files inside of the `dist` folder.

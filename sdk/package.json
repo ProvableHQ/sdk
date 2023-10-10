@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js",
-    "prepublish": "npm run build",
+    "prepublish": "yarn build",
     "test": "node --no-warnings --experimental-vm-modules ../node_modules/jest/bin/jest.js --config jest-config.json --detectOpenHandles",
     "integration": "node --no-warnings --experimental-vm-modules ../node_modules/jest/bin/jest.js --silent=false --runInBand --detectOpenHandles",
     "clear_jest": "jest --clearCache"

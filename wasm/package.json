@@ -35,7 +35,7 @@
   "homepage": "https://github.com/AleoHQ/sdk#readme",
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js && cpr js/types dist",
-    "prepublish": "npm run build",
+    "prepublish": "yarn build",
     "test": "node test.js"
   },
   "devDependencies": {
