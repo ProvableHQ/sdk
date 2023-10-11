@@ -10,6 +10,8 @@ export async function get(url: URL | string) {
 
 
 export async function post(url: URL | string, options: RequestInit) {
+    options.method = "POST";
+
     const response = await fetch(url, options);
 
     if (!response.ok) {
