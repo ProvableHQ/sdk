@@ -1,6 +1,6 @@
 # Aleo SDK
 <p align="center">
-    <img alt="Aleo SDK" width="1412" src="https://raw.githubusercontent.com/iamalwaysuncomfortable/imagestorage/main/AleoSdk.png">
+    <img alt="Aleo SDK" width="1412" src="../.resources/banner.png">
 </p>
 
 <p align="center">
