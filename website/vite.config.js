@@ -12,7 +12,7 @@ export default defineConfig({
         sourcemap: true,
     },
     optimizeDeps: {
-        exclude: ["@aleohq/wasm"],
+        exclude: ["@aleohq/wasm", "@aleohq/sdk"],
     },
     server: {
         fs: {

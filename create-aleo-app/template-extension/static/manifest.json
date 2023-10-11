@@ -1,0 +1,10 @@
+{
+  "manifest_version": 2,
+  "name": "extension-starter",
+  "version": "0.1.0",
+  "description": "Example for using Aleo in a Chrome / Firefox extension",
+  "background": {
+    "page": "background.html"
+  },
+  "content_security_policy": "script-src 'self' 'wasm-eval'; object-src 'self'"
+}
