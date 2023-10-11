@@ -1,5 +1,5 @@
 import { ProvingKey, VerifyingKey, CREDITS_PROGRAM_KEYS, KEY_STORE, PRIVATE_TRANSFER, PRIVATE_TO_PUBLIC_TRANSFER, PUBLIC_TRANSFER, PUBLIC_TO_PRIVATE_TRANSFER} from "./index";
-import axios from 'axios';
+import { get } from "./utils";
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 type CachedKeyPair = [Uint8Array, Uint8Array];
@@ -185,8 +185,9 @@ class AleoKeyProvider implements FunctionKeyProvider {
         url = "/",
     ): Promise<Uint8Array> {
         try {
-            const response = await axios.get(url, { responseType: "arraybuffer" });
-            return new Uint8Array(<ArrayBuffer>response.data);
+            const response = await get(url);
+            const data = await response.arrayBuffer();
+            return new Uint8Array(data);
         } catch (error) {
             throw new Error("Error fetching data." + error);
         }

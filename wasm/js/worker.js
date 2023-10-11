@@ -1,4 +1,4 @@
-import wasm from "../Cargo.toml";
+import wasm from "../dist/wasm.js";
 
 async function initializeWorker(wasm) {
     // Wait for the main thread to send us the Module, Memory, and Rayon thread pointer.

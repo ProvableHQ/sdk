@@ -1,4 +1,4 @@
-import axios, {AxiosError} from "axios";
+import { get, post } from "./utils";
 import {
   Account,
   Block,
@@ -70,8 +70,8 @@ class AleoNetworkClient {
       url = "/",
   ): Promise<Type> {
     try {
-      const response = await axios.get<Type>(this.host + url);
-      return response.data;
+      const response = await get(this.host + url);
+      return await response.json();
     } catch (error) {
       throw new Error("Error fetching data.");
     }
@@ -593,26 +593,21 @@ class AleoNetworkClient {
   async submitTransaction(transaction: WasmTransaction | string): Promise<string | Error> {
     const transaction_string = transaction instanceof WasmTransaction ? transaction.toString() : transaction;
     try {
-      const response = await axios
-          .post<string>(
-              this.host + "/transaction/broadcast",
-              transaction_string,
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              },
-          )
-      return response.data;
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response) {
-        throw new Error(`Error posting transaction. Aleo network response: ${JSON.stringify(axiosError.response.data)}`);
-      } else if (axiosError.request) {
-        throw new Error(`Error posting transaction. No response received: ${axiosError.message}`);
-      } else {
-        throw new Error(`Error setting up transaction request: ${axiosError.message}`);
+      const response = await post(this.host + "/transaction/broadcast", {
+        body: transaction_string,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      try {
+        return await response.json();
+
+      } catch (error) {
+        throw new Error(`Error posting transaction. Aleo network response: ${(error as Error).message}`);
       }
+    } catch (error) {
+      throw new Error(`Error posting transaction: No response received: ${(error as Error).message}`);
     }
   }
 }
