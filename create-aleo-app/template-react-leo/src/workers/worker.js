@@ -9,7 +9,7 @@ import {
 } from "@aleohq/sdk";
 import { expose, proxy } from "comlink";
 
-await initThreadPool(10);
+await initThreadPool();
 
 async function localProgramExecution(program, aleoFunction, inputs) {
   const programManager = new ProgramManager();

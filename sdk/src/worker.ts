@@ -1,9 +1,8 @@
-import { initializeWasm, initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution } from "./index";
+import { initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution } from "./index";
 import { AleoKeyProvider, AleoKeyProviderParams} from "./function-key-provider";
 import { expose } from "comlink";
 
-await initializeWasm();
-await initThreadPool(10);
+await initThreadPool();
 
 const defaultHost = "https://vm.aleo.org/api";
 const keyProvider = new AleoKeyProvider();

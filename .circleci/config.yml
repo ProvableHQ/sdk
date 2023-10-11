@@ -43,6 +43,14 @@ commands:
           pkg-manager: yarn
 
 
+  setup-sdk:
+    description: "Sets up job with SDK"
+    steps:
+      - setup
+      - attach_workspace:
+          at: .
+
+
 jobs:
   sdk:
     executor: rust-node
@@ -60,9 +68,7 @@ jobs:
   sdk-test:
     executor: rust-node
     steps:
-      - setup
-      - attach_workspace:
-          at: .
+      - setup-sdk
       - run: |
           yarn test
 
@@ -70,13 +76,29 @@ jobs:
   template-node:
     executor: rust-node
     steps:
-      - setup
-      - attach_workspace:
-          at: .
+      - setup-sdk
       - run:
           working_directory: create-aleo-app/template-node
           command: |
             yarn start
+
+  template-extension:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - run:
+          working_directory: create-aleo-app/template-extension
+          command: |
+            yarn build
+
+  template-react-leo:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - run:
+          working_directory: create-aleo-app/template-react-leo
+          command: |
+            yarn build
 
 
   check-clippy:
@@ -114,6 +136,12 @@ workflows:
           requires:
             - sdk
       - template-node:
+          requires:
+            - sdk
+      - template-extension:
+          requires:
+            - sdk
+      - template-react-leo:
           requires:
             - sdk
       #- test-website:

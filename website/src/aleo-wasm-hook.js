@@ -16,8 +16,7 @@ export const useAleoWASM = () => {
 
         if (!loadingPromise) {
             loadingPromise = import("@aleohq/sdk")
-                .then(async (sdk) => {
-                    await sdk.initializeWasm();
+                .then((sdk) => {
                     loadedSDK = sdk; // Save the loaded SDK
                     setAleoInstance(sdk);
                     setLoading(false);

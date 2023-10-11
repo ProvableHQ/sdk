@@ -77,27 +77,6 @@ async fn spawn_workers(url: web_sys::Url, num_threads: usize) -> Result<Sender<T
     Ok(sender)
 }
 
-async fn spawn_local_thread_pool(url: web_sys::Url, num_threads: usize) -> Result<rayon::ThreadPool, JsValue> {
-    let pool;
-
-    if num_threads == 1 {
-        pool = rayon::ThreadPoolBuilder::new().num_threads(1).use_current_thread().build().unwrap_throw();
-    } else {
-        let mut sender = spawn_workers(url, num_threads).await?;
-
-        pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(num_threads)
-            .spawn_handler(move |thread| {
-                sender.send(thread).unwrap_throw();
-                Ok(())
-            })
-            .build()
-            .unwrap_throw();
-    }
-
-    Ok(pool)
-}
-
 async fn spawn_global_thread_pool(url: web_sys::Url, num_threads: usize) -> Result<(), JsValue> {
     if num_threads == 1 {
         rayon::ThreadPoolBuilder::new().num_threads(1).use_current_thread().build_global().unwrap_throw();
@@ -145,12 +124,6 @@ impl ThreadPool {
                 window.navigator().hardware_concurrency() as usize
             }),
         )
-    }
-
-    // TODO this should cleanup the receiver when the ThreadPool is dropped
-    pub fn build_local(self) -> impl Future<Output = Result<rayon::ThreadPool, JsValue>> {
-        let (url, num_threads) = self.defaults();
-        spawn_local_thread_pool(url, num_threads)
     }
 
     pub fn build_global(self) -> impl Future<Output = Result<(), JsValue>> {

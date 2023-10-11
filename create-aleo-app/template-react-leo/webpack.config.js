@@ -1,5 +1,5 @@
 import CopyPlugin from "copy-webpack-plugin";
-
+import TerserPlugin from "terser-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 
 import path from "path";
@@ -80,6 +80,14 @@ const appConfig = {
     hints: false,
     maxAssetSize: 13 * 1024 * 1024, // 12 MiB
     maxEntrypointSize: 13 * 1024 * 1024, // 12 MiB
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [new TerserPlugin({
+      terserOptions: {
+        module: true,
+      }
+    })],
   },
   stats: {
     warnings: false,

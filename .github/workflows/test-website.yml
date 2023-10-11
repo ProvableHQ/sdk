@@ -19,11 +19,6 @@ jobs:
           override: true
           components: rustfmt, rust-src
 
-      - uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
-          version: 'latest'
-
       - uses: actions/cache@v2
         with:
           path: |
@@ -34,9 +29,9 @@ jobs:
 
       - name: Install and Build
         run: |
-          rustup component add rust-src
-          cd website
           yarn
+          yarn build:all
+          cd website
           yarn build
         env:
           CI: ""

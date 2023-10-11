@@ -1,7 +1,6 @@
 import * as aleo from "@aleohq/sdk";
 
-await aleo.initializeWasm();
-await aleo.initThreadPool(10);
+await aleo.initThreadPool();
 
 const defaultHost = "https://api.explorer.aleo.org/v1";
 const keyProvider = new aleo.AleoKeyProvider();
