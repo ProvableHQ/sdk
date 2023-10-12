@@ -1,0 +1,24 @@
+{
+  "name": "template-nextjs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@aleohq/sdk": "^0.6.2",
+    "next": "13.5.4",
+    "react": "^18",
+    "react-dom": "^18",
+    "terser-webpack-plugin": "^5.3.9"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  }
+}
