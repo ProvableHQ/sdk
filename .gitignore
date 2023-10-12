@@ -6,6 +6,7 @@
 **/target
 **/dist
 storage*/
+**/.next
 
 ## OS Files
 **.DS_Store
@@ -18,4 +19,3 @@ rust/src/program/.DS_Store
 .netlify
 
 package-lock.json
-/.next/
