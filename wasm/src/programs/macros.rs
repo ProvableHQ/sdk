@@ -15,8 +15,24 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 #[macro_export]
+macro_rules! process_inputs {
+    ($inputs:expr) => {{
+        let mut inputs_native = Vec::<String>::new();
+        log("parsing inputs");
+        for input in $inputs.to_vec().iter() {
+            if let Some(input) = input.as_string() {
+                inputs_native.push(input);
+            } else {
+                return Err("Invalid input - all inputs must be a string specifying the type".to_string());
+            }
+        }
+        inputs_native
+    }};
+}
+
+#[macro_export]
 macro_rules! execute_program {
-    ($process: expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $proving_key:expr, $verifying_key:expr, $rng:expr) => {{
+    ($process:expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $proving_key:expr, $verifying_key:expr, $rng:expr) => {{
         if (($proving_key.is_some() && $verifying_key.is_none())
             || ($proving_key.is_none() && $verifying_key.is_some()))
         {
@@ -26,21 +42,11 @@ macro_rules! execute_program {
             );
         }
 
-        let mut inputs_native = vec![];
-        log("parsing inputs");
-        for input in $inputs.to_vec().iter() {
-            if let Some(input) = input.as_string() {
-                inputs_native.push(input);
-            } else {
-                return Err("Invalid input - all inputs must be a string specifying the type".to_string());
-            }
-        }
-
         log("Loading program");
         let program =
-            ProgramNative::from_str(&$program_string).map_err(|_| "The program ID provided was invalid".to_string())?;
+            ProgramNative::from_str($program_string).map_err(|_| "The program ID provided was invalid".to_string())?;
         log("Loading function");
-        let function_name = IdentifierNative::from_str(&$function_id_string)
+        let function_name = IdentifierNative::from_str($function_id_string)
             .map_err(|_| "The function name provided was invalid".to_string())?;
 
         let program_id = program.id().to_string();
@@ -73,10 +79,10 @@ macro_rules! execute_program {
         log("Creating authorization");
         let authorization = $process
             .authorize::<CurrentAleo, _>(
-                &$private_key,
+                $private_key,
                 program.id(),
                 function_name,
-                inputs_native.iter(),
+                $inputs.iter(),
                 $rng,
             )
             .map_err(|err| err.to_string())?;
@@ -127,7 +133,7 @@ macro_rules! execute_fee {
         let fee_authorization = match $fee_record {
             Some(fee_record) => {
                 let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string()).unwrap();
-                $process.authorize_fee_private(
+                $process.authorize_fee_private::<CurrentAleo, _>(
                     $private_key,
                     fee_record_native,
                     $fee_microcredits,
@@ -136,7 +142,7 @@ macro_rules! execute_fee {
                 ).map_err(|e| e.to_string())?
             }
             None => {
-                $process.authorize_fee_public($private_key, $fee_microcredits, $execution_id, $rng).map_err(|e| e.to_string())?
+                $process.authorize_fee_public::<CurrentAleo, _>($private_key, $fee_microcredits, $execution_id, $rng).map_err(|e| e.to_string())?
             }
         };
 
@@ -145,7 +151,7 @@ macro_rules! execute_fee {
             .execute::<CurrentAleo>(fee_authorization)
             .map_err(|err| err.to_string())?;
 
-        let query = QueryNative::from(&$submission_url);
+        let query = QueryNative::from($submission_url);
         trace.prepare_async(query).await.map_err(|err| err.to_string())?;
         let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 
@@ -154,17 +160,4 @@ macro_rules! execute_fee {
 
         fee
     }};
-}
-
-#[macro_export]
-macro_rules! get_process {
-    ($self:expr, $cache:expr, $new_process:expr) => {
-        if $cache {
-            &mut $self.process
-        } else {
-            let new_process = ProcessNative::load_web().map_err(|err| err.to_string())?;
-            $new_process = Some(new_process);
-            $new_process.as_mut().unwrap()
-        }
-    };
 }

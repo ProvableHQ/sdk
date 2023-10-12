@@ -16,6 +16,7 @@
 
 use crate::{ProvingKey, VerifyingKey};
 
+use crate::types::{ProvingKeyNative, VerifyingKeyNative};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]
@@ -51,5 +52,11 @@ impl KeyPair {
     #[wasm_bindgen(js_name = "verifyingKey")]
     pub fn verifying_key(&mut self) -> Result<VerifyingKey, String> {
         self.verifying_key.take().ok_or("Proving key has already been removed".to_string())
+    }
+}
+
+impl From<(ProvingKeyNative, VerifyingKeyNative)> for KeyPair {
+    fn from((proving_key, verifying_key): (ProvingKeyNative, VerifyingKeyNative)) -> Self {
+        Self::new(proving_key.into(), verifying_key.into())
     }
 }
