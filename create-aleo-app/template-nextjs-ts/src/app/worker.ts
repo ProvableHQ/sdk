@@ -39,9 +39,9 @@ function getPrivateKey() {
 onmessage = async function (e) {
   if (e.data === "execute") {
     const result = await localProgramExecution();
-    postMessage(result);
+    postMessage({type: "execute", result: result});
   } else if (e.data === "key") {
     const result = getPrivateKey();
-    postMessage(result);
+    postMessage({type: "key", result: result});
   }
 };

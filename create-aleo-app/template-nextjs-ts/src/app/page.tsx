@@ -1,116 +1,94 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import styles from './page.module.css'
-import {useCallback, useEffect, useRef} from "react";
+import Image from "next/image";
+import styles from "./page.module.css";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function Home() {
+    const [account, setAccount] = useState(null);
+    const [executing, setExecuting] = useState(false);
 
-  const workerRef = useRef<Worker>()
+    const generateAccount = async () => {
+        workerRef.current?.postMessage("key");
+    };
 
-  useEffect(() => {
-    workerRef.current = new Worker(new URL('worker.ts', import.meta.url))
-    workerRef.current.onmessage = (event: MessageEvent<number>) =>
-        alert(`WebWorker Response => ${event.data}`)
-    return () => {
-      workerRef.current?.terminate()
+    async function execute() {
+        setExecuting(true);
+        workerRef.current?.postMessage("execute");
     }
-  }, [])
 
-  const handleWork = useCallback(async () => {
-    workerRef.current?.postMessage("execute")
-  }, [])
+    const workerRef = useRef<Worker>();
 
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>Do work in a WebWorker!</p>
-        <button onClick={handleWork}>Calculate PI</button>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    interface AleoWorkerMessageEvent {
+        type: string;
+        result: any;
+    }
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+    useEffect(() => {
+        workerRef.current = new Worker(new URL("worker.ts", import.meta.url));
+        workerRef.current.onmessage = (
+            event: MessageEvent<AleoWorkerMessageEvent>
+        ) => {
+            if (event.data.type === "key") {
+                setAccount(event.data.result);
+            } else if (event.data.type === "execute") {
+                setExecuting(false);
+            }
+            alert(`WebWorker Response => ${event.data.result}`);
+        };
+        return () => {
+            workerRef.current?.terminate();
+        };
+    }, []);
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+    const handleWork = useCallback(async () => {
+        workerRef.current?.postMessage("execute");
+    }, []);
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+    return (
+        <main className={styles.main}>
+            <div className={styles.description}>
+                <p>
+                    Get started by editing&nbsp;
+                    <code className={styles.code}>src/app/page.tsx</code>
+                </p>
+            </div>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
+            <div className={styles.center}>
+                <Image
+                    className={styles.logo}
+                    src="/next.svg"
+                    alt="Next.js Logo"
+                    width={180}
+                    height={37}
+                    priority
+                />
+                <Image
+                    className={styles.logo}
+                    src="/aleo.svg"
+                    alt="Next.js Logo"
+                    width={180}
+                    height={45}
+                    priority
+                />
+            </div>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+            <div className={styles.card}>
+                <p>
+                    <button onClick={generateAccount}>
+                        {account
+                            ? `Account is ${JSON.stringify(account)}`
+                            : `Click to generate account`}
+                    </button>
+                </p>
+                <p>
+                    <button disabled={executing} onClick={execute}>
+                        {executing
+                            ? `Executing...check console for details...`
+                            : `Execute helloworld.aleo`}
+                    </button>
+                </p>
+            </div>
+        </main>
+    );
 }
