@@ -17,8 +17,11 @@ import { LoadProgram } from "./LoadProgram.jsx";
 import { CodeEditor } from "./CodeEditor.jsx";
 import { useAleoWASM } from "../../../aleo-wasm-hook";
 import { useEffect, useState } from "react";
+import { AleoWorker } from "aleo-react-leo-starter/src/workers/AleoWorker.js";
 
 const layout = { labelCol: { span: 4 }, wrapperCol: { span: 18 } };
+
+const aleoWorker = AleoWorker();
 
 export const Execute = () => {
     const [form] = Form.useForm();
@@ -43,15 +46,15 @@ export const Execute = () => {
 
     const [worker, setWorker] = useState(null);
 
-    useEffect(() => {
-        if (worker === null) {
-            const spawnedWorker = spawnWorker();
-            setWorker(spawnedWorker);
-            return () => {
-                spawnedWorker.terminate();
-            };
-        }
-    }, []);
+    // useEffect(() => {
+    //     if (worker === null) {
+    //         const spawnedWorker = spawnWorker();
+    //         setWorker(spawnedWorker);
+    //         return () => {
+    //             spawnedWorker.terminate();
+    //         };
+    //     }
+    // }, []);
 
     const execute = async (values) => {
         setModalModalOpen(true);
@@ -82,12 +85,24 @@ export const Execute = () => {
                     url: peer_url,
                 });
             } else {
-                await postMessagePromise(worker, {
-                    type: "ALEO_EXECUTE_PROGRAM_LOCAL",
-                    localProgram: program,
-                    aleoFunction: functionName,
-                    inputs: JSON.parse(inputs),
-                    privateKey: private_key,
+                // await postMessagePromise(worker, {
+                //     type: "ALEO_EXECUTE_PROGRAM_LOCAL",
+                //     localProgram: program,
+                //     aleoFunction: functionName,
+                //     inputs: JSON.parse(inputs),
+                //     privateKey: private_key,
+                // });
+                const result = await aleoWorker.localProgramExecution(
+                    program,
+                    functionName,
+                    JSON.parse(inputs),
+                    private_key
+                );
+                setLoading(false);
+                setModalResult({
+                    title: "Execution Successsful!",
+                    status: "success",
+                    subTitle: `Outputs: ${result}`,
                 });
             }
         } catch (error) {
