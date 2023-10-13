@@ -1,14 +1,14 @@
 import {jest} from '@jest/globals'
 import {Account, Block, AleoNetworkClient, Transaction} from "../src/node";
-import {beaconPrivateKeyString} from "./data/account-data";
+import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data";
 import {log} from "console";
 jest.retryTimes(3);
 
-describe.skip('NodeConnection', () => {
+describe('NodeConnection', () => {
     let connection: AleoNetworkClient;
 
     beforeEach(() => {
-        connection = new AleoNetworkClient("https://vm.aleo.org/api");
+        connection = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
     });
 
     describe('setAccount', () => {
@@ -22,7 +22,7 @@ describe.skip('NodeConnection', () => {
     describe('getBlock', () => {
         it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as Block).block_hash).toEqual("ab1sj5ecvzuvpzev8s8ukx2l5wqzxetakt7wh6ck6fldxldecyugvyqa0jgm2");
+            expect((block as Block).block_hash).toEqual("ab1n79nyqnxa76wpz40efqlq53artsw86wrez4tw9kn5xrpuc65xyxquh3wnw");
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
@@ -135,13 +135,12 @@ describe.skip('NodeConnection', () => {
                 expect(records.length).toBe(0);
             }
         }, 90000);
-
     });
 
     describe('getProgramImports', () => {
-        it.skip('should return the correct program import names', async () => {
-            const importNames = await connection.getProgramImportNames("imported_add_mul.aleo");
-            const expectedNames = ["double_test.aleo", "addition_test.aleo"];
+        it('should return the correct program import names', async () => {
+            const importNames = await connection.getProgramImportNames("disperse_multiple_transactions.aleo");
+            const expectedNames = ["credits.aleo"];
             expect(importNames).toEqual(expectedNames);
 
             const creditImports = await connection.getProgramImportNames("credits.aleo");
@@ -176,6 +175,18 @@ describe.skip('NodeConnection', () => {
                     '    output r2 as u32.private;\n'
             };
             expect(imports).toEqual(expectedImports);
+        }, 60000);
+    });
+    describe('Mappings', () => {
+        it('should find program mappings and read mappings', async () => {
+            const mappings = await connection.getProgramMappingNames("credits.aleo");
+            if (!(mappings instanceof Error)) {
+                expect(mappings).toEqual(["committee", "bonded", "unbonding", "account"]);
+            }
+            const mappingValue = await connection.getProgramMappingValue("credits.aleo", "account", "aleo1rlwt9w0fl242h40w454m68vttd6vm4lmetu5r57unm5g354y9yzsyexf0y");
+            if (!(mappingValue instanceof Error)) {
+                expect(mappingValue).toBeTruthy()
+            }
         }, 60000);
     });
 });
