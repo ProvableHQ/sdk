@@ -35,8 +35,8 @@ self.addEventListener("message", (ev) => {
 
                 // Get the proving and verifying keys for the function
                 if (lastLocalProgram !== localProgram) {
-                    const keys = programManager.executionEngine.synthesizeKeypair(localProgram, aleoFunction);
-                    programManager.keyProvider.cacheKeys(cacheKey, [keys.provingKey(), keys.verifyingKey()]);
+                    const keys = await programManager.synthesizeKeys(localProgram, aleoFunction, inputs, privateKey);
+                    programManager.keyProvider.cacheKeys(cacheKey, keys);
                     lastLocalProgram = localProgram;
                 }
 
@@ -110,8 +110,8 @@ self.addEventListener("message", (ev) => {
                 const cacheKey = `${program_id}:${aleoFunction}`;
                 if (!programManager.keyProvider.containsKeys(cacheKey)) {
                     console.log(`Web worker: Synthesizing proving & verifying keys for: '${program_id}:${aleoFunction}'`);
-                    const keys = programManager.executionEngine.synthesizeKeypair(remoteProgram, aleoFunction);
-                    programManager.keyProvider.cacheKeys(cacheKey, [keys.provingKey(), keys.verifyingKey()]);
+                    const keys = await programManager.synthesizeKeys(remoteProgram, aleoFunction, inputs, privateKeyObject);
+                    programManager.keyProvider.cacheKeys(cacheKey, keys);
                 }
 
                 // Pass the cache key to the execute function
@@ -150,7 +150,7 @@ self.addEventListener("message", (ev) => {
             }
         })();
     } else if (ev.data.type === "ALEO_ESTIMATE_EXECUTION_FEE") {
-        const { remoteProgram, aleoFunction, inputs, url } =
+        const { remoteProgram, privateKey, aleoFunction, inputs, url } =
             ev.data;
 
         console.log("Web worker: Estimating execution fee...");
@@ -170,19 +170,18 @@ self.addEventListener("message", (ev) => {
                 // Get the proving and verifying keys for the function
                 if (!programManager.keyProvider.containsKeys(cacheKey)) {
                     console.log(`Web worker: Synthesizing proving & verifying keys for: '${program_id}:${aleoFunction}'`);
-                    const keys = programManager.executionEngine.synthesizeKeypair(remoteProgram, aleoFunction);
-                    programManager.keyProvider.cacheKeys(cacheKey, [keys.provingKey(), keys.verifyingKey()]);
+                    const keys = await programManager.synthesizeKeys(program.toString(), aleoFunction, inputs, privateKey);
+                    programManager.keyProvider.cacheKeys(cacheKey, keys);
                 }
 
                 // Estimate the execution fee
                 const [provingKey, verifyingKey] = programManager.keyProvider.getKeys(cacheKey);
-                let executeFee = await programManager.executionEngine.estimateExecutionFee(
-                    new aleo.PrivateKey(),
+                let executeFee = await aleo.ProgramManagerBase.estimateExecutionFee(
+                    privateKey,
                     remoteProgram,
                     aleoFunction,
                     inputs,
                     url,
-                    false,
                     imports,
                     provingKey,
                     verifyingKey,
@@ -214,9 +213,8 @@ self.addEventListener("message", (ev) => {
                 const imports = await programManager.networkClient.getProgramImports(program);
                 console.log("Estimating deployment fee..");
                 let deploymentFee =
-                    await programManager.executionEngine.estimateDeploymentFee(
+                    await aleo.ProgramManagerBase.estimateDeploymentFee(
                         program,
-                        false,
                         imports,
                     );
 
