@@ -28,6 +28,10 @@ const oldFetch = globalThis.fetch;
         });
 
     } else {
-        return await oldFetch(request);
+        try {
+            return await oldFetch(request);
+        } catch (e) {
+            return await fetch(request);
+        }
     }
 };
