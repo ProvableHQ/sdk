@@ -515,7 +515,7 @@ class ProgramManager {
             );
             return [<VerifyingKey>keyPair.provingKey(), <ProvingKey>keyPair.verifyingKey()];
         } catch (e) {
-            throw logAndThrow("Could not synthesize keys - error {e}. Please ensure the program is valid and the inputs are correct.");
+            throw logAndThrow(`Could not synthesize keys - error ${e}. Please ensure the program is valid and the inputs are correct.`);
         }
     }
 
