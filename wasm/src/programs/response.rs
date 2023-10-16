@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::{ExecutionNative, ResponseNative};
+use crate::types::{ExecutionNative, ProcessNative, ResponseNative};
 
-use crate::Execution;
+use crate::{Execution, KeyPair};
 use std::ops::Deref;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -28,6 +28,7 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 pub struct ExecutionResponse {
     response: ResponseNative,
     execution: Option<Execution>,
+    process: Option<ProcessNative>,
 }
 
 #[wasm_bindgen]
@@ -53,6 +54,17 @@ impl ExecutionResponse {
     pub fn get_execution(&mut self) -> Option<Execution> {
         self.execution.take()
     }
+
+    /// Returns the program keys if present
+    #[wasm_bindgen(js_name = "getKeys")]
+    pub fn get_keys(&self, program_id: &str, function_name: &str) -> Result<KeyPair, String> {
+        if let Some(process) = &self.process {
+            let proving_key = process.get_proving_key(program_id, function_name).map_err(|e| e.to_string())?;
+            let verifying_key = process.get_verifying_key(program_id, function_name).map_err(|e| e.to_string())?;
+            return Ok(KeyPair::from((proving_key, verifying_key)));
+        }
+        Err(format!("Could not find {program_id}:{function_name}"))
+    }
 }
 
 impl Deref for ExecutionResponse {
@@ -63,15 +75,15 @@ impl Deref for ExecutionResponse {
     }
 }
 
-impl From<ResponseNative> for ExecutionResponse {
-    fn from(response: ResponseNative) -> Self {
-        Self { response, execution: None }
+impl From<(ResponseNative, Option<ProcessNative>)> for ExecutionResponse {
+    fn from((response, process): (ResponseNative, Option<ProcessNative>)) -> Self {
+        Self { response, execution: None, process }
     }
 }
 
-impl From<(ResponseNative, ExecutionNative)> for ExecutionResponse {
-    fn from((response, execution): (ResponseNative, ExecutionNative)) -> Self {
-        Self { response, execution: Some(Execution::from(execution)) }
+impl From<(ResponseNative, ExecutionNative, Option<ProcessNative>)> for ExecutionResponse {
+    fn from((response, execution, process): (ResponseNative, ExecutionNative, Option<ProcessNative>)) -> Self {
+        Self { response, execution: Some(Execution::from(execution)), process }
     }
 }
 

@@ -31,7 +31,6 @@ class ProgramManager {
     host: string;
     networkClient: AleoNetworkClient;
     recordProvider: RecordProvider | undefined;
-    executionEngine: WasmProgramManager;
 
     /** Create a new instance of the ProgramManager
      *
@@ -54,7 +53,6 @@ class ProgramManager {
             this.keyProvider = keyProvider;
         }
 
-        this.executionEngine = new WasmProgramManager();
         this.recordProvider = recordProvider;
     }
 
@@ -186,7 +184,7 @@ class ProgramManager {
         }
 
         // Build a deployment transaction and submit it to the network
-        const tx = await this.executionEngine.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, false, imports, feeProvingKey, feeVerifyingKey);
+        const tx = await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -287,7 +285,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await this.executionEngine.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, false, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await WasmProgramManager.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -357,7 +355,7 @@ class ProgramManager {
         console.log("Running program offline")
         console.log("Proving key: ", provingKey);
         console.log("Verifying key: ", verifyingKey);
-        return this.executionEngine.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution,false, imports, provingKey, verifyingKey);
+        return WasmProgramManager.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution, false, imports, provingKey, verifyingKey);
     }
 
     /**
@@ -420,7 +418,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await this.executionEngine.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, false, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await WasmProgramManager.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -473,8 +471,52 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await this.executionEngine.buildSplitTransaction(executionPrivateKey, splitAmount, amountRecord, this.host, false, splitProvingKey, splitVerifyingKey);
+        const tx = await WasmProgramManager.buildSplitTransaction(executionPrivateKey, splitAmount, amountRecord, this.host, splitProvingKey, splitVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
+    }
+
+    /**
+     * Pre-synthesize proving and verifying keys for a program
+     *
+     * @param program {string} The program source code to synthesize keys for
+     * @param function_id {string} The function id to synthesize keys for
+     * @param inputs {Array<string>}  Sample inputs to the function
+     * @param privateKey {PrivateKey | undefined} Optional private key to use for the key synthesis
+     *
+     * @returns {Promise<FunctionKeyPair | Error>}
+     */
+    async synthesizeKeys(
+        program: string,
+        function_id: string,
+        inputs: Array<string>,
+        privateKey?: PrivateKey,
+    ): Promise<FunctionKeyPair | Error> {
+        // Resolve the program imports if they exist
+        let imports;
+
+        let executionPrivateKey = privateKey;
+        if (typeof executionPrivateKey === "undefined") {
+            if (typeof this.account !== "undefined") {
+                executionPrivateKey = this.account.privateKey();
+            } else {
+                executionPrivateKey = new PrivateKey();
+            }
+        }
+
+        // Attempt to run an offline execution of the program and extract the proving and verifying keys
+        try {
+            imports = await this.networkClient.getProgramImports(program);
+            const keyPair = await WasmProgramManager.synthesizeKeyPair(
+                executionPrivateKey,
+                program,
+                function_id,
+                inputs,
+                imports
+            );
+            return [<VerifyingKey>keyPair.provingKey(), <ProvingKey>keyPair.verifyingKey()];
+        } catch (e) {
+            throw logAndThrow(`Could not synthesize keys - error ${e}. Please ensure the program is valid and the inputs are correct.`);
+        }
     }
 
     /**
@@ -549,7 +591,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await this.executionEngine.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, false, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
