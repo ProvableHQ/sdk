@@ -44,7 +44,6 @@
   "dependencies": {
     "@aleohq/wasm": "^0.6.0",
     "comlink": "^4.4.1",
-    "jsdoc": "^3.6.11",
     "mime": "^3.0.0",
     "sync-request": "^6.1.0"
   },
