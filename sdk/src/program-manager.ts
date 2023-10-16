@@ -525,6 +525,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
+     * @param {boolean} delegate If true, the transfer will be authorized and be proved by the Aleo network. This only works for 'public' and 'publicToPrivate' transfers
      * @param {number} fee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
@@ -547,7 +548,7 @@ class ProgramManager {
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    async transfer(amount: number, recipient: string, transferType: string, fee: number, privateFee: boolean,
+    async transfer(amount: number, recipient: string, transferType: string, delegate = false, fee: number, privateFee: boolean,
                    recordSearchParams?: RecordSearchParams, amountRecord?: RecordPlaintext | string, feeRecord?: RecordPlaintext | string, privateKey?: PrivateKey): Promise<string | Error> {
         // Validate the transfer type
         transferType = <string>validateTransferType(transferType);
@@ -591,7 +592,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, delegate, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
 

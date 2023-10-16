@@ -41,6 +41,7 @@ pub use snarkvm_synthesizer::{
     cost_in_microcredits,
     deployment_cost,
     snark::{ProvingKey, VerifyingKey},
+    Authorization,
     Process,
     Program,
     VM,
@@ -72,6 +73,7 @@ pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 
 // Program types
 type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
+pub type AuthorizationNative = Authorization<CurrentNetwork>;
 pub type ExecutionNative = Execution<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
 pub type LiteralNative = Literal<CurrentNetwork>;

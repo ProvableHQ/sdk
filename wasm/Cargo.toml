@@ -78,6 +78,10 @@ version = "1.8"
 [dependencies.reqwest]
 version = "0.11.18"
 
+[dependencies.serde]
+version = "1.0.183"
+features = [ "derive" ]
+
 [dependencies.serde_json]
 version = "1.0"
 
@@ -93,9 +97,6 @@ version = "0.4.37"
 
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
-
-[dependencies.serde]
-version = "1.0.183"
 
 [dev-dependencies.snarkvm-parameters]
 version = "0.15.4"

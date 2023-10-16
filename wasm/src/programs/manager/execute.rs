@@ -18,8 +18,10 @@ use super::*;
 use core::ops::Add;
 
 use crate::{
-    execute_fee,
-    execute_program,
+    authorize_fee,
+    authorize_program,
+    execute_authorization,
+    execute_fee_authorization,
     log,
     process_inputs,
     types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative, TransactionNative},
@@ -77,7 +79,7 @@ impl ProgramManager {
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
 
-        let (response, mut trace) = execute_program!(
+        let authorization = authorize_program!(
             process,
             process_inputs!(inputs),
             program,
@@ -87,6 +89,7 @@ impl ProgramManager {
             verifying_key,
             rng
         );
+        let (response, mut trace) = execute_authorization!(process, authorization);
 
         let process_native = if cache { Some(process_native) } else { None };
 
@@ -156,7 +159,7 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Executing program");
-        let (_, mut trace) = execute_program!(
+        let authorization = authorize_program!(
             process,
             process_inputs!(inputs),
             program,
@@ -166,6 +169,7 @@ impl ProgramManager {
             verifying_key,
             rng
         );
+        let (_, mut trace) = execute_authorization!(process, authorization);
 
         log("Preparing inclusion proofs for execution");
         let query = QueryNative::from(url);
@@ -180,17 +184,17 @@ impl ProgramManager {
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Executing fee");
-        let fee = execute_fee!(
+        let fee_authorization = authorize_fee!(
             process,
             private_key,
             fee_record,
             fee_microcredits,
-            url,
             fee_proving_key,
             fee_verifying_key,
             execution_id,
             rng
         );
+        let fee = execute_fee_authorization!(process, fee_authorization, execution_id, url);
 
         // Verify the execution
         process.verify_execution(&execution).map_err(|err| err.to_string())?;
@@ -243,7 +247,7 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Generating execution trace");
-        let (_, mut trace) = execute_program!(
+        let authorization = authorize_program!(
             process,
             process_inputs!(inputs),
             program,
@@ -253,6 +257,7 @@ impl ProgramManager {
             verifying_key,
             rng
         );
+        let (_, mut trace) = execute_authorization!(process, authorization);
 
         // Execute the program
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
