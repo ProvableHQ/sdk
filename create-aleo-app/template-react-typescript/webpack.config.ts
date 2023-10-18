@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 import CopyPlugin from "copy-webpack-plugin";
 import TerserPlugin from "terser-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
@@ -7,14 +8,14 @@ import path from "path";
 const appConfig = {
   mode: "production",
   entry: {
-    index: "./src/main.jsx",
+    index: "./src/main.tsx",
   },
   output: {
     path: path.resolve("dist"),
     filename: "[name].bundle.js",
   },
   resolve: {
-    extensions: [".js", ".wasm", ".jsx"],
+    extensions: [".ts", ".tsx", ".js", ".wasm", ".jsx"],
   },
   devServer: {
     port: 3000,
@@ -29,10 +30,17 @@ const appConfig = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
-        exclude: /nodeModules/,
+        test: /\.(ts|tsx|js|jsx)$/,
+        //exclude: /node_modules/,
         use: {
           loader: "babel-loader",
+         //  options: {
+            // presets: [
+            //   '@babel/preset-env',
+            //   '@babel/preset-react',
+            //   '@babel/preset-typescript',
+            // ],
+         // },
         },
       },
       {

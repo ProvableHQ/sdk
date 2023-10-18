@@ -3,7 +3,7 @@ import reactLogo from "./assets/react.svg";
 import aleoLogo from "./assets/aleo.svg";
 import "./App.css";
 import helloworld_program from "../helloworld/build/main.aleo?raw";
-import { AleoWorker } from "./workers/AleoWorker.js";
+import { AleoWorker } from "./workers/AleoWorker";
 
 const aleoWorker = AleoWorker();
 function App() {

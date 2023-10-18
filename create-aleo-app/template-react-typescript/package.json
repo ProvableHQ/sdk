@@ -1,26 +1,29 @@
 {
-  "name": "aleo-react-leo-starter",
+  "name": "aleo-react-typescript-starter",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "webpack --config webpack.config.js",
+    "build": "webpack",
+    "dev-webpack": "webpack serve",
     "build:vite": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "install-leo": "./install.sh"
   },
   "dependencies": {
-    "@aleohq/sdk": "^0.6.0",
+    "@aleohq/sdk": "^0.6.2",
+    "@aleohq/wasm": "^0.6.2",
+    "@types/node": "^20.8.7",
     "comlink": "^4.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+    
   },
   "devDependencies": {
     "@babel/core": "^7.17.2",
     "@babel/preset-env": "^7.16.11",
-    "@babel/preset-react": "^7.16.7",
+    "@babel/preset-react": "^7.22.15",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "^4.0.4",
@@ -36,6 +39,8 @@
     "raw-loader": "^4.0.2",
     "style-loader": "^3.3.1",
     "svg-url-loader": "^8.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2",
     "vite": "^4.4.5",
     "webpack": "^5.76.0",
     "webpack-cli": "^5.1.4",

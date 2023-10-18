@@ -4,7 +4,7 @@ let singletonWorker = null;
 
 const AleoWorker = () => {
     if (!singletonWorker) {
-        const worker = new Worker(new URL("worker.js", import.meta.url), {
+        const worker = new Worker(new URL("worker", import.meta.url), {
             type: "module",
         });
 
