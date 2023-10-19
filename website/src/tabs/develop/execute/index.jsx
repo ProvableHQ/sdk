@@ -17,7 +17,7 @@ import { LoadProgram } from "./LoadProgram.jsx";
 import { CodeEditor } from "./CodeEditor.jsx";
 import { useAleoWASM } from "../../../aleo-wasm-hook";
 import { useEffect, useState } from "react";
-import { AleoWorker } from "aleo-react-leo-starter/src/workers/AleoWorker.js";
+import { AleoWorker } from "../../../workers/AleoWorker.js";
 
 const layout = { labelCol: { span: 4 }, wrapperCol: { span: 18 } };
 

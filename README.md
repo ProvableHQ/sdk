@@ -6,7 +6,6 @@
     <a href="https://github.com/AleoHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
 </p>
 
-
 # Zero Knowledge Web App SDK
 
 The [Aleo SDK](https://github.com/AleoHQ/sdk) provides tools for building zero knowledge applications. It consists of
@@ -69,6 +68,25 @@ source.
 NodeJS is functional.
 
 Source: [`sdk/wasm`](https://github.com/AleoHQ/sdk/tree/testnet3/wasm)
+
+## 💻 Development
+
+- Nodejs `20` recommended. Install through [official website](https://nodejs.org/) or via a node manager like [NVM](https://github.com/creationix/nvm)
+- [Rust](https://www.rust-lang.org/tools/install)
+
+```bash
+corepack enable # Enables yarn
+yarn # Install all dependencies
+yarn build:all # Builds SDK and WASM
+```
+
+All packages (create-aleo-app templates, website, SDK, WASM, etc) should now be set up for development.
+
+```bash
+# Example: Developing in the website
+cd website
+yarn dev
+```
 
 ## 📚 Documentation
 
