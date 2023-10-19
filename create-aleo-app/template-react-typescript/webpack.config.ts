@@ -78,7 +78,9 @@ const appConfig = {
   },
   plugins: [
     new CopyPlugin({
-      patterns: [{ from: "public", to: "public" }, { from: "_headers", to: "." }],
+      patterns: [{ from: "public", to: "public" }, { from: "_headers", to: "." },
+      { from: 'src/assets', to: 'dist/assets' } 
+    ],
     }),
     new HtmlWebpackPlugin({
       template: "./index.html",

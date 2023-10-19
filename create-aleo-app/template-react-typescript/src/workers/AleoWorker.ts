@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { wrap } from "comlink";
 
 let singletonWorker = null;
