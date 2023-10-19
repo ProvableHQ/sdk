@@ -220,6 +220,7 @@ export const ExecuteLegacy = () => {
             await postMessagePromise(worker, {
                 type: "ALEO_ESTIMATE_EXECUTION_FEE",
                 remoteProgram: programString(),
+                privateKey: privateKeyString(),
                 aleoFunction: functionIDString(),
                 inputs: functionInputs,
                 url: peerUrl(),

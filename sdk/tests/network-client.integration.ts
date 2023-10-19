@@ -77,16 +77,5 @@ describe('NodeConnection', () => {
             }
 
         }, 60000);
-
-        it.skip('should find finalize scope values', async () => {
-            const mappings = await localApiClient.getProgramMappingNames("credits.aleo");
-            if (!(mappings instanceof Error)) {
-                expect(mappings).toBe(["committee", "bonded", "unbonding", "account"]);
-            }
-            const mappingValue = await localApiClient.getProgramMappingValue("credits.aleo", "account", beaconAddressString);
-            if (!(mappingValue instanceof Error)) {
-                expect(mappingValue).toBe("3000000u64");
-            }
-        }, 60000);
     });
 });
