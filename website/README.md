@@ -1,6 +1,6 @@
 # Aleo SDK Website
 
-Follow development set up [here](https://github.com/AleoHQ/sdk#-development)
+Follow development set up [here](../README.md#-development)
 
 ```bash
 yarn dev
