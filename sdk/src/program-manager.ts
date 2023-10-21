@@ -137,7 +137,7 @@ class ProgramManager {
             const programObject = Program.fromString(program);
             let programSource;
             try {
-                programSource = this.networkClient.getProgram(programObject.id());
+                programSource = await this.networkClient.getProgram(programObject.id());
             } catch (e) {
                 // Program does not exist on the network, deployment can proceed
                 console.log(`Program ${programObject.id()} does not exist on the network, deploying...`);
