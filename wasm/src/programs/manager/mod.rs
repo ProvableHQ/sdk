@@ -39,6 +39,8 @@ use crate::{
         ProgramNative,
         ProvingKeyNative,
         QueryNative,
+        Response,
+        Testnet3,
         VerifyingKeyNative,
     },
     KeyPair,
@@ -46,10 +48,16 @@ use crate::{
     ProvingKey,
     RecordPlaintext,
     VerifyingKey,
+    log,
 };
 
-use js_sys::{Object, Reflect};
+use snarkvm_synthesizer::Trace;
+
+use js_sys::{Object, Array, Reflect};
+use rand::{rngs::StdRng, SeedableRng};
+use core::ops::Add;
 use std::str::FromStr;
+use std::collections::HashMap;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]
@@ -116,32 +124,249 @@ impl ProgramManager {
         )
     }
 
+    /// Converts a JS array of strings into a `Vec<String>`.
+    pub(crate) fn get_inputs(inputs: Array) -> Result<Vec<String>, String> {
+        inputs.iter()
+            .map(|input| {
+                if let Some(input) = input.as_string() {
+                    Ok(input)
+
+                } else {
+                    Err("Invalid input - all inputs must be a string specifying the type".to_string())
+                }
+            })
+            .collect()
+    }
+
+    /// Converts a JS object into a `HashMap<String, String>`.
+    pub(crate) fn get_imports(imports: Option<Object>) -> Result<Option<HashMap<String, String>>, String> {
+        if let Some(imports) = imports {
+            let mut hash = HashMap::new();
+
+            for key in Object::keys(&imports).iter() {
+                let value = Reflect::get(&imports, &key).unwrap();
+
+                let key = key.as_string().ok_or_else(|| "Import key must be a string".to_string())?;
+                let value = value.as_string().ok_or_else(|| "Import value must be a string".to_string())?;
+
+                hash.insert(key, value);
+            }
+
+            Ok(Some(hash))
+
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub(crate) async fn prove_execution(
+        rng: StdRng,
+        locator: String,
+        trace: Trace<Testnet3>,
+        url: &str,
+    ) -> Result<(u32), String> {
+        log("Preparing inclusion proofs for execution");
+
+        let query = QueryNative::from(url);
+        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+
+        log("Proving execution");
+
+        crate::thread_pool::spawn(move || {
+            let execution = trace
+                .prove_execution::<CurrentAleo, _>(&locator, &mut rng)
+                .map_err(|e| e.to_string())?;
+
+            let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
+
+            Ok((execution, execution_id))
+        })
+    }
+
+    /// Executes an Aleo program.
+    pub(crate) fn execute_program(
+        private_key: PrivateKey,
+        program: String,
+        function: String,
+        inputs: Vec<String>,
+        imports: Option<HashMap<String, String>>,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
+    ) -> impl Future<Output = Result<(ProcessNative, StdRng, String, Response<Testnet3>, Trace<Testnet3>), String>> {
+        crate::thread_pool::spawn(move || {
+            let mut rng = StdRng::from_entropy();
+
+            let mut process = ProcessNative::load_web().map_err(|err| err.to_string())?;
+
+            log("Loading program");
+            let program = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+
+            log("Loading function");
+            let function_name = IdentifierNative::from_str(&function)
+                .map_err(|_| "The function name provided was invalid".to_string())?;
+
+            log("Check program imports are valid and add them to the process");
+            ProgramManager::resolve_imports(&mut process, &program, imports.as_ref())?;
+
+            let program_id = program.id().to_string();
+
+            if (proving_key.is_some() && verifying_key.is_none())
+                || (proving_key.is_none() && verifying_key.is_some())
+            {
+                return Err(
+                    "If specifying a key for a program execution, both the proving and verifying key must be specified"
+                        .to_string(),
+                );
+            }
+
+            if program_id != "credits.aleo" {
+                log("Adding program to the process");
+                if let Ok(stored_program) = process.get_program(program.id()) {
+                    if stored_program != &program {
+                        return Err("The program provided does not match the program stored in the cache, please clear the cache before proceeding".to_string());
+                    }
+                } else {
+                    process.add_program(&program).map_err(|e| e.to_string())?;
+                }
+            }
+
+            if let Some(proving_key) = proving_key {
+                if Self::contains_key(&process, program.id(), &function_name) {
+                    log(&format!("Proving & verifying keys were specified for {program_id} - {function_name:?} but a key already exists in the cache. Using cached keys"));
+
+                } else {
+                    log(&format!("Inserting externally provided proving and verifying keys for {program_id} - {function_name:?}"));
+                    process
+                        .insert_proving_key(program.id(), &function_name, ProvingKeyNative::from(proving_key))
+                        .map_err(|e| e.to_string())?;
+                    if let Some(verifying_key) = verifying_key {
+                        process.insert_verifying_key(program.id(), &function_name, VerifyingKeyNative::from(verifying_key)).map_err(|e| e.to_string())?;
+                    }
+                }
+            };
+
+            log("Creating authorization");
+            let authorization = process
+                .authorize::<CurrentAleo, _>(
+                    &private_key,
+                    program.id(),
+                    function_name,
+                    inputs.into_iter(),
+                    &mut rng,
+                )
+                .map_err(|err| err.to_string())?;
+
+            log("Executing program");
+            let (response, trace) = process
+                .execute::<CurrentAleo>(authorization)
+                .map_err(|err| err.to_string())?;
+
+            let locator = program_id.add("/").add(&function);
+
+            Ok((process, rng, locator, response, trace))
+        })
+    }
+
+    /// Executes the Aleo fee.
+    pub(crate) fn execute_fee(
+        process: &mut ProcessNative,
+        rng: &mut StdRng,
+        private_key: &PrivateKey,
+        fee_record: Option<RecordPlaintext>,
+        fee_microcredits: u64,
+        url: String,
+        fee_proving_key: Option<ProvingKey>,
+        fee_verifying_key: Option<VerifyingKey>,
+        execution_id: Field<Testnet3>,
+    ) -> Result<Fee<Testnet3>, String> {
+        if ((fee_proving_key.is_some() && fee_verifying_key.is_none())
+            || (fee_proving_key.is_none() && fee_verifying_key.is_some()))
+        {
+            return Err(
+                 "Missing key - both the proving and verifying key must be specified for a program execution"
+                    .to_string(),
+            );
+        }
+
+        if let Some(fee_proving_key) = fee_proving_key {
+            let credits = ProgramIDNative::from_str("credits.aleo").unwrap();
+            let fee = if fee_record.is_some() {
+                IdentifierNative::from_str("fee_private").unwrap()
+            } else {
+                IdentifierNative::from_str("fee_public").unwrap()
+            };
+            if Self::contains_key(process, &credits, &fee) {
+                log("Fee proving & verifying keys were specified but a key already exists in the cache. Using cached keys");
+            } else {
+                log("Inserting externally provided fee proving and verifying keys");
+                process
+                    .insert_proving_key(&credits, &fee, ProvingKeyNative::from(fee_proving_key)).map_err(|e| e.to_string())?;
+                if let Some(fee_verifying_key) = fee_verifying_key {
+                    process
+                        .insert_verifying_key(&credits, &fee, VerifyingKeyNative::from(fee_verifying_key))
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+        };
+
+        log("Authorizing Fee");
+        let fee_authorization = match fee_record {
+            Some(fee_record) => {
+                let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string()).unwrap();
+                process.authorize_fee_private(
+                    private_key,
+                    fee_record_native,
+                    fee_microcredits,
+                    execution_id,
+                    rng,
+                ).map_err(|e| e.to_string())?
+            }
+            None => {
+                process.authorize_fee_public(private_key, fee_microcredits, execution_id, rng).map_err(|e| e.to_string())?
+            }
+        };
+
+        log("Executing fee");
+        let (_, mut trace) = process
+            .execute::<CurrentAleo>(fee_authorization)
+            .map_err(|err| err.to_string())?;
+
+        let query = QueryNative::from(&submission_url);
+        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
+
+        log("Verifying fee execution");
+        process.verify_fee(&fee, execution_id).map_err(|e| e.to_string())?;
+
+        Ok(fee)
+    }
+
     /// Resolve imports for a program in depth first search order
     pub(crate) fn resolve_imports(
         process: &mut ProcessNative,
         program: &ProgramNative,
-        imports: Option<Object>,
+        imports: Option<&HashMap<String, String>>,
     ) -> Result<(), String> {
         if let Some(imports) = imports {
             program.imports().keys().try_for_each(|program_id| {
                 // Get the program string
                 let program_id = program_id.to_string();
-                if let Some(import_string) = Reflect::get(&imports, &program_id.as_str().into())
-                    .map_err(|_| "Program import not found in imports provided".to_string())?
-                    .as_string()
-                {
+                if let Some(import_string) = imports.get(program_id.as_str()) {
                     if &program_id != "credits.aleo" {
                         crate::log(&format!("Importing program: {}", program_id));
                         let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
                         // If the program has imports, add them
-                        Self::resolve_imports(process, &import, Some(imports.clone()))?;
+                        Self::resolve_imports(process, &import, Some(imports))?;
                         // If the process does not already contain the program, add it
                         if !process.contains_program(import.id()) {
                             process.add_program(&import).map_err(|err| err.to_string())?;
                         }
                     }
+
+                    Ok::<(), String>(())
+                } else {
+                    Err("Program import not found in imports provided".to_string())
                 }
-                Ok::<(), String>(())
             })
         } else {
             Ok(())
