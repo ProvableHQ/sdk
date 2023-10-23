@@ -40,13 +40,22 @@ const Main = () => {
       };
     
       async function execute() {
-        const helloworld_program = "program helloworld.aleo;\nfunction main:\ninput r0 as u32.public;\ninput r1 as u32.private;\nadd r0 r1 into r2;\noutput r2 as u32.private;\n";
 
+        // helpful tool: https://codepen.io/jsnelders/pen/qBByqQy
+
+        //const helloworld_program = "program helloworld.aleo;\nfunction main:\ninput r0 as u32.public;\ninput r1 as u32.private;\nadd r0 r1 into r2;\noutput r2 as u32.private;\n";
+        //const helloworld_program = "program helloworld.aleo; {struct Struct0 {x0: i64,x1: i64}transition main (struct0_0: Struct0) -> (i64) {let output : i64 = relu(struct0_0.x0 + struct0_0.x1);return (output);}function relu(x: i64) -> i64 {if x < 0i64 {return 0i64;} else {return x;}}}";
+        //const helloworld_program = "program helloworld.aleo; {\nstruct Struct0 {\nx0: i64,\nx1: i64\n}\ntransition main (struct0_0: Struct0) -> (i64) {\nlet output : i64 = relu(struct0_0.x0 + struct0_0.x1);\nreturn (output);\n}function relu(x: i64) -> i64 {\nif x < 0i64 {return 0i64;} else {return x;\n}\n}\n}";
+        //const helloworld_program = "program helloworld.aleo; {transition main (x0: i64, x1:i64) -> (i64) {let output : i64 = x0 + x1;return (output);}function relu(x: i64) -> i64 {if x < 0i64 {return 0i64;} else {return x;}}}";
+
+        const helloworld_program = "program sklearn_mlp_mnist_1.aleo;\n\nstruct Struct0:\n    x0 as i64;\n    x1 as i64;\n\n\nclosure relu:\n    input r0 as i64;\n    lt r0 0i64 into r1;\n    ternary r1 0i64 r0 into r2;\n    output r2 as i64;\n\n\nfunction main:\n    input r0 as Struct0.private;\n    add r0.x0 r0.x1 into r1;\n    call relu r1 into r2;\n    output r2 as i64.private;\n";
 
         const result = await aleoWorker.localProgramExecution(
           helloworld_program,
           "main",
-          ["5u32", "5u32"],
+          //["5u32", "5u32"],
+          //["5i64", "5i64"],
+          ["{x0: -6i64, x1:5i64}"],
         );
     
         alert(JSON.stringify(result));
