@@ -20,11 +20,39 @@ import {
 import { ReactSketchCanvas } from "react-sketch-canvas";
 import { Column } from "@ant-design/charts";
 import aleoLogo from "./assets/aleo.svg";
+import {Account, initThreadPool, PrivateKey, ProgramManager,} from "@aleohq/sdk";
+import { AleoWorker } from "./workers/AleoWorker.js";
 
 const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
 
+
+const aleoWorker = AleoWorker();
+//import helloworld_program from "../helloworld/build/main.aleo?raw";
+
+
 const Main = () => {
+    const [account, setAccount] = useState(null);
+
+    const generateAccount = async () => {
+        const key = await aleoWorker.getPrivateKey();
+        setAccount(await key.to_string());
+      };
+    
+      async function execute() {
+        const helloworld_program = "program helloworld.aleo;\nfunction main:\ninput r0 as u32.public;\ninput r1 as u32.private;\nadd r0 r1 into r2;\noutput r2 as u32.private;\n";
+
+
+        const result = await aleoWorker.localProgramExecution(
+          helloworld_program,
+          "main",
+          ["5u32", "5u32"],
+        );
+    
+        alert(JSON.stringify(result));
+      }
+    
+
     const canvasRef = useRef(null);
     const [progress, setProgress] = useState(0);
     const [isProgressRunning, setIsProgressRunning] = useState(false);
@@ -78,6 +106,14 @@ const Main = () => {
         };
     };
 
+    const executeAleoCode = async () => {
+        console.log("hello")
+        generateAccount()
+        console.log("generated account")
+        execute()
+        console.log("finished")
+    };
+
     const startProgressAndRandomizeData = () => {
         if (isProgressRunning || !hasMounted) {
             return;
@@ -100,9 +136,16 @@ const Main = () => {
         }, 200);
     };
 
-    const handleCanvasDraw = () => {
-        startProgressAndRandomizeData();
+    const handleCanvasDraw = async () => {
+        try {
+            await executeAleoCode();
+            startProgressAndRandomizeData();
+        } catch (error) {
+            console.error("Failed to execute Aleo code:", error);
+            // Handle the error accordingly. For example, show an error message to the user.
+        }
     };
+    
 
     const handleBrushSizeChange = (value) => {
         setBrushSize(value);
@@ -169,7 +212,6 @@ const Main = () => {
                                         backgroundColor: "white",
                                     }}
                                     strokeWidth={brushSize}
-                                    onChange={handleCanvasDraw}
                                 />
                             </Col>
                         </Row>
@@ -199,9 +241,9 @@ const Main = () => {
                         <Row justify="center">
                             <Col>
                                 <Space>
-                                    <Button type="primary" onClick={() => {}}>
-                                        Store Proof
-                                    </Button>
+                                <Button type="primary" onClick={handleCanvasDraw}>
+    Store Proof
+</Button>
                                     <Button
                                         type="default"
                                         onClick={() =>
