@@ -125,18 +125,56 @@ const Main = () => {
         const imageData = ctx.getImageData(0, 0, 28, 28);
         const data = imageData.data;
     
-        // Create a new Uint8ClampedArray to store the single-channel grayscale values
-        const grayscaleData = new Uint8ClampedArray(28 * 28);
+        // Create a 2D array to store the single-channel grayscale values
+        const grayscaleData = Array.from({ length: 28 }, () => new Uint8ClampedArray(28));
     
         for (let i = 0; i < data.length; i += 4) {
             // Calculate the grayscale value
             const grayscale = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-            grayscaleData[i / 4] = grayscale;
+            // Invert the grayscale value
+            const invertedGrayscale = 255 - grayscale;
+            // Calculate the current row and column
+            const row = Math.floor(i / 4 / 28);
+            const col = (i / 4) % 28;
+            // Assign the inverted grayscale value to the 2D array
+            grayscaleData[row][col] = invertedGrayscale;
         }
     
-        // If you want to return the single-channel grayscale values
         return grayscaleData;
     };
+    
+
+    function getBoundingBox(img) {
+        const height = img.length;
+        const width = img[0].length;
+      
+        let rmin = height;
+        let rmax = 0;
+        let cmin = width;
+        let cmax = 0;
+      
+        for (let row = 0; row < height; row++) {
+          for (let col = 0; col < width; col++) {
+            if (img[row][col] !== 0) { // Non-zero pixel
+              if (row < rmin) rmin = row;
+              if (row > rmax) rmax = row;
+              if (col < cmin) cmin = col;
+              if (col > cmax) cmax = col;
+            }
+          }
+        }
+      
+        // If no non-zero pixels were found, return an empty array
+        if (rmax < rmin || cmax < cmin) {
+          return [];
+        }
+      
+        // Extract the bounding box
+        const cropped = img.slice(rmin, rmax + 1).map(row => row.slice(cmin, cmax + 1));
+      
+        return cropped;
+      }
+      
     
     
 
@@ -151,6 +189,8 @@ const Main = () => {
             const imageData = await processImage(image);
             const firstPixel = imageData[0];
             console.log("First pixel value:", firstPixel);
+            const cropped = getBoundingBox(imageData);
+            console.log("Cropped image shape:", cropped.length, cropped[0].length);
           };
     };
 
