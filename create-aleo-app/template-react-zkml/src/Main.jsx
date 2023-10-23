@@ -174,6 +174,149 @@ const Main = () => {
       
         return cropped;
       }
+
+      const resizeImage = (image, newSize) => {
+        const height = image.length;
+        const width = image[0].length;
+        const resizedImage = Array.from({ length: newSize }, () => new Uint8ClampedArray(newSize));
+        
+        const xScale = width / newSize;
+        const yScale = height / newSize;
+    
+        for (let i = 0; i < newSize; i++) {
+            for (let j = 0; j < newSize; j++) {
+                const x = Math.floor(j * xScale);
+                const y = Math.floor(i * yScale);
+                resizedImage[i][j] = image[y][x];
+            }
+        }
+    
+        return resizedImage;
+    };
+
+    function computeIntegralImage(image) {
+        const height = image.length;
+        const width = image[0].length;
+        const integralImage = Array.from({length: height}, () => new Array(width).fill(0));
+        
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            integralImage[y][x] =
+              image[y][x] +
+              (integralImage[y][x - 1] || 0) +
+              (integralImage[y - 1] ? integralImage[y - 1][x] : 0) -
+              (integralImage[y - 1] ? integralImage[y - 1][x - 1] || 0 : 0);
+          }
+        }
+        
+        return integralImage;
+      }
+
+      function sumRegion(integralImage, top_left, bottom_right) {
+        const [tl_y, tl_x] = top_left;
+        const [br_y, br_x] = bottom_right;
+      
+        let total = integralImage[br_y][br_x];
+        if (tl_y > 0) total -= integralImage[tl_y - 1][br_x];
+        if (tl_x > 0) total -= integralImage[br_y][tl_x - 1];
+        if (tl_y > 0 && tl_x > 0) total += integralImage[tl_y - 1][tl_x - 1];
+      
+        return total;
+      }
+
+      function computeHaarFeatures(image) {
+        const size = image.length;
+        if (size !== image[0].length) {
+          throw new Error("The input image must be square.");
+        }
+      
+        const integralImage = computeIntegralImage(image);
+        const features = [];
+      
+        for (let i = 0; i < size; i += 3) {
+          for (let j = 0; j < size; j += 3) {
+            if (i + 6 > size || j + 6 > size) continue;
+      
+            // Horizontal feature
+            const horizontal_feature_value =
+              sumRegion(integralImage, [i, j], [i + 2, j + 5]) -
+              sumRegion(integralImage, [i + 3, j], [i + 5, j + 5]);
+      
+            // Vertical feature
+            const vertical_feature_value =
+              sumRegion(integralImage, [i, j], [i + 5, j + 2]) -
+              sumRegion(integralImage, [i, j + 3], [i + 5, j + 5]);
+      
+            features.push(horizontal_feature_value);
+            features.push(vertical_feature_value);
+          }
+        }
+      
+        return features;
+      }
+
+      function aspectRatio(image, threshold = 0.5) {
+        const binImage = image.map(row => row.map(pixel => pixel > threshold ? 1 : 0));
+        const rows = binImage.length;
+        const cols = binImage[0].length;
+        
+        let minRow = rows, maxRow = 0, minCol = cols, maxCol = 0;
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            if (binImage[y][x] === 1) {
+              minRow = Math.min(minRow, y);
+              maxRow = Math.max(maxRow, y);
+              minCol = Math.min(minCol, x);
+              maxCol = Math.max(maxCol, x);
+            }
+          }
+        }
+        
+        const width = maxCol - minCol + 1;
+        const height = maxRow - minRow + 1;
+      
+        if (height === 0) return 1.0;
+        return width / height;
+      }
+
+      function labelRegions(binImage) {
+        const rows = binImage.length;
+        const cols = binImage[0].length;
+        const labels = Array.from({length: rows}, () => new Array(cols).fill(0));
+        let label = 0;
+      
+        function dfs(y, x) {
+          if (y < 0 || y >= rows || x < 0 || x >= cols || binImage[y][x] === 0 || labels[y][x] > 0) {
+            return;
+          }
+          
+          labels[y][x] = label;
+          
+          dfs(y - 1, x);
+          dfs(y + 1, x);
+          dfs(y, x - 1);
+          dfs(y, x + 1);
+        }
+      
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            if (binImage[y][x] === 1 && labels[y][x] === 0) {
+              label += 1;
+              dfs(y, x);
+            }
+          }
+        }
+      
+        return { labels, numRegions: label };
+      }
+      
+      function numRegionsBelowThreshold(image, threshold = 0.5) {
+        const binImage = image.map(row => row.map(pixel => pixel < threshold ? 1 : 0));
+        const { numRegions } = labelRegions(binImage);
+        return numRegions;
+      }
+      
+    
       
     
     
@@ -191,6 +334,20 @@ const Main = () => {
             console.log("First pixel value:", firstPixel);
             const cropped = getBoundingBox(imageData);
             console.log("Cropped image shape:", cropped.length, cropped[0].length);
+            const resized = resizeImage(cropped, 12);
+            console.log("Resized image shape:", resized.length, resized[0].length);
+
+            const haarFeatures = computeHaarFeatures(resized);
+            console.log("Haar features shape:", haarFeatures.length);
+
+            const aspectRatioValue = aspectRatio(imageData);
+            console.log("Aspect ratio:", aspectRatioValue);
+
+            const numRegions = numRegionsBelowThreshold(imageData);
+            console.log("Number of regions:", numRegions);
+
+            const features = haarFeatures.concat([aspectRatioValue, numRegions]);
+            console.log("Features:", features);
           };
     };
 
