@@ -16,6 +16,9 @@
 
 mod macros;
 
+mod authorized;
+use authorized::*;
+
 pub mod key_pair;
 pub use key_pair::*;
 

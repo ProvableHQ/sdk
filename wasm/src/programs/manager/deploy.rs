@@ -17,7 +17,8 @@
 use super::*;
 
 use crate::{
-    execute_fee,
+    authorize_fee,
+    execute_fee_authorization,
     log,
     types::{
         CurrentAleo,
@@ -104,17 +105,17 @@ impl ProgramManager {
 
         let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
 
-        let fee = execute_fee!(
+        let fee_authorization = authorize_fee!(
             process,
             private_key,
             fee_record,
             fee_microcredits,
-            url,
             fee_proving_key,
             fee_verifying_key,
             deployment_id,
             rng
         );
+        let fee = execute_fee_authorization!(process, fee_authorization, deployment_id, url);
 
         // Create the program owner
         let owner = ProgramOwnerNative::new(private_key, deployment_id, &mut StdRng::from_entropy())

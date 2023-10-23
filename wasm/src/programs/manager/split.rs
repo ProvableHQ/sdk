@@ -17,7 +17,8 @@
 use super::*;
 
 use crate::{
-    execute_program,
+    authorize_program,
+    execute_authorization,
     log,
     process_inputs,
     types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
@@ -66,7 +67,7 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Executing the split function");
-        let (_, mut trace) = execute_program!(
+        let authorization = authorize_program!(
             process,
             process_inputs!(inputs),
             &program,
@@ -76,6 +77,7 @@ impl ProgramManager {
             split_verifying_key,
             rng
         );
+        let (_, mut trace) = execute_authorization!(process, authorization);
 
         log("Preparing the inclusion proof for the split execution");
         let query = QueryNative::from(url);

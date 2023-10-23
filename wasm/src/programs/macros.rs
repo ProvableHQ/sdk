@@ -31,7 +31,7 @@ macro_rules! process_inputs {
 }
 
 #[macro_export]
-macro_rules! execute_program {
+macro_rules! authorize_program {
     ($process:expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $proving_key:expr, $verifying_key:expr, $rng:expr) => {{
         if (($proving_key.is_some() && $verifying_key.is_none())
             || ($proving_key.is_none() && $verifying_key.is_some()))
@@ -77,7 +77,7 @@ macro_rules! execute_program {
         };
 
         log("Creating authorization");
-        let authorization = $process
+        $process
             .authorize::<CurrentAleo, _>(
                 $private_key,
                 program.id(),
@@ -85,20 +85,21 @@ macro_rules! execute_program {
                 $inputs.iter(),
                 $rng,
             )
-            .map_err(|err| err.to_string())?;
-
-        log("Executing program");
-        let result = $process
-            .execute::<CurrentAleo>(authorization)
-            .map_err(|err| err.to_string())?;
-
-        result
+            .map_err(|err| err.to_string())?
     }};
 }
 
 #[macro_export]
-macro_rules! execute_fee {
-    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr) => {{
+macro_rules! execute_authorization {
+    ($process:expr, $authorization:expr) => {{
+        log("Executing program");
+        $process.execute::<CurrentAleo>($authorization).map_err(|err| err.to_string())?
+    }};
+}
+
+#[macro_export]
+macro_rules! authorize_fee {
+    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr) => {{
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
@@ -130,7 +131,7 @@ macro_rules! execute_fee {
         };
 
         log("Authorizing Fee");
-        let fee_authorization = match $fee_record {
+        match $fee_record {
             Some(fee_record) => {
                 let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string()).unwrap();
                 $process.authorize_fee_private::<CurrentAleo, _>(
@@ -145,16 +146,19 @@ macro_rules! execute_fee {
             None => {
                 $process.authorize_fee_public::<CurrentAleo, _>($private_key, $fee_microcredits, 0u64, $execution_id, $rng).map_err(|e| e.to_string())?
             }
-        };
+        }
+    }};
+}
 
+#[macro_export]
+macro_rules! execute_fee_authorization {
+    ($process:expr, $fee_authorization:expr, $execution_id:expr, $submission_url:expr) => {{
         log("Executing fee");
-        let (_, mut trace) = $process
-            .execute::<CurrentAleo>(fee_authorization)
-            .map_err(|err| err.to_string())?;
+        let (_, mut trace) = $process.execute::<CurrentAleo>($fee_authorization).map_err(|err| err.to_string())?;
 
         let query = QueryNative::from($submission_url);
         trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-        let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
+        let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e| e.to_string())?;
 
         log("Verifying fee execution");
         $process.verify_fee(&fee, $execution_id).map_err(|e| e.to_string())?;

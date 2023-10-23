@@ -17,8 +17,10 @@
 use super::*;
 
 use crate::{
-    execute_fee,
-    execute_program,
+    authorize_fee,
+    authorize_program,
+    execute_authorization,
+    execute_fee_authorization,
     log,
     process_inputs,
     types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative, TransactionNative},
@@ -95,7 +97,7 @@ impl ProgramManager {
         }
 
         log("Executing the join function");
-        let (_, mut trace) = execute_program!(
+        let authorization = authorize_program!(
             process,
             process_inputs!(inputs),
             &program,
@@ -105,6 +107,7 @@ impl ProgramManager {
             join_verifying_key,
             rng
         );
+        let (_, mut trace) = execute_authorization!(process, authorization);
 
         log("Preparing inclusion proof for the join execution");
         let query = QueryNative::from(url);
@@ -118,17 +121,17 @@ impl ProgramManager {
         process.verify_execution(&execution).map_err(|err| err.to_string())?;
 
         log("Executing the fee");
-        let fee = execute_fee!(
+        let fee_authorization = authorize_fee!(
             process,
             private_key,
             fee_record,
             fee_microcredits,
-            url,
             fee_proving_key,
             fee_verifying_key,
             execution_id,
             rng
         );
+        let fee = execute_fee_authorization!(process, fee_authorization, execution_id, url);
 
         log("Creating execution transaction for join");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;

@@ -17,8 +17,10 @@
 use super::*;
 
 use crate::{
-    execute_fee,
-    execute_program,
+    authorize_fee,
+    authorize_program,
+    execute_authorization,
+    execute_fee_authorization,
     log,
     process_inputs,
     types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative, TransactionNative},
@@ -27,6 +29,7 @@ use crate::{
     Transaction,
 };
 
+use crate::programs::Authorized;
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::{ops::Add, str::FromStr};
@@ -39,6 +42,7 @@ impl ProgramManager {
     /// @param amount_credits The amount of credits to send
     /// @param recipient The recipient of the transaction
     /// @param transfer_type The type of the transfer (options: "private", "public", "private_to_public", "public_to_private")
+    /// @param delegate If set to true, the recipient will be able to delegate proving to the Aleo network
     /// @param amount_record The record to fund the amount from
     /// @param fee_credits The amount of credits to pay as a fee
     /// @param fee_record The record to spend the fee from
@@ -55,6 +59,7 @@ impl ProgramManager {
         amount_credits: f64,
         recipient: &str,
         transfer_type: &str,
+        delegate: bool,
         amount_record: Option<RecordPlaintext>,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
@@ -137,7 +142,7 @@ impl ProgramManager {
         }
 
         log("Executing transfer function");
-        let (_, mut trace) = execute_program!(
+        let authorization = authorize_program!(
             process,
             process_inputs!(inputs),
             &program,
@@ -147,6 +152,30 @@ impl ProgramManager {
             transfer_verifying_key,
             rng
         );
+
+        // Compute fee authorization
+        let execution_id = authorization.to_execution_id().map_err(|e| e.to_string())?;
+        let fee_authorization = authorize_fee!(
+            process,
+            private_key,
+            fee_record,
+            fee_microcredits,
+            fee_proving_key,
+            fee_verifying_key,
+            execution_id,
+            rng
+        );
+
+        if delegate {
+            let authorized_transaction = Authorized::new(authorization, Some(fee_authorization), true);
+            let transaction_native = match transfer_type {
+                "transfer_public" | "transfer_public_to_private" => Authorized::execute(&authorized_transaction).await,
+                _ => Err("Only public transactions can be delegated".to_string()),
+            }?;
+            return Ok(Transaction::from(transaction_native));
+        }
+
+        let (_, mut trace) = execute_authorization!(process, authorization);
 
         log("Preparing the inclusion proof for the transfer execution");
         let query = QueryNative::from(url);
@@ -161,17 +190,7 @@ impl ProgramManager {
         process.verify_execution(&execution).map_err(|err| err.to_string())?;
 
         log("Executing the fee");
-        let fee = execute_fee!(
-            process,
-            private_key,
-            fee_record,
-            fee_microcredits,
-            url,
-            fee_proving_key,
-            fee_verifying_key,
-            execution_id,
-            rng
-        );
+        let fee = execute_fee_authorization!(process, fee_authorization, execution_id, url);
 
         log("Creating execution transaction for transfer");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
