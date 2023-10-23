@@ -60,6 +60,28 @@ const Main = () => {
     
         alert(JSON.stringify(result));
       }
+
+      const getTopLeftPixelData = async () => {
+        try {
+          const dataUrl = await canvasRef.current.exportImage("png");
+          const img = new Image();
+          img.src = dataUrl;
+          img.onload = () => {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+            tempCtx.drawImage(img, 0, 0, img.width, img.height);
+            const imageData = tempCtx.getImageData(0, 0, 1, 1);
+            console.log("Top left pixel data:", imageData.data);
+          };
+        } catch (error) {
+          console.error("Failed to get top left pixel data:", error);
+        }
+      };
+      
+      
+      
     
 
     const canvasRef = useRef(null);
@@ -96,12 +118,27 @@ const Main = () => {
 
     const processImage = async (image) => {
         const tempCanvas = document.createElement("canvas");
-        tempCanvas.width = 25;
+        tempCanvas.width = 28;
         tempCanvas.height = 28;
         const ctx = tempCanvas.getContext("2d");
         ctx.drawImage(image, 0, 0, 28, 28);
-        return ctx.getImageData(0, 0, 28, 28);
+        const imageData = ctx.getImageData(0, 0, 28, 28);
+        const data = imageData.data;
+    
+        // Create a new Uint8ClampedArray to store the single-channel grayscale values
+        const grayscaleData = new Uint8ClampedArray(28 * 28);
+    
+        for (let i = 0; i < data.length; i += 4) {
+            // Calculate the grayscale value
+            const grayscale = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            grayscaleData[i / 4] = grayscale;
+        }
+    
+        // If you want to return the single-channel grayscale values
+        return grayscaleData;
     };
+    
+    
 
     const processImageAndPredict = async () => {
         if (!canvasRef.current) {
@@ -111,8 +148,10 @@ const Main = () => {
         const image = new Image();
         image.src = imageURI;
         image.onload = async () => {
-            console.log(await processImage(image));
-        };
+            const imageData = await processImage(image);
+            const firstPixel = imageData[0];
+            console.log("First pixel value:", firstPixel);
+          };
     };
 
     const executeAleoCode = async () => {
@@ -221,6 +260,7 @@ const Main = () => {
                                         backgroundColor: "white",
                                     }}
                                     strokeWidth={brushSize}
+                                    strokeColor="black"
                                 />
                             </Col>
                         </Row>
@@ -255,9 +295,10 @@ const Main = () => {
 </Button>
                                     <Button
                                         type="default"
-                                        onClick={() =>
-                                            canvasRef.current.clearCanvas()
-                                        }
+                                        onClick={() => {
+                                            getTopLeftPixelData(); // Get pixel data before clearing
+                                            canvasRef.current.clearCanvas();
+                                          }}
                                     >
                                         Clear
                                     </Button>
