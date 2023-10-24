@@ -31,7 +31,7 @@ const { Header, Content, Footer, Sider } = Layout;
 const { Option } = Select;
 
 var model_type = "decision_tree";
-let used_model_type;
+let used_model_type, proving_start_time, proving_end_time;
 
 const aleoWorker = AleoWorker();
 
@@ -72,13 +72,22 @@ const Main = () => {
             used_model_type = "mlp";
         }
 
+        proving_start_time = performance.now();
+
         const result = await aleoWorker.localProgramExecution(
             model,
           "main",
           input_array,
+          true
           );
+        
+            proving_end_time = performance.now();
+            console.log("proving time in seconds", (proving_end_time - proving_start_time) / 1000);
+
+          //const execution = result.getExecution();
     
             console.log("result", result);
+            //console.log("execution", execution);
 
             let output_fixed_point_scaling_factor;
 
