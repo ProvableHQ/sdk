@@ -30,7 +30,7 @@ const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
 const { Option } = Select;
 
-var model_type = "Decision tree (faster)";
+var model_type = "decision_tree";
 let used_model_type;
 
 const aleoWorker = AleoWorker();
@@ -63,11 +63,11 @@ const Main = () => {
         console.log("input_array", input_array);
 
         let model;
-        if(model_type == "Decision tree (faster)") {
+        if(model_type == "decision_tree") {
             model = decision_tree_program;
             used_model_type = "tree";
         }
-        else if(model_type == "MLP neural network (slower, more accurate)") {
+        else if(model_type == "mlp_neural_network") {
             model = mlp_program;
             used_model_type = "mlp";
         }
@@ -102,10 +102,30 @@ const Main = () => {
 
             console.log("converted_features", converted_features);
 
-            const argmax_index = converted_features.indexOf(Math.max(...converted_features));
+            if(used_model_type == "mlp") {
+                const argmax_index = converted_features.indexOf(Math.max(...converted_features));
+                console.log("argmax_index", argmax_index);
 
-            console.log("argmax_index", argmax_index);
-            
+                // compute softmax of converted_features
+                var softmax = [];
+                var sum = 0;
+                for (let i = 0; i < converted_features.length; i++) {
+                    softmax.push(Math.exp(converted_features[i]));
+                    sum += Math.exp(converted_features[i]);
+                }
+                for (let i = 0; i < converted_features.length; i++) {
+                    softmax[i] = softmax[i] / sum;
+                }
+                console.log("softmax", softmax);
+
+                setChartData(
+                    chartData.map((item, index) => ({
+                        ...item,
+                        value: softmax[index] * 100, // multiply by 100 if you want to scale it up
+                    })),
+                );
+            }
+
         alert(JSON.stringify(converted_features));
 
 
@@ -157,11 +177,11 @@ const Main = () => {
         }),
     );
 
-    const randomizeChartData = () => {
+    const zeroChartData = () => {
         setChartData(
             chartData.map((item) => ({
                 ...item,
-                value: Math.floor(Math.random() * 20),
+                value: 0,
             })),
         );
     };
@@ -462,7 +482,7 @@ const Main = () => {
                 const newProgress = oldProgress + 10;
                 if (newProgress === 100) {
                     clearInterval(interval);
-                    randomizeChartData();
+                    zeroChartData();
                     setIsProgressRunning(false);
                     processImageAndPredict();
                     return newProgress;
@@ -525,7 +545,7 @@ const Main = () => {
                                 First, draw an image and create proof … Second,
                                 verify the proof …
                                 <br />
-    <Select defaultValue="decision_tree" style={{ width: 240, marginTop: 16 }} onChange={(value) => model_type = value}>
+    <Select defaultValue="decision_tree" style={{ width: 330, marginTop: 16 }} onChange={(value) => model_type = value}>
         <Option value="decision_tree">Decision tree (faster)</Option>
         <Option value="mlp_neural_network">MLP neural network (slower, more accurate)</Option>
     </Select>
