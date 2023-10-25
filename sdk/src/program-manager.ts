@@ -304,6 +304,7 @@ class ProgramManager {
      * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {boolean} cache Whether to save the private key from the execution
      * @returns {Promise<string | Error>}
      *
      * @example
@@ -332,6 +333,7 @@ class ProgramManager {
         provingKey?: ProvingKey,
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
+        cache = false,
     ): Promise<ExecutionResponse> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
@@ -353,10 +355,7 @@ class ProgramManager {
         }
 
         // Run the program offline and return the result
-        console.log("Running program offline")
-        console.log("Proving key: ", provingKey);
-        console.log("Verifying key: ", verifyingKey);
-        return WasmProgramManager.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution, false, imports, provingKey, verifyingKey, this.host);
+        return WasmProgramManager.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution, cache, imports, provingKey, verifyingKey, this.host);
     }
 
     /**
