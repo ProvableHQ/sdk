@@ -41,7 +41,7 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = buildSplitTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn split(
-        private_key: PrivateKey,
+        private_key: &PrivateKey,
         split_amount: f64,
         amount_record: RecordPlaintext,
         url: String,
@@ -63,7 +63,7 @@ impl ProgramManager {
         let (state, mut execute) = state.execute_program(
             "split".to_string(),
             inputs,
-            private_key,
+            private_key.clone(),
             split_proving_key,
             split_verifying_key,
         ).await?;

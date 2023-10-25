@@ -40,15 +40,7 @@ async function localProgramExecution(program, aleoFunction, inputs) {
         undefined,
         keyProviderParams,
     );
-    console.log(executionResponse.getOutputs())
 
-    executionResponse = await programManager.executeOffline(
-        hello_hello_program,
-        "hello",
-        ["5u32", "5u32"],
-        false,
-        keyProviderParams,
-    );
     return executionResponse.getOutputs();
 }
 

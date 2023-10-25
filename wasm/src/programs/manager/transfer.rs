@@ -46,7 +46,7 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = buildTransferTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn transfer(
-        private_key: PrivateKey,
+        private_key: &PrivateKey,
         amount_credits: f64,
         recipient: String,
         transfer_type: &str,
@@ -132,7 +132,7 @@ impl ProgramManager {
         let (_state, fee) = state.execute_fee(
             execution.execution_id()?,
             url,
-            private_key,
+            private_key.clone(),
             fee_microcredits,
             fee_record,
             fee_proving_key,

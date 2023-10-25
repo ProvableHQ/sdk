@@ -51,7 +51,7 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = executeFunctionOffline)]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute_function_offline(
-        private_key: PrivateKey,
+        private_key: &PrivateKey,
         program: String,
         function: String,
         inputs: Array,
@@ -70,7 +70,7 @@ impl ProgramManager {
         let (state, execute) = state.execute_program(
             function,
             inputs,
-            private_key,
+            private_key.clone(),
             proving_key,
             verifying_key,
         ).await?;
@@ -108,7 +108,7 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = buildExecutionTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute(
-        private_key: PrivateKey,
+        private_key: &PrivateKey,
         program: String,
         function: String,
         inputs: Array,
@@ -142,7 +142,7 @@ impl ProgramManager {
         let (_state, fee) = state.execute_fee(
             execution.execution_id()?,
             url,
-            private_key,
+            private_key.clone(),
             fee_microcredits,
             fee_record,
             fee_proving_key,
@@ -172,7 +172,7 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = estimateExecutionFee)]
     #[allow(clippy::too_many_arguments)]
     pub async fn estimate_execution_fee(
-        private_key: PrivateKey,
+        private_key: &PrivateKey,
         program: String,
         function: String,
         inputs: Array,
@@ -193,7 +193,7 @@ impl ProgramManager {
         let (state, execute) = state.execute_program(
             function,
             inputs,
-            private_key,
+            private_key.clone(),
             proving_key,
             verifying_key,
         ).await?;

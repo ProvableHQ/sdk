@@ -576,7 +576,7 @@ impl ProgramManager {
     /// @param imports {Object | undefined} The imports for the program
     #[wasm_bindgen(js_name = "synthesizeKeyPair")]
     pub async fn synthesize_keypair(
-        private_key: PrivateKey,
+        private_key: &PrivateKey,
         program: String,
         function_id: String,
         inputs: js_sys::Array,

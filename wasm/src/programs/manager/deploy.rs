@@ -47,7 +47,7 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = buildDeploymentTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn deploy(
-        private_key: PrivateKey,
+        private_key: &PrivateKey,
         program: String,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
@@ -69,7 +69,7 @@ impl ProgramManager {
         let (state, fee) = state.execute_fee(
             deploy.execution_id()?,
             url,
-            private_key,
+            private_key.clone(),
             fee_microcredits,
             fee_record,
             fee_proving_key,

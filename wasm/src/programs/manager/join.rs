@@ -43,7 +43,7 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = buildJoinTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn join(
-        private_key: PrivateKey,
+        private_key: &PrivateKey,
         record_1: RecordPlaintext,
         record_2: RecordPlaintext,
         fee_credits: f64,
@@ -87,7 +87,7 @@ impl ProgramManager {
         let (_state, fee) = state.execute_fee(
             execution.execution_id()?,
             url,
-            private_key,
+            private_key.clone(),
             fee_microcredits,
             fee_record,
             fee_proving_key,
