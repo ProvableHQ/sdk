@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-mod macros;
-
 pub mod key_pair;
 pub use key_pair::*;
 

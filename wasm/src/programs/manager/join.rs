@@ -17,19 +17,12 @@
 use super::*;
 
 use crate::{
-    execute_fee,
-    execute_program,
     log,
-    process_inputs,
-    types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative, TransactionNative},
+    types::{ProgramNative},
     PrivateKey,
     RecordPlaintext,
     Transaction,
 };
-
-use js_sys::Array;
-use rand::{rngs::StdRng, SeedableRng};
-use std::str::FromStr;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -50,88 +43,57 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = buildJoinTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn join(
-        private_key: &PrivateKey,
+        private_key: PrivateKey,
         record_1: RecordPlaintext,
         record_2: RecordPlaintext,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
-        url: &str,
+        url: String,
         join_proving_key: Option<ProvingKey>,
         join_verifying_key: Option<VerifyingKey>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
         log("Executing join program");
-        let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
-            None => (fee_credits * 1_000_000.0) as u64,
-        };
-        let rng = &mut StdRng::from_entropy();
+        let fee_microcredits = Self::microcredits(fee_credits, &fee_record)?;
 
-        log("Setup program and inputs");
         let program = ProgramNative::credits().unwrap().to_string();
-        let inputs = Array::new_with_length(2);
-        inputs.set(0u32, wasm_bindgen::JsValue::from_str(&record_1.to_string()));
-        inputs.set(1u32, wasm_bindgen::JsValue::from_str(&record_2.to_string()));
 
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
+        let state = ProgramState::new(program, None).await?;
 
-        let stack = process.get_stack("credits.aleo").map_err(|e| e.to_string())?;
-        let fee_identifier = if fee_record.is_some() {
-            IdentifierNative::from_str("fee_private").map_err(|e| e.to_string())?
-        } else {
-            IdentifierNative::from_str("fee_public").map_err(|e| e.to_string())?
-        };
-        if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some() {
-            let fee_proving_key = fee_proving_key.clone().unwrap();
-            let fee_verifying_key = fee_verifying_key.clone().unwrap();
-            stack
-                .insert_proving_key(&fee_identifier, ProvingKeyNative::from(fee_proving_key))
-                .map_err(|e| e.to_string())?;
-            stack
-                .insert_verifying_key(&fee_identifier, VerifyingKeyNative::from(fee_verifying_key))
-                .map_err(|e| e.to_string())?;
-        }
-
-        log("Executing the join function");
-        let (_, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            &program,
-            "join",
-            private_key,
+        let (state, fee_record, join_proving_key, join_verifying_key) = state.insert_proving_keys(
+            fee_record,
             join_proving_key,
             join_verifying_key,
-            rng
-        );
+        ).await?;
 
-        log("Preparing inclusion proof for the join execution");
-        let query = QueryNative::from(url);
-        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        let inputs = vec![
+            record_1.to_string(),
+            record_2.to_string(),
+        ];
 
-        log("Proving the join execution");
-        let execution = trace.prove_execution::<CurrentAleo, _>("credits.aleo/join", rng).map_err(|e| e.to_string())?;
-        let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
+        let (state, mut execute) = state.execute_program(
+            "join".to_string(),
+            inputs,
+            private_key.clone(),
+            join_proving_key,
+            join_verifying_key,
+        ).await?;
 
-        log("Verifying the join execution");
-        process.verify_execution(&execution).map_err(|err| err.to_string())?;
+        execute.set_locator("credits.aleo/join".to_string());
 
-        log("Executing the fee");
-        let fee = execute_fee!(
-            process,
-            private_key,
-            fee_record,
-            fee_microcredits,
+        let (state, execution) = state.prove_execution(execute, url.clone()).await?;
+
+        let (_state, fee) = state.execute_fee(
+            execution.execution_id()?,
             url,
+            private_key,
+            fee_microcredits,
+            fee_record,
             fee_proving_key,
             fee_verifying_key,
-            execution_id,
-            rng
-        );
+        ).await?;
 
-        log("Creating execution transaction for join");
-        let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
-        Ok(Transaction::from(transaction))
+        execution.into_transaction(Some(fee)).await
     }
 }

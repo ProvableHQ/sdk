@@ -17,18 +17,14 @@
 use super::*;
 
 use crate::{
-    execute_program,
     log,
-    process_inputs,
-    types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
+    types::{ProgramNative},
     PrivateKey,
     RecordPlaintext,
     Transaction,
 };
 
-use js_sys::Array;
-use rand::{rngs::StdRng, SeedableRng};
-use std::{ops::Add, str::FromStr};
+use std::{ops::Add};
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -45,51 +41,37 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = buildSplitTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn split(
-        private_key: &PrivateKey,
+        private_key: PrivateKey,
         split_amount: f64,
         amount_record: RecordPlaintext,
-        url: &str,
+        url: String,
         split_proving_key: Option<ProvingKey>,
         split_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
         log("Executing split program");
         let amount_microcredits = Self::validate_amount(split_amount, &amount_record, false)?;
 
-        log("Setup the program and inputs");
         let program = ProgramNative::credits().unwrap().to_string();
-        let inputs = Array::new_with_length(2u32);
-        inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.to_string()));
-        inputs.set(1u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
 
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
-        let rng = &mut StdRng::from_entropy();
+        let state = ProgramState::new(program, None).await?;
 
-        log("Executing the split function");
-        let (_, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            &program,
-            "split",
+        let inputs = vec![
+            amount_record.to_string(),
+            amount_microcredits.to_string().add("u64"),
+        ];
+
+        let (state, mut execute) = state.execute_program(
+            "split".to_string(),
+            inputs,
             private_key,
             split_proving_key,
             split_verifying_key,
-            rng
-        );
+        ).await?;
 
-        log("Preparing the inclusion proof for the split execution");
-        let query = QueryNative::from(url);
-        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        execute.set_locator("credits.aleo/split".to_string());
 
-        log("Proving the split execution");
-        let execution =
-            trace.prove_execution::<CurrentAleo, _>("credits.aleo/split", rng).map_err(|e| e.to_string())?;
+        let (_state, execution) = state.prove_execution(execute, url).await?;
 
-        log("Verifying the split execution");
-        process.verify_execution(&execution).map_err(|err| err.to_string())?;
-
-        log("Creating execution transaction for split");
-        let transaction = TransactionNative::from_execution(execution, None).map_err(|err| err.to_string())?;
-        Ok(Transaction::from(transaction))
+        execution.into_transaction(None).await
     }
 }
