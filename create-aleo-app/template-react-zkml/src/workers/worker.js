@@ -1,12 +1,13 @@
 import {
   Account,
+  Execution,
   ProgramManager,
   PrivateKey,
   initThreadPool,
   AleoKeyProvider,
   AleoNetworkClient,
   Program,
-  NetworkRecordProvider, AleoKeyProviderParams,
+  NetworkRecordProvider, AleoKeyProviderParams, verifyFunctionExecution
 } from "@aleohq/sdk";
 import { expose, proxy } from "comlink";
 import {sample_inputs} from "../variables.js";
@@ -55,19 +56,29 @@ async function localProgramExecution(program_source, aleoFunction, inputs) {
   if (cacheFunctionKeys) {
     console.log("Caching keys");
     const keys = executionResponse.getKeys(program.id(), aleoFunction);
-    programManager.keyProvider.cacheKeys(keySearchParams.cacheKey, [keys.provingKey(), keys.verifyingKey()]);
+    const verifyingKey = keys.verifyingKey();
+
+    programManager.keyProvider.cacheKeys(keySearchParams.cacheKey, [keys.provingKey(), verifyingKey]);
     console.log(`Cached keys for ${keySearchParams.cacheKey}`);
   }
 
   console.log("Getting outputs");
   const outputs = executionResponse.getOutputs(); // proof: executionResponse.
   console.log("outputs", outputs);
-  return outputs;
+  return [outputs, executionResponse.getExecution().toString()];
 }
 
 async function getPrivateKey() {
   const key = new PrivateKey();
   return proxy(key);
+}
+
+async function verifyExecution(execution_string, program, aleoFunction) {
+  const execution = Execution.fromString(execution_string);
+  const keySearchParams = new AleoKeyProviderParams({cacheKey: `${program.id()}/${aleoFunction}`});
+
+  const [provingKey, verifyingKey] = programManager.keyProvider.functionKeys(keySearchParams);
+  return verifyFunctionExecution(execution, verifyingKey, program, aleoFunction);
 }
 
 async function deployProgram(program) {
@@ -106,5 +117,5 @@ async function deployProgram(program) {
   return tx_id;
 }
 
-const workerMethods = { deployProgram, getPrivateKey, localProgramExecution, synthesizeKeys };
+const workerMethods = { deployProgram, getPrivateKey, localProgramExecution, synthesizeKeys, verifyExecution};
 expose(workerMethods);
