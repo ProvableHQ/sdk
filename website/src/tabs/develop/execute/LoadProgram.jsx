@@ -21,7 +21,7 @@ export const LoadProgram = ({ onResponse }) => {
         }
 
         setIsLoading(true);
-        const url = `https://vm.aleo.org/api/testnet3/program/${value}`;
+        const url = `https://api.explorer.aleo.org/v1/testnet3/program/${value}`;
 
         axios
             .get(url)

@@ -24,7 +24,7 @@ type ProgramImports = { [key: string]: string | Program };
  * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * const publicnetworkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+ * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
  */
 class AleoNetworkClient {
   host: string;

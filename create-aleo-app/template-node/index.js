@@ -42,14 +42,17 @@ async function localProgramExecution(program, aleoFunction, inputs) {
     );
     console.log(executionResponse.getOutputs())
 
+    // Execute a second time to ensure the cached keys are still being used - however, this time prove the execution.
     executionResponse = await programManager.executeOffline(
         hello_hello_program,
         "hello",
         ["5u32", "5u32"],
-        false,
+        true,
         keyProviderParams,
     );
-    return executionResponse.getOutputs();
+
+    // Verify the execution using the verifying key that was generated earlier.
+    programManager.verifyExecution(executionResponse);
 }
 
 const start = Date.now();

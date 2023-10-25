@@ -55,7 +55,7 @@ impl ProgramManager {
         record_2: RecordPlaintext,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
-        url: &str,
+        url: Option<String>,
         join_proving_key: Option<ProvingKey>,
         join_verifying_key: Option<VerifyingKey>,
         fee_proving_key: Option<ProvingKey>,
@@ -69,6 +69,7 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Setup program and inputs");
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let program = ProgramNative::credits().unwrap().to_string();
         let inputs = Array::new_with_length(2);
         inputs.set(0u32, wasm_bindgen::JsValue::from_str(&record_1.to_string()));
@@ -107,7 +108,7 @@ impl ProgramManager {
         );
 
         log("Preparing inclusion proof for the join execution");
-        let query = QueryNative::from(url);
+        let query = QueryNative::from(node_url);
         trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
         log("Proving the join execution");
@@ -123,7 +124,7 @@ impl ProgramManager {
             private_key,
             fee_record,
             fee_microcredits,
-            url,
+            node_url,
             fee_proving_key,
             fee_verifying_key,
             execution_id,
