@@ -5,27 +5,64 @@ import {
   initThreadPool,
   AleoKeyProvider,
   AleoNetworkClient,
-  NetworkRecordProvider,
+  Program,
+  NetworkRecordProvider, AleoKeyProviderParams,
 } from "@aleohq/sdk";
 import { expose, proxy } from "comlink";
+import {sample_inputs} from "../variables.js";
 
+// Initialize the threadpool
 await initThreadPool();
 
-async function localProgramExecution(program, aleoFunction, inputs) {
-  const programManager = new ProgramManager();
+// Initialize a program manager with a keyprovider that will cache our keys
+const keyProvider = new AleoKeyProvider();
+keyProvider.useCache(true);
+const programManager = new ProgramManager({ host: "https://api.explorer.aleo.org/v1", keyProvider: keyProvider});
+const account = new Account();
+programManager.setAccount(account);
 
-  // Create a temporary account for the execution of the program
-  const account = new Account();
-  programManager.setAccount(account);
+async function synthesizeKeys(program_source, aleoFunction) {
+  const program = Program.fromString(program_source);
+  const keys = await programManager.synthesizeKeys(program_source, aleoFunction, sample_inputs, new PrivateKey())
+  const cacheKey = `${program.id()}/${aleoFunction}`;
+  programManager.keyProvider.cacheKeys(cacheKey, keys);
+  console.log(`Synthesized keys for ${cacheKey}`);
+}
+
+async function localProgramExecution(program_source, aleoFunction, inputs) {
+  const program = Program.fromString(program_source);
+  const keySearchParams = new AleoKeyProviderParams({cacheKey: `${program.id()}/${aleoFunction}`});
+  let cacheFunctionKeys = false;
+  if (!programManager.keyProvider.containsKeys(keySearchParams.cacheKey)) {
+    console.log(`No cached keys for ${keySearchParams.cacheKey}`);
+    cacheFunctionKeys = true;
+  }
 
   const executionResponse = await programManager.executeOffline(
-    program,
+    program_source,
     aleoFunction,
     inputs,
-    false, // set to true to get proof
+    true, // set to true to get proof
+    undefined,
+    keySearchParams,
+    undefined,
+      undefined,
+      undefined,
+      cacheFunctionKeys
   );
-  //console.log(executionResponse.getExecution()); // toString later
-  return executionResponse.getOutputs(); // proof: executionResponse.
+  console.log("executionResponse", executionResponse);
+
+  if (cacheFunctionKeys) {
+    console.log("Caching keys");
+    const keys = executionResponse.getKeys(program.id(), aleoFunction);
+    programManager.keyProvider.cacheKeys(keySearchParams.cacheKey, [keys.provingKey(), keys.verifyingKey()]);
+    console.log(`Cached keys for ${keySearchParams.cacheKey}`);
+  }
+
+  console.log("Getting outputs");
+  const outputs = executionResponse.getOutputs(); // proof: executionResponse.
+  console.log("outputs", outputs);
+  return outputs;
 }
 
 async function getPrivateKey() {
@@ -69,5 +106,5 @@ async function deployProgram(program) {
   return tx_id;
 }
 
-const workerMethods = { localProgramExecution, getPrivateKey, deployProgram };
+const workerMethods = { deployProgram, getPrivateKey, localProgramExecution, synthesizeKeys };
 expose(workerMethods);

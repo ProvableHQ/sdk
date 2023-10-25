@@ -21,7 +21,6 @@ import {
 import { ReactSketchCanvas } from "react-sketch-canvas";
 import { Column } from "@ant-design/charts";
 import aleoLogo from "./assets/aleo.svg";
-import {Account, initThreadPool, PrivateKey, ProgramManager, AleoKeyProvider, AleoKeyProviderParams, } from "@aleohq/sdk";
 import { AleoWorker } from "./workers/AleoWorker.js";
 
 import { mlp_program, decision_tree_program, test_imageData } from './variables.js';
@@ -35,31 +34,9 @@ let used_model_type, proving_start_time, proving_end_time;
 
 const aleoWorker = AleoWorker();
 
-const programManager = new ProgramManager();
-const generateAccount = async () => {
-    console.log("generating account")
-    const key = await aleoWorker.getPrivateKey();
-    //setAccount(await key.to_string());
-  };
-
-generateAccount();
-
-const account = new Account();
-programManager.setAccount(account);
-
-const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
-programManager.setKeyProvider(keyProvider);
-
-const keyPair = await programManager.synthesizeKeys(decision_tree_program, "main", ['{x0: -1i64, x1: 5i64}', '{x0: -6i64, x1: 12i64}', '{x0: -4i64, x1: -4i64}', '{x0: 3i64, x1: -1i64}', '{x0: -2i64}', '{x0: 7i64}', '{x0: -6i64}', '{x0: -1i64}', '{x0: 9i64}', '{x0: 6i64}', '{x0: 6i64}', '{x0: -5i64}', '{x0: -12i64}', '{x0: -7i64}', '{x0: -43i64}', '{x0: -12i64}']);
-programManager.keyProvider.cacheKeys("hello_hello.aleo:hello", keyPair);
-
-const keyProviderParams = new AleoKeyProviderParams({cacheKey: "tree_mnist_1.aleo:main"});
-
 const Main = () => {
     const [account, setAccount] = useState(null);
 
-    
       async function execute(features) {
 
         // helpful tool: https://codepen.io/jsnelders/pen/qBByqQy
@@ -87,92 +64,70 @@ const Main = () => {
             model = mlp_program;
             used_model_type = "mlp";
         }
-
-        const old_proving_method = false;
-
         proving_start_time = performance.now();
 
-        console.log("before execution")
+        console.log("before execution ")
 
-        let result;
-
-        if(old_proving_method) {
-        result = await aleoWorker.localProgramExecution(
-            model,
-          "main",
-          input_array,
-          true
-          );
-        }
-
-        if(!old_proving_method) {
-          let executionResponse = await programManager.executeOffline(
+        const result = await aleoWorker.localProgramExecution(
             model,
             "main",
             input_array,
-            false,
-            undefined,
-            keyProviderParams,
+            true
         );
 
-        console.log("executionResponse", executionResponse)
-        result = executionResponse.getOutputs();
+        proving_end_time = performance.now();
+        console.log("proving time in seconds", (proving_end_time - proving_start_time) / 1000);
+
+      //const execution = result.getExecution();
+
+        console.log("result", result);
+        //console.log("execution", execution);
+
+        let output_fixed_point_scaling_factor;
+
+        if(used_model_type == "tree") {
+            output_fixed_point_scaling_factor = fixed_point_scaling_factor;
+        }
+        else if(used_model_type == "mlp") {
+            output_fixed_point_scaling_factor = fixed_point_scaling_factor**3;
         }
 
-        
-            proving_end_time = performance.now();
-            console.log("proving time in seconds", (proving_end_time - proving_start_time) / 1000);
+        // empty array
+        var converted_features = [];
 
-          //const execution = result.getExecution();
-    
-            console.log("result", result);
-            //console.log("execution", execution);
+        // iterate over result. For each entry, remove "i64", convert to a number, and divide by the scaling factor
+        for (let i = 0; i < result.length; i++) {
+            var output = result[i].replace("i64", "");
+            output = Number(output);
+            output = output / output_fixed_point_scaling_factor;
+            converted_features.push(output);
+        }
 
-            let output_fixed_point_scaling_factor;
+        console.log("converted_features", converted_features);
 
-            if(used_model_type == "tree") {
-                output_fixed_point_scaling_factor = fixed_point_scaling_factor;
+        if(used_model_type == "mlp") {
+            const argmax_index = converted_features.indexOf(Math.max(...converted_features));
+            console.log("argmax_index", argmax_index);
+
+            // compute softmax of converted_features
+            var softmax = [];
+            var sum = 0;
+            for (let i = 0; i < converted_features.length; i++) {
+                softmax.push(Math.exp(converted_features[i]));
+                sum += Math.exp(converted_features[i]);
             }
-            else if(used_model_type == "mlp") {
-                output_fixed_point_scaling_factor = fixed_point_scaling_factor**3;
+            for (let i = 0; i < converted_features.length; i++) {
+                softmax[i] = softmax[i] / sum;
             }
+            console.log("softmax", softmax);
 
-            // empty array
-            var converted_features = [];
-
-            // iterate over result. For each entry, remove "i64", convert to a number, and divide by the scaling factor
-            for (let i = 0; i < result.length; i++) {
-                var output = result[i].replace("i64", "");
-                output = Number(output);
-                output = output / output_fixed_point_scaling_factor;
-                converted_features.push(output);
-            }
-
-            console.log("converted_features", converted_features);
-
-            if(used_model_type == "mlp") {
-                const argmax_index = converted_features.indexOf(Math.max(...converted_features));
-                console.log("argmax_index", argmax_index);
-
-                // compute softmax of converted_features
-                var softmax = [];
-                var sum = 0;
-                for (let i = 0; i < converted_features.length; i++) {
-                    softmax.push(Math.exp(converted_features[i]));
-                    sum += Math.exp(converted_features[i]);
-                }
-                for (let i = 0; i < converted_features.length; i++) {
-                    softmax[i] = softmax[i] / sum;
-                }
-                console.log("softmax", softmax);
-
-                setChartData(
-                    chartData.map((item, index) => ({
-                        ...item,
-                        value: softmax[index] * 100, // multiply by 100 if you want to scale it up
-                    })),
-                );
-            }
+            setChartData(
+                chartData.map((item, index) => ({
+                    ...item,
+                    value: softmax[index] * 100, // multiply by 100 if you want to scale it up
+                })),
+            );
+        }
 
         alert(JSON.stringify(converted_features));
 
@@ -197,10 +152,6 @@ const Main = () => {
           console.error("Failed to get top left pixel data:", error);
         }
       };
-      
-      
-      
-    
 
     const canvasRef = useRef(null);
     const [progress, setProgress] = useState(0);
@@ -214,6 +165,10 @@ const Main = () => {
     useEffect(() => {
         setHasMounted(true);
     }, []);
+
+    async function synthesizeKeys(model) {
+        await aleoWorker.synthesizeKeys(model, "main");
+    }
 
     const menuItems = ["Even/Odd", "Number Range", "Classification"].map(
         (label, index) => ({
