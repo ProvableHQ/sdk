@@ -607,8 +607,6 @@ impl ProgramManager {
 mod tests {
     use super::*;
 
-    use js_sys::{Object, Reflect};
-    use wasm_bindgen::JsValue;
     use wasm_bindgen_test::*;
 
     pub const MULTIPLY_PROGRAM: &str = r#"// The 'multiply_test.aleo' program which is imported by the 'double_test.aleo' program.
@@ -659,11 +657,13 @@ function add_and_double:
 
     #[wasm_bindgen_test]
     fn test_import_resolution() {
-        let imports = Object::new();
-        Reflect::set(&imports, &JsValue::from_str("multiply_test.aleo"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
-        Reflect::set(&imports, &JsValue::from_str("addition_test.aleo"), &JsValue::from_str(ADDITION_PROGRAM)).unwrap();
-        Reflect::set(&imports, &JsValue::from_str("double_test.aleo"), &JsValue::from_str(MULTIPLY_IMPORT_PROGRAM))
-            .unwrap();
+        let imports = [
+            ("multiply_test.aleo".to_string(), MULTIPLY_PROGRAM.to_string()),
+            ("addition_test.aleo".to_string(), ADDITION_PROGRAM.to_string()),
+            ("double_test.aleo".to_string(), MULTIPLY_IMPORT_PROGRAM.to_string()),
+        ]
+        .into_iter()
+        .collect();
 
         let mut process = ProcessNative::load_web().unwrap();
         let program = ProgramNative::from_str(NESTED_IMPORT_PROGRAM).unwrap();
@@ -671,7 +671,7 @@ function add_and_double:
         let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
         let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
 
-        ProgramManager::resolve_imports(&mut process, &program, Some(imports)).unwrap();
+        ProgramManager::resolve_imports(&mut process, &program, Some(&imports)).unwrap();
 
         let add_import = process.get_program("addition_test.aleo").unwrap();
         let multiply_import = process.get_program("multiply_test.aleo").unwrap();
