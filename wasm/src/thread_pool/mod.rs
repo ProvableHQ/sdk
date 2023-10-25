@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use futures::future::try_join_all;
-use futures::channel::oneshot;
+use futures::{channel::oneshot, future::try_join_all};
 use rayon::ThreadBuilder;
 use spmc::{channel, Receiver, Sender};
 use std::future::Future;
@@ -80,7 +79,6 @@ extern "C" {
     fn stop_timer(timer: f64);
 }
 
-
 /// Runs a function on the Rayon thread-pool.
 ///
 /// When the function returns, the Future will resolve
@@ -91,9 +89,10 @@ extern "C" {
 /// This will keep the NodeJS process alive until the
 /// Future is resolved.
 pub fn spawn<A, F>(f: F) -> impl Future<Output = A>
-    where A: Send + 'static,
-          F: FnOnce() -> A + Send + 'static {
-
+where
+    A: Send + 'static,
+    F: FnOnce() -> A + Send + 'static,
+{
     // This is necessary in order to stop the Node process
     // from exiting while the spawned task is running.
     struct Timer(f64);
@@ -118,7 +117,6 @@ pub fn spawn<A, F>(f: F) -> impl Future<Output = A>
         output
     }
 }
-
 
 async fn spawn_workers(url: web_sys::Url, num_threads: usize) -> Result<Sender<ThreadBuilder>, JsValue> {
     let module = wasm_bindgen::module();

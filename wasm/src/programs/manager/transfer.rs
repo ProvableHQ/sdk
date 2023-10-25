@@ -16,15 +16,9 @@
 
 use super::*;
 
-use crate::{
-    log,
-    types::{ProgramNative},
-    PrivateKey,
-    RecordPlaintext,
-    Transaction,
-};
+use crate::{log, types::ProgramNative, PrivateKey, RecordPlaintext, Transaction};
 
-use std::{ops::Add};
+use std::ops::Add;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -111,33 +105,34 @@ impl ProgramManager {
 
         let state = ProgramState::new(program, None).await?;
 
-        let (state, fee_record, fee_proving_key, fee_verifying_key) = state.insert_proving_keys(
-            fee_record,
-            fee_proving_key,
-            fee_verifying_key,
-        ).await?;
+        let (state, fee_record, fee_proving_key, fee_verifying_key) =
+            state.insert_proving_keys(fee_record, fee_proving_key, fee_verifying_key).await?;
 
-        let (state, mut execute) = state.execute_program(
-            transfer_type.to_string(),
-            inputs,
-            private_key.clone(),
-            transfer_proving_key,
-            transfer_verifying_key,
-        ).await?;
+        let (state, mut execute) = state
+            .execute_program(
+                transfer_type.to_string(),
+                inputs,
+                private_key.clone(),
+                transfer_proving_key,
+                transfer_verifying_key,
+            )
+            .await?;
 
         execute.set_locator("credits.aleo/transfer".to_string());
 
         let (state, execution) = state.prove_execution(execute, url.clone()).await?;
 
-        let (_state, fee) = state.execute_fee(
-            execution.execution_id()?,
-            url,
-            private_key.clone(),
-            fee_microcredits,
-            fee_record,
-            fee_proving_key,
-            fee_verifying_key,
-        ).await?;
+        let (_state, fee) = state
+            .execute_fee(
+                execution.execution_id()?,
+                url,
+                private_key.clone(),
+                fee_microcredits,
+                fee_record,
+                fee_proving_key,
+                fee_verifying_key,
+            )
+            .await?;
 
         execution.into_transaction(Some(fee)).await
     }

@@ -67,18 +67,12 @@ impl ProgramManager {
 
         let state = ProgramState::new(program, imports).await?;
 
-        let (state, execute) = state.execute_program(
-            function,
-            inputs,
-            private_key.clone(),
-            proving_key,
-            verifying_key,
-        ).await?;
+        let (state, execute) =
+            state.execute_program(function, inputs, private_key.clone(), proving_key, verifying_key).await?;
 
         if prove_execution {
             let (state, execution) = state.prove_execution(execute, "https://vm.aleo.org/api".to_string()).await?;
             state.prove_response(execution, cache)
-
         } else {
             state.execute_response(execute, cache)
         }
@@ -129,25 +123,22 @@ impl ProgramManager {
 
         let state = ProgramState::new(program, imports).await?;
 
-        let (state, execute) = state.execute_program(
-            function,
-            inputs,
-            private_key.clone(),
-            proving_key,
-            verifying_key,
-        ).await?;
+        let (state, execute) =
+            state.execute_program(function, inputs, private_key.clone(), proving_key, verifying_key).await?;
 
         let (state, execution) = state.prove_execution(execute, url.clone()).await?;
 
-        let (_state, fee) = state.execute_fee(
-            execution.execution_id()?,
-            url,
-            private_key.clone(),
-            fee_microcredits,
-            fee_record,
-            fee_proving_key,
-            fee_verifying_key,
-        ).await?;
+        let (_state, fee) = state
+            .execute_fee(
+                execution.execution_id()?,
+                url,
+                private_key.clone(),
+                fee_microcredits,
+                fee_record,
+                fee_proving_key,
+                fee_verifying_key,
+            )
+            .await?;
 
         execution.into_transaction(Some(fee)).await
     }
@@ -190,13 +181,8 @@ impl ProgramManager {
 
         let state = ProgramState::new(program, imports).await?;
 
-        let (state, execute) = state.execute_program(
-            function,
-            inputs,
-            private_key.clone(),
-            proving_key,
-            verifying_key,
-        ).await?;
+        let (state, execute) =
+            state.execute_program(function, inputs, private_key.clone(), proving_key, verifying_key).await?;
 
         let (state, execution) = state.prove_execution(execute, url).await?;
 

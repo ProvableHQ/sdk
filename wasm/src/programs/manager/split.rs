@@ -16,15 +16,9 @@
 
 use super::*;
 
-use crate::{
-    log,
-    types::{ProgramNative},
-    PrivateKey,
-    RecordPlaintext,
-    Transaction,
-};
+use crate::{log, types::ProgramNative, PrivateKey, RecordPlaintext, Transaction};
 
-use std::{ops::Add};
+use std::ops::Add;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -55,18 +49,11 @@ impl ProgramManager {
 
         let state = ProgramState::new(program, None).await?;
 
-        let inputs = vec![
-            amount_record.to_string(),
-            amount_microcredits.to_string().add("u64"),
-        ];
+        let inputs = vec![amount_record.to_string(), amount_microcredits.to_string().add("u64")];
 
-        let (state, mut execute) = state.execute_program(
-            "split".to_string(),
-            inputs,
-            private_key.clone(),
-            split_proving_key,
-            split_verifying_key,
-        ).await?;
+        let (state, mut execute) = state
+            .execute_program("split".to_string(), inputs, private_key.clone(), split_proving_key, split_verifying_key)
+            .await?;
 
         execute.set_locator("credits.aleo/split".to_string());
 

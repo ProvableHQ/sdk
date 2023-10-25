@@ -30,6 +30,7 @@ pub mod transfer;
 pub use transfer::*;
 
 use crate::{
+    log,
     types::{
         cost_in_microcredits,
         deployment_cost,
@@ -49,6 +50,7 @@ use crate::{
         TransactionNative,
         VerifyingKeyNative,
     },
+    ExecutionResponse,
     KeyPair,
     PrivateKey,
     ProvingKey,
@@ -56,21 +58,16 @@ use crate::{
     RecordPlaintextNative,
     Transaction,
     VerifyingKey,
-    ExecutionResponse,
-    log,
 };
 
+use snarkvm_ledger_block::{Deployment, Fee};
 use snarkvm_synthesizer::Trace;
-use snarkvm_ledger_block::{Fee, Deployment};
 
-use js_sys::{Object, Array, Reflect};
-use rand::{rngs::StdRng, SeedableRng};
 use core::ops::Add;
-use std::future::Future;
-use std::str::FromStr;
-use std::collections::HashMap;
+use js_sys::{Array, Object, Reflect};
+use rand::{rngs::StdRng, SeedableRng};
+use std::{collections::HashMap, future::Future, str::FromStr};
 use wasm_bindgen::prelude::wasm_bindgen;
-
 
 /// Converts a JS object into a `HashMap<String, String>`.
 fn get_imports(imports: Option<Object>) -> Result<Option<HashMap<String, String>>, String> {
@@ -87,18 +84,15 @@ fn get_imports(imports: Option<Object>) -> Result<Option<HashMap<String, String>
         }
 
         Ok(Some(hash))
-
     } else {
         Ok(None)
     }
 }
 
-
 pub(crate) struct ExecuteFee {
     fee: Fee<Testnet3>,
     private_key: PrivateKey,
 }
-
 
 pub(crate) struct ProveExecution {
     execute: ExecuteProgram,
@@ -120,7 +114,6 @@ impl ProveExecution {
         })
     }
 }
-
 
 pub(crate) struct Deploy {
     deployment: Deployment<Testnet3>,
@@ -150,7 +143,6 @@ impl Deploy {
     }
 }
 
-
 pub(crate) struct ExecuteProgram {
     locator: String,
     response: Response<Testnet3>,
@@ -163,22 +155,20 @@ impl ExecuteProgram {
     }
 }
 
-
 pub(crate) struct ProgramState {
     rng: StdRng,
     process: ProcessNative,
     program: ProgramNative,
 }
 
-
 impl ProgramState {
     /// Converts a JS array of strings into a `Vec<String>`.
     pub(crate) fn get_inputs(inputs: Array) -> Result<Vec<String>, String> {
-        inputs.iter()
+        inputs
+            .iter()
             .map(|input| {
                 if let Some(input) = input.as_string() {
                     Ok(input)
-
                 } else {
                     Err("Invalid input - all inputs must be a string specifying the type".to_string())
                 }
@@ -186,11 +176,7 @@ impl ProgramState {
             .collect()
     }
 
-
-    pub(crate) fn new(
-        program_string: String,
-        imports: Option<Object>,
-    ) -> impl Future<Output = Result<Self, String>> {
+    pub(crate) fn new(program_string: String, imports: Option<Object>) -> impl Future<Output = Result<Self, String>> {
         let imports = get_imports(imports);
 
         crate::thread_pool::spawn(move || {
@@ -210,26 +196,21 @@ impl ProgramState {
         })
     }
 
-
     /// Check if a process contains a keypair for a specific function
-    fn contains_key(
-        &self,
-        program_id: &ProgramIDNative,
-        function_id: &IdentifierNative,
-    ) -> bool {
+    fn contains_key(&self, program_id: &ProgramIDNative, function_id: &IdentifierNative) -> bool {
         self.process.get_stack(program_id).map_or_else(
             |_| false,
             |stack| stack.contains_proving_key(function_id) && stack.contains_verifying_key(function_id),
         )
     }
 
-
     pub(crate) fn insert_proving_keys(
         self,
         fee_record: Option<RecordPlaintext>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
-    ) -> impl Future<Output = Result<(Self, Option<RecordPlaintext>, Option<ProvingKey>, Option<VerifyingKey>), String>> {
+    ) -> impl Future<Output = Result<(Self, Option<RecordPlaintext>, Option<ProvingKey>, Option<VerifyingKey>), String>>
+    {
         crate::thread_pool::spawn(move || {
             let fee_identifier = if fee_record.is_some() {
                 IdentifierNative::from_str("fee_private").map_err(|e| e.to_string())?
@@ -239,7 +220,8 @@ impl ProgramState {
 
             let stack = self.process.get_stack("credits.aleo").map_err(|e| e.to_string())?;
 
-            if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some() {
+            if !stack.contains_proving_key(&fee_identifier) && fee_proving_key.is_some() && fee_verifying_key.is_some()
+            {
                 let fee_proving_key = fee_proving_key.clone().unwrap();
                 let fee_verifying_key = fee_verifying_key.clone().unwrap();
                 stack
@@ -254,7 +236,6 @@ impl ProgramState {
         })
     }
 
-
     pub(crate) fn execute_program(
         mut self,
         function_id: String,
@@ -264,8 +245,7 @@ impl ProgramState {
         verifying_key: Option<VerifyingKey>,
     ) -> impl Future<Output = Result<(Self, ExecuteProgram), String>> {
         crate::thread_pool::spawn(move || {
-            if (proving_key.is_some() && verifying_key.is_none()) ||
-                (proving_key.is_none() && verifying_key.is_some())
+            if (proving_key.is_some() && verifying_key.is_none()) || (proving_key.is_none() && verifying_key.is_some())
             {
                 return Err(
                     "If specifying a key for a program execution, both the proving and verifying key must be specified"
@@ -294,45 +274,41 @@ impl ProgramState {
 
             if let Some(proving_key) = proving_key {
                 if self.contains_key(id, &function_name) {
-                    log(&format!("Proving & verifying keys were specified for {program_id} - {function_name:?} but a key already exists in the cache. Using cached keys"));
-
+                    log(&format!(
+                        "Proving & verifying keys were specified for {program_id} - {function_name:?} but a key already exists in the cache. Using cached keys"
+                    ));
                 } else {
-                    log(&format!("Inserting externally provided proving and verifying keys for {program_id} - {function_name:?}"));
+                    log(&format!(
+                        "Inserting externally provided proving and verifying keys for {program_id} - {function_name:?}"
+                    ));
 
                     self.process
                         .insert_proving_key(id, &function_name, ProvingKeyNative::from(proving_key))
                         .map_err(|e| e.to_string())?;
 
                     if let Some(verifying_key) = verifying_key {
-                        self.process.insert_verifying_key(id, &function_name, VerifyingKeyNative::from(verifying_key))
+                        self.process
+                            .insert_verifying_key(id, &function_name, VerifyingKeyNative::from(verifying_key))
                             .map_err(|e| e.to_string())?;
                     }
                 }
             }
 
-
             log("Creating authorization");
-            let authorization = self.process
-                .authorize::<CurrentAleo, _>(
-                    &private_key,
-                    id,
-                    function_name,
-                    inputs.into_iter(),
-                    &mut self.rng,
-                )
+            let authorization = self
+                .process
+                .authorize::<CurrentAleo, _>(&private_key, id, function_name, inputs.into_iter(), &mut self.rng)
                 .map_err(|err| err.to_string())?;
 
             log("Executing program");
-            let (response, trace) = self.process
-                .execute::<CurrentAleo>(authorization)
-                .map_err(|err| err.to_string())?;
+            let (response, trace) =
+                self.process.execute::<CurrentAleo>(authorization).map_err(|err| err.to_string())?;
 
             let locator = program_id.add("/").add(&function_id);
 
             Ok((self, ExecuteProgram { locator, response, trace }))
         })
     }
-
 
     pub(crate) fn prove_execution(
         mut self,
@@ -346,25 +322,25 @@ impl ProgramState {
 
             crate::thread_pool::spawn(move || {
                 log("Proving execution");
-                let execution = execute.trace.prove_execution::<CurrentAleo, _>(&execute.locator, &mut self.rng)
+                let execution = execute
+                    .trace
+                    .prove_execution::<CurrentAleo, _>(&execute.locator, &mut self.rng)
                     .map_err(|e| e.to_string())?;
 
                 // Verify the execution
-                self.process.verify_execution(&execution)
-                    .map_err(|err| err.to_string())?;
+                self.process.verify_execution(&execution).map_err(|err| err.to_string())?;
 
                 Ok((self, ProveExecution { execution, execute }))
-            }).await
+            })
+            .await
         }
     }
-
 
     pub(crate) fn execute_response(self, execute: ExecuteProgram, cache: bool) -> Result<ExecutionResponse, String> {
         let process = if cache { Some(self.process) } else { None };
 
         Ok(ExecutionResponse::from((execute.response, process)))
     }
-
 
     pub(crate) fn prove_response(self, prove: ProveExecution, cache: bool) -> Result<ExecutionResponse, String> {
         let ProveExecution { execute: ExecuteProgram { response, .. }, execution } = prove;
@@ -373,7 +349,6 @@ impl ProgramState {
 
         Ok(ExecutionResponse::from((response, execution, process)))
     }
-
 
     pub(crate) fn estimate_fee(self, execution: ProveExecution) -> impl Future<Output = Result<u64, String>> {
         crate::thread_pool::spawn(move || {
@@ -406,7 +381,6 @@ impl ProgramState {
             Ok(storage_cost + finalize_cost)
         })
     }
-
 
     pub(crate) fn execute_fee(
         mut self,
@@ -483,21 +457,22 @@ impl ProgramState {
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
             crate::thread_pool::spawn(move || {
-                let fee = trace.prove_fee::<CurrentAleo, _>(&mut state.rng).map_err(|e|e.to_string())?;
+                let fee = trace.prove_fee::<CurrentAleo, _>(&mut state.rng).map_err(|e| e.to_string())?;
 
                 log("Verifying fee execution");
                 state.process.verify_fee(&fee, execution_id).map_err(|e| e.to_string())?;
 
                 Ok((state, ExecuteFee { fee, private_key }))
-            }).await
+            })
+            .await
         }
     }
-
 
     pub(crate) fn deploy(mut self) -> impl Future<Output = Result<(Self, Deploy), String>> {
         crate::thread_pool::spawn(move || {
             log("Creating deployment");
-            let deployment = self.process.deploy::<CurrentAleo, _>(&self.program, &mut self.rng).map_err(|err| err.to_string())?;
+            let deployment =
+                self.process.deploy::<CurrentAleo, _>(&self.program, &mut self.rng).map_err(|err| err.to_string())?;
 
             if deployment.program().functions().is_empty() {
                 return Err("Attempted to create an empty transaction deployment".to_string());
@@ -510,7 +485,6 @@ impl ProgramState {
             Ok((self, Deploy { deployment, minimum_deployment_cost }))
         })
     }
-
 
     pub(crate) fn deploy_transaction(
         mut self,
@@ -531,13 +505,11 @@ impl ProgramState {
 
             log("Creating deployment transaction");
             Ok(Transaction::from(
-                TransactionNative::from_deployment(owner, deploy.deployment, fee.fee)
-                    .map_err(|err| err.to_string())?,
+                TransactionNative::from_deployment(owner, deploy.deployment, fee.fee).map_err(|err| err.to_string())?,
             ))
         })
     }
 }
-
 
 #[wasm_bindgen]
 #[derive(Clone)]

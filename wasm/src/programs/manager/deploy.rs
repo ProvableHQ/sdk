@@ -16,12 +16,7 @@
 
 use super::*;
 
-use crate::{
-    log,
-    PrivateKey,
-    RecordPlaintext,
-    Transaction,
-};
+use crate::{log, PrivateKey, RecordPlaintext, Transaction};
 
 use js_sys::Object;
 
@@ -66,15 +61,17 @@ impl ProgramManager {
 
         deploy.check_fee(fee_microcredits)?;
 
-        let (state, fee) = state.execute_fee(
-            deploy.execution_id()?,
-            url,
-            private_key.clone(),
-            fee_microcredits,
-            fee_record,
-            fee_proving_key,
-            fee_verifying_key,
-        ).await?;
+        let (state, fee) = state
+            .execute_fee(
+                deploy.execution_id()?,
+                url,
+                private_key.clone(),
+                fee_microcredits,
+                fee_record,
+                fee_proving_key,
+                fee_verifying_key,
+            )
+            .await?;
 
         state.deploy_transaction(deploy, fee).await
     }
