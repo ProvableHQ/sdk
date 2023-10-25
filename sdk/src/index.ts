@@ -152,10 +152,10 @@ export {
     Program,
     RecordPlaintext,
     Transaction as WasmTransaction,
-    ExecutionResponse,
     ProgramManager as ProgramManagerBase,
     verifyFunctionExecution,
     initThreadPool,
+    ExecutionResponse,
 } from "@aleohq/wasm";
 
 export { initializeWasm };

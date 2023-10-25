@@ -1,13 +1,14 @@
 import {
   Account,
-  Execution,
   ProgramManager,
   PrivateKey,
   initThreadPool,
   AleoKeyProvider,
   AleoNetworkClient,
   Program,
-  NetworkRecordProvider, AleoKeyProviderParams, verifyFunctionExecution
+  NetworkRecordProvider,
+  AleoKeyProviderParams,
+  verifyFunctionExecution,
 } from "@aleohq/sdk";
 import { expose, proxy } from "comlink";
 import {sample_inputs} from "../variables.js";
@@ -64,7 +65,9 @@ async function localProgramExecution(program_source, aleoFunction, inputs) {
 
   console.log("Getting outputs");
   const outputs = executionResponse.getOutputs(); // proof: executionResponse.
+  const execution = executionResponse.getExecution().toString();
   console.log("outputs", outputs);
+  console.log("execution", execution);
   return [outputs, executionResponse.getExecution().toString()];
 }
 
@@ -74,11 +77,10 @@ async function getPrivateKey() {
 }
 
 async function verifyExecution(execution_string, program, aleoFunction) {
-  const execution = Execution.fromString(execution_string);
   const keySearchParams = new AleoKeyProviderParams({cacheKey: `${program.id()}/${aleoFunction}`});
 
   const [provingKey, verifyingKey] = programManager.keyProvider.functionKeys(keySearchParams);
-  return verifyFunctionExecution(execution, verifyingKey, program, aleoFunction);
+  return verifyFunctionExecution(execution_string, verifyingKey, program, aleoFunction);
 }
 
 async function deployProgram(program) {
