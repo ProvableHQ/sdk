@@ -110,7 +110,10 @@ async fn test_key_synthesis() {
     inputs.set(0u32, JsValue::from_str(RECORD));
     inputs.set(1u32, JsValue::from_str("5u64"));
     let private_key = PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
-    let mut key_pair = ProgramManager::synthesize_keypair(&private_key, &credits, "split", inputs, None).await.unwrap();
+    let mut key_pair =
+        ProgramManager::synthesize_keypair(&private_key, credits.clone(), "split".to_string(), inputs, None)
+            .await
+            .unwrap();
     let retrieved_proving_key = key_pair.proving_key().unwrap();
     let retreived_verifying_key = key_pair.verifying_key().unwrap();
 
@@ -120,8 +123,8 @@ async fn test_key_synthesis() {
     inputs.set(1u32, JsValue::from_str("5u64"));
     let result = ProgramManager::execute_function_offline(
         &PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap(),
-        &credits,
-        "split",
+        credits,
+        "split".to_string(),
         inputs,
         false,
         true,
@@ -151,12 +154,12 @@ async fn test_fee_validation() {
     // Ensure execution fails when fee amount is greater than the balance available in the record
     let execution = ProgramManager::execute(
         &private_key,
-        &Program::get_credits_program().to_string(),
-        "split",
+        Program::get_credits_program().to_string(),
+        "split".to_string(),
         inputs,
         100.0,
         Some(fee_record.clone()),
-        "https://vm.aleo.org/api",
+        "https://vm.aleo.org/api".to_string(),
         None,
         None,
         None,
@@ -169,10 +172,10 @@ async fn test_fee_validation() {
     // Ensure deployment fails when fee amount is greater than the balance available in the record
     let deployment = ProgramManager::deploy(
         &private_key,
-        &Program::get_credits_program().to_string(),
+        Program::get_credits_program().to_string(),
         100.0,
         Some(fee_record.clone()),
-        "https://vm.aleo.org/api",
+        "https://vm.aleo.org/api".to_string(),
         None,
         None,
         None,
@@ -184,12 +187,12 @@ async fn test_fee_validation() {
     let transfer = ProgramManager::transfer(
         &private_key,
         100.00,
-        "aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4",
+        "aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4".to_string(),
         "private",
         Some(fee_record.clone()),
         0.9,
         Some(fee_record.clone()),
-        "https://vm.aleo.org/api",
+        "https://vm.aleo.org/api".to_string(),
         None,
         None,
         None,
@@ -201,12 +204,12 @@ async fn test_fee_validation() {
     let transfer = ProgramManager::transfer(
         &private_key,
         0.5,
-        "aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4",
+        "aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4".to_string(),
         "private",
         Some(fee_record.clone()),
         100.00,
         Some(fee_record.clone()),
-        "https://vm.aleo.org/api",
+        "https://vm.aleo.org/api".to_string(),
         None,
         None,
         None,
@@ -222,7 +225,7 @@ async fn test_fee_validation() {
         fee_record.clone(),
         100.00,
         Some(fee_record.clone()),
-        "https://vm.aleo.org/api",
+        "https://vm.aleo.org/api".to_string(),
         None,
         None,
         None,
@@ -241,7 +244,7 @@ async fn test_fee_estimation() {
     inputs.set(1, wasm_bindgen::JsValue::from_str("15u64"));
 
     // Ensure the deployment fee is correct and the cache is used
-    let deployment_fee = ProgramManager::estimate_deployment_fee(FINALIZE, None).await.unwrap();
+    let deployment_fee = ProgramManager::estimate_deployment_fee(FINALIZE.to_string(), None).await.unwrap();
     let namespace_fee = ProgramManager::program_name_cost("tencharacters.aleo").unwrap();
     assert_eq!(namespace_fee, 1000000);
 
@@ -254,10 +257,10 @@ async fn test_fee_estimation() {
 
     let execution_fee = ProgramManager::estimate_execution_fee(
         &private_key,
-        FINALIZE,
-        "integer_key_mapping_update",
+        FINALIZE.to_string(),
+        "integer_key_mapping_update".to_string(),
         inputs,
-        "https://vm.aleo.org/api",
+        "https://vm.aleo.org/api".to_string(),
         None,
         None,
         None,
@@ -288,8 +291,8 @@ async fn test_import_resolution() {
 
     let result = ProgramManager::execute_function_offline(
         &private_key,
-        NESTED_IMPORT_PROGRAM,
-        "add_and_double",
+        NESTED_IMPORT_PROGRAM.to_string(),
+        "add_and_double".to_string(),
         inputs,
         false,
         false,

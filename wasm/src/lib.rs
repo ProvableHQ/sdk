@@ -166,10 +166,20 @@ pub(crate) mod types;
 #[cfg(not(test))]
 mod thread_pool;
 
-use wasm_bindgen::prelude::*;
+#[cfg(test)]
+mod thread_pool {
+    use std::future::Future;
 
-#[cfg(not(test))]
-use thread_pool::ThreadPool;
+    pub fn spawn<A, F>(f: F) -> impl Future<Output = A>
+    where
+        A: Send + 'static,
+        F: FnOnce() -> A + Send + 'static,
+    {
+        async move { f() }
+    }
+}
+
+use wasm_bindgen::prelude::*;
 
 use std::str::FromStr;
 
@@ -215,7 +225,7 @@ pub use thread_pool::run_rayon_thread;
 pub async fn init_thread_pool(url: web_sys::Url, num_threads: usize) -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
-    ThreadPool::builder().url(url).num_threads(num_threads).build_global().await?;
+    thread_pool::ThreadPool::builder().url(url).num_threads(num_threads).build_global().await?;
 
     Ok(())
 }

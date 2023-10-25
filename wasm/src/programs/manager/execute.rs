@@ -15,14 +15,10 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
-use core::ops::Add;
 
 use crate::{
-    execute_fee,
-    execute_program,
     log,
-    process_inputs,
-    types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative, TransactionNative},
+    types::{IdentifierNative, ProgramNative},
     ExecutionResponse,
     PrivateKey,
     RecordPlaintext,
@@ -30,7 +26,6 @@ use crate::{
 };
 
 use js_sys::{Array, Object};
-use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
 
 #[wasm_bindgen]
@@ -57,8 +52,8 @@ impl ProgramManager {
     #[allow(clippy::too_many_arguments)]
     pub async fn execute_function_offline(
         private_key: &PrivateKey,
-        program: &str,
-        function: &str,
+        program: String,
+        function: String,
         inputs: Array,
         prove_execution: bool,
         cache: bool,
@@ -67,40 +62,19 @@ impl ProgramManager {
         verifying_key: Option<VerifyingKey>,
     ) -> Result<ExecutionResponse, String> {
         log(&format!("Executing local function: {function}"));
-        let inputs = inputs.to_vec();
-        let rng = &mut StdRng::from_entropy();
 
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
+        let inputs = ProgramState::get_inputs(inputs)?;
 
-        log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let state = ProgramState::new(program, imports).await?;
 
-        let (response, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            program,
-            function,
-            private_key,
-            proving_key,
-            verifying_key,
-            rng
-        );
-
-        let process_native = if cache { Some(process_native) } else { None };
+        let (state, execute) =
+            state.execute_program(function, inputs, private_key.clone(), proving_key, verifying_key).await?;
 
         if prove_execution {
-            log("Preparing inclusion proofs for execution");
-            let query = QueryNative::from("https://vm.aleo.org/api");
-            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-
-            log("Proving execution");
-            let locator = program_native.id().to_string().add("/").add(function);
-            let execution = trace.prove_execution::<CurrentAleo, _>(&locator, rng).map_err(|e| e.to_string())?;
-            Ok(ExecutionResponse::from((response, execution, process_native)))
+            let (state, execution) = state.prove_execution(execute, "https://vm.aleo.org/api".to_string()).await?;
+            state.prove_response(execution, cache)
         } else {
-            Ok(ExecutionResponse::from((response, process_native)))
+            state.execute_response(execute, cache)
         }
     }
 
@@ -129,12 +103,12 @@ impl ProgramManager {
     #[allow(clippy::too_many_arguments)]
     pub async fn execute(
         private_key: &PrivateKey,
-        program: &str,
-        function: &str,
+        program: String,
+        function: String,
         inputs: Array,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
-        url: &str,
+        url: String,
         imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
@@ -142,62 +116,31 @@ impl ProgramManager {
         fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
         log(&format!("Executing function: {function} on-chain"));
-        let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
-            None => (fee_credits * 1_000_000.0) as u64,
-        };
 
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
+        let inputs = ProgramState::get_inputs(inputs)?;
 
-        log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
-        let rng = &mut StdRng::from_entropy();
+        let fee_microcredits = Self::microcredits(fee_credits, &fee_record)?;
 
-        log("Executing program");
-        let (_, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            program,
-            function,
-            private_key,
-            proving_key,
-            verifying_key,
-            rng
-        );
+        let state = ProgramState::new(program, imports).await?;
 
-        log("Preparing inclusion proofs for execution");
-        let query = QueryNative::from(url);
-        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        let (state, execute) =
+            state.execute_program(function, inputs, private_key.clone(), proving_key, verifying_key).await?;
 
-        log("Proving execution");
-        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
-        let locator = program.id().to_string().add("/").add(function);
-        let execution = trace
-            .prove_execution::<CurrentAleo, _>(&locator, &mut StdRng::from_entropy())
-            .map_err(|e| e.to_string())?;
-        let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
+        let (state, execution) = state.prove_execution(execute, url.clone()).await?;
 
-        log("Executing fee");
-        let fee = execute_fee!(
-            process,
-            private_key,
-            fee_record,
-            fee_microcredits,
-            url,
-            fee_proving_key,
-            fee_verifying_key,
-            execution_id,
-            rng
-        );
+        let (_state, fee) = state
+            .execute_fee(
+                execution.execution_id()?,
+                url,
+                private_key.clone(),
+                fee_microcredits,
+                fee_record,
+                fee_proving_key,
+                fee_verifying_key,
+            )
+            .await?;
 
-        // Verify the execution
-        process.verify_execution(&execution).map_err(|err| err.to_string())?;
-
-        log("Creating execution transaction");
-        let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
-        Ok(Transaction::from(transaction))
+        execution.into_transaction(Some(fee)).await
     }
 
     /// Estimate Fee for Aleo function execution. Note if "cache" is set to true, the proving and
@@ -221,10 +164,10 @@ impl ProgramManager {
     #[allow(clippy::too_many_arguments)]
     pub async fn estimate_execution_fee(
         private_key: &PrivateKey,
-        program: &str,
-        function: &str,
+        program: String,
+        function: String,
         inputs: Array,
-        url: &str,
+        url: String,
         imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
@@ -234,58 +177,16 @@ impl ProgramManager {
         );
         log(&format!("Executing local function: {function}"));
 
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
+        let inputs = ProgramState::get_inputs(inputs)?;
 
-        log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
-        let rng = &mut StdRng::from_entropy();
+        let state = ProgramState::new(program, imports).await?;
 
-        log("Generating execution trace");
-        let (_, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            program,
-            function,
-            private_key,
-            proving_key,
-            verifying_key,
-            rng
-        );
+        let (state, execute) =
+            state.execute_program(function, inputs, private_key.clone(), proving_key, verifying_key).await?;
 
-        // Execute the program
-        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
-        let locator = program.id().to_string().add("/").add(function);
-        let query = QueryNative::from(url);
-        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-        let execution = trace.prove_execution::<CurrentAleo, _>(&locator, rng).map_err(|e| e.to_string())?;
+        let (state, execution) = state.prove_execution(execute, url).await?;
 
-        // Get the storage cost in bytes for the program execution
-        log("Estimating cost");
-        let storage_cost = execution.size_in_bytes().map_err(|e| e.to_string())?;
-
-        // Compute the finalize cost in microcredits.
-        let mut finalize_cost = 0u64;
-        // Iterate over the transitions to accumulate the finalize cost.
-        for transition in execution.transitions() {
-            // Retrieve the function name, program id, and program.
-            let function_name = transition.function_name();
-            let program_id = transition.program_id();
-            let program = process.get_program(program_id).map_err(|e| e.to_string())?;
-
-            // Calculate the finalize cost for the function identified in the transition
-            let cost = match &program.get_function(function_name).map_err(|e| e.to_string())?.finalize_logic() {
-                Some(finalize) => cost_in_microcredits(finalize).map_err(|e| e.to_string())?,
-                None => continue,
-            };
-
-            // Accumulate the finalize cost.
-            finalize_cost = finalize_cost
-                .checked_add(cost)
-                .ok_or("The finalize cost computation overflowed for an execution".to_string())?;
-        }
-        Ok(storage_cost + finalize_cost)
+        state.estimate_fee(execution).await
     }
 
     /// Estimate the finalize fee component for executing a function. This fee is additional to the

@@ -16,27 +16,9 @@
 
 use super::*;
 
-use crate::{
-    execute_fee,
-    log,
-    types::{
-        CurrentAleo,
-        CurrentNetwork,
-        ProcessNative,
-        ProgramIDNative,
-        ProgramNative,
-        ProgramOwnerNative,
-        RecordPlaintextNative,
-        TransactionNative,
-    },
-    PrivateKey,
-    RecordPlaintext,
-    Transaction,
-};
+use crate::{log, PrivateKey, RecordPlaintext, Transaction};
 
 use js_sys::Object;
-use rand::{rngs::StdRng, SeedableRng};
-use std::str::FromStr;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -61,74 +43,37 @@ impl ProgramManager {
     #[allow(clippy::too_many_arguments)]
     pub async fn deploy(
         private_key: &PrivateKey,
-        program: &str,
+        program: String,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
-        url: &str,
+        url: String,
         imports: Option<Object>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
         // Convert fee to microcredits and check that the fee record has enough credits to pay it
-        let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
-            None => (fee_credits * 1_000_000.0) as u64,
-        };
+        let fee_microcredits = Self::microcredits(fee_credits, &fee_record)?;
 
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
+        let state = ProgramState::new(program, imports).await?;
 
-        log("Checking program has a valid name");
-        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
+        let (state, deploy) = state.deploy().await?;
 
-        log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports)?;
-        let rng = &mut StdRng::from_entropy();
+        deploy.check_fee(fee_microcredits)?;
 
-        log("Creating deployment");
-        let deployment = process.deploy::<CurrentAleo, _>(&program, rng).map_err(|err| err.to_string())?;
-        if deployment.program().functions().is_empty() {
-            return Err("Attempted to create an empty transaction deployment".to_string());
-        }
+        let (state, fee) = state
+            .execute_fee(
+                deploy.execution_id()?,
+                url,
+                private_key.clone(),
+                fee_microcredits,
+                fee_record,
+                fee_proving_key,
+                fee_verifying_key,
+            )
+            .await?;
 
-        log("Ensuring the fee is sufficient to pay for the deployment");
-        let (minimum_deployment_cost, (_, _)) =
-            deployment_cost::<CurrentNetwork>(&deployment).map_err(|err| err.to_string())?;
-        if fee_microcredits < minimum_deployment_cost {
-            return Err(format!(
-                "Fee is too low to pay for the deployment. The minimum fee is {} credits",
-                minimum_deployment_cost as f64 / 1_000_000.0
-            ));
-        }
-
-        let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
-
-        let fee = execute_fee!(
-            process,
-            private_key,
-            fee_record,
-            fee_microcredits,
-            url,
-            fee_proving_key,
-            fee_verifying_key,
-            deployment_id,
-            rng
-        );
-
-        // Create the program owner
-        let owner = ProgramOwnerNative::new(private_key, deployment_id, &mut StdRng::from_entropy())
-            .map_err(|err| err.to_string())?;
-
-        log("Verifying the deployment and fees");
-        process
-            .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
-            .map_err(|err| err.to_string())?;
-
-        log("Creating deployment transaction");
-        Ok(Transaction::from(
-            TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
-        ))
+        state.deploy_transaction(deploy, fee).await
     }
 
     /// Estimate the fee for a program deployment
@@ -141,31 +86,16 @@ impl ProgramManager {
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @returns {u64 | Error}
     #[wasm_bindgen(js_name = estimateDeploymentFee)]
-    pub async fn estimate_deployment_fee(program: &str, imports: Option<Object>) -> Result<u64, String> {
+    pub async fn estimate_deployment_fee(program: String, imports: Option<Object>) -> Result<u64, String> {
         log(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
         );
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
 
-        log("Check program has a valid name");
-        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
+        let state = ProgramState::new(program, imports).await?;
 
-        log("Check program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports)?;
+        let (_state, deploy) = state.deploy().await?;
 
-        log("Create sample deployment");
-        let deployment =
-            process.deploy::<CurrentAleo, _>(&program, &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
-        if deployment.program().functions().is_empty() {
-            return Err("Attempted to create an empty transaction deployment".to_string());
-        }
-
-        log("Estimate the deployment fee");
-        let (minimum_deployment_cost, (_, _)) =
-            deployment_cost::<CurrentNetwork>(&deployment).map_err(|err| err.to_string())?;
-
-        Ok(minimum_deployment_cost)
+        Ok(deploy.minimum_deployment_cost())
     }
 
     /// Estimate the component of the deployment cost which comes from the fee for the program name.
