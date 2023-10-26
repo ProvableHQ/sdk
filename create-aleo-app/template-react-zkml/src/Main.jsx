@@ -37,6 +37,8 @@ const aleoWorker = AleoWorker();
 
 var run_counter = {}
 
+var proofText = "";
+
 const Main = () => {
     const [account, setAccount] = useState(null);
     const [selectedKey, setSelectedKey] = useState("2"); // Using React useState hook to hold the selected key
@@ -80,6 +82,11 @@ const Main = () => {
             true
         );
 
+        var executionResponse = result[1];
+        // convert JSON from string to object
+        executionResponse = JSON.parse(executionResponse);
+        proofText = executionResponse["proof"];
+        console.log("executionResponse", executionResponse)
         result = result[0]
 
         proving_end_time = performance.now();
@@ -533,6 +540,7 @@ const Main = () => {
     const handleCanvasDraw = async () => {
         try {
             var selected_setting = menuItems[selectedKey - 1].label;
+            proofText = "";
             console.log("model_type", model_type)
 
             // ensure selected_setting exists in run_counter
@@ -566,6 +574,16 @@ const Main = () => {
     const handleBrushSizeChange = (value) => {
         setBrushSize(value);
     };
+
+    const handleCopyProof = () => {
+        navigator.clipboard.writeText(proofText)
+            .then(() => {
+                console.log('Text successfully copied to clipboard');
+            })
+            .catch((err) => {
+                console.error('Could not copy text: ', err);
+            });
+    };    
 
     const handleMenuSelect = ({ key }) => {
         console.log("Selected menu item:", key);
@@ -701,6 +719,29 @@ const Main = () => {
                                 />
                             </Col>
                         </Row>
+                        
+
+                        <Row justify="center" style={{ marginTop: "20px" }}>
+    <Col span={12}>
+        <Title level={4}>Proof</Title>
+        <Input.TextArea
+            rows={4}
+            value={proofText}
+            disabled
+            style={{ margin: "20px 0" }}
+        />
+    </Col>
+</Row>
+<Row justify="center">
+    <Col>
+        <Button type="primary" onClick={handleCopyProof}>
+            Copy Proof
+        </Button>
+    </Col>
+</Row>
+
+
+
                     </Card>
                     <Card
                         title="Verifier"
