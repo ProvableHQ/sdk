@@ -66,14 +66,16 @@ const Main = () => {
         }
         proving_start_time = performance.now();
 
-        console.log("before execution ")
+        console.log("starting to measure proving time, before execution")
 
-        const result = await aleoWorker.localProgramExecution(
+        var result = await aleoWorker.localProgramExecution(
             model,
             "main",
             input_array,
             true
         );
+
+        result = result[0]
 
         proving_end_time = performance.now();
         console.log("proving time in seconds", (proving_end_time - proving_start_time) / 1000);
@@ -96,10 +98,13 @@ const Main = () => {
         var converted_features = [];
 
         // iterate over result. For each entry, remove "i64", convert to a number, and divide by the scaling factor
+        console.log("result.length", result.length)
         for (let i = 0; i < result.length; i++) {
+            console.log("i", i)
             console.log("result[i]", result[i])
             console.log("typeof(result[i])", typeof(result[i]))
             var output = String(result[i]).replace("i64", "");
+            console.log("output", output)
             output = Number(output);
             output = output / output_fixed_point_scaling_factor;
             converted_features.push(output);
@@ -107,12 +112,13 @@ const Main = () => {
 
         console.log("converted_features", converted_features);
 
+        let softmax = [];
         if(used_model_type == "mlp") {
             const argmax_index = converted_features.indexOf(Math.max(...converted_features));
             console.log("argmax_index", argmax_index);
 
             // compute softmax of converted_features
-            var softmax = [];
+            softmax = [];
             var sum = 0;
             for (let i = 0; i < converted_features.length; i++) {
                 softmax.push(Math.exp(converted_features[i]));
@@ -121,17 +127,24 @@ const Main = () => {
             for (let i = 0; i < converted_features.length; i++) {
                 softmax[i] = softmax[i] / sum;
             }
-            console.log("softmax", softmax);
-
-            setChartData(
-                chartData.map((item, index) => ({
-                    ...item,
-                    value: softmax[index] * 100, // multiply by 100 if you want to scale it up
-                })),
-            );
+        }
+        if(used_model_type == "tree") {
+            // create 10 element array with 0s, but 1 at the index of converted_features[0]
+            softmax = Array.from({ length: 10 }, (_, i) => 0);
+            softmax[converted_features[0]] = 1;
         }
 
-        alert(JSON.stringify(converted_features));
+
+        console.log("softmax", softmax);
+
+        setChartData(
+            chartData.map((item, index) => ({
+                ...item,
+                value: softmax[index] * 100, // multiply by 100 if you want to scale it up
+            })),
+        );
+
+        //alert(JSON.stringify(converted_features));
 
 
       }
