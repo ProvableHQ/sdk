@@ -92,7 +92,7 @@ impl ProgramManager {
 
         if prove_execution {
             log("Preparing inclusion proofs for execution");
-            let query = QueryNative::from("https://vm.aleo.org/api");
+            let query = QueryNative::from("https://api.explorer.aleo.org/v1");
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
             log("Proving execution");
