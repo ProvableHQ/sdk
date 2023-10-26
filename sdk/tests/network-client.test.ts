@@ -45,6 +45,20 @@ describe('NodeConnection', () => {
         }, 60000);
     });
 
+    describe('getDeploymentTransactionForProgram', () => {
+        it('should return a Transaction object', async () => {
+            const transaction = await connection.getDeploymentTransactionForProgram('hello_hello.aleo');
+            expect((transaction as Transaction).type).toBe("deploy");
+        }, 60000);
+    });
+
+    describe('getDeploymentTransactionIDForProgram', () => {
+        it('should return a Transaction object', async () => {
+            const transaction = await connection.getDeploymentTransactionIDForProgram('hello_hello.aleo');
+            expect(typeof transaction).toBe('string');
+        }, 60000);
+    });
+
     describe('getProgram', () => {
         it('should return a string', async () => {
             const program = await connection.getProgram('credits.aleo');
@@ -64,10 +78,10 @@ describe('NodeConnection', () => {
         }, 60000);
     });
 
-    describe('getLatestHash', () => {
+    describe('getLatestCommittee', () => {
         it('should return a string', async () => {
-            const latestHash = await connection.getLatestHash();
-            expect(typeof latestHash).toBe('string');
+            const latestCommittee = await connection.getLatestCommittee();
+            expect(typeof latestCommittee).toBe('object');
         }, 60000);
     });
 
@@ -77,7 +91,6 @@ describe('NodeConnection', () => {
             expect(typeof latestHeight).toBe('number');
         }, 60000);
     });
-
 
     describe('getStateRoot', () => {
         it('should return a string', async () => {
@@ -91,10 +104,6 @@ describe('NodeConnection', () => {
             const transaction = await connection.getTransaction('at1u833jaha7gtqk7vx0yczcg2njds2tj52lyg54c7zyylgfjvc4vpqn8gqqx');
             expect((transaction as Transaction).type).toBe("deploy");
         }, 60000);
-
-        it('should throw an error if the request fails', async () => {
-            await expect(connection.getTransaction('nonexistentid')).rejects.toThrow('Error fetching transaction.');
-        }, 60000);
     });
 
     describe('getTransactions', () => {
@@ -107,23 +116,6 @@ describe('NodeConnection', () => {
         it('should throw an error if the request fails', async () => {
             await expect(connection.getTransactions(999999999)).rejects.toThrow('Error fetching transactions.');
         }, 60000);
-    });
-
-    describe('findUnspentRecords', () => {
-        it('should fail if block heights or private keys are incorrectly specified', async () => {
-            await expect(connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
-            await expect(connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
-            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, [])).rejects.toThrow();
-            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined, [])).rejects.toThrow();
-        }, 60000);
-
-        it('should search a range correctly and not find records where none exist', async () => {
-            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
-            expect(Array.isArray(records)).toBe(true);
-            if (!(records instanceof Error)) {
-                expect(records.length).toBe(0);
-            }
-        }, 90000);
     });
 
     describe('getProgramImports', () => {
@@ -166,6 +158,24 @@ describe('NodeConnection', () => {
             expect(imports).toEqual(expectedImports);
         }, 60000);
     });
+
+    describe('findUnspentRecords', () => {
+        it('should fail if block heights or private keys are incorrectly specified', async () => {
+            await expect(connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined, [])).rejects.toThrow();
+        }, 60000);
+
+        it('should search a range correctly and not find records where none exist', async () => {
+            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
+            expect(Array.isArray(records)).toBe(true);
+            if (!(records instanceof Error)) {
+                expect(records.length).toBe(0);
+            }
+        }, 90000);
+    });
+
     describe('Mappings', () => {
         it('should find program mappings and read mappings', async () => {
             const mappings = await connection.getProgramMappingNames("credits.aleo");

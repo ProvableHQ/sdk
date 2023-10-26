@@ -75,9 +75,9 @@ pub fn verify_function_execution(
     execution: &Execution,
     verifying_key: &VerifyingKey,
     program: &Program,
-    function_id: String,
+    function_id: &str,
 ) -> Result<bool, String> {
-    let function = IdentifierNative::from_str(&function_id).map_err(|e| e.to_string())?;
+    let function = IdentifierNative::from_str(function_id).map_err(|e| e.to_string())?;
     let program_id = ProgramID::<CurrentNetwork>::from_str(&program.id()).unwrap();
     let mut process = ProcessNative::load_web().map_err(|e| e.to_string())?;
     if &program.id() != "credits.aleo" {
@@ -102,13 +102,8 @@ mod tests {
         let verifying_key_bytes = snarkvm_parameters::testnet3::TransferPublicVerifier::load_bytes().unwrap();
         let verifying_key = VerifyingKey::from_bytes(&verifying_key_bytes).unwrap();
         assert!(
-            verify_function_execution(
-                &execution,
-                &verifying_key,
-                &Program::get_credits_program(),
-                "transfer_public".to_string()
-            )
-            .unwrap()
+            verify_function_execution(&execution, &verifying_key, &Program::get_credits_program(), "transfer_public")
+                .unwrap()
         );
     }
 }
