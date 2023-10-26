@@ -608,7 +608,7 @@ class ProgramManager {
             const function_id = executionResponse.getFunctionId();
             const program = executionResponse.getProgram();
             const verifyingKey = executionResponse.getVerifyingKey();
-            return verifyFunctionExecution(execution, function_id, verifyingKey, function_id);
+            return verifyFunctionExecution(execution, verifyingKey, program, function_id);
         } catch(e) {
             console.warn("The execution was not found in the response, cannot verify the execution");
             return false;

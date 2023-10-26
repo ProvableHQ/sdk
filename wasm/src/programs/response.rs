@@ -56,6 +56,7 @@ impl ExecutionResponse {
         let verifying_key = process
             .get_verifying_key(program.id(), function_id)
             .map_err(|_| format!("Could not find verifying key for {:?}/{:?}", program.id(), function_id))?;
+
         Ok(Self {
             execution,
             response,
