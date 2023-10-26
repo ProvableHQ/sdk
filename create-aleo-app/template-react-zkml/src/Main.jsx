@@ -75,26 +75,20 @@ const Main = () => {
 
         console.log("starting to measure proving time, before execution")
 
-        var result = await aleoWorker.localProgramExecution(
+        var [result, executionResponse] = await aleoWorker.localProgramExecution(
             model,
             "main",
             input_array,
             true
         );
 
-        var executionResponse = result[1];
-        // convert JSON from string to object
-        executionResponse = JSON.parse(executionResponse);
-        proofText = executionResponse["proof"];
+        proofText = executionResponse;
         console.log("executionResponse", executionResponse)
-        result = result[0]
 
         proving_end_time = performance.now();
         console.log("proving time in seconds", (proving_end_time - proving_start_time) / 1000);
 
         proving_finished = true;
-
-      //const execution = result.getExecution();
 
         console.log("result", result);
         //console.log("execution", execution);
@@ -165,7 +159,6 @@ const Main = () => {
 
 
         //alert(JSON.stringify(converted_features));
-
 
       }
 
