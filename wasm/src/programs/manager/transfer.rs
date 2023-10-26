@@ -42,7 +42,7 @@ impl ProgramManager {
     /// @param amount_credits The amount of credits to send
     /// @param recipient The recipient of the transaction
     /// @param transfer_type The type of the transfer (options: "private", "public", "private_to_public", "public_to_private")
-    /// @param delegate If set to true, the recipient will be able to delegate proving to the Aleo network
+    /// @param authorize If set to true, the recipient will be able to delegate proving to the Aleo network
     /// @param amount_record The record to fund the amount from
     /// @param fee_credits The amount of credits to pay as a fee
     /// @param fee_record The record to spend the fee from
@@ -59,7 +59,7 @@ impl ProgramManager {
         amount_credits: f64,
         recipient: &str,
         transfer_type: &str,
-        delegate: bool,
+        authorize: bool,
         amount_record: Option<RecordPlaintext>,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
@@ -166,7 +166,7 @@ impl ProgramManager {
             rng
         );
 
-        if delegate {
+        if authorize {
             let authorized_transaction = Authorized::new(authorization, Some(fee_authorization), true);
             let transaction_native = match transfer_type {
                 "transfer_public" | "transfer_public_to_private" => Authorized::execute(&authorized_transaction).await,

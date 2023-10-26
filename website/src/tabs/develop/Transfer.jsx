@@ -86,7 +86,7 @@ export const Transfer = () => {
             privateKey: privateKeyString(),
             amountCredits: amount,
             transfer_type: visibilityString(),
-            delegate: false,
+            authorize: false,
             recipient: recipientString(),
             amountRecord: amountRecord,
             fee: feeAmount,
