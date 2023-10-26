@@ -97,7 +97,9 @@ const Main = () => {
 
         // iterate over result. For each entry, remove "i64", convert to a number, and divide by the scaling factor
         for (let i = 0; i < result.length; i++) {
-            var output = result[i].replace("i64", "");
+            console.log("result[i]", result[i])
+            console.log("typeof(result[i])", typeof(result[i]))
+            var output = String(result[i]).replace("i64", "");
             output = Number(output);
             output = output / output_fixed_point_scaling_factor;
             converted_features.push(output);

@@ -68,7 +68,7 @@ async function localProgramExecution(program_source, aleoFunction, inputs) {
   const execution = executionResponse.getExecution().toString();
   console.log("outputs", outputs);
   console.log("execution", execution);
-  return [outputs, executionResponse.getExecution().toString()];
+  return [outputs, executionResponse.getExecution()];
 }
 
 async function getPrivateKey() {
