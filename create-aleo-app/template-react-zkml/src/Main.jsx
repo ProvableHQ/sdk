@@ -30,6 +30,7 @@ const { Header, Content, Footer, Sider } = Layout;
 const { Option } = Select;
 
 var model_type = "decision_tree";
+var proving_finished = false;
 let used_model_type, proving_start_time, proving_end_time;
 
 const aleoWorker = AleoWorker();
@@ -83,6 +84,8 @@ const Main = () => {
 
         proving_end_time = performance.now();
         console.log("proving time in seconds", (proving_end_time - proving_start_time) / 1000);
+
+        proving_finished = true;
 
       //const execution = result.getExecution();
 
@@ -498,6 +501,7 @@ const Main = () => {
     };
 
     const startProgressAndRandomizeData = (expected_runtime) => {
+        console.log("in startProgressAndRandomizeData")
         if (isProgressRunning || !hasMounted) {
             return;
         }
@@ -510,8 +514,11 @@ const Main = () => {
         
         const interval = setInterval(() => {
             setProgress((oldProgress) => {
-                const newProgress = oldProgress + increment;
-                if (newProgress >= 100) {
+                var newProgress = oldProgress + increment;
+                if(newProgress >= 99) {
+                    newProgress = 99;
+                }
+                if (newProgress >= 100 || proving_finished) {
                     clearInterval(interval);
                     //zeroChartData();
                     setIsProgressRunning(false);
@@ -538,12 +545,13 @@ const Main = () => {
             }
             var runs = run_counter[selected_setting][model_type];
             console.log("runs", runs)
+            proving_finished = false;
             processImageAndPredict();
             let expected_runtime;
             if(runs == 0) {
                 expected_runtime = expected_runtimes[selected_setting][model_type][0];
             }
-            else if(runs > 1) {
+            else if(runs > 0) {
                 expected_runtime = expected_runtimes[selected_setting][model_type][1];
             }
             console.log("expected_runtime", expected_runtime)
