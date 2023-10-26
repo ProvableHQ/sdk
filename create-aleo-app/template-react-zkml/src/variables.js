@@ -16,5 +16,16 @@ const test_imageData = [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
 
 const sample_inputs = ['{x0: 23i64, x1: 14i64}', '{x0: 10i64, x1: 10i64}', '{x0: -3i64, x1: -12i64}', '{x0: -3i64, x1: 5i64}', '{x0: -8i64}', '{x0: -1i64}', '{x0: 0i64}', '{x0: -5i64}', '{x0: -2i64}', '{x0: 11i64}', '{x0: 7i64}', '{x0: -2i64}', '{x0: 5i64}', '{x0: -3i64}', '{x0: 14i64}', '{x0: -12i64}'];
 
+// first value is with key generation, second is without
+const expected_runtimes = {
+    "Even/odd": {
+        "decision_tree": [63, 31],
+        "mlp": [60, 30]
+    },
+    "Classification": {
+        "decision_tree": [63, 31],
+        "mlp": [148, 70]
+    },
+}
 
-export { mlp_program, decision_tree_program, sample_inputs, test_imageData };
+export { mlp_program, decision_tree_program, sample_inputs, test_imageData, expected_runtimes };

@@ -23,7 +23,7 @@ import { Column } from "@ant-design/charts";
 import aleoLogo from "./assets/aleo.svg";
 import { AleoWorker } from "./workers/AleoWorker.js";
 
-import { mlp_program, decision_tree_program, test_imageData } from './variables.js';
+import { mlp_program, decision_tree_program, test_imageData, expected_runtimes } from './variables.js';
 
 const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
@@ -34,8 +34,12 @@ let used_model_type, proving_start_time, proving_end_time;
 
 const aleoWorker = AleoWorker();
 
+var run_counter = {}
+
 const Main = () => {
     const [account, setAccount] = useState(null);
+    const [selectedKey, setSelectedKey] = useState("2"); // Using React useState hook to hold the selected key
+
 
       async function execute(features) {
 
@@ -100,11 +104,11 @@ const Main = () => {
         // iterate over result. For each entry, remove "i64", convert to a number, and divide by the scaling factor
         console.log("result.length", result.length)
         for (let i = 0; i < result.length; i++) {
-            console.log("i", i)
-            console.log("result[i]", result[i])
-            console.log("typeof(result[i])", typeof(result[i]))
+            //console.log("i", i)
+            //console.log("result[i]", result[i])
+            //console.log("typeof(result[i])", typeof(result[i]))
             var output = String(result[i]).replace("i64", "");
-            console.log("output", output)
+            //console.log("output", output)
             output = Number(output);
             output = output / output_fixed_point_scaling_factor;
             converted_features.push(output);
@@ -143,6 +147,12 @@ const Main = () => {
                 value: softmax[index] * 100, // multiply by 100 if you want to scale it up
             })),
         );
+
+        var selected_setting = menuItems[selectedKey - 1].label;
+        var runs = run_counter[selected_setting][model_type];
+        run_counter[selected_setting][model_type] = runs + 1;
+        console.log("incremented run_counter[selected_setting][model_type]", run_counter[selected_setting][model_type])
+
 
         //alert(JSON.stringify(converted_features));
 
@@ -185,10 +195,10 @@ const Main = () => {
         await aleoWorker.synthesizeKeys(model, "main");
     }
 
-    const menuItems = ["Even/Odd", "Number Range", "Classification"].map(
+    const menuItems = ["Even/Odd", "Classification"].map(
         (label, index) => ({
             key: String(index + 1),
-            icon: [<NumberOutlined />, <SlidersOutlined />, <TagsOutlined />][
+            icon: [<NumberOutlined />, <TagsOutlined />][
                 index
             ],
             label: label,
@@ -487,31 +497,57 @@ const Main = () => {
         console.log("finished")
     };
 
-    const startProgressAndRandomizeData = () => {
+    const startProgressAndRandomizeData = (expected_runtime) => {
         if (isProgressRunning || !hasMounted) {
             return;
         }
         setIsProgressRunning(true);
         setProgress(0);
-
+    
+        const intervalTime = 150; // time in milliseconds
+        const expectedRuntimeInMilliseconds = expected_runtime * 1000;
+        const increment = (intervalTime / expectedRuntimeInMilliseconds) * 100;
+        
         const interval = setInterval(() => {
             setProgress((oldProgress) => {
-                const newProgress = oldProgress + 10;
-                if (newProgress === 100) {
+                const newProgress = oldProgress + increment;
+                if (newProgress >= 100) {
                     clearInterval(interval);
-                    zeroChartData();
+                    //zeroChartData();
                     setIsProgressRunning(false);
-                    processImageAndPredict();
-                    return newProgress;
+                    return 100;
                 }
-                return Math.min(newProgress, 100);
+                return Math.round(newProgress * 10) / 10;
             });
-        }, 200);
+        }, intervalTime);
     };
+        
 
     const handleCanvasDraw = async () => {
         try {
-            startProgressAndRandomizeData();
+            var selected_setting = menuItems[selectedKey - 1].label;
+            console.log("model_type", model_type)
+
+            // ensure selected_setting exists in run_counter
+            if(!(selected_setting in run_counter)) {
+                run_counter[selected_setting] = {};
+            }
+            // ensure model_type exists in run_counter[selected_setting]
+            if(!(model_type in run_counter[selected_setting])) {
+                run_counter[selected_setting][model_type] = 0;
+            }
+            var runs = run_counter[selected_setting][model_type];
+            console.log("runs", runs)
+            processImageAndPredict();
+            let expected_runtime;
+            if(runs == 0) {
+                expected_runtime = expected_runtimes[selected_setting][model_type][0];
+            }
+            else if(runs > 1) {
+                expected_runtime = expected_runtimes[selected_setting][model_type][1];
+            }
+            console.log("expected_runtime", expected_runtime)
+            startProgressAndRandomizeData(expected_runtime);
         } catch (error) {
             console.error("Failed to execute Aleo code:", error);
             // Handle the error accordingly. For example, show an error message to the user.
@@ -521,6 +557,11 @@ const Main = () => {
 
     const handleBrushSizeChange = (value) => {
         setBrushSize(value);
+    };
+
+    const handleMenuSelect = ({ key }) => {
+        console.log("Selected menu item:", key);
+        setSelectedKey(key); // Update the selectedKey state variable when an item is selected
     };
 
     return (
@@ -542,8 +583,9 @@ const Main = () => {
                 <Menu
                     theme="light"
                     mode="inline"
-                    defaultSelectedKeys={["1"]}
+                    defaultSelectedKeys={["2"]}
                     items={menuItems}
+                    onSelect={handleMenuSelect}
                 />
             </Sider>
             <Layout>
@@ -621,7 +663,7 @@ const Main = () => {
                             <Col>
                                 <Space>
                                 <Button type="primary" onClick={handleCanvasDraw}>
-    Store Proof
+    Generate Proof
 </Button>
                                     <Button
                                         type="default"
