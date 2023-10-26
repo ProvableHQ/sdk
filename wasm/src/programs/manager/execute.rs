@@ -98,9 +98,9 @@ impl ProgramManager {
             log("Proving execution");
             let locator = program_native.id().to_string().add("/").add(function);
             let execution = trace.prove_execution::<CurrentAleo, _>(&locator, rng).map_err(|e| e.to_string())?;
-            ExecutionResponse::new(Some(execution), function, response, process, program)?
+            ExecutionResponse::new(Some(execution), function, None, process, program)?
         } else {
-            ExecutionResponse::new(None, function, response, process, program)?
+            ExecutionResponse::new(None, function, Some(response), process, program)?
         };
 
         if cache {
