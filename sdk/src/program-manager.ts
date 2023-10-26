@@ -525,7 +525,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {boolean} delegate If true, the transfer will be authorized and be proved by the Aleo network. This only works for 'public' and 'publicToPrivate' transfers
+     * @param {boolean} authorize If true, the transfer will be authorized and be proved by the Aleo network. This only works for 'public' and 'publicToPrivate' transfers
      * @param {number} fee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
