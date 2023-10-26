@@ -19,9 +19,6 @@ import {
     logAndThrow,
     ProgramManagerBase as WasmProgramManager, verifyFunctionExecution,
 } from "./index";
-import {Execution} from "@aleohq/wasm/dist/crates/aleo_wasm";
-
-
 
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
@@ -601,17 +598,19 @@ class ProgramManager {
      * @param {executionResponse} executionResponse
      * @returns {boolean} True if the proof is valid, false otherwise
      */
-    verifyExecution(executionResponse: ExecutionResponse): boolean {
-        try {
-            const execution = <Execution>executionResponse.getExecution();
-            const function_id = executionResponse.getFunctionId();
-            const program = executionResponse.getProgram();
-            const verifyingKey = executionResponse.getVerifyingKey();
-            return verifyFunctionExecution(execution, verifyingKey, program, function_id);
-        } catch(e) {
-            console.warn("The execution was not found in the response, cannot verify the execution");
+    verifyExecution(executionResponse: ExecutionResponse | string): boolean {
+        if (typeof executionResponse === "string") {
+            executionResponse = ExecutionResponse.fromString(executionResponse);
+        }
+        const execution = executionResponse.getExecution();
+        const function_id = executionResponse.getFunctionId();
+        const program = executionResponse.getProgram();
+        const verifyingKey = executionResponse.getVerifyingKey();
+        if (typeof execution === "undefined") {
+            console.warn("No execution found in the execution response, cannot verify the execution");
             return false;
         }
+        return verifyFunctionExecution(execution, verifyingKey, program, function_id);
     }
 
     /**
