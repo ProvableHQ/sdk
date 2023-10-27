@@ -111,7 +111,9 @@ const Main = () => {
             //console.log("i", i)
             //console.log("result[i]", result[i])
             //console.log("typeof(result[i])", typeof(result[i]))
-            var output = String(result[i]).replace("i64", "");
+            // convert JSON result string to JSON object
+            const result_JSON = JSON.parse(result[i]);
+            var output = String(result_JSON["value"]).replace("i64", "");
             //console.log("output", output)
             output = Number(output);
             output = output / output_fixed_point_scaling_factor;
