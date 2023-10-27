@@ -17,10 +17,8 @@ import {
     PRIVATE_TRANSFER_TYPES,
     VALID_TRANSFER_TYPES,
     logAndThrow,
-    ProgramManagerBase as WasmProgramManager,
+    ProgramManagerBase as WasmProgramManager, verifyFunctionExecution,
 } from "./index";
-
-
 
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
@@ -40,7 +38,7 @@ class ProgramManager {
      */
     constructor(host: string | undefined, keyProvider: FunctionKeyProvider | undefined, recordProvider: RecordProvider | undefined) {
         if (!host) {
-            this.host = "https://vm.aleo.org/api";
+            this.host = "https://api.explorer.aleo.org/v1";
             this.networkClient = new AleoNetworkClient(this.host);
         } else {
             this.host = host;
@@ -107,13 +105,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      *
      * // Define a fee in credits
      * const fee = 1.2;
@@ -137,7 +135,7 @@ class ProgramManager {
             const programObject = Program.fromString(program);
             let programSource;
             try {
-                programSource = this.networkClient.getProgram(programObject.id());
+                programSource = await this.networkClient.getProgram(programObject.id());
             } catch (e) {
                 // Program does not exist on the network, deployment can proceed
                 console.log(`Program ${programObject.id()} does not exist on the network, deploying...`);
@@ -354,7 +352,7 @@ class ProgramManager {
         }
 
         // Run the program offline and return the result
-        return WasmProgramManager.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution, cache, imports, provingKey, verifyingKey);
+        return WasmProgramManager.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution, cache, imports, provingKey, verifyingKey, this.host);
     }
 
     /**
@@ -592,6 +590,27 @@ class ProgramManager {
         // Build an execution transaction and submit it to the network
         const tx = await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
+    }
+
+    /**
+     * Verify a proof of execution from an offline execution
+     *
+     * @param {executionResponse} executionResponse
+     * @returns {boolean} True if the proof is valid, false otherwise
+     */
+    verifyExecution(executionResponse: ExecutionResponse | string): boolean {
+        if (typeof executionResponse === "string") {
+            executionResponse = ExecutionResponse.fromString(executionResponse);
+        }
+        const execution = executionResponse.getExecution();
+        const function_id = executionResponse.getFunctionId();
+        const program = executionResponse.getProgram();
+        const verifyingKey = executionResponse.getVerifyingKey();
+        if (typeof execution === "undefined") {
+            console.warn("No execution found in the execution response, cannot verify the execution");
+            return false;
+        }
+        return verifyFunctionExecution(execution, verifyingKey, program, function_id);
     }
 
     /**

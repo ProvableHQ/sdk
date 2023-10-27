@@ -64,7 +64,7 @@ impl ProgramManager {
         program: &str,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
-        url: &str,
+        url: Option<String>,
         imports: Option<Object>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
@@ -87,6 +87,7 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let deployment = process.deploy::<CurrentAleo, _>(&program, rng).map_err(|err| err.to_string())?;
         if deployment.program().functions().is_empty() {
             return Err("Attempted to create an empty transaction deployment".to_string());
@@ -109,7 +110,7 @@ impl ProgramManager {
             private_key,
             fee_record,
             fee_microcredits,
-            url,
+            node_url,
             fee_proving_key,
             fee_verifying_key,
             deployment_id,

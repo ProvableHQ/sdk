@@ -29,6 +29,8 @@ pub use split::*;
 pub mod transfer;
 pub use transfer::*;
 
+const DEFAULT_URL: &str = "https://api.explorer.aleo.org/v1";
+
 use crate::{
     types::{
         cost_in_microcredits,
@@ -88,7 +90,6 @@ impl ProgramManager {
         inputs: js_sys::Array,
         imports: Option<Object>,
     ) -> Result<KeyPair, String> {
-        let program_id = ProgramNative::from_str(program).map_err(|e| e.to_string())?.id().to_string();
         ProgramManager::execute_function_offline(
             private_key,
             program,
@@ -99,9 +100,10 @@ impl ProgramManager {
             imports,
             None,
             None,
+            None,
         )
         .await?
-        .get_keys(&program_id, function_id)
+        .get_keys()
     }
 
     /// Check if a process contains a keypair for a specific function

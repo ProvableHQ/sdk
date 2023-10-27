@@ -75,26 +75,20 @@ const Main = () => {
 
         console.log("starting to measure proving time, before execution")
 
-        var result = await aleoWorker.localProgramExecution(
+        var [result, executionResponse] = await aleoWorker.localProgramExecution(
             model,
             "main",
             input_array,
             true
         );
 
-        var executionResponse = result[1];
-        // convert JSON from string to object
-        executionResponse = JSON.parse(executionResponse);
-        proofText = executionResponse["proof"];
+        proofText = executionResponse;
         console.log("executionResponse", executionResponse)
-        result = result[0]
 
         proving_end_time = performance.now();
         console.log("proving time in seconds", (proving_end_time - proving_start_time) / 1000);
 
         proving_finished = true;
-
-      //const execution = result.getExecution();
 
         console.log("result", result);
         //console.log("execution", execution);
@@ -117,7 +111,9 @@ const Main = () => {
             //console.log("i", i)
             //console.log("result[i]", result[i])
             //console.log("typeof(result[i])", typeof(result[i]))
-            var output = String(result[i]).replace("i64", "");
+            // convert JSON result string to JSON object
+            const result_JSON = JSON.parse(result[i]);
+            var output = String(result_JSON["value"]).replace("i64", "");
             //console.log("output", output)
             output = Number(output);
             output = output / output_fixed_point_scaling_factor;
@@ -165,7 +161,6 @@ const Main = () => {
 
 
         //alert(JSON.stringify(converted_features));
-
 
       }
 
