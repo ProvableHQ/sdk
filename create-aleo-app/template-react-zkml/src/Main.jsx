@@ -38,21 +38,71 @@ const aleoWorker = AleoWorker();
 var run_counter = {}
 
 var proofText = "";
+const fixed_point_scaling_factor = 16;
+const int_type = "i64";
 
 const Main = () => {
     const [account, setAccount] = useState(null);
     const [selectedKey, setSelectedKey] = useState("2"); // Using React useState hook to hold the selected key
 
+    function convert_circuit_outputs_to_softmax(outputs_JSON, used_model) {
+
+        let output_fixed_point_scaling_factor;
+
+        if(used_model == "tree") {
+            output_fixed_point_scaling_factor = fixed_point_scaling_factor;
+        }
+        else if(used_model == "mlp") {
+            output_fixed_point_scaling_factor = fixed_point_scaling_factor**3;
+        }
+
+        // empty array
+        var converted_features = [];
+
+        // iterate over result. For each entry, remove int_type, convert to a number, and divide by the scaling factor
+        for (let i = 0; i < outputs_JSON.length; i++) {
+            var output = String(outputs_JSON[i]["value"]).replace(int_type, "");
+            //console.log("output", output)
+            output = Number(output);
+            output = output / output_fixed_point_scaling_factor;
+            converted_features.push(output);
+        }
+
+        console.log("converted_features", converted_features)
+
+        let softmax = [];
+        if(used_model == "mlp") {
+            const argmax_index = converted_features.indexOf(Math.max(...converted_features));
+            console.log("argmax_index", argmax_index);
+
+            // compute softmax of converted_features
+            softmax = [];
+            var sum = 0;
+            for (let i = 0; i < converted_features.length; i++) {
+                softmax.push(Math.exp(converted_features[i]));
+                sum += Math.exp(converted_features[i]);
+            }
+            for (let i = 0; i < converted_features.length; i++) {
+                softmax[i] = softmax[i] / sum;
+            }
+        }
+        if(used_model == "tree") {
+            // create 10 element array with 0s, but 1 at the index of converted_features[0]
+            softmax = Array.from({ length: 10 }, (_, i) => 0);
+            softmax[converted_features[0]] = 1;
+            console.log("converted_features[0]", converted_features[0])
+        }
+
+        return softmax;
+    }
 
       async function execute(features) {
 
         // helpful tool: https://codepen.io/jsnelders/pen/qBByqQy
 
-        const int_type = "i64";
 
         console.log("features in execute: ", features)
 
-        const fixed_point_scaling_factor = 16;
         const fixed_point_features = features.map((feature) => Math.round(feature * fixed_point_scaling_factor));
 
         console.log("fixed_point_features: ", fixed_point_features)
@@ -91,66 +141,18 @@ const Main = () => {
         proving_finished = true;
 
         console.log("result", result);
-        //console.log("execution", execution);
-
-        let output_fixed_point_scaling_factor;
-
-        if(used_model_type == "tree") {
-            output_fixed_point_scaling_factor = fixed_point_scaling_factor;
-        }
-        else if(used_model_type == "mlp") {
-            output_fixed_point_scaling_factor = fixed_point_scaling_factor**3;
-        }
-
-        // empty array
-        var converted_features = [];
-
-        // iterate over result. For each entry, remove "i64", convert to a number, and divide by the scaling factor
-        console.log("result.length", result.length)
+        var result_JSON = [];
+        // iterate over result, and convert entries to JSON
         for (let i = 0; i < result.length; i++) {
-            //console.log("i", i)
-            //console.log("result[i]", result[i])
-            //console.log("typeof(result[i])", typeof(result[i]))
-            // convert JSON result string to JSON object
-            const result_JSON = JSON.parse(result[i]);
-            var output = String(result_JSON["value"]).replace("i64", "");
-            //console.log("output", output)
-            output = Number(output);
-            output = output / output_fixed_point_scaling_factor;
-            converted_features.push(output);
+            result_JSON.push(JSON.parse(result[i]));
         }
 
-        console.log("converted_features", converted_features);
+        var softmax = convert_circuit_outputs_to_softmax(result_JSON, used_model_type);
 
-        let softmax = [];
-        if(used_model_type == "mlp") {
-            const argmax_index = converted_features.indexOf(Math.max(...converted_features));
-            console.log("argmax_index", argmax_index);
-
-            // compute softmax of converted_features
-            softmax = [];
-            var sum = 0;
-            for (let i = 0; i < converted_features.length; i++) {
-                softmax.push(Math.exp(converted_features[i]));
-                sum += Math.exp(converted_features[i]);
-            }
-            for (let i = 0; i < converted_features.length; i++) {
-                softmax[i] = softmax[i] / sum;
-            }
-        }
-        if(used_model_type == "tree") {
-            // create 10 element array with 0s, but 1 at the index of converted_features[0]
-            softmax = Array.from({ length: 10 }, (_, i) => 0);
-            softmax[converted_features[0]] = 1;
-        }
-
-
-        console.log("softmax", softmax);
-
-        setChartData(
-            chartData.map((item, index) => ({
+        setchartDataProof(
+            chartDataProof.map((item, index) => ({
                 ...item,
-                value: softmax[index] * 100, // multiply by 100 if you want to scale it up
+                value: softmax[index] * 100,
             })),
         );
 
@@ -158,9 +160,6 @@ const Main = () => {
         var runs = run_counter[selected_setting][model_type];
         run_counter[selected_setting][model_type] = runs + 1;
         console.log("incremented run_counter[selected_setting][model_type]", run_counter[selected_setting][model_type])
-
-
-        //alert(JSON.stringify(converted_features));
 
       }
 
@@ -187,7 +186,10 @@ const Main = () => {
     const [progress, setProgress] = useState(0);
     const [isProgressRunning, setIsProgressRunning] = useState(false);
     const [hasMounted, setHasMounted] = useState(false);
-    const [chartData, setChartData] = useState(
+    const [chartDataProof, setchartDataProof] = useState(
+        Array.from({ length: 10 }, (_, i) => ({ label: String(i), value: 0 })),
+    );
+    const [chartDataVerify, setchartDataVerify] = useState(
         Array.from({ length: 10 }, (_, i) => ({ label: String(i), value: 0 })),
     );
     const [brushSize, setBrushSize] = useState(10);
@@ -210,9 +212,9 @@ const Main = () => {
         }),
     );
 
-    const zeroChartData = () => {
-        setChartData(
-            chartData.map((item) => ({
+    const zerochartDataProof = () => {
+        setchartDataProof(
+            chartDataProof.map((item) => ({
                 ...item,
                 value: 0,
             })),
@@ -522,7 +524,7 @@ const Main = () => {
                 }
                 if (newProgress >= 100 || proving_finished) {
                     clearInterval(interval);
-                    //zeroChartData();
+                    //zerochartDataProof();
                     setIsProgressRunning(false);
                     return 100;
                 }
@@ -561,7 +563,42 @@ const Main = () => {
             startProgressAndRandomizeData(expected_runtime);
         } catch (error) {
             console.error("Failed to execute Aleo code:", error);
-            // Handle the error accordingly. For example, show an error message to the user.
+        }
+    };
+
+    const handleVerification = async (event) => {
+        try {
+            const content = event.target.value;
+            console.log("in handleVerification, content:", content)
+            var verification_result = await aleoWorker.verifyExecution(content);
+            console.log("verification_result", verification_result)
+            if(verification_result) {
+                var content_JSON = JSON.parse(content);
+                console.log("content_JSON", content_JSON)
+                const outputs = content_JSON["execution"]["transitions"][0]["outputs"];
+
+                var used_model_type = "tree";
+                if(outputs.length == 10) {
+                    // neural network
+                    used_model_type = "mlp";
+                }
+                console.log("used_model_type", used_model_type)
+                console.log("outputs", outputs)
+                var softmax = convert_circuit_outputs_to_softmax(outputs, used_model_type);
+
+                console.log("softmax", softmax)
+
+
+                setchartDataVerify(
+                    chartDataVerify.map((item, index) => ({
+                        ...item,
+                        value: softmax[index] * 100,
+                    })),
+                );
+
+            }
+        } catch (error) {
+            console.error("Verification failed:", error);
         }
     };
     
@@ -706,7 +743,7 @@ const Main = () => {
                         <Row justify="center" style={{ marginTop: "20px" }}>
                             <Col xs={24} sm={22} md={20} lg={18} xl={12}>
                                 <Column
-                                    data={chartData}
+                                    data={chartDataProof}
                                     xField="label"
                                     yField="value"
                                     seriesField="label"
@@ -755,22 +792,14 @@ const Main = () => {
                                     rows={4}
                                     placeholder="Paste the proof here..."
                                     style={{ margin: "20px 0" }}
-                                    onChange={() =>
-                                        console.log("handle proof change")
-                                    }
+                                    onChange={handleVerification}
                                 />
                             </Col>
                         </Row>
                         <Row justify="center" style={{ marginTop: "20px" }}>
                             <Col xs={24} sm={22} md={20} lg={18} xl={12}>
                                 <Column
-                                    data={Array.from(
-                                        { length: 10 },
-                                        (_, i) => ({
-                                            label: String(i),
-                                            value: 0,
-                                        }),
-                                    )}
+                                    data={chartDataVerify}
                                     xField="label"
                                     yField="value"
                                     seriesField="label"
