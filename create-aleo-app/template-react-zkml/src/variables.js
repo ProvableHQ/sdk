@@ -20,11 +20,11 @@ const sample_inputs = ['{x0: 23i64, x1: 14i64}', '{x0: 10i64, x1: 10i64}', '{x0:
 const expected_runtimes = {
     "Even/odd": {
         "decision_tree": [63, 31],
-        "mlp": [60, 30]
+        "mlp_neural_network": [60, 30]
     },
     "Classification": {
         "decision_tree": [63, 31],
-        "mlp": [148, 70]
+        "mlp_neural_network": [148, 70]
     },
 }
 
