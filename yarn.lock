@@ -7,6 +7,11 @@
   resolved "https://registry.npmjs.org/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
+"@aleohq/wasm@^0.6.5":
+  version "0.6.5"
+  resolved "https://registry.yarnpkg.com/@aleohq/wasm/-/wasm-0.6.5.tgz#48ac8c4b5219cd23bd69dcfdd519331829f06eb9"
+  integrity sha512-Y7/6m287oSu7yEn1PlOmlqQm02hNXPz6E4FKL2ThzeDkc18MmqtBK+h13ooVkXpxnSqQET7x+ZnGA914mVMu1g==
+
 "@ampproject/remapping@^2.2.0":
   version "2.2.1"
   resolved "https://registry.npmjs.org/@ampproject/remapping/-/remapping-2.2.1.tgz"
