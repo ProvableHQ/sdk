@@ -147,6 +147,9 @@ workflows:
       - template-node:
           requires:
             - sdk
+      - template-node-ts:
+          requires:
+            - sdk
       - template-extension:
           requires:
             - sdk
