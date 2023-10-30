@@ -24,7 +24,7 @@ type ProgramImports = { [key: string]: string | Program };
  * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * const publicnetworkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+ * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
  */
 class AleoNetworkClient {
   host: string;
@@ -308,6 +308,39 @@ class AleoNetworkClient {
   }
 
   /**
+   * Returns the deployment transaction id associated with the specified program
+   *
+   * @param {Program | string} program
+   * @returns {Transaction | Error}
+   */
+  async getDeploymentTransactionIDForProgram(program: Program | string): Promise<string | Error> {
+    if (program instanceof Program) {
+      program = program.toString();
+    }
+    try {
+      const id = await this.fetchData<string>("/find/transactionID/deployment/" + program);
+      return id.replace("\"", "")
+    } catch (error) {
+      throw new Error("Error fetching deployment transaction for program.");
+    }
+  }
+
+  /**
+   * Returns the deployment transaction associated with a specified program
+   *
+   * @param {Program | string} program
+   * @returns {Transaction | Error}
+   */
+  async getDeploymentTransactionForProgram(program: Program | string): Promise<Transaction | Error> {
+    try {
+      const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
+      return <Transaction>await this.getTransaction(transaction_id);
+    } catch (error) {
+      throw new Error("Error fetching deployment transaction for program.");
+    }
+  }
+
+  /**
    * Returns the contents of the latest block
    *
    * @example
@@ -322,16 +355,15 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the hash of the last published block
+   * Returns the latest committee
    *
-   * @example
-   * const latestHash = networkClient.getLatestHash();
+   * @returns {Promise<object>} A javascript object containing the latest committee
    */
-  async getLatestHash(): Promise<string | Error> {
+  async getLatestCommittee(): Promise<object | Error> {
     try {
-      return await this.fetchData<string>("/latest/hash");
+      return await this.fetchData<object>("/committee/latest");
     } catch (error) {
-      throw new Error("Error fetching latest hash.");
+      throw new Error("Error fetching latest block.");
     }
   }
 
@@ -538,6 +570,7 @@ class AleoNetworkClient {
     } catch (error) {
       throw new Error("Error fetching transaction.");
     }
+
   }
 
   /**
