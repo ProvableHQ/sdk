@@ -1,0 +1,13 @@
+.verification-failed-message {
+    display: inline-block;
+    padding: 10px 20px; /* Increased padding a bit for aesthetics */
+    background-color: #fce8e6; /* Soft red */
+    color: #d93025; /* Stronger red for text */
+    border: 1px solid #d93025;
+    border-radius: 4px; /* Subtle curve */
+    text-align: center;
+    width: 100%;
+    margin-top: 20px;
+    font-weight: 500; /* Making text slightly bold */
+  }
+  

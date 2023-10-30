@@ -22,6 +22,7 @@ import { ReactSketchCanvas } from "react-sketch-canvas";
 import { Column } from "@ant-design/charts";
 import aleoLogo from "./assets/aleo.svg";
 import { AleoWorker } from "./workers/AleoWorker.js";
+import './Main.css';
 
 import { mlp_program, decision_tree_program, test_imageData, expected_runtimes } from './variables.js';
 
@@ -42,6 +43,8 @@ const fixed_point_scaling_factor = 16;
 const int_type = "i64";
 
 const Main = () => {
+
+    const [showVerificationChart, setShowVerificationChart] = useState(true);
     const [account, setAccount] = useState(null);
     const [selectedKey, setSelectedKey] = useState("2"); // Using React useState hook to hold the selected key
 
@@ -595,10 +598,15 @@ const Main = () => {
                         value: softmax[index] * 100,
                     })),
                 );
+                setShowVerificationChart(true);
 
+            }
+            else {
+                setShowChart(false);
             }
         } catch (error) {
             console.error("Verification failed:", error);
+            setShowVerificationChart(false);
         }
     };
     
@@ -797,16 +805,24 @@ const Main = () => {
                             </Col>
                         </Row>
                         <Row justify="center" style={{ marginTop: "20px" }}>
-                            <Col xs={24} sm={22} md={20} lg={18} xl={12}>
-                                <Column
-                                    data={chartDataVerify}
-                                    xField="label"
-                                    yField="value"
-                                    seriesField="label"
-                                    legend={false}
-                                />
-                            </Col>
-                        </Row>
+    <Col xs={24} sm={22} md={20} lg={18} xl={12}>
+        {showVerificationChart ? (
+            <Column
+                data={chartDataVerify}
+                xField="label"
+                yField="value"
+                seriesField="label"
+                legend={false}
+            />
+        ) : (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <div className="verification-failed-message">
+                    Verification Failed
+                </div>
+            </div>
+        )}
+    </Col>
+</Row>
                     </Card>
                 </Content>
                 <Footer style={{ textAlign: "center" }}>
