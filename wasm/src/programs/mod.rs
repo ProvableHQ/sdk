@@ -16,6 +16,9 @@
 
 mod macros;
 
+pub mod execution;
+pub use execution::*;
+
 pub mod key_pair;
 pub use key_pair::*;
 
@@ -24,17 +27,17 @@ pub mod manager;
 #[cfg(feature = "browser")]
 pub use manager::*;
 
-pub mod response;
-pub use response::*;
+pub mod offline_query;
+pub use offline_query::*;
 
 pub mod program;
 pub use program::*;
 
-pub mod execution;
-pub use execution::*;
-
 pub mod proving_key;
 pub use proving_key::*;
+
+pub mod response;
+pub use response::*;
 
 pub mod transaction;
 pub use transaction::*;
