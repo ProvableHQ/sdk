@@ -160,12 +160,22 @@ const Main = () => {
 
         var softmax = convert_circuit_outputs_to_softmax(result_JSON, used_model_type);
 
-        setchartDataProof(
-            chartDataProof.map((item, index) => ({
-                ...item,
-                value: softmax[index] * 100,
-            })),
-        );
+        if(selectedKey == "1") {
+            setChartDataProof(
+                chartDataProof.map((item, index) => ({
+                    ...item,
+                    value: softmax[index] * 100,
+                })),
+            );
+        }
+        if(selectedKey == "2") {
+            setchartDataProof(
+                chartDataProof.map((item, index) => ({
+                    ...item,
+                    value: softmax[index] * 100,
+                })),
+            );
+        }
 
         var selected_setting = menuItems[selectedKey - 1].label;
         var runs = run_counter[selected_setting][model_type];
@@ -197,12 +207,16 @@ const Main = () => {
     const [progress, setProgress] = useState(0);
     const [isProgressRunning, setIsProgressRunning] = useState(false);
     const [hasMounted, setHasMounted] = useState(false);
-    const [chartDataProof, setchartDataProof] = useState(
-        Array.from({ length: 10 }, (_, i) => ({ label: String(i), value: 0 })),
-    );
-    const [chartDataVerify, setchartDataVerify] = useState(
-        Array.from({ length: 10 }, (_, i) => ({ label: String(i), value: 0 })),
-    );
+
+    const [chartDataProof, setChartDataProof] = useState([
+        { label: "Even", value: 0 },
+        { label: "Odd", value: 0 },
+    ]);
+    const [chartDataVerify, setchartDataVerify] = useState([
+        { label: "Even", value: 0 },
+        { label: "Odd", value: 0 },
+    ]);
+
     const [brushSize, setBrushSize] = useState(10);
 
     useEffect(() => {
