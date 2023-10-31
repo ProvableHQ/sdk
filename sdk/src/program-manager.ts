@@ -22,6 +22,27 @@ import {
 import {Execution} from "@aleohq/wasm/dist/crates/aleo_wasm";
 
 
+// TODO put this somewhere where it makes more sense
+interface ExecutionParams {
+    programName?: string;
+    functionName?: string;
+    fee?: number;
+    privateFee?: boolean;
+    recordSearchParams?: any;
+    keySearchParams?: any;
+    feeRecord?: any;
+    provingKey?: any;
+    verifyingKey?: any;
+    privateKey?: any;
+}
+interface OfflineParams {
+    state_path?: string;
+    state_root?: string;
+}
+interface Options {
+    offlineParams?: OfflineParams;
+    executionParams?: ExecutionParams;
+}
 
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
@@ -595,6 +616,49 @@ class ProgramManager {
         const tx = await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey);
         return await this.networkClient.submitTransaction(tx);
     }
+
+    /**
+     * Bond Public
+     *
+     * @returns TODO
+     * @param address
+     * @param amount
+     * @param offline
+     * @param options
+     */
+
+    async bondPublic(address: string, amount: number, offline: boolean, options: Options = {}) {
+        const {
+            offlineParams = {},
+            executionParams = {}
+        } = options || {};
+
+        const {
+            programName = "credits.aleo",
+            functionName = "bond_public",
+            fee = 1,
+            privateFee = false,
+            recordSearchParams,
+            keySearchParams,
+            feeRecord,
+            provingKey,
+            verifyingKey,
+            privateKey
+        } = executionParams;
+
+        const {
+            state_path,
+            state_root,
+        } = offlineParams;
+
+        if (offline) {
+            // TODO add state_path and state_root to execution
+            return await this.execute(programName, functionName, fee, privateFee, [address, amount.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey);
+        } else {
+            return await this.execute(programName, functionName, fee, privateFee, [address, amount.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey);
+        }
+    }
+
 
     /**
      * Verify a proof of execution from an offline execution
