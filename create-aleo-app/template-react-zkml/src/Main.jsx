@@ -24,7 +24,7 @@ import aleoLogo from "./assets/aleo.svg";
 import { AleoWorker } from "./workers/AleoWorker.js";
 import './Main.css';
 
-import { mlp_program, decision_tree_program, decision_tree_program_even_odd, test_imageData, expected_runtimes } from './variables.js';
+import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes } from './variables.js';
 
 const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
@@ -124,8 +124,12 @@ const Main = () => {
             model = decision_tree_program_even_odd;
             used_model_type = "tree";
         }
-        else if(model_type == "mlp_neural_network") {
+        else if(model_type == "mlp_neural_network" && selectedKey == "2") {
             model = mlp_program;
+            used_model_type = "mlp";
+        }
+        else if(model_type == "mlp_neural_network" && selectedKey == "1") {
+            model = mlp_program_even_odd;
             used_model_type = "mlp";
         }
         proving_start_time = performance.now();
