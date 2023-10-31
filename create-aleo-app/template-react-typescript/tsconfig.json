@@ -1,5 +1,5 @@
 {
-  "include": ["build.config.ts", "src", "__tests__", "src/custom.d.ts"],
+  "include": ["src", "__tests__", "src/custom.d.ts"],
   "compilerOptions": {
     "outDir": "dist",
     "target": "ES2015",
