@@ -137,12 +137,13 @@ macro_rules! execute_fee {
                     $private_key,
                     fee_record_native,
                     $fee_microcredits,
+                    0u64,
                     $execution_id,
                     $rng,
                 ).map_err(|e| e.to_string())?
             }
             None => {
-                $process.authorize_fee_public::<CurrentAleo, _>($private_key, $fee_microcredits, $execution_id, $rng).map_err(|e| e.to_string())?
+                $process.authorize_fee_public::<CurrentAleo, _>($private_key, $fee_microcredits, 0u64, $execution_id, $rng).map_err(|e| e.to_string())?
             }
         };
 

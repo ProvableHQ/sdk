@@ -8,7 +8,6 @@ import {
   PrivateKey,
   WasmTransaction,
   Transaction,
-  Transition,
   logAndThrow
 } from "./index";
 
@@ -24,7 +23,7 @@ type ProgramImports = { [key: string]: string | Program };
  * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * const publicnetworkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+ * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
  */
 class AleoNetworkClient {
   host: string;
@@ -308,6 +307,39 @@ class AleoNetworkClient {
   }
 
   /**
+   * Returns the deployment transaction id associated with the specified program
+   *
+   * @param {Program | string} program
+   * @returns {Transaction | Error}
+   */
+  async getDeploymentTransactionIDForProgram(program: Program | string): Promise<string | Error> {
+    if (program instanceof Program) {
+      program = program.toString();
+    }
+    try {
+      const id = await this.fetchData<string>("/find/transactionID/deployment/" + program);
+      return id.replace("\"", "")
+    } catch (error) {
+      throw new Error("Error fetching deployment transaction for program.");
+    }
+  }
+
+  /**
+   * Returns the deployment transaction associated with a specified program
+   *
+   * @param {Program | string} program
+   * @returns {Transaction | Error}
+   */
+  async getDeploymentTransactionForProgram(program: Program | string): Promise<Transaction | Error> {
+    try {
+      const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
+      return <Transaction>await this.getTransaction(transaction_id);
+    } catch (error) {
+      throw new Error("Error fetching deployment transaction for program.");
+    }
+  }
+
+  /**
    * Returns the contents of the latest block
    *
    * @example
@@ -322,16 +354,15 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the hash of the last published block
+   * Returns the latest committee
    *
-   * @example
-   * const latestHash = networkClient.getLatestHash();
+   * @returns {Promise<object>} A javascript object containing the latest committee
    */
-  async getLatestHash(): Promise<string | Error> {
+  async getLatestCommittee(): Promise<object | Error> {
     try {
-      return await this.fetchData<string>("/latest/hash");
+      return await this.fetchData<object>("/committee/latest");
     } catch (error) {
-      throw new Error("Error fetching latest hash.");
+      throw new Error("Error fetching latest block.");
     }
   }
 
@@ -538,6 +569,7 @@ class AleoNetworkClient {
     } catch (error) {
       throw new Error("Error fetching transaction.");
     }
+
   }
 
   /**
@@ -570,15 +602,15 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the transition id by its unique identifier
-   * @param {string} transition_id - The transition id to get
+   * Returns the transition ID of the transition corresponding to the ID of the input or output.
+   * @param {string} inputOrOutputID - ID of the input or output.
    *
    * @example
-   * const transition = networkClient.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
+   * const transitionId = networkClient.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
    */
-  async getTransitionId(transition_id: string): Promise<Transition | Error> {
+  async getTransitionId(inputOrOutputID: string): Promise<string | Error> {
     try {
-      return await this.fetchData<Transition>("/find/transitionID/" + transition_id);
+      return await this.fetchData<string>("/find/transitionID/" + inputOrOutputID);
     } catch (error) {
       throw new Error("Error fetching transition ID.");
     }

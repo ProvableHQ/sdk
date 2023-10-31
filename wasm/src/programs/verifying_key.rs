@@ -108,7 +108,58 @@ mod tests {
     use super::*;
     use wasm_bindgen_test::*;
 
-    const JOIN_VERIFYING_KEY_STRING: &str = "verifier1qygqqqqqqqqqqqqqeuqqqqqqqqqz3ncqqqqqqqqqgvkqzqqqqqqqq590qyqqqqqqqzwn5qgqqqqqqqqvqqqqqqqqqqqpkgztrguz0x8mpfjhsnmqqsnwl764jw73ll0nxcg7pzt59lpd7zsjlmrprw3w6r7npmx4ck4kz3qq7mslfg4rhc9anmgza3dvms2qjhz0hatprzdgmsk3usxkttpep7wej007nzrhzzdmcca2603z4f4cp80q7drqtqw3quvqu5z4nnzspqca272csmxknz9mlwu4u6f9u2zha5rwjgv2hp0l8dlc7aa32dggq9afa5hkqmwnptqmhavy050nf48ndcl6vmjlm95c582wqyws2z5fckxsw6stcxdxxhj7v26padsumqpk58n2f6fejx3k80j2shqa642hulj3sx08ywtxg506n8dnm6nu2ltp4z5apf6wtam9kzaadackjjq6vnahqmqlkuncyslzeml246ajhy5yldyc20p9pf84gn6zdwlq79azygr4fwtvra632w333kh2e3sq4hwtk967gz8zxtsgph0nlncfhqz6wmt5cccd64qwpezp2yuglkrp7jmk4ggkefa5aw09lvhe646gpt0lkjn984uqg6r46a8q3u9vcezmtnq090xkgq0euqtkjrgjks6cxqz9hqw339k8jzepd9nxlhu7sqtv0n0uvz8p3e8wxc784jsvpf4dp92kndr2e6n9p85q8ty4z93l0fn4k7wv6neqkj9y6drya0284qv98y4lthmredwtdlm7p2489etmf473zehyhgpgmu094h97dcyzj22uzwvvayxfjlrv4qlnag2zgcqlma4j7cte6uhsfc98kf54jneuqktsmsacz7gftk9s0cunkevaamkcrt0e086j9lf9vd8eqvkn6esqfsfpjxk4lq94a5mqxgg0eazejt2wtda86l7hj2zxn9k5cy65jp6e97yp8ahakzf6vm0z53te7x9srqeupscxgx8vxla4rqse8srw9ypv3h4q902szlneeuuh4rm46rjnltvt9k";
+    const JOIN_VERIFYING_KEY_STRING: &str = "verifier1qygqqqqqqqqqqqz2cvqqqqqqqqqx0scqqqqqqqqqc42qzqqqqqqqpvmfqyqqqqqqqquzwqgqqqqqqqqvqqqqqqqqqqqpz6knqjfm77py0mpx68rmc6yavzrjpn3vdn5rmhum6u47fxt3j7auv5mk8epjx0hsa7nfm4llzwqqj84x9cnerm5gach0nzfy0jsvfrylvld5ffe8g63nhw5qng68rs6yrlzrc5229ezc8j4n4y0f2hrqqmdphh3mpglur7evq52n6mx9nls064fpn8wr3vqz75vextjhjmpvcrgs8har5txjnh9tj8lmlusns8nklkw8dh8nc8sv0llh4cgw95l3m7mwugu5nfrrlmyccnmrues4wl0hdfwsq8wvn60y2hl036g3aqzh5cn6n2366fy4hawjn22mj86w2w7twq80pdrea6svl7uq5zyh9nz4qgd72tql95n2xx0zh3wcjyqca5wzv4276exszaunpjduuvjmture49av40ve03akc9qw709wuf9a8hhpwlwwz8acf2z5ngk2d95qzfqhkmllqx4lnupyevkn8zthgu54x55t4cqm7uvmmnu3vtvkmsr4tldemm26shwk8ux27v6lmxkqppuesjj5d3m7x5rsg7yn8cg6hkat6fy8u8zj3n0z26ehqvmq8x2fadtw5jt6pxxfp3cm40ak7x9yqym5qrwjzpr7xwr4t6pjn5ca9g02hnuyvxd9jqpv70a7w05mqatnyzhnfl462xmsehgcwczjkrzz2qxk3wa0elrnvnh9qlz3cc2g8xyag9yrds0jepsvskl55zqtntp6qvkj9nkmlercd95j8g9xdgxv0sq0y6gq32ng5r9zcs4wt3vryhldxtr9epyz5vnnx4mf2lhv4r56mftaugjemxezpjcv9enr259tf7qq66a7ngsc3y0a5jlm8jg2rnd9c38ny2m5egl7ssx62zcscztkmjqpkvta2za4ym5jkatgzd2zspfcrc7gesjxjgcvhsua3jpyzpdan6mestyqsx5eatkmzv9zmpwkur3c34sjzc";
+
+    #[allow(dead_code)]
+    fn verifying_key_strings() {
+        let fee_private_verifier_bytes =
+            VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::FeePrivateVerifier::load_bytes().unwrap())
+                .unwrap()
+                .to_string();
+        let fee_public_verifier_bytes =
+            VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::FeePublicVerifier::load_bytes().unwrap())
+                .unwrap()
+                .to_string();
+        let inclusion_verifier_bytes =
+            VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::InclusionVerifier::load_bytes().unwrap())
+                .unwrap()
+                .to_string();
+        let join_verifier_bytes =
+            VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::JoinVerifier::load_bytes().unwrap())
+                .unwrap()
+                .to_string();
+        let split_verifier_bytes =
+            VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::SplitVerifier::load_bytes().unwrap())
+                .unwrap()
+                .to_string();
+        let transfer_private_verifier_bytes =
+            VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPrivateVerifier::load_bytes().unwrap())
+                .unwrap()
+                .to_string();
+        let transfer_private_to_public_verifier_bytes = VerifyingKey::from_bytes(
+            &snarkvm_parameters::testnet3::TransferPrivateToPublicVerifier::load_bytes().unwrap(),
+        )
+        .unwrap()
+        .to_string();
+        let transfer_public_verifier_bytes =
+            VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPublicVerifier::load_bytes().unwrap())
+                .unwrap()
+                .to_string();
+        let transfer_public_to_private_verifier_bytes = VerifyingKey::from_bytes(
+            &snarkvm_parameters::testnet3::TransferPublicToPrivateVerifier::load_bytes().unwrap(),
+        )
+        .unwrap()
+        .to_string();
+        println!("fee_private_verifier: {}", fee_private_verifier_bytes);
+        println!("fee_public_verifier: {}", fee_public_verifier_bytes);
+        println!("inclusion_verifier: {}", inclusion_verifier_bytes);
+        println!("join_verifier: {}", join_verifier_bytes);
+        println!("split_verifier: {}", split_verifier_bytes);
+        println!("transfer_private_verifier: {}", transfer_private_verifier_bytes);
+        println!("transfer_private_to_public_verifier: {}", transfer_private_to_public_verifier_bytes);
+        println!("transfer_public_verifier: {}", transfer_public_verifier_bytes);
+        println!("transfer_public_to_private_verifier: {}", transfer_public_to_private_verifier_bytes);
+    }
 
     #[wasm_bindgen_test]
     async fn test_verifying_key_roundtrip() {

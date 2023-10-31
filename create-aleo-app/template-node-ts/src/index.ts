@@ -11,8 +11,8 @@ const hello_hello_program =
     "    add r0 r1 into r2;\n" +
     "    output r2 as u32.private;\n";
 
-async function localProgramExecution(program, aleoFunction, inputs) {
-    const programManager = new ProgramManager();
+async function localProgramExecution() {
+    const programManager = new ProgramManager(undefined, undefined, undefined);
 
     // Create a temporary account for the execution of the program
     const account = new Account();
@@ -25,6 +25,13 @@ async function localProgramExecution(program, aleoFunction, inputs) {
 
     // Pre-synthesize the program keys and then cache them in memory using key provider
     const keyPair = await programManager.synthesizeKeys(hello_hello_program, "hello", ["1u32", "1u32"]);
+
+    if (keyPair instanceof Error) {
+        throw new Error(`Failed to synthesize keys: ${keyPair.message}`);
+    } else {
+        programManager.keyProvider.cacheKeys("hello_hello.aleo:hello", keyPair);
+    }
+
     programManager.keyProvider.cacheKeys("hello_hello.aleo:hello", keyPair);
 
     // Specify parameters for the key provider to use search for program keys. In particular specify the cache key
