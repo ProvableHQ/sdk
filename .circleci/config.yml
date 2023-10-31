@@ -82,6 +82,15 @@ jobs:
           command: |
             yarn start
 
+  template-node-ts:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - run:
+          working_directory: create-aleo-app/template-node-ts
+          command: |
+            yarn start
+
   template-extension:
     executor: rust-node
     steps:
@@ -136,6 +145,9 @@ workflows:
           requires:
             - sdk
       - template-node:
+          requires:
+            - sdk
+      - template-node-ts:
           requires:
             - sdk
       - template-extension:
