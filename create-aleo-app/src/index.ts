@@ -49,8 +49,8 @@ const FRAMEWORKS: Framework[] = [
         color: lightGreen,
       },
       {
-        name: 'react-typescript',
-        display: "React TypeScript",
+        name: 'react-ts',
+        display: "React + TypeScript",
         color: red
       }
     ],
