@@ -8,7 +8,6 @@ import {
   PrivateKey,
   WasmTransaction,
   Transaction,
-  Transition,
   logAndThrow
 } from "./index";
 
@@ -603,15 +602,15 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the transition id by its unique identifier
-   * @param {string} transition_id - The transition id to get
+   * Returns the transition ID of the transition corresponding to the ID of the input or output.
+   * @param {string} inputOrOutputID - ID of the input or output.
    *
    * @example
-   * const transition = networkClient.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
+   * const transitionId = networkClient.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
    */
-  async getTransitionId(transition_id: string): Promise<Transition | Error> {
+  async getTransitionId(inputOrOutputID: string): Promise<string | Error> {
     try {
-      return await this.fetchData<Transition>("/find/transitionID/" + transition_id);
+      return await this.fetchData<string>("/find/transitionID/" + inputOrOutputID);
     } catch (error) {
       throw new Error("Error fetching transition ID.");
     }
