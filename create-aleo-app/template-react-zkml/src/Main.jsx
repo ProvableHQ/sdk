@@ -48,7 +48,45 @@ const Main = () => {
     const [account, setAccount] = useState(null);
     const [selectedKey, setSelectedKey] = useState("1");
 
-    function convert_circuit_outputs_to_softmax(outputs_JSON, used_model) {
+    function convert_proof_to_softmax(executionResponse) {
+
+        // convert executionResponse to JSON
+        const executionResponse_JSON = JSON.parse(executionResponse);
+
+        console.log("executionResponse_JSON", executionResponse_JSON)
+
+        let used_model;
+        let used_mode;
+
+        const program = executionResponse_JSON["program"];
+        
+        // compare program string to decision_tree_program and decision_tree_program_even_odd
+        if(executionResponse_JSON["program"].includes("tree_mnist_1.aleo")) {
+            used_mode = "2" // classification
+            used_model = "tree";
+        }
+        if(executionResponse_JSON["program"].includes("tree_mnist_2.aleo")) {
+            used_mode = "1" // even/odd
+            used_model = "tree";
+        }
+        if(executionResponse_JSON["program"].includes("sklearn_mlp_mnist_1.aleo")) {
+            used_mode = "2" // classification
+            used_model = "mlp";
+        }
+        if(executionResponse_JSON["program"].includes("sklearn_mlp_mnist_2.aleo")) {
+            used_mode = "1" // even/odd
+            used_model = "mlp";
+        }
+
+        let num_softmax_elements;
+        if(used_mode == "1") {
+            num_softmax_elements = 2;
+        }
+        else if(used_mode == "2") {
+            num_softmax_elements = 10;
+        }
+
+        console.log("used_model", used_model, "used_mode", used_mode, "num_softmax_elements", num_softmax_elements);
 
         let output_fixed_point_scaling_factor;
 
@@ -61,6 +99,8 @@ const Main = () => {
 
         // empty array
         var converted_features = [];
+
+        let outputs_JSON = executionResponse_JSON["execution"]["transitions"][0]["outputs"];
 
         // iterate over result. For each entry, remove int_type, convert to a number, and divide by the scaling factor
         for (let i = 0; i < outputs_JSON.length; i++) {
@@ -91,7 +131,7 @@ const Main = () => {
         }
         if(used_model == "tree") {
             // create 10 element array with 0s, but 1 at the index of converted_features[0]
-            softmax = Array.from({ length: 10 }, (_, i) => 0);
+            softmax = Array.from({ length: num_softmax_elements }, (_, i) => 0);
             softmax[converted_features[0]] = 1;
             console.log("converted_features[0]", converted_features[0])
         }
@@ -158,22 +198,23 @@ const Main = () => {
             result_JSON.push(JSON.parse(result[i]));
         }
 
-        var softmax = convert_circuit_outputs_to_softmax(result_JSON, used_model_type);
+        var softmax = convert_proof_to_softmax(executionResponse);
 
-        if(selectedKey == "1") {
+        console.log("softmax", softmax);
+
+        if(softmax.length === 2) {
+            setChartDataProof([
+                { label: "Even", value: softmax[0] * 100 },
+                { label: "Odd", value: softmax[1] * 100 },
+            ]);
+        }                
+
+        if(softmax.length == 10) {
             setChartDataProof(
-                chartDataProof.map((item, index) => ({
-                    ...item,
+                Array.from({ length: 10 }, (_, index) => ({
+                    label: String(index),
                     value: softmax[index] * 100,
-                })),
-            );
-        }
-        if(selectedKey == "2") {
-            setchartDataProof(
-                chartDataProof.map((item, index) => ({
-                    ...item,
-                    value: softmax[index] * 100,
-                })),
+                }))
             );
         }
 
@@ -212,7 +253,7 @@ const Main = () => {
         { label: "Even", value: 0 },
         { label: "Odd", value: 0 },
     ]);
-    const [chartDataVerify, setchartDataVerify] = useState([
+    const [chartDataVerify, setChartDataVerify] = useState([
         { label: "Even", value: 0 },
         { label: "Odd", value: 0 },
     ]);
@@ -602,27 +643,27 @@ const Main = () => {
             if(verification_result) {
                 var content_JSON = JSON.parse(content);
                 console.log("content_JSON", content_JSON)
-                const outputs = content_JSON["execution"]["transitions"][0]["outputs"];
 
-                var used_model_type = "tree";
-                if(outputs.length == 10) {
-                    // neural network
-                    used_model_type = "mlp";
+                var softmax = convert_proof_to_softmax(content);
+                console.log("softmax", softmax);
+
+                if(softmax.length === 2) {
+                    setChartDataVerify([
+                        { label: "Even", value: softmax[0] * 100 },
+                        { label: "Odd", value: softmax[1] * 100 },
+                    ]);
+                    setShowVerificationChart(true);
+                }                
+
+                if(softmax.length == 10) {
+                    setChartDataVerify(
+                        Array.from({ length: 10 }, (_, index) => ({
+                            label: String(index),
+                            value: softmax[index] * 100,
+                        }))
+                    );
+                    setShowVerificationChart(true);
                 }
-                console.log("used_model_type", used_model_type)
-                console.log("outputs", outputs)
-                var softmax = convert_circuit_outputs_to_softmax(outputs, used_model_type);
-
-                console.log("softmax", softmax)
-
-
-                setchartDataVerify(
-                    chartDataVerify.map((item, index) => ({
-                        ...item,
-                        value: softmax[index] * 100,
-                    })),
-                );
-                setShowVerificationChart(true);
 
             }
             else {
