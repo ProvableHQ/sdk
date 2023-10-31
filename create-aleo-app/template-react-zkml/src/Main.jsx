@@ -24,7 +24,7 @@ import aleoLogo from "./assets/aleo.svg";
 import { AleoWorker } from "./workers/AleoWorker.js";
 import './Main.css';
 
-import { mlp_program, decision_tree_program, test_imageData, expected_runtimes } from './variables.js';
+import { mlp_program, decision_tree_program, decision_tree_program_even_odd, test_imageData, expected_runtimes } from './variables.js';
 
 const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
@@ -46,7 +46,7 @@ const Main = () => {
 
     const [showVerificationChart, setShowVerificationChart] = useState(true);
     const [account, setAccount] = useState(null);
-    const [selectedKey, setSelectedKey] = useState("2"); // Using React useState hook to hold the selected key
+    const [selectedKey, setSelectedKey] = useState("1");
 
     function convert_circuit_outputs_to_softmax(outputs_JSON, used_model) {
 
@@ -116,8 +116,12 @@ const Main = () => {
         console.log("input_array", input_array);
 
         let model;
-        if(model_type == "decision_tree") {
+        if(model_type == "decision_tree" && selectedKey == "2") {
             model = decision_tree_program;
+            used_model_type = "tree";
+        }
+        else if(model_type == "decision_tree" && selectedKey == "1") {
+            model = decision_tree_program_even_odd;
             used_model_type = "tree";
         }
         else if(model_type == "mlp_neural_network") {
@@ -556,6 +560,8 @@ const Main = () => {
             proving_finished = false;
             processImageAndPredict();
             let expected_runtime;
+            console.log("selected_setting", selected_setting)
+            console.log("model_type", model_type)
             if(runs == 0) {
                 expected_runtime = expected_runtimes[selected_setting][model_type][0];
             }
@@ -649,7 +655,7 @@ const Main = () => {
                 <Menu
                     theme="light"
                     mode="inline"
-                    defaultSelectedKeys={["2"]}
+                    defaultSelectedKeys={["1"]}
                     items={menuItems}
                     onSelect={handleMenuSelect}
                 />

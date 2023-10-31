@@ -20,3 +20,4 @@ rust/src/program/.DS_Store
 package-lock.json
 
 *.log
+.history/
