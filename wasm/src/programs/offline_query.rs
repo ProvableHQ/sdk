@@ -25,11 +25,17 @@ impl QueryTrait<CurrentNetwork> for OfflineQuery {
         Ok(self.state_root.unwrap_or(CurrentNetwork::StateRoot::default()))
     }
 
-    fn get_state_path_for_commitment(&self, _commitment: &Field<CurrentNetwork>) -> anyhow::Result<StatePath<CurrentNetwork>> {
+    fn get_state_path_for_commitment(
+        &self,
+        _commitment: &Field<CurrentNetwork>,
+    ) -> anyhow::Result<StatePath<CurrentNetwork>> {
         anyhow::bail!("Synchronous network calls not allowed from WebAssembly")
     }
 
-    async fn get_state_path_for_commitment_async(&self, _commitment: &Field<CurrentNetwork>) -> anyhow::Result<StatePath<CurrentNetwork>> {
+    async fn get_state_path_for_commitment_async(
+        &self,
+        _commitment: &Field<CurrentNetwork>,
+    ) -> anyhow::Result<StatePath<CurrentNetwork>> {
         Ok(self.state_path)
     }
 }
