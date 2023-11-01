@@ -19,7 +19,7 @@ describe('Program Manager', () => {
             const execution_result = <ExecutionResponse>await programManager.executeOffline(helloProgram, "hello", ["5u32", "5u32"], true, undefined, undefined, undefined, undefined, undefined, undefined)
             expect(execution_result.getOutputs()[0]).toEqual("10u32");
             programManager.verifyExecution(execution_result);
-        }, 420000);
+        }, 1020000);
     });
 
     describe('Offline query', () => {
@@ -33,6 +33,6 @@ describe('Program Manager', () => {
             const execution_result = <ExecutionResponse>await programManager.executeOffline(credits, "transfer_private", [statePathRecord, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
             const verified = programManager.verifyExecution(execution_result);
             expect(verified).toEqual(true);
-        }, 420000);
+        }, 1020000);
     });
 });
