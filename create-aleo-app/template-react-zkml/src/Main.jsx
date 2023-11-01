@@ -65,6 +65,9 @@ const Main = () => {
     const [account, setAccount] = useState(null);
     const [selectedKey, setSelectedKey] = useState("1");
 
+    const [decisionTreePrediction, setDecisionTreePrediction] = useState('');
+    const [mlpPrediction, setMlpPrediction] = useState('');
+
 
     function computeSoftmax(values, scalingFactor = 1) {
         const scaledValues = values.map(v => v / scalingFactor);
@@ -590,6 +593,35 @@ const Main = () => {
             var softmax_decision_tree = computeSoftmax([result_JS_decision_tree], 16);
             var softmax_mlp = computeSoftmax(result_JS_mlp, 16**3);
 
+            var argmax_mlp = softmax_mlp.indexOf(Math.max(...softmax_mlp));
+
+            let string_decision_tree = "";
+            let string_mlp = "";
+
+            if(selectedKey == "1") {
+                // even/odd
+                if(softmax_decision_tree == 0) {
+                    string_decision_tree = "Even";
+                }
+                else if(softmax_decision_tree == 1) {
+                    string_decision_tree = "Odd";
+                }
+                if(argmax_mlp == 0) {
+                    string_mlp = "Even" + " (" + (softmax_mlp[0]*100).toFixed(1) + "%)";
+                }
+                else if(argmax_mlp == 1) {
+                    string_mlp = "Odd" + " (" + (softmax_mlp[1]*100).toFixed(1) + "%)";
+                }
+            }
+            else if(selectedKey == "2") {
+                // classification
+                string_decision_tree = String(softmax_decision_tree);
+                string_mlp = String(argmax_mlp) + " (" + (softmax_mlp[argmax_mlp]*100).toFixed(1) + "%)";
+            }
+
+            setDecisionTreePrediction(string_decision_tree);
+            setMlpPrediction(string_mlp);
+
             console.log("softmax_decision_tree", softmax_decision_tree)
             console.log("softmax_mlp", softmax_mlp)
 
@@ -798,6 +830,8 @@ const Main = () => {
                                 />
                             </Col>
                         </Row>
+                        
+                        {/* Commenting out the Brush Size section
                         <Row justify="center">
                             <Col span={12}>
                                 <div
@@ -821,12 +855,23 @@ const Main = () => {
                                 />
                             </Col>
                         </Row>
-                        <Row justify="center">
+                        */}
+
+                        <Row justify="center" style={{ marginTop: "20px" }}>
+                            <Col span={12}>
+                                <Title level={4}>Predictions</Title>
+                                <Text strong>Decision Tree: </Text>{decisionTreePrediction}
+                                <br />
+                                <Text strong>MLP: </Text>{mlpPrediction}
+                            </Col>
+                        </Row>
+
+                        <Row justify="center" style={{ marginTop: "20px" }}>
                             <Col>
                                 <Space>
                                 <Button type="primary" onClick={handleCanvasDraw}>
-    Generate Proof
-</Button>
+                                    Generate Proof
+                               </Button>
                                     <Button
                                         type="default"
                                         onClick={() => {
@@ -856,29 +901,26 @@ const Main = () => {
                             </Col>
                         </Row>
                         
-
                         <Row justify="center" style={{ marginTop: "20px" }}>
-    <Col span={12}>
-        <Title level={4}>Proof</Title>
-        <Input.TextArea
-            rows={4}
-            value={proofText}
-            disabled
-            style={{ margin: "20px 0" }}
-        />
-    </Col>
-</Row>
-<Row justify="center">
-    <Col>
-        <Button type="primary" onClick={handleCopyProof}>
-            Copy Proof
-        </Button>
-    </Col>
-</Row>
-
-
-
+                            <Col span={12}>
+                                <Title level={4}>Proof</Title>
+                                <Input.TextArea
+                                    rows={4}
+                                    value={proofText}
+                                    disabled
+                                    style={{ margin: "20px 0" }}
+                                />
+                            </Col>
+                        </Row>
+                        <Row justify="center">
+                            <Col>
+                                <Button type="primary" onClick={handleCopyProof}>
+                                    Copy Proof
+                                </Button>
+                            </Col>
+                        </Row>
                     </Card>
+
                     <Card
                         title="Verifier"
                         style={{ width: "100%", marginTop: "24px" }}
