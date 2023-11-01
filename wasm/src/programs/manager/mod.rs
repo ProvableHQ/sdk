@@ -31,25 +31,19 @@ pub use transfer::*;
 
 const DEFAULT_URL: &str = "https://api.explorer.aleo.org/v1";
 
-use crate::{
-    types::{
-        cost_in_microcredits,
-        deployment_cost,
-        IdentifierNative,
-        ProcessNative,
-        ProgramIDNative,
-        ProgramNative,
-        ProvingKeyNative,
-        QueryNative,
-        VerifyingKeyNative,
-    },
-    KeyPair,
-    PrivateKey,
-    ProvingKey,
-    RecordPlaintext,
-    VerifyingKey,
-};
+use crate::{KeyPair, PrivateKey, ProvingKey, RecordPlaintext, VerifyingKey};
 
+use crate::types::native::{
+    cost_in_microcredits,
+    deployment_cost,
+    IdentifierNative,
+    ProcessNative,
+    ProgramIDNative,
+    ProgramNative,
+    ProvingKeyNative,
+    QueryNative,
+    VerifyingKeyNative,
+};
 use js_sys::{Object, Reflect};
 use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -98,6 +92,7 @@ impl ProgramManager {
             false,
             true,
             imports,
+            None,
             None,
             None,
             None,

@@ -141,21 +141,24 @@ export { createAleoWorker } from "./managed-worker";
 export { ProgramManager } from "./program-manager";
 
 export {
-    PrivateKey,
-    ViewKey,
     Address,
-    PrivateKeyCiphertext,
-    RecordCiphertext,
-    Signature,
-    ProvingKey,
-    VerifyingKey,
-    Program,
-    RecordPlaintext,
-    Transaction as WasmTransaction,
+    Execution as FunctionExecution,
     ExecutionResponse,
+    Field,
+    OfflineQuery,
+    PrivateKey,
+    PrivateKeyCiphertext,
+    Program,
     ProgramManager as ProgramManagerBase,
-    verifyFunctionExecution,
+    ProvingKey,
+    RecordCiphertext,
+    RecordPlaintext,
+    Signature,
+    Transaction as WasmTransaction,
+    VerifyingKey,
+    ViewKey,
     initThreadPool,
+    verifyFunctionExecution,
 } from "@aleohq/wasm";
 
 export { initializeWasm };
