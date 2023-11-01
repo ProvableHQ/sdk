@@ -18,7 +18,7 @@ import {
     PRIVATE_TRANSFER_TYPES,
     VALID_TRANSFER_TYPES,
     logAndThrow,
-    ProgramManagerBase as WasmProgramManager, verifyFunctionExecution,
+    ProgramManagerBase as WasmProgramManager, verifyFunctionExecution, AleoKeyProviderParams, CREDITS_PROGRAM_KEYS,
 } from "./index";
 import {Execution} from "@aleohq/wasm/dist/crates/aleo_wasm";
 
@@ -635,21 +635,38 @@ class ProgramManager {
     }
 
     /**
-     * Staking- Bond Public
+     * Bond credits to a staking committee
+     *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("YourPrivateKey"));
+     *
+     * // Create the bonding transaction
+     * const tx_id = await programManager.bondPublic("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 2000000);
      *
      * @returns string
-     * @param address
-     * @param amount
-     * @param options
+     * @param {string} address Address of the validator to bond to, if this address is the same as the signer (i.e. the
+     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
+     * requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing
+     * validator and is different from the address of the executor of this function, it will bond the credits to that
+     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {number} amount The amount of credits to bond
+     * @param {Options} options Options for the execution
      */
-
     async bondPublic(address: string, amount: number, options: Options = {}) {
+        amount = Math.trunc(amount*1000000);
+
         const {
             offlineParams = {},
             executionParams = {}
         } = options || {};
 
-        const {
+        let {
             programName = "credits.aleo",
             functionName = "bond_public",
             fee = 1,
@@ -662,30 +679,57 @@ class ProgramManager {
             privateKey
         } = executionParams;
 
+        if (keySearchParams === undefined) {
+            keySearchParams = new AleoKeyProviderParams(
+                {
+                    proverUri: CREDITS_PROGRAM_KEYS.bond_public.prover,
+                    verifierUri: CREDITS_PROGRAM_KEYS.bond_public.verifier,
+                    cacheKey: "credits.aleo/bond_public"
+                });
+        }
+
         const {
             offlineQuery,
         } = offlineParams;
 
-        return await this.execute(programName, functionName, fee, privateFee, [address, amount.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        return await this.execute(programName, functionName, fee, privateFee, [address, `${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
     }
 
     /**
-     * Staking - Unbound Public
+     * Unbond a specified amount of staked credits
+     *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("YourPrivateKey"));
+     *
+     * // Create the bonding transaction
+     * const tx_id = await programManager.unbondPublic(10);
      *
      * @returns string
-     * @param amount
-     * @param options
+     * @param {number} amount Amount of credits to unbond. If the address of the executor of this function is an
+     * existing validator, it will subtract this amount of credits from the validator's staked credits. If there are
+     * less than 1,000,000 credits staked pool after the unbond, the validator will be removed from the validator set.
+     * If the address of the executor of this function is not a validator and has credits bonded as a delegator, it will
+     * subtract this amount of credits from the delegator's staked credits. If there are less than 10 credits bonded
+     * after the unbond operation, the delegator will be removed from the validator's staking pool.
+     * @param {Options} options Options for the execution
      */
-
     async unbondPublic(amount: number, options: Options = {}) {
+        amount = Math.trunc(amount*1000000);
+
         const {
             offlineParams = {},
             executionParams = {}
         } = options || {};
 
-        const {
-            programName = "unbond_public",
-            functionName = "bond_public",
+        let {
+            programName = "credits.aleo",
+            functionName = "unbond_public",
             fee = 1,
             privateFee = false,
             recordSearchParams,
@@ -696,29 +740,50 @@ class ProgramManager {
             privateKey
         } = executionParams;
 
+        if (keySearchParams === undefined) {
+            keySearchParams = new AleoKeyProviderParams(
+                {
+                    proverUri: CREDITS_PROGRAM_KEYS.unbond_public.prover,
+                    verifierUri: CREDITS_PROGRAM_KEYS.unbond_public.verifier,
+                    cacheKey: "credits.aleo/unbond_public"
+                });
+        }
+
         const {
             offlineQuery,
         } = offlineParams;
 
-        return await this.execute(programName, functionName, fee, privateFee, [amount.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        return await this.execute(programName, functionName, fee, privateFee, [`${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
     }
 
     /**
-     * Staking - Claim Unbond Public
+     * Claim unbonded credits. If credits have been unbonded by the account executing this function, this method will
+     * claim them and add them to the public balance of the account.
+     *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("YourPrivateKey"));
+     *
+     * // Create the bonding transaction
+     * const tx_id = await programManager.claimUnbondPublic();
      *
      * @returns string
-     * @param options
+     * @param {Options} options
      */
-
     async claimUnbondPublic(options: Options = {}) {
         const {
             offlineParams = {},
             executionParams = {}
         } = options || {};
 
-        const {
-            programName = "unbond_public",
-            functionName = "bond_public",
+        let {
+            programName = "credits.aleo",
+            functionName = "claim_unbond_public",
             fee = 1,
             privateFee = false,
             recordSearchParams,
@@ -728,6 +793,15 @@ class ProgramManager {
             verifyingKey,
             privateKey
         } = executionParams;
+
+        if (keySearchParams === undefined) {
+            keySearchParams = new AleoKeyProviderParams(
+                {
+                    proverUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.prover,
+                    verifierUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier,
+                    cacheKey: "credits.aleo/claim_unbond_public"
+                });
+        }
 
         const {
             offlineQuery,
