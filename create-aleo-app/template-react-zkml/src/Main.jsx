@@ -68,6 +68,9 @@ const Main = () => {
     const [decisionTreePrediction, setDecisionTreePrediction] = useState('');
     const [mlpPrediction, setMlpPrediction] = useState('');
 
+    const [drawTimeout, setDrawTimeout] = useState(null);
+    const [hasInteracted, setHasInteracted] = useState(false);
+
 
     function computeSoftmax(values, scalingFactor = 1) {
         const scaledValues = values.map(v => v / scalingFactor);
@@ -498,7 +501,7 @@ const Main = () => {
     
     
 
-    const processImageAndPredict = async () => {
+    const processImageAndPredict = async (js_or_leo) => {
         if (!canvasRef.current) {
             return;
         }
@@ -552,6 +555,8 @@ const Main = () => {
             console.log("fixed_point_scaling_factor", fixed_point_scaling_factor)
             const fixed_point_features = normalized_features.map((feature) => Math.round(feature * fixed_point_scaling_factor));
             console.log("fixed_point_features: ", fixed_point_features)
+
+            if(js_or_leo) {
     
             struct0_0.x0 = fixed_point_features[0];
             struct0_0.x1 = fixed_point_features[1];
@@ -624,8 +629,10 @@ const Main = () => {
 
             console.log("softmax_decision_tree", softmax_decision_tree)
             console.log("softmax_mlp", softmax_mlp)
-
-            await executeAleoCode(fixed_point_features);
+        }
+            if(!js_or_leo) {
+                await executeAleoCode(fixed_point_features);
+            }
           };
     };
 
@@ -661,9 +668,28 @@ const Main = () => {
             });
         }, intervalTime);
     };
+
+    const handleCanvasChange = () => {
+        setHasInteracted(true);
+        // Clear any existing timeout since drawing is still happening
+        if (drawTimeout) {
+          clearTimeout(drawTimeout);
+          setDrawTimeout(null);
+        }
+      
+        // Set a new timeout
+        const timeout = setTimeout(() => {
+            if (hasInteracted) {
+                console.log("Canvas drawing has paused");
+                processImageAndPredict(true);
+              }
+        }, 100); // 100ms after the last drawing event
+      
+        setDrawTimeout(timeout);
+      };
         
 
-    const handleCanvasDraw = async () => {
+    const generateProof = async () => {
         try {
             var selected_setting = menuItems[selectedKey - 1].label;
             proofText = "";
@@ -680,7 +706,7 @@ const Main = () => {
             var runs = run_counter[selected_setting][model_type];
             console.log("runs", runs)
             proving_finished = false;
-            processImageAndPredict();
+            processImageAndPredict(false);
             let expected_runtime;
             console.log("selected_setting", selected_setting)
             console.log("model_type", model_type)
@@ -827,6 +853,7 @@ const Main = () => {
                                     }}
                                     strokeWidth={brushSize}
                                     strokeColor="black"
+                                    onChange={handleCanvasChange}
                                 />
                             </Col>
                         </Row>
@@ -869,7 +896,7 @@ const Main = () => {
                         <Row justify="center" style={{ marginTop: "20px" }}>
                             <Col>
                                 <Space>
-                                <Button type="primary" onClick={handleCanvasDraw}>
+                                <Button type="primary" onClick={generateProof}>
                                     Generate Proof
                                </Button>
                                     <Button
