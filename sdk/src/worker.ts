@@ -34,7 +34,7 @@ async function executeOffline(
     proveExecution = false
 ) {
     console.log("Web worker: Executing function locally...");
-    let startTime = performance.now();
+    const startTime = performance.now();
 
     try {
         // Ensure the program is valid and that it contains the function specified
@@ -74,7 +74,7 @@ async function executeOffline(
         });
 
         // Execute the function locally
-        let response = await programManager.executeOffline(
+        const response = await programManager.executeOffline(
             localProgram,
             aleoFunction,
             inputs,
@@ -83,7 +83,7 @@ async function executeOffline(
             keyParams,
             undefined,
             undefined,
-            PrivateKey.from_string(privateKey)
+            PrivateKey.from_string(privateKey),
         );
 
         // Return the outputs to the main thread

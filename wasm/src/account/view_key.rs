@@ -15,8 +15,9 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{Address, PrivateKey};
-use crate::{record::RecordCiphertext, types::ViewKeyNative};
+use crate::record::RecordCiphertext;
 
+use crate::types::native::ViewKeyNative;
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 

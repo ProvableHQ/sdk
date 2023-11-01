@@ -14,33 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-mod macros;
+pub mod field;
+pub use field::*;
 
-pub mod execution;
-pub use execution::*;
-
-pub mod key_pair;
-pub use key_pair::*;
-
-#[cfg(feature = "browser")]
-pub mod manager;
-#[cfg(feature = "browser")]
-pub use manager::*;
-
-pub mod offline_query;
-pub use offline_query::*;
-
-pub mod program;
-pub use program::*;
-
-pub mod proving_key;
-pub use proving_key::*;
-
-pub mod response;
-pub use response::*;
-
-pub mod transaction;
-pub use transaction::*;
-
-pub mod verifying_key;
-pub use verifying_key::*;
+pub(crate) mod native;

@@ -5,6 +5,7 @@ import {
     ExecutionResponse,
     FunctionKeyProvider,
     FunctionKeyPair,
+    OfflineQuery,
     KeySearchParams,
     RecordPlaintext,
     RecordProvider,
@@ -205,6 +206,7 @@ class ProgramManager {
      * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<string | Error>}
      *
      * @example
@@ -233,6 +235,7 @@ class ProgramManager {
         provingKey?: ProvingKey,
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
+        offlineQuery?: OfflineQuery
     ): Promise<string | Error> {
         // Ensure the function exists on the network
         let program;
@@ -286,7 +289,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await WasmProgramManager.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -304,6 +307,7 @@ class ProgramManager {
      * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<string | Error>}
      *
      * @example
@@ -332,6 +336,7 @@ class ProgramManager {
         provingKey?: ProvingKey,
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
+        offlineQuery?: OfflineQuery,
     ): Promise<ExecutionResponse> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
@@ -356,7 +361,7 @@ class ProgramManager {
         console.log("Running program offline")
         console.log("Proving key: ", provingKey);
         console.log("Verifying key: ", verifyingKey);
-        return WasmProgramManager.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution, false, imports, provingKey, verifyingKey, this.host);
+        return WasmProgramManager.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution, false, imports, provingKey, verifyingKey, this.host, offlineQuery);
     }
 
     /**
@@ -370,6 +375,7 @@ class ProgramManager {
      * to pay the fee for the join transaction
      * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
      * @param {PrivateKey | undefined} privateKey Private key to use for the join transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<string | Error>}
      */
     async join(
@@ -379,7 +385,8 @@ class ProgramManager {
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams | undefined,
         feeRecord?: RecordPlaintext | string | undefined,
-        privateKey?: PrivateKey
+        privateKey?: PrivateKey,
+        offlineQuery?: OfflineQuery,
     ): Promise<string | Error> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
@@ -419,7 +426,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await WasmProgramManager.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -429,6 +436,7 @@ class ProgramManager {
      * @param {number} splitAmount Amount in microcredits to split from the original credits record
      * @param {RecordPlaintext | string} amountRecord Amount record to use for the split transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the split transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<string | Error>}
      *
      * @example
@@ -444,7 +452,7 @@ class ProgramManager {
      * const tx_id = await programManager.split(25000000, record);
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    async split(splitAmount: number, amountRecord: RecordPlaintext | string, privateKey?: PrivateKey): Promise<string | Error> {
+    async split(splitAmount: number, amountRecord: RecordPlaintext | string, privateKey?: PrivateKey, offlineQuery?: OfflineQuery): Promise<string | Error> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (typeof executionPrivateKey === "undefined" && typeof this.account !== "undefined") {
@@ -472,7 +480,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildSplitTransaction(executionPrivateKey, splitAmount, amountRecord, this.host, splitProvingKey, splitVerifyingKey);
+        const tx = await WasmProgramManager.buildSplitTransaction(executionPrivateKey, splitAmount, amountRecord, this.host, splitProvingKey, splitVerifyingKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -533,6 +541,7 @@ class ProgramManager {
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<string | Error>} The transaction id of the transfer transaction
      *
      * @example
@@ -548,8 +557,18 @@ class ProgramManager {
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    async transfer(amount: number, recipient: string, transferType: string, fee: number, privateFee: boolean,
-                   recordSearchParams?: RecordSearchParams, amountRecord?: RecordPlaintext | string, feeRecord?: RecordPlaintext | string, privateKey?: PrivateKey): Promise<string | Error> {
+    async transfer(
+        amount: number,
+        recipient: string,
+        transferType: string,
+        fee: number,
+        privateFee: boolean,
+        recordSearchParams?: RecordSearchParams,
+        amountRecord?: RecordPlaintext | string,
+        feeRecord?: RecordPlaintext | string,
+        privateKey?: PrivateKey,
+        offlineQuery?: OfflineQuery
+    ): Promise<string | Error> {
         // Validate the transfer type
         transferType = <string>validateTransferType(transferType);
 
@@ -592,7 +611,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey);
+        const tx = await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
 

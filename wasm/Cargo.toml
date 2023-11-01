@@ -50,6 +50,9 @@ features = [ "console", "fields", "utilities" ]
 [dependencies.anyhow]
 version = "1.0"
 
+[dependencies.async-trait]
+version = "0.1.68"
+
 [dependencies.getrandom]
 version = "0.2"
 features = [ "js" ]

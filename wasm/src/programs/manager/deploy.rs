@@ -16,24 +16,18 @@
 
 use super::*;
 
-use crate::{
-    execute_fee,
-    log,
-    types::{
-        CurrentAleo,
-        CurrentNetwork,
-        ProcessNative,
-        ProgramIDNative,
-        ProgramNative,
-        ProgramOwnerNative,
-        RecordPlaintextNative,
-        TransactionNative,
-    },
-    PrivateKey,
-    RecordPlaintext,
-    Transaction,
-};
+use crate::{execute_fee, log, OfflineQuery, PrivateKey, RecordPlaintext, Transaction};
 
+use crate::types::native::{
+    CurrentAleo,
+    CurrentNetwork,
+    ProcessNative,
+    ProgramIDNative,
+    ProgramNative,
+    ProgramOwnerNative,
+    RecordPlaintextNative,
+    TransactionNative,
+};
 use js_sys::Object;
 use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
@@ -68,6 +62,7 @@ impl ProgramManager {
         imports: Option<Object>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
+        offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
         // Convert fee to microcredits and check that the fee record has enough credits to pay it
@@ -114,7 +109,8 @@ impl ProgramManager {
             fee_proving_key,
             fee_verifying_key,
             deployment_id,
-            rng
+            rng,
+            offline_query
         );
 
         // Create the program owner
