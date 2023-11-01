@@ -119,7 +119,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    fn test_state_path_construction() {
+    async fn test_state_path_construction() {
         // Create an offline query
         let mut offline_query = OfflineQuery::new(STATE_ROOT).unwrap();
 
@@ -132,15 +132,25 @@ mod tests {
 
         // Construct the expected state path and expected state root
         let expected_state_path = StatePath::<CurrentNetwork>::from_str(RECORD_STATE_PATH).unwrap();
+        println!("expected_state_path: {:?}", expected_state_path.global_state_root().to_string());
         let expected_state_root = <CurrentNetwork as Network>::StateRoot::from_str(STATE_ROOT).unwrap();
 
         // Check that the state path can be retrieved from the query trait
         assert_eq!(
-            offline_query.get_state_path_for_commitment(&record_commitment.into()).unwrap(),
+            offline_query.get_state_path_for_commitment(&record_commitment.clone().into()).unwrap(),
             expected_state_path
+        );
+        assert_eq!(
+            offline_query
+                .get_state_path_for_commitment_async(&record_commitment.into())
+                .await
+                .unwrap()
+                .global_state_root(),
+            expected_state_root
         );
 
         // Check that the state root can be retrieved from the query trait
         assert_eq!(offline_query.current_state_root().unwrap(), expected_state_root);
+        assert_eq!(offline_query.current_state_root_async().await.unwrap(), expected_state_root);
     }
 }
