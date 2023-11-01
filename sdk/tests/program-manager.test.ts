@@ -35,4 +35,10 @@ describe('Program Manager', () => {
             expect(verified).toEqual(true);
         }, 420000);
     });
+
+    describe('Staking - Bond Public', () => {
+        it.skip('Should execute bondPublic', async () => {
+            // TODO
+        }, 420000);
+    });
 });

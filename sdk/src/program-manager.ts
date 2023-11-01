@@ -22,7 +22,6 @@ import {
 } from "./index";
 import {Execution} from "@aleohq/wasm/dist/crates/aleo_wasm";
 
-
 // TODO put this somewhere where it makes more sense
 interface ExecutionParams {
     programName?: string;
@@ -37,8 +36,7 @@ interface ExecutionParams {
     privateKey?: any;
 }
 interface OfflineParams {
-    state_path?: string;
-    state_root?: string;
+    offlineQuery?: OfflineQuery
 }
 interface Options {
     offlineParams?: OfflineParams;
@@ -637,16 +635,15 @@ class ProgramManager {
     }
 
     /**
-     * Bond Public
+     * Staking- Bond Public
      *
-     * @returns TODO
+     * @returns string
      * @param address
      * @param amount
-     * @param offline
      * @param options
      */
 
-    async bondPublic(address: string, amount: number, offline: boolean, options: Options = {}) {
+    async bondPublic(address: string, amount: number, options: Options = {}) {
         const {
             offlineParams = {},
             executionParams = {}
@@ -666,16 +663,77 @@ class ProgramManager {
         } = executionParams;
 
         const {
-            state_path,
-            state_root,
+            offlineQuery,
         } = offlineParams;
 
-        if (offline) {
-            // TODO add state_path and state_root to execution
-            return await this.execute(programName, functionName, fee, privateFee, [address, amount.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey);
-        } else {
-            return await this.execute(programName, functionName, fee, privateFee, [address, amount.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey);
-        }
+        return await this.execute(programName, functionName, fee, privateFee, [address, amount.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+    }
+
+    /**
+     * Staking - Unbound Public
+     *
+     * @returns string
+     * @param amount
+     * @param options
+     */
+
+    async unbondPublic(amount: number, options: Options = {}) {
+        const {
+            offlineParams = {},
+            executionParams = {}
+        } = options || {};
+
+        const {
+            programName = "unbond_public",
+            functionName = "bond_public",
+            fee = 1,
+            privateFee = false,
+            recordSearchParams,
+            keySearchParams,
+            feeRecord,
+            provingKey,
+            verifyingKey,
+            privateKey
+        } = executionParams;
+
+        const {
+            offlineQuery,
+        } = offlineParams;
+
+        return await this.execute(programName, functionName, fee, privateFee, [amount.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+    }
+
+    /**
+     * Staking - Claim Unbond Public
+     *
+     * @returns string
+     * @param options
+     */
+
+    async claimUnbondPublic(options: Options = {}) {
+        const {
+            offlineParams = {},
+            executionParams = {}
+        } = options || {};
+
+        const {
+            programName = "unbond_public",
+            functionName = "bond_public",
+            fee = 1,
+            privateFee = false,
+            recordSearchParams,
+            keySearchParams,
+            feeRecord,
+            provingKey,
+            verifyingKey,
+            privateKey
+        } = executionParams;
+
+        const {
+            offlineQuery,
+        } = offlineParams;
+
+        return await this.execute(programName, functionName, fee, privateFee, [], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
     }
 
 
