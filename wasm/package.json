@@ -1,6 +1,6 @@
 {
   "name": "@aleohq/wasm",
-  "version": "0.6.3",
+  "version": "0.6.6",
   "description": "Wasm build for the SDK",
   "collaborators": [
     "The Aleo Team <hello@aleo.org>"

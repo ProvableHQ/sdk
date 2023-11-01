@@ -289,12 +289,12 @@ class AleoKeyProvider implements FunctionKeyProvider {
             let proverUrl;
             let verifierUrl;
             let cacheKey;
-            if ("proverUrl" in params && typeof params["proverUrl"] == "string") {
-                proverUrl = params["proverUrl"];
+            if ("proverUri" in params && typeof params["proverUri"] == "string") {
+                proverUrl = params["proverUri"];
             }
 
-            if ("verifierUrl" in params && typeof params["verifierUrl"] == "string") {
-                verifierUrl = params["verifierUrl"];
+            if ("verifierUri" in params && typeof params["verifierUri"] == "string") {
+                verifierUrl = params["verifierUri"];
             }
 
             if ("cacheKey" in params && typeof params["cacheKey"] == "string") {
@@ -440,6 +440,10 @@ class AleoKeyProvider implements FunctionKeyProvider {
     // attempt to fetch it from the network
     async getVerifyingKey(verifierUrl: string): Promise<VerifyingKey | Error> {
         switch (verifierUrl) {
+            case CREDITS_PROGRAM_KEYS.bond_public.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.bond_public.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.claim_unbond_public.verifyingKey);
             case CREDITS_PROGRAM_KEYS.fee_private.verifier:
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.fee_private.verifyingKey);
             case CREDITS_PROGRAM_KEYS.fee_public.verifier:
@@ -458,6 +462,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public.verifyingKey);
             case CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier:
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.unbond_public.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.unbond_public.verifyingKey);
             default:
                 return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
         }
