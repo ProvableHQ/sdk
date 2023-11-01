@@ -24,7 +24,7 @@ import aleoLogo from "./assets/aleo.svg";
 import { AleoWorker } from "./workers/AleoWorker.js";
 import './Main.css';
 
-import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification } from './variables.js';
+import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification, run_JS_decision_tree_even_odd, run_JS_mlp_even_odd, run_JS_mlp_classification } from './variables.js';
 
 const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
@@ -596,7 +596,13 @@ const Main = () => {
             console.log("struct0_0", struct0_0)
 
             var result_JS = run_JS_decision_tree_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
+            var result_JS_even_odd = run_JS_decision_tree_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
+            var result_JS_mlp_even_odd = run_JS_mlp_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
+            var result_JS_mlp_classification = run_JS_mlp_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
             console.log("result JS", result_JS);
+            console.log("result_JS_even_odd", result_JS_even_odd)
+            console.log("result_JS_mlp_even_odd", result_JS_mlp_even_odd);
+            console.log("result_JS_mlp_classification", result_JS_mlp_classification);
 
             await executeAleoCode(fixed_point_features);
           };
