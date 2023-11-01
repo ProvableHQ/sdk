@@ -1,0 +1,19 @@
+{
+  "name": "node-ts-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "rimraf dist/js && rollup --config",
+    "start": "npm run build && node dist/index.js"
+  },
+  "dependencies": {
+    "@aleohq/sdk": "^0.6.0"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1",
+    "rollup": "^3.27.2",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "typescript": "^5.2.2"
+  }
+}

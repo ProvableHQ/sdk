@@ -1,14 +1,14 @@
 import {jest} from '@jest/globals'
 import {Account, Block, AleoNetworkClient, Transaction} from "../src/node";
-import {beaconPrivateKeyString} from "./data/account-data";
+import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data";
 import {log} from "console";
 jest.retryTimes(3);
 
-describe.skip('NodeConnection', () => {
+describe('NodeConnection', () => {
     let connection: AleoNetworkClient;
 
     beforeEach(() => {
-        connection = new AleoNetworkClient("https://vm.aleo.org/api");
+        connection = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
     });
 
     describe('setAccount', () => {
@@ -22,7 +22,7 @@ describe.skip('NodeConnection', () => {
     describe('getBlock', () => {
         it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as Block).block_hash).toEqual("ab1sj5ecvzuvpzev8s8ukx2l5wqzxetakt7wh6ck6fldxldecyugvyqa0jgm2");
+            expect((block as Block).block_hash).toEqual("ab1hap8jlxaz66yt887gxlgxptkm2y0dy72x529mq6pg3ysy9tzwyqsphva9c");
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
@@ -35,13 +35,27 @@ describe.skip('NodeConnection', () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
             expect((blockRange as Block[]).length).toBe(2);
-            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1n79nyqnxa76wpz40efqlq53artsw86wrez4tw9kn5xrpuc65xyxquh3wnw");
-            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1ywy38xs5c73s2q9v3mgyes5cup5wwtg8r2mlad0534zdmltadcrq9dpuw6");
+            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1hap8jlxaz66yt887gxlgxptkm2y0dy72x529mq6pg3ysy9tzwyqsphva9c");
+            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab18dzmjgqgk5z6x4gggezca7aenqts7289chvhus4a7ydrcj4apvrqq5j5h8");
 
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
             await expect(connection.getBlockRange(999999999, 1000000000)).rejects.toThrow('Error fetching blocks between 999999999 and 1000000000.');
+        }, 60000);
+    });
+
+    describe('getDeploymentTransactionForProgram', () => {
+        it('should return a Transaction object', async () => {
+            const transaction = await connection.getDeploymentTransactionForProgram('hello_hello.aleo');
+            expect((transaction as Transaction).type).toBe("deploy");
+        }, 60000);
+    });
+
+    describe('getDeploymentTransactionIDForProgram', () => {
+        it('should return a Transaction object', async () => {
+            const transaction = await connection.getDeploymentTransactionIDForProgram('hello_hello.aleo');
+            expect(typeof transaction).toBe('string');
         }, 60000);
     });
 
@@ -64,10 +78,10 @@ describe.skip('NodeConnection', () => {
         }, 60000);
     });
 
-    describe('getLatestHash', () => {
+    describe('getLatestCommittee', () => {
         it('should return a string', async () => {
-            const latestHash = await connection.getLatestHash();
-            expect(typeof latestHash).toBe('string');
+            const latestCommittee = await connection.getLatestCommittee();
+            expect(typeof latestCommittee).toBe('object');
         }, 60000);
     });
 
@@ -78,7 +92,6 @@ describe.skip('NodeConnection', () => {
         }, 60000);
     });
 
-
     describe('getStateRoot', () => {
         it('should return a string', async () => {
             const stateRoot = await connection.getStateRoot();
@@ -88,12 +101,8 @@ describe.skip('NodeConnection', () => {
 
     describe('getTransaction', () => {
         it('should return a Transaction object', async () => {
-            const transaction = await connection.getTransaction('at1ps9rynpue84asfhswp305fzytdy3a99w3yrml2zgg84d7p32wuxq4mq9cc');
-            expect((transaction as Transaction).type).toBe("execute");
-        }, 60000);
-
-        it('should throw an error if the request fails', async () => {
-            await expect(connection.getTransaction('nonexistentid')).rejects.toThrow('Error fetching transaction.');
+            const transaction = await connection.getTransaction('at1u833jaha7gtqk7vx0yczcg2njds2tj52lyg54c7zyylgfjvc4vpqn8gqqx');
+            expect((transaction as Transaction).type).toBe("deploy");
         }, 60000);
     });
 
@@ -109,39 +118,10 @@ describe.skip('NodeConnection', () => {
         }, 60000);
     });
 
-    describe('getTransitionId', () => {
-        it('should return a transition id', async () => {
-            const transition = await connection.getTransitionId('5933570015305968530125784572086807293992783852506506765106247734494477879199field')
-            expect(typeof transition).toBe('string');
-        }, 60000);
-
-        it('should throw an error if the request fails', async () => {
-            await expect(connection.getTransitionId("garbage")).rejects.toThrow("Error fetching transition ID.");
-        }, 60000);
-    });
-
-    describe('findUnspentRecords', () => {
-        it('should fail if block heights or private keys are incorrectly specified', async () => {
-            await expect(connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
-            await expect(connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
-            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, [])).rejects.toThrow();
-            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined, [])).rejects.toThrow();
-        }, 60000);
-
-        it('should search a range correctly and not find records where none exist', async () => {
-            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
-            expect(Array.isArray(records)).toBe(true);
-            if (!(records instanceof Error)) {
-                expect(records.length).toBe(0);
-            }
-        }, 90000);
-
-    });
-
     describe('getProgramImports', () => {
-        it.skip('should return the correct program import names', async () => {
-            const importNames = await connection.getProgramImportNames("imported_add_mul.aleo");
-            const expectedNames = ["double_test.aleo", "addition_test.aleo"];
+        it('should return the correct program import names', async () => {
+            const importNames = await connection.getProgramImportNames("aleoswap05.aleo");
+            const expectedNames = ["credits.aleo"];
             expect(importNames).toEqual(expectedNames);
 
             const creditImports = await connection.getProgramImportNames("credits.aleo");
@@ -176,6 +156,36 @@ describe.skip('NodeConnection', () => {
                     '    output r2 as u32.private;\n'
             };
             expect(imports).toEqual(expectedImports);
+        }, 60000);
+    });
+
+    describe('findUnspentRecords', () => {
+        it('should fail if block heights or private keys are incorrectly specified', async () => {
+            await expect(connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, [])).rejects.toThrow();
+            await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined, [])).rejects.toThrow();
+        }, 60000);
+
+        it('should search a range correctly and not find records where none exist', async () => {
+            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
+            expect(Array.isArray(records)).toBe(true);
+            if (!(records instanceof Error)) {
+                expect(records.length).toBe(0);
+            }
+        }, 90000);
+    });
+
+    describe('Mappings', () => {
+        it('should find program mappings and read mappings', async () => {
+            const mappings = await connection.getProgramMappingNames("credits.aleo");
+            if (!(mappings instanceof Error)) {
+                expect(mappings).toEqual(["committee", "bonded", "unbonding", "account"]);
+            }
+            const mappingValue = await connection.getProgramMappingValue("credits.aleo", "account", "aleo1rlwt9w0fl242h40w454m68vttd6vm4lmetu5r57unm5g354y9yzsyexf0y");
+            if (!(mappingValue instanceof Error)) {
+                expect(mappingValue).toBeTruthy()
+            }
         }, 60000);
     });
 });

@@ -2,7 +2,7 @@ import {AleoKeyProvider, CachedKeyPair, CREDITS_PROGRAM_KEYS, FunctionKeyPair, P
 import {jest} from '@jest/globals'
 jest.retryTimes(3);
 
-describe.skip('KeyProvider', () => {
+describe('KeyProvider', () => {
     let keyProvider: AleoKeyProvider;
 
     beforeEach(() => {

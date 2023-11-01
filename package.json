@@ -1,4 +1,4 @@
-{
+ {
   "name": "sdk-root",
   "private": true,
   "version": "0.0.0",
@@ -13,6 +13,8 @@
     "build:wasm": "cd wasm && yarn build",
     "build:sdk": "cd sdk && yarn build",
     "build:all": "yarn build:wasm && yarn build:sdk",
+
+    "start:website": "cd website && yarn dev",
 
     "test:wasm": "cd wasm && yarn test",
     "test:sdk": "cd sdk && yarn test",

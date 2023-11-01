@@ -18,7 +18,6 @@ use super::*;
 
 use crate::{
     execute_fee,
-    get_process,
     log,
     types::{
         CurrentAleo,
@@ -52,7 +51,6 @@ impl ProgramManager {
     /// @param fee_credits The amount of credits to pay as a fee
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
-    /// @param cache Cache the synthesized keys for future use
     /// @param imports (optional) Provide a list of imports to use for the program deployment in the
     /// form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
@@ -62,13 +60,11 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = buildDeploymentTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn deploy(
-        &mut self,
-        private_key: PrivateKey,
-        program: String,
+        private_key: &PrivateKey,
+        program: &str,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
-        url: String,
-        cache: bool,
+        url: Option<String>,
         imports: Option<Object>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
@@ -80,17 +76,18 @@ impl ProgramManager {
             None => (fee_credits * 1_000_000.0) as u64,
         };
 
-        let mut new_process;
-        let process = get_process!(self, cache, new_process);
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
 
         log("Checking program has a valid name");
-        let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
+        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
 
         log("Checking program imports are valid and add them to the process");
         ProgramManager::resolve_imports(process, &program, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let deployment = process.deploy::<CurrentAleo, _>(&program, rng).map_err(|err| err.to_string())?;
         if deployment.program().functions().is_empty() {
             return Err("Attempted to create an empty transaction deployment".to_string());
@@ -110,10 +107,10 @@ impl ProgramManager {
 
         let fee = execute_fee!(
             process,
-            &private_key,
+            private_key,
             fee_record,
             fee_microcredits,
-            url,
+            node_url,
             fee_proving_key,
             fee_verifying_key,
             deployment_id,
@@ -121,7 +118,7 @@ impl ProgramManager {
         );
 
         // Create the program owner
-        let owner = ProgramOwnerNative::new(&private_key, deployment_id, &mut StdRng::from_entropy())
+        let owner = ProgramOwnerNative::new(private_key, deployment_id, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
 
         log("Verifying the deployment and fees");
@@ -140,26 +137,20 @@ impl ProgramManager {
     /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
     ///
     /// @param program The source code of the program being deployed
-    /// @param cache Cache the synthesized keys for future use
     /// @param imports (optional) Provide a list of imports to use for the deployment fee estimation
     /// in the form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @returns {u64 | Error}
     #[wasm_bindgen(js_name = estimateDeploymentFee)]
-    pub async fn estimate_deployment_fee(
-        &mut self,
-        program: String,
-        cache: bool,
-        imports: Option<Object>,
-    ) -> Result<u64, String> {
+    pub async fn estimate_deployment_fee(program: &str, imports: Option<Object>) -> Result<u64, String> {
         log(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
         );
-        let mut new_process;
-        let process = get_process!(self, cache, new_process);
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
 
         log("Check program has a valid name");
-        let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
+        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
 
         log("Check program imports are valid and add them to the process");
         ProgramManager::resolve_imports(process, &program, imports)?;
@@ -187,7 +178,7 @@ impl ProgramManager {
     /// @param name The name of the program to be deployed
     /// @returns {u64 | Error}
     #[wasm_bindgen(js_name = estimateProgramNameCost)]
-    pub fn program_name_cost(&self, name: &str) -> Result<u64, String> {
+    pub fn program_name_cost(name: &str) -> Result<u64, String> {
         log(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
         );

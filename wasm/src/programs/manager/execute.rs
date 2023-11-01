@@ -20,8 +20,8 @@ use core::ops::Add;
 use crate::{
     execute_fee,
     execute_program,
-    get_process,
     log,
+    process_inputs,
     types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative, TransactionNative},
     ExecutionResponse,
     PrivateKey,
@@ -44,11 +44,10 @@ impl ProgramManager {
     /// @param {boolean} prove_execution If true, the execution will be proven and an execution object
     /// containing the proof and the encrypted inputs and outputs needed to verify the proof offline
     /// will be returned.
-    /// @param {boolean} cache Cache the proving and verifying keys in the ProgramManager's memory.
-    /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
-    /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
-    /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
-    /// keys will be deallocated from memory after the transaction is executed.
+    /// @param {boolean} cache Cache the proving and verifying keys in the Execution response.
+    /// If this is set to 'true' the keys synthesized will be stored in the Execution Response
+    /// and the `ProvingKey` and `VerifyingKey` can be retrieved from the response via the `.getKeys()`
+    /// method.
     /// @param {Object | undefined} imports (optional) Provide a list of imports to use for the function execution in the
     /// form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
@@ -57,44 +56,58 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = executeFunctionOffline)]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute_function_offline(
-        &mut self,
-        private_key: PrivateKey,
-        program: String,
-        function: String,
+        private_key: &PrivateKey,
+        program: &str,
+        function: &str,
         inputs: Array,
         prove_execution: bool,
         cache: bool,
         imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
+        url: Option<String>,
     ) -> Result<ExecutionResponse, String> {
         log(&format!("Executing local function: {function}"));
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let inputs = inputs.to_vec();
         let rng = &mut StdRng::from_entropy();
 
-        let mut new_process;
-        let process: &mut ProcessNative = get_process!(self, cache, new_process);
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
 
         log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
 
-        let (response, mut trace) =
-            execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key, rng);
+        let (response, mut trace) = execute_program!(
+            process,
+            process_inputs!(inputs),
+            program,
+            function,
+            private_key,
+            proving_key,
+            verifying_key,
+            rng
+        );
 
-        if prove_execution {
+        let mut execution_response = if prove_execution {
             log("Preparing inclusion proofs for execution");
-            let query = QueryNative::from("https://vm.aleo.org/api");
+            let query = QueryNative::from(node_url);
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
             log("Proving execution");
-            let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
-            let locator = program.id().to_string().add("/").add(&function);
+            let locator = program_native.id().to_string().add("/").add(function);
             let execution = trace.prove_execution::<CurrentAleo, _>(&locator, rng).map_err(|e| e.to_string())?;
-            Ok(ExecutionResponse::from((response, execution)))
+            ExecutionResponse::new(Some(execution), function, response, process, program)?
         } else {
-            Ok(ExecutionResponse::from(response))
+            ExecutionResponse::new(None, function, response, process, program)?
+        };
+
+        if cache {
+            execution_response.add_proving_key(process, function, program_native.id())?;
         }
+
+        Ok(execution_response)
     }
 
     /// Execute Aleo function and create an Aleo execution transaction
@@ -106,7 +119,6 @@ impl ProgramManager {
     /// @param fee_credits The amount of credits to pay as a fee
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
-    /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
     /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
     /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
     /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
@@ -122,15 +134,13 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = buildExecutionTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute(
-        &mut self,
-        private_key: PrivateKey,
-        program: String,
-        function: String,
+        private_key: &PrivateKey,
+        program: &str,
+        function: &str,
         inputs: Array,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
-        url: String,
-        cache: bool,
+        url: Option<String>,
         imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
@@ -142,26 +152,34 @@ impl ProgramManager {
             Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
             None => (fee_credits * 1_000_000.0) as u64,
         };
-
-        let mut new_process;
-        let process = get_process!(self, cache, new_process);
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
 
         log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         log("Executing program");
-        let (_, mut trace) =
-            execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key, rng);
+        let (_, mut trace) = execute_program!(
+            process,
+            process_inputs!(inputs),
+            program,
+            function,
+            private_key,
+            proving_key,
+            verifying_key,
+            rng
+        );
 
         log("Preparing inclusion proofs for execution");
-        let query = QueryNative::from(&url);
+        let query = QueryNative::from(node_url);
         trace.prepare_async(query).await.map_err(|err| err.to_string())?;
 
         log("Proving execution");
-        let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
-        let locator = program.id().to_string().add("/").add(&function);
+        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
+        let locator = program.id().to_string().add("/").add(function);
         let execution = trace
             .prove_execution::<CurrentAleo, _>(&locator, &mut StdRng::from_entropy())
             .map_err(|e| e.to_string())?;
@@ -170,10 +188,10 @@ impl ProgramManager {
         log("Executing fee");
         let fee = execute_fee!(
             process,
-            &private_key,
+            private_key,
             fee_record,
             fee_microcredits,
-            url,
+            node_url,
             fee_proving_key,
             fee_verifying_key,
             execution_id,
@@ -199,7 +217,6 @@ impl ProgramManager {
     /// @param function The name of the function to execute
     /// @param inputs A javascript array of inputs to the function
     /// @param url The url of the Aleo network node to send the transaction to
-    /// @param cache Cache the proving and verifying keys in the ProgramManager's memory.
     /// @param imports (optional) Provide a list of imports to use for the fee estimation in the
     /// form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
@@ -209,13 +226,11 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = estimateExecutionFee)]
     #[allow(clippy::too_many_arguments)]
     pub async fn estimate_execution_fee(
-        &mut self,
-        private_key: PrivateKey,
-        program: String,
-        function: String,
+        private_key: &PrivateKey,
+        program: &str,
+        function: &str,
         inputs: Array,
-        url: String,
-        cache: bool,
+        url: Option<String>,
         imports: Option<Object>,
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
@@ -224,24 +239,32 @@ impl ProgramManager {
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
         );
         log(&format!("Executing local function: {function}"));
-        let inputs = inputs.to_vec();
 
-        let mut new_process;
-        let process: &mut ProcessNative = get_process!(self, cache, new_process);
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
 
         log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(&program).map_err(|e| e.to_string())?;
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         log("Generating execution trace");
-        let (_, mut trace) =
-            execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key, rng);
+        let (_, mut trace) = execute_program!(
+            process,
+            process_inputs!(inputs),
+            program,
+            function,
+            private_key,
+            proving_key,
+            verifying_key,
+            rng
+        );
 
         // Execute the program
-        let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
-        let locator = program.id().to_string().add("/").add(&function);
-        let query = QueryNative::from(&url);
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
+        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
+        let locator = program.id().to_string().add("/").add(function);
+        let query = QueryNative::from(node_url);
         trace.prepare_async(query).await.map_err(|err| err.to_string())?;
         let execution = trace.prove_execution::<CurrentAleo, _>(&locator, rng).map_err(|e| e.to_string())?;
 
@@ -282,12 +305,12 @@ impl ProgramManager {
     /// @param function The function to estimate the finalize fee for
     /// @returns {u64 | Error} Fee in microcredits
     #[wasm_bindgen(js_name = estimateFinalizeFee)]
-    pub fn estimate_finalize_fee(&self, program: String, function: String) -> Result<u64, String> {
+    pub fn estimate_finalize_fee(program: &str, function: &str) -> Result<u64, String> {
         log(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
         );
-        let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
-        let function_id = IdentifierNative::from_str(&function).map_err(|err| err.to_string())?;
+        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
+        let function_id = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
         match program.get_function(&function_id).map_err(|err| err.to_string())?.finalize_logic() {
             Some(finalize) => cost_in_microcredits(finalize).map_err(|e| e.to_string()),
             None => Ok(0u64),
