@@ -1,6 +1,7 @@
-# React + Aleo
+# React + Aleo + Managed Worker
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/fork/github/AleoHQ/sdk/tree/testnet3/create-aleo-app/template-react)
+> [!NOTE]  
+> This is an experimental template not recommended for use
 
 This template provides a minimal setup to get React and Aleo working in Vite with HMR and some ESLint rules.
 
