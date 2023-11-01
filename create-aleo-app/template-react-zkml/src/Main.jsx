@@ -65,94 +65,72 @@ const Main = () => {
     const [account, setAccount] = useState(null);
     const [selectedKey, setSelectedKey] = useState("1");
 
+
+    function computeSoftmax(values, scalingFactor = 1) {
+        const scaledValues = values.map(v => v / scalingFactor);
+        const maxVal = Math.max(...scaledValues);
+        const expValues = scaledValues.map(v => Math.exp(v - maxVal)); // subtract max for numerical stability
+        const sumExpValues = expValues.reduce((acc, v) => acc + v, 0);
+        const softmax = expValues.map(v => v / sumExpValues);
+        return softmax;
+    }
+    
     function convert_proof_to_softmax(executionResponse) {
-
-        // convert executionResponse to JSON
         const executionResponse_JSON = JSON.parse(executionResponse);
-
-        console.log("executionResponse_JSON", executionResponse_JSON)
-
+        console.log("executionResponse_JSON", executionResponse_JSON);
+    
         let used_model;
         let used_mode;
-
+    
         const program = executionResponse_JSON["program"];
         
-        // compare program string to decision_tree_program and decision_tree_program_even_odd
-        if(executionResponse_JSON["program"].includes("tree_mnist_1.aleo")) {
-            used_mode = "2" // classification
+        if (program.includes("tree_mnist_1.aleo")) {
+            used_mode = "2"; // classification
             used_model = "tree";
-        }
-        if(executionResponse_JSON["program"].includes("tree_mnist_2.aleo")) {
-            used_mode = "1" // even/odd
+        } else if (program.includes("tree_mnist_2.aleo")) {
+            used_mode = "1"; // even/odd
             used_model = "tree";
-        }
-        if(executionResponse_JSON["program"].includes("sklearn_mlp_mnist_1.aleo")) {
-            used_mode = "2" // classification
+        } else if (program.includes("sklearn_mlp_mnist_1.aleo")) {
+            used_mode = "2"; // classification
+            used_model = "mlp";
+        } else if (program.includes("sklearn_mlp_mnist_2.aleo")) {
+            used_mode = "1"; // even/odd
             used_model = "mlp";
         }
-        if(executionResponse_JSON["program"].includes("sklearn_mlp_mnist_2.aleo")) {
-            used_mode = "1" // even/odd
-            used_model = "mlp";
-        }
-
+    
         let num_softmax_elements;
-        if(used_mode == "1") {
+        if (used_mode === "1") {
             num_softmax_elements = 2;
-        }
-        else if(used_mode == "2") {
+        } else if (used_mode === "2") {
             num_softmax_elements = 10;
         }
-
+    
         console.log("used_model", used_model, "used_mode", used_mode, "num_softmax_elements", num_softmax_elements);
-
+    
         let output_fixed_point_scaling_factor;
-
-        if(used_model == "tree") {
+    
+        if (used_model === "tree") {
             output_fixed_point_scaling_factor = fixed_point_scaling_factor;
+        } else if (used_model === "mlp") {
+            output_fixed_point_scaling_factor = fixed_point_scaling_factor ** 3;
         }
-        else if(used_model == "mlp") {
-            output_fixed_point_scaling_factor = fixed_point_scaling_factor**3;
-        }
-
-        // empty array
-        var converted_features = [];
-
-        let outputs_JSON = executionResponse_JSON["execution"]["transitions"][0]["outputs"];
-
-        // iterate over result. For each entry, remove int_type, convert to a number, and divide by the scaling factor
-        for (let i = 0; i < outputs_JSON.length; i++) {
-            var output = String(outputs_JSON[i]["value"]).replace(int_type, "");
-            //console.log("output", output)
-            output = Number(output);
-            output = output / output_fixed_point_scaling_factor;
-            converted_features.push(output);
-        }
-
-        console.log("converted_features", converted_features)
-
-        let softmax = [];
-        if(used_model == "mlp") {
-            const argmax_index = converted_features.indexOf(Math.max(...converted_features));
-            console.log("argmax_index", argmax_index);
-
-            // compute softmax of converted_features
-            softmax = [];
-            var sum = 0;
-            for (let i = 0; i < converted_features.length; i++) {
-                softmax.push(Math.exp(converted_features[i]));
-                sum += Math.exp(converted_features[i]);
-            }
-            for (let i = 0; i < converted_features.length; i++) {
-                softmax[i] = softmax[i] / sum;
-            }
-        }
-        if(used_model == "tree") {
-            // create 10 element array with 0s, but 1 at the index of converted_features[0]
-            softmax = Array.from({ length: num_softmax_elements }, (_, i) => 0);
+    
+        const outputs_JSON = executionResponse_JSON["execution"]["transitions"][0]["outputs"];
+        const converted_features = outputs_JSON.map(output => {
+            const outputNum = Number(String(output["value"]).replace(int_type, ""));
+            return outputNum / output_fixed_point_scaling_factor;
+        });
+    
+        console.log("converted_features", converted_features);
+    
+        let softmax;
+        if (used_model === "mlp") {
+            softmax = computeSoftmax(converted_features, 1);
+        } else if (used_model === "tree") {
+            softmax = Array(num_softmax_elements).fill(0);
             softmax[converted_features[0]] = 1;
-            console.log("converted_features[0]", converted_features[0])
         }
-
+    
         return softmax;
     }
 
@@ -595,14 +573,25 @@ const Main = () => {
 
             console.log("struct0_0", struct0_0)
 
-            var result_JS = run_JS_decision_tree_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
-            var result_JS_even_odd = run_JS_decision_tree_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
-            var result_JS_mlp_even_odd = run_JS_mlp_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
-            var result_JS_mlp_classification = run_JS_mlp_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
-            console.log("result JS", result_JS);
-            console.log("result_JS_even_odd", result_JS_even_odd)
-            console.log("result_JS_mlp_even_odd", result_JS_mlp_even_odd);
-            console.log("result_JS_mlp_classification", result_JS_mlp_classification);
+            let result_JS_decision_tree;
+            let result_JS_mlp;
+
+            if(selectedKey == "1") {
+                // even/odd
+                result_JS_decision_tree = run_JS_decision_tree_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
+                result_JS_mlp = run_JS_mlp_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
+            }
+            else if(selectedKey == "2") {
+                // classification
+                result_JS_decision_tree = run_JS_decision_tree_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
+                result_JS_mlp = run_JS_mlp_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
+            }
+
+            var softmax_decision_tree = computeSoftmax([result_JS_decision_tree], 16);
+            var softmax_mlp = computeSoftmax(result_JS_mlp, 16**3);
+
+            console.log("softmax_decision_tree", softmax_decision_tree)
+            console.log("softmax_mlp", softmax_mlp)
 
             await executeAleoCode(fixed_point_features);
           };
