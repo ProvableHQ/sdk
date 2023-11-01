@@ -824,13 +824,9 @@ const Main = () => {
                                 Welcome to the Aleo zkml MNIST app
                             </Title>
                             <Paragraph>
-                                First, draw an image and create proof … Second,
-                                verify the proof …
-                                <br />
-    <Select defaultValue="decision_tree" style={{ width: 330, marginTop: 16 }} onChange={(value) => model_type = value}>
-        <Option value="decision_tree">Decision tree (faster)</Option>
-        <Option value="mlp_neural_network">MLP neural network (slower, more accurate)</Option>
-    </Select>
+                                First, draw an image, select your ML model, and create proof. Second,
+                                verify the proof.
+
 
                             </Paragraph>
                         </Col>
@@ -896,7 +892,21 @@ const Main = () => {
                             </Col>
                         </Row>
 
+
                         <Row justify="center" style={{ marginTop: "20px" }}>
+
+                        <Select defaultValue="decision_tree" style={{ width: 330, marginTop: 16 }} onChange={(value) => model_type = value}>
+        <Option value="decision_tree">Decision tree (faster)</Option>
+        <Option value="mlp_neural_network">MLP neural network (slower, more accurate)</Option>
+    </Select>
+    
+                        </Row>
+
+
+                        <Row justify="center" style={{ marginTop: "20px" }}>
+
+
+
                             <Col>
                                 <Space>
                                 <Button type="primary" onClick={generateProof}>
