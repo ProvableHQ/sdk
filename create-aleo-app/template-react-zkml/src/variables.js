@@ -32,4 +32,2058 @@ const expected_runtimes = {
     },
 }
 
-export { mlp_program, decision_tree_program, decision_tree_program_even_odd, sample_inputs, mlp_program_even_odd, test_imageData, expected_runtimes };
+function run_JS_decision_tree_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15){
+    if(struct0_15.x0 <= -2){
+        if(struct0_14.x0 <= -19){
+            if(struct0_1.x0 <= 4){
+                if(struct0_14.x0 <= -23){
+                    if(struct0_4.x0 <= 14){
+                        if(struct0_3.x1 <= 9){
+                            if(struct0_10.x0 <= -10){
+                                if(struct0_0.x0 <= -3){
+                                    return 96;
+                                }
+                                else {
+                                    if(struct0_5.x0 <= 20){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_6.x0 <= -23){
+                                    if(struct0_4.x0 <= 6){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x0 <= 25){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_5.x0 <= 10){
+                                return 64;
+                            }
+                            else {
+                                return 16;
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_10.x0 <= -6){
+                            if(struct0_0.x0 <= -8){
+                                if(struct0_13.x0 <= -13){
+                                    return 80;
+                                }
+                                else {
+                                    return 144;
+                                }
+                            }
+                            else {
+                                return 48;
+                            }
+                        }
+                        else {
+                            if(struct0_2.x1 <= -2){
+                                if(struct0_1.x0 <= -23){
+                                    return 16;
+                                }
+                                else {
+                                    return 144;
+                                }
+                            }
+                            else {
+                                if(struct0_1.x0 <= -4){
+                                    if(struct0_3.x0 <= 30){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                                else {
+                                    return 48;
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    if(struct0_1.x1 <= -6){
+                        if(struct0_0.x0 <= 3){
+                            if(struct0_0.x1 <= 13){
+                                if(struct0_10.x0 <= -10){
+                                    if(struct0_2.x0 <= 5){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_6.x0 <= -3){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                            }
+                            else {
+                                return 64;
+                            }
+                        }
+                        else {
+                            if(struct0_8.x0 <= -3){
+                                if(struct0_4.x0 <= 3){
+                                    if(struct0_13.x0 <= 5){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    return 48;
+                                }
+                            }
+                            else {
+                                if(struct0_1.x1 <= -8){
+                                    return 112;
+                                }
+                                else {
+                                    return 32;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_2.x1 <= -10){
+                            if(struct0_2.x0 <= -6){
+                                if(struct0_0.x0 <= 1){
+                                    if(struct0_3.x0 <= -15){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                                else {
+                                    if(struct0_1.x1 <= 6){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_0.x1 <= 16){
+                                    if(struct0_0.x1 <= -8){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                                else {
+                                    return 64;
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_10.x0 <= 7){
+                                if(struct0_5.x0 <= 8){
+                                    if(struct0_0.x0 <= 1){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= 0){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_4.x0 <= -8){
+                                    if(struct0_4.x0 <= -18){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                                else {
+                                    if(struct0_12.x0 <= 22){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                if(struct0_2.x1 <= -8){
+                    if(struct0_0.x0 <= 6){
+                        if(struct0_8.x0 <= 1){
+                            if(struct0_1.x0 <= 7){
+                                if(struct0_5.x0 <= -10){
+                                    return 16;
+                                }
+                                else {
+                                    if(struct0_1.x1 <= -1){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_12.x0 <= -3){
+                                    return 32;
+                                }
+                                else {
+                                    return 112;
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_1.x1 <= 13){
+                                return 144;
+                            }
+                            else {
+                                if(struct0_10.x0 <= 5){
+                                    return 144;
+                                }
+                                else {
+                                    return 64;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_0.x1 <= -1){
+                            if(struct0_13.x0 <= -8){
+                                if(struct0_0.x1 <= -15){
+                                    return 112;
+                                }
+                                else {
+                                    return 48;
+                                }
+                            }
+                            else {
+                                if(struct0_12.x0 <= -3){
+                                    return 32;
+                                }
+                                else {
+                                    if(struct0_4.x0 <= -17){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_14.x0 <= -34){
+                                return 16;
+                            }
+                            else {
+                                if(struct0_2.x0 <= 14){
+                                    if(struct0_12.x0 <= -14){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                                else {
+                                    if(struct0_6.x0 <= 1){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    if(struct0_6.x0 <= -5){
+                        if(struct0_3.x0 <= 4){
+                            if(struct0_10.x0 <= -2){
+                                if(struct0_1.x1 <= 0){
+                                    return 48;
+                                }
+                                else {
+                                    return 96;
+                                }
+                            }
+                            else {
+                                if(struct0_11.x0 <= -13){
+                                    if(struct0_3.x0 <= 0){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x1 <= -6){
+                                        return 64;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_2.x1 <= 9){
+                                if(struct0_12.x0 <= 8){
+                                    return 80;
+                                }
+                                else {
+                                    return 64;
+                                }
+                            }
+                            else {
+                                if(struct0_7.x0 <= 9){
+                                    return 48;
+                                }
+                                else {
+                                    return 16;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_14.x0 <= -23){
+                            if(struct0_6.x0 <= 8){
+                                if(struct0_10.x0 <= -14){
+                                    if(struct0_13.x0 <= -21){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                                else {
+                                    if(struct0_1.x0 <= 17){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_1.x1 <= -13){
+                                    return 112;
+                                }
+                                else {
+                                    if(struct0_12.x0 <= -6){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_12.x0 <= 0){
+                                if(struct0_11.x0 <= 7){
+                                    if(struct0_11.x0 <= -13){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= 0){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_5.x0 <= 4){
+                                    if(struct0_10.x0 <= -5){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x1 <= 4){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            if(struct0_0.x0 <= 3){
+                if(struct0_8.x0 <= 11){
+                    if(struct0_3.x0 <= -10){
+                        if(struct0_6.x0 <= 7){
+                            if(struct0_0.x0 <= -1){
+                                if(struct0_2.x1 <= -3){
+                                    if(struct0_2.x1 <= -8){
+                                        return 64;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_14.x0 <= 16){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_1.x0 <= -8){
+                                    if(struct0_0.x1 <= 12){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                                else {
+                                    if(struct0_4.x0 <= -21){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_10.x0 <= 1){
+                                if(struct0_1.x1 <= -20){
+                                    if(struct0_3.x0 <= -18){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                                else {
+                                    if(struct0_7.x0 <= 6){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_1.x0 <= -13){
+                                    if(struct0_1.x1 <= -7){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x1 <= 19){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_2.x0 <= 15){
+                            if(struct0_10.x0 <= -3){
+                                if(struct0_1.x1 <= -4){
+                                    if(struct0_7.x0 <= 12){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= 7){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_2.x0 <= -9){
+                                    if(struct0_3.x0 <= 1){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= 8){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_2.x1 <= -10){
+                                if(struct0_8.x0 <= -20){
+                                    if(struct0_9.x0 <= 20){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= 7){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_10.x0 <= -16){
+                                    if(struct0_3.x0 <= 5){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_6.x0 <= 10){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    if(struct0_2.x0 <= 2){
+                        if(struct0_12.x0 <= -1){
+                            if(struct0_2.x1 <= -10){
+                                if(struct0_6.x0 <= 30){
+                                    if(struct0_12.x0 <= -1){
+                                        return 64;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                                else {
+                                    return 128;
+                                }
+                            }
+                            else {
+                                if(struct0_5.x0 <= -2){
+                                    if(struct0_1.x0 <= -2){
+                                        return 64;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                                else {
+                                    if(struct0_10.x0 <= 1){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_6.x0 <= -39){
+                                if(struct0_10.x0 <= 30){
+                                    return 96;
+                                }
+                                else {
+                                    if(struct0_3.x0 <= -38){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_1.x0 <= 14){
+                                    if(struct0_3.x0 <= -43){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                                else {
+                                    if(struct0_7.x0 <= -26){
+                                        return 64;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_2.x1 <= -6){
+                            if(struct0_10.x0 <= 5){
+                                if(struct0_10.x0 <= -14){
+                                    if(struct0_13.x0 <= -6){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x1 <= 6){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_3.x0 <= -24){
+                                    if(struct0_1.x1 <= 3){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                                else {
+                                    if(struct0_1.x0 <= -2){
+                                        return 64;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_2.x1 <= 10){
+                                if(struct0_1.x1 <= 1){
+                                    if(struct0_5.x0 <= -1){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= -16){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_3.x0 <= 0){
+                                    if(struct0_6.x0 <= 1){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                                else {
+                                    if(struct0_7.x0 <= 7){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                if(struct0_4.x0 <= 6){
+                    if(struct0_12.x0 <= -10){
+                        if(struct0_3.x0 <= 0){
+                            if(struct0_3.x1 <= 10){
+                                if(struct0_12.x0 <= -17){
+                                    if(struct0_14.x0 <= -5){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_13.x0 <= -3){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_5.x0 <= 3){
+                                    if(struct0_2.x1 <= 11){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x0 <= -1){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_9.x0 <= 8){
+                                if(struct0_6.x0 <= -15){
+                                    if(struct0_1.x0 <= 9){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_13.x0 <= -6){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_8.x0 <= -1){
+                                    if(struct0_6.x0 <= -5){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_4.x0 <= 5){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_6.x0 <= -7){
+                            if(struct0_11.x0 <= -10){
+                                if(struct0_11.x0 <= -22){
+                                    if(struct0_9.x0 <= 10){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                                else {
+                                    if(struct0_12.x0 <= 14){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_4.x0 <= -8){
+                                    if(struct0_8.x0 <= 8){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_1.x1 <= 1){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_0.x1 <= 1){
+                                if(struct0_11.x0 <= 2){
+                                    if(struct0_1.x0 <= 21){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                                else {
+                                    if(struct0_6.x0 <= 1){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_0.x0 <= 11){
+                                    if(struct0_3.x0 <= 3){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                                else {
+                                    if(struct0_5.x0 <= 9){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    if(struct0_5.x0 <= 1){
+                        if(struct0_10.x0 <= 0){
+                            if(struct0_1.x1 <= 0){
+                                if(struct0_7.x0 <= 17){
+                                    if(struct0_3.x1 <= 30){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_12.x0 <= -24){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_2.x0 <= -3){
+                                    if(struct0_2.x1 <= -3){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                                else {
+                                    if(struct0_10.x0 <= -9){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_6.x0 <= 8){
+                                if(struct0_9.x0 <= 9){
+                                    if(struct0_3.x0 <= 21){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 16;
+                                    }
+                                }
+                                else {
+                                    if(struct0_1.x0 <= 6){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_4.x0 <= 23){
+                                    if(struct0_0.x1 <= -14){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= 9){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_12.x0 <= -30){
+                            if(struct0_13.x0 <= -13){
+                                if(struct0_5.x0 <= 4){
+                                    return 48;
+                                }
+                                else {
+                                    if(struct0_1.x0 <= -8){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_14.x0 <= -16){
+                                    return 16;
+                                }
+                                else {
+                                    if(struct0_3.x0 <= 18){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_10.x0 <= -3){
+                                if(struct0_3.x1 <= -1){
+                                    if(struct0_2.x0 <= 4){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x1 <= -3){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_6.x0 <= -6){
+                                    if(struct0_13.x0 <= -23){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                                else {
+                                    if(struct0_12.x0 <= -8){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else {
+        if(struct0_10.x0 <= -15){
+            if(struct0_7.x0 <= -14){
+                if(struct0_9.x0 <= 11){
+                    if(struct0_8.x0 <= -12){
+                        if(struct0_4.x0 <= 0){
+                            if(struct0_3.x1 <= 17){
+                                if(struct0_5.x0 <= -15){
+                                    return 48;
+                                }
+                                else {
+                                    if(struct0_2.x0 <= 26){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                            }
+                            else {
+                                return 0;
+                            }
+                        }
+                        else {
+                            if(struct0_0.x0 <= -7){
+                                if(struct0_3.x0 <= 12){
+                                    if(struct0_11.x0 <= 1){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_6.x0 <= 8){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_1.x1 <= 5){
+                                    if(struct0_3.x1 <= 15){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_12.x0 <= -7){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_3.x0 <= 16){
+                            if(struct0_4.x0 <= -7){
+                                if(struct0_3.x1 <= 12){
+                                    if(struct0_0.x0 <= 0){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= -19){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_7.x0 <= -19){
+                                    if(struct0_1.x1 <= -24){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_1.x1 <= 14){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_5.x0 <= 16){
+                                if(struct0_2.x1 <= 7){
+                                    if(struct0_5.x0 <= 10){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_5.x0 <= 1){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                return 0;
+                            }
+                        }
+                    }
+                }
+                else {
+                    if(struct0_1.x1 <= -19){
+                        if(struct0_2.x1 <= -4){
+                            return 48;
+                        }
+                        else {
+                            if(struct0_8.x0 <= -17){
+                                return 48;
+                            }
+                            else {
+                                return 0;
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_4.x0 <= -9){
+                            if(struct0_12.x0 <= -2){
+                                return 32;
+                            }
+                            else {
+                                if(struct0_1.x1 <= 7){
+                                    return 0;
+                                }
+                                else {
+                                    return 96;
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_6.x0 <= -27){
+                                return 96;
+                            }
+                            else {
+                                if(struct0_3.x0 <= 25){
+                                    if(struct0_2.x0 <= -50){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_10.x0 <= -33){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                if(struct0_6.x0 <= -7){
+                    if(struct0_3.x0 <= 8){
+                        if(struct0_8.x0 <= -26){
+                            if(struct0_0.x0 <= 0){
+                                return 96;
+                            }
+                            else {
+                                return 32;
+                            }
+                        }
+                        else {
+                            if(struct0_2.x1 <= 31){
+                                if(struct0_14.x0 <= 35){
+                                    if(struct0_1.x0 <= -30){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                                else {
+                                    if(struct0_6.x0 <= -11){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_2.x0 <= -15){
+                                    return 48;
+                                }
+                                else {
+                                    return 0;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_3.x1 <= 3){
+                            if(struct0_2.x1 <= 18){
+                                return 80;
+                            }
+                            else {
+                                return 48;
+                            }
+                        }
+                        else {
+                            if(struct0_3.x0 <= 23){
+                                if(struct0_3.x1 <= 29){
+                                    if(struct0_0.x0 <= -13){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    return 0;
+                                }
+                            }
+                            else {
+                                return 80;
+                            }
+                        }
+                    }
+                }
+                else {
+                    if(struct0_8.x0 <= -14){
+                        if(struct0_4.x0 <= 3){
+                            if(struct0_12.x0 <= -5){
+                                if(struct0_1.x0 <= -12){
+                                    if(struct0_9.x0 <= 0){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x0 <= 30){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_4.x0 <= -12){
+                                    return 32;
+                                }
+                                else {
+                                    return 48;
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_1.x1 <= -7){
+                                if(struct0_0.x0 <= -12){
+                                    if(struct0_12.x0 <= 0){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_11.x0 <= 11){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_0.x0 <= 3){
+                                    if(struct0_3.x0 <= 18){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_1.x0 <= 3){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_4.x0 <= 13){
+                            if(struct0_1.x0 <= 3){
+                                if(struct0_3.x0 <= 2){
+                                    if(struct0_0.x0 <= 8){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_11.x0 <= 0){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_3.x1 <= 24){
+                                    if(struct0_0.x0 <= 5){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_6.x0 <= -4){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_9.x0 <= 11){
+                                if(struct0_0.x0 <= -1){
+                                    if(struct0_3.x0 <= 21){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_5.x0 <= 2){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_3.x0 <= 13){
+                                    if(struct0_5.x0 <= 24){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x0 <= -8){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            if(struct0_6.x0 <= -15){
+                if(struct0_0.x0 <= 2){
+                    if(struct0_10.x0 <= 15){
+                        if(struct0_3.x0 <= 6){
+                            if(struct0_2.x1 <= -10){
+                                if(struct0_1.x1 <= 0){
+                                    if(struct0_1.x0 <= -4){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_8.x0 <= -4){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_13.x0 <= 15){
+                                    if(struct0_3.x0 <= 0){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= -6){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_15.x0 <= 15){
+                                if(struct0_2.x0 <= 14){
+                                    if(struct0_10.x0 <= -7){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                                else {
+                                    if(struct0_8.x0 <= 18){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_3.x0 <= 7){
+                                    if(struct0_10.x0 <= -5){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x1 <= 34){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_1.x0 <= 5){
+                            if(struct0_8.x0 <= 22){
+                                if(struct0_14.x0 <= 1){
+                                    if(struct0_3.x0 <= -7){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                                else {
+                                    if(struct0_8.x0 <= 10){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_12.x0 <= 11){
+                                    if(struct0_11.x0 <= 7){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x0 <= 12){
+                                        return 64;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_3.x0 <= -16){
+                                return 32;
+                            }
+                            else {
+                                if(struct0_0.x1 <= -14){
+                                    if(struct0_0.x1 <= -26){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_7.x0 <= 8){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    if(struct0_3.x1 <= 14){
+                        if(struct0_3.x0 <= -5){
+                            if(struct0_8.x0 <= 25){
+                                if(struct0_1.x1 <= 40){
+                                    if(struct0_4.x0 <= -10){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_4.x0 <= -14){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_0.x0 <= 4){
+                                    return 64;
+                                }
+                                else {
+                                    if(struct0_10.x0 <= 27){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_12.x0 <= 10){
+                                if(struct0_13.x0 <= -4){
+                                    if(struct0_11.x0 <= 0){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x1 <= 35){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 48;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_8.x0 <= 4){
+                                    if(struct0_14.x0 <= -9){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 32;
+                                    }
+                                }
+                                else {
+                                    if(struct0_5.x0 <= -12){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_8.x0 <= 22){
+                            if(struct0_2.x0 <= 9){
+                                if(struct0_4.x0 <= -2){
+                                    if(struct0_7.x0 <= -21){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                                else {
+                                    if(struct0_4.x0 <= 1){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_0.x1 <= 22){
+                                    if(struct0_3.x1 <= 18){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                                else {
+                                    if(struct0_13.x0 <= -8){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_3.x0 <= -11){
+                                if(struct0_11.x0 <= -3){
+                                    if(struct0_8.x0 <= 35){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                                else {
+                                    return 96;
+                                }
+                            }
+                            else {
+                                if(struct0_2.x0 <= -18){
+                                    return 64;
+                                }
+                                else {
+                                    if(struct0_12.x0 <= 0){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                if(struct0_3.x0 <= 14){
+                    if(struct0_15.x0 <= 15){
+                        if(struct0_8.x0 <= 15){
+                            if(struct0_0.x0 <= 1){
+                                if(struct0_7.x0 <= -8){
+                                    if(struct0_8.x0 <= 4){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 96;
+                                    }
+                                }
+                                else {
+                                    if(struct0_6.x0 <= 1){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_4.x0 <= -10){
+                                    if(struct0_3.x0 <= -4){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                                else {
+                                    if(struct0_10.x0 <= 0){
+                                        return 48;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_1.x0 <= -3){
+                                if(struct0_10.x0 <= 8){
+                                    if(struct0_6.x0 <= 9){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                                else {
+                                    if(struct0_1.x0 <= -8){
+                                        return 64;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_3.x0 <= -19){
+                                    if(struct0_12.x0 <= 17){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                                else {
+                                    if(struct0_12.x0 <= -10){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_12.x0 <= 10){
+                            if(struct0_10.x0 <= -3){
+                                if(struct0_3.x0 <= -3){
+                                    if(struct0_6.x0 <= 8){
+                                        return 96;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                                else {
+                                    if(struct0_8.x0 <= -3){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_8.x0 <= 18){
+                                    if(struct0_3.x0 <= -17){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                                else {
+                                    if(struct0_9.x0 <= -5){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_8.x0 <= 3){
+                                if(struct0_10.x0 <= 4){
+                                    if(struct0_0.x0 <= -7){
+                                        return 0;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                                else {
+                                    if(struct0_4.x0 <= -24){
+                                        return 32;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_1.x0 <= -10){
+                                    if(struct0_8.x0 <= 18){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= -9){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    if(struct0_6.x0 <= 0){
+                        if(struct0_15.x0 <= 15){
+                            if(struct0_14.x0 <= 9){
+                                if(struct0_1.x0 <= -6){
+                                    if(struct0_9.x0 <= -10){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                                else {
+                                    if(struct0_8.x0 <= 3){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_8.x0 <= 2){
+                                    if(struct0_2.x1 <= -11){
+                                        return 112;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_12.x0 <= 7){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_12.x0 <= 11){
+                                if(struct0_9.x0 <= 1){
+                                    if(struct0_10.x0 <= -8){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                                else {
+                                    if(struct0_3.x0 <= 28){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_8.x0 <= -10){
+                                    if(struct0_4.x0 <= 16){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                }
+                                else {
+                                    if(struct0_4.x0 <= 2){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if(struct0_1.x0 <= -20){
+                            if(struct0_2.x0 <= -13){
+                                if(struct0_10.x0 <= -4){
+                                    if(struct0_3.x1 <= -13){
+                                        return 80;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                                else {
+                                    if(struct0_13.x0 <= -23){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 64;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_1.x1 <= 5){
+                                    if(struct0_10.x0 <= -1){
+                                        return 16;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                                else {
+                                    if(struct0_0.x1 <= -2){
+                                        return 64;
+                                    }
+                                    else {
+                                        return 128;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if(struct0_14.x0 <= 9){
+                                if(struct0_3.x1 <= -13){
+                                    if(struct0_12.x0 <= 6){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                                else {
+                                    if(struct0_12.x0 <= -14){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 144;
+                                    }
+                                }
+                            }
+                            else {
+                                if(struct0_12.x0 <= -6){
+                                    if(struct0_9.x0 <= 5){
+                                        return 128;
+                                    }
+                                    else {
+                                        return 80;
+                                    }
+                                }
+                                else {
+                                    if(struct0_2.x0 <= 9){
+                                        return 144;
+                                    }
+                                    else {
+                                        return 112;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+export { mlp_program, decision_tree_program, decision_tree_program_even_odd, sample_inputs, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification };

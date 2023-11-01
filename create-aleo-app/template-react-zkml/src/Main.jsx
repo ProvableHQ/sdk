@@ -24,7 +24,7 @@ import aleoLogo from "./assets/aleo.svg";
 import { AleoWorker } from "./workers/AleoWorker.js";
 import './Main.css';
 
-import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes } from './variables.js';
+import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification } from './variables.js';
 
 const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
@@ -41,6 +41,23 @@ var run_counter = {}
 var proofText = "";
 const fixed_point_scaling_factor = 16;
 const int_type = "i64";
+
+let struct0_0 = { x0: 0, x1: 0 };
+let struct0_1 = { x0: 0, x1: 0 };
+let struct0_2 = { x0: 0, x1: 0 };
+let struct0_3 = { x0: 0, x1: 0 };
+let struct0_4 = { x0: 0 };
+let struct0_5 = { x0: 0 };
+let struct0_6 = { x0: 0 };
+let struct0_7 = { x0: 0 };
+let struct0_8 = { x0: 0 };
+let struct0_9 = { x0: 0 };
+let struct0_10 = { x0: 0 };
+let struct0_11 = { x0: 0 };
+let struct0_12 = { x0: 0 };
+let struct0_13 = { x0: 0 };
+let struct0_14 = { x0: 0 };
+let struct0_15 = { x0: 0 };
 
 const Main = () => {
 
@@ -139,17 +156,9 @@ const Main = () => {
         return softmax;
     }
 
-      async function execute(features) {
+      async function execute(fixed_point_features) {
 
         // helpful tool: https://codepen.io/jsnelders/pen/qBByqQy
-
-
-        console.log("features in execute: ", features)
-
-        const fixed_point_features = features.map((feature) => Math.round(feature * fixed_point_scaling_factor));
-
-        console.log("fixed_point_features: ", fixed_point_features)
-
 
         const input_array = [`{x0: ${fixed_point_features[0]}${int_type}, x1: ${fixed_point_features[1]}${int_type}}`, `{x0: ${fixed_point_features[2]}${int_type}, x1: ${fixed_point_features[3]}${int_type}}`, `{x0: ${fixed_point_features[4]}${int_type}, x1: ${fixed_point_features[5]}${int_type}}`, `{x0: ${fixed_point_features[6]}${int_type}, x1: ${fixed_point_features[7]}${int_type}}`, `{x0: ${fixed_point_features[8]}${int_type}}`, `{x0: ${fixed_point_features[9]}${int_type}}`, `{x0: ${fixed_point_features[10]}${int_type}}`, `{x0: ${fixed_point_features[11]}${int_type}}`, `{x0: ${fixed_point_features[12]}${int_type}}`, `{x0: ${fixed_point_features[13]}${int_type}}`, `{x0: ${fixed_point_features[14]}${int_type}}`, `{x0: ${fixed_point_features[15]}${int_type}}`, `{x0: ${fixed_point_features[16]}${int_type}}`, `{x0: ${fixed_point_features[17]}${int_type}}`, `{x0: ${fixed_point_features[18]}${int_type}}`, `{x0: ${fixed_point_features[19]}${int_type}}`];
 
@@ -557,17 +566,44 @@ const Main = () => {
             for (let i = 0; i < features.length; i++) {
                 normalized_features.push((features[i] - features_means[i]) / feature_stds[i]);
             }
-            console.log("Normalized features:", normalized_features);
 
-            await executeAleoCode(normalized_features);
+            console.log("Normalized features:", normalized_features);
+            console.log("fixed_point_scaling_factor", fixed_point_scaling_factor)
+            const fixed_point_features = normalized_features.map((feature) => Math.round(feature * fixed_point_scaling_factor));
+            console.log("fixed_point_features: ", fixed_point_features)
+    
+            struct0_0.x0 = fixed_point_features[0];
+            struct0_0.x1 = fixed_point_features[1];
+            struct0_1.x0 = fixed_point_features[2];
+            struct0_1.x1 = fixed_point_features[3];
+            struct0_2.x0 = fixed_point_features[4];
+            struct0_2.x1 = fixed_point_features[5];
+            struct0_3.x0 = fixed_point_features[6];
+            struct0_3.x1 = fixed_point_features[7];
+            struct0_4.x0 = fixed_point_features[8];
+            struct0_5.x0 = fixed_point_features[9];
+            struct0_6.x0 = fixed_point_features[10];
+            struct0_7.x0 = fixed_point_features[11];
+            struct0_8.x0 = fixed_point_features[12];
+            struct0_9.x0 = fixed_point_features[13];
+            struct0_10.x0 = fixed_point_features[14];
+            struct0_11.x0 = fixed_point_features[15];
+            struct0_12.x0 = fixed_point_features[16];
+            struct0_13.x0 = fixed_point_features[17];
+            struct0_14.x0 = fixed_point_features[18];
+            struct0_15.x0 = fixed_point_features[19];
+
+            console.log("struct0_0", struct0_0)
+
+            var result_JS = run_JS_decision_tree_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
+            console.log("result JS", result_JS);
+
+            await executeAleoCode(fixed_point_features);
           };
     };
 
     const executeAleoCode = async (features) => {
-        console.log("hello")
-        console.log("generated account")
         execute(features)
-        console.log("finished")
     };
 
     const startProgressAndRandomizeData = (expected_runtime) => {
