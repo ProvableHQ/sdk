@@ -584,6 +584,8 @@ const Main = () => {
             let result_JS_decision_tree;
             let result_JS_mlp;
 
+            console.log("selectedKey", selectedKey)
+
             if(selectedKey == "1") {
                 // even/odd
                 result_JS_decision_tree = run_JS_decision_tree_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
@@ -605,10 +607,10 @@ const Main = () => {
 
             if(selectedKey == "1") {
                 // even/odd
-                if(softmax_decision_tree == 0) {
+                if(result_JS_decision_tree == 0) {
                     string_decision_tree = "Even";
                 }
-                else if(softmax_decision_tree == 1) {
+                else if(result_JS_decision_tree == 16) {
                     string_decision_tree = "Odd";
                 }
                 if(argmax_mlp == 0) {
@@ -620,13 +622,14 @@ const Main = () => {
             }
             else if(selectedKey == "2") {
                 // classification
-                string_decision_tree = String(softmax_decision_tree);
+                string_decision_tree = String(result_JS_decision_tree/16);
                 string_mlp = String(argmax_mlp) + " (" + (softmax_mlp[argmax_mlp]*100).toFixed(1) + "%)";
             }
 
             setDecisionTreePrediction(string_decision_tree);
             setMlpPrediction(string_mlp);
 
+            console.log("result_JS_decision_tree", result_JS_decision_tree)
             console.log("softmax_decision_tree", softmax_decision_tree)
             console.log("softmax_mlp", softmax_mlp)
         }
