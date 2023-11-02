@@ -71,6 +71,9 @@ const Main = () => {
     const [drawTimeout, setDrawTimeout] = useState(null);
     const [hasInteracted, setHasInteracted] = useState(false);
 
+    const [userHasDrawn, setUserHasDrawn] = useState(false);
+    const [clearButtonPressed, setClearButtonPressed] = useState(false);
+
 
     function computeSoftmax(values, scalingFactor = 1) {
         const scaledValues = values.map(v => v / scalingFactor);
@@ -673,6 +676,14 @@ const Main = () => {
     };
 
     const handleCanvasChange = () => {
+        if(hasInteracted) {
+            setUserHasDrawn(true);
+        }
+        if(clearButtonPressed) {
+            setUserHasDrawn(false);
+            setClearButtonPressed(false);
+        }
+
         setHasInteracted(true);
         // Clear any existing timeout since drawing is still happening
         if (drawTimeout) {
@@ -909,7 +920,7 @@ const Main = () => {
 
                             <Col>
                                 <Space>
-                                <Button type="primary" onClick={generateProof}>
+                                <Button type="primary" onClick={generateProof} disabled={!userHasDrawn}>
                                     Generate Proof
                                </Button>
                                     <Button
@@ -917,6 +928,8 @@ const Main = () => {
                                         onClick={() => {
                                             getTopLeftPixelData(); // Get pixel data before clearing
                                             canvasRef.current.clearCanvas();
+                                            setUserHasDrawn(false);
+                                            setClearButtonPressed(true);
                                           }}
                                     >
                                         Clear
