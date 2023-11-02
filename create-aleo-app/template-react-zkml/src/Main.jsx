@@ -842,7 +842,15 @@ const Main = () => {
                             </Paragraph>
                         </Col>
                     </Row>
-                    <Card title="Prover" style={{ width: "100%" }}>
+                    <Card title="Prover" style={{ 
+        width: "100%", 
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)', // Add a subtle shadow
+        backgroundColor: '#f9f9f9', // Light background color
+        padding: '20px', // Increased internal padding
+        border: '1px solid #e0e0e0' // Adding a distinct border
+    }}>
+                    <Card style={{ margin: "20px", padding: "20px", border: "1px solid #ECECEC" }}>
+
                         <Row justify="center">
                             <Col>
                                 <Text type="secondary">
@@ -902,8 +910,9 @@ const Main = () => {
                                 <Text strong>MLP: </Text>{mlpPrediction}
                             </Col>
                         </Row>
+                        </Card>
 
-
+                        <Card style={{ margin: "20px", padding: "20px", border: "1px solid #ECECEC" }}>
                         <Row justify="center" style={{ marginTop: "20px" }}>
 
                         <Select defaultValue="decision_tree" style={{ width: 330, marginTop: 16 }} onChange={(value) => model_type = value}>
@@ -972,12 +981,22 @@ const Main = () => {
                                 </Button>
                             </Col>
                         </Row>
+
+                        </Card>
                     </Card>
 
                     <Card
                         title="Verifier"
-                        style={{ width: "100%", marginTop: "24px" }}
+                        style={{ 
+                            width: "100%", 
+                            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)', // Add a subtle shadow
+                            backgroundColor: '#f9f9f9', // Light background color
+                            padding: '20px', // Increased internal padding
+                            border: '1px solid #e0e0e0' // Adding a distinct border
+                        }}
                     >
+                                            <Card style={{ margin: "20px", padding: "20px", border: "1px solid #ECECEC" }}>
+
                         <Row justify="center">
                             <Col>
                                 <Text type="secondary">
@@ -1014,6 +1033,7 @@ const Main = () => {
         )}
     </Col>
 </Row>
+                    </Card>
                     </Card>
                 </Content>
                 <Footer style={{ textAlign: "center" }}>
