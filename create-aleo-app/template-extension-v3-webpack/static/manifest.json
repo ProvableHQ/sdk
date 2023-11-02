@@ -1,0 +1,36 @@
+{
+  "name": "chrome-extension-webpack",
+  "description": "My basic Chrome extension",
+  "version": "0.1.0",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "serviceWorker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  "permissions": ["storage", "scripting"],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "My basic Chrome extension",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "/icons/16x.png",
+      "32": "/icons/32x.png",
+      "48": "/icons/48x.png",
+      "128": "/icons/128x.png"
+    }
+  },
+  "icons": {
+    "16": "/icons/16x.png",
+    "32": "/icons/32x.png",
+    "48": "/icons/48x.png",
+    "128": "/icons/128x.png"
+  }
+}
