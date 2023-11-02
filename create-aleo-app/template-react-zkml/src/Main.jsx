@@ -143,28 +143,29 @@ const Main = () => {
         return softmax;
     }
 
-      async function execute(fixed_point_features) {
+      async function execute(fixed_point_features, new_selected_key) {
 
         // helpful tool: https://codepen.io/jsnelders/pen/qBByqQy
 
         const input_array = [`{x0: ${fixed_point_features[0]}${int_type}, x1: ${fixed_point_features[1]}${int_type}}`, `{x0: ${fixed_point_features[2]}${int_type}, x1: ${fixed_point_features[3]}${int_type}}`, `{x0: ${fixed_point_features[4]}${int_type}, x1: ${fixed_point_features[5]}${int_type}}`, `{x0: ${fixed_point_features[6]}${int_type}, x1: ${fixed_point_features[7]}${int_type}}`, `{x0: ${fixed_point_features[8]}${int_type}}`, `{x0: ${fixed_point_features[9]}${int_type}}`, `{x0: ${fixed_point_features[10]}${int_type}}`, `{x0: ${fixed_point_features[11]}${int_type}}`, `{x0: ${fixed_point_features[12]}${int_type}}`, `{x0: ${fixed_point_features[13]}${int_type}}`, `{x0: ${fixed_point_features[14]}${int_type}}`, `{x0: ${fixed_point_features[15]}${int_type}}`, `{x0: ${fixed_point_features[16]}${int_type}}`, `{x0: ${fixed_point_features[17]}${int_type}}`, `{x0: ${fixed_point_features[18]}${int_type}}`, `{x0: ${fixed_point_features[19]}${int_type}}`];
 
         console.log("input_array", input_array);
+        console.log("new_selected_key", new_selected_key)
 
         let model;
-        if(model_type == "decision_tree" && selectedKey == "2") {
+        if(model_type == "decision_tree" && new_selected_key == "2") {
             model = decision_tree_program;
             used_model_type = "tree";
         }
-        else if(model_type == "decision_tree" && selectedKey == "1") {
+        else if(model_type == "decision_tree" && new_selected_key == "1") {
             model = decision_tree_program_even_odd;
             used_model_type = "tree";
         }
-        else if(model_type == "mlp_neural_network" && selectedKey == "2") {
+        else if(model_type == "mlp_neural_network" && new_selected_key == "2") {
             model = mlp_program;
             used_model_type = "mlp";
         }
-        else if(model_type == "mlp_neural_network" && selectedKey == "1") {
+        else if(model_type == "mlp_neural_network" && new_selected_key == "1") {
             model = mlp_program_even_odd;
             used_model_type = "mlp";
         }
@@ -504,7 +505,7 @@ const Main = () => {
     
     
 
-    const processImageAndPredict = async (js_or_leo) => {
+    const processImageAndPredict = async (js_or_leo, new_selected_key) => {
         if (!canvasRef.current) {
             return;
         }
@@ -587,14 +588,19 @@ const Main = () => {
             let result_JS_decision_tree;
             let result_JS_mlp;
 
-            console.log("selectedKey", selectedKey)
+            console.log("new_selected_key", new_selected_key)
+            if(typeof new_selected_key === 'undefined')
+            {
+                new_selected_key = selectedKey;
+            }
+            console.log("new_selected_key after undefined check", new_selected_key)
 
-            if(selectedKey == "1") {
+            if(new_selected_key == "1") {
                 // even/odd
                 result_JS_decision_tree = run_JS_decision_tree_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
                 result_JS_mlp = run_JS_mlp_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
             }
-            else if(selectedKey == "2") {
+            else if(new_selected_key == "2") {
                 // classification
                 result_JS_decision_tree = run_JS_decision_tree_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
                 result_JS_mlp = run_JS_mlp_classification(struct0_0, struct0_1, struct0_2, struct0_3, struct0_4, struct0_5, struct0_6, struct0_7, struct0_8, struct0_9, struct0_10, struct0_11, struct0_12, struct0_13, struct0_14, struct0_15);
@@ -608,7 +614,7 @@ const Main = () => {
             let string_decision_tree = "";
             let string_mlp = "";
 
-            if(selectedKey == "1") {
+            if(new_selected_key == "1") {
                 // even/odd
                 if(result_JS_decision_tree == 0) {
                     string_decision_tree = "Even";
@@ -623,7 +629,7 @@ const Main = () => {
                     string_mlp = "Odd" + " (" + (softmax_mlp[1]*100).toFixed(1) + "%)";
                 }
             }
-            else if(selectedKey == "2") {
+            else if(new_selected_key == "2") {
                 // classification
                 string_decision_tree = String(result_JS_decision_tree/16);
                 string_mlp = String(argmax_mlp) + " (" + (softmax_mlp[argmax_mlp]*100).toFixed(1) + "%)";
@@ -637,13 +643,14 @@ const Main = () => {
             console.log("softmax_mlp", softmax_mlp)
         }
             if(!js_or_leo) {
-                await executeAleoCode(fixed_point_features);
+                console.log("new_selected_key before executeAleoCode", new_selected_key)
+                await executeAleoCode(fixed_point_features, new_selected_key);
             }
           };
     };
 
-    const executeAleoCode = async (features) => {
-        execute(features)
+    const executeAleoCode = async (features, new_selected_key) => {
+        execute(features, new_selected_key)
     };
 
     const startProgressAndRandomizeData = (expected_runtime) => {
@@ -695,7 +702,7 @@ const Main = () => {
         const timeout = setTimeout(() => {
             if (hasInteracted) {
                 console.log("Canvas drawing has paused");
-                processImageAndPredict(true);
+                processImageAndPredict(true, selectedKey);
               }
         }, 100); // 100ms after the last drawing event
       
@@ -720,7 +727,7 @@ const Main = () => {
             var runs = run_counter[selected_setting][model_type];
             console.log("runs", runs)
             proving_finished = false;
-            processImageAndPredict(false);
+            processImageAndPredict(false, selectedKey);
             let expected_runtime;
             console.log("selected_setting", selected_setting)
             console.log("model_type", model_type)
@@ -796,6 +803,11 @@ const Main = () => {
     const handleMenuSelect = ({ key }) => {
         console.log("Selected menu item:", key);
         setSelectedKey(key); // Update the selectedKey state variable when an item is selected
+        console.log("selectedKey", selectedKey)
+        if(userHasDrawn) {
+            console.log("running processImageAndPredict")
+            processImageAndPredict(true, key);
+        }
     };
 
     return (
