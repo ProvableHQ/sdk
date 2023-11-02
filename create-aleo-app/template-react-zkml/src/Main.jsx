@@ -917,9 +917,9 @@ const Main = () => {
                         <Row justify="center" style={{ marginTop: "20px" }}>
                             <Col span={12}>
                                 <Title level={4}>Predictions</Title>
-                                <Text strong>Decision Tree: </Text>{decisionTreePrediction}
+                                <Text strong>Decision tree: </Text>{decisionTreePrediction}
                                 <br />
-                                <Text strong>MLP: </Text>{mlpPrediction}
+                                <Text strong>MLP neural network: </Text>{mlpPrediction}
                             </Col>
                         </Row>
                         </Card>
@@ -963,6 +963,13 @@ const Main = () => {
                                 <Progress percent={progress} />
                             </Col>
                         </Row>
+
+                        <Row justify="center" align="middle" style={{ marginTop: "5px" }}>
+                            <Col>
+                                <span>(Progress is estimated based on an 8 core Apple M2 proving speed)</span>
+                            </Col>
+                        </Row>
+
                         <Row justify="center" style={{ marginTop: "20px" }}>
                             <Col xs={24} sm={22} md={20} lg={18} xl={12}>
                                 <Column
