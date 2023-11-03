@@ -3,7 +3,8 @@ const path = require('path');
 const DotenvPlugin = require('dotenv-webpack');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const webpack = require('webpack');
+// const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
   entry: {
@@ -11,6 +12,7 @@ module.exports = {
     contentScript: './src/contentScript.ts',
     popup: './src/popup.ts',
     options: './src/options.ts',
+    background: './src/background.ts',
   },
   module: {
     rules: [
@@ -19,19 +21,21 @@ module.exports = {
         use: ['babel-loader'],
         exclude: /node_modules/,
       },
-      {
-        test: /\.(scss|css)$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
-      },
+      // {
+      //   test: /\.(scss|css)$/,
+      //   use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+      // },
     ],
   },
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.wasm'],
   },
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
+    chunkLoading: 'import-scripts',
+    chunkFormat: 'array-push',
   },
   plugins: [
     new DotenvPlugin(),
@@ -39,11 +43,14 @@ module.exports = {
       extensions: ['js', 'ts'],
       overrideConfigFile: path.resolve(__dirname, '.eslintrc'),
     }),
-    new MiniCssExtractPlugin({
-      filename: 'styles/[name].css',
-    }),
+    // new MiniCssExtractPlugin({
+    //   filename: 'styles/[name].css',
+    // }),
     new CopyPlugin({
       patterns: [{ from: 'static' }],
+    }),
+    new webpack.DefinePlugin({
+      'document.baseuri': 'undefined',
     }),
   ],
 };
