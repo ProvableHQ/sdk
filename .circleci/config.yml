@@ -54,10 +54,14 @@ commands:
     description: "Deploys to Netlify"
     steps:
       - run:
+          name: Install Netlify CLI
+          command: npm install --prefix=$HOME/.local --global netlify-cli
+      - run:
           name: Deploy to Netlify
           command: |
-            yarn build:website
-            yarn deploy
+            cd website
+            yarn build
+            netlify deploy --dir=dist --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod
 
 jobs:
   sdk:
