@@ -50,6 +50,18 @@ commands:
       - attach_workspace:
           at: .
 
+  deploy-to-netlify:
+    description: "Deploys to Netlify"
+    steps:
+      - run:
+          name: Install Netlify CLI
+          command: npm install -g netlify-cli
+      - run:
+          name: Deploy to Netlify
+          command: |
+            cd website
+            yarn build
+            netlify deploy --dir=dist --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod
 
 jobs:
   sdk:
@@ -63,6 +75,12 @@ jobs:
           paths:
             - sdk/dist/*
             - wasm/dist/*
+
+  deploy-staging:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - deploy-to-netlify
 
 
   sdk-test:
@@ -156,6 +174,13 @@ workflows:
       - template-react-leo:
           requires:
             - sdk
+      - deploy-staging:
+          requires:
+            - sdk
+#          filters:
+#            branches:
+#              only:
+#                - main
       #- test-website:
       #    requires:
       #      - sdk
