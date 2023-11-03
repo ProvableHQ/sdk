@@ -96,6 +96,7 @@ name = "aleo-wasm"
 version = "0.6.5"
 dependencies = [
  "anyhow",
+ "async-trait",
  "console_error_panic_hook",
  "futures",
  "getrandom",

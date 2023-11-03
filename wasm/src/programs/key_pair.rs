@@ -16,7 +16,7 @@
 
 use crate::{ProvingKey, VerifyingKey};
 
-use crate::types::{ProvingKeyNative, VerifyingKeyNative};
+use crate::types::native::{ProvingKeyNative, VerifyingKeyNative};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]

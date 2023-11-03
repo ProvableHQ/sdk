@@ -7,7 +7,10 @@ export function initThreadPool(threads?: number): Promise<void>;
 
 export {
     Address,
+    Execution,
     ExecutionResponse,
+    Field,
+    OfflineQuery,
     PrivateKey,
     PrivateKeyCiphertext,
     Program,
