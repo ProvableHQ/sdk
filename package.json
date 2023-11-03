@@ -15,16 +15,20 @@
     "build:all": "yarn build:wasm && yarn build:sdk",
 
     "start:website": "cd website && yarn dev",
+    "build:website": "cd website && yarn build",
 
     "test:wasm": "cd wasm && yarn test",
     "test:sdk": "cd sdk && yarn test",
     "test": "yarn test:wasm && yarn test:sdk",
+
+    "deploy": "netlify deploy --dir=website/dist --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod",
 
     "lint": "prettier . --check",
     "pretty": "prettier . --write"
   },
   "devDependencies": {
     "prettier": "3.0.3",
-    "wasm-pack": "^0.12.1"
+    "wasm-pack": "^0.12.1",
+    "netlify-cli": "^17.0.1"
   }
 }

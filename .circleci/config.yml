@@ -56,10 +56,8 @@ commands:
       - run:
           name: Deploy to Netlify
           command: |
-            cd website
-            yarn build
-            npm install netlify-cli
-            ./node_modules/.bin/netlify deploy --dir=dist --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod
+            yarn build:website
+            yarn deploy
 
 jobs:
   sdk:
