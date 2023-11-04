@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::{FromBytes, ProvingKeyNative, ToBytes};
+use crate::types::native::{FromBytes, ProvingKeyNative, ToBytes};
 
 use std::ops::Deref;
 use wasm_bindgen::prelude::wasm_bindgen;

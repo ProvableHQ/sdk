@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.6.5"
+version = "0.6.6"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"
@@ -49,6 +49,9 @@ features = [ "console", "fields", "utilities" ]
 
 [dependencies.anyhow]
 version = "1.0"
+
+[dependencies.async-trait]
+version = "0.1.68"
 
 [dependencies.getrandom]
 version = "0.2"

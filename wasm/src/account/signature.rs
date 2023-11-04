@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    account::{Address, PrivateKey},
-    types::SignatureNative,
-};
+use crate::account::{Address, PrivateKey};
 
+use crate::types::native::SignatureNative;
 use core::{fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;

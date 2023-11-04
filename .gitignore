@@ -6,6 +6,7 @@
 **/target
 **/dist
 storage*/
+**/.next
 
 ## OS Files
 **.DS_Store

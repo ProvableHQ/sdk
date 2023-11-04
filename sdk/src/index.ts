@@ -1,6 +1,18 @@
 const KEY_STORE = "https://testnet3.parameters.aleo.org/";
 
 const CREDITS_PROGRAM_KEYS = {
+    bond_public: {
+        prover: KEY_STORE + "bond_public.prover.ff75d2e",
+        verifier: "bond_public.verifier.d3cfe73",
+        verifyingKey:
+            "verifier1qygqqqqqqqqqqqzl9uqqqqqqqqq9stcqqqqqqqqqxa4sqqqqqqqqqyuwqqqqqqqqqpdyqqqqqqqqqqqvqqqqqqqqqqqx9lfqwmck43wt597p8xn68dh8l9setmmtk0ev35tgzkzm3j0j4tgu2s9kdu5w9m7g4dkglj28wayp2njn9qkuygpmcf9j7qc32aafepe5d9tdqyrq9ju2e8mlhkq8tucdh30rxysfl9h7d9jusmjhjcwgpuh0hhlspvtuv98n453apnqceupv2tc26wwx9mjl7m8j0urgax42xzrc9sltd62pfjgnw7vxh36vqxzajv5tyer6hpld0fr75jah48gaqpnexurtrag0azpcpep4lyxeyt4jytug2u7urfrp8rjh5wlkqqz7htzt8fdnthyngd5eqqfc6q0d6zw8lwlyr3hgqkjmkshmw5trm2tqg7euqav6r2vssqm9ut7ecjqq2fqs3k8mjp769qv5r2q52hcre66ymggtva7ty32lqpnrgrhgsc78g7qc00y5z6m626umkhqmz8sp0s4jz6qrvc6s47sycncq6ryltq2tmfxkz22e0g79cy4dzcnu5rwjkl4x3f27gavm7gug50tqnkwqrrjd430j9n8rrg78lpqfye8drxcnd2lxdry9nza8vfg4v3jmnmcdw55pu4kahfrawe4guvaqx26hqxhesqzxe343fjyz7vajn6prhg0jwzjtjh75v5wtp3h2knnvtshzae2uxel720fxg0vyfvnncsnxdqrqjc8aw8avq9kucsvauju4d0ke989s7v55ha0nh3dvdd9rct56pvg87txnhre3qvwmw6acf6t4x5q2al4gwwpqjhsezx6zmth0qeene0v3prwuh8a56r7qafhnyd98f8lx7xv4v48q7q7fd2373ag4fz5pmslx7v5hmpreqrdyj5h6we0kd24wk80f8sq44exsed3egstrn409cwzs9ph8563nh7vy6pcjnqxqrkzqvsa860spwjjf78hyful7zk2l3e9s4u4l0hqdyt547qxz3xamy5gkmd",
+    },
+    claim_unbond_public: {
+        prover: KEY_STORE + "claim_unbond_public.prover.4c492b0",
+        verifier: "claim_unbond_public.verifier.3793e4c",
+        verifyingKey:
+            "verifier1qygqqqqqqqqqqq8lycqqqqqqqqq02fsqqqqqqqqq849sqqqqqqqqpe26qqqqqqqqqzfnwqqqqqqqqqqvqqqqqqqqqqqgyhv4exh3e2g4f3ek5hymm8ah5h5hdp8v0j52dsksskad9wsryetk3qcr5um8t4nnpnqvhlsk5vcpea7w8uca2pum92jh2has0ag2gq24up0qr7p5z34jzrmtjx2583vkffyywmnatjs5t05x4yyc534cpsutfr4jaxqc9dlmxfw7a5tl4nl9q9qvweaver0q04pfl65w5wuyaadlzjhkkrrjaskg86tmkqy8s8vug7dyjnpe55y5ju8eag63p49ufdyguxdw2fwt46nwer74m3xmv9z6jhgslfwjre4fwctkppytsqrwmlf5szn9ckj2r86sa7azq0ly9atfjeee3f2f3n8s3rkrzezpqmcrt5lv3xlmymgspyj2vn7ytgqj97aula7tuxfrcsk787shhdjyxdvepspp7f4jaxuunzeuw58kdwupfdn8wj89grv5pk5qmxap9xgqxwwf08k98xnkdrp3n4jme0ur5604xp2q9fxlc0aw47vwfcurtsp9nv0rajv4lmune4mx8h39jvkcpv4fnngk3me5d6vds4m5xe6vuqlz55gnzue7fyyt0vzuwsg8f2ztepupry8g32ee48gmj2lldg96qp5xxcjxetgrq8muj4n7w3kv56spy3zhw8xr7ngd4u6l20pk4yvlsamu3y7nr4na246qqnjszlz6jq0922q8dsefkf7cpz8tc0fv4t2uk6y7r8wy5vtmah2y80al3vmc3kma70p4utwf40mc7x33y66zsgq94e09r5mmj5us835tz95w5r8eqz335lz8rac72d4jzxg0c40nmskvl236nz9dysg6uxp80yugx7cqckstk9f79ha0s6k8nftlmqds3za97648k2usw7xnyf9echpy3lsdsaatleyt5w5z2qgqyrxlaxsgq3tytq4qhjrlfz2dz7kuy7dyr0u4q5p78ux8ylh8tcsau46jevm944a798",
+    },
     fee_private: {
         prover: KEY_STORE + "fee_private.prover.43fab98",
         verifier: "fee_private.verifier.f3dfefc",
@@ -55,6 +67,12 @@ const CREDITS_PROGRAM_KEYS = {
         verifyingKey:
             "verifier1qygqqqqqqqqqqqrhvqqqqqqqqqq8kcqqqqqqqqqqu0xsqqqqqqqqqw0kqqqqqqqqqreg7qqqqqqqqqqvqqqqqqqqqqqta360tn6dhv5z559ejfahwq88lxtd498py5p3vw5u3rwtfvdzpxq7fuqdahsrennq80g8yc6wqjyq8ahdv3jzry0mxceed0jr2cd0wye3e7782pg3phsu8h7hcapfgdghcgg2ykfc2682xefhsp3plqnqp692097k4ja82ecc2descl4d6csug04cz2j9a5pk3djx6xde2ghgq7uqvuhsg47ksueeetvc7mh2qpvqjmph9eekp5waqunkeea9vkvzyl8culmn5t7l9ke3r7uz8v5r8njjdkug6va9vy6axx9aq2kxaqdd9ll2m3j7qg7eyq3k2pnhq7gx2kv8vm3yf5pyqtywt2hvur5uv45y5st53qh970dktd3k709d9sqwv0d6qaksxjcp2cxu282hcewhy66vfs5kp35e6k4shdmjzmglyqqcsnupv8xwdr3596qypzshnuuq8rpm8pyjwtws63wsazqt8tlqhkkxucf0zjc384wvv2jemdnjwd6hn9745h8qc4kqp0rzs9wkx0hcp22xzuyyk7gpsc9ahw7pdenpje3etp37lfrcuntehl8wm2eudrh0j04szjzrv0n3r2gv04mgau5ysqtdcddq44xtt6t6f08c9zuhqukk8zy75jru0exufnh74u97d4xwe005ug7ywmcnyz8u6nvdav2xxqqzpg0luhghl8xu7g0cjgxse0lnqqedc7cc47nc048h2t44gedjq7f49ghajc9gwclp962v4q2855qvgdtkmr29cpwwq8vghlcjv0g6k0a0xa8yrmmnd5l7umnuqcd4x9rcejc3mkjgpw8y6mue2n5tx9cpahnw37yey5k38j98dnr9jss00420jvk7nh59hul7ef69n8ktcltl8f0t93rya5y8d2cspyjp6c7crvg2d4m37z78dualsqr9u7vtge07psdtl4l9785fxl3wgf9u277puvgvuq",
     },
+    unbond_public: {
+        prover: KEY_STORE + "unbond_public.prover.78b2191",
+        verifier: "unbond_public.verifier.96c3590",
+        verifyingKey:
+            "verifier1qygqqqqqqqqqqqp89yqqqqqqqqqp62gqqqqqqqqq892qqqqqqqqqqym2qqqqqqqqqparjqqqqqqqqqqvqqqqqqqqqqqp9uker5608hsejeh46lk307z2ewatecukttkp7elhurugmwqay3ypevdjjt6ly68e9eyt2cnx7dcqrrf24kwmmy5ptlpyy72r5ul2lynras4lluy7ke6spzjx97m2qvjy3jhsdk8tpkwj3vqf37hcncjcqm5mrvp4v8txatw8hhtrklu0pjgx9p39jvvjxsqghf8rxm8edyacw3h8g7mqz8u8acay65tskf42qz5sqfvpfvg9ycnw3mp7jqnv80dnmev9k788aycnx9ufa09qfzjnxwnr6503ckc8465welwq7vxqlqyuezzshvq3gfpvdnqgrsda7kv88sq7nqpttlyqczrmsf6xln80ejcwshagevykxjc09numhdc4r7qlme5zlrjru7lyexcxq75qvtpqhkkz0zmfmm9paddlrk88xcctmhdun6rt0rzkdxx0fdgughvxlmyq32ct8s0k0qlf3rwlggvhvsw4ekl683ls9la7lcga87ereutr34fke6qzdkxz94rqzrl2msyhax9grx2t5jtkfenxsudq6mfjv0uhtxycalyk2k6c4hwdq5z33x4kcgns2tsx5hstvv6pp9phv0cedf4ysqgavdjlnx2g4tvw9wmmz7ghmm03jkutq568pxx7ahp7kjfe9ta2eas7qkj2r4ue0pwa5ft9k88r5qw32mymhz4p3cpg5g5v0z6kkukh9zxjzsdqnvglsdtj64u4dtu2epnnuckz3fgqw4mrn54nvvwv8zquwsz9jqp4zrux2xghqk6fh4y29vm3aq4v6kh4zmnwhuf0y249grf8u7xc6cu3rrz5ugpnzvawpyypmfnl58xgm0gq8m8zsn7uw436hhjwewyhwkva6trxdfxfr7rpn2qdu2yp2ulu7ezpr0meet8ht3zsqjyezyylcgrjttgphl0t2ckte6jwm6la7mlhz7ya8rancl44m9dpy798f9",
+    }
 };
 
 const PRIVATE_TRANSFER_TYPES = new Set([
@@ -141,21 +159,24 @@ export { createAleoWorker } from "./managed-worker";
 export { ProgramManager } from "./program-manager";
 
 export {
-    PrivateKey,
-    ViewKey,
     Address,
-    PrivateKeyCiphertext,
-    RecordCiphertext,
-    Signature,
-    ProvingKey,
-    VerifyingKey,
-    Program,
-    RecordPlaintext,
-    Transaction as WasmTransaction,
+    Execution as FunctionExecution,
     ExecutionResponse,
+    Field,
+    OfflineQuery,
+    PrivateKey,
+    PrivateKeyCiphertext,
+    Program,
     ProgramManager as ProgramManagerBase,
-    verifyFunctionExecution,
+    ProvingKey,
+    RecordCiphertext,
+    RecordPlaintext,
+    Signature,
+    Transaction as WasmTransaction,
+    VerifyingKey,
+    ViewKey,
     initThreadPool,
+    verifyFunctionExecution,
 } from "@aleohq/wasm";
 
 export { initializeWasm };

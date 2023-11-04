@@ -3,7 +3,10 @@ import wasm from "../dist/wasm.js";
 const {
     initThreadPool: wasmInitThreadPool,
     Address,
+    Execution,
     ExecutionResponse,
+    Field,
+    OfflineQuery,
     Private,
     PrivateKey,
     PrivateKeyCiphertext,
@@ -36,7 +39,10 @@ async function initThreadPool(threads) {
 export {
     initThreadPool,
     Address,
+    Execution,
     ExecutionResponse,
+    Field,
+    OfflineQuery,
     PrivateKey,
     PrivateKeyCiphertext,
     Program,

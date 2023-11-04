@@ -54,7 +54,8 @@ self.addEventListener("message", (ev) => {
                     keyParams,
                     undefined,
                     undefined,
-                    privateKeyObject
+                    privateKeyObject,
+                    undefined
                 );
 
                 // Return the outputs to the main thread
@@ -131,7 +132,8 @@ self.addEventListener("message", (ev) => {
                     feeRecord,
                     undefined,
                     undefined,
-                    privateKeyObject
+                    privateKeyObject,
+                    undefined
                 );
 
                 // Return the transaction id to the main thread
@@ -187,6 +189,7 @@ self.addEventListener("message", (ev) => {
                     imports,
                     provingKey,
                     verifyingKey,
+                    undefined
                 );
 
                 // Return the execution fee estimate to the main thread
@@ -268,7 +271,8 @@ self.addEventListener("message", (ev) => {
                     undefined,
                     amountRecord,
                     feeRecord,
-                    aleo.PrivateKey.from_string(privateKey)
+                    aleo.PrivateKey.from_string(privateKey),
+                    undefined
                 );
 
                 // Return the transaction id to the main thread
@@ -325,6 +329,7 @@ self.addEventListener("message", (ev) => {
                     undefined,
                     feeRecord,
                     aleo.PrivateKey.from_string(privateKey),
+                    undefined
                 )
 
                 // Return the transaction id to the main thread
@@ -358,7 +363,8 @@ self.addEventListener("message", (ev) => {
                 const transaction = await programManager.split(
                     splitAmount,
                     record,
-                    aleo.PrivateKey.from_string(privateKey)
+                    aleo.PrivateKey.from_string(privateKey),
+                    undefined
                 );
 
                 // Return the transaction id to the main thread
@@ -399,6 +405,7 @@ self.addEventListener("message", (ev) => {
                     undefined,
                     feeRecord,
                     aleo.PrivateKey.from_string(privateKey),
+                    undefined
                 );
 
                 // Return the transaction id to the main thread

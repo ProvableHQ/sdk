@@ -16,16 +16,9 @@
 
 use super::*;
 
-use crate::{
-    execute_program,
-    log,
-    process_inputs,
-    types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
-    PrivateKey,
-    RecordPlaintext,
-    Transaction,
-};
+use crate::{execute_program, log, process_inputs, OfflineQuery, PrivateKey, RecordPlaintext, Transaction};
 
+use crate::types::native::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, TransactionNative};
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::{ops::Add, str::FromStr};
@@ -51,6 +44,7 @@ impl ProgramManager {
         url: Option<String>,
         split_proving_key: Option<ProvingKey>,
         split_verifying_key: Option<VerifyingKey>,
+        offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Executing split program");
         let amount_microcredits = Self::validate_amount(split_amount, &amount_record, false)?;
@@ -79,8 +73,12 @@ impl ProgramManager {
         );
 
         log("Preparing the inclusion proof for the split execution");
-        let query = QueryNative::from(node_url);
-        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        if let Some(offline_query) = offline_query.as_ref() {
+            trace.prepare_async(offline_query.clone()).await.map_err(|err| err.to_string())?;
+        } else {
+            let query = QueryNative::from(node_url);
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        }
 
         log("Proving the split execution");
         let execution =

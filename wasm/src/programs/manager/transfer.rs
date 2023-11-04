@@ -21,12 +21,20 @@ use crate::{
     execute_program,
     log,
     process_inputs,
-    types::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative, TransactionNative},
+    OfflineQuery,
     PrivateKey,
     RecordPlaintext,
     Transaction,
 };
 
+use crate::types::native::{
+    CurrentAleo,
+    IdentifierNative,
+    ProcessNative,
+    ProgramNative,
+    RecordPlaintextNative,
+    TransactionNative,
+};
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
 use std::{ops::Add, str::FromStr};
@@ -63,6 +71,7 @@ impl ProgramManager {
         transfer_verifying_key: Option<VerifyingKey>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
+        offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Executing transfer program");
         let fee_microcredits = match &fee_record {
@@ -150,8 +159,12 @@ impl ProgramManager {
         );
 
         log("Preparing the inclusion proof for the transfer execution");
-        let query = QueryNative::from(node_url);
-        trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        if let Some(offline_query) = offline_query.as_ref() {
+            trace.prepare_async(offline_query.clone()).await.map_err(|err| err.to_string())?;
+        } else {
+            let query = QueryNative::from(node_url);
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        }
 
         log("Proving the transfer execution");
         let execution =
@@ -171,7 +184,8 @@ impl ProgramManager {
             fee_proving_key,
             fee_verifying_key,
             execution_id,
-            rng
+            rng,
+            offline_query
         );
 
         log("Creating execution transaction for transfer");
