@@ -177,10 +177,10 @@ workflows:
       - deploy-staging:
           requires:
             - sdk
-#          filters:
-#            branches:
-#              only:
-#                - main
+          filters:
+            branches:
+              only:
+                - testnet3
       #- test-website:
       #    requires:
       #      - sdk
