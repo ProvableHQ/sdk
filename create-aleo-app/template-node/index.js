@@ -1,6 +1,6 @@
 import {Account, initThreadPool, ProgramManager, AleoKeyProvider, AleoKeyProviderParams} from "@aleohq/sdk";
 
-await initThreadPool();
+await initThreadPool(1);
 
 const hello_hello_program =
     "program hello_hello.aleo;\n" +
