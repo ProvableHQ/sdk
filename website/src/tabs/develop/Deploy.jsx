@@ -19,7 +19,7 @@ export const Deploy = () => {
     
     const [form] = Form.useForm();
     const [deploymentFeeRecord, setDeploymentFeeRecord] = useState(null);
-    const [deployUrl, setDeployUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [deployUrl, setDeployUrl] = useState("http://54.193.21.173:3033");
     const [deploymentFee, setDeploymentFee] = useState("1");
     const [loading, setLoading] = useState(false);
     const [feeLoading, setFeeLoading] = useState(false);

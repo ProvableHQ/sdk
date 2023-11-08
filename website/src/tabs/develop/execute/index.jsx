@@ -336,7 +336,7 @@ export const Execute = () => {
                                 <Form.Item
                                     label="Peer URL"
                                     name="peer_url"
-                                    initialValue="https://api.explorer.aleo.org/v1"
+                                    initialValue="http://54.193.21.173:3033"
                                     hidden={!getFieldValue("execute_onchain")}
                                 >
                                     <Input />

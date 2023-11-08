@@ -1,0 +1,19 @@
+{
+  "name": "pm2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pm2-max": "pm2 start index.js -i max",
+    "monit": "pm2 monit",
+    "kill": "pm2 kill"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pm2": "^5.3.0",
+    "@aleohq/sdk": "^0.6.0"
+  }
+}

@@ -54,7 +54,7 @@ export const GetMappingValue = () => {
             if (programID && mappingName && mappingKey) {
                 axios
                     .get(
-                        `https://api.explorer.aleo.org/v1/testnet3/program/${programID}/mapping/${mappingName}/${mappingKey}`,
+                        `http://54.193.21.173:3033/testnet3/program/${programID}/mapping/${mappingName}/${mappingKey}`,
                     )
                     .then((response) => {
                         if (response.data === null) {
