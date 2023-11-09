@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
+import {Button, Card, Col, Divider, Form, Input, Row, Typography} from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
 
@@ -10,7 +10,7 @@ export const GetLatestBlockHeight = () => {
         setLatestHeight(null);
         try {
             axios
-                .get(`https://api.explorer.aleo.org/v1/testnet3/latest/height`)
+                .get(`${localStorage.getItem('defaultPeerURL') || "https://api.explorer.aleo.org/v1"}/testnet3/latest/height`)
                 .then((response) =>
                     setLatestHeight(JSON.stringify(response.data, null, 2)),
                 );
@@ -25,6 +25,8 @@ export const GetLatestBlockHeight = () => {
         latestHeight !== null ? latestHeight.toString() : "";
 
     return (
+        <>
+        <Typography type="secondary">Current Peer URL: ${localStorage.getItem('defaultPeerURL') || "https://api.explorer.aleo.org/v1"}</Typography>
         <Card
             title="Get Latest Block Height"
             style={{ width: "100%" }}
@@ -61,5 +63,6 @@ export const GetLatestBlockHeight = () => {
                 </Form>
             ) : null}
         </Card>
+        </>
     );
 };

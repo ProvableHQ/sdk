@@ -1,6 +1,6 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import { App, ConfigProvider, Layout, Menu, Switch, theme } from "antd";
+import {App, Button, ConfigProvider, Input, Layout, Menu, Modal, Switch, theme, Typography} from "antd";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import {
@@ -47,6 +47,8 @@ const menuItems = [
         icon: <SwapOutlined />,
     },
 ];
+
+const DEFAULT_PEER_URL = "https://api.explorer.aleo.org/v1";
 function Main() {
     const [menuIndex, setMenuIndex] = useState("account");
 
@@ -64,6 +66,33 @@ function Main() {
     }, [location, navigate]);
 
     const [darkMode, setDarkMode] = useState(true);
+
+    // Default host modal
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [defaultPeerURL, setdefaultPeerURL] = useState(localStorage.getItem('defaultPeerURL') || DEFAULT_PEER_URL);
+
+    const showModal = () => {
+        setIsModalVisible(true);
+    };
+
+    const handleOk = () => {
+        localStorage.setItem('defaultPeerURL', defaultPeerURL); // Save to localStorage
+        setIsModalVisible(false);
+        navigate(0);
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
+    };
+
+    const handleChange = (e) => {
+        setdefaultPeerURL(e.target.value);
+    };
+
+    const handleReset = () => {
+        setdefaultPeerURL(DEFAULT_PEER_URL);
+        localStorage.setItem('defaultPeerURL', DEFAULT_PEER_URL); // Reset to default in localStorage
+    };
 
     return (
         <ConfigProvider
@@ -111,6 +140,42 @@ function Main() {
                             checkedChildren="Dark"
                             unCheckedChildren="Light"
                         />
+                        <Button
+                            style={{
+                                marginTop: "24px",
+                                marginLeft: "24px",
+                            }}
+                            type="primary"
+                            onClick={showModal}
+                        >
+                            Default Peer URL
+                        </Button>
+                        <Modal
+                            title="Set Peer URL"
+                            open={isModalVisible}
+                            onOk={handleOk}
+                            onCancel={handleCancel}
+                            footer={[
+                                <Button key="reset" onClick={handleReset}>
+                                    Reset
+                                </Button>,
+                                <Button key="back" onClick={handleCancel}>
+                                    Cancel
+                                </Button>,
+                                <Button key="submit" type="primary" onClick={handleOk}>
+                                    OK
+                                </Button>,
+                            ]}
+                        >
+                            <Typography.Text type="secondary">
+                                Example: http://your.network.peer:3033
+                            </Typography.Text>
+                            <Input
+                                value={defaultPeerURL}
+                                onChange={handleChange}
+                                placeholder="Enter Peer URL"
+                            />
+                        </Modal>
                     </Sider>
                     <Layout>
                         <Content style={{ padding: "50px 50px" }}>

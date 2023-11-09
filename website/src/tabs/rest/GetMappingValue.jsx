@@ -54,7 +54,7 @@ export const GetMappingValue = () => {
             if (programID && mappingName && mappingKey) {
                 axios
                     .get(
-                        `https://api.explorer.aleo.org/v1/testnet3/program/${programID}/mapping/${mappingName}/${mappingKey}`,
+                        `${localStorage.getItem('defaultPeerURL') || "https://api.explorer.aleo.org/v1"}/testnet3/program/${programID}/mapping/${mappingName}/${mappingKey}`,
                     )
                     .then((response) => {
                         if (response.data === null) {

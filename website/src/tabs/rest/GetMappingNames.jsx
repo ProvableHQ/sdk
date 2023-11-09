@@ -32,7 +32,7 @@ export const GetMappingNames = () => {
             if (id) {
                 axios
                     .get(
-                        `https://api.explorer.aleo.org/v1/testnet3/program/${id}/mappings`,
+                        `${localStorage.getItem('defaultPeerURL') || "https://api.explorer.aleo.org/v1"}/testnet3/program/${id}/mappings`,
                     )
                     .then((response) => {
                         setStatus("success");

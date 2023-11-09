@@ -4,7 +4,7 @@ import axios from "axios";
 
 export const Split = () => {
     const [amountRecord, setAmountRecord] = useState(null);
-    const [splitUrl, setSplitUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [splitUrl, setSplitUrl] = useState(localStorage.getItem('defaultPeerURL') || "https://api.explorer.aleo.org/v1");
     const [splitAmount, setSplitAmount] = useState("1.0");
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
@@ -18,6 +18,7 @@ export const Split = () => {
             new URL("../../workers/worker.js", import.meta.url),
             { type: "module" },
         );
+
         worker.addEventListener("message", (ev) => {
             if (ev.data.type == "SPLIT_TRANSACTION_COMPLETED") {
                 const transactionId = ev.data.splitTransaction;
