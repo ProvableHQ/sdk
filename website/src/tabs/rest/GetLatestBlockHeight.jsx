@@ -26,7 +26,7 @@ export const GetLatestBlockHeight = () => {
 
     return (
         <>
-        <Typography type="secondary">Current Peer URL: ${localStorage.getItem('defaultPeerURL') || "https://api.explorer.aleo.org/v1"}</Typography>
+        <Typography type="secondary">Current Peer URL: {localStorage.getItem('defaultPeerURL') || "https://api.explorer.aleo.org/v1"}</Typography>
         <Card
             title="Get Latest Block Height"
             style={{ width: "100%" }}
