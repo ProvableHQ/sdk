@@ -45,7 +45,7 @@ self.addEventListener("message", (ev) => {
                 const keyParams = new aleo.AleoKeyProviderParams({"cacheKey": cacheKey});
 
                 // Execute the function locally
-                let response = await programManager.executeOffline(
+                let response = await programManager.run(
                     localProgram,
                     aleoFunction,
                     inputs,

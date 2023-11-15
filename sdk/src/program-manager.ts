@@ -15,6 +15,7 @@ import {
     ProgramImports,
     ProvingKey,
     VerifyingKey,
+    Transaction,
     PRIVATE_TRANSFER_TYPES,
     VALID_TRANSFER_TYPES,
     logAndThrow,
@@ -210,7 +211,7 @@ class ProgramManager {
     }
 
     /**
-     * Execute an Aleo program on the Aleo network
+     * Build an execution transaction for later submission to the Aleo network.
      *
      * @param {string} programName Program name containing the function to be executed
      * @param {string} functionName Function name to execute
@@ -239,10 +240,10 @@ class ProgramManager {
      * const programName = "hello_hello.aleo";
      * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
      * const keySearchParams = { "cacheKey": "hello_hello:hello" };
-     * const tx_id = await programManager.execute(programName, "hello_hello", 0.020, ["5u32", "5u32"], undefined, undefined, undefined, keySearchParams);
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     * const transaction = await programManager.execute(programName, "hello_hello", 0.020, ["5u32", "5u32"], undefined, undefined, undefined, keySearchParams);
+     * const result = await programManager.networkClient.submitTransaction(transaction);
      */
-    async execute(
+    async buildExecutionTransaction(
         programName: string,
         functionName: string,
         fee: number,
@@ -255,7 +256,7 @@ class ProgramManager {
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
-    ): Promise<string | Error> {
+    ): Promise<Transaction | Error> {
         // Ensure the function exists on the network
         let program;
         try {
@@ -308,12 +309,62 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        return await WasmProgramManager.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+    }
+
+    /**
+     * Execute an Aleo program on the Aleo network
+     *
+     * @param {string} programName Program name containing the function to be executed
+     * @param {string} functionName Function name to execute
+     * @param {number} fee Fee to pay for the transaction
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {string[]} inputs Inputs to the function
+     * @param {RecordSearchParams} recordSearchParams Optional parameters for searching for a record to pay the fee for
+     * the execution transaction
+     * @param {KeySearchParams} keySearchParams Optional parameters for finding the matching proving & verifying keys
+     * for the function
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
+     * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @returns {Promise<string | Error>}
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programName = "hello_hello.aleo";
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const keySearchParams = { "cacheKey": "hello_hello:hello" };
+     * const tx_id = await programManager.execute(programName, "hello_hello", 0.020, ["5u32", "5u32"], undefined, undefined, undefined, keySearchParams);
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     */
+    async execute(
+        programName: string,
+        functionName: string,
+        fee: number,
+        privateFee: boolean,
+        inputs: string[],
+        recordSearchParams?: RecordSearchParams,
+        keySearchParams?: KeySearchParams,
+        feeRecord?: string | RecordPlaintext,
+        provingKey?: ProvingKey,
+        verifyingKey?: VerifyingKey,
+        privateKey?: PrivateKey,
+        offlineQuery?: OfflineQuery
+    ): Promise<string | Error> {
+        const tx = <Transaction>await this.buildExecutionTransaction(programName, functionName, fee, privateFee, inputs, recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
 
     /**
-     * Execute an Aleo program in offline mode
+     * Run an Aleo program in offline mode
      *
      * @param {string} program Program source code containing the function to be executed
      * @param {string} function_name Function name to execute
@@ -345,7 +396,7 @@ class ProgramManager {
      * const result = executionResponse.getOutputs();
      * assert(result === ["10u32"]);
      */
-    async executeOffline(
+    async run(
         program: string,
         function_name: string,
         inputs: string[],
@@ -548,7 +599,7 @@ class ProgramManager {
     }
 
     /**
-     * Transfer credits to another account
+     * Build a transaction to transfer credits to another account for later submission to the Aleo network
      *
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
@@ -576,7 +627,7 @@ class ProgramManager {
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    async transfer(
+    async buildTransferTransaction(
         amount: number,
         recipient: string,
         transferType: string,
@@ -587,7 +638,7 @@ class ProgramManager {
         feeRecord?: RecordPlaintext | string,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
-    ): Promise<string | Error> {
+    ): Promise<Transaction | Error> {
         // Validate the transfer type
         transferType = <string>validateTransferType(transferType);
 
@@ -630,8 +681,152 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+    }
+
+    /**
+     * Build a transfer_public transaction to transfer credits to another account for later submission to the Aleo network
+     *
+     * @param {number} amount The amount of credits to transfer
+     * @param {string} recipient The recipient of the transfer
+     * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
+     * @param {number} fee The fee to pay for the transfer
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
+     * records for the transfer transaction
+     * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
+     * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @returns {Promise<string | Error>} The transaction id of the transfer transaction
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programName = "hello_hello.aleo";
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * await programManager.initialize();
+     * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     */
+    async buildTransferPublicTransaction(
+        amount: number,
+        recipient: string,
+        fee: number,
+        privateKey?: PrivateKey,
+        offlineQuery?: OfflineQuery
+    ): Promise<Transaction | Error> {
+        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
+    }
+
+    /**
+     * Transfer credits to another account
+     *
+     * @param {number} amount The amount of credits to transfer
+     * @param {string} recipient The recipient of the transfer
+     * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
+     * @param {number} fee The fee to pay for the transfer
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
+     * records for the transfer transaction
+     * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
+     * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @returns {Promise<string | Error>} The transaction id of the transfer transaction
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programName = "hello_hello.aleo";
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * await programManager.initialize();
+     * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     */
+    async transfer(
+        amount: number,
+        recipient: string,
+        transferType: string,
+        fee: number,
+        privateFee: boolean,
+        recordSearchParams?: RecordSearchParams,
+        amountRecord?: RecordPlaintext | string,
+        feeRecord?: RecordPlaintext | string,
+        privateKey?: PrivateKey,
+        offlineQuery?: OfflineQuery
+    ): Promise<string | Error> {
+        const tx = <Transaction>await this.buildTransferTransaction(amount, recipient, transferType, fee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
+    }
+
+    /**
+     * Build transaction to bond credits to a staking committee for later submission to the Aleo Network
+     *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("YourPrivateKey"));
+     *
+     * // Create the bonding transaction
+     * const tx_id = await programManager.bondPublic("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 2000000);
+     *
+     * @returns string
+     * @param {string} address Address of the validator to bond to, if this address is the same as the signer (i.e. the
+     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
+     * requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing
+     * validator and is different from the address of the executor of this function, it will bond the credits to that
+     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {number} amount The amount of credits to bond
+     * @param {Options} options Options for the execution
+     */
+    async buildBondPublicTransaction(address: string, amount: number, options: Options = {}) {
+        amount = Math.trunc(amount*1000000);
+
+        const {
+            offlineParams = {},
+            executionParams = {}
+        } = options || {};
+
+        let {
+            programName = "credits.aleo",
+            functionName = "bond_public",
+            fee = executionParams?.fee || 0.86,
+            privateFee = false,
+            recordSearchParams,
+            keySearchParams,
+            feeRecord,
+            provingKey,
+            verifyingKey,
+            privateKey
+        } = executionParams;
+
+        if (keySearchParams === undefined) {
+            keySearchParams = new AleoKeyProviderParams(
+                {
+                    proverUri: CREDITS_PROGRAM_KEYS.bond_public.prover,
+                    verifierUri: CREDITS_PROGRAM_KEYS.bond_public.verifier,
+                    cacheKey: "credits.aleo/bond_public"
+                });
+        }
+
+        const {
+            offlineQuery,
+        } = offlineParams;
+
+        return await this.buildExecutionTransaction(programName, functionName, fee, privateFee, [address, `${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
     }
 
     /**
@@ -659,44 +854,12 @@ class ProgramManager {
      * @param {Options} options Options for the execution
      */
     async bondPublic(address: string, amount: number, options: Options = {}) {
-        amount = Math.trunc(amount*1000000);
-
-        const {
-            offlineParams = {},
-            executionParams = {}
-        } = options || {};
-
-        let {
-            programName = "credits.aleo",
-            functionName = "bond_public",
-            fee = 1,
-            privateFee = false,
-            recordSearchParams,
-            keySearchParams,
-            feeRecord,
-            provingKey,
-            verifyingKey,
-            privateKey
-        } = executionParams;
-
-        if (keySearchParams === undefined) {
-            keySearchParams = new AleoKeyProviderParams(
-                {
-                    proverUri: CREDITS_PROGRAM_KEYS.bond_public.prover,
-                    verifierUri: CREDITS_PROGRAM_KEYS.bond_public.verifier,
-                    cacheKey: "credits.aleo/bond_public"
-                });
-        }
-
-        const {
-            offlineQuery,
-        } = offlineParams;
-
-        return await this.execute(programName, functionName, fee, privateFee, [address, `${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        const tx = <Transaction>await this.buildBondPublicTransaction(address, amount, options);
+        return await this.networkClient.submitTransaction(tx);
     }
 
     /**
-     * Unbond a specified amount of staked credits
+     * Build a transaction to unbond a specified amount of staked credits to be used later
      *
      * @example
      * // Create a keyProvider to handle key management
@@ -719,7 +882,7 @@ class ProgramManager {
      * after the unbond operation, the delegator will be removed from the validator's staking pool.
      * @param {Options} options Options for the execution
      */
-    async unbondPublic(amount: number, options: Options = {}) {
+    async buildUnbondPublicTransaction(amount: number, options: Options = {}): Promise<Transaction | Error> {
         amount = Math.trunc(amount*1000000);
 
         const {
@@ -730,7 +893,7 @@ class ProgramManager {
         let {
             programName = "credits.aleo",
             functionName = "unbond_public",
-            fee = 1,
+            fee = executionParams?.fee || 1.3,
             privateFee = false,
             recordSearchParams,
             keySearchParams,
@@ -753,12 +916,41 @@ class ProgramManager {
             offlineQuery,
         } = offlineParams;
 
-        return await this.execute(programName, functionName, fee, privateFee, [`${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        return this.buildExecutionTransaction(programName, functionName, fee, privateFee, [`${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
     }
 
     /**
-     * Claim unbonded credits. If credits have been unbonded by the account executing this function, this method will
-     * claim them and add them to the public balance of the account.
+     * Unbond a specified amount of staked credits to be used later
+     *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("YourPrivateKey"));
+     *
+     * // Create the bonding transaction
+     * const tx_id = await programManager.unbondPublic(10);
+     *
+     * @returns string
+     * @param {number} amount Amount of credits to unbond. If the address of the executor of this function is an
+     * existing validator, it will subtract this amount of credits from the validator's staked credits. If there are
+     * less than 1,000,000 credits staked pool after the unbond, the validator will be removed from the validator set.
+     * If the address of the executor of this function is not a validator and has credits bonded as a delegator, it will
+     * subtract this amount of credits from the delegator's staked credits. If there are less than 10 credits bonded
+     * after the unbond operation, the delegator will be removed from the validator's staking pool.
+     * @param {Options} options Options for the execution
+     */
+    async unbondPublic(amount: number, options: Options = {}): Promise<string | Error> {
+        const tx = <Transaction>await this.buildUnbondPublicTransaction(amount, options);
+        return await this.networkClient.submitTransaction(tx);
+    }
+
+    /**
+     * Build a transaction to Claim unbonded credits for later submission. If credits have been unbonded by the account
+     * executing this function, this method will claim them and add them to the public balance of the account.
      *
      * @example
      * // Create a keyProvider to handle key management
@@ -775,7 +967,7 @@ class ProgramManager {
      * @returns string
      * @param {Options} options
      */
-    async claimUnbondPublic(options: Options = {}) {
+    async buildClaimUnbondPublicTransaction(options: Options = {}): Promise<Transaction | Error> {
         const {
             offlineParams = {},
             executionParams = {}
@@ -784,7 +976,7 @@ class ProgramManager {
         let {
             programName = "credits.aleo",
             functionName = "claim_unbond_public",
-            fee = 1,
+            fee = executionParams?.fee || 2,
             privateFee = false,
             recordSearchParams,
             keySearchParams,
@@ -807,7 +999,31 @@ class ProgramManager {
             offlineQuery,
         } = offlineParams;
 
-        return await this.execute(programName, functionName, fee, privateFee, [], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        return await this.buildExecutionTransaction(programName, functionName, fee, privateFee, [], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+    }
+
+    /**
+     * Claim unbonded credits. If credits have been unbonded by the account executing this function, this method will
+     * claim them and add them to the public balance of the account.
+     *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("YourPrivateKey"));
+     *
+     * // Create the bonding transaction
+     * const tx_id = await programManager.claimUnbondPublic();
+     *
+     * @returns string
+     * @param {Options} options
+     */
+    async claimUnbondPublic(options: Options = {}): Promise<string | Error> {
+        const tx = <Transaction>await this.buildClaimUnbondPublicTransaction(options);
+        return await this.networkClient.submitTransaction(tx);
     }
 
 

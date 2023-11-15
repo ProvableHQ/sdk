@@ -16,7 +16,7 @@ describe('Program Manager', () => {
 
     describe('Execute offline', () => {
         it.skip('Program manager should execute offline and verify the resulting proof correctly', async () => {
-            const execution_result = <ExecutionResponse>await programManager.executeOffline(helloProgram, "hello", ["5u32", "5u32"], true, undefined, undefined, undefined, undefined, undefined, undefined)
+            const execution_result = <ExecutionResponse>await programManager.run(helloProgram, "hello", ["5u32", "5u32"], true, undefined, undefined, undefined, undefined, undefined, undefined)
             expect(execution_result.getOutputs()[0]).toEqual("10u32");
             programManager.verifyExecution(execution_result);
         }, 1020000);
@@ -30,7 +30,7 @@ describe('Program Manager', () => {
             offlineQuery.addStatePath(commitment, recordStatePath);
             const credits = <string>await programManager.networkClient.getProgram("credits.aleo");
 
-            const execution_result = <ExecutionResponse>await programManager.executeOffline(credits, "transfer_private", [statePathRecord, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
+            const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecord, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
             const verified = programManager.verifyExecution(execution_result);
             expect(verified).toEqual(true);
         }, 1020000);

@@ -6,8 +6,8 @@ import {
   Program,
   RecordPlaintext,
   PrivateKey,
-  WasmTransaction,
   Transaction,
+  TransactionModel,
   logAndThrow
 } from "./index";
 
@@ -310,7 +310,7 @@ class AleoNetworkClient {
    * Returns the deployment transaction id associated with the specified program
    *
    * @param {Program | string} program
-   * @returns {Transaction | Error}
+   * @returns {TransactionModel | Error}
    */
   async getDeploymentTransactionIDForProgram(program: Program | string): Promise<string | Error> {
     if (program instanceof Program) {
@@ -328,12 +328,12 @@ class AleoNetworkClient {
    * Returns the deployment transaction associated with a specified program
    *
    * @param {Program | string} program
-   * @returns {Transaction | Error}
+   * @returns {TransactionModel | Error}
    */
-  async getDeploymentTransactionForProgram(program: Program | string): Promise<Transaction | Error> {
+  async getDeploymentTransactionForProgram(program: Program | string): Promise<TransactionModel | Error> {
     try {
       const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
-      return <Transaction>await this.getTransaction(transaction_id);
+      return <TransactionModel>await this.getTransaction(transaction_id);
     } catch (error) {
       throw new Error("Error fetching deployment transaction for program.");
     }
@@ -563,9 +563,9 @@ class AleoNetworkClient {
    * @example
    * const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
    */
-  async getTransaction(id: string): Promise<Transaction | Error> {
+  async getTransaction(id: string): Promise<TransactionModel | Error> {
     try {
-      return await this.fetchData<Transaction>("/transaction/" + id);
+      return await this.fetchData<TransactionModel>("/transaction/" + id);
     } catch (error) {
       throw new Error("Error fetching transaction.");
     }
@@ -579,9 +579,9 @@ class AleoNetworkClient {
    * @example
    * const transactions = networkClient.getTransactions(654);
    */
-  async getTransactions(height: number): Promise<Array<Transaction> | Error> {
+  async getTransactions(height: number): Promise<Array<TransactionModel> | Error> {
     try {
-      return await this.fetchData<Array<Transaction>>("/block/" + height.toString() + "/transactions");
+      return await this.fetchData<Array<TransactionModel>>("/block/" + height.toString() + "/transactions");
     } catch (error) {
       throw new Error("Error fetching transactions.");
     }
@@ -593,9 +593,9 @@ class AleoNetworkClient {
    * @example
    * const transactions = networkClient.getTransactionsInMempool();
    */
-  async getTransactionsInMempool(): Promise<Array<Transaction> | Error> {
+  async getTransactionsInMempool(): Promise<Array<TransactionModel> | Error> {
     try {
-      return await this.fetchData<Array<Transaction>>("/memoryPool/transactions");
+      return await this.fetchData<Array<TransactionModel>>("/memoryPool/transactions");
     } catch (error) {
       throw new Error("Error fetching transactions from mempool.");
     }
@@ -619,11 +619,11 @@ class AleoNetworkClient {
   /**
    * Submit an execute or deployment transaction to the Aleo network
    *
-   * @param {WasmTransaction | string} transaction  - The transaction to submit to the network
+   * @param {Transaction | string} transaction  - The transaction to submit to the network
    * @returns {string | Error} - The transaction id of the submitted transaction or the resulting error
    */
-  async submitTransaction(transaction: WasmTransaction | string): Promise<string | Error> {
-    const transaction_string = transaction instanceof WasmTransaction ? transaction.toString() : transaction;
+  async submitTransaction(transaction: Transaction | string): Promise<string | Error> {
+    const transaction_string = transaction instanceof Transaction ? transaction.toString() : transaction;
     try {
       const response = await post(this.host + "/transaction/broadcast", {
         body: transaction_string,
