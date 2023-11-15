@@ -143,7 +143,7 @@ import { Block } from "./models/block";
 import { Execution } from "./models/execution";
 import { Input } from "./models/input";
 import { Output } from "./models/output";
-import { Transaction } from "./models/transaction";
+import { TransactionModel } from "./models/transactionModel";
 import { Transition } from "./models/transition";
 import {
     AleoKeyProvider,
@@ -184,7 +184,7 @@ export {
     RecordCiphertext,
     RecordPlaintext,
     Signature,
-    Transaction as WasmTransaction,
+    Transaction,
     VerifyingKey,
     ViewKey,
     initThreadPool,
@@ -212,7 +212,7 @@ export {
     Output,
     RecordProvider,
     RecordSearchParams,
-    Transaction,
+    TransactionModel,
     Transition,
     CREDITS_PROGRAM_KEYS,
     KEY_STORE,

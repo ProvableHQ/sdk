@@ -40,7 +40,7 @@ async function localProgramExecution() {
 
     // Execute once using the key provider params defined above. This will use the cached proving keys and make
     // execution significantly faster.
-    let executionResponse = await programManager.executeOffline(
+    let executionResponse = await programManager.run(
         hello_hello_program,
         "hello",
         ["5u32", "5u32"],

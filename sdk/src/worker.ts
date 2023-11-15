@@ -74,7 +74,7 @@ async function executeOffline(
         });
 
         // Execute the function locally
-        const response = await programManager.executeOffline(
+        const response = await programManager.run(
             localProgram,
             aleoFunction,
             inputs,

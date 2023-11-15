@@ -23,7 +23,7 @@ async function localProgramExecution(program, aleoFunction, inputs) {
     const account = new Account();
     programManager.setAccount(account);
 
-    const executionResponse = await programManager.executeOffline(
+    const executionResponse = await programManager.run(
         hello_hello_program,
         "hello",
         ["5u32", "5u32"],
