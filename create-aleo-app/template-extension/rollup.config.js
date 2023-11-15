@@ -3,7 +3,8 @@ import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 
 export default {
     input: {
-        background: "./src/background.js",
+        service_worker: "./src/service_worker.js",
+        offscreen: "./src/offscreen.js",
         worker: "./src/worker.js",
     },
     output: {
@@ -14,7 +15,7 @@ export default {
     plugins: [
         nodeResolve(),
         importMetaAssets({
-            exclude: "./src/background.js",
+            exclude: "./src/offscreen.js",
         }),
     ],
 };

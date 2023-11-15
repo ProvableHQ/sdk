@@ -810,6 +810,88 @@ class ProgramManager {
         return await this.execute(programName, functionName, fee, privateFee, [], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
     }
 
+    /**
+     * Set Validator State
+     * @returns string
+     * @param {boolean} validator_state
+     * @param options
+     */
+    async setValidatorState(validator_state: boolean, options: Options = {}) {
+        const {
+            offlineParams = {},
+            executionParams = {}
+        } = options || {};
+
+        let {
+            programName = "credits.aleo",
+            functionName = "set_validator_state",
+            fee = 1,
+            privateFee = false,
+            recordSearchParams,
+            keySearchParams,
+            feeRecord,
+            provingKey,
+            verifyingKey,
+            privateKey
+        } = executionParams;
+
+        if (keySearchParams === undefined) {
+            keySearchParams = new AleoKeyProviderParams(
+                {
+                    proverUri: CREDITS_PROGRAM_KEYS.set_validator_state.prover,
+                    verifierUri: CREDITS_PROGRAM_KEYS.set_validator_state.verifier,
+                    cacheKey: "credits.aleo/set_validator_state"
+                });
+        }
+
+        const {
+            offlineQuery,
+        } = offlineParams;
+
+        return await this.execute(programName, functionName, fee, privateFee, [validator_state.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+    }
+
+    /**
+     * Unbond Delegator As Validator
+     * @returns string
+     * @param {string} address
+     * @param options
+     */
+    async unbondDelegatorAsValidator(address:string, options: Options = {}) {
+        const {
+            offlineParams = {},
+            executionParams = {}
+        } = options || {};
+
+        let {
+            programName = "credits.aleo",
+            functionName = "unbond_delegator_as_validator",
+            fee = 1,
+            privateFee = false,
+            recordSearchParams,
+            keySearchParams,
+            feeRecord,
+            provingKey,
+            verifyingKey,
+            privateKey
+        } = executionParams;
+
+        if (keySearchParams === undefined) {
+            keySearchParams = new AleoKeyProviderParams(
+                {
+                    proverUri: CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.prover,
+                    verifierUri: CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifier,
+                    cacheKey: "credits.aleo/unbond_delegator_as_validator"
+                });
+        }
+
+        const {
+            offlineQuery,
+        } = offlineParams;
+
+        return await this.execute(programName, functionName, fee, privateFee, [address], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+    }
+
 
     /**
      * Verify a proof of execution from an offline execution
