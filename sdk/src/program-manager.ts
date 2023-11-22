@@ -228,6 +228,7 @@ class ProgramManager {
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @param {string | Program | undefined} program Optional program source code to use for the transaction
+     * @param {ProgramImports} imports Programs that the program being executed imports
      * @returns {Promise<string | Error>}
      *
      * @example
@@ -258,6 +259,7 @@ class ProgramManager {
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
         program?: string | Program,
+        imports?: ProgramImports
     ): Promise<Transaction | Error> {
         // Ensure the function exists on the network
         if (program === undefined) {
@@ -306,11 +308,13 @@ class ProgramManager {
         }
 
         // Resolve the program imports if they exist
-        let imports;
-        try {
-            imports = await this.networkClient.getProgramImports(programName);
-        } catch (e) {
-            throw logAndThrow(`Error finding program imports. Network response: '${e}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
+        const numberOfImports = Program.fromString(program).getImports().length;
+        if (numberOfImports > 0 && !imports) {
+            try {
+                imports = <ProgramImports>await this.networkClient.getProgramImports(programName);
+            } catch (e) {
+                throw logAndThrow(`Error finding program imports. Network response: '${e}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
+            }
         }
 
         // Build an execution transaction and submit it to the network

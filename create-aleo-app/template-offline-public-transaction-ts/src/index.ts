@@ -1,8 +1,9 @@
-import {Account, Address, CREDITS_PROGRAM_KEYS, initThreadPool, ProgramManager, OfflineQuery, OfflineKeyProvider, ProvingKey, Transaction} from "@aleohq/sdk";
+import {Account, Address, CREDITS_PROGRAM_KEYS, initThreadPool, ProgramManager, OfflineQuery, OfflineKeyProvider, OfflineSearchParams, ProvingKey, Transaction} from "@aleohq/sdk";
 import { getLocalKey, preDownloadBondingKeys, preDownloadTransferKeys } from "./helpers";
 
 await initThreadPool();
 
+/// Build transfer public transaction offline
 async function buildTransferPublicTxOffline(recipientAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}): Promise<Error | Transaction>  {
     // Create an offline program manager
     const programManager = new ProgramManager();
@@ -45,7 +46,8 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     );
 }
 
-async function buildBondingTxOffline(recipientAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}) {
+/// Build bonding and unbonding transactions offline
+async function buildBondingTxOffline(recipientAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}): Promise<Error | Transaction[]> {
     // Create an offline program manager
     const programManager = new ProgramManager();
 
@@ -76,26 +78,78 @@ async function buildBondingTxOffline(recipientAddress: Address, amount: number, 
     offlineKeyProvider.insertUnbondPublicKeys(unBondPublicProvingKey);
     offlineKeyProvider.insertClaimUnbondPublicKeys(claimUnbondPublicProvingKey);
 
-    // Create an offline query to complete the inclusion proof
-    const offlineQuery = new OfflineQuery(latestStateRoot);
-
     // Insert the key provider into the program manager
     programManager.setKeyProvider(offlineKeyProvider);
+
+    // Build the bonding transaction offline
+    const bondPublicOptions = {
+        executionParams: {
+            keySearchParams: OfflineSearchParams.bondPublicKeyParams()
+        },
+        offlineParams: {
+            offlineQuery: new OfflineQuery(latestStateRoot)
+        }
+    }
+
+    console.log("Building bonding transaction offline");
+    const bondTx = <Transaction>await programManager.buildBondPublicTransaction(
+        recipientAddress.to_string(),
+        amount,
+        bondPublicOptions,
+    )
+    console.log("bond_public transaction built:\n");
+
+    console.log("Building unbonding transaction offline")
+    const unbondPublicOptions = {
+        executionParams: {
+            keySearchParams: OfflineSearchParams.unbondPublicKeyParams()
+        },
+        offlineParams: {
+            offlineQuery: new OfflineQuery(latestStateRoot)
+        }
+    }
+
+    const unBondTx = <Transaction>await programManager.buildUnbondPublicTransaction(amount, unbondPublicOptions);
+    console.log("unbond_public transaction built:\n");
+
+    console.log("Building claim unbonding transaction offline")
+    // Build the claim unbonding transaction offline
+    const claimUnbondPublicOptions = {
+        executionParams: {
+            keySearchParams: OfflineSearchParams.claimUnbondPublicKeyParams()
+        },
+        offlineParams: {
+            offlineQuery: new OfflineQuery(latestStateRoot)
+        }
+    }
+
+    const claimUnbondTx = <Transaction>await programManager.buildClaimUnbondPublicTransaction(claimUnbondPublicOptions);
+    console.log("\nclaim_unbond_public transaction built:\n");
+    return [bondTx, unBondTx, claimUnbondTx];
 }
 
 // ONLINE COMPONENT (Do this part on an internet connected machine)
+// Download the needed keys for the functions we want to execute offline
 const transferKeyPaths = await preDownloadTransferKeys();
 const bondingKeyPaths = await preDownloadBondingKeys();
 
+// OFFLINE COMPONENT (Do this part on an offline machine)
+// Get the latest state root from an online machine and enter it into an offline machine
 const latestStateRoot = "sr1p93gpsezrjzdhcd2wujznx5s07k8qa39t6vfcej35zew8vn2jyrs46te8q";
 
-// OFFLINE COMPONENT (Do this part on an offline machine)
+// Build a transfer_public transaction
 const recipientAddress = new Account().address();
 const transferTx = await buildTransferPublicTxOffline(recipientAddress, 100, latestStateRoot, transferKeyPaths);
 console.log("Transfer transaction built offline!");
-console.log(`TransferTx:\n${transferTx}`);
+console.log(`transfer_public transaction:\n${transferTx}`);
+
+// Build bonding & unbonding transactions
+const bondTransactions = await buildBondingTxOffline(recipientAddress, 100, latestStateRoot, bondingKeyPaths);
+console.log("Bonding transactions built offline!");
+console.log(`bond_public transaction:\n${bondTransactions[0]}`);
+console.log(`unbond_public transaction:\n${bondTransactions[1]}`);
+console.log(`claim_unbond transaction:\n${bondTransactions[2]}`);
 
 // ONLINE COMPONENT (Uncomment this part to send the transaction to the Aleo Network on an internet connected machine)
 // Submit the transaction to the network
-// const txId = await networkClient.submitTransaction(transferTx);
-
+// const transferTxId = await networkClient.submitTransaction(transferTx);
