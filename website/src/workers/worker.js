@@ -121,20 +121,16 @@ self.addEventListener("message", (ev) => {
 
                 // Set the host to the provided URL if provided
                 if (typeof url === "string") { programManager.setHost(url); }
-                const transaction = await programManager.execute(
-                    program_id,
-                    aleoFunction,
-                    fee,
-                    privateFee,
-                    inputs,
-                    undefined,
-                    keyParams,
-                    feeRecord,
-                    undefined,
-                    undefined,
-                    privateKeyObject,
-                    undefined
-                );
+                const transaction = await programManager.execute({
+                    programName: program_id,
+                    functionName: aleoFunction,
+                    fee: fee,
+                    privateFee: privateFee,
+                    inputs: inputs,
+                    keySearchParams: keyParams,
+                    feeRecord: feeRecord,
+                    privateKey: privateKeyObject
+                });
 
                 // Return the transaction id to the main thread
                 console.log(`Web worker: On-chain execution transaction created in ${performance.now() - startTime} ms`);
