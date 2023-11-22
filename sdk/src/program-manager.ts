@@ -22,8 +22,6 @@ import {
     ProgramManagerBase as WasmProgramManager, verifyFunctionExecution, AleoKeyProviderParams, CREDITS_PROGRAM_KEYS,
 } from "./index";
 import {Execution} from "@aleohq/wasm/dist/crates/aleo_wasm";
-
-// TODO put this somewhere where it makes more sense
 interface ExecutionParams {
     programName?: string;
     functionName?: string;
@@ -42,6 +40,21 @@ interface OfflineParams {
 interface Options {
     offlineParams?: OfflineParams;
     executionParams?: ExecutionParams;
+}
+
+interface ExecuteOptions {
+    programName: string;
+    functionName: string;
+    fee: number;
+    privateFee: boolean;
+    inputs: string[];
+    recordSearchParams?: RecordSearchParams;
+    keySearchParams?: KeySearchParams;
+    feeRecord?: string | RecordPlaintext;
+    provingKey?: ProvingKey;
+    verifyingKey?: VerifyingKey;
+    privateKey?: PrivateKey;
+    offlineQuery?: OfflineQuery;
 }
 
 /**
@@ -313,53 +326,55 @@ class ProgramManager {
     }
 
     /**
-     * Execute an Aleo program on the Aleo network
+     * Execute an Aleo program on the Aleo network.
      *
-     * @param {string} programName Program name containing the function to be executed
-     * @param {string} functionName Function name to execute
-     * @param {number} fee Fee to pay for the transaction
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {string[]} inputs Inputs to the function
-     * @param {RecordSearchParams} recordSearchParams Optional parameters for searching for a record to pay the fee for
-     * the execution transaction
-     * @param {KeySearchParams} keySearchParams Optional parameters for finding the matching proving & verifying keys
-     * for the function
-     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
-     * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
-     * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
-     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {ExecuteOptions} options - The options object containing all the necessary parameters:
+     *   @param {string} options.programName - Program name containing the function to be executed.
+     *   @param {string} options.functionName - Function name to execute.
+     *   @param {number} options.fee - Fee to pay for the transaction.
+     *   @param {boolean} options.privateFee - Use a private record to pay the fee. If false, this will use the account's public credit balance.
+     *   @param {string[]} options.inputs - Inputs to the function.
+     *   @param {RecordSearchParams} [options.recordSearchParams] - Optional parameters for searching for a record to pay the fee.
+     *   @param {KeySearchParams} [options.keySearchParams] - Optional parameters for finding the matching proving & verifying keys.
+     *   @param {string | RecordPlaintext | undefined} [options.feeRecord] - Optional fee record to use for the transaction.
+     *   @param {ProvingKey | undefined} [options.provingKey] - Optional proving key to use for the transaction.
+     *   @param {VerifyingKey | undefined} [options.verifyingKey] - Optional verifying key to use for the transaction.
+     *   @param {PrivateKey | undefined} [options.privateKey] - Optional private key to use for the transaction.
+     *   @param {OfflineQuery | undefined} [options.offlineQuery] - Optional offline query if creating transactions in an offline environment.
      * @returns {Promise<string | Error>}
      *
      * @example
-     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
      * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
-     *
-     * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programName = "hello_hello.aleo";
      * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
-     * const keySearchParams = { "cacheKey": "hello_hello:hello" };
-     * const tx_id = await programManager.execute(programName, "hello_hello", 0.020, ["5u32", "5u32"], undefined, undefined, undefined, keySearchParams);
+     * const executeOptions = {
+     *     programName: "hello_hello.aleo",
+     *     functionName: "hello_hello",
+     *     fee: 0.020,
+     *     privateFee: false,
+     *     inputs: ["5u32", "5u32"],
+     *     keySearchParams: { "cacheKey": "hello_hello:hello" }
+     * };
+     * const tx_id = await programManager.execute(executeOptions);
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    async execute(
-        programName: string,
-        functionName: string,
-        fee: number,
-        privateFee: boolean,
-        inputs: string[],
-        recordSearchParams?: RecordSearchParams,
-        keySearchParams?: KeySearchParams,
-        feeRecord?: string | RecordPlaintext,
-        provingKey?: ProvingKey,
-        verifyingKey?: VerifyingKey,
-        privateKey?: PrivateKey,
-        offlineQuery?: OfflineQuery
-    ): Promise<string | Error> {
-        const tx = <Transaction>await this.buildExecutionTransaction(programName, functionName, fee, privateFee, inputs, recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+    async execute(options: ExecuteOptions): Promise<string | Error> {
+        const tx = <Transaction>await this.buildExecutionTransaction(
+            options.programName,
+            options.functionName,
+            options.fee,
+            options.privateFee,
+            options.inputs,
+            options.recordSearchParams,
+            options.keySearchParams,
+            options.feeRecord,
+            options.provingKey,
+            options.verifyingKey,
+            options.privateKey,
+            options.offlineQuery
+        );
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -1030,83 +1045,70 @@ class ProgramManager {
      * Set Validator State
      * @returns string
      * @param {boolean} validator_state
-     * @param options
+     * @param {Partial<ExecuteOptions>} options - Override default execution options
      */
-    async setValidatorState(validator_state: boolean, options: Options = {}) {
+    async setValidatorState(validator_state: boolean, options: Partial<ExecuteOptions> = {}) {
         const {
-            offlineParams = {},
-            executionParams = {}
-        } = options || {};
-
-        let {
             programName = "credits.aleo",
             functionName = "set_validator_state",
             fee = 1,
             privateFee = false,
-            recordSearchParams,
+            inputs = [validator_state.toString()],
+            keySearchParams = new AleoKeyProviderParams({
+                proverUri: CREDITS_PROGRAM_KEYS.set_validator_state.prover,
+                verifierUri: CREDITS_PROGRAM_KEYS.set_validator_state.verifier,
+                cacheKey: "credits.aleo/set_validator_state"
+            }),
+            ...additionalOptions
+        } = options;
+
+        const executeOptions: ExecuteOptions = {
+            programName,
+            functionName,
+            fee,
+            privateFee,
+            inputs,
             keySearchParams,
-            feeRecord,
-            provingKey,
-            verifyingKey,
-            privateKey
-        } = executionParams;
+            ...additionalOptions
+        };
 
-        if (keySearchParams === undefined) {
-            keySearchParams = new AleoKeyProviderParams(
-                {
-                    proverUri: CREDITS_PROGRAM_KEYS.set_validator_state.prover,
-                    verifierUri: CREDITS_PROGRAM_KEYS.set_validator_state.verifier,
-                    cacheKey: "credits.aleo/set_validator_state"
-                });
-        }
-
-        const {
-            offlineQuery,
-        } = offlineParams;
-
-        return await this.execute(programName, functionName, fee, privateFee, [validator_state.toString()], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        return await this.execute(executeOptions);
     }
 
     /**
      * Unbond Delegator As Validator
-     * @returns string
-     * @param {string} address
-     * @param options
+     * @returns {Promise<string | Error>} A promise that resolves to the transaction ID or an error message.
+     * @param {string} address - The address of the delegator.
+     * @param {Partial<ExecuteOptions>} options - Override default execution options.
      */
-    async unbondDelegatorAsValidator(address:string, options: Options = {}) {
+    async unbondDelegatorAsValidator(address: string, options: Partial<ExecuteOptions> = {}) {
         const {
-            offlineParams = {},
-            executionParams = {}
-        } = options || {};
-
-        let {
             programName = "credits.aleo",
             functionName = "unbond_delegator_as_validator",
             fee = 1,
             privateFee = false,
-            recordSearchParams,
+            inputs = [address],
+            keySearchParams = new AleoKeyProviderParams({
+                proverUri: CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.prover,
+                verifierUri: CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifier,
+                cacheKey: "credits.aleo/unbond_delegator_as_validator"
+            }),
+            ...additionalOptions
+        } = options;
+
+        const executeOptions: ExecuteOptions = {
+            programName,
+            functionName,
+            fee,
+            privateFee,
+            inputs,
             keySearchParams,
-            feeRecord,
-            provingKey,
-            verifyingKey,
-            privateKey
-        } = executionParams;
+            ...additionalOptions
+        };
 
-        if (keySearchParams === undefined) {
-            keySearchParams = new AleoKeyProviderParams(
-                {
-                    proverUri: CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.prover,
-                    verifierUri: CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifier,
-                    cacheKey: "credits.aleo/unbond_delegator_as_validator"
-                });
-        }
-
-        const {
-            offlineQuery,
-        } = offlineParams;
-
-        return await this.execute(programName, functionName, fee, privateFee, [address], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        return await this.execute(executeOptions);
     }
+
 
 
     /**
