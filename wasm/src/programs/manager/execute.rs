@@ -88,16 +88,17 @@ impl ProgramManager {
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
 
-        let (response, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            program,
-            function,
-            private_key,
-            proving_key,
-            verifying_key,
-            rng
-        );
+        let (response, mut trace) =
+            execute_program!(
+                process,
+                process_inputs!(inputs),
+                program,
+                function,
+                private_key,
+                proving_key,
+                verifying_key,
+                rng
+            );
 
         let mut execution_response = if prove_execution {
             log("Preparing inclusion proofs for execution");
@@ -176,16 +177,17 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Executing program");
-        let (_, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            program,
-            function,
-            private_key,
-            proving_key,
-            verifying_key,
-            rng
-        );
+        let (_, mut trace) =
+            execute_program!(
+                process,
+                process_inputs!(inputs),
+                program,
+                function,
+                private_key,
+                proving_key,
+                verifying_key,
+                rng
+            );
 
         log("Preparing inclusion proofs for execution");
         if let Some(offline_query) = offline_query.as_ref() {
@@ -269,16 +271,17 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Generating execution trace");
-        let (_, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            program,
-            function,
-            private_key,
-            proving_key,
-            verifying_key,
-            rng
-        );
+        let (_, mut trace) =
+            execute_program!(
+                process,
+                process_inputs!(inputs),
+                program,
+                function,
+                private_key,
+                proving_key,
+                verifying_key,
+                rng
+            );
 
         // Execute the program
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);

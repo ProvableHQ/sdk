@@ -46,6 +46,30 @@ class AleoKeyProviderParams implements KeySearchParams {
  */
 interface FunctionKeyProvider {
     /**
+     * Get bond_public function keys from the credits.aleo program
+     *
+     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the bond_public function
+     */
+    bondPublicKeys(): Promise<FunctionKeyPair | Error>;
+
+
+    /**
+     * Cache a set of keys. This will overwrite any existing keys with the same keyId. The user can check if a keyId
+     * exists in the cache using the containsKeys method prior to calling this method if overwriting is not desired.
+     *
+     * @param {string} keyId access key for the cache
+     * @param {FunctionKeyPair} keys keys to cache
+     */
+    cacheKeys(keyId: string, keys: FunctionKeyPair): void;
+
+    /**
+     * Get unbond_public function keys from the credits.aleo program
+     *
+     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the unbond_public function
+     */
+    claimUnbondPublicKeys(): Promise<FunctionKeyPair | Error>;
+
+    /**
      * Get arbitrary function keys from a provider
      *
      * @param {KeySearchParams | undefined} params - Optional search parameters for the key provider
@@ -113,6 +137,34 @@ interface FunctionKeyProvider {
     functionKeys(params?: KeySearchParams): Promise<FunctionKeyPair | Error>;
 
     /**
+     * Get fee_private function keys from the credits.aleo program
+     *
+     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     */
+    feePrivateKeys(): Promise<FunctionKeyPair | Error>;
+
+    /**
+     * Get fee_public function keys from the credits.aleo program
+     *
+     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     */
+    feePublicKeys(): Promise<FunctionKeyPair | Error>;
+
+    /**
+     * Get join function keys from the credits.aleo program
+     *
+     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     */
+    joinKeys(): Promise<FunctionKeyPair | Error>;
+
+    /**
+     * Get split function keys from the credits.aleo program
+     *
+     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     */
+    splitKeys(): Promise<FunctionKeyPair | Error>;
+
+    /**
      * Get keys for a variant of the transfer function from the credits.aleo program
      *
      * @param {string} visibility Visibility of the transfer function (private, public, privateToPublic, publicToPrivate)
@@ -134,42 +186,14 @@ interface FunctionKeyProvider {
     transferKeys(visibility: string): Promise<FunctionKeyPair | Error>;
 
     /**
-     * Get join function keys from the credits.aleo program
+     * Get unbond_public function keys from the credits.aleo program
      *
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
      */
-    joinKeys(): Promise<FunctionKeyPair | Error>;
+    unBondPublicKeys(): Promise<FunctionKeyPair | Error>;
 
-    /**
-     * Get split function keys from the credits.aleo program
-     *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
-     */
-    splitKeys(): Promise<FunctionKeyPair | Error>;
-
-    /**
-     * Get fee_private function keys from the credits.aleo program
-     *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
-     */
-    feePrivateKeys(): Promise<FunctionKeyPair | Error>;
-
-    /**
-     * Get fee_public function keys from the credits.aleo program
-     *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
-     */
-    feePublicKeys(): Promise<FunctionKeyPair | Error>;
-
-    /**
-     * Cache a set of keys. This will overwrite any existing keys with the same keyId. The user can check if a keyId
-     * exists in the cache using the containsKeys method prior to calling this method if overwriting is not desired.
-     *
-     * @param {string} keyId access key for the cache
-     * @param {FunctionKeyPair} keys keys to cache
-     */
-    cacheKeys(keyId: string, keys: FunctionKeyPair): void;
 }
+
 
 /**
  * AleoKeyProvider class. Implements the KeyProvider interface. Enables the retrieval of Aleo program proving and
@@ -364,6 +388,14 @@ class AleoKeyProvider implements FunctionKeyProvider {
         }
     }
 
+    bondPublicKeys(): Promise<FunctionKeyPair | Error> {
+        return this.fetchKeys(CREDITS_PROGRAM_KEYS.bond_public.prover, CREDITS_PROGRAM_KEYS.bond_public.verifier, CREDITS_PROGRAM_KEYS.bond_public.locator)
+    }
+
+    claimUnbondPublicKeys(): Promise<FunctionKeyPair | Error> {
+        return this.fetchKeys(CREDITS_PROGRAM_KEYS.claim_unbond_public.prover, CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier, CREDITS_PROGRAM_KEYS.claim_unbond_public.locator)
+    }
+
     /**
      * Returns the proving and verifying keys for the transfer functions in the credits.aleo program
      * @param {string} visibility Visibility of the transfer function
@@ -384,13 +416,13 @@ class AleoKeyProvider implements FunctionKeyProvider {
      */
     async transferKeys(visibility: string): Promise<FunctionKeyPair | Error> {
         if (PRIVATE_TRANSFER.has(visibility)) {
-            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier);
+            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier, CREDITS_PROGRAM_KEYS.transfer_private.locator);
         } else if (PRIVATE_TO_PUBLIC_TRANSFER.has(visibility)) {
-            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier);
+            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier, CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator);
         } else if (PUBLIC_TRANSFER.has(visibility)) {
-            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier);
+            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier, CREDITS_PROGRAM_KEYS.transfer_public.locator);
         } else if (PUBLIC_TO_PRIVATE_TRANSFER.has(visibility)) {
-            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier);
+            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier, CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator);
         } else {
             throw new Error("Invalid visibility type");
         }
@@ -402,7 +434,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
      */
     async joinKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.join.prover, CREDITS_PROGRAM_KEYS.join.verifier);
+        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.join.prover, CREDITS_PROGRAM_KEYS.join.verifier, CREDITS_PROGRAM_KEYS.join.locator);
     }
 
     /**
@@ -411,7 +443,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the split function
      * */
     async splitKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.split.prover, CREDITS_PROGRAM_KEYS.split.verifier);
+        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.split.prover, CREDITS_PROGRAM_KEYS.split.verifier, CREDITS_PROGRAM_KEYS.split.locator);
     }
 
     /**
@@ -420,7 +452,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the fee function
      */
     async feePrivateKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee_private.prover, CREDITS_PROGRAM_KEYS.fee_private.verifier);
+        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee_private.prover, CREDITS_PROGRAM_KEYS.fee_private.verifier, CREDITS_PROGRAM_KEYS.fee_private.locator);
     }
 
     /**
@@ -429,7 +461,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the fee function
      */
     async feePublicKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee_public.prover, CREDITS_PROGRAM_KEYS.fee_public.verifier);
+        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee_public.prover, CREDITS_PROGRAM_KEYS.fee_public.verifier, CREDITS_PROGRAM_KEYS.fee_public.locator);
     }
 
     /**
@@ -438,8 +470,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<VerifyingKey | Error>} Verifying key for the function
      */
     // attempt to fetch it from the network
-    async getVerifyingKey(verifierUrl: string): Promise<VerifyingKey | Error> {
-        switch (verifierUrl) {
+    async getVerifyingKey(verifierUri: string): Promise<VerifyingKey | Error> {
+        switch (verifierUri) {
             case CREDITS_PROGRAM_KEYS.bond_public.verifier:
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.bond_public.verifyingKey);
             case CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier:
@@ -452,6 +484,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.inclusion.verifyingKey);
             case CREDITS_PROGRAM_KEYS.join.verifier:
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.join.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.set_validator_state.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.set_validator_state.verifyingKey);
             case CREDITS_PROGRAM_KEYS.split.verifier:
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.split.verifyingKey);
             case CREDITS_PROGRAM_KEYS.transfer_private.verifier:
@@ -462,11 +496,17 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public.verifyingKey);
             case CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier:
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifyingKey);
+            case CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifier:
+                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifyingKey);
             case CREDITS_PROGRAM_KEYS.unbond_public.verifier:
                 return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.unbond_public.verifyingKey);
             default:
-                return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUrl));
+                return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUri));
         }
+    }
+
+    unBondPublicKeys(): Promise<FunctionKeyPair | Error> {
+        return this.fetchKeys(CREDITS_PROGRAM_KEYS.unbond_public.prover, CREDITS_PROGRAM_KEYS.unbond_public.verifier, CREDITS_PROGRAM_KEYS.unbond_public.locator);
     }
 }
 

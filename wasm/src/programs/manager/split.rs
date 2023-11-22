@@ -61,16 +61,17 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Executing the split function");
-        let (_, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            &program,
-            "split",
-            private_key,
-            split_proving_key,
-            split_verifying_key,
-            rng
-        );
+        let (_, mut trace) =
+            execute_program!(
+                process,
+                process_inputs!(inputs),
+                &program,
+                "split",
+                private_key,
+                split_proving_key,
+                split_verifying_key,
+                rng
+            );
 
         log("Preparing the inclusion proof for the split execution");
         if let Some(offline_query) = offline_query.as_ref() {

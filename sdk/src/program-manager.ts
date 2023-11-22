@@ -227,6 +227,7 @@ class ProgramManager {
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {string | Program | undefined} program Optional program source code to use for the transaction
      * @returns {Promise<string | Error>}
      *
      * @example
@@ -255,14 +256,18 @@ class ProgramManager {
         provingKey?: ProvingKey,
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
-        offlineQuery?: OfflineQuery
+        offlineQuery?: OfflineQuery,
+        program?: string | Program,
     ): Promise<Transaction | Error> {
         // Ensure the function exists on the network
-        let program;
-        try {
-            program = <string>(await this.networkClient.getProgram(programName));
-        } catch (e) {
-            throw logAndThrow(`Error finding ${programName}. Network response: '${e}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`);
+        if (program === undefined) {
+            try {
+                program = <string>(await this.networkClient.getProgram(programName));
+            } catch (e) {
+                throw logAndThrow(`Error finding ${programName}. Network response: '${e}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`);
+            }
+        } else if (program instanceof Program) {
+            program = program.toString();
         }
 
         // Get the private key from the account if it is not provided in the parameters
@@ -357,9 +362,10 @@ class ProgramManager {
         provingKey?: ProvingKey,
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
-        offlineQuery?: OfflineQuery
+        offlineQuery?: OfflineQuery,
+        program?: string | Program
     ): Promise<string | Error> {
-        const tx = <Transaction>await this.buildExecutionTransaction(programName, functionName, fee, privateFee, inputs, recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        const tx = <Transaction>await this.buildExecutionTransaction(programName, functionName, fee, privateFee, inputs, recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery, program);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -592,7 +598,7 @@ class ProgramManager {
                 inputs,
                 imports
             );
-            return [<VerifyingKey>keyPair.provingKey(), <ProvingKey>keyPair.verifyingKey()];
+            return [<ProvingKey>keyPair.provingKey(), <VerifyingKey>keyPair.verifyingKey()];
         } catch (e) {
             throw logAndThrow(`Could not synthesize keys - error ${e}. Please ensure the program is valid and the inputs are correct.`);
         }
@@ -826,7 +832,7 @@ class ProgramManager {
             offlineQuery,
         } = offlineParams;
 
-        return await this.buildExecutionTransaction(programName, functionName, fee, privateFee, [address, `${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        return await this.buildExecutionTransaction(programName, functionName, fee, privateFee, [address, `${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery, this.creditsProgram());
     }
 
     /**
@@ -916,7 +922,7 @@ class ProgramManager {
             offlineQuery,
         } = offlineParams;
 
-        return this.buildExecutionTransaction(programName, functionName, fee, privateFee, [`${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        return this.buildExecutionTransaction(programName, functionName, fee, privateFee, [`${amount.toString()}u64`], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery, this.creditsProgram());
     }
 
     /**
@@ -999,7 +1005,7 @@ class ProgramManager {
             offlineQuery,
         } = offlineParams;
 
-        return await this.buildExecutionTransaction(programName, functionName, fee, privateFee, [], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery);
+        return await this.buildExecutionTransaction(programName, functionName, fee, privateFee, [], recordSearchParams, keySearchParams, feeRecord, provingKey, verifyingKey, privateKey, offlineQuery, this.creditsProgram());
     }
 
     /**

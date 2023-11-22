@@ -105,16 +105,17 @@ impl ProgramManager {
         }
 
         log("Executing the join function");
-        let (_, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            &program,
-            "join",
-            private_key,
-            join_proving_key,
-            join_verifying_key,
-            rng
-        );
+        let (_, mut trace) =
+            execute_program!(
+                process,
+                process_inputs!(inputs),
+                &program,
+                "join",
+                private_key,
+                join_proving_key,
+                join_verifying_key,
+                rng
+            );
 
         log("Preparing inclusion proof for the join execution");
         if let Some(offline_query) = offline_query.as_ref() {
