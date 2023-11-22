@@ -19,8 +19,8 @@ mod macros;
 pub mod execution;
 pub use execution::*;
 
-pub mod key_pair;
-pub use key_pair::*;
+pub mod keypair;
+pub use keypair::*;
 
 #[cfg(feature = "browser")]
 pub mod manager;

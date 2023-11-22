@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.6.6"
+version = "0.6.8"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "WebAssembly based toolkit for developing zero knowledge applications with Aleo"
 homepage = "https://aleo.org"
@@ -22,29 +22,33 @@ crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
 [dependencies.snarkvm-circuit-network]
-version = "0.16.6"
+version = "0.16.10"
 
 [dependencies.snarkvm-console]
-version = "0.16.6"
+version = "0.16.10"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-ledger-block]
-version = "0.16.6"
+version = "0.16.10"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-ledger-query]
-version = "0.16.6"
+version = "0.16.10"
 features = [ "async", "wasm" ]
 
 [dependencies.snarkvm-ledger-store]
-version = "0.16.6"
+version = "0.16.10"
+
+[dependencies.snarkvm-parameters]
+version = "0.16.10"
+features = [ "wasm" ]
 
 [dependencies.snarkvm-synthesizer]
-version = "0.16.6"
+version = "0.16.10"
 features = [ "async", "wasm" ]
 
 [dependencies.snarkvm-wasm]
-version = "0.16.6"
+version = "0.16.10"
 features = [ "console", "fields", "utilities" ]
 
 [dependencies.anyhow]
@@ -53,15 +57,15 @@ version = "1.0"
 [dependencies.async-trait]
 version = "0.1.68"
 
+[dependencies.console_error_panic_hook]
+version = "0.1.7"
+
 [dependencies.getrandom]
 version = "0.2"
 features = [ "js" ]
 
 [dependencies.indexmap]
 version = "2.0.0"
-
-[dependencies.lazy_static]
-version = "1.4.0"
 
 [dependencies.hex]
 version = "0.4.3"
@@ -81,8 +85,15 @@ version = "1.8"
 [dependencies.reqwest]
 version = "0.11.18"
 
+[dependencies.serde]
+version = "1.0.183"
+
 [dependencies.serde_json]
 version = "1.0"
+
+[dependencies.sha2]
+version = "0.10"
+default-features = false
 
 [build-dependencies.walkdir]
 version = "2"
@@ -93,16 +104,6 @@ features = [ "serde-serialize" ]
 
 [dependencies.wasm-bindgen-futures]
 version = "0.4.37"
-
-[dependencies.console_error_panic_hook]
-version = "0.1.7"
-
-[dependencies.serde]
-version = "1.0.183"
-
-[dev-dependencies.snarkvm-parameters]
-version = "0.16.6"
-features = [ "wasm" ]
 
 [dependencies.spmc]
 version = "0.3.0"
