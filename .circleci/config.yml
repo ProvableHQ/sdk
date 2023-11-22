@@ -130,7 +130,7 @@ jobs:
       - run:
           working_directory: wasm
           command: |
-            cargo +nightly fmt -- --check
+            cargo fmt -- --check
 
 
 workflows:

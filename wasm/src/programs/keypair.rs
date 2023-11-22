@@ -19,6 +19,7 @@ use crate::{ProvingKey, VerifyingKey};
 use crate::types::native::{ProvingKeyNative, VerifyingKeyNative};
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// Key pair object containing both the function proving and verifying keys
 #[wasm_bindgen]
 #[derive(Clone, Debug)]
 pub struct KeyPair {

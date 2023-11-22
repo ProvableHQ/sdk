@@ -170,19 +170,18 @@ async fn test_fee_validation() {
     assert!(execution.is_err());
 
     // Ensure deployment fails when fee amount is greater than the balance available in the record
-    let deployment =
-        ProgramManager::deploy(
-            &private_key,
-            &Program::get_credits_program().to_string(),
-            100.0,
-            Some(fee_record.clone()),
-            Some("https://api.explorer.aleo.org/v1".to_string()),
-            None,
-            None,
-            None,
-            None,
-        )
-        .await;
+    let deployment = ProgramManager::deploy(
+        &private_key,
+        &Program::get_credits_program().to_string(),
+        100.0,
+        Some(fee_record.clone()),
+        Some("https://api.explorer.aleo.org/v1".to_string()),
+        None,
+        None,
+        None,
+        None,
+    )
+    .await;
     assert!(deployment.is_err());
 
     // Ensure transfer fails when fee amount or amount is greater than the balance available in the record
@@ -260,20 +259,19 @@ async fn test_fee_estimation() {
     let finalize_fee = ProgramManager::estimate_finalize_fee(FINALIZE, "integer_key_mapping_update").unwrap();
     assert!(finalize_fee > 0);
 
-    let execution_fee =
-        ProgramManager::estimate_execution_fee(
-            &private_key,
-            FINALIZE,
-            "integer_key_mapping_update",
-            inputs,
-            Some("https://api.explorer.aleo.org/v1".to_string()),
-            None,
-            None,
-            None,
-            None,
-        )
-        .await
-        .unwrap();
+    let execution_fee = ProgramManager::estimate_execution_fee(
+        &private_key,
+        FINALIZE,
+        "integer_key_mapping_update",
+        inputs,
+        Some("https://api.explorer.aleo.org/v1".to_string()),
+        None,
+        None,
+        None,
+        None,
+    )
+    .await
+    .unwrap();
 
     // Ensure the fee is greater a specific amount
     console_log!("execute fee for finalize: {:?}", execution_fee);

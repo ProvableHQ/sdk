@@ -473,33 +473,33 @@ class AleoKeyProvider implements FunctionKeyProvider {
     async getVerifyingKey(verifierUri: string): Promise<VerifyingKey | Error> {
         switch (verifierUri) {
             case CREDITS_PROGRAM_KEYS.bond_public.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.bond_public.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.bond_public.verifyingKey();
             case CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.claim_unbond_public.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.claim_unbond_public.verifyingKey();
             case CREDITS_PROGRAM_KEYS.fee_private.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.fee_private.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.fee_private.verifyingKey();
             case CREDITS_PROGRAM_KEYS.fee_public.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.fee_public.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.fee_public.verifyingKey();
             case CREDITS_PROGRAM_KEYS.inclusion.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.inclusion.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.inclusion.verifyingKey();
             case CREDITS_PROGRAM_KEYS.join.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.join.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.join.verifyingKey();
             case CREDITS_PROGRAM_KEYS.set_validator_state.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.set_validator_state.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.set_validator_state.verifyingKey();
             case CREDITS_PROGRAM_KEYS.split.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.split.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.split.verifyingKey();
             case CREDITS_PROGRAM_KEYS.transfer_private.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_private.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.transfer_private.verifyingKey();
             case CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifyingKey();
             case CREDITS_PROGRAM_KEYS.transfer_public.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.transfer_public.verifyingKey();
             case CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifyingKey();
             case CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifyingKey();
             case CREDITS_PROGRAM_KEYS.unbond_public.verifier:
-                return VerifyingKey.fromString(CREDITS_PROGRAM_KEYS.unbond_public.verifyingKey);
+                return CREDITS_PROGRAM_KEYS.unbond_public.verifyingKey();
             default:
                 return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUri));
         }

@@ -21,10 +21,6 @@ use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 /// Webassembly Representation of an Aleo program
-///
-/// This object is required to create an Execution or Deployment transaction. It includes several
-/// convenience methods for enumerating available functions and each functions' inputs in a
-/// javascript object for usage in creation of web forms for input capture.
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Program(ProgramNative);
@@ -301,8 +297,10 @@ impl Program {
     #[wasm_bindgen(js_name = "getRecordMembers")]
     pub fn get_record_members(&self, record_name: String) -> Result<Object, String> {
         let record_id = IdentifierNative::from_str(&record_name).map_err(|e| e.to_string())?;
-        let record =
-            self.0.get_record(&record_id).map_err(|_| format!("struct {} not found in {}", record_name, self.0.id()))?;
+        let record = self
+            .0
+            .get_record(&record_id)
+            .map_err(|_| format!("struct {} not found in {}", record_name, self.0.id()))?;
 
         let input = Object::new();
         Reflect::set(&input, &"type".into(), &"record".into()).map_err(|_| "Failed to set property")?;
@@ -390,8 +388,10 @@ impl Program {
     pub fn get_struct_members(&self, struct_name: String) -> Result<Array, String> {
         let struct_id = IdentifierNative::from_str(&struct_name).map_err(|e| e.to_string())?;
 
-        let program_struct =
-            self.0.get_struct(&struct_id).map_err(|_| format!("struct {} not found in {}", struct_name, self.0.id()))?;
+        let program_struct = self
+            .0
+            .get_struct(&struct_id)
+            .map_err(|_| format!("struct {} not found in {}", struct_name, self.0.id()))?;
 
         let struct_members = Array::new_with_length(program_struct.members().len() as u32);
         for (index, (name, member_type)) in program_struct.members().iter().enumerate() {

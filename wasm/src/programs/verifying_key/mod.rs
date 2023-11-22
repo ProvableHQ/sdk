@@ -174,12 +174,11 @@ mod tests {
         )
         .unwrap()
         .to_string();
-        let unbond_delegator_as_validator_verifier_string =
-            VerifyingKey::from_bytes(
-                &snarkvm_parameters::testnet3::UnbondDelegatorAsValidatorVerifier::load_bytes().unwrap(),
-            )
-            .unwrap()
-            .to_string();
+        let unbond_delegator_as_validator_verifier_string = VerifyingKey::from_bytes(
+            &snarkvm_parameters::testnet3::UnbondDelegatorAsValidatorVerifier::load_bytes().unwrap(),
+        )
+        .unwrap()
+        .to_string();
         let unbond_public_verifier_string =
             VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::UnbondPublicVerifier::load_bytes().unwrap())
                 .unwrap()
