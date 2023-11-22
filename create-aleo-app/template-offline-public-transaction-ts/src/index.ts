@@ -3,7 +3,7 @@ import { getLocalKey, preDownloadBondingKeys, preDownloadTransferKeys } from "./
 
 await initThreadPool();
 
-/// Build transfer public transaction offline
+/// Build transfer public transaction without connection to the internet
 async function buildTransferPublicTxOffline(recipientAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}): Promise<Error | Transaction>  {
     // Create an offline program manager
     const programManager = new ProgramManager();
@@ -35,7 +35,7 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     // Insert the key provider into the program manager
     programManager.setKeyProvider(offlineKeyProvider);
 
-    // Build tne transfer transaction offline
+    // Build tne transfer_public transaction offline
     console.log("Building transfer transaction offline");
     return programManager.buildTransferPublicTransaction(
         amount,
@@ -46,7 +46,7 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     );
 }
 
-/// Build bonding and unbonding transactions offline
+/// Build bonding and unbonding transactions without connection to the internet
 async function buildBondingTxOffline(recipientAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}): Promise<Error | Transaction[]> {
     // Create an offline program manager
     const programManager = new ProgramManager();
@@ -66,7 +66,7 @@ async function buildBondingTxOffline(recipientAddress: Address, amount: number, 
     const unBondPublicProvingKey = ProvingKey.fromBytes(unbondPublicKeyBytes);
     const claimUnbondPublicProvingKey = ProvingKey.fromBytes(claimUnbondPublicKeyBytes);
 
-    // Create an offline key provider
+    // Create an offline key provider to fetch keys without connection to the internet
     console.log("Creating offline key provider");
     const offlineKeyProvider = new OfflineKeyProvider();
 
@@ -81,7 +81,8 @@ async function buildBondingTxOffline(recipientAddress: Address, amount: number, 
     // Insert the key provider into the program manager
     programManager.setKeyProvider(offlineKeyProvider);
 
-    // Build the bonding transaction offline
+    // Build the bonding transactions offline
+    console.log("Building a bond_public execution transaction offline");
     const bondPublicOptions = {
         executionParams: {
             keySearchParams: OfflineSearchParams.bondPublicKeyParams()
@@ -91,15 +92,14 @@ async function buildBondingTxOffline(recipientAddress: Address, amount: number, 
         }
     }
 
-    console.log("Building bonding transaction offline");
     const bondTx = <Transaction>await programManager.buildBondPublicTransaction(
         recipientAddress.to_string(),
         amount,
         bondPublicOptions,
     )
-    console.log("bond_public transaction built:\n");
+    console.log("\nbond_public transaction built!\n");
 
-    console.log("Building unbonding transaction offline")
+    console.log("Building an unbond_public execution transaction offline")
     const unbondPublicOptions = {
         executionParams: {
             keySearchParams: OfflineSearchParams.unbondPublicKeyParams()
@@ -110,9 +110,9 @@ async function buildBondingTxOffline(recipientAddress: Address, amount: number, 
     }
 
     const unBondTx = <Transaction>await programManager.buildUnbondPublicTransaction(amount, unbondPublicOptions);
-    console.log("unbond_public transaction built:\n");
+    console.log("\nunbond_public transaction built!\n");
 
-    console.log("Building claim unbonding transaction offline")
+    console.log("Building a claim_unbond_public transaction offline")
     // Build the claim unbonding transaction offline
     const claimUnbondPublicOptions = {
         executionParams: {
@@ -124,16 +124,20 @@ async function buildBondingTxOffline(recipientAddress: Address, amount: number, 
     }
 
     const claimUnbondTx = <Transaction>await programManager.buildClaimUnbondPublicTransaction(claimUnbondPublicOptions);
-    console.log("\nclaim_unbond_public transaction built:\n");
+    console.log("\nclaim_unbond_public transaction built!\n");
     return [bondTx, unBondTx, claimUnbondTx];
 }
 
-// ONLINE COMPONENT (Do this part on an internet connected machine)
+// -------------------ONLINE COMPONENT---------------------
+//     (Do this part on an internet connected machine)
+
 // Download the needed keys for the functions we want to execute offline
 const transferKeyPaths = await preDownloadTransferKeys();
 const bondingKeyPaths = await preDownloadBondingKeys();
+//---------------------------------------------------------
 
-// OFFLINE COMPONENT (Do this part on an offline machine)
+// ------------------OFFLINE COMPONENT---------------------
+//           (Do this part on an offline machine)
 // Get the latest state root from an online machine and enter it into an offline machine
 const latestStateRoot = "sr1p93gpsezrjzdhcd2wujznx5s07k8qa39t6vfcej35zew8vn2jyrs46te8q";
 
@@ -141,15 +145,23 @@ const latestStateRoot = "sr1p93gpsezrjzdhcd2wujznx5s07k8qa39t6vfcej35zew8vn2jyrs
 const recipientAddress = new Account().address();
 const transferTx = await buildTransferPublicTxOffline(recipientAddress, 100, latestStateRoot, transferKeyPaths);
 console.log("Transfer transaction built offline!");
-console.log(`transfer_public transaction:\n${transferTx}`);
+console.log(`\n---------------transfer_public transaction---------------\n${transferTx}`);
+console.log(`---------------------------------------------------------`);
 
 // Build bonding & unbonding transactions
 const bondTransactions = await buildBondingTxOffline(recipientAddress, 100, latestStateRoot, bondingKeyPaths);
 console.log("Bonding transactions built offline!");
-console.log(`bond_public transaction:\n${bondTransactions[0]}`);
-console.log(`unbond_public transaction:\n${bondTransactions[1]}`);
-console.log(`claim_unbond transaction:\n${bondTransactions[2]}`);
+console.log(`\n-----------------bond_public transaction-----------------\n${bondTransactions[0]}`);
+console.log(`---------------------------------------------------------`);
+console.log(`\n----------------unbond_public transaction:---------------\n${bondTransactions[1]}`);
+console.log(`---------------------------------------------------------`);
+console.log(`\n-----------------claim_unbond transaction:---------------\n${bondTransactions[2]}`);
+console.log(`---------------------------------------------------------`);
+//---------------------------------------------------------
 
+// -------------------ONLINE COMPONENT---------------------
+//     (Do this part on an internet connected machine)
 // ONLINE COMPONENT (Uncomment this part to send the transaction to the Aleo Network on an internet connected machine)
 // Submit the transaction to the network
 // const transferTxId = await networkClient.submitTransaction(transferTx);
+//---------------------------------------------------------
