@@ -251,14 +251,14 @@ class ProgramManager {
             recordSearchParams,
             keySearchParams,
             privateKey,
-            offlineQuery,
-            imports
+            offlineQuery
         } = options;
 
         let feeRecord = options.feeRecord;
         let provingKey = options.provingKey;
         let verifyingKey = options.verifyingKey;
         let program = options.program;
+        let imports = options.imports;
 
         // Ensure the function exists on the network
         if (program === undefined) {
