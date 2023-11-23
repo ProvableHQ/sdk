@@ -22,6 +22,26 @@ import {
     ProgramManagerBase as WasmProgramManager, verifyFunctionExecution, AleoKeyProviderParams, CREDITS_PROGRAM_KEYS,
 } from "./index";
 import {Execution} from "@aleohq/wasm/dist/crates/aleo_wasm";
+
+/**
+ * Represents the options for executing a transaction in the Aleo network.
+ * This interface is used to specify the parameters required for building and submitting an execution transaction.
+ *
+ * @property {string} programName - The name of the program containing the function to be executed.
+ * @property {string} functionName - The name of the function to execute within the program.
+ * @property {number} fee - The fee to be paid for the transaction.
+ * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
+ * @property {string[]} inputs - The inputs to the function being executed.
+ * @property {RecordSearchParams} [recordSearchParams] - Optional parameters for searching for a record to pay the execution transaction fee.
+ * @property {KeySearchParams} [keySearchParams] - Optional parameters for finding the matching proving & verifying keys for the function.
+ * @property {string | RecordPlaintext} [feeRecord] - Optional fee record to use for the transaction.
+ * @property {ProvingKey} [provingKey] - Optional proving key to use for the transaction.
+ * @property {VerifyingKey} [verifyingKey] - Optional verifying key to use for the transaction.
+ * @property {PrivateKey} [privateKey] - Optional private key to use for the transaction.
+ * @property {OfflineQuery} [offlineQuery] - Optional offline query if creating transactions in an offline environment.
+ * @property {string | Program} [program] - Optional program source code to use for the transaction.
+ * @property {ProgramImports} [imports] - Optional programs that the program being executed imports.
+ */
 interface ExecuteOptions {
     programName: string;
     functionName: string;
@@ -206,25 +226,10 @@ class ProgramManager {
     }
 
     /**
-     * Build an execution transaction for later submission to the Aleo network.
+     * Builds an execution transaction for submission to the Aleo network.
      *
-     * @param {string} programName Program name containing the function to be executed
-     * @param {string} functionName Function name to execute
-     * @param {number} fee Fee to pay for the transaction
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {string[]} inputs Inputs to the function
-     * @param {RecordSearchParams} recordSearchParams Optional parameters for searching for a record to pay the fee for
-     * the execution transaction
-     * @param {KeySearchParams} keySearchParams Optional parameters for finding the matching proving & verifying keys
-     * for the function
-     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
-     * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
-     * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
-     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @param {string | Program | undefined} program Optional program source code to use for the transaction
-     * @param {ProgramImports} imports Programs that the program being executed imports
-     * @returns {Promise<string | Error>}
+     * @param {ExecuteOptions} options - The options for the execution transaction.
+     * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error.
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
@@ -234,10 +239,17 @@ class ProgramManager {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programName = "hello_hello.aleo";
      * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
-     * const keySearchParams = { "cacheKey": "hello_hello:hello" };
-     * const transaction = await programManager.execute(programName, "hello_hello", 0.020, ["5u32", "5u32"], undefined, undefined, undefined, keySearchParams);
+     *
+     * // Build and execute the transaction
+     * const transaction = await programManager.buildExecutionTransaction({
+     *   programName: "hello_hello.aleo",
+     *   functionName: "hello_hello",
+     *   fee: 0.020,
+     *   privateFee: false,
+     *   inputs: ["5u32", "5u32"],
+     *   keySearchParams: { "cacheKey": "hello_hello:hello" }
+     * });
      * const result = await programManager.networkClient.submitTransaction(transaction);
      */
     async buildExecutionTransaction(options: ExecuteOptions): Promise<Transaction | Error> {
@@ -321,39 +333,31 @@ class ProgramManager {
     }
 
     /**
-     * Execute an Aleo program on the Aleo network.
+     * Builds an execution transaction for submission to the Aleo network.
      *
-     * @param {ExecuteOptions} options - The options object containing all the necessary parameters:
-     *   @param {string} options.programName - Program name containing the function to be executed.
-     *   @param {string} options.functionName - Function name to execute.
-     *   @param {number} options.fee - Fee to pay for the transaction.
-     *   @param {boolean} options.privateFee - Use a private record to pay the fee. If false, this will use the account's public credit balance.
-     *   @param {string[]} options.inputs - Inputs to the function.
-     *   @param {RecordSearchParams} [options.recordSearchParams] - Optional parameters for searching for a record to pay the fee.
-     *   @param {KeySearchParams} [options.keySearchParams] - Optional parameters for finding the matching proving & verifying keys.
-     *   @param {string | RecordPlaintext | undefined} [options.feeRecord] - Optional fee record to use for the transaction.
-     *   @param {ProvingKey | undefined} [options.provingKey] - Optional proving key to use for the transaction.
-     *   @param {VerifyingKey | undefined} [options.verifyingKey] - Optional verifying key to use for the transaction.
-     *   @param {PrivateKey | undefined} [options.privateKey] - Optional private key to use for the transaction.
-     *   @param {OfflineQuery | undefined} [options.offlineQuery] - Optional offline query if creating transactions in an offline environment.
-     * @returns {Promise<string | Error>}
+     * @param {ExecuteOptions} options - The options for the execution transaction.
+     * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error.
      *
      * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
      * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
-     * const executeOptions = {
-     *     programName: "hello_hello.aleo",
-     *     functionName: "hello_hello",
-     *     fee: 0.020,
-     *     privateFee: false,
-     *     inputs: ["5u32", "5u32"],
-     *     keySearchParams: { "cacheKey": "hello_hello:hello" }
-     * };
-     * const tx_id = await programManager.execute(executeOptions);
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *
+     * // Build and execute the transaction
+     * const transaction = await programManager.execute({
+     *   programName: "hello_hello.aleo",
+     *   functionName: "hello_hello",
+     *   fee: 0.020,
+     *   privateFee: false,
+     *   inputs: ["5u32", "5u32"],
+     *   keySearchParams: { "cacheKey": "hello_hello:hello" }
+     * });
+     * const result = await programManager.networkClient.submitTransaction(transaction);
      */
     async execute(options: ExecuteOptions): Promise<string | Error> {
         const tx = <Transaction>await this.buildExecutionTransaction(options);
