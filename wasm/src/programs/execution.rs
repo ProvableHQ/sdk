@@ -27,7 +27,7 @@ use crate::types::native::{
     VerifyingKeyNative,
 };
 
-/// A program that can be executed on the Aleo blockchain.
+/// Execution of an Aleo program.
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Execution(ExecutionNative);

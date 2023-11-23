@@ -89,7 +89,7 @@ macro_rules! execute_program {
 
         log("Executing program");
         let result = $process
-            .execute::<CurrentAleo>(authorization)
+            .execute::<CurrentAleo, _>(authorization, $rng)
             .map_err(|err| err.to_string())?;
 
         result
@@ -149,7 +149,7 @@ macro_rules! execute_fee {
 
         log("Executing fee");
         let (_, mut trace) = $process
-            .execute::<CurrentAleo>(fee_authorization)
+            .execute::<CurrentAleo, _>(fee_authorization, $rng)
             .map_err(|err| err.to_string())?;
 
         if let Some(offline_query) = $offline_query {

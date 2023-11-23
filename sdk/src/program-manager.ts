@@ -35,6 +35,8 @@ interface ExecuteOptions {
     verifyingKey?: VerifyingKey;
     privateKey?: PrivateKey;
     offlineQuery?: OfflineQuery;
+    program?: string | Program;
+    imports?: ProgramImports;
 }
 
 /**
@@ -206,26 +208,36 @@ class ProgramManager {
     /**
      * Build an execution transaction for later submission to the Aleo network.
      *
-     * @param {ExecuteOptions} options Options object containing parameters for the transaction
-     * @returns {Promise<Transaction | Error>}
+     * @param {string} programName Program name containing the function to be executed
+     * @param {string} functionName Function name to execute
+     * @param {number} fee Fee to pay for the transaction
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {string[]} inputs Inputs to the function
+     * @param {RecordSearchParams} recordSearchParams Optional parameters for searching for a record to pay the fee for
+     * the execution transaction
+     * @param {KeySearchParams} keySearchParams Optional parameters for finding the matching proving & verifying keys
+     * for the function
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
+     * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {string | Program | undefined} program Optional program source code to use for the transaction
+     * @param {ProgramImports} imports Programs that the program being executed imports
+     * @returns {Promise<string | Error>}
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
      * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
      * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const executeOptions: ExecuteOptions = {
-     *     programName: "hello_hello.aleo",
-     *     functionName: "hello_hello",
-     *     fee: 0.020,
-     *     privateFee: false,
-     *     inputs: ["5u32", "5u32"],
-     *     // ... other parameters as needed
-     * };
-     *
-     * const transaction = await programManager.buildExecutionTransaction(executeOptions);
+     * const programName = "hello_hello.aleo";
+     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const keySearchParams = { "cacheKey": "hello_hello:hello" };
+     * const transaction = await programManager.execute(programName, "hello_hello", 0.020, ["5u32", "5u32"], undefined, undefined, undefined, keySearchParams);
      * const result = await programManager.networkClient.submitTransaction(transaction);
      */
     async buildExecutionTransaction(options: ExecuteOptions): Promise<Transaction | Error> {
@@ -239,19 +251,24 @@ class ProgramManager {
             recordSearchParams,
             keySearchParams,
             privateKey,
-            offlineQuery
+            offlineQuery,
+            imports
         } = options;
 
         let feeRecord = options.feeRecord;
         let provingKey = options.provingKey;
         let verifyingKey = options.verifyingKey;
+        let program = options.program;
 
         // Ensure the function exists on the network
-        let program;
-        try {
-            program = <string>(await this.networkClient.getProgram(programName));
-        } catch (e) {
-            throw logAndThrow(`Error finding ${programName}. Network response: '${e}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`);
+        if (program === undefined) {
+            try {
+                program = <string>(await this.networkClient.getProgram(programName));
+            } catch (e) {
+                throw logAndThrow(`Error finding ${programName}. Network response: '${e}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`);
+            }
+        } else if (program instanceof Program) {
+            program = program.toString();
         }
 
         // Get the private key from the account if it is not provided in the parameters
@@ -290,11 +307,13 @@ class ProgramManager {
         }
 
         // Resolve the program imports if they exist
-        let imports;
-        try {
-            imports = await this.networkClient.getProgramImports(programName);
-        } catch (e) {
-            throw logAndThrow(`Error finding program imports. Network response: '${e}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
+        const numberOfImports = Program.fromString(program).getImports().length;
+        if (numberOfImports > 0 && !imports) {
+            try {
+                imports = <ProgramImports>await this.networkClient.getProgramImports(programName);
+            } catch (e) {
+                throw logAndThrow(`Error finding program imports. Network response: '${e}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
+            }
         }
 
         // Build an execution transaction and submit it to the network
@@ -570,7 +589,7 @@ class ProgramManager {
                 inputs,
                 imports
             );
-            return [<VerifyingKey>keyPair.provingKey(), <ProvingKey>keyPair.verifyingKey()];
+            return [<ProvingKey>keyPair.provingKey(), <VerifyingKey>keyPair.verifyingKey()];
         } catch (e) {
             throw logAndThrow(`Could not synthesize keys - error ${e}. Please ensure the program is valid and the inputs are correct.`);
         }
@@ -784,6 +803,7 @@ class ProgramManager {
                 verifierUri: CREDITS_PROGRAM_KEYS.bond_public.verifier,
                 cacheKey: "credits.aleo/bond_public"
             }),
+            program = this.creditsProgram(),
             ...additionalOptions
         } = options;
 
@@ -855,6 +875,7 @@ class ProgramManager {
                 verifierUri: CREDITS_PROGRAM_KEYS.unbond_public.verifier,
                 cacheKey: "credits.aleo/unbond_public"
             }),
+            program = this.creditsProgram(),
             ...additionalOptions
         } = options;
 
@@ -923,6 +944,7 @@ class ProgramManager {
                 verifierUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier,
                 cacheKey: "credits.aleo/claim_unbond_public"
             }),
+            program = this.creditsProgram(),
             ...additionalOptions
         } = options;
 

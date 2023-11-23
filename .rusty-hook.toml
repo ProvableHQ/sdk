@@ -1,5 +1,5 @@
 [hooks]
-pre-commit = "cd wasm && cargo clippy --all-targets --features serial && cargo +nightly fmt --all -- --check"
+pre-commit = "cd wasm && cargo clippy --all-targets --features serial && cargo fmt --all -- --check"
 
 [logging]
 verbose = true

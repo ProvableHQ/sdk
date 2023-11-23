@@ -26,8 +26,8 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 use std::str::FromStr;
 
-/// An offline query object that allows users to externally insert a valid state path and state root
-/// for external records
+/// An offline query object used to insert the global state root and state paths needed to create
+/// a valid inclusion proof offline.
 #[wasm_bindgen]
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct OfflineQuery {

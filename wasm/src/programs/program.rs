@@ -21,10 +21,6 @@ use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 /// Webassembly Representation of an Aleo program
-///
-/// This object is required to create an Execution or Deployment transaction. It includes several
-/// convenience methods for enumerating available functions and each functions' inputs in a
-/// javascript object for usage in creation of web forms for input capture.
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Program(ProgramNative);
