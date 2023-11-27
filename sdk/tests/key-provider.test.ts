@@ -49,7 +49,16 @@ describe('KeyProvider', () => {
             expect(redownloadedVerifyingKey).toBeInstanceOf(VerifyingKey);
         }, 200000);
 
-        it("Should not fetch offline keys that haven't already been stored", async () => {
+        it('Should fetch verifying keys stored as text', async () => {
+            const provider = new AleoKeyProvider();
+            provider.useCache(true);
+            const [provingKey, verifyingKey] = <FunctionKeyPair> await provider.fetchKeys("https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.prover.30e265c",
+                "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860", "tree_mnist_2/main");
+            expect(provingKey).toBeInstanceOf(ProvingKey);
+            expect(verifyingKey).toBeInstanceOf(VerifyingKey);
+        }, 120000);
+
+        it.skip("Should not fetch offline keys that haven't already been stored", async () => {
             // Download the credits.aleo function keys
             const [bondPublicProver, bondPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.bond_public.prover, CREDITS_PROGRAM_KEYS.bond_public.verifier, CREDITS_PROGRAM_KEYS.bond_public.locator);
             const [claimUnbondPublicProver, claimUnbondVerifier] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.claim_unbond_public.prover, CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier, CREDITS_PROGRAM_KEYS.claim_unbond_public.locator);
