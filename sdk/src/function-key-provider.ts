@@ -501,7 +501,19 @@ class AleoKeyProvider implements FunctionKeyProvider {
             case CREDITS_PROGRAM_KEYS.unbond_public.verifier:
                 return CREDITS_PROGRAM_KEYS.unbond_public.verifyingKey();
             default:
-                return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUri));
+                try {
+                    /// Try to fetch the verifying key from the network as a string
+                    const response = await get(verifierUri);
+                    const text = await response.text();
+                    return <VerifyingKey>VerifyingKey.fromString(text);
+                } catch (e) {
+                    /// If that fails, try to fetch the verifying key from the network as bytes
+                    try {
+                        return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUri));
+                    } catch (inner) {
+                        return new Error("Invalid verifying key. Error: " + inner);
+                    }
+                }
         }
     }
 
