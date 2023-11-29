@@ -2,7 +2,7 @@ import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data";
 import {Account, AleoNetworkClient} from "../src";
 jest.retryTimes(3);
 
-describe('NodeConnection', () => {
+describe('NetworkClient', () => {
     let localApiClient: AleoNetworkClient;
     let remoteApiClientWithPrivateKey: AleoNetworkClient;
 
