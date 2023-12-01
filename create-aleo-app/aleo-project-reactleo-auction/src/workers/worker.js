@@ -18,23 +18,12 @@ async function localProgramExecution(program, aleoFunction, inputs) {
   // const account = new Account();
   // programManager.setAccount(account);
 
-  // bidder 1
+  // primary node
   const account = new Account({
-    privateKey: "APrivateKey1zkpG9Af9z5Ha4ejVyMCqVFXRKknSm8L1ELEwcc4htk9YhVK",
+    // privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH",
+    privateKey: "APrivateKey1zkpDH1p2331zeoQCWg7UW2E8skKWimLSxMQAM6ARBpuzMmy"
   });
   programManager.setAccount(account);
-
-  // // bidder 2
-  // const account = new Account({
-  //   privateKey: "APrivateKey1zkpAFshdsj2EqQzXh5zHceDapFWVCwR6wMCJFfkLYRKupug",
-  // });
-  // programManager.setAccount(account);
-
-  // // bidder 3
-  // const account = new Account({
-  //   privateKey: "APrivateKey1zkp5wvamYgK3WCAdpBQxZqQX8XnuN2u11Y6QprZTriVwZVc",
-  // });
-  // programManager.setAccount(account);
 
   const executionResponse = await programManager.executeOffline(
     program,
@@ -55,18 +44,21 @@ async function deployProgram(program) {
   keyProvider.useCache(true);
 
   // Create a record provider that will be used to find records and transaction data for Aleo programs
-  const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+  // const networkClient = new AleoNetworkClient("http://localhost:3030");
+  const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
 
   // Use existing account with funds
   const account = new Account({
-    privateKey: "user1PrivateKey",
+    // privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH",
+    privateKey: "APrivateKey1zkpDH1p2331zeoQCWg7UW2E8skKWimLSxMQAM6ARBpuzMmy"
   });
 
   const recordProvider = new NetworkRecordProvider(account, networkClient);
 
   // Initialize a program manager to talk to the Aleo network with the configured key and record providers
   const programManager = new ProgramManager(
-    "https://vm.aleo.org/api",
+    // "http://localhost:3030",
+    "https://api.explorer.aleo.org/v1",
     keyProvider,
     recordProvider,
   );

@@ -63,6 +63,20 @@ function App() {
     alert(JSON.stringify(result));
   }
 
+  async function deploy() {
+    setDeploying(true);
+    try {
+      const result = await aleoWorker.deployProgram(helloworld_program);
+      console.log("Transaction:")
+      console.log("https://explorer.hamp.app/transaction?id=" + result)
+      alert("Transaction ID: " + result);
+    } catch (e) {
+      console.log(e)
+      alert("Error with deployment, please check console for details");
+    }
+    setDeploying(false);
+  }
+
   const place_bid = async () => {
     if (bidding) return;
 
@@ -111,20 +125,6 @@ function App() {
     setBidding(false);
   };
 
-  async function deploy() {
-    setDeploying(true);
-    try {
-      const result = await aleoWorker.deployProgram(helloworld_program);
-      console.log("Transaction:")
-      console.log("https://explorer.hamp.app/transaction?id=" + result)
-      alert("Transaction ID: " + result);
-    } catch (e) {
-      console.log(e)
-      alert("Error with deployment, please check console for details");
-    }
-    setDeploying(false);
-  }
-
   return (
     <>
       <div>
@@ -158,18 +158,6 @@ function App() {
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>
       </div>
-      <div className="auction">
-      <h2>Auction Actions</h2>
-      <p>
-        <button disabled={executing} onClick={place_bid}>
-          {executing ? 'placing a bid...' : 'place a bid'}
-        </button>
-      </p>
-      </div>
-      <div>
-          <h2>Auction Table</h2>
-          <SimpleTable data={tableData} />
-      </div>
 
       {/* Advanced Section */}
       <div className="card">
@@ -190,6 +178,20 @@ function App() {
       <p className="read-the-docs">
         Click on the Aleo and React logos to learn more
       </p>
+
+      <div className="auction">
+      <h2>Auction Actions</h2>
+      <p>
+        <button disabled={executing} onClick={place_bid}>
+          {executing ? 'placing a bid...' : 'place a bid'}
+        </button>
+      </p>
+      </div>
+      <div>
+          <h2>Auction Table</h2>
+          <SimpleTable data={tableData} />
+      </div>
+
     </>
   );
 }
