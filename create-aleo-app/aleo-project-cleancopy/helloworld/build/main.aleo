@@ -1,4 +1,4 @@
-program helloworld_fronkles9999.aleo;
+program helloworld_fronkles8888.aleo;
 
 function main:
     input r0 as u32.public;
