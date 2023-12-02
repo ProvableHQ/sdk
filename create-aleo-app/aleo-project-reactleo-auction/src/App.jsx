@@ -57,6 +57,9 @@ function App() {
       helloworld_program,
       "main",
       ["5u32", "5u32"],
+      //   auction_program,
+      //   "place_bid",
+      //   ["aleo1qpjvun06n87jne3jwvml4jwdjqalw7n2qms03mcamenzczrjzuysp85fpt", "10u64"],
     );
     setExecuting(false);
 
@@ -66,7 +69,8 @@ function App() {
   async function deploy() {
     setDeploying(true);
     try {
-      const result = await aleoWorker.deployProgram(helloworld_program);
+        // const result = await aleoWorker.deployProgram(helloworld_program);
+        const result = await aleoWorker.deployProgram(auction_program);
       console.log("Transaction:")
       console.log("https://explorer.hamp.app/transaction?id=" + result)
       alert("Transaction ID: " + result);

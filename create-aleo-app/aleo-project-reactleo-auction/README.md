@@ -96,43 +96,34 @@ manually.
 
 
 
-
+- create aleo app
+  - get an account with funds
 - run a devnet
-   - ./devnet.sh for local devnet
-   - ./start.sh for aws instances
-
+  - ./devnet.sh for local devnet
+  - ./start.sh for aws instances
 - record devnet information
-   - 👋 Welcome to Aleo! We thank you for running a node and supporting privacy.
-   - 🔑 Your development private key for node 0 is APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH
-   - 🪪 Your Aleo address is aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px
-   - 🧭 Starting a validator node on Aleo Testnet 3 Phase 3 at 0.0.0.0:4130
-   - 🌐 Starting the REST server at 0.0.0.0:3030
-   - 🔑 Your one-time JWT token is eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbGVvMXJoZ2R1NzdoZ3lxZDN4amo4dWN1M2pqOXIya3J3ejZtbnp5ZDgwZ25jcjVmeGN3bGg1cnN2enA5cHgiLCJpYXQiOjE3MDEzMDM2NDYsImV4cCI6MjAxNjY2MzY0Nn0.agal7k5NEjFi3VBG3uogCFyg4dGrYSRFzhCzakBJCDM
-
-
-- regular reactleo execution failing
-   - use "https://api.explorer.aleo.org/v1", helloworld.aleo already exists, but execution fails
-   - execution fails with "https://api.explorer.aleo.org/v1" // https://api.explorer.aleo.org/v1/testnet3/program/helloworld.aleo
-   - execution fails with "https://vm.aleo.org/api" too
-
-- regular reactleo deploy works but getting this error
-   - helloworld_test_fronk.aleo
-      - https://api.explorer.aleo.org/v1/testnet3/transaction/at1a23m0dj5mr8h35tgrk4cutxyjccv3ywp5tnj9c4g5gdv22wexuzq24xmgs
-      - https://api.explorer.aleo.org/v1/testnet3/program/helloworld_test_fronk.aleo
-   - helloworld_fronkles9999
-      - https://api.explorer.aleo.org/v1/testnet3/transaction/at1zvduvuqgq8ac4y5zxxc5nslhk2gev65etsfwpmn67u4qky77jc9sd4elu2
-      - https://api.explorer.aleo.org/v1/testnet3/program/helloworld_fronkles9999.aleo 
-   - can't find program id though or txn
-
-
-
-- deploy the program on the devnet
+  - 👋 Welcome to Aleo! We thank you for running a node and supporting privacy.
+  - 🔑 Your development private key for node 0 is APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH
+  - 🪪 Your Aleo address is aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px
+  - 🧭 Starting a validator node on Aleo Testnet 3 Phase 3 at 0.0.0.0:4130
+  - 🌐 Starting the REST server at 0.0.0.0:3030
+  - 🔑 Your one-time JWT token is eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbGVvMXJoZ2R1NzdoZ3lxZDN4amo4dWN1M2pqOXIya3J3ejZtbnp5ZDgwZ25jcjVmeGN3bGg1cnN2enA5cHgiLCJpYXQiOjE3MDEzMDM2NDYsImV4cCI6MjAxNjY2MzY0Nn0.agal7k5NEjFi3VBG3uogCFyg4dGrYSRFzhCzakBJCDM
+- check devnet is running
+  - http://localhost:3030/testnet3/latest/height
+- execute local program instances, you can use any pk
+  - deploy, auction, etc
+- deploy helloworld to devnet, use node 0 private key
+  - http://localhost:3030/testnet3/transaction/at1pvrq39mdtumwrcm9zy8y6uh3z79nsew980efy7mrfmela9t0yq9qch9tx6
+  - http://localhost:3030/testnet3/program/helloworld.aleo
+- deploy auction to devnet, use node 0 private key, change to auction program, change fee
+  - http://localhost:3030/testnet3/transaction/at1ynr28kdef29zz65tlvgk04tfclcck5ew9f39uuwenh5uecsqsyfq3jalh2
+  - http://localhost:3030/testnet3/program/auction.aleo
+- create use tx cannon to fire auction bids
 
 
 - query devnet to see what you did
 
 
-- figure out auction players
 
 
-- clean up stuff from devnet
+

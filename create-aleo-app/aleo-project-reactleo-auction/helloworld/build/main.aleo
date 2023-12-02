@@ -1,4 +1,4 @@
-program helloworld_29888792.aleo;
+program helloworld.aleo;
 
 function main:
     input r0 as u32.public;
