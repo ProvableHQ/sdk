@@ -129,7 +129,7 @@ export const UseViewKey: FC = () => {
 #### useTransaction
 
 
-```
+```javascript
 import { FC, useCallback, useState } from 'react'
 import { Button } from '../button'
 import { Input } from '../input'
@@ -235,7 +235,7 @@ export const ExecuteTransaction: FC = () => {
 #### useTransaction
 
 
-```
+```javascript
 import { useTransactionStatus } from 'aleo-hooks'
 import { FC, useCallback, useState } from 'react'
 import { Button } from '../button'
