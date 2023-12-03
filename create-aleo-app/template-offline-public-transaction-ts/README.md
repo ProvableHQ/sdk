@@ -7,7 +7,7 @@ zero knowledge ZkSnark proof of execution. If a user does not possess these keys
 downloaded from the internet when the function is called.
 
 ### 1.2 Key Providers
-They `KeyProvider` interface is designed to allow users to provide their own implementations for providing key material
+The `KeyProvider` interface is designed to allow users to provide their own implementations for providing key material
 to Aleo function executions.
 
 ### 1.3 Building Transactions Offline
@@ -18,7 +18,7 @@ The `OfflineKeyProvider` and `OfflineSearchParams` are concrete implementations 
 interfaces. They are designed to fetch proving key material for Aleo functions from a local machine instead of contacting
 the internet for it. This provides a way to build Aleo execution transactions without being connected to the internet.
 
-This pathway is suitable for use-cases such as hardware wallets or air-gapped machines used
+This pathway is suitable for use cases such as hardware wallets or air-gapped machines used
 for building secure transactions.
 
 ### 1.4 Assumptions
