@@ -17,7 +17,7 @@ and node.js.
 
 ## Overview
 
-Aleo provides the ability to run programs in zero knowledge. The Aleo SDK provides the tools to use these programs
+Aleo provides the ability to run programs with zero knowledge. The Aleo SDK provides the tools to use these programs
 within the browser and all other levels of the web stack to build privacy preserving applications.
 
 The Aleo SDK provides the following functionality (Click to see examples):
@@ -90,7 +90,7 @@ can be found [in the SDK repo here](https://github.com/AleoHQ/sdk/tree/testnet3/
 
 ## 1. Create an Aleo Account
 
-The first step in operating a zero knowledge web application is creating a private key which serves as a cryptographic
+The first step in operating a zero knowledge web application is creating a private key that serves as a cryptographic
 identity for a user. After a private key is generated, several keys that enable specialized methods of interacting with
 Aleo programs can be derived.
 
@@ -163,12 +163,12 @@ function hello:
 
 ### 2.2 Program Execution Model
 
-The SDK provides the ability execute `Aleo Instructions` programs %100 client-side within the browser.
+The SDK provides the ability to execute `Aleo Instructions` programs %100 client-side within the browser.
 
 The `ProgramManager` object encapsulates the functionality for executing programs and making zero knowledge proofs about
 them. Under the hood it uses cryptographic code compiled from [SnarkVM](https://developer.aleo.org/aleo) into WebAssembly
 with JavaScript bindings that allow execution of Aleo programs fully within the browser. Users interested in lower level
-details how this is achieved can visit the [aleo-wasm](https://github.com/AleoHQ/sdk/tree/testnet3/wasm) crate.
+details on how this is achieved can visit the [aleo-wasm](https://github.com/AleoHQ/sdk/tree/testnet3/wasm) crate.
 
 The basic execution flow of a program is as follows:
 1. A web app is loaded with an instance of the `ProgramManager` object
@@ -179,7 +179,7 @@ The basic execution flow of a program is as follows:
 5. The result is returned to the user
 6. (Optional) A fully encrypted zero knowledge transcript of the execution is optionally sent to the Aleo network
 
-A diagramatic representation of the program execution flow is shown below.
+A diagrammatic representation of the program execution flow is shown below.
 ```mermaid
 graph LR
     p1[Leo Program]
@@ -237,9 +237,9 @@ assert(result === ["10u32"]);
 The SDK provides the ability to execute programs and store an encrypted transcript of the execution on the Aleo
 network that anyone can trustlessly verify.
 
-This process can be thought of being executed in the following steps:
+This process can be thought of as being executed in the following steps:
 1. A program is run locally
-2. A proof that the program was executed correctly and that the outputs follow from the inputs is generated
+2. A proof that the program was executed correctly and that the outputs follow from the inputs are generated
 3. A transcript of the proof is generated client-side containing encrypted proof data (see [Section 2.6](#4-managing-records-and-private-state))
 and any public outputs or state the user of the program wishes to reveal
 4. The proof transcript is posted to the Aleo network and verified by the Aleo validator nodes in a trustless manner
@@ -659,7 +659,7 @@ A full example of this implementation can be found [here](https://github.com/Ale
 
 ### 3.1 Aleo Credits
 
-The official token of operation of the Aleo Network are Aleo credits. Aleo credits are used to pay all fees for program
+The official token of operation of the Aleo Network is Aleo credits. Aleo credits are used to pay all fees for program
 execution on the Aleo network.
 
 Aleo credits are defined in the [credits.aleo](https://www.aleo.network/programs/credits.aleo) program. This program is
@@ -824,7 +824,7 @@ const public_balance = networkClient.getMappingValue("credits.aleo", USER_1_ADDR
 ## 4. Managing Program Data and Private State
 
 ### 4.1 Private State Data: Records
-Records in are analogous to concept of [UTXOs](https://en.wikipedia.org/wiki/Unspent_transaction_output). When a record is
+Records in are analogous to the concept of [UTXOs](https://en.wikipedia.org/wiki/Unspent_transaction_output). When a record is
 created by a program, it can then be consumed later by the same program as an input to a function. Once a record is used
 as input, it is considered consumed and cannot be used again. In many cases a new record will be created from the output
 of the function. Records are private by default and are associated with a single Aleo program and a single private key
@@ -832,7 +832,7 @@ representing a user.
 
 ### 4.2 Record Usage Example: Private Value Transfers
 
-A straightforward example of a usage of records in a program can be demonstrated by explaining the process of private
+A straightforward example of the usage of records in a program can be demonstrated by explaining the process of private
 value transfers of official Aleo credits on the Aleo network.
 
 Aleo credits are the official token in which all on-chain execution and deployment fees are paid. Credits can be public
@@ -845,7 +845,7 @@ record credits:
     microcredits as u64.private;
 ```
 
-Credits records contain an `owner` field representing the address which owns the record and a `microcredits` field
+Credits records contain an `owner` field representing the address that owns the record and a `microcredits` field
 representing the amount of microcredits in the record. 1 credit is equal to 1,000,000 microcredits.
 
 An example of an Aleo function that both takes a record as input and outputs a record is the `transfer_private` function
@@ -866,9 +866,9 @@ function transfer_private:
 ```
 
 The `transfer_private` function can be graphically represented by the graph below. In the graph the first record "Record 1"
-is consconsumed and can never be used again. From the data in Record 1, two more records are created. One containing
+is consumed and can never be used again. From the data in Record 1, two more records are created. One containing
 the intended amount for the recipient which is now owned by the recipient and another containing the remaining credits
-which is sent back to the sender.
+which are sent back to the sender.
 
 ```mermaid
 graph LR
@@ -881,8 +881,8 @@ graph LR
 ```
 
 This chain of ownership is tracked by the Aleo Blockchain when users choose to submit their transactions to the Aleo
-Network. This is allows other users who receive records to receive the updated data and verify that this data was
-provably generated by the intended program.
+Network. This allows other users who receive records to receive the updated data and verify that this data was
+probably generated by the intended program.
 
 What this process allows is a private chain of state to be created between multiple users. In the context of value
 transfers, a chain of state might look like the following:
@@ -955,7 +955,7 @@ who executed the program, nor the contents of the record. The only information t
 function name, encrypted function inputs, and the transaction ID of the program execution. No user except for the recipient
 of the record can see the contents of the record.
 
-Below you can see what the exact data which is posted to the Aleo Network when `transfer_private` is run. Note that the
+Below you can see what the exact data that is posted to the Aleo Network when `transfer_private` is run. Note that the
 record, the amount transferred, and both the sender & recipient addresses are all encrypted.
 
 <details>
@@ -1045,7 +1045,7 @@ if (RecordCiphertext.is_owner(account.viewKey())) {
 ```
 
 ### 4.3 Public State Data: Mappings
-Mappings are simple key value stores defined in a program. They are represented by a key and a value each of a specified
+Mappings are simply key value stores defined in a program. They are represented by a key and a value each of a specified
 type. They are stored directly within the Aleo blockchain and can be publicly read by any participant in the Aleo network.
 
 An example of a mapping usage is `account` mapping in the `credits.aleo` program.
@@ -1089,7 +1089,7 @@ on the Aleo Network written in `finalize` blocks.
 
 ### 4.4 Reading Mappings
 Any state within a program mapping is public and can be read by any participant in the Aleo network. The `NetworkClient`
-class provides the `getMapping` method to read the public mappings within an program and the `getMappingValue` method to
+class provides the `getMapping` method to read the public mappings within a program and the `getMappingValue` method to
 read the value of a specific key within a mapping.
 
 ```typescript
@@ -1104,7 +1104,7 @@ assert(publicCredits === "0u64");
 ```
 
 ### 4.5 Initializing & Updating Mappings
-Updating mappings is done by executing a program function on the Aleo network which has a finalize block that updates the
+Updating mappings is done by executing a program function on the Aleo network which has a finalized block that updates the
 program's mapping. For instance the `transfer_public` function in the `credits.aleo` program updates the `account`
 mapping (and thus a user's balance) when called.
 
@@ -1115,7 +1115,7 @@ function transfer_public:
     input r1 as u64.public;
     finalize self.caller r0 r1;
 
-// The finalize block run by nodes on the Aleo network which update a user's public balance
+// The finalized block run by nodes on the Aleo network which updates a user's public balance
 finalize transfer_public:
     input r0 as address.public;
     input r1 as address.public;
@@ -1129,7 +1129,7 @@ finalize transfer_public:
 ```
 
 From the perspective of the caller of the API, this is as simple as executing a normal Aleo function. Given the inputs
-to a function with a finalize scope that updates a mapping are valid, the mapping will either be intialized or updated
+to a function with a finalized scope that updates a mapping are valid, the mapping will either be initialized or updated
 by the Aleo network. All the user of the SDK must do is ensure that the inputs to the function are valid.
 
 If function inputs are Invalid, the Network will return an error, but the fee paid for the transaction will still be
