@@ -34,7 +34,7 @@ async function localProgramExecution() {
 
     programManager.keyProvider.cacheKeys("hello_hello.aleo:hello", keyPair);
 
-    // Specify parameters for the key provider to use search for program keys. In particular specify the cache key
+    // Specify parameters for the key provider to use in search for program keys. In particular specify the cache key
     // that was used to cache the keys in the previous step.
     const keyProviderParams = new AleoKeyProviderParams({cacheKey: "hello_hello.aleo:hello"});
 
