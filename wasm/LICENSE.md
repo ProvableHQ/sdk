@@ -154,7 +154,7 @@ conditions so long as your license otherwise remains in force. You may convey co
 works to others for the sole purpose of having them make modifications exclusively
 for you, or provide you with facilities for running those works, provided that you
 comply with the terms of this License in conveying all material for which you do not
-control copyright. Those thus making or running the covered works for you must do so
+control copyright. Those who are making or running the covered works for you must do so
 exclusively on your behalf, under your direction and control, on terms that prohibit
 them from making any copies of your copyrighted material outside their relationship
 with you.
@@ -181,7 +181,7 @@ of technological measures.
 You may convey verbatim copies of the Program's source code as you receive it, in any
 medium, provided that you conspicuously and appropriately publish on each copy an
 appropriate copyright notice; keep intact all notices stating that this License and
-any non-permissive terms added in accord with section 7 apply to the code; keep
+any non-permissive terms added in accordance with section 7 apply to the code; keep
 intact all notices of the absence of any warranty; and give all recipients a copy of
 this License along with the Program.
 
@@ -343,7 +343,7 @@ under this License, you may add to a covered work material governed by the terms
 that license document, provided that the further restriction does not survive such
 relicensing or conveying.
 
-If you add terms to a covered work in accord with this section, you must place, in
+If you add terms to a covered work in accordance with this section, you must place, them in
 the relevant source files, a statement of the additional terms that apply to those
 files, or a notice indicating where to find the applicable terms.
 
@@ -545,7 +545,7 @@ _END OF TERMS AND CONDITIONS_
 ## How to Apply These Terms to Your New Programs
 
 If you develop a new program, and you want it to be of the greatest possible use to
-the public, the best way to achieve this is to make it free software which everyone
+the public, the best way to achieve this is to make it free software that everyone
 can redistribute and change under these terms.
 
 To do so, attach the following notices to the program. It is safest to attach them
