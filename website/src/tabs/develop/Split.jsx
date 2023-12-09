@@ -4,7 +4,9 @@ import axios from "axios";
 
 export const Split = () => {
     const [amountRecord, setAmountRecord] = useState(null);
-    const [splitUrl, setSplitUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [splitUrl, setSplitUrl] = useState(
+        "https://api.explorer.aleo.org/v1",
+    );
     const [splitAmount, setSplitAmount] = useState("1.0");
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
@@ -128,10 +130,7 @@ export const Split = () => {
     const peerUrl = () => (splitUrl !== null ? splitUrl : "");
 
     return (
-        <Card
-            title="Split Record"
-            style={{ width: "100%"}}
-        >
+        <Card title="Split Record" style={{ width: "100%" }}>
             <Form {...layout}>
                 <Form.Item
                     label="Split Amount"
@@ -187,12 +186,7 @@ export const Split = () => {
                 </Form.Item>
                 <Row justify="center">
                     <Col justify="center">
-                        <Button
-                            type="primary"
-                            
-                            size="middle"
-                            onClick={split}
-                        >
+                        <Button type="primary" size="middle" onClick={split}>
                             Split
                         </Button>
                     </Col>

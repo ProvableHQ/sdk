@@ -1,4 +1,7 @@
-function patch($worker: typeof import("node:worker_threads"), $os: typeof import("node:os")) {
+function patch(
+    $worker: typeof import("node:worker_threads"),
+    $os: typeof import("node:os"),
+) {
     // This is technically not a part of the Worker polyfill,
     // but Workers are used for multi-threading, so this is often
     // needed when writing Worker code.
@@ -20,13 +23,14 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
                 }
 
                 url = url.href;
-
             } else {
-                throw new Error("Filepaths are unreliable, use `new URL(\"...\", import.meta.url)` instead.");
+                throw new Error(
+                    'Filepaths are unreliable, use `new URL("...", import.meta.url)` instead.',
+                );
             }
 
             if (!options || options.type !== "module") {
-                throw new Error("Workers must use \`type: \"module\"\`");
+                throw new Error('Workers must use `type: "module"`');
             }
 
             // This uses some funky stuff like `patch.toString()`.
@@ -89,7 +93,10 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
         }
 
         postMessage(message: any, transfer: Array<Transferable>): void;
-        postMessage(message: any, options?: StructuredSerializeOptions | undefined): void;
+        postMessage(
+            message: any,
+            options?: StructuredSerializeOptions | undefined,
+        ): void;
         postMessage(value: any, transfer: any) {
             this._worker.postMessage(value, transfer);
         }
@@ -104,7 +111,6 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
             this._worker.unref();
         }
     };
-
 
     if (!$worker.isMainThread) {
         const globals = globalThis as unknown as DedicatedWorkerGlobalScope;
@@ -143,11 +149,12 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
             };
         };
 
-
         // We only start listening for messages / errors when the worker calls addEventListener
         const startOnMessage = memoize(() => {
             $worker.parentPort!.on("message", (data) => {
-                workerEvents.dispatchEvent(new MessageEvent("message", { data }));
+                workerEvents.dispatchEvent(
+                    new MessageEvent("message", { data }),
+                );
             });
         });
 
@@ -161,7 +168,6 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
             });
         });
 
-
         // Node workers don't have top-level events, so we have to make our own
         const workerEvents = new EventTarget();
 
@@ -169,7 +175,11 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
             process.exit();
         };
 
-        globals.addEventListener = (type: string, callback: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions | undefined) => {
+        globals.addEventListener = (
+            type: string,
+            callback: EventListenerOrEventListenerObject | null,
+            options?: boolean | EventListenerOptions | undefined,
+        ) => {
             workerEvents.addEventListener(type, callback, options);
 
             if (type === "message") {
@@ -181,12 +191,19 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
             }
         };
 
-        globals.removeEventListener = (type: string, callback: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions | undefined) => {
+        globals.removeEventListener = (
+            type: string,
+            callback: EventListenerOrEventListenerObject | null,
+            options?: boolean | EventListenerOptions | undefined,
+        ) => {
             workerEvents.removeEventListener(type, callback, options);
         };
 
         function postMessage(message: any, transfer: Transferable[]): void;
-        function postMessage(message: any, options?: StructuredSerializeOptions | undefined): void;
+        function postMessage(
+            message: any,
+            options?: StructuredSerializeOptions | undefined,
+        ): void;
         function postMessage(value: any, transfer: any) {
             $worker.parentPort!.postMessage(value, transfer);
         }
@@ -198,7 +215,6 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
         makeSetter("onerror", "error");
     }
 }
-
 
 async function polyfill() {
     const [$worker, $os] = await Promise.all([

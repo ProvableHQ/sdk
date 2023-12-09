@@ -1,15 +1,15 @@
 import {
-  Address,
-  PrivateKey,
-  Signature,
-  ViewKey,
-  PrivateKeyCiphertext,
-  RecordCiphertext,
+    Address,
+    PrivateKey,
+    Signature,
+    ViewKey,
+    PrivateKeyCiphertext,
+    RecordCiphertext,
 } from "./index";
 
 interface AccountParam {
-  privateKey?: string;
-  seed?: Uint8Array;
+    privateKey?: string;
+    seed?: Uint8Array;
 }
 
 /**
@@ -42,174 +42,183 @@ interface AccountParam {
  * myRandomAccount.verify(hello_world, signature)
  */
 export class Account {
-  _privateKey: PrivateKey;
-  _viewKey: ViewKey;
-  _address: Address;
+    _privateKey: PrivateKey;
+    _viewKey: ViewKey;
+    _address: Address;
 
-  constructor(params: AccountParam = {}) {
-    try {
-      this._privateKey = this.privateKeyFromParams(params);
-    } catch (e) {
-      console.error("Wrong parameter", e);
-      throw new Error("Wrong Parameter");
+    constructor(params: AccountParam = {}) {
+        try {
+            this._privateKey = this.privateKeyFromParams(params);
+        } catch (e) {
+            console.error("Wrong parameter", e);
+            throw new Error("Wrong Parameter");
+        }
+        this._viewKey = ViewKey.from_private_key(this._privateKey);
+        this._address = Address.from_private_key(this._privateKey);
     }
-    this._viewKey = ViewKey.from_private_key(this._privateKey);
-    this._address = Address.from_private_key(this._privateKey);
-  }
 
-  /**
-   * Attempts to create an account from a private key ciphertext
-   * @param {PrivateKeyCiphertext | string} ciphertext
-   * @param {string} password
-   * @returns {PrivateKey | Error}
-   *
-   * @example
-   * const ciphertext = PrivateKey.newEncrypted("password");
-   * const account = Account.fromCiphertext(ciphertext, "password");
-   */
-  public static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string) {
-    try {
-      ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
-      const _privateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
-      return new Account({ privateKey: _privateKey.to_string() });
-    } catch(e) {
-      throw new Error("Wrong password or invalid ciphertext");
+    /**
+     * Attempts to create an account from a private key ciphertext
+     * @param {PrivateKeyCiphertext | string} ciphertext
+     * @param {string} password
+     * @returns {PrivateKey | Error}
+     *
+     * @example
+     * const ciphertext = PrivateKey.newEncrypted("password");
+     * const account = Account.fromCiphertext(ciphertext, "password");
+     */
+    public static fromCiphertext(
+        ciphertext: PrivateKeyCiphertext | string,
+        password: string,
+    ) {
+        try {
+            ciphertext =
+                typeof ciphertext === "string"
+                    ? PrivateKeyCiphertext.fromString(ciphertext)
+                    : ciphertext;
+            const _privateKey = PrivateKey.fromPrivateKeyCiphertext(
+                ciphertext,
+                password,
+            );
+            return new Account({ privateKey: _privateKey.to_string() });
+        } catch (e) {
+            throw new Error("Wrong password or invalid ciphertext");
+        }
     }
-  }
 
-  private privateKeyFromParams(params: AccountParam) {
-    if (params.seed) {
-      return PrivateKey.from_seed_unchecked(params.seed);
+    private privateKeyFromParams(params: AccountParam) {
+        if (params.seed) {
+            return PrivateKey.from_seed_unchecked(params.seed);
+        }
+        if (params.privateKey) {
+            return PrivateKey.from_string(params.privateKey);
+        }
+        return new PrivateKey();
     }
-    if (params.privateKey) {
-      return PrivateKey.from_string(params.privateKey);
+
+    privateKey() {
+        return this._privateKey;
     }
-    return new PrivateKey();
-  }
 
-  privateKey() {
-    return this._privateKey;
-  }
-
-  viewKey() {
-    return this._viewKey;
-  }
-
-  address() {
-    return this._address;
-  }
-
-  toString() {
-    return this.address().to_string()
-  }
-
-  /**
-   * Encrypt the account's private key with a password
-   * @param {string} ciphertext
-   * @returns {PrivateKeyCiphertext}
-   *
-   * @example
-   * const account = new Account();
-   * const ciphertext = account.encryptAccount("password");
-   */
-  encryptAccount(password: string) {
-    return this._privateKey.toCiphertext(password);
-  }
-
-  /**
-   * Decrypts a Record in ciphertext form into plaintext
-   * @param {string} ciphertext
-   * @returns {Record}
-   *
-   * @example
-   * const account = new Account();
-   * const record = account.decryptRecord("record1ciphertext");
-   */
-  decryptRecord(ciphertext: string) {
-    return this._viewKey.decrypt(ciphertext);
-  }
-
-  /**
-   * Decrypts an array of Records in ciphertext form into plaintext
-   * @param {string[]} ciphertexts
-   * @returns {Record[]}
-   *
-   * @example
-   * const account = new Account();
-   * const record = account.decryptRecords(["record1ciphertext", "record2ciphertext"]);
-   */
-  decryptRecords(ciphertexts: string[]) {
-    return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext));
-  }
-
-  /**
-   * Determines whether the account owns a ciphertext record
-   * @param {RecordCipherText | string} ciphertext
-   * @returns {boolean}
-   *
-   * @example
-   * // Create a connection to the Aleo network and an account
-   * const connection = new NodeConnection("vm.aleo.org/api");
-   * const account = Account.fromCiphertext("ciphertext", "password");
-   *
-   * // Get a record from the network
-   * const record = connection.getBlock(1234);
-   * const recordCipherText = record.transactions[0].execution.transitions[0].id;
-   *
-   * // Check if the account owns the record
-   * if account.ownsRecord(recordCipherText) {
-   *     // Then one can do something like:
-   *     // Decrypt the record and check if it's spent
-   *     // Store the record in a local database
-   *     // Etc.
-   * }
-   */
-  ownsRecordCiphertext(ciphertext: RecordCiphertext | string) {
-    if (typeof ciphertext === 'string') {
-      try {
-        const ciphertextObject = RecordCiphertext.fromString(ciphertext);
-        return ciphertextObject.isOwner(this._viewKey);
-      }
-      catch (e) {
-        return false;
-      }
+    viewKey() {
+        return this._viewKey;
     }
-    else {
-      return ciphertext.isOwner(this._viewKey);
+
+    address() {
+        return this._address;
     }
-  }
 
-  /**
-   * Signs a message with the account's private key.
-   * Returns a Signature.
-   *
-   * @param {Uint8Array} message
-   * @returns {Signature}
-   *
-   * @example
-   * const account = new Account();
-   * const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
-   * account.sign(message);
-   */
-  sign(message: Uint8Array) {
-    return this._privateKey.sign(message);
-  }
+    toString() {
+        return this.address().to_string();
+    }
 
-  /**
-   * Verifies the Signature on a message.
-   *
-   * @param {Uint8Array} message
-   * @param {Signature} signature
-   * @returns {boolean}
-   *
-   * @example
-   * const account = new Account();
-   * const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
-   * const signature = account.sign(message);
-   * account.verify(message, signature);
-   */
-  verify(message: Uint8Array, signature: Signature) {
-    return this._address.verify(message, signature);
-  }
+    /**
+     * Encrypt the account's private key with a password
+     * @param {string} ciphertext
+     * @returns {PrivateKeyCiphertext}
+     *
+     * @example
+     * const account = new Account();
+     * const ciphertext = account.encryptAccount("password");
+     */
+    encryptAccount(password: string) {
+        return this._privateKey.toCiphertext(password);
+    }
 
+    /**
+     * Decrypts a Record in ciphertext form into plaintext
+     * @param {string} ciphertext
+     * @returns {Record}
+     *
+     * @example
+     * const account = new Account();
+     * const record = account.decryptRecord("record1ciphertext");
+     */
+    decryptRecord(ciphertext: string) {
+        return this._viewKey.decrypt(ciphertext);
+    }
+
+    /**
+     * Decrypts an array of Records in ciphertext form into plaintext
+     * @param {string[]} ciphertexts
+     * @returns {Record[]}
+     *
+     * @example
+     * const account = new Account();
+     * const record = account.decryptRecords(["record1ciphertext", "record2ciphertext"]);
+     */
+    decryptRecords(ciphertexts: string[]) {
+        return ciphertexts.map((ciphertext) =>
+            this._viewKey.decrypt(ciphertext),
+        );
+    }
+
+    /**
+     * Determines whether the account owns a ciphertext record
+     * @param {RecordCipherText | string} ciphertext
+     * @returns {boolean}
+     *
+     * @example
+     * // Create a connection to the Aleo network and an account
+     * const connection = new NodeConnection("vm.aleo.org/api");
+     * const account = Account.fromCiphertext("ciphertext", "password");
+     *
+     * // Get a record from the network
+     * const record = connection.getBlock(1234);
+     * const recordCipherText = record.transactions[0].execution.transitions[0].id;
+     *
+     * // Check if the account owns the record
+     * if account.ownsRecord(recordCipherText) {
+     *     // Then one can do something like:
+     *     // Decrypt the record and check if it's spent
+     *     // Store the record in a local database
+     *     // Etc.
+     * }
+     */
+    ownsRecordCiphertext(ciphertext: RecordCiphertext | string) {
+        if (typeof ciphertext === "string") {
+            try {
+                const ciphertextObject =
+                    RecordCiphertext.fromString(ciphertext);
+                return ciphertextObject.isOwner(this._viewKey);
+            } catch (e) {
+                return false;
+            }
+        } else {
+            return ciphertext.isOwner(this._viewKey);
+        }
+    }
+
+    /**
+     * Signs a message with the account's private key.
+     * Returns a Signature.
+     *
+     * @param {Uint8Array} message
+     * @returns {Signature}
+     *
+     * @example
+     * const account = new Account();
+     * const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
+     * account.sign(message);
+     */
+    sign(message: Uint8Array) {
+        return this._privateKey.sign(message);
+    }
+
+    /**
+     * Verifies the Signature on a message.
+     *
+     * @param {Uint8Array} message
+     * @param {Signature} signature
+     * @returns {boolean}
+     *
+     * @example
+     * const account = new Account();
+     * const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
+     * const signature = account.sign(message);
+     * account.verify(message, signature);
+     */
+    verify(message: Uint8Array, signature: Signature) {
+        return this._address.verify(message, signature);
+    }
 }

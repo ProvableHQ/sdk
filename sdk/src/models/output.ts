@@ -3,4 +3,4 @@ export type Output = {
     id: string;
     checksum: string;
     value: string;
-}
+};

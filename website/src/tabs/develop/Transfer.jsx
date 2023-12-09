@@ -1,12 +1,26 @@
 import { useState, useEffect } from "react";
-import {Button, Card, Col, Dropdown, Form, Input, Row, Result, Space, Spin, Switch} from "antd";
+import {
+    Button,
+    Card,
+    Col,
+    Dropdown,
+    Form,
+    Input,
+    Row,
+    Result,
+    Space,
+    Spin,
+    Switch,
+} from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 export const Transfer = () => {
     const [transferFeeRecord, setTransferFeeRecord] = useState(null);
     const [amountRecord, setAmountRecord] = useState(null);
-    const [transferUrl, setTransferUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [transferUrl, setTransferUrl] = useState(
+        "https://api.explorer.aleo.org/v1",
+    );
     const [transferAmount, setTransferAmount] = useState("1.0");
     const [transferFee, setTransferFee] = useState("1.0");
     const [privateFee, setPrivateFee] = useState(true);
@@ -77,7 +91,10 @@ export const Transfer = () => {
         }
 
         let amountRecord = amountRecordString();
-        if (visibilityString() === "public" || visibilityString() === "publicToPrivate") {
+        if (
+            visibilityString() === "public" ||
+            visibilityString() === "publicToPrivate"
+        ) {
             amountRecord = undefined;
         }
 
@@ -183,20 +200,20 @@ export const Transfer = () => {
 
     const items = [
         {
-            label: 'private',
-            key: 'private',
+            label: "private",
+            key: "private",
         },
         {
-            label: 'privateToPublic',
-            key: 'privateToPublic',
+            label: "privateToPublic",
+            key: "privateToPublic",
         },
         {
-            label: 'public',
-            key: 'public',
+            label: "public",
+            key: "public",
         },
         {
-            label: 'publicToPrivate',
-            key: 'publicToPrivate',
+            label: "publicToPrivate",
+            key: "publicToPrivate",
         },
     ];
 
@@ -214,18 +231,20 @@ export const Transfer = () => {
     const transferErrorString = () =>
         transferError !== null ? transferError : "";
     const peerUrl = () => (transferUrl !== null ? transferUrl : "");
-    const visibilityString = () => (visibility !== null ? visibility : "private");
+    const visibilityString = () =>
+        visibility !== null ? visibility : "private";
 
     return (
         <Card
             title="Transfer"
-            style={{ width: "100%"}}
+            style={{ width: "100%" }}
             extra={
-            <Dropdown menu={{ items, onClick }}>
-                <a onClick={(e) => e.preventDefault()}>
-                    <Button>{visibilityString()}</Button>
-                </a>
-            </Dropdown>}
+                <Dropdown menu={{ items, onClick }}>
+                    <a onClick={(e) => e.preventDefault()}>
+                        <Button>{visibilityString()}</Button>
+                    </a>
+                </Dropdown>
+            }
         >
             <Form {...layout}>
                 <Form.Item
@@ -252,8 +271,8 @@ export const Transfer = () => {
                         value={amountString()}
                     />
                 </Form.Item>
-                {
-                    (visibilityString() === "privateToPublic" || visibilityString() === "private") &&
+                {(visibilityString() === "privateToPublic" ||
+                    visibilityString() === "private") && (
                     <Form.Item
                         label="Amount Record"
                         colon={false}
@@ -268,7 +287,7 @@ export const Transfer = () => {
                             value={amountRecordString()}
                         />
                     </Form.Item>
-                }
+                )}
                 <Form.Item label="Fee" colon={false} validateStatus={status}>
                     <Input.TextArea
                         name="Fee"
@@ -332,12 +351,7 @@ export const Transfer = () => {
                 </Form.Item>
                 <Row justify="center">
                     <Col justify="center">
-                        <Button
-                            type="primary"
-                            
-                            size="middle"
-                            onClick={transfer}
-                        >
+                        <Button type="primary" size="middle" onClick={transfer}>
                             Transfer
                         </Button>
                     </Col>

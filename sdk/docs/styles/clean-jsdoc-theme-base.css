@@ -1,18 +1,18 @@
 @font-face {
-    font-family: 'heading';
-    src: url('../fonts/WorkSans-Bold.ttf') format('truetype');
+    font-family: "heading";
+    src: url("../fonts/WorkSans-Bold.ttf") format("truetype");
     font-display: swap;
 }
 
 @font-face {
-    font-family: 'body';
-    src: url('../fonts/OpenSans-Regular.ttf') format('truetype');
+    font-family: "body";
+    src: url("../fonts/OpenSans-Regular.ttf") format("truetype");
     font-display: swap;
 }
 
 @font-face {
-    font-family: 'code';
-    src: url('../fonts/Inconsolata-Regular.ttf') format('truetype');
+    font-family: "code";
+    src: url("../fonts/Inconsolata-Regular.ttf") format("truetype");
     font-display: swap;
 }
 
@@ -34,7 +34,7 @@ body {
 }
 
 body {
-    font-family: 'body';
+    font-family: "body";
     overflow-x: hidden;
     position: relative;
 }
@@ -49,7 +49,7 @@ h3,
 h4,
 h5,
 h6 {
-    font-family: 'heading';
+    font-family: "heading";
     font-weight: normal;
     line-height: 1.75;
 }
@@ -140,11 +140,11 @@ article ul p {
 }
 
 .signature {
-    font-family: 'code';
+    font-family: "code";
 }
 
 .name {
-    font-family: 'code';
+    font-family: "code";
     font-weight: bold;
 }
 
@@ -285,7 +285,7 @@ table th,
 .params .name,
 .props .name,
 .name code {
-    font-family: 'code';
+    font-family: "code";
     font-size: 1rem;
 }
 
@@ -338,13 +338,13 @@ dl.param-type {
 }
 
 .param-type dd {
-    font-family: 'code';
+    font-family: "code";
     font-size: 1rem;
 }
 
 code {
     border-radius: 0.3rem;
-    font-family: 'code';
+    font-family: "code";
     font-size: 1rem;
     padding: 0.1rem 0.4rem;
 }
@@ -428,7 +428,7 @@ code {
     transition: transform 0.3s;
 }
 
-.with-arrow[data-isopen='true'] svg {
+.with-arrow[data-isopen="true"] svg {
     transform: rotate(180deg);
 }
 
@@ -447,12 +447,12 @@ code {
     text-decoration: none;
 }
 
-.with-arrow[data-isopen='false'] + .sidebar-section-children-container {
+.with-arrow[data-isopen="false"] + .sidebar-section-children-container {
     height: 0;
     overflow: hidden;
 }
 
-.with-arrow[data-isopen='true'] + .sidebar-section-children-container {
+.with-arrow[data-isopen="true"] + .sidebar-section-children-container {
     height: auto;
 }
 
@@ -690,7 +690,7 @@ pre {
 }
 
 .code-lang-name {
-    font-family: 'body';
+    font-family: "body";
     font-size: 0.75rem;
 }
 

@@ -1,7 +1,9 @@
 import $request from "sync-request";
 
-
-globalThis.XMLHttpRequest = class extends EventTarget implements XMLHttpRequest {
+globalThis.XMLHttpRequest = class
+    extends EventTarget
+    implements XMLHttpRequest
+{
     public static readonly UNSENT = 0;
     public static readonly OPENED = 1;
     public static readonly HEADERS_RECEIVED = 2;
@@ -112,7 +114,13 @@ globalThis.XMLHttpRequest = class extends EventTarget implements XMLHttpRequest 
         throw new Error("Not implemented");
     }
 
-    public open(method: string, url: string | URL, async: boolean = true, username?: string | null | undefined, password?: string | null | undefined): void {
+    public open(
+        method: string,
+        url: string | URL,
+        async: boolean = true,
+        username?: string | null | undefined,
+        password?: string | null | undefined,
+    ): void {
         if (async) {
             throw new Error("Async XMLHttpRequest is not implemented yet");
         }
@@ -138,12 +146,14 @@ globalThis.XMLHttpRequest = class extends EventTarget implements XMLHttpRequest 
         const response = $request("GET", this._url, {
             headers: {
                 "Content-Type": this._mime,
-            }
+            },
         });
 
         const buffer = (response.body as Buffer).buffer;
 
-        const responseText = new TextDecoder("iso-8859-5", { fatal: true }).decode(buffer);
+        const responseText = new TextDecoder("iso-8859-5", {
+            fatal: true,
+        }).decode(buffer);
 
         (this as any).response = (this as any).responseText = responseText;
 

@@ -21,7 +21,9 @@ export const GetTransaction = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://api.explorer.aleo.org/v1/testnet3/transaction/${id}`)
+                    .get(
+                        `https://api.explorer.aleo.org/v1/testnet3/transaction/${id}`,
+                    )
                     .then((response) => {
                         setTransaction(JSON.stringify(response.data, null, 2));
                         setStatus("success");
@@ -45,10 +47,7 @@ export const GetTransaction = () => {
         transaction !== null ? transaction.toString() : "";
 
     return (
-        <Card
-            title="Get Transaction"
-            style={{ width: "100%" }}
-        >
+        <Card title="Get Transaction" style={{ width: "100%" }}>
             <Form {...layout}>
                 <Form.Item
                     label="Transaction ID"

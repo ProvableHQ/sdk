@@ -55,10 +55,7 @@ export const EncryptAccount = () => {
 
     if (aleo !== null) {
         return (
-            <Card
-                title="Create a New Account"
-                style={{ width: "100%"}}
-            >
+            <Card title="Create a New Account" style={{ width: "100%" }}>
                 <Row justify="center">
                     <Col>
                         <Button
@@ -71,7 +68,7 @@ export const EncryptAccount = () => {
                         </Button>
                     </Col>
                     <Col offset="1">
-                        <Button  size="large" onClick={clear}>
+                        <Button size="large" onClick={clear}>
                             Clear
                         </Button>
                     </Col>

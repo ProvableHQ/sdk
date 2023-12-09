@@ -7,18 +7,19 @@ export function WasmLoadingMessage() {
     const [_, aleoLoading] = useAleoWASM();
 
     useEffect(() => {
-        if(aleoLoading){
+        if (aleoLoading) {
             message.open({
                 key: "wasmLoading",
-                type: 'loading',
-                content: 'Loading... some functionality may not be available yet...',
+                type: "loading",
+                content:
+                    "Loading... some functionality may not be available yet...",
                 duration: 0,
             });
         } else {
             message.open({
                 key: "wasmLoading",
-                type: 'success',
-                content: 'Aleo.tools Loaded!',
+                type: "success",
+                content: "Aleo.tools Loaded!",
                 duration: 2,
             });
         }

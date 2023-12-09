@@ -42,10 +42,7 @@ export const SignMessage = () => {
         const messageString = () => (message !== null ? message : "");
 
         return (
-            <Card
-                title="Sign a Message"
-                style={{ width: "100%" }}
-            >
+            <Card title="Sign a Message" style={{ width: "100%" }}>
                 <Form {...layout}>
                     <Form.Item label="Private Key" colon={false}>
                         <Input

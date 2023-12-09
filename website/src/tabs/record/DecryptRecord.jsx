@@ -85,12 +85,7 @@ export const DecryptRecord = () => {
                 title="Decrypt Record"
                 style={{ width: "100%" }}
                 extra={
-                    <Button
-                        type="primary"
-                        
-                        size="middle"
-                        onClick={populateForm}
-                    >
+                    <Button type="primary" size="middle" onClick={populateForm}>
                         Demo
                     </Button>
                 }
@@ -120,11 +115,7 @@ export const DecryptRecord = () => {
                 {ciphertext || viewKey ? (
                     <Row justify="center">
                         <Col>
-                            <Button
-                                
-                                size="middle"
-                                onClick={clearForm}
-                            >
+                            <Button size="middle" onClick={clearForm}>
                                 Clear
                             </Button>
                         </Col>

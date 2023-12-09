@@ -9,7 +9,7 @@ const AleoWorker = () => {
             type: "module",
         });
 
-        worker.onerror = function(event) {
+        worker.onerror = function (event) {
             console.error("Error in worker: " + event?.message);
         };
 

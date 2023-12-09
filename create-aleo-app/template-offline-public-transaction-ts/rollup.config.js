@@ -9,7 +9,7 @@ export default {
         format: "es",
         sourcemap: true,
     },
-    external: ['@aleohq/sdk'],
+    external: ["@aleohq/sdk"],
     plugins: [
         typescript({
             tsconfig: "tsconfig.json",

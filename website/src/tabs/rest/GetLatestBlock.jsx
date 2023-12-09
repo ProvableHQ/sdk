@@ -25,18 +25,10 @@ export const GetLatestBlock = () => {
         latestBlock !== null ? latestBlock.toString() : "";
 
     return (
-        <Card
-            title="Get Latest Block"
-            style={{ width: "100%" }}
-        >
+        <Card title="Get Latest Block" style={{ width: "100%" }}>
             <Row justify="center">
                 <Col>
-                    <Button
-                        type="primary"
-                        
-                        size="middle"
-                        onClick={tryRequest}
-                    >
+                    <Button type="primary" size="middle" onClick={tryRequest}>
                         Get Latest Block
                     </Button>
                 </Col>

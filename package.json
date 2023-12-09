@@ -1,30 +1,27 @@
- {
-  "name": "sdk-root",
-  "private": true,
-  "version": "0.0.0",
-  "workspaces": [
-    "sdk",
-    "wasm",
-    "website",
-    "create-aleo-app",
-    "create-aleo-app/*"
-  ],
-  "scripts": {
-    "build:wasm": "cd wasm && yarn build",
-    "build:sdk": "cd sdk && yarn build",
-    "build:all": "yarn build:wasm && yarn build:sdk",
-
-    "start:website": "cd website && yarn dev",
-
-    "test:wasm": "cd wasm && yarn test",
-    "test:sdk": "cd sdk && yarn test",
-    "test": "yarn test:wasm && yarn test:sdk",
-
-    "lint": "prettier . --check",
-    "pretty": "prettier . --write"
-  },
-  "devDependencies": {
-    "prettier": "3.0.3",
-    "wasm-pack": "^0.12.1"
-  }
+{
+    "name": "sdk-root",
+    "private": true,
+    "version": "0.0.0",
+    "workspaces": [
+        "sdk",
+        "wasm",
+        "website",
+        "create-aleo-app",
+        "create-aleo-app/*"
+    ],
+    "scripts": {
+        "build:wasm": "cd wasm && yarn build",
+        "build:sdk": "cd sdk && yarn build",
+        "build:all": "yarn build:wasm && yarn build:sdk",
+        "start:website": "cd website && yarn dev",
+        "test:wasm": "cd wasm && yarn test",
+        "test:sdk": "cd sdk && yarn test",
+        "test": "yarn test:wasm && yarn test:sdk",
+        "lint": "prettier . --check",
+        "pretty": "prettier . --write"
+    },
+    "devDependencies": {
+        "prettier": "3.0.3",
+        "wasm-pack": "^0.12.1"
+    }
 }

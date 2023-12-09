@@ -1,8 +1,8 @@
 import {
-  Account,
-  initThreadPool,
-  PrivateKey,
-  ProgramManager,
+    Account,
+    initThreadPool,
+    PrivateKey,
+    ProgramManager,
 } from "@aleohq/sdk";
 
 await initThreadPool();
@@ -17,31 +17,31 @@ const hello_hello_program =
     "    output r2 as u32.private;\n";
 
 async function localProgramExecution() {
-  const programManager = new ProgramManager(undefined, undefined, undefined);
+    const programManager = new ProgramManager(undefined, undefined, undefined);
 
-  // Create a temporary account for the execution of the program
-  const account = new Account();
-  programManager.setAccount(account);
+    // Create a temporary account for the execution of the program
+    const account = new Account();
+    programManager.setAccount(account);
 
-  const executionResponse = await programManager.run(
-      hello_hello_program,
-      "hello",
-      ["5u32", "5u32"],
-      false,
-  );
-  return executionResponse.getOutputs();
+    const executionResponse = await programManager.run(
+        hello_hello_program,
+        "hello",
+        ["5u32", "5u32"],
+        false,
+    );
+    return executionResponse.getOutputs();
 }
 
 function getPrivateKey() {
-  return new PrivateKey().to_string();
+    return new PrivateKey().to_string();
 }
 
 onmessage = async function (e) {
-  if (e.data === "execute") {
-    const result = await localProgramExecution();
-    postMessage({type: "execute", result: result});
-  } else if (e.data === "key") {
-    const result = getPrivateKey();
-    postMessage({type: "key", result: result});
-  }
+    if (e.data === "execute") {
+        const result = await localProgramExecution();
+        postMessage({ type: "execute", result: result });
+    } else if (e.data === "key") {
+        const result = getPrivateKey();
+        postMessage({ type: "key", result: result });
+    }
 };

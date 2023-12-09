@@ -31,7 +31,9 @@ export const GetProgram = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://api.explorer.aleo.org/v1/testnet3/program/${id}`)
+                    .get(
+                        `https://api.explorer.aleo.org/v1/testnet3/program/${id}`,
+                    )
                     .then((response) => {
                         setStatus("success");
                         setProgram(response.data);
@@ -64,7 +66,6 @@ export const GetProgram = () => {
             extra={
                 <Button
                     type="primary"
-                    
                     size="middle"
                     onClick={() => {
                         tryRequest("credits.aleo");

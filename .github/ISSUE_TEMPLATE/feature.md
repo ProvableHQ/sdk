@@ -1,5 +1,5 @@
 ---
-name:  🚀 Feature
+name: 🚀 Feature
 about: Submit a new feature request
 title: "[Feature]"
 labels: feature
@@ -18,7 +18,7 @@ labels: feature
 <!--
     Why should this feature be implemented in the Aleo SDK?
     How would this feature be used in the Aleo SDK?
-    
+
     Is this feature request related to a problem? If so, please describe.
     Please link to any relevant issues or other PRs!
 -->
@@ -33,4 +33,5 @@ labels: feature
     How should this feature be implemented?
 -->
 
-**Are you willing to open a pull request?** (See [CONTRIBUTING](../../CONTRIBUTING.md))
+**Are you willing to open a pull request?** (See
+[CONTRIBUTING](../../CONTRIBUTING.md))
