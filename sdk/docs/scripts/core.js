@@ -1,8 +1,8 @@
 /* global document */
-var accordionLocalStorageKey = 'accordion-id';
-var themeLocalStorageKey = 'theme';
-var fontSizeLocalStorageKey = 'font-size';
-var html = document.querySelector('html');
+var accordionLocalStorageKey = "accordion-id";
+var themeLocalStorageKey = "theme";
+var fontSizeLocalStorageKey = "font-size";
+var html = document.querySelector("html");
 
 var MAX_FONT_SIZE = 30;
 var MIN_FONT_SIZE = 10;
@@ -13,20 +13,20 @@ var localStorage = window.localStorage;
 function getTheme() {
     var body = document.body;
 
-    return body.getAttribute('data-theme');
+    return body.getAttribute("data-theme");
 }
 
 function updateTheme(theme) {
     var body = document.body;
-    var svgUse = document.querySelectorAll('.theme-svg-use');
-    var iconID = theme === 'dark' ? '#light-theme-icon' : '#dark-theme-icon';
+    var svgUse = document.querySelectorAll(".theme-svg-use");
+    var iconID = theme === "dark" ? "#light-theme-icon" : "#dark-theme-icon";
 
-    body.setAttribute('data-theme', theme);
-    body.classList.remove('dark', 'light');
+    body.setAttribute("data-theme", theme);
+    body.classList.remove("dark", "light");
     body.classList.add(theme);
 
     svgUse.forEach(function (svg) {
-        svg.setAttribute('xlink:href', iconID);
+        svg.setAttribute("xlink:href", iconID);
     });
 
     localStorage.setItem(themeLocalStorageKey, theme);
@@ -34,9 +34,9 @@ function updateTheme(theme) {
 
 function toggleTheme() {
     var body = document.body;
-    var theme = body.getAttribute('data-theme');
+    var theme = body.getAttribute("data-theme");
 
-    var newTheme = theme === 'dark' ? 'light' : 'dark';
+    var newTheme = theme === "dark" ? "light" : "dark";
 
     updateTheme(newTheme);
 }
@@ -101,13 +101,13 @@ function getAccordionIdsFromLocalStorage() {
 
 function toggleAccordion(element) {
     var currentNode = element;
-    var isCollapsed = currentNode.getAttribute('data-isopen') === 'false';
+    var isCollapsed = currentNode.getAttribute("data-isopen") === "false";
 
     if (isCollapsed) {
-        currentNode.setAttribute('data-isopen', 'true');
+        currentNode.setAttribute("data-isopen", "true");
         setAccordionIdToLocalStorage(currentNode.id);
     } else {
-        currentNode.setAttribute('data-isopen', 'false');
+        currentNode.setAttribute("data-isopen", "false");
         removeAccordionIdFromLocalStorage(currentNode.id);
     }
 }
@@ -117,13 +117,13 @@ function initAccordion() {
         localStorage.getItem(accordionLocalStorageKey) === undefined ||
         localStorage.getItem(accordionLocalStorageKey) === null
     ) {
-        localStorage.setItem(accordionLocalStorageKey, '{}');
+        localStorage.setItem(accordionLocalStorageKey, "{}");
     }
-    var allAccordion = document.querySelectorAll('.sidebar-section-title');
+    var allAccordion = document.querySelectorAll(".sidebar-section-title");
     var ids = getAccordionIdsFromLocalStorage();
 
     allAccordion.forEach(function (item) {
-        item.addEventListener('click', function () {
+        item.addEventListener("click", function () {
             toggleAccordion(item);
         });
         if (item.id in ids) {
@@ -133,7 +133,7 @@ function initAccordion() {
 }
 
 function isSourcePage() {
-    return Boolean(document.querySelector('#source-page'));
+    return Boolean(document.querySelector("#source-page"));
 }
 
 function bringElementIntoView(element, updateHistory = true) {
@@ -145,15 +145,18 @@ function bringElementIntoView(element, updateHistory = true) {
     /**
      * tocbotInstance is defined in layout.tmpl
      * It is defined when we are initializing tocbot.
-     *  
+     *
      */
     // eslint-disable-next-line no-undef
     if (tocbotInstance) {
         // eslint-disable-next-line no-undef
-        setTimeout(() => tocbotInstance.updateTocListActiveElement(element), 60)
+        setTimeout(
+            () => tocbotInstance.updateTocListActiveElement(element),
+            60,
+        );
     }
-    var navbar = document.querySelector('.navbar-container');
-    var body = document.querySelector('.main-content');
+    var navbar = document.querySelector(".navbar-container");
+    var body = document.querySelector(".main-content");
     var elementTop = element.getBoundingClientRect().top;
 
     var offset = 16;
@@ -168,7 +171,7 @@ function bringElementIntoView(element, updateHistory = true) {
 
     if (updateHistory) {
         // eslint-disable-next-line no-undef
-        history.pushState(null, null, '#' + element.id);
+        history.pushState(null, null, "#" + element.id);
     }
 }
 
@@ -176,7 +179,7 @@ function bringElementIntoView(element, updateHistory = true) {
 function bringLinkToView(event) {
     event.preventDefault();
     event.stopPropagation();
-    var id = event.currentTarget.getAttribute('href');
+    var id = event.currentTarget.getAttribute("href");
 
     if (!id) {
         return;
@@ -197,7 +200,7 @@ function bringIdToViewOnMount() {
     // eslint-disable-next-line no-undef
     var id = window.location.hash;
 
-    if (id === '') {
+    if (id === "") {
         return;
     }
 
@@ -214,23 +217,23 @@ function bringIdToViewOnMount() {
 }
 
 function createAnchorElement(id) {
-    var anchor = document.createElement('a');
+    var anchor = document.createElement("a");
 
-    anchor.textContent = '#';
-    anchor.href = '#' + id;
-    anchor.classList.add('link-anchor');
+    anchor.textContent = "#";
+    anchor.href = "#" + id;
+    anchor.classList.add("link-anchor");
     anchor.onclick = bringLinkToView;
 
     return anchor;
 }
 
 function addAnchor() {
-    var main = document.querySelector('.main-content').querySelector('section');
+    var main = document.querySelector(".main-content").querySelector("section");
 
-    var h1 = main.querySelectorAll('h1');
-    var h2 = main.querySelectorAll('h2');
-    var h3 = main.querySelectorAll('h3');
-    var h4 = main.querySelectorAll('h4');
+    var h1 = main.querySelectorAll("h1");
+    var h2 = main.querySelectorAll("h2");
+    var h3 = main.querySelectorAll("h3");
+    var h4 = main.querySelectorAll("h4");
 
     var targets = [h1, h2, h3, h4];
 
@@ -238,7 +241,7 @@ function addAnchor() {
         target.forEach(function (heading) {
             var anchor = createAnchorElement(heading.id);
 
-            heading.classList.add('has-anchor');
+            heading.classList.add("has-anchor");
             heading.append(anchor);
         });
     });
@@ -250,21 +253,21 @@ function addAnchor() {
  */
 function copy(value) {
     console.log(value);
-    const el = document.createElement('textarea');
+    const el = document.createElement("textarea");
 
     el.value = value;
     document.body.appendChild(el);
     el.select();
-    document.execCommand('copy');
+    document.execCommand("copy");
     document.body.removeChild(el);
 }
 
 function showTooltip(id) {
     var tooltip = document.getElementById(id);
 
-    tooltip.classList.add('show-tooltip');
+    tooltip.classList.add("show-tooltip");
     setTimeout(function () {
-        tooltip.classList.remove('show-tooltip');
+        tooltip.classList.remove("show-tooltip");
     }, 3000);
 }
 
@@ -274,27 +277,27 @@ function copyFunction(id) {
     var code = document.getElementById(id);
 
     // selecting the ol.linenums
-    var element = code.querySelector('.linenums');
+    var element = code.querySelector(".linenums");
 
     if (!element) {
         // selecting the code block
-        element = code.querySelector('code');
+        element = code.querySelector("code");
     }
 
     // copy
-    copy(element.innerText.trim().replace(/(^\t)/gm, ''));
+    copy(element.innerText.trim().replace(/(^\t)/gm, ""));
 
     // show tooltip
-    showTooltip('tooltip-' + id);
+    showTooltip("tooltip-" + id);
 }
 
 function hideTocOnSourcePage() {
     if (isSourcePage()) {
-        document.querySelector('.toc-container').style.display = 'none';
+        document.querySelector(".toc-container").style.display = "none";
     }
 }
 
-function getPreTopBar(id, lang = '') {
+function getPreTopBar(id, lang = "") {
     // tooltip
     var tooltip = '<div class="tooltip" id="tooltip-' + id + '">Copied!</div>';
 
@@ -304,34 +307,34 @@ function getPreTopBar(id, lang = '') {
         id +
         '\')"><svg class="sm-icon" alt="click to copy"><use xlink:href="#copy-icon"></use></svg>' +
         tooltip +
-        '</button>';
+        "</button>";
 
     var langNameDiv =
         '<div class="code-lang-name-container"><div class="code-lang-name">' +
         lang.toLocaleUpperCase() +
-        '</div></div>';
+        "</div></div>";
 
     var topBar =
         '<div class="pre-top-bar-container">' +
         langNameDiv +
         copyToClipboard +
-        '</div>';
+        "</div>";
 
     return topBar;
 }
 
 function getPreDiv() {
-    var divElement = document.createElement('div');
+    var divElement = document.createElement("div");
 
-    divElement.classList.add('pre-div');
+    divElement.classList.add("pre-div");
 
     return divElement;
 }
 
 function processAllPre() {
-    var targets = document.querySelectorAll('pre');
-    var footer = document.querySelector('#PeOAagUepe');
-    var navbar = document.querySelector('#VuAckcnZhf');
+    var targets = document.querySelectorAll("pre");
+    var footer = document.querySelector("#PeOAagUepe");
+    var navbar = document.querySelector("#VuAckcnZhf");
 
     var navbarHeight = 0;
     var footerHeight = 0;
@@ -350,21 +353,21 @@ function processAllPre() {
     targets.forEach(function (pre, idx) {
         var parent = pre.parentNode;
 
-        if (parent && parent.getAttribute('data-skip-pre-process') === 'true') {
+        if (parent && parent.getAttribute("data-skip-pre-process") === "true") {
             return;
         }
 
         var div = getPreDiv();
-        var id = 'ScDloZOMdL' + idx;
+        var id = "ScDloZOMdL" + idx;
 
-        var lang = pre.getAttribute('data-lang') || 'code';
+        var lang = pre.getAttribute("data-lang") || "code";
         var topBar = getPreTopBar(id, lang);
 
         div.innerHTML = topBar;
 
-        pre.style.maxHeight = preMaxHeight + 'px';
+        pre.style.maxHeight = preMaxHeight + "px";
         pre.id = id;
-        pre.classList.add('prettyprint');
+        pre.classList.add("prettyprint");
         pre.parentNode.insertBefore(div, pre);
         div.appendChild(pre);
     });
@@ -372,7 +375,7 @@ function processAllPre() {
 
 function highlightAndBringLineIntoView() {
     // eslint-disable-next-line no-undef
-    var lineNumber = window.location.hash.replace('#line', '');
+    var lineNumber = window.location.hash.replace("#line", "");
 
     try {
         var selector = '[data-line-number="' + lineNumber + '"';
@@ -380,7 +383,7 @@ function highlightAndBringLineIntoView() {
         var element = document.querySelector(selector);
 
         element.scrollIntoView();
-        element.parentNode.classList.add('selected');
+        element.parentNode.classList.add("selected");
     } catch (error) {
         console.error(error);
     }
@@ -391,8 +394,8 @@ function getFontSize() {
 
     try {
         currentFontSize = Number.parseInt(
-            html.style.fontSize.split('px')[0],
-            10
+            html.style.fontSize.split("px")[0],
+            10,
         );
     } catch (error) {
         console.log(error);
@@ -402,10 +405,10 @@ function getFontSize() {
 }
 
 function updateFontSize(fontSize) {
-    html.style.fontSize = fontSize + 'px';
+    html.style.fontSize = fontSize + "px";
     localStorage.setItem(fontSizeLocalStorageKey, fontSize);
     var fontSizeText = document.querySelector(
-        '#b77a68a492f343baabea06fad81f651e'
+        "#b77a68a492f343baabea06fad81f651e",
     );
 
     if (fontSizeText) {
@@ -452,8 +455,9 @@ function fontSizeTooltip() {
 
     return `
   <div class="font-size-tooltip">
-    <button aria-label="decrease-font-size" class="icon-button ${fontSize >= MAX_FONT_SIZE ? 'disabled' : ''
-        }" onclick="decrementFont(event)">
+    <button aria-label="decrease-font-size" class="icon-button ${
+        fontSize >= MAX_FONT_SIZE ? "disabled" : ""
+    }" onclick="decrementFont(event)">
       <svg>
         <use xlink:href="#minus-icon"></use>
       </svg>
@@ -461,8 +465,9 @@ function fontSizeTooltip() {
     <div class="font-size-text" id="b77a68a492f343baabea06fad81f651e">
       ${fontSize}
     </div>
-    <button aria-label="increase-font-size" class="icon-button ${fontSize <= MIN_FONT_SIZE ? 'disabled' : ''
-        }" onclick="incrementFont(event)">
+    <button aria-label="increase-font-size" class="icon-button ${
+        fontSize <= MIN_FONT_SIZE ? "disabled" : ""
+    }" onclick="incrementFont(event)">
       <svg>
         <use xlink:href="#add-icon"></use>
       </svg>
@@ -480,97 +485,97 @@ function fontSizeTooltip() {
 function initTooltip() {
     // add tooltip to navbar item
     // eslint-disable-next-line no-undef
-    tippy('.theme-toggle', {
-        content: 'Toggle Theme',
-        delay: 500
+    tippy(".theme-toggle", {
+        content: "Toggle Theme",
+        delay: 500,
     });
 
     // eslint-disable-next-line no-undef
-    tippy('.search-button', {
-        content: 'Search',
-        delay: 500
+    tippy(".search-button", {
+        content: "Search",
+        delay: 500,
     });
 
     // eslint-disable-next-line no-undef
-    tippy('.font-size', {
-        content: 'Change font size',
-        delay: 500
+    tippy(".font-size", {
+        content: "Change font size",
+        delay: 500,
     });
 
     // eslint-disable-next-line no-undef
-    tippy('.codepen-button', {
-        content: 'Open code in CodePen',
-        placement: 'left'
+    tippy(".codepen-button", {
+        content: "Open code in CodePen",
+        placement: "left",
     });
 
     // eslint-disable-next-line no-undef
-    tippy('.copy-code', {
-        content: 'Copy this code',
-        placement: 'left'
+    tippy(".copy-code", {
+        content: "Copy this code",
+        placement: "left",
     });
 
     // eslint-disable-next-line no-undef
-    tippy('.font-size', {
+    tippy(".font-size", {
         content: fontSizeTooltip(),
-        trigger: 'click',
+        trigger: "click",
         interactive: true,
         allowHTML: true,
-        placement: 'left'
+        placement: "left",
     });
 }
 
 function fixTable() {
-    const tables = document.querySelectorAll('table');
+    const tables = document.querySelectorAll("table");
 
     for (const table of tables) {
-        if (table.classList.contains('hljs-ln')) {
+        if (table.classList.contains("hljs-ln")) {
             // don't want to wrap code blocks.
             return;
         }
 
-        var div = document.createElement('div');
+        var div = document.createElement("div");
 
-        div.classList.add('table-div');
+        div.classList.add("table-div");
         table.parentNode.insertBefore(div, table);
         div.appendChild(table);
     }
 }
 
 function hideMobileMenu() {
-    var mobileMenuContainer = document.querySelector('#mobile-sidebar');
-    var target = document.querySelector('#mobile-menu');
-    var svgUse = target.querySelector('use');
+    var mobileMenuContainer = document.querySelector("#mobile-sidebar");
+    var target = document.querySelector("#mobile-menu");
+    var svgUse = target.querySelector("use");
 
     if (mobileMenuContainer) {
-        mobileMenuContainer.classList.remove('show');
+        mobileMenuContainer.classList.remove("show");
     }
     if (target) {
-        target.setAttribute('data-isopen', 'false');
+        target.setAttribute("data-isopen", "false");
     }
     if (svgUse) {
-        svgUse.setAttribute('xlink:href', '#menu-icon');
+        svgUse.setAttribute("xlink:href", "#menu-icon");
     }
 }
 
 function showMobileMenu() {
-    var mobileMenuContainer = document.querySelector('#mobile-sidebar');
-    var target = document.querySelector('#mobile-menu');
-    var svgUse = target.querySelector('use');
+    var mobileMenuContainer = document.querySelector("#mobile-sidebar");
+    var target = document.querySelector("#mobile-menu");
+    var svgUse = target.querySelector("use");
 
     if (mobileMenuContainer) {
-        mobileMenuContainer.classList.add('show');
+        mobileMenuContainer.classList.add("show");
     }
     if (target) {
-        target.setAttribute('data-isopen', 'true');
+        target.setAttribute("data-isopen", "true");
     }
     if (svgUse) {
-        svgUse.setAttribute('xlink:href', '#close-icon');
+        svgUse.setAttribute("xlink:href", "#close-icon");
     }
 }
 
 function onMobileMenuClick() {
-    var target = document.querySelector('#mobile-menu');
-    var isOpen = target.getAttribute('data-isopen') === 'true';
+    var target = document.querySelector("#mobile-menu");
+    var isOpen = target.getAttribute("data-isopen") === "true";
 
     if (isOpen) {
         hideMobileMenu();
@@ -580,30 +585,30 @@ function onMobileMenuClick() {
 }
 
 function initMobileMenu() {
-    var menu = document.querySelector('#mobile-menu');
+    var menu = document.querySelector("#mobile-menu");
 
     if (menu) {
-        menu.addEventListener('click', onMobileMenuClick);
+        menu.addEventListener("click", onMobileMenuClick);
     }
 }
 
 function addHrefToSidebarTitle() {
-    var titles = document.querySelectorAll('.sidebar-title-anchor');
+    var titles = document.querySelectorAll(".sidebar-title-anchor");
 
     titles.forEach(function (title) {
         // eslint-disable-next-line no-undef
-        title.setAttribute('href', baseURL);
+        title.setAttribute("href", baseURL);
     });
 }
 
 function onDomContentLoaded() {
-    var themeButton = document.querySelectorAll('.theme-toggle');
+    var themeButton = document.querySelectorAll(".theme-toggle");
 
     initMobileMenu();
 
     if (themeButton) {
         themeButton.forEach(function (button) {
-            button.addEventListener('click', toggleTheme);
+            button.addEventListener("click", toggleTheme);
         });
     }
 
@@ -611,18 +616,18 @@ function onDomContentLoaded() {
 
     // eslint-disable-next-line no-undef
     hljs.addPlugin({
-        'after:highlightElement': function (obj) {
+        "after:highlightElement": function (obj) {
             // Replace 'code' with result.language when
             // we are able to cross-check the correctness of
             // result.
-            obj.el.parentNode.setAttribute('data-lang', 'code');
-        }
+            obj.el.parentNode.setAttribute("data-lang", "code");
+        },
     });
     // eslint-disable-next-line no-undef
     hljs.highlightAll();
     // eslint-disable-next-line no-undef
     hljs.initLineNumbersOnLoad({
-        singleLine: true
+        singleLine: true,
     });
 
     // Highlight complete
@@ -643,13 +648,13 @@ function onDomContentLoaded() {
 }
 
 // eslint-disable-next-line no-undef
-window.addEventListener('DOMContentLoaded', onDomContentLoaded);
+window.addEventListener("DOMContentLoaded", onDomContentLoaded);
 
 // eslint-disable-next-line no-undef
-window.addEventListener('hashchange', (event) => {
+window.addEventListener("hashchange", (event) => {
     const url = new URL(event.newURL);
 
-    if (url.hash !== '') {
+    if (url.hash !== "") {
         bringIdToViewOnMount(url.hash);
     }
 });

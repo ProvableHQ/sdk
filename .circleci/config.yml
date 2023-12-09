@@ -1,161 +1,154 @@
 version: 2.1
 
-
 orbs:
-  node: circleci/node@5.1.0
-
+    node: circleci/node@5.1.0
 
 executors:
-  rust-node:
-    docker:
-      - image: cimg/rust:1.73-node
-
+    rust-node:
+        docker:
+            - image: cimg/rust:1.73-node
 
 commands:
-  cargo_fetch:
-    description: "Fetches cargo packages with caching"
-    parameters:
-      working_directory:
-        type: string
-        default: .
-        description: >-
-          Path to the directory containing your crate.
-    steps:
-      - restore_cache:
-          keys:
-            - cargo-{{ checksum "<<parameters.working_directory>>/Cargo.lock" }}
-      - run:
-          working_directory: <<parameters.working_directory>>
-          command: cargo fetch
-      - save_cache:
-          key: cargo-{{ checksum "<<parameters.working_directory>>/Cargo.lock" }}
-          paths:
-            - ~/.cargo
+    cargo_fetch:
+        description: "Fetches cargo packages with caching"
+        parameters:
+            working_directory:
+                type: string
+                default: .
+                description: >-
+                    Path to the directory containing your crate.
+        steps:
+            - restore_cache:
+                  keys:
+                      - cargo-{{ checksum
+                        "<<parameters.working_directory>>/Cargo.lock" }}
+            - run:
+                  working_directory: <<parameters.working_directory>>
+                  command: cargo fetch
+            - save_cache:
+                  key:
+                      cargo-{{ checksum
+                      "<<parameters.working_directory>>/Cargo.lock" }}
+                  paths:
+                      - ~/.cargo
 
+    setup:
+        description: "Sets up job"
+        steps:
+            - checkout
+            - cargo_fetch:
+                  working_directory: wasm
+            - node/install-packages:
+                  pkg-manager: yarn
 
-  setup:
-    description: "Sets up job"
-    steps:
-      - checkout
-      - cargo_fetch:
-          working_directory: wasm
-      - node/install-packages:
-          pkg-manager: yarn
-
-
-  setup-sdk:
-    description: "Sets up job with SDK"
-    steps:
-      - setup
-      - attach_workspace:
-          at: .
-
+    setup-sdk:
+        description: "Sets up job with SDK"
+        steps:
+            - setup
+            - attach_workspace:
+                  at: .
 
 jobs:
-  sdk:
-    executor: rust-node
-    steps:
-      - setup
-      - run: |
-          yarn build:all
-      - persist_to_workspace:
-          root: .
-          paths:
-            - sdk/dist/*
-            - wasm/dist/*
+    sdk:
+        executor: rust-node
+        steps:
+            - setup
+            - run: |
+                  yarn build:all
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                      - sdk/dist/*
+                      - wasm/dist/*
 
+    sdk-test:
+        executor: rust-node
+        steps:
+            - setup-sdk
+            - run: |
+                  yarn test
 
-  sdk-test:
-    executor: rust-node
-    steps:
-      - setup-sdk
-      - run: |
-          yarn test
+    template-node:
+        executor: rust-node
+        steps:
+            - setup-sdk
+            - run:
+                  working_directory: create-aleo-app/template-node
+                  command: |
+                      yarn start
 
+    template-node-ts:
+        executor: rust-node
+        steps:
+            - setup-sdk
+            - run:
+                  working_directory: create-aleo-app/template-node-ts
+                  command: |
+                      yarn start
 
-  template-node:
-    executor: rust-node
-    steps:
-      - setup-sdk
-      - run:
-          working_directory: create-aleo-app/template-node
-          command: |
-            yarn start
+    template-extension:
+        executor: rust-node
+        steps:
+            - setup-sdk
+            - run:
+                  working_directory: create-aleo-app/template-extension
+                  command: |
+                      yarn build
 
-  template-node-ts:
-    executor: rust-node
-    steps:
-      - setup-sdk
-      - run:
-          working_directory: create-aleo-app/template-node-ts
-          command: |
-            yarn start
+    template-react-leo:
+        executor: rust-node
+        steps:
+            - setup-sdk
+            - run:
+                  working_directory: create-aleo-app/template-react-leo
+                  command: |
+                      yarn build
 
-  template-extension:
-    executor: rust-node
-    steps:
-      - setup-sdk
-      - run:
-          working_directory: create-aleo-app/template-extension
-          command: |
-            yarn build
+    check-clippy:
+        executor: rust-node
+        steps:
+            - checkout
+            - cargo_fetch:
+                  working_directory: wasm
+            - run:
+                  working_directory: wasm
+                  command: |
+                      cargo clippy
 
-  template-react-leo:
-    executor: rust-node
-    steps:
-      - setup-sdk
-      - run:
-          working_directory: create-aleo-app/template-react-leo
-          command: |
-            yarn build
-
-
-  check-clippy:
-    executor: rust-node
-    steps:
-      - checkout
-      - cargo_fetch:
-          working_directory: wasm
-      - run:
-          working_directory: wasm
-          command: |
-            cargo clippy
-
-  check-fmt:
-    executor: rust-node
-    steps:
-      - checkout
-      - cargo_fetch:
-          working_directory: wasm
-      - run:
-          working_directory: wasm
-          command: |
-            cargo fmt -- --check
-
+    check-fmt:
+        executor: rust-node
+        steps:
+            - checkout
+            - cargo_fetch:
+                  working_directory: wasm
+            - run:
+                  working_directory: wasm
+                  command: |
+                      cargo fmt -- --check
 
 workflows:
-  version: 2
+    version: 2
 
-  main-workflow:
-    jobs:
-      - check-fmt
-      - check-clippy
-      - sdk
-      - sdk-test:
-          requires:
+    main-workflow:
+        jobs:
+            - check-fmt
+            - check-clippy
             - sdk
-      - template-node:
-          requires:
-            - sdk
-      - template-node-ts:
-          requires:
-            - sdk
-      - template-extension:
-          requires:
-            - sdk
-      - template-react-leo:
-          requires:
-            - sdk
-      #- test-website:
-      #    requires:
-      #      - sdk
+            - sdk-test:
+                  requires:
+                      - sdk
+            - template-node:
+                  requires:
+                      - sdk
+            - template-node-ts:
+                  requires:
+                      - sdk
+            - template-extension:
+                  requires:
+                      - sdk
+            - template-react-leo:
+                  requires:
+                      - sdk
+            #- test-website:
+            #    requires:
+            #      - sdk

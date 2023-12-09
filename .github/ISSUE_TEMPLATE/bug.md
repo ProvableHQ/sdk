@@ -10,7 +10,7 @@ labels: bug
 <!--
     What's the bug in the Aleo SDK that you found?
     How serious is this bug and what is affected?
-    
+
     To report a security issue in the Aleo SDK, please email security@aleo.org.
 -->
 
@@ -43,6 +43,6 @@ labels: bug
 
 ## Your Environment
 
-- <!-- Aleo SDK Version -->
-- <!-- Rust Version -->
-- <!-- Computer OS -->
+-   <!-- Aleo SDK Version -->
+-   <!-- Rust Version -->
+-   <!-- Computer OS -->

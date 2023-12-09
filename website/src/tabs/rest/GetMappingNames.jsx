@@ -66,7 +66,6 @@ export const GetMappingNames = () => {
             extra={
                 <Button
                     type="primary"
-                    
                     size="middle"
                     onClick={() => {
                         tryRequest("credits.aleo");

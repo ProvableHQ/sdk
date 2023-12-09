@@ -4,7 +4,7 @@ export type Input = {
     tag?: string;
     origin?: Origin;
     value?: string;
-}
+};
 export type Origin = {
     commitment: string;
-}
+};

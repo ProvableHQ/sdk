@@ -17,7 +17,7 @@ interface RecordSearchParams {
  * implementing this interface.
  */
 interface RecordProvider {
-    account: Account
+    account: Account;
 
     /**
      * Find a credits.aleo record with a given number of microcredits from the chosen provider
@@ -41,7 +41,12 @@ interface RecordProvider {
      * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
-    findCreditsRecord(microcredits: number, unspent: boolean,  nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error>;
+    findCreditsRecord(
+        microcredits: number,
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    ): Promise<RecordPlaintext | Error>;
 
     /**
      * Find a list of credit.aleo records with a given number of microcredits from the chosen provider
@@ -67,7 +72,12 @@ interface RecordProvider {
      * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
-    findCreditsRecords(microcreditAmounts: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error>;
+    findCreditsRecords(
+        microcreditAmounts: number[],
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    ): Promise<RecordPlaintext[] | Error>;
 
     /**
      * Find an arbitrary record
@@ -100,7 +110,11 @@ interface RecordProvider {
      *
      * const record = await recordProvider.findRecord(true, [], params);
      */
-    findRecord(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error>;
+    findRecord(
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    ): Promise<RecordPlaintext | Error>;
 
     /**
      * Find multiple records from arbitrary programs
@@ -134,7 +148,11 @@ interface RecordProvider {
      * const params = new CustomRecordSearch(0, 100, 5000, 2, "credits.aleo", "credits");
      * const records = await recordProvider.findRecord(true, [], params);
      */
-    findRecords(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error>;
+    findRecords(
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    ): Promise<RecordPlaintext[] | Error>;
 }
 
 /**
@@ -186,16 +204,27 @@ class NetworkRecordProvider implements RecordProvider {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * */
-    async findCreditsRecords(microcredits: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error> {
+    async findCreditsRecords(
+        microcredits: number[],
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    ): Promise<RecordPlaintext[] | Error> {
         let startHeight = 0;
         let endHeight = 0;
 
         if (searchParameters) {
-            if ("startHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+            if (
+                "startHeight" in searchParameters &&
+                typeof searchParameters["endHeight"] == "number"
+            ) {
                 startHeight = searchParameters["startHeight"];
             }
 
-            if ("endHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+            if (
+                "endHeight" in searchParameters &&
+                typeof searchParameters["endHeight"] == "number"
+            ) {
                 endHeight = searchParameters["endHeight"];
             }
         }
@@ -204,7 +233,9 @@ class NetworkRecordProvider implements RecordProvider {
         if (endHeight == 0) {
             const end = await this.networkClient.getLatestHeight();
             if (end instanceof Error) {
-                throw logAndThrow("Unable to get current block height from the network")
+                throw logAndThrow(
+                    "Unable to get current block height from the network",
+                );
             }
             endHeight = end;
         }
@@ -214,7 +245,14 @@ class NetworkRecordProvider implements RecordProvider {
             throw logAndThrow("Start height must be less than end height");
         }
 
-        return await this.networkClient.findUnspentRecords(startHeight, endHeight, this.account.privateKey(), microcredits, undefined, nonces);
+        return await this.networkClient.findUnspentRecords(
+            startHeight,
+            endHeight,
+            this.account.privateKey(),
+            microcredits,
+            undefined,
+            nonces,
+        );
     }
 
     /**
@@ -244,8 +282,18 @@ class NetworkRecordProvider implements RecordProvider {
      * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
-    async findCreditsRecord(microcredits: number, unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error> {
-        const records = await this.findCreditsRecords([microcredits], unspent, nonces, searchParameters);
+    async findCreditsRecord(
+        microcredits: number,
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    ): Promise<RecordPlaintext | Error> {
+        const records = await this.findCreditsRecords(
+            [microcredits],
+            unspent,
+            nonces,
+            searchParameters,
+        );
         if (!(records instanceof Error) && records.length > 0) {
             return records[0];
         }
@@ -256,17 +304,24 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find an arbitrary record. WARNING: This function is not implemented yet and will throw an error.
      */
-    async findRecord(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext | Error> {
+    async findRecord(
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    ): Promise<RecordPlaintext | Error> {
         throw new Error("Method not implemented.");
     }
 
     /**
      * Find multiple arbitrary records. WARNING: This function is not implemented yet and will throw an error.
      */
-    async findRecords(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[] | Error> {
+    async findRecords(
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    ): Promise<RecordPlaintext[] | Error> {
         throw new Error("Method not implemented.");
     }
-
 }
 
 /**
@@ -296,4 +351,9 @@ class BlockHeightSearch implements RecordSearchParams {
     }
 }
 
-export { BlockHeightSearch, NetworkRecordProvider, RecordProvider, RecordSearchParams};
+export {
+    BlockHeightSearch,
+    NetworkRecordProvider,
+    RecordProvider,
+    RecordSearchParams,
+};

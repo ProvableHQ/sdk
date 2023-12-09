@@ -4,12 +4,16 @@ async function initializeWorker(wasm) {
     // Wait for the main thread to send us the Module, Memory, and Rayon thread pointer.
     function wait() {
         return new Promise((resolve) => {
-            addEventListener("message", (event) => {
-                resolve(event.data);
-            }, {
-                capture: true,
-                once: true,
-            });
+            addEventListener(
+                "message",
+                (event) => {
+                    resolve(event.data);
+                },
+                {
+                    capture: true,
+                    once: true,
+                },
+            );
         });
     }
 

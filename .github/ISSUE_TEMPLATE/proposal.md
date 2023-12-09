@@ -2,7 +2,7 @@
 name: 💥 Proposal
 about: Propose a non-trivial change to the Aleo SDK
 title: "[Proposal]"
-labels: 'proposal'
+labels: "proposal"
 ---
 
 ## 💥 Proposal

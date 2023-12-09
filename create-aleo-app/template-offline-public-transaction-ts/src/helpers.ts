@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 async function downloadAndSaveKey(keyData, keysDirPath) {
-    const locatorParts = keyData.locator.split('/');
+    const locatorParts = keyData.locator.split("/");
     const fileName = locatorParts.pop();
     const dirPath = path.join(keysDirPath, ...locatorParts);
     await fsPromises.mkdir(dirPath, { recursive: true });
@@ -16,7 +16,7 @@ async function downloadAndSaveKey(keyData, keysDirPath) {
     } catch {
         const res = await fetch(keyData.prover);
         const buffer = await res.arrayBuffer();
-        writeFileSync(filePath, new Uint8Array(buffer), { flag: 'wx' });
+        writeFileSync(filePath, new Uint8Array(buffer), { flag: "wx" });
         console.log(`Downloaded ${keyData.locator}.prover to ${filePath}`);
         return filePath;
     }
@@ -28,11 +28,17 @@ async function preDownloadTransferKeys() {
     const keysDirPath = path.join(__dirname, "keys");
     await fsPromises.mkdir(keysDirPath, { recursive: true });
 
-    for (const keyData of [CREDITS_PROGRAM_KEYS.transfer_public, CREDITS_PROGRAM_KEYS.fee_public]) {
+    for (const keyData of [
+        CREDITS_PROGRAM_KEYS.transfer_public,
+        CREDITS_PROGRAM_KEYS.fee_public,
+    ]) {
         try {
-            keyPaths[keyData.locator] = await downloadAndSaveKey(keyData, keysDirPath);
+            keyPaths[keyData.locator] = await downloadAndSaveKey(
+                keyData,
+                keysDirPath,
+            );
         } catch (error) {
-            throw(`Failed to download ${keyData.locator} - ${error}`);
+            throw `Failed to download ${keyData.locator} - ${error}`;
         }
     }
 
@@ -45,11 +51,19 @@ async function preDownloadBondingKeys() {
     const keysDirPath = path.join(__dirname, "keys");
     await fsPromises.mkdir(keysDirPath, { recursive: true });
 
-    for (const keyData of [CREDITS_PROGRAM_KEYS.bond_public, CREDITS_PROGRAM_KEYS.fee_public, CREDITS_PROGRAM_KEYS.unbond_public, CREDITS_PROGRAM_KEYS.claim_unbond_public]) {
+    for (const keyData of [
+        CREDITS_PROGRAM_KEYS.bond_public,
+        CREDITS_PROGRAM_KEYS.fee_public,
+        CREDITS_PROGRAM_KEYS.unbond_public,
+        CREDITS_PROGRAM_KEYS.claim_unbond_public,
+    ]) {
         try {
-            keyPaths[keyData.locator] = await downloadAndSaveKey(keyData, keysDirPath);
+            keyPaths[keyData.locator] = await downloadAndSaveKey(
+                keyData,
+                keysDirPath,
+            );
         } catch (error) {
-            throw(`Failed to download ${keyData.locator} - ${error}`);
+            throw `Failed to download ${keyData.locator} - ${error}`;
         }
     }
 
@@ -67,4 +81,9 @@ async function getLocalKey(filePath: string): Promise<Uint8Array> {
     }
 }
 
-export { downloadAndSaveKey, getLocalKey, preDownloadBondingKeys, preDownloadTransferKeys };
+export {
+    downloadAndSaveKey,
+    getLocalKey,
+    preDownloadBondingKeys,
+    preDownloadTransferKeys,
+};

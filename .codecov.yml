@@ -1,5 +1,5 @@
 coverage:
-  status:
-    project:
-      default:
-        threshold: 4%
+    status:
+        project:
+            default:
+                threshold: 4%

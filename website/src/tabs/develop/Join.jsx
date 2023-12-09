@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
-import {Button, Card, Col, Form, Input, Row, Result, Spin, Switch} from "antd";
+import {
+    Button,
+    Card,
+    Col,
+    Form,
+    Input,
+    Row,
+    Result,
+    Spin,
+    Switch,
+} from "antd";
 import axios from "axios";
 
 export const Join = () => {
@@ -153,10 +163,7 @@ export const Join = () => {
     const peerUrl = () => (joinUrl !== null ? joinUrl : "");
 
     return (
-        <Card
-            title="Join Records"
-            style={{ width: "100%" }}
-        >
+        <Card title="Join Records" style={{ width: "100%" }}>
             <Form {...layout}>
                 <Form.Item
                     label="Record One"
@@ -249,12 +256,7 @@ export const Join = () => {
                 </Form.Item>
                 <Row justify="center">
                     <Col justify="center">
-                        <Button
-                            type="primary"
-                            
-                            size="middle"
-                            onClick={join}
-                        >
+                        <Button type="primary" size="middle" onClick={join}>
                             Join
                         </Button>
                     </Col>

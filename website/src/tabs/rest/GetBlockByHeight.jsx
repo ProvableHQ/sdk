@@ -21,7 +21,9 @@ export const GetBlockByHeight = () => {
         try {
             if (height) {
                 axios
-                    .get(`https://api.explorer.aleo.org/v1/testnet3/block/${height}`)
+                    .get(
+                        `https://api.explorer.aleo.org/v1/testnet3/block/${height}`,
+                    )
                     .then((response) => {
                         setBlockByHeight(
                             JSON.stringify(response.data, null, 2),
@@ -47,10 +49,7 @@ export const GetBlockByHeight = () => {
         blockByHeight !== null ? blockByHeight.toString() : "";
 
     return (
-        <Card
-            title="Get Block By Height"
-            style={{ width: "100%" }}
-        >
+        <Card title="Get Block By Height" style={{ width: "100%" }}>
             <Form {...layout}>
                 <Form.Item
                     label="Block Height"

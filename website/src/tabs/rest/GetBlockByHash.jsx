@@ -21,7 +21,9 @@ export const GetBlockByHash = () => {
         try {
             if (hash) {
                 axios
-                    .get(`https://api.explorer.aleo.org/v1/testnet3/block/${hash}`)
+                    .get(
+                        `https://api.explorer.aleo.org/v1/testnet3/block/${hash}`,
+                    )
                     .then((response) => {
                         setBlockByHash(JSON.stringify(response.data, null, 2));
                         setStatus("success");
@@ -45,10 +47,7 @@ export const GetBlockByHash = () => {
         blockByHash !== null ? blockByHash.toString() : "";
 
     return (
-        <Card
-            title="Get Block By Hash"
-            style={{ width: "100%"}}
-        >
+        <Card title="Get Block By Hash" style={{ width: "100%" }}>
             <Form {...layout}>
                 <Form.Item
                     label="Block Hash"

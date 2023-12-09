@@ -9,7 +9,6 @@ try {
     $child.execSync("wasm-pack test --node", {
         stdio: "inherit",
     });
-
 } finally {
     $fs.writeFileSync("package.json", file);
 }

@@ -54,11 +54,7 @@ export const AccountFromPrivateKey = () => {
                                 size="large"
                                 placeholder="View Key"
                                 value={viewKey()}
-                                addonAfter={
-                                    <CopyButton
-                                        data={viewKey()}
-                                    />
-                                }
+                                addonAfter={<CopyButton data={viewKey()} />}
                                 disabled
                             />
                         </Form.Item>
@@ -67,11 +63,7 @@ export const AccountFromPrivateKey = () => {
                                 size="large"
                                 placeholder="Address"
                                 value={address()}
-                                addonAfter={
-                                    <CopyButton
-                                        data={address()}
-                                    />
-                                }
+                                addonAfter={<CopyButton data={address()} />}
                                 disabled
                             />
                         </Form.Item>

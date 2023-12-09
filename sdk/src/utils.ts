@@ -8,7 +8,6 @@ export async function get(url: URL | string) {
     return response;
 }
 
-
 export async function post(url: URL | string, options: RequestInit) {
     options.method = "POST";
 

@@ -46,7 +46,8 @@ const appConfig = {
             patterns: [
                 { from: "public", to: "public" },
                 { from: "_headers", to: "." },
-                { from: "_redirects", to: "." }],
+                { from: "_redirects", to: "." },
+            ],
         }),
         new HtmlWebpackPlugin({
             template: "./index.html",
@@ -54,12 +55,14 @@ const appConfig = {
     ],
     optimization: {
         minimize: true,
-        minimizer: [new TerserPlugin({
-          terserOptions: {
-            module: true,
-          }
-        })],
-      },
+        minimizer: [
+            new TerserPlugin({
+                terserOptions: {
+                    module: true,
+                },
+            }),
+        ],
+    },
     performance: {
         hints: false,
         maxAssetSize: 13 * 1024 * 1024, // 12 MiB

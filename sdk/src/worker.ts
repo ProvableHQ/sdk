@@ -1,16 +1,21 @@
-import {initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution, FunctionKeyPair} from "./index";
-import { AleoKeyProvider, AleoKeyProviderParams} from "./function-key-provider";
+import {
+    initThreadPool,
+    ProgramManager,
+    PrivateKey,
+    verifyFunctionExecution,
+    FunctionKeyPair,
+} from "./index";
+import {
+    AleoKeyProvider,
+    AleoKeyProviderParams,
+} from "./function-key-provider";
 import { expose } from "comlink";
 
 await initThreadPool();
 
 const defaultHost = "https://api.explorer.aleo.org/v1";
 const keyProvider = new AleoKeyProvider();
-const programManager = new ProgramManager(
-    defaultHost,
-    keyProvider,
-    undefined
-);
+const programManager = new ProgramManager(defaultHost, keyProvider, undefined);
 
 keyProvider.useCache(true);
 
@@ -21,7 +26,7 @@ export interface WorkerAPI {
         localProgram: string,
         aleoFunction: string,
         inputs: string[],
-        privateKey: string
+        privateKey: string,
     ) => Promise<{ outputs: any; execution: string } | string>;
 
     getPrivateKey: () => Promise<PrivateKey>;
@@ -31,7 +36,7 @@ async function executeOffline(
     aleoFunction: string,
     inputs: string[],
     privateKey: string,
-    proveExecution = false
+    proveExecution = false,
 ) {
     console.log("Web worker: Executing function locally...");
     const startTime = performance.now();
@@ -49,20 +54,21 @@ async function executeOffline(
         const cacheKey = `${program_id}:${aleoFunction}`;
 
         // Get the program imports
-        const imports = await programManager.networkClient.getProgramImports(
-            localProgram
-        );
+        const imports =
+            await programManager.networkClient.getProgramImports(localProgram);
 
         if (imports instanceof Error) {
             throw "Error getting program imports";
         }
         // Get the proving and verifying keys for the function
         if (lastLocalProgram !== localProgram) {
-            const keys = <FunctionKeyPair>await programManager.synthesizeKeys(
-                localProgram,
-                aleoFunction,
-                inputs,
-                PrivateKey.from_string(privateKey)
+            const keys = <FunctionKeyPair>(
+                await programManager.synthesizeKeys(
+                    localProgram,
+                    aleoFunction,
+                    inputs,
+                    PrivateKey.from_string(privateKey),
+                )
             );
             programManager.keyProvider.cacheKeys(cacheKey, keys);
             lastLocalProgram = localProgram;
@@ -90,7 +96,7 @@ async function executeOffline(
         console.log(
             `Web worker: Local execution completed in ${
                 performance.now() - startTime
-            } ms`
+            } ms`,
         );
         const outputs = response.getOutputs();
         const execution = response.getExecution();
@@ -105,12 +111,7 @@ async function executeOffline(
         const verifyingKey = keys[1];
 
         if (execution) {
-            verifyFunctionExecution(
-                execution,
-                verifyingKey,
-                program,
-                "hello"
-            );
+            verifyFunctionExecution(execution, verifyingKey, program, "hello");
             executionString = execution.toString();
             console.log("Execution verified successfully: " + execution);
         } else {

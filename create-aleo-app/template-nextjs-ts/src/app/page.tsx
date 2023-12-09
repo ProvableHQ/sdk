@@ -27,7 +27,7 @@ export default function Home() {
     useEffect(() => {
         workerRef.current = new Worker(new URL("worker.ts", import.meta.url));
         workerRef.current.onmessage = (
-            event: MessageEvent<AleoWorkerMessageEvent>
+            event: MessageEvent<AleoWorkerMessageEvent>,
         ) => {
             if (event.data.type === "key") {
                 setAccount(event.data.result);

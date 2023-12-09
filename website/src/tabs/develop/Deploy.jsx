@@ -10,16 +10,18 @@ import {
     Row,
     Result,
     Spin,
-    Space, Switch,
+    Space,
+    Switch,
 } from "antd";
 import { CodeEditor } from "./execute/CodeEditor.jsx";
 import axios from "axios";
 
 export const Deploy = () => {
-    
     const [form] = Form.useForm();
     const [deploymentFeeRecord, setDeploymentFeeRecord] = useState(null);
-    const [deployUrl, setDeployUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [deployUrl, setDeployUrl] = useState(
+        "https://api.explorer.aleo.org/v1",
+    );
     const [deploymentFee, setDeploymentFee] = useState("1");
     const [loading, setLoading] = useState(false);
     const [feeLoading, setFeeLoading] = useState(false);
@@ -215,34 +217,28 @@ export const Deploy = () => {
     return (
         <Card
             title="Deploy Program"
-            style={{ width: "100%"}}
+            style={{ width: "100%" }}
             extra={
-                <Button
-                    type="primary"
-                    size="middle"
-                    onClick={demo}
-                >
+                <Button type="primary" size="middle" onClick={demo}>
                     Insert Demo Program
                 </Button>
             }
         >
-            <Form
-                form={form} 
-                {...layout}>
+            <Form form={form} {...layout}>
                 <Divider />
-                    <Form.Item
-                        label="Program"
-                        name="program"
-                        tooltip={"This must be an Aleo Instructions program."}
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input or load an Aleo program",
-                            },
-                        ]}
-                    >
-                        <CodeEditor onChange={onProgramChange} />
-                    </Form.Item>
+                <Form.Item
+                    label="Program"
+                    name="program"
+                    tooltip={"This must be an Aleo Instructions program."}
+                    rules={[
+                        {
+                            required: true,
+                            message: "Please input or load an Aleo program",
+                        },
+                    ]}
+                >
+                    <CodeEditor onChange={onProgramChange} />
+                </Form.Item>
                 <Divider />
                 <Form.Item
                     label="Private Key"
@@ -313,7 +309,6 @@ export const Deploy = () => {
                         <Space>
                             <Button
                                 type="primary"
-                                
                                 size="middle"
                                 onClick={deploy}
                             >
@@ -322,7 +317,6 @@ export const Deploy = () => {
                             {contextHolder}
                             <Button
                                 type="primary"
-                                
                                 size="middle"
                                 onClick={estimate}
                             >

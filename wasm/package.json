@@ -1,47 +1,47 @@
 {
-  "name": "@aleohq/wasm",
-  "version": "0.6.9",
-  "description": "Wasm build for the SDK",
-  "collaborators": [
-    "The Aleo Team <hello@aleo.org>"
-  ],
-  "license": "GPL-3.0",
-  "type": "module",
-  "main": "./dist/index.js",
-  "browser": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": "./dist/index.js",
-    "./worker.js": "./dist/worker.js"
-  },
-  "files": [
-    "dist",
-    "LICENSE.md",
-    "README.md"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/AleoHQ/sdk.git"
-  },
-  "keywords": [
-    "Aleo",
-    "Blockchain",
-    "Zero Knowledge",
-    "ZK"
-  ],
-  "bugs": {
-    "url": "https://github.com/AleoHQ/sdk/issues"
-  },
-  "homepage": "https://github.com/AleoHQ/sdk#readme",
-  "scripts": {
-    "build": "rimraf dist && rollup -c rollup.config.js && cpr js/types dist && rimraf dist/wasm*",
-    "prepublish": "yarn build",
-    "test": "node test.js"
-  },
-  "devDependencies": {
-    "@wasm-tool/rollup-plugin-rust": "^2.4.2",
-    "cpr": "^3.0.1",
-    "rimraf": "^5.0.1",
-    "rollup": "^3.27.2"
-  }
+    "name": "@aleohq/wasm",
+    "version": "0.6.9",
+    "description": "Wasm build for the SDK",
+    "collaborators": [
+        "The Aleo Team <hello@aleo.org>"
+    ],
+    "license": "GPL-3.0",
+    "type": "module",
+    "main": "./dist/index.js",
+    "browser": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": "./dist/index.js",
+        "./worker.js": "./dist/worker.js"
+    },
+    "files": [
+        "dist",
+        "LICENSE.md",
+        "README.md"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/AleoHQ/sdk.git"
+    },
+    "keywords": [
+        "Aleo",
+        "Blockchain",
+        "Zero Knowledge",
+        "ZK"
+    ],
+    "bugs": {
+        "url": "https://github.com/AleoHQ/sdk/issues"
+    },
+    "homepage": "https://github.com/AleoHQ/sdk#readme",
+    "scripts": {
+        "build": "rimraf dist && rollup -c rollup.config.js && cpr js/types dist && rimraf dist/wasm*",
+        "prepublish": "yarn build",
+        "test": "node test.js"
+    },
+    "devDependencies": {
+        "@wasm-tool/rollup-plugin-rust": "^2.4.2",
+        "cpr": "^3.0.1",
+        "rimraf": "^5.0.1",
+        "rollup": "^3.27.2"
+    }
 }

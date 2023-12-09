@@ -96,11 +96,7 @@ export const DecryptAccount = () => {
                                 size="large"
                                 placeholder="Private Key"
                                 value={privateKey()}
-                                addonAfter={
-                                    <CopyButton
-                                        data={privateKey()}
-                                    />
-                                }
+                                addonAfter={<CopyButton data={privateKey()} />}
                                 disabled
                             />
                         </Form.Item>
@@ -109,11 +105,7 @@ export const DecryptAccount = () => {
                                 size="large"
                                 placeholder="View Key"
                                 value={viewKey()}
-                                addonAfter={
-                                    <CopyButton
-                                        data={viewKey()}
-                                    />
-                                }
+                                addonAfter={<CopyButton data={viewKey()} />}
                                 disabled
                             />
                         </Form.Item>
@@ -122,11 +114,7 @@ export const DecryptAccount = () => {
                                 size="large"
                                 placeholder="Address"
                                 value={address()}
-                                addonAfter={
-                                    <CopyButton
-                                        data={address()}
-                                    />
-                                }
+                                addonAfter={<CopyButton data={address()} />}
                                 disabled
                             />
                         </Form.Item>

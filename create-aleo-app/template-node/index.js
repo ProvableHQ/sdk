@@ -1,4 +1,10 @@
-import {Account, initThreadPool, ProgramManager, AleoKeyProvider, AleoKeyProviderParams} from "@aleohq/sdk";
+import {
+    Account,
+    initThreadPool,
+    ProgramManager,
+    AleoKeyProvider,
+    AleoKeyProviderParams,
+} from "@aleohq/sdk";
 
 await initThreadPool();
 
@@ -24,12 +30,18 @@ async function localProgramExecution(program, aleoFunction, inputs) {
     programManager.setKeyProvider(keyProvider);
 
     // Pre-synthesize the program keys and then cache them in memory using key provider
-    const keyPair = await programManager.synthesizeKeys(hello_hello_program, "hello", ["1u32", "1u32"]);
+    const keyPair = await programManager.synthesizeKeys(
+        hello_hello_program,
+        "hello",
+        ["1u32", "1u32"],
+    );
     programManager.keyProvider.cacheKeys("hello_hello.aleo:hello", keyPair);
 
     // Specify parameters for the key provider to use search for program keys. In particular specify the cache key
     // that was used to cache the keys in the previous step.
-    const keyProviderParams = new AleoKeyProviderParams({cacheKey: "hello_hello.aleo:hello"});
+    const keyProviderParams = new AleoKeyProviderParams({
+        cacheKey: "hello_hello.aleo:hello",
+    });
 
     // Execute once using the key provider params defined above. This will use the cached proving keys and make
     // execution significantly faster.
@@ -41,13 +53,16 @@ async function localProgramExecution(program, aleoFunction, inputs) {
         undefined,
         keyProviderParams,
     );
-    console.log("hello_hello/hello executed - result:", executionResponse.getOutputs());
+    console.log(
+        "hello_hello/hello executed - result:",
+        executionResponse.getOutputs(),
+    );
 
     // Verify the execution using the verifying key that was generated earlier.
     if (programManager.verifyExecution(executionResponse)) {
         console.log("hello_hello/hello execution verified!");
     } else {
-        throw("Execution failed verification!");
+        throw "Execution failed verification!";
     }
 }
 

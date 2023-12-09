@@ -1,56 +1,58 @@
 name: Website
 on:
-  push:
-    branches:
-      - testnet3
+    push:
+        branches:
+            - testnet3
 
 jobs:
-  deploy:
-    name: SDK Website
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-#        with:
-#          persist-credentials: false
+    deploy:
+        name: SDK Website
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            #        with:
+            #          persist-credentials: false
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly-2023-05-24
-          override: true
-          components: rustfmt, rust-src
+            - name: Install Rust
+              uses: actions-rs/toolchain@v1
+              with:
+                  profile: minimal
+                  toolchain: nightly-2023-05-24
+                  override: true
+                  components: rustfmt, rust-src
 
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-website-${{ hashFiles('**/Cargo.lock') }}
+            - uses: actions/cache@v2
+              with:
+                  path: |
+                      ~/.cargo/registry
+                      ~/.cargo/git
+                      target
+                  key:
+                      ${{ runner.os }}-cargo-website-${{
+                      hashFiles('**/Cargo.lock') }}
 
-      - name: Install and Build
-        run: |
-          yarn
-          yarn build:all
-          cd website
-          yarn build
-        env:
-          CI: ""
+            - name: Install and Build
+              run: |
+                  yarn
+                  yarn build:all
+                  cd website
+                  yarn build
+              env:
+                  CI: ""
 
-      - name: Deploy
-        id: modified
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
-          folder: website/dist
-          clean-exclude: '["dev"]'
+            - name: Deploy
+              id: modified
+              uses: JamesIves/github-pages-deploy-action@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  branch: gh-pages
+                  folder: website/dist
+                  clean-exclude: '["dev"]'
 
-      - name: Check step output
-        run: |
-          [[ \
-          ${{steps.modified.outputs.deployment-status}} = skipped || \
-          ${{steps.modified.outputs.deployment-status}} = success \
-          ]]
+            - name: Check step output
+              run: |
+                  [[ \
+                  ${{steps.modified.outputs.deployment-status}} = skipped || \
+                  ${{steps.modified.outputs.deployment-status}} = success \
+                  ]]

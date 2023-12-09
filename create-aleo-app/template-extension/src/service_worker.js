@@ -3,7 +3,7 @@ async function createOffscreen(path) {
 
     const existingContexts = await chrome.runtime.getContexts({
         contextTypes: ["OFFSCREEN_DOCUMENT"],
-        documentUrls: [offscreenUrl]
+        documentUrls: [offscreenUrl],
     });
 
     if (existingContexts.length > 0) {
@@ -13,7 +13,8 @@ async function createOffscreen(path) {
     await chrome.offscreen.createDocument({
         url: offscreenUrl,
         reasons: ["WORKERS"],
-        justification: "Top-level await and Workers cannot be used in service workers, but they are necessary to use the Aleo SDK.",
+        justification:
+            "Top-level await and Workers cannot be used in service workers, but they are necessary to use the Aleo SDK.",
     });
 }
 

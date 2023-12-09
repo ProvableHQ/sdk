@@ -92,7 +92,6 @@ export const GetMappingValue = () => {
             extra={
                 <Button
                     type="primary"
-                    
                     size="middle"
                     onClick={() => {
                         setDefaultRequest(
@@ -140,12 +139,7 @@ export const GetMappingValue = () => {
             </Form>
             <Row justify="center">
                 <Col>
-                    <Button
-                        type="primary"
-                        
-                        size="middle"
-                        onClick={tryRequest}
-                    >
+                    <Button type="primary" size="middle" onClick={tryRequest}>
                         Get Mapping Value
                     </Button>
                 </Col>
