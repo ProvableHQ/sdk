@@ -45,7 +45,7 @@ self.addEventListener("message", (ev) => {
                 const keyParams = new aleo.AleoKeyProviderParams({"cacheKey": cacheKey});
 
                 // Execute the function locally
-                let response = await programManager.executeOffline(
+                let response = await programManager.run(
                     localProgram,
                     aleoFunction,
                     inputs,
@@ -54,7 +54,8 @@ self.addEventListener("message", (ev) => {
                     keyParams,
                     undefined,
                     undefined,
-                    privateKeyObject
+                    privateKeyObject,
+                    undefined
                 );
 
                 // Return the outputs to the main thread
@@ -120,19 +121,16 @@ self.addEventListener("message", (ev) => {
 
                 // Set the host to the provided URL if provided
                 if (typeof url === "string") { programManager.setHost(url); }
-                const transaction = await programManager.execute(
-                    program_id,
-                    aleoFunction,
-                    fee,
-                    privateFee,
-                    inputs,
-                    undefined,
-                    keyParams,
-                    feeRecord,
-                    undefined,
-                    undefined,
-                    privateKeyObject
-                );
+                const transaction = await programManager.execute({
+                    programName: program_id,
+                    functionName: aleoFunction,
+                    fee: fee,
+                    privateFee: privateFee,
+                    inputs: inputs,
+                    keySearchParams: keyParams,
+                    feeRecord: feeRecord,
+                    privateKey: privateKeyObject
+                });
 
                 // Return the transaction id to the main thread
                 console.log(`Web worker: On-chain execution transaction created in ${performance.now() - startTime} ms`);
@@ -187,6 +185,7 @@ self.addEventListener("message", (ev) => {
                     imports,
                     provingKey,
                     verifyingKey,
+                    undefined
                 );
 
                 // Return the execution fee estimate to the main thread
@@ -268,7 +267,8 @@ self.addEventListener("message", (ev) => {
                     undefined,
                     amountRecord,
                     feeRecord,
-                    aleo.PrivateKey.from_string(privateKey)
+                    aleo.PrivateKey.from_string(privateKey),
+                    undefined
                 );
 
                 // Return the transaction id to the main thread
@@ -358,7 +358,8 @@ self.addEventListener("message", (ev) => {
                 const transaction = await programManager.split(
                     splitAmount,
                     record,
-                    aleo.PrivateKey.from_string(privateKey)
+                    aleo.PrivateKey.from_string(privateKey),
+                    undefined
                 );
 
                 // Return the transaction id to the main thread
@@ -399,6 +400,7 @@ self.addEventListener("message", (ev) => {
                     undefined,
                     feeRecord,
                     aleo.PrivateKey.from_string(privateKey),
+                    undefined
                 );
 
                 // Return the transaction id to the main thread

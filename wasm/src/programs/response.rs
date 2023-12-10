@@ -14,9 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Execution, KeyPair, Program, ProvingKey, VerifyingKey,
-            types::{CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramIDNative, ProgramNative, ProvingKeyNative, ResponseNative, VerifyingKeyNative}};
-use snarkvm_ledger_block::Transition;
+use crate::types::native::{
+    ExecutionNative,
+    IdentifierNative,
+    ProcessNative,
+    ProgramIDNative,
+    ProgramNative,
+    ProvingKeyNative,
+    ResponseNative,
+    VerifyingKeyNative,
+};
 
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};

@@ -1,7 +1,7 @@
-import { Transaction } from "./transaction";
+import { TransactionModel } from "./transactionModel";
 
 export type ConfirmedTransaction = {
     type: string;
     id: string;
-    transaction: Transaction;
+    transaction: TransactionModel;
 }

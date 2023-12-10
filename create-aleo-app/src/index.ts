@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import minimist from "minimist";
 import prompts from "prompts";
-import { lightGreen, cyan, red, reset, yellow, green } from "kolorist";
+import {lightGreen, cyan, red, reset, yellow, lightGray, green} from "kolorist";
 
 const argv = minimist<{
     t?: string;
@@ -30,29 +30,39 @@ const FRAMEWORKS: Framework[] = [
         name: "vanilla",
         display: "Vanilla",
         color: yellow,
-        variants: [
-            {
-                name: "vanilla",
-                display: "JavaScript",
-                color: yellow,
-            },
-        ],
-    },
-    {
-        name: "react",
-        display: "React",
-        color: cyan,
-        variants: [
-            {
-                name: "react-leo",
-                display: "JavaScript + Leo",
-                color: lightGreen,
-            },
-        ],
-    },
-    {
-        name: "node",
-        display: "Node.js",
+      },
+    ],
+  },
+  {
+    name: "react",
+    display: "React",
+    color: cyan,
+    variants: [
+      {
+        name: "react-leo",
+        display: "JavaScript + Leo",
+        color: lightGreen,
+      },
+      {
+        name: 'react-ts',
+        display: "React + TypeScript",
+        color: red
+      },
+      {
+        name: "nextjs-ts",
+        display: "TypeScript + Next.js",
+        color: lightGray,
+      },
+    ],
+  },
+  {
+    name: 'node',
+    display: 'Node.js',
+    color: green,
+    variants: [
+      {
+        name: 'node',
+        display: 'Node.js',
         color: green,
         variants: [
             {

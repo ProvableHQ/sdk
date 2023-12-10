@@ -14,17 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::{CurrentNetwork, EntryType, IdentifierNative, PlaintextType, ProgramNative, ValueType};
+use crate::types::native::{CurrentNetwork, EntryType, IdentifierNative, PlaintextType, ProgramNative, ValueType};
 
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 /// Webassembly Representation of an Aleo program
-///
-/// This object is required to create an Execution or Deployment transaction. It includes several
-/// convenience methods for enumerating available functions and each functions' inputs in a
-/// javascript object for usage in creation of web forms for input capture.
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Program(ProgramNative);

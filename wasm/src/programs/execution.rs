@@ -18,9 +18,16 @@ pub use super::*;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use crate::types::{CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramID, VerifyingKeyNative};
+use crate::types::native::{
+    CurrentNetwork,
+    ExecutionNative,
+    IdentifierNative,
+    ProcessNative,
+    ProgramID,
+    VerifyingKeyNative,
+};
 
-/// A program that can be executed on the Aleo blockchain.
+/// Execution of an Aleo program.
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Execution(ExecutionNative);

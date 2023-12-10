@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::TransactionNative;
+use crate::types::native::TransactionNative;
 
 use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;

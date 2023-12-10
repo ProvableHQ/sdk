@@ -15,8 +15,9 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::RecordPlaintext;
-use crate::{account::ViewKey, types::RecordCiphertextNative};
+use crate::account::ViewKey;
 
+use crate::types::native::RecordCiphertextNative;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 

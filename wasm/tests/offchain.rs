@@ -129,6 +129,7 @@ async fn test_key_synthesis() {
         Some(retrieved_proving_key.clone()),
         Some(retreived_verifying_key.clone()),
         None,
+        None,
     )
     .await
     .unwrap();
@@ -163,6 +164,7 @@ async fn test_fee_validation() {
         None,
         None,
         None,
+        None,
     )
     .await;
     assert!(execution.is_err());
@@ -174,6 +176,7 @@ async fn test_fee_validation() {
         100.0,
         Some(fee_record.clone()),
         Some("https://api.explorer.aleo.org/v1".to_string()),
+        None,
         None,
         None,
         None,
@@ -195,6 +198,7 @@ async fn test_fee_validation() {
         None,
         None,
         None,
+        None,
     )
     .await;
     assert!(transfer.is_err());
@@ -212,6 +216,7 @@ async fn test_fee_validation() {
         None,
         None,
         None,
+        None,
     )
     .await;
     assert!(transfer.is_err());
@@ -224,6 +229,7 @@ async fn test_fee_validation() {
         100.00,
         Some(fee_record.clone()),
         Some("https://api.explorer.aleo.org/v1".to_string()),
+        None,
         None,
         None,
         None,
@@ -262,6 +268,7 @@ async fn test_fee_estimation() {
         None,
         None,
         None,
+        None,
     )
     .await
     .unwrap();
@@ -295,6 +302,7 @@ async fn test_import_resolution() {
         false,
         false,
         Some(imports),
+        None,
         None,
         None,
         None,

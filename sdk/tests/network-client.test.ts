@@ -1,5 +1,5 @@
 import {jest} from '@jest/globals'
-import {Account, Block, AleoNetworkClient, Transaction} from "../src/node";
+import {Account, Block, AleoNetworkClient, TransactionModel} from "../src/node";
 import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data";
 import {log} from "console";
 jest.retryTimes(3);
@@ -48,7 +48,7 @@ describe('NodeConnection', () => {
     describe('getDeploymentTransactionForProgram', () => {
         it('should return a Transaction object', async () => {
             const transaction = await connection.getDeploymentTransactionForProgram('hello_hello.aleo');
-            expect((transaction as Transaction).type).toBe("deploy");
+            expect((transaction as TransactionModel).type).toBe("deploy");
         }, 60000);
     });
 
@@ -102,7 +102,7 @@ describe('NodeConnection', () => {
     describe('getTransaction', () => {
         it('should return a Transaction object', async () => {
             const transaction = await connection.getTransaction('at1u833jaha7gtqk7vx0yczcg2njds2tj52lyg54c7zyylgfjvc4vpqn8gqqx');
-            expect((transaction as Transaction).type).toBe("deploy");
+            expect((transaction as TransactionModel).type).toBe("deploy");
         }, 60000);
     });
 
@@ -110,7 +110,7 @@ describe('NodeConnection', () => {
         it('should return an array of Transaction objects', async () => {
             const transactions = await connection.getTransactions(1);
             expect(Array.isArray(transactions)).toBe(true);
-            expect((transactions as Transaction[]).length).toBeGreaterThan(0);
+            expect((transactions as TransactionModel[]).length).toBeGreaterThan(0);
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
