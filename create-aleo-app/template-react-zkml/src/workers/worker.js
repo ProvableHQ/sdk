@@ -18,6 +18,19 @@ await initThreadPool();
 
 // Initialize a program manager with a keyprovider that will cache our keys
 const keyProvider = new AleoKeyProvider();
+console.log("keyProvider", keyProvider);
+keyProvider.useCache(true);
+console.log("keyProvider", keyProvider);
+
+keyProvider.fetchKeys("https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.prover.30e265c", 
+                      "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860")
+    .then(() => {
+        console.log("Keys fetched successfully");
+    })
+    .catch(error => {
+        console.error("Error fetching keys: ", error);
+    });
+console.log("keyProvider after fetchKeys", keyProvider);
 keyProvider.useCache(true);
 const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
 const account = new Account();
