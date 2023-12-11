@@ -18,4 +18,10 @@ rust/src/program/.DS_Store
 # Local Netlify folder
 .netlify
 
+*.log
+*.lock
+
+#.history folders
+.history
+
 package-lock.json

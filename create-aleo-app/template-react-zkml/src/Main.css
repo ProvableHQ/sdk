@@ -1,0 +1,13 @@
+.verification-failed-message {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #fce8e6;
+    color: #d93025;
+    border: 1px solid #d93025;
+    border-radius: 4px;
+    text-align: center;
+    width: 100%;
+    margin-top: 20px;
+    font-weight: 500;
+  }
+  
