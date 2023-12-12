@@ -15,7 +15,6 @@ import {
 import { expose, proxy } from "comlink";
 import {sample_inputs} from "../variables.js";
 import { Execution } from "@aleohq/wasm";
-import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification, run_JS_decision_tree_even_odd, run_JS_mlp_even_odd, run_JS_mlp_classification } from '../variables.js';
 
 
 // Initialize the threadpool
@@ -81,12 +80,12 @@ async function localProgramExecution(program_source, aleoFunction, inputs) {
   return [outputs, execution];
 }
 
-async function verifyExecution(execution) {
+async function verifyExecution(execution, program_string) {
   console.log("in verifyExecution")
   const ex = FunctionExecution.fromString(execution);
   const verifyingKey = await keyProvider.getVerifyingKey("https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860");
   
-  const program = Program.fromString(decision_tree_program_even_odd);
+  const program = Program.fromString(program_string);
   
   const res = verifyFunctionExecution(ex, verifyingKey, program, "main");
   console.log("res in verifyExecution", res);

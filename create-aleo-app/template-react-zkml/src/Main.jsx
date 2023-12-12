@@ -32,7 +32,7 @@ const { Option } = Select;
 
 var model_type = "decision_tree";
 var proving_finished = false;
-let used_model_type, proving_start_time, proving_end_time;
+let proving_start_time, proving_end_time;
 
 const aleoWorker = AleoWorker();
 
@@ -146,6 +146,23 @@ const Main = () => {
         return softmax;
     }
 
+    function getSelectedModelProgram(new_selected_key) {
+        let model;
+        if(model_type == "decision_tree" && new_selected_key == "2") {
+            model = decision_tree_program;
+        }
+        else if(model_type == "decision_tree" && new_selected_key == "1") {
+            model = decision_tree_program_even_odd;
+        }
+        else if(model_type == "mlp_neural_network" && new_selected_key == "2") {
+            model = mlp_program;
+        }
+        else if(model_type == "mlp_neural_network" && new_selected_key == "1") {
+            model = mlp_program_even_odd;
+        }
+        return model;
+    }
+
       async function execute(fixed_point_features, new_selected_key) {
 
         // helpful tool: https://codepen.io/jsnelders/pen/qBByqQy
@@ -155,23 +172,7 @@ const Main = () => {
         console.log("input_array", input_array);
         console.log("new_selected_key", new_selected_key)
 
-        let model;
-        if(model_type == "decision_tree" && new_selected_key == "2") {
-            model = decision_tree_program;
-            used_model_type = "tree";
-        }
-        else if(model_type == "decision_tree" && new_selected_key == "1") {
-            model = decision_tree_program_even_odd;
-            used_model_type = "tree";
-        }
-        else if(model_type == "mlp_neural_network" && new_selected_key == "2") {
-            model = mlp_program;
-            used_model_type = "mlp";
-        }
-        else if(model_type == "mlp_neural_network" && new_selected_key == "1") {
-            model = mlp_program_even_odd;
-            used_model_type = "mlp";
-        }
+        var model = getSelectedModelProgram(new_selected_key);
         proving_start_time = performance.now();
 
         console.log("starting to measure proving time, before execution")
@@ -745,8 +746,9 @@ const Main = () => {
     const handleVerification = async (event) => {
         try {
             const content = event.target.value;
-            console.log("in handleVerification, content:", content)
-            var verification_result = await aleoWorker.verifyExecution(content);
+            console.log("in handleVerification, content:", content);
+            var program = getSelectedModelProgram(selectedKey);
+            var verification_result = await aleoWorker.verifyExecution(content, program);
             console.log("verification_result", verification_result)
             if(verification_result) {
                 var content_JSON = JSON.parse(content);
@@ -775,7 +777,7 @@ const Main = () => {
 
             }
             else {
-                setShowChart(false);
+                setShowVerificationChart(false);
             }
         } catch (error) {
             console.error("Verification failed:", error);
