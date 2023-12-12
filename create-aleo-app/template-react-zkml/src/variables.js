@@ -23,7 +23,7 @@ const sample_inputs = ['{x0: 23i64, x1: 14i64}', '{x0: 10i64, x1: 10i64}', '{x0:
 // first value is with key generation, second is without
 const expected_runtimes = {
     "Even/Odd": {
-        "decision_tree": [61, 29],
+        "decision_tree": [49, 25],
         "mlp_neural_network": [114, 49]
     },
     "Classification": {

@@ -65,14 +65,16 @@ const Main = () => {
     const [account, setAccount] = useState(null);
     const [selectedKey, setSelectedKey] = useState("1");
 
-    const [decisionTreePrediction, setDecisionTreePrediction] = useState('');
-    const [mlpPrediction, setMlpPrediction] = useState('');
+    const [decisionTreePrediction, setDecisionTreePrediction] = useState('-');
+    const [mlpPrediction, setMlpPrediction] = useState('-');
 
     const [drawTimeout, setDrawTimeout] = useState(null);
     const [hasInteracted, setHasInteracted] = useState(false);
 
     const [userHasDrawn, setUserHasDrawn] = useState(false);
     const [clearButtonPressed, setClearButtonPressed] = useState(false);
+
+    const [progressInterval, setProgressInterval] = useState(null);
 
 
     function computeSoftmax(values, scalingFactor = 1) {
@@ -269,7 +271,7 @@ const Main = () => {
     );
 
     const zerochartDataProof = () => {
-        setchartDataProof(
+        setChartDataProof(
             chartDataProof.map((item) => ({
                 ...item,
                 value: 0,
@@ -516,8 +518,8 @@ const Main = () => {
             const firstPixel = imageData[0];
             console.log("First pixel value:", firstPixel);
             const cropped = getBoundingBox(imageData);
+            console.log("cropped", cropped)
             console.log("Cropped image shape:", cropped.length, cropped[0].length);
-            console.log("Cropped image:", cropped)
             const resized = resizeImage(cropped, 12);
             console.log("Resized image shape:", resized.length, resized[0].length);
             console.log("Resized image:", resized)
@@ -657,7 +659,7 @@ const Main = () => {
         const intervalTime = 150; // time in milliseconds
         const expectedRuntimeInMilliseconds = expected_runtime * 1000;
         const increment = (intervalTime / expectedRuntimeInMilliseconds) * 100;
-        
+    
         const interval = setInterval(() => {
             setProgress((oldProgress) => {
                 var newProgress = oldProgress + increment;
@@ -666,15 +668,16 @@ const Main = () => {
                 }
                 if (newProgress >= 100 || proving_finished) {
                     clearInterval(interval);
-                    //zerochartDataProof();
                     setIsProgressRunning(false);
                     return 100;
                 }
                 return Math.round(newProgress * 10) / 10;
             });
         }, intervalTime);
+    
+        setProgressInterval(interval); // Save the interval reference
     };
-
+    
     const handleCanvasChange = () => {
         if(hasInteracted) {
             setUserHasDrawn(true);
@@ -695,7 +698,9 @@ const Main = () => {
         const timeout = setTimeout(() => {
             if (hasInteracted) {
                 console.log("Canvas drawing has paused");
+                if(!clearButtonPressed) {
                 processImageAndPredict(true, selectedKey);
+                }
               }
         }, 100); // 100ms after the last drawing event
       
@@ -944,7 +949,22 @@ const Main = () => {
                                             canvasRef.current.clearCanvas();
                                             setUserHasDrawn(false);
                                             setClearButtonPressed(true);
-                                          }}
+
+                                            setDecisionTreePrediction('-');
+                                            setMlpPrediction('-');
+                                            
+                                            zerochartDataProof();
+                                            proofText = "";
+
+                                            if (progressInterval) {
+                                                clearInterval(progressInterval); // Clear the interval
+                                                setProgressInterval(null); // Reset the interval reference
+                                            }
+                                            
+                                            setProgress(0); // Reset the progress bar to 0
+                                            setIsProgressRunning(false); // Indicate that the progress is no longer running                                    
+
+                                        }}
                                     >
                                         Clear
                                     </Button>
