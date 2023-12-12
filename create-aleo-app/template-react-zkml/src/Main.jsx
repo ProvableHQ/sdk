@@ -85,13 +85,14 @@ const Main = () => {
     }
     
     function convert_proof_to_softmax(executionResponse) {
+        console.log("in convert_proof_to_softmax, executionResponse", executionResponse);
         const executionResponse_JSON = JSON.parse(executionResponse);
         console.log("executionResponse_JSON", executionResponse_JSON);
     
         let used_model;
         let used_mode;
     
-        const program = executionResponse_JSON["program"];
+        const program = executionResponse_JSON["transitions"][0]["program"];
         
         if (program.includes("tree_mnist_1.aleo")) {
             used_mode = "2"; // classification
@@ -124,7 +125,7 @@ const Main = () => {
             output_fixed_point_scaling_factor = fixed_point_scaling_factor ** 3;
         }
     
-        const outputs_JSON = executionResponse_JSON["execution"]["transitions"][0]["outputs"];
+        const outputs_JSON = executionResponse_JSON["transitions"][0]["outputs"];
         const converted_features = outputs_JSON.map(output => {
             const outputNum = Number(String(output["value"]).replace(int_type, ""));
             return outputNum / output_fixed_point_scaling_factor;
@@ -190,11 +191,6 @@ const Main = () => {
         proving_finished = true;
 
         console.log("result", result);
-        var result_JSON = [];
-        // iterate over result, and convert entries to JSON
-        for (let i = 0; i < result.length; i++) {
-            result_JSON.push(JSON.parse(result[i]));
-        }
 
         var softmax = convert_proof_to_softmax(executionResponse);
 
