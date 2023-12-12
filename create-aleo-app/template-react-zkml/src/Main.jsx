@@ -258,10 +258,6 @@ const Main = () => {
         setHasMounted(true);
     }, []);
 
-    async function synthesizeKeys(model) {
-        await aleoWorker.synthesizeKeys(model, "main");
-    }
-
     const menuItems = ["Even/Odd", "Classification"].map(
         (label, index) => ({
             key: String(index + 1),
