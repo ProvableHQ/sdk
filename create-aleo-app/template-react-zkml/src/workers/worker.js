@@ -7,11 +7,16 @@ import {
   AleoNetworkClient,
   Program,
   NetworkRecordProvider,
-  ExecutionResponse,
   AleoKeyProviderParams,
+  OfflineQuery,
+  FunctionExecution,
+  verifyFunctionExecution
 } from "@aleohq/sdk";
 import { expose, proxy } from "comlink";
 import {sample_inputs} from "../variables.js";
+import { Execution } from "@aleohq/wasm";
+import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification, run_JS_decision_tree_even_odd, run_JS_mlp_even_odd, run_JS_mlp_classification } from '../variables.js';
+
 
 // Initialize the threadpool
 await initThreadPool();
@@ -22,23 +27,28 @@ console.log("keyProvider", keyProvider);
 keyProvider.useCache(true);
 console.log("keyProvider", keyProvider);
 
-keyProvider.fetchKeys("https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.prover.30e265c", 
-                      "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860")
-    .then(() => {
-        console.log("Keys fetched successfully");
-    })
-    .catch(error => {
-        console.error("Error fetching keys: ", error);
-    });
+//keyProvider.fetchKeys("https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.prover.30e265c", 
+//                      "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860",
+//                      {cacheKey: `${program.id()}/${aleoFunction}`})
+//    .then(() => {
+//        console.log("Keys fetched successfully");
+//    })
+//    .catch(error => {
+//        console.error("Error fetching keys: ", error);
+//    });
 console.log("keyProvider after fetchKeys", keyProvider);
 keyProvider.useCache(true);
 const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
 const account = new Account();
 programManager.setAccount(account);
+var program_global = undefined;
 
 async function synthesizeKeys(program_source, aleoFunction) {
   const program = Program.fromString(program_source);
-  const keys = await programManager.synthesizeKeys(program_source, aleoFunction, sample_inputs, new PrivateKey())
+  program_global = program;
+
+
+  //const keys = await programManager.synthesizeKeys(program_source, aleoFunction, sample_inputs, new PrivateKey())
   const cacheKey = `${program.id()}/${aleoFunction}`;
   programManager.keyProvider.cacheKeys(cacheKey, keys);
   console.log(`Synthesized keys for ${cacheKey}`);
@@ -46,14 +56,24 @@ async function synthesizeKeys(program_source, aleoFunction) {
 
 async function localProgramExecution(program_source, aleoFunction, inputs) {
   const program = Program.fromString(program_source);
-  const keySearchParams = new AleoKeyProviderParams({cacheKey: `${program.id()}/${aleoFunction}`});
+
+  const keySearchParams = new AleoKeyProviderParams({proverUri: "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.prover.30e265c", 
+  verifierUri: "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860",
+  cacheKey: `${program.id()}/${aleoFunction}`,})
+
+  //const keySearchParams = new AleoKeyProviderParams({cacheKey: `${program.id()}/${aleoFunction}`});
+  
   let cacheFunctionKeys = false;
   if (!programManager.keyProvider.containsKeys(keySearchParams.cacheKey)) {
     console.log(`No cached keys for ${keySearchParams.cacheKey}`);
     cacheFunctionKeys = true;
   }
 
-  const executionResponse = await programManager.executeOffline(
+    const latestStateRoot = "sr1p93gpsezrjzdhcd2wujznx5s07k8qa39t6vfcej35zew8vn2jyrs46te8q";
+    const offlineQuery = new OfflineQuery(latestStateRoot);
+
+
+  const executionResponse = await programManager.run(
     program_source,
     aleoFunction,
     inputs,
@@ -61,9 +81,9 @@ async function localProgramExecution(program_source, aleoFunction, inputs) {
     undefined,
     keySearchParams,
     undefined,
-      undefined,
-      undefined,
-      cacheFunctionKeys
+    undefined,
+    undefined,
+    offlineQuery // or offlineQuery
   );
   console.log("executionResponse", executionResponse);
 
@@ -78,7 +98,7 @@ async function localProgramExecution(program_source, aleoFunction, inputs) {
 
   console.log("Getting outputs");
   const outputs = executionResponse.getOutputs(); // proof: executionResponse.
-  const execution = executionResponse.toString()
+  const execution = executionResponse.getExecution().toString()
   return [outputs, execution];
 }
 
@@ -88,8 +108,17 @@ async function getPrivateKey() {
 }
 
 async function verifyExecution(execution) {
-  const executionResponse = ExecutionResponse.fromString(execution);
-  return programManager.verifyExecution(executionResponse);
+  console.log("in verifyExecution")
+  const ex = FunctionExecution.fromString(execution);
+  const verifyingKey = await keyProvider.getVerifyingKey("https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860");
+  
+  const program = Program.fromString(decision_tree_program_even_odd);
+  
+  const res = verifyFunctionExecution(ex, verifyingKey, program, "main");
+  console.log("res in verifyExecution", res);
+  return res;
+  //const executionResponse = Execution.fromString(execution);
+  //return programManager.verifyExecution(executionResponse);
 }
 
 async function deployProgram(program) {

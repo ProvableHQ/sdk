@@ -173,8 +173,6 @@ const Main = () => {
 
         console.log("starting to measure proving time, before execution")
 
-        //const latestStateRoot = "sr1p93gpsezrjzdhcd2wujznx5s07k8qa39t6vfcej35zew8vn2jyrs46te8q";
-        //const offlineQuery = new OfflineQuery(latestStateRoot);
 
         var [result, executionResponse] = await aleoWorker.localProgramExecution(
             model,
