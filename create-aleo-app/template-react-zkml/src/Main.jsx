@@ -24,7 +24,7 @@ import aleoLogo from "./assets/aleo.svg";
 import { AleoWorker } from "./workers/AleoWorker.js";
 import './Main.css';
 
-import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification, run_JS_decision_tree_even_odd, run_JS_mlp_even_odd, run_JS_mlp_classification } from './variables.js';
+import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification, run_JS_decision_tree_even_odd, run_JS_mlp_even_odd, run_JS_mlp_classification, mlp_program_CDN_prover, mlp_program_CDN_verifier, decision_tree_program_CDN_prover, decision_tree_program_CDN_verifier, mlp_program_even_odd_CDN_prover, mlp_program_even_odd_CDN_verifier, decision_tree_program_even_odd_CDN_prover, decision_tree_program_even_odd_CDN_verifier } from './variables.js';
 
 const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
@@ -163,6 +163,48 @@ const Main = () => {
         return model;
     }
 
+    function getProverAndVerifierCDNlinks(new_selected_key) {
+        let proving_key_link, verifying_key_link;
+        if(model_type == "decision_tree" && new_selected_key == "2") {
+            proving_key_link = decision_tree_program_CDN_prover;
+            verifying_key_link = decision_tree_program_CDN_verifier;
+        }
+        else if(model_type == "decision_tree" && new_selected_key == "1") {
+            proving_key_link = decision_tree_program_even_odd_CDN_prover;
+            verifying_key_link = decision_tree_program_even_odd_CDN_verifier;
+        }
+        else if(model_type == "mlp_neural_network" && new_selected_key == "2") {
+            proving_key_link = mlp_program_CDN_prover;
+            verifying_key_link = mlp_program_CDN_verifier;
+        }
+        else if(model_type == "mlp_neural_network" && new_selected_key == "1") {
+            proving_key_link = mlp_program_even_odd_CDN_prover;
+            verifying_key_link = mlp_program_even_odd_CDN_verifier;
+        }
+        return [proving_key_link, verifying_key_link];
+    }
+
+    function getProverAndVerifierCDNlinksBasedOnProgramName(programName) {
+        let proving_key_link, verifying_key_link;
+        if(programName == "tree_mnist_2.aleo") {
+            proving_key_link = decision_tree_program_even_odd_CDN_prover;
+            verifying_key_link = decision_tree_program_even_odd_CDN_verifier;
+        }
+        else if(programName == "tree_mnist_1.aleo") {
+            proving_key_link = decision_tree_program_CDN_prover;
+            verifying_key_link = decision_tree_program_CDN_verifier;
+        }
+        else if(programName == "sklearn_mlp_mnist_2.aleo") {
+            proving_key_link = mlp_program_even_odd_CDN_prover;
+            verifying_key_link = mlp_program_even_odd_CDN_verifier;
+        }
+        else if(programName == "sklearn_mlp_mnist_1.aleo") {
+            proving_key_link = mlp_program_CDN_prover;
+            verifying_key_link = mlp_program_CDN_verifier;
+        }
+        return [proving_key_link, verifying_key_link];
+    }
+
     function getProgramBasedOnProgramName(programName) {
         let model;
         if(programName == "tree_mnist_2.aleo") {
@@ -194,12 +236,16 @@ const Main = () => {
 
         console.log("starting to measure proving time, before execution")
 
+        let proving_key_link, verifying_key_link;
+        [proving_key_link, verifying_key_link] = getProverAndVerifierCDNlinks(new_selected_key);
+
 
         var [result, executionResponse] = await aleoWorker.localProgramExecution(
             model,
             "main",
             input_array,
-            true
+            proving_key_link,
+            verifying_key_link
         );
 
         proofText = executionResponse;
@@ -767,7 +813,11 @@ const Main = () => {
             var content_JSON = JSON.parse(content);
             console.log("content_JSON", content_JSON);
             var program = getProgramBasedOnProgramName(content_JSON["transitions"][0]["program"]);
-            var verification_result = await aleoWorker.verifyExecution(content, program);
+
+            let proving_key_link, verifying_key_link;
+            [proving_key_link, verifying_key_link] = getProverAndVerifierCDNlinksBasedOnProgramName(content_JSON["transitions"][0]["program"]);    
+
+            var verification_result = await aleoWorker.verifyExecution(content, program, verifying_key_link);
             console.log("verification_result", verification_result)
             if(verification_result) {
                 var content_JSON = JSON.parse(content);

@@ -33,11 +33,14 @@ const account = new Account();
 programManager.setAccount(account);
 var program_global = undefined;
 
-async function localProgramExecution(program_source, aleoFunction, inputs) {
+async function localProgramExecution(program_source, aleoFunction, inputs, proving_key_link, verifying_key_link) {
   const program = Program.fromString(program_source);
 
-  const keySearchParams = new AleoKeyProviderParams({proverUri: "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.prover.30e265c", 
-  verifierUri: "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860",
+  console.log("proving_key_link", proving_key_link);
+  console.log("verifying_key_link", verifying_key_link);
+
+  const keySearchParams = new AleoKeyProviderParams({proverUri: proving_key_link, 
+  verifierUri: verifying_key_link,
   cacheKey: `${program.id()}/${aleoFunction}`,})
   
   let cacheFunctionKeys = false;
@@ -80,10 +83,10 @@ async function localProgramExecution(program_source, aleoFunction, inputs) {
   return [outputs, execution];
 }
 
-async function verifyExecution(execution, program_string) {
+async function verifyExecution(execution, program_string, verifying_key_link) {
   console.log("in verifyExecution")
   const ex = FunctionExecution.fromString(execution);
-  const verifyingKey = await keyProvider.getVerifyingKey("https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860");
+  const verifyingKey = await keyProvider.getVerifyingKey(verifying_key_link);
   
   const program = Program.fromString(program_string);
   

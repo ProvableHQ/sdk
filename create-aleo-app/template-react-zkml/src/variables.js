@@ -3766,4 +3766,18 @@ function run_JS_mlp_even_odd(struct0_0, struct0_1, struct0_2, struct0_3, struct0
     return [output_0, output_1];
 }
 
-export { mlp_program, decision_tree_program, decision_tree_program_even_odd, sample_inputs, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification, run_JS_decision_tree_even_odd, run_JS_mlp_classification, run_JS_mlp_even_odd };
+const mlp_program_CDN_prover = "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/sklearn_mlp_mnist_1.prover.f465236";
+const mlp_program_CDN_verifier = "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/sklearn_mlp_mnist_1.verifier.8b22edc";
+
+const decision_tree_program_CDN_prover = "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_1.prover.98fefbb";
+const decision_tree_program_CDN_verifier = "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_1.verifier.7d5ed81";
+
+const mlp_program_even_odd_CDN_prover = "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/sklearn_mlp_mnist_2.prover.228c06e";
+const mlp_program_even_odd_CDN_verifier = "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/sklearn_mlp_mnist_2.verifier.e15dac4";
+
+const decision_tree_program_even_odd_CDN_prover = "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.prover.30e265c";
+const decision_tree_program_even_odd_CDN_verifier = "https://pub-65a47b199b944d48a057ca6603a415a2.r2.dev/tree_mnist_2.verifier.17db860";
+
+
+export { mlp_program, decision_tree_program, decision_tree_program_even_odd, sample_inputs, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification, run_JS_decision_tree_even_odd, run_JS_mlp_classification, run_JS_mlp_even_odd,
+mlp_program_CDN_prover, mlp_program_CDN_verifier, decision_tree_program_CDN_prover, decision_tree_program_CDN_verifier, mlp_program_even_odd_CDN_prover, mlp_program_even_odd_CDN_verifier, decision_tree_program_even_odd_CDN_prover, decision_tree_program_even_odd_CDN_verifier };
