@@ -163,6 +163,23 @@ const Main = () => {
         return model;
     }
 
+    function getProgramBasedOnProgramName(programName) {
+        let model;
+        if(programName == "tree_mnist_2.aleo") {
+            model = decision_tree_program_even_odd;
+        }
+        else if(programName == "tree_mnist_1.aleo") {
+            model = decision_tree_program;
+        }
+        else if(programName == "sklearn_mlp_mnist_2.aleo") {
+            model = mlp_program_even_odd;
+        }
+        else if(programName == "sklearn_mlp_mnist_1.aleo") {
+            model = mlp_program;
+        }
+        return model;
+    }
+
       async function execute(fixed_point_features, new_selected_key) {
 
         // helpful tool: https://codepen.io/jsnelders/pen/qBByqQy
@@ -747,7 +764,9 @@ const Main = () => {
         try {
             const content = event.target.value;
             console.log("in handleVerification, content:", content);
-            var program = getSelectedModelProgram(selectedKey);
+            var content_JSON = JSON.parse(content);
+            console.log("content_JSON", content_JSON);
+            var program = getProgramBasedOnProgramName(content_JSON["transitions"][0]["program"]);
             var verification_result = await aleoWorker.verifyExecution(content, program);
             console.log("verification_result", verification_result)
             if(verification_result) {
