@@ -1,8 +1,9 @@
 {
   "include": ["src", "__tests__", "src/custom.d.ts"],
   "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
     "outDir": "dist",
-    "target": "ES2015",
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
