@@ -1,6 +1,7 @@
-import { Remote, wrap } from "comlink";
+//@ts-nocheck
+import { wrap } from "comlink";
 
-let singletonWorker: Remote<Worker> | null = null;
+let singletonWorker = null;
 
 const AleoWorker = () => {
     if (!singletonWorker) {
@@ -8,7 +9,7 @@ const AleoWorker = () => {
             type: "module",
         });
 
-        worker.onerror = function (event) {
+        worker.onerror = function(event) {
             console.error("Error in worker: " + event?.message);
         };
 
