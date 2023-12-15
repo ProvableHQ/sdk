@@ -66,17 +66,6 @@ async function localProgramExecution(program_source, aleoFunction, inputs, provi
   );
   console.log("executionResponse", executionResponse);
 
-  if (cacheFunctionKeys) {
-    console.log("Caching keys");
-    console.log("hi0");
-    const keys = executionResponse.getKeys(program.id(), aleoFunction);
-    console.log("hi1");
-    const verifyingKey = keys.verifyingKey();
-
-    programManager.keyProvider.cacheKeys(keySearchParams.cacheKey, [keys.provingKey(), verifyingKey]);
-    console.log(`Cached keys for ${keySearchParams.cacheKey}`);
-  }
-
   console.log("Getting outputs");
   const outputs = executionResponse.getOutputs();
   const execution = executionResponse.getExecution().toString()
@@ -84,7 +73,7 @@ async function localProgramExecution(program_source, aleoFunction, inputs, provi
 }
 
 async function verifyExecution(execution, program_string, verifying_key_link) {
-  console.log("in verifyExecution")
+  console.log("in verifyExecution, verifying_key_link", verifying_key_link);
   const ex = FunctionExecution.fromString(execution);
   const verifyingKey = await keyProvider.getVerifyingKey(verifying_key_link);
   
