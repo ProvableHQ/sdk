@@ -76,20 +76,10 @@ class ProgramManager {
      * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
      */
     constructor(host?: string | undefined, keyProvider?: FunctionKeyProvider | undefined, recordProvider?: RecordProvider | undefined) {
-        if (!host) {
-            this.host = "https://api.explorer.aleo.org/v1";
-            this.networkClient = new AleoNetworkClient(this.host);
-        } else {
-            this.host = host;
-            this.networkClient = new AleoNetworkClient(host);
-        }
-
-        if (!keyProvider) {
-            this.keyProvider = new AleoKeyProvider();
-        } else {
-            this.keyProvider = keyProvider;
-        }
-
+        this.host = host ? host : 'https://api.explorer.aleo.org/v1';
+        this.networkClient = new AleoNetworkClient(this.host);
+        
+        this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
         this.recordProvider = recordProvider;
     }
 
