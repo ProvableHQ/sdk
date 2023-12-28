@@ -16,17 +16,17 @@ function hello:
     add r0 r1 into r2;
     output r2 as u32.private;`
 
-async function localProgramExecution() {
-  const programManager = new ProgramManager(undefined, undefined, undefined);
+async function localProgramExecution(program: string, aleoFunction: string, inputs: string[]) {
+  const programManager = new ProgramManager();
 
   // Create a temporary account for the execution of the program
   const account = new Account();
   programManager.setAccount(account);
 
   const executionResponse = await programManager.run(
-      hello_hello_program,
-      "hello",
-      ["5u32", "5u32"],
+      program,
+      aleoFunction,
+      inputs,
       false,
   );
   return executionResponse.getOutputs();
@@ -38,7 +38,7 @@ function getPrivateKey() {
 
 onmessage = async function (e) {
   if (e.data === "execute") {
-    const result = await localProgramExecution();
+    const result = await localProgramExecution(hello_hello_program, "hello", ["5u32", "5u32"]);
     postMessage({type: "execute", result: result});
   } else if (e.data === "key") {
     const result = getPrivateKey();
