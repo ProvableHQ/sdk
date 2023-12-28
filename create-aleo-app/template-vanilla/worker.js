@@ -24,9 +24,9 @@ async function localProgramExecution(program, aleoFunction, inputs) {
     programManager.setAccount(account);
 
     const executionResponse = await programManager.run(
-        hello_hello_program,
-        "hello",
-        ["5u32", "5u32"],
+        program,
+        aleoFunction,
+        inputs,
         false,
     );
     return executionResponse.getOutputs();
@@ -38,7 +38,7 @@ function getPrivateKey() {
 
 onmessage = async function (e) {
     if (e.data === "execute") {
-        const result = await localProgramExecution();
+        const result = await localProgramExecution(hello_hello_program, "hello", ["5u32", "5u32"]);
         postMessage(result);
     } else if (e.data === "key") {
         const result = getPrivateKey();
