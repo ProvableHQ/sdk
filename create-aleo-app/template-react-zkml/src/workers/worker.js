@@ -14,7 +14,7 @@ import {
 } from "@aleohq/sdk";
 import { expose, proxy } from "comlink";
 import {sample_inputs} from "../variables.js";
-import { Execution } from "@aleohq/wasm";
+import { Execution, VerifyingKey } from "@aleohq/wasm";
 
 
 // Initialize the threadpool
@@ -69,14 +69,21 @@ async function localProgramExecution(program_source, aleoFunction, inputs, provi
   console.log("Getting outputs");
   const outputs = executionResponse.getOutputs();
   const execution = executionResponse.getExecution().toString()
+
+  var verifyingKeyString = executionResponse.getVerifyingKey().toString();
+  console.log("verifyingKeyString", verifyingKeyString);
+
   return [outputs, execution];
 }
 
-async function verifyExecution(execution, program_string, verifying_key_link) {
-  console.log("in verifyExecution, verifying_key_link", verifying_key_link);
+async function verifyExecution(execution, program_string, verifying_key_string) {
+  console.log("in verifyExecution");
   const ex = FunctionExecution.fromString(execution);
-  const verifyingKey = await keyProvider.getVerifyingKey(verifying_key_link);
-  
+  console.log("ex", ex);
+
+  const verifyingKey = VerifyingKey.fromString(verifying_key_string)
+  console.log("verifyingKey", verifying_key_string);
+
   const program = Program.fromString(program_string);
   
   const res = verifyFunctionExecution(ex, verifyingKey, program, "main");

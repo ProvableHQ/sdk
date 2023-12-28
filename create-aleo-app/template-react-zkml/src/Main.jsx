@@ -24,7 +24,7 @@ import aleoLogo from "./assets/aleo.svg";
 import { AleoWorker } from "./workers/AleoWorker.js";
 import './Main.css';
 
-import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification, run_JS_decision_tree_even_odd, run_JS_mlp_even_odd, run_JS_mlp_classification, mlp_program_CDN_prover, mlp_program_CDN_verifier, decision_tree_program_CDN_prover, decision_tree_program_CDN_verifier, mlp_program_even_odd_CDN_prover, mlp_program_even_odd_CDN_verifier, decision_tree_program_even_odd_CDN_prover, decision_tree_program_even_odd_CDN_verifier } from './variables.js';
+import { mlp_program, decision_tree_program, decision_tree_program_even_odd, mlp_program_even_odd, test_imageData, expected_runtimes, run_JS_decision_tree_classification, run_JS_decision_tree_even_odd, run_JS_mlp_even_odd, run_JS_mlp_classification, mlp_program_CDN_prover, mlp_program_CDN_verifier, decision_tree_program_CDN_prover, decision_tree_program_CDN_verifier, mlp_program_even_odd_CDN_prover, mlp_program_even_odd_CDN_verifier, decision_tree_program_even_odd_CDN_prover, decision_tree_program_even_odd_CDN_verifier, verifying_key_classification_mlp, verifying_key_classification_decision_tree, verifying_key_even_odd_mlp, verifying_key_even_odd_decision_tree } from './variables.js';
 
 const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
@@ -184,25 +184,25 @@ const Main = () => {
         return [proving_key_link, verifying_key_link];
     }
 
-    function getProverAndVerifierCDNlinksBasedOnProgramName(programName) {
-        let proving_key_link, verifying_key_link;
+    function getProverCDNlinkAndVerifyingKey(programName) {
+        let proving_key_link, verifying_key;
         if(programName == "tree_mnist_2.aleo") {
             proving_key_link = decision_tree_program_even_odd_CDN_prover;
-            verifying_key_link = decision_tree_program_even_odd_CDN_verifier;
+            verifying_key = verifying_key_even_odd_decision_tree;
         }
         else if(programName == "tree_mnist_1.aleo") {
             proving_key_link = decision_tree_program_CDN_prover;
-            verifying_key_link = decision_tree_program_CDN_verifier;
+            verifying_key = verifying_key_classification_decision_tree;
         }
         else if(programName == "sklearn_mlp_mnist_2.aleo") {
             proving_key_link = mlp_program_even_odd_CDN_prover;
-            verifying_key_link = mlp_program_even_odd_CDN_verifier;
+            verifying_key = verifying_key_even_odd_mlp;
         }
         else if(programName == "sklearn_mlp_mnist_1.aleo") {
             proving_key_link = mlp_program_CDN_prover;
-            verifying_key_link = mlp_program_CDN_verifier;
+            verifying_key = verifying_key_classification_mlp;
         }
-        return [proving_key_link, verifying_key_link];
+        return [proving_key_link, verifying_key];
     }
 
     function getProgramBasedOnProgramName(programName) {
@@ -247,6 +247,8 @@ const Main = () => {
             proving_key_link,
             verifying_key_link
         );
+
+        console.log("after localProgramExecution")
 
         proofText = executionResponse;
         console.log("executionResponse", executionResponse)
@@ -814,10 +816,10 @@ const Main = () => {
             console.log("content_JSON", content_JSON);
             var program = getProgramBasedOnProgramName(content_JSON["transitions"][0]["program"]);
 
-            let proving_key_link, verifying_key_link;
-            [proving_key_link, verifying_key_link] = getProverAndVerifierCDNlinksBasedOnProgramName(content_JSON["transitions"][0]["program"]);    
+            let proving_key_link, verifying_key;
+            [proving_key_link, verifying_key] = getProverCDNlinkAndVerifyingKey(content_JSON["transitions"][0]["program"]);    
 
-            var verification_result = await aleoWorker.verifyExecution(content, program, verifying_key_link);
+            var verification_result = await aleoWorker.verifyExecution(content, program, verifying_key);
             console.log("verification_result", verification_result)
             if(verification_result) {
                 var content_JSON = JSON.parse(content);
