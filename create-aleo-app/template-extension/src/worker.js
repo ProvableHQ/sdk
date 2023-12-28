@@ -19,9 +19,9 @@ async function localProgramExecution(program, aleoFunction, inputs) {
     programManager.setAccount(account);
 
     const executionResponse = await programManager.run(
-        hello_hello_program,
-        "hello",
-        ["5u32", "5u32"],
+        program,
+        aleoFunction,
+        inputs,
         false,
     );
     return executionResponse.getOutputs();
@@ -29,6 +29,6 @@ async function localProgramExecution(program, aleoFunction, inputs) {
 
 const start = Date.now();
 console.log("Starting execute!");
-const result = await localProgramExecution();
+const result = await localProgramExecution(hello_hello_program, "hello", ["5u32", "5u32"]);
 console.log(result);
 console.log("Execute finished!", Date.now() - start);
