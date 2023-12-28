@@ -17,6 +17,7 @@ import {
     Typography,
     Input,
     Select,
+    Radio,
 } from "antd";
 import { ReactSketchCanvas } from "react-sketch-canvas";
 import { Column } from "@ant-design/charts";
@@ -30,7 +31,6 @@ const { Text, Title, Paragraph } = Typography;
 const { Header, Content, Footer, Sider } = Layout;
 const { Option } = Select;
 
-var model_type = "decision_tree";
 var proving_finished = false;
 let proving_start_time, proving_end_time;
 
@@ -64,6 +64,7 @@ const Main = () => {
     const [showVerificationChart, setShowVerificationChart] = useState(true);
     const [account, setAccount] = useState(null);
     const [selectedKey, setSelectedKey] = useState("1");
+    const [modelType, setModelType] = useState("decision_tree");
 
     const [decisionTreePrediction, setDecisionTreePrediction] = useState('-');
     const [mlpPrediction, setMlpPrediction] = useState('-');
@@ -148,16 +149,16 @@ const Main = () => {
 
     function getSelectedModelProgram(new_selected_key) {
         let model;
-        if(model_type == "decision_tree" && new_selected_key == "2") {
+        if(modelType == "decision_tree" && new_selected_key == "2") {
             model = decision_tree_program;
         }
-        else if(model_type == "decision_tree" && new_selected_key == "1") {
+        else if(modelType == "decision_tree" && new_selected_key == "1") {
             model = decision_tree_program_even_odd;
         }
-        else if(model_type == "mlp_neural_network" && new_selected_key == "2") {
+        else if(modelType == "mlp_neural_network" && new_selected_key == "2") {
             model = mlp_program;
         }
-        else if(model_type == "mlp_neural_network" && new_selected_key == "1") {
+        else if(modelType == "mlp_neural_network" && new_selected_key == "1") {
             model = mlp_program_even_odd;
         }
         return model;
@@ -165,19 +166,19 @@ const Main = () => {
 
     function getProverAndVerifierCDNlinks(new_selected_key) {
         let proving_key_link, verifying_key_link;
-        if(model_type == "decision_tree" && new_selected_key == "2") {
+        if(modelType == "decision_tree" && new_selected_key == "2") {
             proving_key_link = decision_tree_program_CDN_prover;
             verifying_key_link = decision_tree_program_CDN_verifier;
         }
-        else if(model_type == "decision_tree" && new_selected_key == "1") {
+        else if(modelType == "decision_tree" && new_selected_key == "1") {
             proving_key_link = decision_tree_program_even_odd_CDN_prover;
             verifying_key_link = decision_tree_program_even_odd_CDN_verifier;
         }
-        else if(model_type == "mlp_neural_network" && new_selected_key == "2") {
+        else if(modelType == "mlp_neural_network" && new_selected_key == "2") {
             proving_key_link = mlp_program_CDN_prover;
             verifying_key_link = mlp_program_CDN_verifier;
         }
-        else if(model_type == "mlp_neural_network" && new_selected_key == "1") {
+        else if(modelType == "mlp_neural_network" && new_selected_key == "1") {
             proving_key_link = mlp_program_even_odd_CDN_prover;
             verifying_key_link = mlp_program_even_odd_CDN_verifier;
         }
@@ -281,9 +282,9 @@ const Main = () => {
         }
 
         var selected_setting = menuItems[selectedKey - 1].label;
-        var runs = run_counter[selected_setting][model_type];
-        run_counter[selected_setting][model_type] = runs + 1;
-        console.log("incremented run_counter[selected_setting][model_type]", run_counter[selected_setting][model_type])
+        var runs = run_counter[selected_setting][modelType];
+        run_counter[selected_setting][modelType] = runs + 1;
+        console.log("incremented run_counter[selected_setting][modelType]", run_counter[selected_setting][modelType])
 
       }
 
@@ -325,6 +326,12 @@ const Main = () => {
     useEffect(() => {
         setHasMounted(true);
     }, []);
+    useEffect(() => {
+        if (userHasDrawn) {
+            processImageAndPredict(true, selectedKey);
+        }
+    }, [selectedKey, userHasDrawn]);
+    
 
     const menuItems = ["Even/Odd", "Classification"].map(
         (label, index) => ({
@@ -778,28 +785,28 @@ const Main = () => {
         try {
             var selected_setting = menuItems[selectedKey - 1].label;
             proofText = "";
-            console.log("model_type", model_type)
+            console.log("modelType", modelType)
 
             // ensure selected_setting exists in run_counter
             if(!(selected_setting in run_counter)) {
                 run_counter[selected_setting] = {};
             }
-            // ensure model_type exists in run_counter[selected_setting]
-            if(!(model_type in run_counter[selected_setting])) {
-                run_counter[selected_setting][model_type] = 0;
+            // ensure modelType exists in run_counter[selected_setting]
+            if(!(modelType in run_counter[selected_setting])) {
+                run_counter[selected_setting][modelType] = 0;
             }
-            var runs = run_counter[selected_setting][model_type];
+            var runs = run_counter[selected_setting][modelType];
             console.log("runs", runs)
             proving_finished = false;
             processImageAndPredict(false, selectedKey);
             let expected_runtime;
             console.log("selected_setting", selected_setting)
-            console.log("model_type", model_type)
+            console.log("modelType", modelType)
             if(runs == 0) {
-                expected_runtime = expected_runtimes[selected_setting][model_type][0];
+                expected_runtime = expected_runtimes[selected_setting][modelType][0];
             }
             else if(runs > 0) {
-                expected_runtime = expected_runtimes[selected_setting][model_type][1];
+                expected_runtime = expected_runtimes[selected_setting][modelType][1];
             }
             console.log("expected_runtime", expected_runtime)
             startProgressAndRandomizeData(expected_runtime);
@@ -881,30 +888,7 @@ const Main = () => {
         }
     };
 
-    return (
-        <Layout style={{ minHeight: "100vh", maxWidth: "100vw" }}>
-            <Sider theme="light" breakpoint="lg" collapsedWidth="0">
-                <div
-                    style={{
-                        height: "32px",
-                        margin: "16px",
-                        fontWeight: "bold",
-                    }}
-                >
-                    <img
-                        src={aleoLogo}
-                        alt="Aleo Logo"
-                        style={{ height: "100%" }}
-                    />
-                </div>
-                <Menu
-                    theme="light"
-                    mode="inline"
-                    defaultSelectedKeys={["1"]}
-                    items={menuItems}
-                    onSelect={handleMenuSelect}
-                />
-            </Sider>
+    return (           
             <Layout>
                 <Header
                     style={{ backgroundColor: "#fff", textAlign: "center" }}
@@ -985,6 +969,22 @@ const Main = () => {
                         </Row>
                         */}
 
+<Row justify="center" style={{ marginTop: "20px" }}>
+    <Col>
+    <Radio.Group 
+    defaultValue="2"
+    onChange={(e) => setSelectedKey(e.target.value)}
+    value={selectedKey}
+    style={{ display: 'flex', flexDirection: 'column' }}
+>
+    <Radio value="1">Even/Odd classification</Radio>
+    <Radio value="2">Number (0-9) classification</Radio>
+</Radio.Group>
+
+    </Col>
+</Row>
+
+
                         <Row justify="center" style={{ marginTop: "20px" }}>
                             <Col span={12}>
                                 <Title level={4}>Predictions</Title>
@@ -996,14 +996,24 @@ const Main = () => {
                         </Card>
 
                         <Card style={{ margin: "20px", padding: "20px", border: "1px solid #ECECEC" }}>
-                        <Row justify="center" style={{ marginTop: "20px" }}>
 
-                        <Select defaultValue="decision_tree" style={{ width: 330, marginTop: 16 }} onChange={(value) => model_type = value}>
-        <Option value="decision_tree">Decision tree (faster)</Option>
-        <Option value="mlp_neural_network">MLP neural network (slower, more accurate)</Option>
-    </Select>
-    
-                        </Row>
+
+                        <Row justify="center" style={{ marginTop: "20px" }}>
+    <Col>
+    <Radio.Group 
+    defaultValue="decision_tree"
+    onChange={(e) => setModelType(e.target.value)}
+    value={modelType}
+>
+    <Space direction="vertical">
+        <Radio value="decision_tree">Decision tree (faster)</Radio>
+        <Radio value="mlp_neural_network">MLP neural network (slower, more accurate)</Radio>
+    </Space>
+</Radio.Group>
+
+    </Col>
+</Row>
+
 
 
                         <Row justify="center" style={{ marginTop: "20px" }}>
@@ -1149,7 +1159,6 @@ const Main = () => {
                     .
                 </Footer>
             </Layout>
-        </Layout>
     );
 };
 
