@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {Button, Card, Col, Dropdown, Form, Input, Row, Result, Space, Spin, Switch} from "antd";
-import { DownOutlined } from "@ant-design/icons";
 
 export const Transfer = () => {
     const [transferFeeRecord, setTransferFeeRecord] = useState(null);
