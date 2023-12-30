@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useMemo, useState} from "react";
 import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -21,8 +21,9 @@ export const GetLatestBlockHeight = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
-    const latestHeightString = () =>
-        latestHeight !== null ? latestHeight.toString() : "";
+    const latestHeightString = useMemo(() => {
+        return latestHeight !== null ? latestHeight.toString() : ""
+    }, [latestHeight]);
 
     return (
         <Card
@@ -33,7 +34,7 @@ export const GetLatestBlockHeight = () => {
                 <Col>
                     <Button
                         type="primary"
-                        
+
                         size="middle"
                         onClick={tryRequest}
                     >
@@ -49,10 +50,10 @@ export const GetLatestBlockHeight = () => {
                             size="large"
                             rows={1}
                             placeholder="Block"
-                            value={latestHeightString()}
+                            value={latestHeightString}
                             addonAfter={
                                 <CopyButton
-                                    data={latestHeightString()}
+                                    data={latestHeightString}
                                 />
                             }
                             disabled

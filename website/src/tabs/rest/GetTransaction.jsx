@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useMemo, useState} from "react";
 import { Card, Divider, Form, Input, Row, Col } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -41,8 +41,9 @@ export const GetTransaction = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
-    const transactionString = () =>
-        transaction !== null ? transaction.toString() : "";
+    const transactionString = useMemo(() => {
+        return transaction !== null ? transaction.toString() : ""
+    }, [transaction]);
 
     return (
         <Card
@@ -74,13 +75,13 @@ export const GetTransaction = () => {
                                     size="large"
                                     rows={15}
                                     placeholder="Block"
-                                    value={transactionString()}
+                                    value={transactionString}
                                     disabled
                                 />
                             </Form.Item>
                         </Col>
                         <Col span={1} align="middle">
-                            <CopyButton data={transactionString()} />
+                            <CopyButton data={transactionString} />
                         </Col>
                     </Row>
                 </Form>

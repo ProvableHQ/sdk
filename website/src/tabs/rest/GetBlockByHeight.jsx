@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useMemo, useState} from "react";
 import { Card, Divider, Form, Input, Row, Col } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -43,8 +43,9 @@ export const GetBlockByHeight = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
-    const blockString = () =>
-        blockByHeight !== null ? blockByHeight.toString() : "";
+    const blockString = useMemo(() => {
+        return blockByHeight !== null ? blockByHeight.toString() : ""
+    }, [blockByHeight]);
 
     return (
         <Card
@@ -76,13 +77,13 @@ export const GetBlockByHeight = () => {
                                     size="large"
                                     rows={15}
                                     placeholder="Block"
-                                    value={blockString()}
+                                    value={blockByHeight}
                                     disabled
                                 />
                             </Form.Item>
                         </Col>
                         <Col span={1} align="middle">
-                            <CopyButton data={blockString()} />
+                            <CopyButton data={blockString} />
                         </Col>
                     </Row>
                 </Form>

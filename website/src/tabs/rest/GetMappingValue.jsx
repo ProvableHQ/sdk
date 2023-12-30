@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useMemo, useState} from "react";
 import { Button, Card, Col, Divider, Form, Input, Result, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -43,8 +43,9 @@ export const GetMappingValue = () => {
         setMappingKey(key);
     };
 
-    const mappingErrorString = () =>
-        mappingError !== null ? mappingError : "";
+    const mappingErrorString = useMemo(() => {
+        return mappingError !== null ? mappingError : ""
+    }, [mappingError]);
 
     // Attempts to request the program bytecode with the given program id.
     const tryRequest = () => {
@@ -92,7 +93,7 @@ export const GetMappingValue = () => {
             extra={
                 <Button
                     type="primary"
-                    
+
                     size="middle"
                     onClick={() => {
                         setDefaultRequest(
@@ -142,7 +143,7 @@ export const GetMappingValue = () => {
                 <Col>
                     <Button
                         type="primary"
-                        
+
                         size="middle"
                         onClick={tryRequest}
                     >
@@ -179,7 +180,7 @@ export const GetMappingValue = () => {
                 <Result
                     status="error"
                     title="Mapping Error"
-                    subTitle={"Error: " + mappingErrorString()}
+                    subTitle={"Error: " + mappingErrorString}
                 />
             )}
         </Card>
