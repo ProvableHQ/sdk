@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useMemo, useState} from "react";
 import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -21,8 +21,9 @@ export const GetLatestBlock = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
-    const latestBlockString = () =>
-        latestBlock !== null ? latestBlock.toString() : "";
+    const latestBlockString = useMemo(() => {
+        return latestBlock !== null ? latestBlock.toString() : ""
+    }, [latestBlock]);
 
     return (
         <Card
@@ -33,7 +34,7 @@ export const GetLatestBlock = () => {
                 <Col>
                     <Button
                         type="primary"
-                        
+
                         size="middle"
                         onClick={tryRequest}
                     >
@@ -51,13 +52,13 @@ export const GetLatestBlock = () => {
                                     size="large"
                                     rows={15}
                                     placeholder="Block"
-                                    value={latestBlockString()}
+                                    value={latestBlockString}
                                     disabled
                                 />
                             </Form.Item>
                         </Col>
                         <Col span={1} align="middle">
-                            <CopyButton data={latestBlockString()} />
+                            <CopyButton data={latestBlockString} />
                         </Col>
                     </Row>
                 </Form>

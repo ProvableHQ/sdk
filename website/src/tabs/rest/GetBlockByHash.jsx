@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useMemo, useState} from "react";
 import { Card, Divider, Form, Input, Row, Col } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -41,8 +41,9 @@ export const GetBlockByHash = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
-    const blockString = () =>
-        blockByHash !== null ? blockByHash.toString() : "";
+    const blockString = useMemo(() => {
+        return blockByHash !== null ? blockByHash.toString() : ""
+    }, [blockByHash]);
 
     return (
         <Card
@@ -74,13 +75,13 @@ export const GetBlockByHash = () => {
                                     size="large"
                                     rows={15}
                                     placeholder="Block"
-                                    value={blockString()}
+                                    value={blockString}
                                     disabled
                                 />
                             </Form.Item>
                         </Col>
                         <Col span={1} align="middle">
-                            <CopyButton data={blockString()} />
+                            <CopyButton data={blockString} />
                         </Col>
                     </Row>
                 </Form>

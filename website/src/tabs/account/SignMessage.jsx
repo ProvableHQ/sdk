@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useMemo, useState} from "react";
 import { Card, Divider, Form, Input } from "antd";
 import { CopyButton } from "../../components/CopyButton";
 import { useAleoWASM } from "../../aleo-wasm-hook";
@@ -37,9 +37,17 @@ export const SignMessage = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
+    const signatureString = useMemo(() => {
+        return signingKey !== null ? signingKey : ""
+    }, [signingKey]);
+
+    const messageString = useMemo(() => {
+        return message !== null ? message : ""
+    }, [signingKey]);
+
+
     if (aleo !== null) {
-        const signatureString = () => (signingKey !== null ? signingKey : "");
-        const messageString = () => (message !== null ? message : "");
+
 
         return (
             <Card
@@ -61,7 +69,7 @@ export const SignMessage = () => {
                             name="Message"
                             size="large"
                             placeholder="Message"
-                            value={messageString()}
+                            value={messageString}
                             allowClear={true}
                             onChange={onMessageChange}
                         />
@@ -74,9 +82,9 @@ export const SignMessage = () => {
                             <Input
                                 size="large"
                                 placeholder="Signature"
-                                value={signatureString()}
+                                value={signatureString}
                                 addonAfter={
-                                    <CopyButton data={signatureString()} />
+                                    <CopyButton data={signatureString} />
                                 }
                                 disabled
                             />
