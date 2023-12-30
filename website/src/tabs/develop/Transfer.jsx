@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {Button, Card, Col, Dropdown, Form, Input, Row, Result, Space, Spin, Switch} from "antd";
 import { DownOutlined } from "@ant-design/icons";
-import axios from "axios";
 
 export const Transfer = () => {
     const [transferFeeRecord, setTransferFeeRecord] = useState(null);
@@ -334,7 +333,7 @@ export const Transfer = () => {
                     <Col justify="center">
                         <Button
                             type="primary"
-                            
+
                             size="middle"
                             onClick={transfer}
                         >

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {Button, Card, Col, Form, Input, Row, Result, Spin, Switch} from "antd";
-import axios from "axios";
 
 export const Join = () => {
     const [joinFeeRecord, setJoinFeeRecord] = useState(null);
@@ -251,7 +250,7 @@ export const Join = () => {
                     <Col justify="center">
                         <Button
                             type="primary"
-                            
+
                             size="middle"
                             onClick={join}
                         >

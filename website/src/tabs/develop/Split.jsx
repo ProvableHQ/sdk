@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button, Card, Col, Form, Input, Row, Result, Spin } from "antd";
-import axios from "axios";
 
 export const Split = () => {
     const [amountRecord, setAmountRecord] = useState(null);
@@ -189,7 +188,7 @@ export const Split = () => {
                     <Col justify="center">
                         <Button
                             type="primary"
-                            
+
                             size="middle"
                             onClick={split}
                         >
