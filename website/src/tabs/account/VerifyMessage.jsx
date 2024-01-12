@@ -53,10 +53,10 @@ export const VerifyMessage = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
     useEffect(() => {
-        if (!didMount.current) {
-            didMount.current = true;
-        } else {
+        if (didMount.current) {
             attemptVerify();
+        } else {
+            didMount.current = true;
         }
     }, [messageInput, signatureInput, inputAddress, verified]);
     if (aleo !== null) {
