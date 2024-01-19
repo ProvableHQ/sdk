@@ -101,7 +101,7 @@ dependencies = [
  "futures",
  "getrandom",
  "hex",
- "indexmap 2.0.2",
+ "indexmap",
  "js-sys",
  "once_cell",
  "rand",
@@ -765,9 +765,9 @@ checksum = "6fb8d784f27acf97159b40fc4db5ecd8aa23b9ad5ef69cdd136d3bc80665f0c0"
 
 [[package]]
 name = "h2"
-version = "0.3.21"
+version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91fc23aa11be92976ef4729127f1a74adf36d8436f7816b185d18df956790833"
+checksum = "bb2c4422095b67ee78da96fbb51a4cc413b3b25883c7717ff7ca1ab31022c9c9"
 dependencies = [
  "bytes",
  "fnv",
@@ -775,18 +775,12 @@ dependencies = [
  "futures-sink",
  "futures-util",
  "http",
- "indexmap 1.9.3",
+ "indexmap",
  "slab",
  "tokio",
  "tokio-util",
  "tracing",
 ]
-
-[[package]]
-name = "hashbrown"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
 
 [[package]]
 name = "hashbrown"
@@ -893,22 +887,12 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "1.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99"
-dependencies = [
- "autocfg",
- "hashbrown 0.12.3",
-]
-
-[[package]]
-name = "indexmap"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8adf3ddd720272c6ea8bf59463c04e0f93d0bbf7c5439b691bca2987e0270897"
 dependencies = [
  "equivalent",
- "hashbrown 0.14.1",
+ "hashbrown",
  "rayon",
  "serde",
 ]
@@ -1560,7 +1544,7 @@ version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b420ce6e3d8bd882e9b243c6eed35dbc9a6110c9769e74b584e0d68d1f20c65"
 dependencies = [
- "indexmap 2.0.2",
+ "indexmap",
  "itoa",
  "ryu",
  "serde",
@@ -1624,9 +1608,9 @@ dependencies = [
  "blake2",
  "cfg-if",
  "fxhash",
- "hashbrown 0.14.1",
+ "hashbrown",
  "hex",
- "indexmap 2.0.2",
+ "indexmap",
  "itertools",
  "num-traits",
  "parking_lot",
@@ -1700,7 +1684,7 @@ version = "0.16.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81eb5bfd6f50ec6370f64087af759dd56a56a52bceb9419098ec6eea3e36ec6f"
 dependencies = [
- "indexmap 2.0.2",
+ "indexmap",
  "itertools",
  "nom",
  "num-traits",
@@ -1908,7 +1892,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee27ab3d078f3b5b766cd2cfe20b18b2447e3bb6a16c7a862462373c5db703ce"
 dependencies = [
  "anyhow",
- "indexmap 2.0.2",
+ "indexmap",
  "itertools",
  "lazy_static",
  "once_cell",
@@ -1952,7 +1936,7 @@ checksum = "0ced83a7d55de400a9ed8f304cb62522e548610781ec28119858e94f38503623"
 dependencies = [
  "enum_index",
  "enum_index_derive",
- "indexmap 2.0.2",
+ "indexmap",
  "num-derive",
  "num-traits",
  "once_cell",
@@ -2115,7 +2099,7 @@ version = "0.16.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c0b34daa6e379ff532ec59ebe7526334ae27b5be44486c88eb986db75e6212d"
 dependencies = [
- "indexmap 2.0.2",
+ "indexmap",
  "rayon",
  "serde_json",
  "snarkvm-console",
@@ -2138,7 +2122,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "blake2",
- "indexmap 2.0.2",
+ "indexmap",
  "rayon",
  "serde_json",
  "snarkvm-algorithms",
@@ -2155,7 +2139,7 @@ version = "0.16.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388c085d059898e363ff3bbfa4541c3ce4bb803d9e019a1b153dbedc250909db"
 dependencies = [
- "indexmap 2.0.2",
+ "indexmap",
  "serde_json",
  "snarkvm-console",
 ]
@@ -2166,7 +2150,7 @@ version = "0.16.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c273f32c68ad76ca284d9e7094bd2ea0a09ee7925088be05080fa849925b436d"
 dependencies = [
- "indexmap 2.0.2",
+ "indexmap",
  "serde_json",
  "snarkvm-console",
  "snarkvm-ledger-narwhal-batch-header",
@@ -2179,7 +2163,7 @@ version = "0.16.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68f7ad72bc7f32cec469af51eb82a7cb5d23d00cfd5c1bf39d3eca0f0197e5e8"
 dependencies = [
- "indexmap 2.0.2",
+ "indexmap",
  "serde_json",
  "snarkvm-console",
  "snarkvm-ledger-narwhal-transmission-id",
@@ -2191,7 +2175,7 @@ version = "0.16.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ece4480b32a23505cd1ed5d133c0dcf1473e7bbafce1ebf93cf0acab324a1f75"
 dependencies = [
- "indexmap 2.0.2",
+ "indexmap",
  "rayon",
  "serde_json",
  "snarkvm-console",
@@ -2232,7 +2216,7 @@ checksum = "01541d583578d0ac73d9e30d4299796e8c770dd0686853ed48b7044ae71392bf"
 dependencies = [
  "anyhow",
  "bincode",
- "indexmap 2.0.2",
+ "indexmap",
  "parking_lot",
  "rayon",
  "serde",
@@ -2260,7 +2244,7 @@ dependencies = [
  "curl",
  "encoding",
  "hex",
- "indexmap 2.0.2",
+ "indexmap",
  "itertools",
  "js-sys",
  "lazy_static",
@@ -2282,7 +2266,7 @@ checksum = "048cea58b5917b36f7cb1c2c5bce6447248eeeee148105af8c8b812df8e3153c"
 dependencies = [
  "aleo-std",
  "anyhow",
- "indexmap 2.0.2",
+ "indexmap",
  "parking_lot",
  "rand",
  "rayon",
@@ -2308,7 +2292,7 @@ checksum = "8a916d416fade91351bd296b9e6015c2eb4481302d045ba29b6ef927aa2278d6"
 dependencies = [
  "aleo-std",
  "colored",
- "indexmap 2.0.2",
+ "indexmap",
  "once_cell",
  "parking_lot",
  "rand",
@@ -2330,7 +2314,7 @@ version = "0.16.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b32f15bb9d2526bbae866d458bd527bf0394e450d9ccf0ad3d4ba55c3bc2a78"
 dependencies = [
- "indexmap 2.0.2",
+ "indexmap",
  "paste",
  "rand",
  "rand_chacha",
