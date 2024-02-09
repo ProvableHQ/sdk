@@ -2,7 +2,7 @@
 <p align="center">
     <a href="https://developer.aleo.org"> <img alt="Website" src="https://img.shields.io/badge/Developer_Docs-online-blue"></a>
     <a href="https://circleci.com/gh/AleoHQ/aleo"><img src="https://circleci.com/gh/AleoHQ/sdk.svg?style=svg"></a>
-    <a href="https://discord.gg/5v2ynrw2ds"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
+    <a href="https://discord.com/invite/aleo"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
     <a href="https://github.com/AleoHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
 </p>
 
@@ -61,7 +61,7 @@ Aleo Wasm is a Rust crate which compiles Aleo code responsible for creating and 
 WebAssembly.
 
 When compiled with `wasm-pack` JavaScript bindings are generated for the WebAssembly allowing Aleo zero
-knowledge programs to be used in the browser ande NodeJS. This package is available on NPM (linked above). The Aleo WASM
+knowledge programs to be used in the browser and NodeJS. This package is available on NPM (linked above). The Aleo WASM
 Readme provides instructions for compiling this crate and using it in web projects for those interested in building from
 source.
 
