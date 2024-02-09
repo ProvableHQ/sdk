@@ -11,7 +11,6 @@ const createFormField = (field, index) => (
     <Form.Item
         label={nameOrIndex(field, index)}
         name={nameOrIndex(field, index)}
-        key={index}
     >
         <Input placeholder={field.type} />
     </Form.Item>
@@ -20,10 +19,9 @@ const createFormField = (field, index) => (
 export const FormGenerator = ({ formData }) => {
     const renderFormFields = (fields) => {
         return fields.map((field, index) => {
-            console.log("field", field);
             if (field.members) {
                 return (
-                    <div key={index}>
+                    <div key={nameOrIndex(field, index)}>
                         <Title level={4}>{nameOrIndex(field, index)}</Title>
                         {renderFormFields(field.members)}
                     </div>

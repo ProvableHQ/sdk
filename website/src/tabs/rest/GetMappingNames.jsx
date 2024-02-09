@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useMemo, useState} from "react";
 import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -56,8 +56,14 @@ export const GetMappingNames = () => {
     };
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const mappingString = () => (mapping !== null ? mapping : "");
-    const programIDString = () => (programID !== null ? programID : "");
+
+    const mappingString = useMemo(() => {
+        return mapping !== null ? mapping : ""
+    }, [mapping]);
+
+    const programIDString = useMemo(() => {
+        return programID !== null ? programID : ""
+    }, [programID]);
 
     return (
         <Card
@@ -66,7 +72,7 @@ export const GetMappingNames = () => {
             extra={
                 <Button
                     type="primary"
-                    
+
                     size="middle"
                     onClick={() => {
                         tryRequest("credits.aleo");
@@ -89,7 +95,7 @@ export const GetMappingNames = () => {
                         allowClear
                         onSearch={onSearch}
                         onChange={onChange}
-                        value={programIDString()}
+                        value={programIDString}
                     />
                 </Form.Item>
             </Form>
@@ -107,13 +113,13 @@ export const GetMappingNames = () => {
                                         whiteSpace: "pre-wrap",
                                         overflowWrap: "break-word",
                                     }}
-                                    value={mappingString()}
+                                    value={mappingString}
                                     disabled
                                 />
                             </Form.Item>
                         </Col>
                         <Col span={1} align="middle">
-                            <CopyButton data={mappingString()} />
+                            <CopyButton data={mappingString} />
                         </Col>
                     </Row>
                 </Form>
