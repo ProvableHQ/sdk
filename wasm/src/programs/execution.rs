@@ -83,10 +83,16 @@ pub fn verify_function_execution(
     verifying_key: &VerifyingKey,
     program: &Program,
     function_id: &str,
+    imports: Option<Object>,
 ) -> Result<bool, String> {
     let function = IdentifierNative::from_str(function_id).map_err(|e| e.to_string())?;
     let program_id = ProgramID::<CurrentNetwork>::from_str(&program.id()).unwrap();
-    let mut process = ProcessNative::load_web().map_err(|e| e.to_string())?;
+    let mut process_native = ProcessNative::load_web().map_err(|e| e.to_string())?;
+    let process = &mut process_native;    
+
+    let program_native = ProgramNative::from_str(program.to_string().as_str()).map_err(|e| e.to_string())?;
+    ProgramManager::resolve_imports(process, &program_native, imports)?;
+    
     if &program.id() != "credits.aleo" {
         process.add_program(program).map_err(|e| e.to_string())?;
     }
