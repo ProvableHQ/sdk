@@ -24,8 +24,8 @@ use crate::types::native::{
     IdentifierNative,
     ProcessNative,
     ProgramID,
-    VerifyingKeyNative,
     ProgramNative,
+    VerifyingKeyNative,
 };
 use js_sys::Object;
 
