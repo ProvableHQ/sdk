@@ -15,10 +15,10 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::*;
-use crate::{
-    Transition,
-    types::native::{CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramID, VerifyingKeyNative},
-};
+
+use crate::{types::native::{
+    CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramID, ProgramNative, VerifyingKeyNative
+}, Transition};
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 
 use js_sys::Array;
@@ -113,10 +113,8 @@ pub fn verify_function_execution(
     let program_id = ProgramID::<CurrentNetwork>::from_str(&program.id()).unwrap();
     let mut process_native = ProcessNative::load_web().map_err(|e| e.to_string())?;
     let process = &mut process_native;    
-
     let program_native = ProgramNative::from_str(program.to_string().as_str()).map_err(|e| e.to_string())?;
     ProgramManager::resolve_imports(process, &program_native, imports)?;
-    
     if &program.id() != "credits.aleo" {
         process.add_program(program).map_err(|e| e.to_string())?;
     }
