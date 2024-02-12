@@ -27,7 +27,7 @@ use crate::types::native::{
     VerifyingKeyNative,
     ProgramNative,
 };
-use js_sys::{Object};
+use js_sys::Object;
 
 /// Execution of an Aleo program.
 #[wasm_bindgen]
