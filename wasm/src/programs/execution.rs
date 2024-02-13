@@ -137,8 +137,14 @@ mod tests {
         let verifying_key_bytes = crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
         let verifying_key = VerifyingKey::from_bytes(&verifying_key_bytes).unwrap();
         assert!(
-            verify_function_execution(&execution, &verifying_key, &Program::get_credits_program(), "transfer_public", None)
-                .unwrap()
+            verify_function_execution(
+                &execution, 
+                &verifying_key, 
+                &Program::get_credits_program(), 
+                "transfer_public", 
+                None
+            )
+            .unwrap()
         );
     }
 }*/
