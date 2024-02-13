@@ -115,8 +115,14 @@ mod tests {
         let verifying_key_bytes = snarkvm_parameters::testnet3::TransferPublicVerifier::load_bytes().unwrap();
         let verifying_key = VerifyingKey::from_bytes(&verifying_key_bytes).unwrap();
         assert!(
-            verify_function_execution(&execution, &verifying_key, &Program::get_credits_program(), "transfer_public", None)
-                .unwrap()
+            verify_function_execution(
+                &execution, 
+                &verifying_key, 
+                &Program::get_credits_program(), 
+                "transfer_public", 
+                None
+            )
+            .unwrap()
         );
     }
 }
