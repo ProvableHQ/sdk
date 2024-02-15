@@ -116,10 +116,10 @@ mod tests {
         let verifying_key = VerifyingKey::from_bytes(&verifying_key_bytes).unwrap();
         assert!(
             verify_function_execution(
-                &execution, 
-                &verifying_key, 
-                &Program::get_credits_program(), 
-                "transfer_public", 
+                &execution,
+                &verifying_key,
+                &Program::get_credits_program(),
+                "transfer_public",
                 None
             )
             .unwrap()
