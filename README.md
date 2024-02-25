@@ -30,10 +30,10 @@ The official Aleo SDK providing Javascript/Typescript tools for creating zero kn
 
 ### ⚡ Build your own app
 
-Start here with the [Aleo SDK Readme](https://github.com/AleoHQ/sdk/tree/testnet3/sdk#readme) to get started building your 
+Start here with the [Aleo SDK Readme](/sdk/README.md) to get started building your 
 first zero knowledge web app.
 
-#### Source: [`sdk/sdk`](https://github.com/AleoHQ/sdk/tree/testnet3/sdk)
+#### Source: [`sdk/sdk`](/sdk)
 
 
 ## 2. Create-Aleo-App - Zero Knowledge Web App Examples
@@ -50,7 +50,7 @@ You can start with a template by running
 npm create aleo-app@latest
 ```
 
-#### Source: [`sdk/create-aleo-app`](https://github.com/AleoHQ/sdk/tree/testnet3/create-aleo-app)
+#### Source: [`sdk/create-aleo-app`](/create-aleo-app)
 
 ## 3. Aleo-Wasm - Zero Knowledge Algorithms in JavaScript + WebAssembly
 <a href="https://www.npmjs.com/package/@aleohq/wasm"> <img alt="Create Aleo App" src="https://img.shields.io/npm/l/%40aleohq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
@@ -68,7 +68,7 @@ source.
 ❗ Currently program execution is only available in web Browsers. However account, program and data management within
 NodeJS is functional.
 
-Source: [`sdk/wasm`](https://github.com/AleoHQ/sdk/tree/testnet3/wasm)
+Source: [`sdk/wasm`](/wasm)
 
 ## 📚 Documentation
 
@@ -76,11 +76,11 @@ Source: [`sdk/wasm`](https://github.com/AleoHQ/sdk/tree/testnet3/wasm)
 API Documentation, tutorials for the Aleo SDK, and documentation on how to build Leo and Aleo Instructions programs can
 be found on the [Aleo Developer Docs](https://developer.aleo.org/sdk/typescript/overview) page.
 
-#### [SDK Readme](https://github.com/AleoHQ/sdk/tree/testnet3/sdk#readme)
+#### [SDK Readme](/sdk/README.md)
 The SDK Readme provides concepts core to executing zero knowledge programs in the web and several detailed examples of
 how to use the SDK to build web apps using Aleo.
 
-#### [Aleo Wasm Readme](https://github.com/AleoHQ/sdk/tree/testnet3/wasm#readme)
+#### [Aleo Wasm Readme](/wasm/README.md)
 The Aleo Wasm Readme provides instructions for compiling the Aleo Wasm crate and using it in web projects. Those who
 want to build from source or create their own WebAssembly bindings should start here
 
