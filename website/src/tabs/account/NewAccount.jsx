@@ -13,7 +13,7 @@ export const NewAccount = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
-    const generateAccount = async () => {
+    const generateAccount = () => {
         // when user are able to see button, it means aleo is already loaded
         setAccount(new aleo.PrivateKey());
     };
