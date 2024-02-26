@@ -5,15 +5,12 @@ import { useAleoWASM } from "../../aleo-wasm-hook";
 
 export const NewAccount = () => {
     const [account, setAccount] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [aleo] = useAleoWASM();
+    const [aleo, loading] = useAleoWASM();
 
     const generateAccount = async () => {
-        setLoading(true);
-        setTimeout(() => {
-            setAccount(new aleo.PrivateKey());
-            setLoading(false);
-        }, 25);
+        // when user are able to see button, it means aleo is already loaded
+        console.log(aleo);
+        setAccount(new aleo.PrivateKey());
     };
 
     const clear = () => {
@@ -28,7 +25,7 @@ export const NewAccount = () => {
 
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
-    if (!aleo) {
+    if (loading) {
         return (
             <h3>
                 <center>Loading...</center>
