@@ -9,7 +9,6 @@ export const NewAccount = () => {
 
     const generateAccount = async () => {
         // when user are able to see button, it means aleo is already loaded
-        console.log(aleo);
         setAccount(new aleo.PrivateKey());
     };
 
