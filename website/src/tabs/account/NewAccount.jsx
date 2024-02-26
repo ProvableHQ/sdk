@@ -6,6 +6,12 @@ import { useAleoWASM } from "../../aleo-wasm-hook";
 export const NewAccount = () => {
     const [account, setAccount] = useState(null);
     const [aleo, loading] = useAleoWASM();
+    const isExistAccount = account !== null;
+    const privateKey = isExistAccount ? account.to_string() : "";
+    const viewKey = isExistAccount ? account.to_view_key().to_string() : "";
+    const address = isExistAccount ? account.to_address().to_string() : "";
+
+    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
     const generateAccount = async () => {
         // when user are able to see button, it means aleo is already loaded
@@ -15,14 +21,6 @@ export const NewAccount = () => {
     const clear = () => {
         setAccount(null);
     };
-
-    const privateKey = () => (account !== null ? account.to_string() : "");
-    const viewKey = () =>
-        account !== null ? account.to_view_key().to_string() : "";
-    const address = () =>
-        account !== null ? account.to_address().to_string() : "";
-
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
     if (loading) {
         return (
@@ -61,8 +59,8 @@ export const NewAccount = () => {
                         <Input
                             size="large"
                             placeholder="Private Key"
-                            value={privateKey()}
-                            addonAfter={<CopyButton data={privateKey()} />}
+                            value={privateKey}
+                            addonAfter={<CopyButton data={privateKey} />}
                             disabled
                         />
                     </Form.Item>
@@ -70,8 +68,8 @@ export const NewAccount = () => {
                         <Input
                             size="large"
                             placeholder="View Key"
-                            value={viewKey()}
-                            addonAfter={<CopyButton data={viewKey()} />}
+                            value={viewKey}
+                            addonAfter={<CopyButton data={viewKey} />}
                             disabled
                         />
                     </Form.Item>
@@ -79,8 +77,8 @@ export const NewAccount = () => {
                         <Input
                             size="large"
                             placeholder="Address"
-                            value={address()}
-                            addonAfter={<CopyButton data={address()} />}
+                            value={address}
+                            addonAfter={<CopyButton data={address} />}
                             disabled
                         />
                     </Form.Item>
