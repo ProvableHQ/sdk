@@ -77,6 +77,12 @@ impl FromStr for Address {
     }
 }
 
+impl From<AddressNative> for Address {
+    fn from(value: AddressNative) -> Self {
+        Self(value)
+    }
+}
+
 impl fmt::Display for Address {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
