@@ -35,7 +35,7 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     // Insert the key provider into the program manager
     programManager.setKeyProvider(offlineKeyProvider);
 
-    // Build tne transfer_public transaction offline
+    // Build the transfer_public transaction offline
     console.log("Building transfer transaction offline");
     return programManager.buildTransferPublicTransaction(
         amount,
