@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::native::{CurrentNetwork, EntryType, IdentifierNative, PlaintextType, ProgramNative, ValueType};
+use crate::{
+    account::Address,
+    types::native::{CurrentNetwork, EntryType, IdentifierNative, PlaintextType, ProgramNative, ValueType},
+};
 
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
@@ -416,6 +419,14 @@ impl Program {
     #[wasm_bindgen]
     pub fn id(&self) -> String {
         self.0.id().to_string()
+    }
+
+    /// Get a unique address of the program
+    ///
+    /// @returns {Address} The address of the program
+    #[wasm_bindgen]
+    pub fn address(&self) -> Result<Address, String> {
+        Ok(Address::from(self.0.id().to_address().map_err(|e| e.to_string())?))
     }
 
     /// Determine equality with another program
