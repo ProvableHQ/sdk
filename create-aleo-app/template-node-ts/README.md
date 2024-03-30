@@ -2,4 +2,4 @@
 
 `npm start`
 
-Recommend Node.js 20+ for best performance.
+We recommend the use of Node.js 20+ for best performance.
