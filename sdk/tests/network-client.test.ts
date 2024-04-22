@@ -15,7 +15,7 @@ describe('NodeConnection', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-        windowFetchSpy = null;
+        windowFetchSpy = null as any;
     });
 
     describe('setAccount', () => {
