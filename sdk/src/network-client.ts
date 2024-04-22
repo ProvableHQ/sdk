@@ -42,7 +42,8 @@ class AleoNetworkClient {
 
     } else {
       this.headers = {
-        "X-Aleo-SDK-Version": "0.6.9",
+        // This is replaced by the actual version by a Rollup plugin
+        "X-Aleo-SDK-Version": "%%VERSION%%",
       };
     }
   }

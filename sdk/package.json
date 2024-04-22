@@ -48,6 +48,7 @@
     "sync-request": "^6.1.0"
   },
   "devDependencies": {
+    "@rollup/plugin-replace": "^5.0.5",
     "@types/jest": "^29.5.5",
     "@types/mime": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
