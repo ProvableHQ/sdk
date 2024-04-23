@@ -39,7 +39,7 @@ async function deployProgram(program : string) {
   const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
 
   const account = new Account({
-    privateKey: "APrivateKey1zkpBvXdKZKaXXcLUnwAVFCQNp41jrX6JqTuJo1JShfPoRfx",
+    privateKey: "userPrivateKey",
   });
 
   const recordProvider = new NetworkRecordProvider(account, networkClient);
