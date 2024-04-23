@@ -1,5 +1,5 @@
-const TerserPlugin = require("terser-webpack-plugin")
-/** @type {import('next').NextConfig} */
+const TerserPlugin = require("terser-webpack-plugin");
+
 const nextConfig = {
     async headers() {
         return [
@@ -18,15 +18,38 @@ const nextConfig = {
             },
         ]
     },
-    webpack: (config) => {
+    webpack: (config, { isServer }) => {
+
+        config.module.rules.push({
+            test: /\.aleo$/,
+            use: 'raw-loader',
+        });
+
+        if (!isServer) {
+            config.resolve.fallback = {
+              fs: false,
+              net: false,
+              tls: false,
+            };
+          }
+
+
         config.experiments = { ...config.experiments, topLevelAwait: true };
-        config.optimization = { ...config.optimization, minimize: true, minimizer: [new TerserPlugin({
-                terserOptions: {
-                    module: true,
-                }
-            })], }
+        config.optimization = {
+            ...config.optimization,
+            minimize: true,
+            runtimeChunk: 'single',
+            minimizer: [
+                new TerserPlugin({
+                    terserOptions: {
+                        module: true,
+                    }
+                }),
+            ]
+        };
+
         return config;
     },
 }
 
-module.exports = nextConfig
+module.exports = nextConfig;

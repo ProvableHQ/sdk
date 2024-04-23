@@ -1,5 +1,5 @@
 {
-  "name": "template-nextjs",
+  "name": "test-next",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,15 +10,18 @@
   },
   "dependencies": {
     "@aleohq/sdk": "^0.6.2",
+    "circular-dependency-plugin": "^5.2.2",
+    "comlink": "^4.4.1",
     "next": "13.5.4",
     "react": "^18",
-    "react-dom": "^18",
-    "terser-webpack-plugin": "^5.3.9"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "raw-loader": "^4.0.2",
+    "terser-webpack-plugin": "^5.3.10",
     "typescript": "^5"
   }
 }
