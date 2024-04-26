@@ -20,6 +20,10 @@ window.key = () => {
     worker.postMessage("key");
 };
 
+window.deploy = () => {
+  worker.postMessage("deploy");
+};
+
 document.querySelector("#app").innerHTML = `
   <div>
     <a href="https://vitejs.dev" target="_blank">
@@ -35,6 +39,7 @@ document.querySelector("#app").innerHTML = `
     <div class="card">
       <button onclick="window.execute()">Call Execute Function</button>
       <button onclick="window.key()">Get Private Key</button>
+      <button onclick="window.deploy()">Deploy HelloWorld Program</button>
     </div>
     <p class="read-the-docs">
       Click on the Aleo logo to learn more
