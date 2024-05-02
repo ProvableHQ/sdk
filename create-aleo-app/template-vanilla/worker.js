@@ -11,7 +11,7 @@ import {
   await initThreadPool();
   
   const hello_hello_program =
-      "program hello_hello_123.aleo;\n" +
+      "program hello_hello.aleo;\n" +
       "\n" +
       "function hello:\n" +
       "    input r0 as u32.public;\n" +
@@ -83,11 +83,12 @@ import {
           const result = getPrivateKey();
           postMessage(result);
       } else if (e.data === "deploy") {
-        deployProgram(hello_hello_program).then(result => {
+        try {
+            const result = await deployProgram(hello_hello_program);
             postMessage(result);
-        }).catch(error => {
+          } catch (error) {
             postMessage({ error: error.message });
-        });
+        }
     }
     
   };
