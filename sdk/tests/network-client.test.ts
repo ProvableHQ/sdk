@@ -6,9 +6,16 @@ jest.retryTimes(3);
 
 describe('NodeConnection', () => {
     let connection: AleoNetworkClient;
+    let windowFetchSpy: jest.Spied<typeof fetch>;
 
     beforeEach(() => {
         connection = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+        windowFetchSpy = jest.spyOn(globalThis, 'fetch');
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+        windowFetchSpy = null as any;
     });
 
     describe('setAccount', () => {
@@ -75,6 +82,25 @@ describe('NodeConnection', () => {
         it('should return a Block object', async () => {
             const latestBlock = await connection.getLatestBlock();
             expect(typeof (latestBlock as Block).block_hash).toBe('string');
+        }, 60000);
+
+        it('should set the X-Aleo-SDK-Version header', async () => {
+            expect(windowFetchSpy.mock.calls).toStrictEqual([]);
+
+            await connection.getLatestBlock();
+
+            expect(windowFetchSpy.mock.calls).toStrictEqual([
+                [
+                    "https://api.explorer.aleo.org/v1/testnet3/latest/block",
+                    {
+                        "headers": {
+                            // @TODO: Run the Jest tests on the compiled Rollup code,
+                            //        so that way the version is properly replaced.
+                            "X-Aleo-SDK-Version": "%%VERSION%%"
+                        }
+                    }
+                ],
+            ]);
         }, 60000);
     });
 

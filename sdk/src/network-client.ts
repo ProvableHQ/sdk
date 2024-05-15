@@ -13,6 +13,10 @@ import {
 
 type ProgramImports = { [key: string]: string | Program };
 
+interface AleoNetworkClientOptions {
+  headers?: { [key: string]: string };
+}
+
 /**
  * Client library that encapsulates REST calls to publicly exposed endpoints of Aleo nodes. The methods provided in this
  * allow users to query public information from the Aleo blockchain and submit transactions to the network.
@@ -27,10 +31,21 @@ type ProgramImports = { [key: string]: string | Program };
  */
 class AleoNetworkClient {
   host: string;
+  headers: { [key: string]: string };
   account: Account | undefined;
 
-  constructor(host: string) {
+  constructor(host: string, options?: AleoNetworkClientOptions) {
     this.host = host + "/testnet3";
+
+    if (options && options.headers) {
+      this.headers = options.headers;
+
+    } else {
+      this.headers = {
+        // This is replaced by the actual version by a Rollup plugin
+        "X-Aleo-SDK-Version": "%%VERSION%%",
+      };
+    }
   }
 
   /**
@@ -69,8 +84,12 @@ class AleoNetworkClient {
       url = "/",
   ): Promise<Type> {
     try {
-      const response = await get(this.host + url);
+      const response = await get(this.host + url, {
+        headers: this.headers
+      });
+
       return await response.json();
+
     } catch (error) {
       throw new Error("Error fetching data.");
     }
@@ -627,9 +646,9 @@ class AleoNetworkClient {
     try {
       const response = await post(this.host + "/transaction/broadcast", {
         body: transaction_string,
-        headers: {
+        headers: Object.assign({}, this.headers, {
           "Content-Type": "application/json",
-        },
+        }),
       });
 
       try {
@@ -644,4 +663,4 @@ class AleoNetworkClient {
   }
 }
 
-export { AleoNetworkClient, ProgramImports }
+export { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports }

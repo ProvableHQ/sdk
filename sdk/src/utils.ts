@@ -1,5 +1,5 @@
-export async function get(url: URL | string) {
-    const response = await fetch(url);
+export async function get(url: URL | string, options?: RequestInit) {
+    const response = await fetch(url, options);
 
     if (!response.ok) {
         throw new Error(response.status + " could not get URL " + url);
