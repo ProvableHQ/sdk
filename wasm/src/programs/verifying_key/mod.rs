@@ -209,8 +209,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     async fn test_verifying_key_roundtrip() {
-        let transfer_public_verifier_bytes =
-            snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap();
+        let transfer_public_verifier_bytes = snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap();
         let transfer_public_verifier = VerifyingKey::from_bytes(&transfer_public_verifier_bytes).unwrap();
         let transfer_public_verifying_key_string = transfer_public_verifier.to_string();
         assert_eq!(transfer_public_verifying_key_string, TRANSFER_PUBLIC_VERIFYING_KEY);
@@ -218,8 +217,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     async fn test_verifier_checksum() {
-        let transfer_public_verifier_bytes =
-            snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap();
+        let transfer_public_verifier_bytes = snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap();
         let transfer_public_verifier = VerifyingKey::from_bytes(&transfer_public_verifier_bytes).unwrap();
         let transfer_public_verifying_key_checksum = transfer_public_verifier.checksum();
         assert_eq!(

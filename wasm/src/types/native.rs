@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub use snarkvm_circuit_network::{AleoTestnetV0};
+pub use snarkvm_circuit_network::AleoTestnetV0;
 pub use snarkvm_console::{
     account::{Address, PrivateKey, Signature, ViewKey},
     network::{Network, TestnetV0},
