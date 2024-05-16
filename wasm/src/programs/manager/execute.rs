@@ -303,13 +303,10 @@ impl ProgramManager {
             // Retrieve the function name, program id, and program.
             let function_name = transition.function_name();
             let program_id = transition.program_id();
-            let program = process.get_program(program_id).map_err(|e| e.to_string())?;
+            let stack = process.get_stack(program_id).map_err(|e| e.to_string())?;
 
             // Calculate the finalize cost for the function identified in the transition
-            let cost = match &program.get_function(function_name).map_err(|e| e.to_string())?.finalize_logic() {
-                Some(finalize) => cost_in_microcredits(finalize).map_err(|e| e.to_string())?,
-                None => continue,
-            };
+            let cost = cost_in_microcredits(&stack, function_name).map_err(|e| e.to_string())?;
 
             // Accumulate the finalize cost.
             finalize_cost = finalize_cost
@@ -333,11 +330,15 @@ impl ProgramManager {
         log(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
         );
+
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
         let function_id = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
-        match program.get_function(&function_id).map_err(|err| err.to_string())?.finalize_logic() {
-            Some(finalize) => cost_in_microcredits(finalize).map_err(|e| e.to_string()),
-            None => Ok(0u64),
-        }
+
+        let stack = process.get_stack(program.id()).map_err(|e| e.to_string())?;
+
+        cost_in_microcredits(stack, &function_id).map_err(|e| e.to_string())
     }
 }

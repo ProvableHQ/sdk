@@ -23,7 +23,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the bond_public function
     #[wasm_bindgen(js_name = "bondPublicVerifier")]
     pub fn bond_public_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::BondPublicVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::BondPublicVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Returns the verifying key for the claim_delegator function
@@ -31,7 +31,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the claim_unbond_public function
     #[wasm_bindgen(js_name = "claimUnbondPublicVerifier")]
     pub fn claim_unbond_public_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::ClaimUnbondPublicVerifier::load_bytes().unwrap())
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::ClaimUnbondPublicVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -40,7 +40,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the fee_private function
     #[wasm_bindgen(js_name = "feePrivateVerifier")]
     pub fn fee_private_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::FeePrivateVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::FeePrivateVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Returns the verifying key for the fee_public function
@@ -48,7 +48,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the fee_public function
     #[wasm_bindgen(js_name = "feePublicVerifier")]
     pub fn fee_public_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::FeePublicVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::FeePublicVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Returns the verifying key for the inclusion function
@@ -56,7 +56,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the inclusion function
     #[wasm_bindgen(js_name = "inclusionVerifier")]
     pub fn inclusion_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::InclusionVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::InclusionVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Returns the verifying key for the join function
@@ -64,7 +64,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the join function
     #[wasm_bindgen(js_name = "joinVerifier")]
     pub fn join_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::JoinVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::JoinVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Returns the verifying key for the set_validator_state function
@@ -72,7 +72,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the set_validator_state function
     #[wasm_bindgen(js_name = "setValidatorStateVerifier")]
     pub fn set_validator_state_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::SetValidatorStateVerifier::load_bytes().unwrap())
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::SetValidatorStateVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -81,7 +81,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the split function
     #[wasm_bindgen(js_name = "splitVerifier")]
     pub fn split_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::SplitVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::SplitVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Returns the verifying key for the transfer_private function
@@ -89,7 +89,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the transfer_private function
     #[wasm_bindgen(js_name = "transferPrivateVerifier")]
     pub fn transfer_private_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPrivateVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::TransferPrivateVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Returns the verifying key for the transfer_private_to_public function
@@ -97,7 +97,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the transfer_private_to_public function
     #[wasm_bindgen(js_name = "transferPrivateToPublicVerifier")]
     pub fn transfer_private_to_public_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPrivateToPublicVerifier::load_bytes().unwrap())
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::TransferPrivateToPublicVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -106,7 +106,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the transfer_public function
     #[wasm_bindgen(js_name = "transferPublicVerifier")]
     pub fn transfer_public_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPublicVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Returns the verifying key for the transfer_public_to_private function
@@ -114,7 +114,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the transfer_public_to_private function
     #[wasm_bindgen(js_name = "transferPublicToPrivateVerifier")]
     pub fn transfer_public_to_private_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPublicToPrivateVerifier::load_bytes().unwrap())
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::TransferPublicToPrivateVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -124,7 +124,7 @@ impl VerifyingKey {
     #[wasm_bindgen(js_name = "unbondDelegatorAsValidatorVerifier")]
     pub fn unbond_delegator_as_validator_verifier() -> VerifyingKey {
         VerifyingKey::from_bytes(
-            &snarkvm_parameters::testnet3::UnbondDelegatorAsValidatorVerifier::load_bytes().unwrap(),
+            &snarkvm_parameters::testnet::UnbondDelegatorAsValidatorVerifier::load_bytes().unwrap(),
         )
         .unwrap()
     }
@@ -134,7 +134,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the unbond_delegator_as_delegator function
     #[wasm_bindgen(js_name = "unbondPublicVerifier")]
     pub fn unbond_public_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::UnbondPublicVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::UnbondPublicVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Returns the verifying key for the bond_public function
@@ -142,7 +142,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the bond_public function
     #[wasm_bindgen(js_name = "isBondPublicVerifier")]
     pub fn is_bond_public_verifier(&self) -> bool {
-        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::BondPublicVerifier::load_bytes().unwrap())
+        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet::BondPublicVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -152,7 +152,7 @@ impl VerifyingKey {
     #[wasm_bindgen(js_name = "isClaimUnbondPublicVerifier")]
     pub fn is_claim_unbond_public_verifier(&self) -> bool {
         self == &VerifyingKey::from_bytes(
-            &snarkvm_parameters::testnet3::ClaimUnbondPublicVerifier::load_bytes().unwrap(),
+            &snarkvm_parameters::testnet::ClaimUnbondPublicVerifier::load_bytes().unwrap(),
         )
         .unwrap()
     }
@@ -162,7 +162,7 @@ impl VerifyingKey {
     /// @returns {bool}
     #[wasm_bindgen(js_name = "isFeePrivateVerifier")]
     pub fn is_fee_private_verifier(&self) -> bool {
-        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::FeePrivateVerifier::load_bytes().unwrap())
+        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet::FeePrivateVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -171,7 +171,7 @@ impl VerifyingKey {
     /// @returns {bool}
     #[wasm_bindgen(js_name = "isFeePublicVerifier")]
     pub fn is_fee_public_verifier(&self) -> bool {
-        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::FeePublicVerifier::load_bytes().unwrap())
+        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet::FeePublicVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -180,7 +180,7 @@ impl VerifyingKey {
     /// @returns {bool}
     #[wasm_bindgen(js_name = "isInclusionVerifier")]
     pub fn is_inclusion_verifier(&self) -> bool {
-        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::InclusionVerifier::load_bytes().unwrap())
+        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet::InclusionVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -189,7 +189,7 @@ impl VerifyingKey {
     /// @returns {bool}
     #[wasm_bindgen(js_name = "isJoinVerifier")]
     pub fn is_join_verifier(&self) -> bool {
-        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::JoinVerifier::load_bytes().unwrap()).unwrap()
+        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet::JoinVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Verifies the verifying key is for the set_validator_state function
@@ -198,7 +198,7 @@ impl VerifyingKey {
     #[wasm_bindgen(js_name = "isSetValidatorStateVerifier")]
     pub fn is_set_validator_state_verifier(&self) -> bool {
         self == &VerifyingKey::from_bytes(
-            &snarkvm_parameters::testnet3::SetValidatorStateVerifier::load_bytes().unwrap(),
+            &snarkvm_parameters::testnet::SetValidatorStateVerifier::load_bytes().unwrap(),
         )
         .unwrap()
     }
@@ -208,7 +208,7 @@ impl VerifyingKey {
     /// @returns {bool}
     #[wasm_bindgen(js_name = "isSplitVerifier")]
     pub fn is_split_verifier(&self) -> bool {
-        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::SplitVerifier::load_bytes().unwrap()).unwrap()
+        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet::SplitVerifier::load_bytes().unwrap()).unwrap()
     }
 
     /// Verifies the verifying key is for the transfer_private function
@@ -216,7 +216,7 @@ impl VerifyingKey {
     /// @returns {bool}
     #[wasm_bindgen(js_name = "isTransferPrivateVerifier")]
     pub fn is_transfer_private_verifier(&self) -> bool {
-        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPrivateVerifier::load_bytes().unwrap())
+        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet::TransferPrivateVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -226,7 +226,7 @@ impl VerifyingKey {
     #[wasm_bindgen(js_name = "isTransferPrivateToPublicVerifier")]
     pub fn is_transfer_private_to_public_verifier(&self) -> bool {
         self == &VerifyingKey::from_bytes(
-            &snarkvm_parameters::testnet3::TransferPrivateToPublicVerifier::load_bytes().unwrap(),
+            &snarkvm_parameters::testnet::TransferPrivateToPublicVerifier::load_bytes().unwrap(),
         )
         .unwrap()
     }
@@ -236,7 +236,7 @@ impl VerifyingKey {
     /// @returns {bool}
     #[wasm_bindgen(js_name = "isTransferPublicVerifier")]
     pub fn is_transfer_public_verifier(&self) -> bool {
-        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::TransferPublicVerifier::load_bytes().unwrap())
+        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap())
             .unwrap()
     }
 
@@ -246,7 +246,7 @@ impl VerifyingKey {
     #[wasm_bindgen(js_name = "isTransferPublicToPrivateVerifier")]
     pub fn is_transfer_public_to_private_verifier(&self) -> bool {
         self == &VerifyingKey::from_bytes(
-            &snarkvm_parameters::testnet3::TransferPublicToPrivateVerifier::load_bytes().unwrap(),
+            &snarkvm_parameters::testnet::TransferPublicToPrivateVerifier::load_bytes().unwrap(),
         )
         .unwrap()
     }
@@ -257,7 +257,7 @@ impl VerifyingKey {
     #[wasm_bindgen(js_name = "isUnbondDelegatorAsValidatorVerifier")]
     pub fn is_unbond_delegator_as_validator_verifier(&self) -> bool {
         self == &VerifyingKey::from_bytes(
-            &snarkvm_parameters::testnet3::UnbondDelegatorAsValidatorVerifier::load_bytes().unwrap(),
+            &snarkvm_parameters::testnet::UnbondDelegatorAsValidatorVerifier::load_bytes().unwrap(),
         )
         .unwrap()
     }
@@ -267,7 +267,7 @@ impl VerifyingKey {
     /// @returns {bool}
     #[wasm_bindgen(js_name = "isUnbondPublicVerifier")]
     pub fn is_unbond_public_verifier(&self) -> bool {
-        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet3::UnbondPublicVerifier::load_bytes().unwrap())
+        self == &VerifyingKey::from_bytes(&snarkvm_parameters::testnet::UnbondPublicVerifier::load_bytes().unwrap())
             .unwrap()
     }
 }

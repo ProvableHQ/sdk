@@ -15,7 +15,6 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 mod credits;
-pub use credits::*;
 
 use crate::types::native::{FromBytes, ProvingKeyNative, ToBytes};
 
