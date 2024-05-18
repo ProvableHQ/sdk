@@ -208,6 +208,25 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
+    async fn test_verifying_key_parsing() {
+        use std::sync::Arc;
+        use snarkvm_console::prelude::IoResult;
+        use std::io::Read;
+
+        fn read_le<R: Read>(mut reader: R) -> IoResult<VerifyingKeyNative> {
+            let version = u8::read_le(&mut reader)?;
+            let verifying_key = Arc::new(FromBytes::read_le(&mut reader)?);
+
+            assert!(reader.bytes().into_iter().collect::<Vec<_>>().len() > 0);
+
+            Ok(VerifyingKeyNative::new(verifying_key, 0))
+        }
+
+        let transfer_public_verifier_bytes: Vec<u8> = snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap();
+        let verifying_key = read_le(transfer_public_verifier_bytes.as_slice());
+    }
+
+    #[wasm_bindgen_test]
     async fn test_verifying_key_roundtrip() {
         let transfer_public_verifier_bytes = snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap();
         let transfer_public_verifier = VerifyingKey::from_bytes(&transfer_public_verifier_bytes).unwrap();
