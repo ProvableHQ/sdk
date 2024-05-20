@@ -7,7 +7,6 @@ export const DecryptRecord = () => {
     const [ciphertext, setCiphertext] = useState(null);
     const [viewKey, setViewKey] = useState(null);
     const [plaintext, setPlaintext] = useState(null);
-    const [_isOwner, setIsOwner] = useState(null);
     const [aleo] = useAleoWASM();
 
     const onCiphertextChange = (event) => {
@@ -36,17 +35,14 @@ export const DecryptRecord = () => {
                 setPlaintext(
                     aleo.ViewKey.from_string(viewKey).decrypt(ciphertext),
                 );
-                setIsOwner(true);
             }
         } catch (error) {
             console.warn(error);
             try {
                 // If the ciphertext is valid, but the view key is not, then we can still display the info about ownership
                 aleo.RecordCiphertext.fromString(ciphertext);
-                setIsOwner(false);
             } catch (error) {
                 // If the ciphertext is invalid, then we can't display any info about ownership or the plaintext content
-                setIsOwner(null);
                 console.warn(error);
             }
             if (plaintext !== null) {
@@ -67,7 +63,6 @@ export const DecryptRecord = () => {
         setCiphertext(null);
         setViewKey(null);
         setPlaintext(null);
-        setIsOwner(null);
     };
 
     const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
@@ -87,7 +82,7 @@ export const DecryptRecord = () => {
                 extra={
                     <Button
                         type="primary"
-                        
+
                         size="middle"
                         onClick={populateForm}
                     >
@@ -121,7 +116,7 @@ export const DecryptRecord = () => {
                     <Row justify="center">
                         <Col>
                             <Button
-                                
+
                                 size="middle"
                                 onClick={clearForm}
                             >
