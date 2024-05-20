@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import minimist from "minimist";
 import prompts from "prompts";
-import {lightGreen, cyan, red, reset, yellow, lightGray, green} from "kolorist";
+import {lightGreen, cyan, red, reset, yellow, lightGray, green, blue} from "kolorist";
 
 const argv = minimist<{
   t?: string;
@@ -57,6 +57,16 @@ const FRAMEWORKS: Framework[] = [
         name: "nextjs-ts",
         display: "TypeScript + Next.js",
         color: lightGray,
+      },
+      {
+        name: "react-aleo-hooks",
+        display: "React + JavaScript + Aleo Hooks",
+        color: yellow,
+      },
+      {
+        name: "react-aleo-hooks-ts",
+        display: "React + TypeScript + Aleo Hooks",
+        color: blue,
       },
     ],
   },
