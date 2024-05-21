@@ -213,17 +213,57 @@ mod tests {
         use snarkvm_console::prelude::IoResult;
         use std::io::Read;
 
-        fn read_le<R: Read>(mut reader: R) -> IoResult<VerifyingKeyNative> {
+        fn read_le<R: Read>(mut reader: R) -> IoResult<bool> {
             let version = u8::read_le(&mut reader)?;
             let verifying_key = Arc::new(FromBytes::read_le(&mut reader)?);
 
-            assert!(reader.bytes().into_iter().collect::<Vec<_>>().len() > 0);
+            let verifying_key = VerifyingKeyNative::new(verifying_key, 0);
 
-            Ok(VerifyingKeyNative::new(verifying_key, 0))
+            Ok(reader.bytes().into_iter().collect::<Vec<_>>().len() > 0)
         }
 
-        let transfer_public_verifier_bytes: Vec<u8> = snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap();
-        let verifying_key = read_le(transfer_public_verifier_bytes.as_slice());
+        fn parse<F>(name: &'static str, f: F) -> Option<&'static str> where F: FnOnce() -> Vec<u8> {
+            if read_le(f().as_slice()).unwrap() {
+                None
+
+            } else {
+                Some(name)
+            }
+        }
+
+        let results = vec! [
+            parse("TransferPublicVerifier", || snarkvm_parameters::testnet::TransferPublicVerifier::load_bytes().unwrap()),
+            parse("BondPublicVerifier", || snarkvm_parameters::testnet::BondPublicVerifier::load_bytes().unwrap()),
+            parse("ClaimUnbondPublicVerifier", || snarkvm_parameters::testnet::ClaimUnbondPublicVerifier::load_bytes().unwrap()),
+            parse("FeePrivateVerifier", || snarkvm_parameters::testnet::FeePrivateVerifier::load_bytes().unwrap()),
+            parse("FeePublicVerifier", || snarkvm_parameters::testnet::FeePublicVerifier::load_bytes().unwrap()),
+            parse("InclusionVerifier", || snarkvm_parameters::testnet::InclusionVerifier::load_bytes().unwrap()),
+            parse("JoinVerifier", || snarkvm_parameters::testnet::JoinVerifier::load_bytes().unwrap()),
+            parse("SetValidatorStateVerifier", || snarkvm_parameters::testnet::SetValidatorStateVerifier::load_bytes().unwrap()),
+            parse("SplitVerifier", || snarkvm_parameters::testnet::SplitVerifier::load_bytes().unwrap()),
+            parse("TransferPrivateVerifier", || snarkvm_parameters::testnet::TransferPrivateVerifier::load_bytes().unwrap()),
+            parse("TransferPrivateToPublicVerifier", || snarkvm_parameters::testnet::TransferPrivateToPublicVerifier::load_bytes().unwrap()),
+            parse("TransferPublicToPrivateVerifier", || snarkvm_parameters::testnet::TransferPublicToPrivateVerifier::load_bytes().unwrap()),
+            parse("UnbondDelegatorAsValidatorVerifier", || snarkvm_parameters::testnet::UnbondDelegatorAsValidatorVerifier::load_bytes().unwrap()),
+            parse("UnbondPublicVerifier", || snarkvm_parameters::testnet::UnbondPublicVerifier::load_bytes().unwrap()),
+        ];
+
+        assert_eq!(results, vec![
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ]);
     }
 
     #[wasm_bindgen_test]
