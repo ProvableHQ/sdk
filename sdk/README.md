@@ -228,7 +228,7 @@ const account = new Account();
 programManager.setAccount(account);
 
 /// Get the response and ensure that the program executed correctly
-const executionResponse = await programManager.executeOffline(program, "hello", ["5u32", "5u32"]);
+const executionResponse = await programManager.run(program, "hello", ["5u32", "5u32"]);
 const result = executionResponse.getOutputs();
 assert(result === ["10u32"]);
 ```
@@ -455,7 +455,7 @@ self.addEventListener("message", (ev) => {
            });
 
            // Execute the function locally
-           let response = await programManager.executeOffline(
+           let response = await programManager.run(
                    localProgram,
                    aleoFunction,
                    inputs,
@@ -1095,7 +1095,7 @@ read the value of a specific key within a mapping.
 ```typescript
 import {  AleoNetworkClient } from '@aleo/sdk';
 
-const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
 const creditsMappings = networkClient.getMappings("credits.aleo");
 assert(creditsMappings === ["account"]);
 
@@ -1142,13 +1142,13 @@ import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNe
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user1PrivateKey"});
-const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const RECIPIENT_ADDRESS = "user1Address";
-const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
 programManager.setAccount(account);
 
 // Update or initialize a public balance

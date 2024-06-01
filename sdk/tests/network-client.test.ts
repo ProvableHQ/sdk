@@ -4,7 +4,7 @@ import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data";
 import {log} from "console";
 jest.retryTimes(3);
 
-describe('NodeConnection', () => {
+describe('NetworkClient', () => {
     let connection: AleoNetworkClient;
     let windowFetchSpy: jest.Spied<typeof fetch>;
 

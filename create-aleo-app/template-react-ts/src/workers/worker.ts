@@ -19,7 +19,7 @@ async function localProgramExecution(program, aleoFunction, inputs) {
   const account = new Account();
   programManager.setAccount(account);
 
-  const executionResponse = await programManager.executeOffline(
+  const executionResponse = await programManager.run(
     program,
     aleoFunction,
     inputs,
@@ -38,7 +38,7 @@ async function deployProgram(program) {
   keyProvider.useCache(true);
 
   // Create a record provider that will be used to find records and transaction data for Aleo programs
-  const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+  const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
 
   // Use existing account with funds
   const account = new Account({
@@ -49,7 +49,7 @@ async function deployProgram(program) {
 
   // Initialize a program manager to talk to the Aleo network with the configured key and record providers
   const programManager = new ProgramManager(
-    "https://vm.aleo.org/api",
+    "https://api.explorer.aleo.org/v1",
     keyProvider,
     recordProvider,
   );

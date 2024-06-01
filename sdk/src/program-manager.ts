@@ -223,13 +223,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
      * const transaction = await programManager.buildExecutionTransaction({
@@ -330,13 +330,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
      * const transaction = await programManager.execute({
@@ -383,7 +383,7 @@ class ProgramManager {
      * programManager.setAccount(account);
      *
      * /// Get the response and ensure that the program executed correctly
-     * const executionResponse = await programManager.executeOffline(program, "hello", ["5u32", "5u32"]);
+     * const executionResponse = await programManager.run(program, "hello", ["5u32", "5u32"]);
      * const result = executionResponse.getOutputs();
      * assert(result === ["10u32"]);
      */
@@ -502,13 +502,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * const record = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
      * const tx_id = await programManager.split(25000000, record);
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -607,13 +607,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * await programManager.initialize();
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -693,13 +693,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * await programManager.initialize();
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -732,13 +732,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * await programManager.initialize();
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
