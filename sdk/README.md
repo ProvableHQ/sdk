@@ -74,7 +74,7 @@ To build the project from source, go to this project's root and execute:
 
 ### Create Aleo App
 A set of fully functional examples of zero knowledge web apps can be found in
-[create-aleo-app](https://github.com/AleoHQ/sdk/tree/testnet3/create-aleo-app). Create-aleo-app provides several web-app
+[create-aleo-app](/create-aleo-app). Create-aleo-app provides several web-app
 templates in common web frameworks such as React that can be used as a starting point for building zero knowledge web apps.
 
 Developers can get started immediately with create-react-app by running:
@@ -84,7 +84,7 @@ Developers can get started immediately with create-react-app by running:
 
 Additionally, the SDK powers [aleo.tools](https://aleo.tools) - a React app that provides a graphical interface for most
 of the functionality provided by the SDK and can be used as a reference for usage of the SDK. Source code for aleo.tools
-can be found [in the SDK repo here](https://github.com/AleoHQ/sdk/tree/testnet3/website)
+can be found [in the SDK repo here](/website)
 
 ## Usage
 
@@ -168,7 +168,7 @@ The SDK provides the ability execute `Aleo Instructions` programs %100 client-si
 The `ProgramManager` object encapsulates the functionality for executing programs and making zero knowledge proofs about
 them. Under the hood it uses cryptographic code compiled from [SnarkVM](https://developer.aleo.org/aleo) into WebAssembly
 with JavaScript bindings that allow execution of Aleo programs fully within the browser. Users interested in lower level
-details how this is achieved can visit the [aleo-wasm](https://github.com/AleoHQ/sdk/tree/testnet3/wasm) crate.
+details how this is achieved can visit the [aleo-wasm](/wasm) crate.
 
 The basic execution flow of a program is as follows:
 1. A web app is loaded with an instance of the `ProgramManager` object
@@ -653,7 +653,7 @@ export default App;
 </details>
 
 
-A full example of this implementation can be found [here](https://github.com/AleoHQ/sdk/blob/testnet3/create-aleo-app/template-react/src/App.jsx)
+A full example of this implementation can be found [here](create-aleo-app/template-react-leo/src/App.jsx)
 
 ## 3. Aleo Credit Transfers
 
