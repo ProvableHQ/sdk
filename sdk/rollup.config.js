@@ -1,4 +1,6 @@
 import typescript from "rollup-plugin-typescript2";
+import replace from "@rollup/plugin-replace";
+import $package from "./package.json" assert { type: "json" };
 
 export default {
     input: {
@@ -23,6 +25,13 @@ export default {
         "@aleohq/wasm",
     ],
     plugins: [
+        replace({
+            preventAssignment: true,
+            delimiters: ['', ''],
+            values: {
+                '%%VERSION%%': $package.version,
+            },
+        }),
         typescript({
             tsconfig: "tsconfig.json",
             clean: true,
