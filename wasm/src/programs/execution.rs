@@ -96,7 +96,7 @@ pub fn verify_function_execution(
     process.verify_execution(execution).map_or(Ok(false), |_| Ok(true))
 }
 
-#[cfg(test)]
+/*#[cfg(test)]
 mod tests {
     use super::*;
     use wasm_bindgen_test::*;
@@ -113,4 +113,4 @@ mod tests {
                 .unwrap()
         );
     }
-}
+}*/

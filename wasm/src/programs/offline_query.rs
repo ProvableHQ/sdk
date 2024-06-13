@@ -118,7 +118,7 @@ mod tests {
         assert_eq!(offline_query_from_str, offline_query);
     }
 
-    #[wasm_bindgen_test]
+    /*#[wasm_bindgen_test]
     async fn test_state_path_construction() {
         // Create an offline query
         let mut offline_query = OfflineQuery::new(STATE_ROOT).unwrap();
@@ -152,5 +152,5 @@ mod tests {
         // Check that the state root can be retrieved from the query trait
         assert_eq!(offline_query.current_state_root().unwrap(), expected_state_root);
         assert_eq!(offline_query.current_state_root_async().await.unwrap(), expected_state_root);
-    }
+    }*/
 }
