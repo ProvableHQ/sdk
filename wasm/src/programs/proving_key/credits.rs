@@ -209,58 +209,82 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    async fn test_proving_key_checksum() {
+    async fn test_proving_key_bond_public() {
         let prover_uri = get_proving_key_uri("bond_public", snarkvm_parameters::testnet::BondPublicProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_bond_public_prover());
         assert!(!prover.is_claim_unbond_public_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_claim_unbond_public() {
         let prover_uri =
             get_proving_key_uri("claim_unbond_public", snarkvm_parameters::testnet::ClaimUnbondPublicProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_claim_unbond_public_prover());
         assert!(!prover.is_fee_private_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_fee_private() {
         let prover_uri = get_proving_key_uri("fee_private", snarkvm_parameters::testnet::FeePrivateProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_fee_private_prover());
         assert!(!prover.is_fee_public_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_fee_public() {
         let prover_uri = get_proving_key_uri("fee_public", snarkvm_parameters::testnet::FeePublicProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_fee_public_prover());
         assert!(!prover.is_join_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_join() {
         let prover_uri = get_proving_key_uri("join", snarkvm_parameters::testnet::JoinProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_join_prover());
         assert!(!prover.is_set_validator_state_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_set_validator_state() {
         let prover_uri =
             get_proving_key_uri("set_validator_state", snarkvm_parameters::testnet::SetValidatorStateProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_set_validator_state_prover());
         assert!(!prover.is_split_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_split() {
         let prover_uri = get_proving_key_uri("split", snarkvm_parameters::testnet::SplitProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_split_prover());
         assert!(!prover.is_transfer_private_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_transfer_private() {
         let prover_uri =
             get_proving_key_uri("transfer_private", snarkvm_parameters::testnet::TransferPrivateProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_transfer_private_prover());
         assert!(!prover.is_transfer_private_to_public_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_transfer_private_to_public() {
         let prover_uri = get_proving_key_uri(
             "transfer_private_to_public",
             snarkvm_parameters::testnet::TransferPrivateToPublicProver::METADATA,
@@ -269,14 +293,20 @@ mod tests {
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_transfer_private_to_public_prover());
         assert!(!prover.is_transfer_public_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_transfer_public() {
         let prover_uri =
             get_proving_key_uri("transfer_public", snarkvm_parameters::testnet::TransferPublicProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_transfer_public_prover());
         assert!(!prover.is_transfer_public_to_private_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_transfer_public_to_private() {
         let prover_uri = get_proving_key_uri(
             "transfer_public_to_private",
             snarkvm_parameters::testnet::TransferPublicToPrivateProver::METADATA,
@@ -285,7 +315,10 @@ mod tests {
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_transfer_public_to_private_prover());
         assert!(!prover.is_unbond_delegator_as_validator_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_unbond_delegator_as_validator() {
         let prover_uri = get_proving_key_uri(
             "unbond_delegator_as_validator",
             snarkvm_parameters::testnet::UnbondDelegatorAsValidatorProver::METADATA,
@@ -294,7 +327,10 @@ mod tests {
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_unbond_delegator_as_validator_prover());
         assert!(!prover.is_unbond_public_prover());
+    }
 
+    #[wasm_bindgen_test]
+    async fn test_proving_key_unbond_public() {
         let prover_uri =
             get_proving_key_uri("unbond_public", snarkvm_parameters::testnet::UnbondPublicProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
