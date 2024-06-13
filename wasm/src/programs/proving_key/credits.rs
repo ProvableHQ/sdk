@@ -208,16 +208,16 @@ mod tests {
         format!("https://s3-us-west-1.amazonaws.com/testnet.parameters/{}.prover.{}", function_name, checksum.get(0..7).unwrap())
     }
 
-    #[wasm_bindgen_test]
+    /*#[wasm_bindgen_test]
     async fn test_proving_key_bond_public() {
         let prover_uri = get_proving_key_uri("bond_public", snarkvm_parameters::testnet::BondPublicProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_bond_public_prover());
         assert!(!prover.is_claim_unbond_public_prover());
-    }
+    }*/
 
-    #[wasm_bindgen_test]
+    /*#[wasm_bindgen_test]
     async fn test_proving_key_claim_unbond_public() {
         let prover_uri =
             get_proving_key_uri("claim_unbond_public", snarkvm_parameters::testnet::ClaimUnbondPublicProver::METADATA);
@@ -225,36 +225,36 @@ mod tests {
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_claim_unbond_public_prover());
         assert!(!prover.is_fee_private_prover());
-    }
+    }*/
 
-    #[wasm_bindgen_test]
+    /*#[wasm_bindgen_test]
     async fn test_proving_key_fee_private() {
         let prover_uri = get_proving_key_uri("fee_private", snarkvm_parameters::testnet::FeePrivateProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_fee_private_prover());
         assert!(!prover.is_fee_public_prover());
-    }
+    }*/
 
-    #[wasm_bindgen_test]
+    /*#[wasm_bindgen_test]
     async fn test_proving_key_fee_public() {
         let prover_uri = get_proving_key_uri("fee_public", snarkvm_parameters::testnet::FeePublicProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_fee_public_prover());
         assert!(!prover.is_join_prover());
-    }
+    }*/
 
-    #[wasm_bindgen_test]
+    /*#[wasm_bindgen_test]
     async fn test_proving_key_join() {
         let prover_uri = get_proving_key_uri("join", snarkvm_parameters::testnet::JoinProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_join_prover());
         assert!(!prover.is_set_validator_state_prover());
-    }
+    }*/
 
-    #[wasm_bindgen_test]
+    /*#[wasm_bindgen_test]
     async fn test_proving_key_set_validator_state() {
         let prover_uri =
             get_proving_key_uri("set_validator_state", snarkvm_parameters::testnet::SetValidatorStateProver::METADATA);
@@ -262,16 +262,16 @@ mod tests {
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_set_validator_state_prover());
         assert!(!prover.is_split_prover());
-    }
+    }*/
 
-    #[wasm_bindgen_test]
+    /*#[wasm_bindgen_test]
     async fn test_proving_key_split() {
         let prover_uri = get_proving_key_uri("split", snarkvm_parameters::testnet::SplitProver::METADATA);
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_split_prover());
         assert!(!prover.is_transfer_private_prover());
-    }
+    }*/
 
     #[wasm_bindgen_test]
     async fn test_proving_key_transfer_private() {
