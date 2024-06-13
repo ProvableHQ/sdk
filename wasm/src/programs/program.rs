@@ -579,31 +579,26 @@ function add_and_double:
                 "key_type": "address",
                 "value_type": "committee_state",
             },
-
             object! {
                 "name": "metadata",
                 "key_type": "address",
                 "value_type": "u32",
             },
-
             object! {
                 "name": "bonded",
                 "key_type": "address",
                 "value_type": "bond_state",
             },
-
             object! {
                 "name": "unbonding",
                 "key_type": "address",
                 "value_type": "unbond_state",
             },
-
             object! {
                 "name": "account",
                 "key_type": "address",
                 "value_type": "u64",
             },
-
             object! {
                 "name": "withdraw",
                 "key_type": "address",
@@ -652,13 +647,11 @@ function add_and_double:
                 ],
                 "register": "r0",
             },
-
             object! {
                 "type": "address",
                 "visibility": "private",
                 "register": "r1",
             },
-
             object! {
                 "type": "u64",
                 "visibility": "private",
@@ -677,7 +670,6 @@ function add_and_double:
                 "visibility": "private",
                 "register": "r0",
             },
-
             object! {
                 "type": "record",
                 "record": "Token",
@@ -716,7 +708,6 @@ function add_and_double:
                 ],
                 "register": "r1",
             },
-
             object! {
                 "type": "struct",
                 "struct_id": "token_metadata",
@@ -811,7 +802,7 @@ function add_and_double:
         let program = Program::from_string(TOKEN_ISSUE).unwrap();
         let members = program.get_struct_members("token_metadata".to_string()).unwrap();
 
-        let expected = array! [
+        let expected = array![
             object! {
                 "name": "token_id",
                 "type": "u32",
