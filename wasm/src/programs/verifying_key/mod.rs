@@ -213,10 +213,10 @@ mod tests {
         use std::{io::Read, sync::Arc};
 
         fn read_le<R: Read>(mut reader: R) -> IoResult<bool> {
-            let version = u8::read_le(&mut reader)?;
+            let _version = u8::read_le(&mut reader)?;
             let verifying_key = Arc::new(FromBytes::read_le(&mut reader)?);
 
-            let verifying_key = VerifyingKeyNative::new(verifying_key, 0);
+            let _verifying_key = VerifyingKeyNative::new(verifying_key, 0);
 
             Ok(reader.bytes().into_iter().collect::<Vec<_>>().len() > 0)
         }
