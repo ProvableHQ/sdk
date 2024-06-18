@@ -19,7 +19,7 @@ import { useAleoWASM } from "../../aleo-wasm-hook";
 
 export const ExecuteLegacy = () => {
     const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
-    const [executeUrl, setExecuteUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [executeUrl, setExecuteUrl] = useState("https://api.explorer.aleo.org/v1/testnet");
     const [functionID, setFunctionID] = useState(null);
     const [executionFee, setExecutionFee] = useState("1");
     const [inputs, setInputs] = useState(null);
@@ -392,7 +392,7 @@ export const ExecuteLegacy = () => {
             extra={
                 <Button
                     type="primary"
-                    
+
                     size="middle"
                     onClick={demo}
                 >
@@ -557,7 +557,7 @@ export const ExecuteLegacy = () => {
                         <Space>
                             <Button
                                 type="primary"
-                                
+
                                 size="middle"
                                 onClick={execute}
                             >
@@ -567,7 +567,7 @@ export const ExecuteLegacy = () => {
                             {executeOnline && (
                                 <Button
                                     type="primary"
-                                    
+
                                     size="middle"
                                     onClick={estimate}
                                 >

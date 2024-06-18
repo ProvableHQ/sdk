@@ -9,7 +9,7 @@ describe('NodeConnection', () => {
     let windowFetchSpy: jest.Spied<typeof fetch>;
 
     beforeEach(() => {
-        connection = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+        connection = new AleoNetworkClient("https://api.explorer.aleo.org/v1/testnet/");
         windowFetchSpy = jest.spyOn(globalThis, 'fetch');
     });
 

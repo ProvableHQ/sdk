@@ -76,9 +76,9 @@ class ProgramManager {
      * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
      */
     constructor(host?: string | undefined, keyProvider?: FunctionKeyProvider | undefined, recordProvider?: RecordProvider | undefined) {
-        this.host = host ? host : 'https://api.explorer.aleo.org/v1';
+        this.host = host ? host : 'https://api.explorer.aleo.org/v1/testnet';
         this.networkClient = new AleoNetworkClient(this.host);
-        
+
         this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
         this.recordProvider = recordProvider;
     }
@@ -134,13 +134,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1/testnet");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1/testnet", keyProvider, recordProvider);
      *
      * // Define a fee in credits
      * const fee = 1.2;
@@ -768,7 +768,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1/testnet", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -823,7 +823,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1/testnet", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -851,7 +851,7 @@ class ProgramManager {
      * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error message.
      *
      * @example
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1/testnet", keyProvider, undefined);
      * const transaction = await programManager.buildUnbondPublicTransaction(2000000);
      * console.log(transaction);
      */
@@ -895,7 +895,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1/testnet", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -922,7 +922,7 @@ class ProgramManager {
      * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error message.
      *
      * @example
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1/testnet", keyProvider, undefined);
      * const transaction = await programManager.buildClaimUnbondPublicTransaction();
      * console.log(transaction);
      */
@@ -965,7 +965,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1/testnet", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction

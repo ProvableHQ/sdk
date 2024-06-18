@@ -4,7 +4,7 @@ import { expose } from "comlink";
 
 await initThreadPool();
 
-const defaultHost = "https://api.explorer.aleo.org/v1";
+const defaultHost = "https://api.explorer.aleo.org/v1/testnet";
 const keyProvider = new AleoKeyProvider();
 const programManager = new ProgramManager(
     defaultHost,
