@@ -112,7 +112,7 @@ mod tests {
     use wasm_bindgen_test::*;
 
     const TRANSFER_PUBLIC_PROVER: &str =
-        "https://s3-us-west-1.amazonaws.com/testnet.parameters/transfer_public.prover.a74565e";
+        "https://s3-us-west-1.amazonaws.com/testnet3.parameters/transfer_public.prover.a74565e";
 
     #[wasm_bindgen_test]
     async fn test_proving_key_roundtrip() {

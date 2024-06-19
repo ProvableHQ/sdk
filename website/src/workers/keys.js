@@ -1,4 +1,4 @@
-const BASE_URL = "https://s3-us-west-1.amazonaws.com/testnet.parameters";
+const BASE_URL = "https://s3-us-west-1.amazonaws.com/testnet3.parameters";
 
 const FEE_PROVER_URL = BASE_URL + "/fee.prover.36542ce";
 const FEE_VERIFIER_URL = BASE_URL + "/fee.verifier.2de311b";

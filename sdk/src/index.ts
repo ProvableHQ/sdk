@@ -1,5 +1,5 @@
 import {VerifyingKey} from "@aleohq/wasm";
-const KEY_STORE = "https://s3-us-west-1.amazonaws.com/testnet.parameters/";
+const KEY_STORE = "https://s3-us-west-1.amazonaws.com/testnet3.parameters/";
 
 const CREDITS_PROGRAM_KEYS = {
     bond_public: {
