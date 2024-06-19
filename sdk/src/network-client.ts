@@ -35,7 +35,7 @@ class AleoNetworkClient {
   account: Account | undefined;
 
   constructor(host: string, options?: AleoNetworkClientOptions) {
-    this.host = host + "/testnet3";
+    this.host = host + "/testnet";
 
     if (options && options.headers) {
       this.headers = options.headers;
@@ -77,7 +77,7 @@ class AleoNetworkClient {
    * @param host
    */
   setHost(host: string) {
-    this.host = host + "/testnet3";
+    this.host = host + "/testnet";
   }
 
   async fetchData<Type>(
