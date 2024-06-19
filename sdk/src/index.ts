@@ -1,91 +1,21 @@
-import {VerifyingKey} from "@aleohq/wasm";
-const KEY_STORE = "https://s3-us-west-1.amazonaws.com/testnet3.parameters/";
+import {VerifyingKey, Metadata} from "@aleohq/wasm";
+const KEY_STORE = Metadata.baseUrl;
 
 const CREDITS_PROGRAM_KEYS = {
-    bond_public: {
-        locator: "credits.aleo/bond_public",
-        prover: KEY_STORE + "bond_public.prover.9c3547d",
-        verifier: "bond_public.verifier.10315ae",
-        verifyingKey: VerifyingKey.bondPublicVerifier
-    },
-    claim_unbond_public: {
-        locator: "credits.aleo/claim_unbond_public",
-        prover: KEY_STORE + "claim_unbond_public.prover.f8b64aa",
-        verifier: "claim_unbond_public.verifier.8fd7445",
-        verifyingKey: VerifyingKey.claimUnbondPublicVerifier
-    },
-    fee_private: {
-        locator: "credits.aleo/fee_private",
-        prover: KEY_STORE + "fee_private.prover.43fab98",
-        verifier: "fee_private.verifier.f3dfefc",
-        verifyingKey: VerifyingKey.feePrivateVerifier
-    },
-    fee_public: {
-        locator: "credits.aleo/fee_public",
-        prover: KEY_STORE + "fee_public.prover.634f153",
-        verifier: "fee_public.verifier.09eeb4f",
-        verifyingKey: VerifyingKey.feePublicVerifier
-    },
-    inclusion: {
-        locator: "inclusion",
-        prover: KEY_STORE + "inclusion.prover.cd85cc5",
-        verifier: "inclusion.verifier.e6f3add",
-        verifyingKey: VerifyingKey.inclusionVerifier
-    },
-    join: {
-        locator: "credits.aleo/join",
-        prover: KEY_STORE + "join.prover.1a76fe8",
-        verifier: "join.verifier.4f1701b",
-        verifyingKey: VerifyingKey.joinVerifier
-    },
-    set_validator_state: {
-        locator: "credits.aleo/set_validator_state",
-        prover: KEY_STORE + "set_validator_state.prover.5ce19be",
-        verifier: "set_validator_state.verifier.730d95b",
-        verifyingKey: VerifyingKey.setValidatorStateVerifier
-    },
-    split: {
-        locator: "credits.aleo/split",
-        prover: KEY_STORE + "split.prover.e6d12b9",
-        verifier: "split.verifier.2f9733d",
-        verifyingKey: VerifyingKey.splitVerifier
-    },
-    transfer_private: {
-        locator: "credits.aleo/transfer_private",
-        prover: KEY_STORE + "transfer_private.prover.2b487c0",
-        verifier: "transfer_private.verifier.3a3cbba",
-        verifyingKey: VerifyingKey.transferPrivateVerifier
-    },
-    transfer_private_to_public: {
-        locator: "credits.aleo/transfer_private_to_public",
-        prover: KEY_STORE + "transfer_private_to_public.prover.1ff64cb",
-        verifier: "transfer_private_to_public.verifier.d5b60de",
-        verifyingKey: VerifyingKey.transferPrivateToPublicVerifier
-    },
-    transfer_public: {
-        locator: "credits.aleo/transfer_public",
-        prover: KEY_STORE + "transfer_public.prover.a74565e",
-        verifier: "transfer_public.verifier.a4c2906",
-        verifyingKey: VerifyingKey.transferPublicVerifier
-    },
-    transfer_public_to_private: {
-        locator: "credits.aleo/transfer_public_to_private",
-        prover: KEY_STORE + "transfer_public_to_private.prover.1bcddf9",
-        verifier: "transfer_public_to_private.verifier.b094554",
-        verifyingKey: VerifyingKey.transferPublicToPrivateVerifier
-    },
-    unbond_delegator_as_validator: {
-        locator: "credits.aleo/unbond_delegator_as_validator",
-        prover: KEY_STORE + "unbond_delegator_as_validator.prover.115a86b",
-        verifier: "unbond_delegator_as_validator.verifier.9585609",
-        verifyingKey: VerifyingKey.unbondDelegatorAsValidatorVerifier
-    },
-    unbond_public: {
-        locator: "credits.aleo/unbond_public",
-        prover: KEY_STORE + "unbond_public.prover.9547c05",
-        verifier: "unbond_public.verifier.09873cd",
-        verifyingKey: VerifyingKey.unbondPublicVerifier
-    },
+    bond_public: Metadata.bond_public,
+    claim_unbond_public: Metadata.claim_unbond_public,
+    fee_private: Metadata.fee_private,
+    fee_public: Metadata.fee_public,
+    inclusion: Metadata.inclusion,
+    join: Metadata.join,
+    set_validator_state: Metadata.set_validator_state,
+    split: Metadata.split,
+    transfer_private: Metadata.transfer_private,
+    transfer_private_to_public: Metadata.transfer_private_to_public,
+    transfer_public: Metadata.transfer_public,
+    transfer_public_to_private: Metadata.transfer_public_to_private,
+    unbond_delegator_as_validator: Metadata.unbond_delegator_as_validator,
+    unbond_public: Metadata.unbond_public,
 };
 
 const PRIVATE_TRANSFER_TYPES = new Set([

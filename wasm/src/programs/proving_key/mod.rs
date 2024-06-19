@@ -109,14 +109,14 @@ impl PartialEq for ProvingKey {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Metadata;
     use wasm_bindgen_test::*;
-
-    const TRANSFER_PUBLIC_PROVER: &str =
-        "https://s3-us-west-1.amazonaws.com/testnet3.parameters/transfer_public.prover.a74565e";
 
     #[wasm_bindgen_test]
     async fn test_proving_key() {
-        let bytes = reqwest::get(TRANSFER_PUBLIC_PROVER).await.unwrap().bytes().await.unwrap().to_vec();
+        let transer_public_prover = Metadata::transfer_public().prover;
+
+        let bytes = reqwest::get(transer_public_prover).await.unwrap().bytes().await.unwrap().to_vec();
         let key = ProvingKey::from_bytes(&bytes).unwrap();
 
         let to_bytes = key.to_bytes().unwrap();
@@ -130,7 +130,7 @@ mod tests {
         let transfer_public_proving_key_checksum = key.checksum();
         assert_eq!(
             transfer_public_proving_key_checksum,
-            "a74565e4fd408a90b2d04b0e6c0dea6bf0ab6a27926ef28049da62d18727f6c6"
+            "846f86cabf9fa50e5abe347e559a8e9f3018459b5af9fdf52f1c44892b05f7e5"
         );
     }
 }

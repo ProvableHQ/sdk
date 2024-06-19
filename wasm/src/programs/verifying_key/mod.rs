@@ -15,6 +15,7 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 mod credits;
+mod metadata;
 
 use crate::types::native::{FromBytes, ToBytes, VerifyingKeyNative};
 
@@ -22,6 +23,8 @@ use sha2::Digest;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 use std::{ops::Deref, str::FromStr};
+
+pub use metadata::Metadata;
 
 /// Verifying key for a function within an Aleo program
 #[wasm_bindgen]

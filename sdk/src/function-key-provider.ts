@@ -298,7 +298,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
-     * const AleoProviderParams = new AleoProviderParams("https://s3-us-west-1.amazonaws.com/testnet3.parameters/transfer_private.");
+     * const AleoProviderParams = new AleoProviderParams("https://s3-us-west-1.amazonaws.com/testnet.parameters/transfer_private.");
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
      * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
