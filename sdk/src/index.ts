@@ -1,21 +1,40 @@
 import {VerifyingKey, Metadata} from "@aleohq/wasm";
-const KEY_STORE = Metadata.baseUrl;
+
+const KEY_STORE = Metadata.baseUrl();
+
+interface Key {
+    locator: string,
+    prover: string,
+    verifier: string,
+    verifyingKey: () => VerifyingKey,
+}
+
+function convert(metadata: Metadata): Key {
+    return {
+        locator: metadata.locator,
+        prover: metadata.prover,
+        verifier: metadata.verifier,
+
+        // This looks up the method name in VerifyingKey
+        verifyingKey: (VerifyingKey as any)[metadata.verifyingKey],
+    };
+}
 
 const CREDITS_PROGRAM_KEYS = {
-    bond_public: Metadata.bond_public,
-    claim_unbond_public: Metadata.claim_unbond_public,
-    fee_private: Metadata.fee_private,
-    fee_public: Metadata.fee_public,
-    inclusion: Metadata.inclusion,
-    join: Metadata.join,
-    set_validator_state: Metadata.set_validator_state,
-    split: Metadata.split,
-    transfer_private: Metadata.transfer_private,
-    transfer_private_to_public: Metadata.transfer_private_to_public,
-    transfer_public: Metadata.transfer_public,
-    transfer_public_to_private: Metadata.transfer_public_to_private,
-    unbond_delegator_as_validator: Metadata.unbond_delegator_as_validator,
-    unbond_public: Metadata.unbond_public,
+    bond_public: convert(Metadata.bond_public()),
+    claim_unbond_public: convert(Metadata.claim_unbond_public()),
+    fee_private: convert(Metadata.fee_private()),
+    fee_public: convert(Metadata.fee_public()),
+    inclusion: convert(Metadata.inclusion()),
+    join: convert(Metadata.join()),
+    set_validator_state: convert(Metadata.set_validator_state()),
+    split: convert(Metadata.split()),
+    transfer_private: convert(Metadata.transfer_private()),
+    transfer_private_to_public: convert(Metadata.transfer_private_to_public()),
+    transfer_public: convert(Metadata.transfer_public()),
+    transfer_public_to_private: convert(Metadata.transfer_public_to_private()),
+    unbond_delegator_as_validator: convert(Metadata.unbond_delegator_as_validator()),
+    unbond_public: convert(Metadata.unbond_public()),
 };
 
 const PRIVATE_TRANSFER_TYPES = new Set([

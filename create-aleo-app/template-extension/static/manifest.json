@@ -11,6 +11,6 @@
     "offscreen"
   ],
   "content_security_policy": {
-    "extension_pages": "default-src 'self' 'wasm-unsafe-eval'; connect-src https://s3-us-west-1.amazonaws.com/testnet3.parameters/shifted-powers-of-beta-16.usrs.d99bcb3"
+    "extension_pages": "default-src 'self' 'wasm-unsafe-eval'; connect-src https://s3-us-west-1.amazonaws.com/mainnet.parameters/powers-of-beta-15.usrs.eb7040c"
   }
 }
