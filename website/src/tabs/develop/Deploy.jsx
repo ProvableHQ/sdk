@@ -16,10 +16,10 @@ import { CodeEditor } from "./execute/CodeEditor.jsx";
 import axios from "axios";
 
 export const Deploy = () => {
-
+    
     const [form] = Form.useForm();
     const [deploymentFeeRecord, setDeploymentFeeRecord] = useState(null);
-    const [deployUrl, setDeployUrl] = useState("https://api.explorer.aleo.org/v1/testnet");
+    const [deployUrl, setDeployUrl] = useState("https://api.explorer.aleo.org/v1");
     const [deploymentFee, setDeploymentFee] = useState("1");
     const [loading, setLoading] = useState(false);
     const [feeLoading, setFeeLoading] = useState(false);
@@ -227,7 +227,7 @@ export const Deploy = () => {
             }
         >
             <Form
-                form={form}
+                form={form} 
                 {...layout}>
                 <Divider />
                     <Form.Item
@@ -313,7 +313,7 @@ export const Deploy = () => {
                         <Space>
                             <Button
                                 type="primary"
-
+                                
                                 size="middle"
                                 onClick={deploy}
                             >
@@ -322,7 +322,7 @@ export const Deploy = () => {
                             {contextHolder}
                             <Button
                                 type="primary"
-
+                                
                                 size="middle"
                                 onClick={estimate}
                             >

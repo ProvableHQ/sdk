@@ -2,7 +2,7 @@ import * as aleo from "@aleohq/sdk";
 
 await aleo.initThreadPool();
 
-const defaultHost = "https://api.explorer.aleo.org/v1/testnet";
+const defaultHost = "https://api.explorer.aleo.org/v1";
 const keyProvider = new aleo.AleoKeyProvider();
 const programManager = new aleo.ProgramManager(defaultHost, keyProvider, undefined);
 
