@@ -115,30 +115,19 @@ mod tests {
         "https://s3-us-west-1.amazonaws.com/testnet3.parameters/transfer_public.prover.a74565e";
 
     #[wasm_bindgen_test]
-    async fn test_proving_key_roundtrip() {
-        let fee_proving_key_bytes = reqwest::get(TRANSFER_PUBLIC_PROVER).await.unwrap().bytes().await.unwrap().to_vec();
-        let fee_proving_key = ProvingKey::from_bytes(&fee_proving_key_bytes).unwrap();
-        let bytes = fee_proving_key.to_bytes().unwrap();
-        assert_eq!(bytes, fee_proving_key_bytes);
-    }
+    async fn test_proving_key() {
+        let bytes = reqwest::get(TRANSFER_PUBLIC_PROVER).await.unwrap().bytes().await.unwrap().to_vec();
+        let key = ProvingKey::from_bytes(&bytes).unwrap();
 
-    #[wasm_bindgen_test]
-    async fn test_from_string() {
-        let transfer_public_prover =
-            reqwest::get(TRANSFER_PUBLIC_PROVER).await.unwrap().bytes().await.unwrap().to_vec();
-        let transfer_public_proving_key = ProvingKey::from_bytes(&transfer_public_prover).unwrap();
-        let transfer_public_proving_key_string = transfer_public_proving_key.to_string();
+        let bytes = key.to_bytes().unwrap();
+        assert_eq!(bytes, bytes);
+
+        let transfer_public_proving_key_string = key.to_string();
         let transfer_public_proving_key_from_string =
             ProvingKey::from_string(&transfer_public_proving_key_string).unwrap();
-        assert_eq!(transfer_public_proving_key, transfer_public_proving_key_from_string);
-    }
+        assert_eq!(key, transfer_public_proving_key_from_string);
 
-    #[wasm_bindgen_test]
-    async fn test_prover_checksum() {
-        let transfer_public_prover =
-            reqwest::get(TRANSFER_PUBLIC_PROVER).await.unwrap().bytes().await.unwrap().to_vec();
-        let transfer_public_proving_key = ProvingKey::from_bytes(&transfer_public_prover).unwrap();
-        let transfer_public_proving_key_checksum = transfer_public_proving_key.checksum();
+        let transfer_public_proving_key_checksum = key.checksum();
         assert_eq!(
             transfer_public_proving_key_checksum,
             "a74565e4fd408a90b2d04b0e6c0dea6bf0ab6a27926ef28049da62d18727f6c6"
