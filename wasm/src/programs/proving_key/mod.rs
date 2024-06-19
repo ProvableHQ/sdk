@@ -111,7 +111,7 @@ mod tests {
     use super::*;
     use wasm_bindgen_test::*;
 
-    const TRANSFER_PUBLIC_PROVER: &str = "https://testnet3.parameters.aleo.org/transfer_public.prover.a74565e";
+    const TRANSFER_PUBLIC_PROVER: &str = "https://s3-us-west-1.amazonaws.com/testnet.parameters/transfer_public.prover.a74565e";
 
     #[wasm_bindgen_test]
     async fn test_proving_key_roundtrip() {

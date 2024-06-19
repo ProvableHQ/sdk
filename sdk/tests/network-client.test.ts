@@ -91,7 +91,7 @@ describe('NodeConnection', () => {
 
             expect(windowFetchSpy.mock.calls).toStrictEqual([
                 [
-                    "https://api.explorer.aleo.org/v1/testnet3/latest/block",
+                    "https://api.explorer.aleo.org/v1/testnet/latest/block",
                     {
                         "headers": {
                             // @TODO: Run the Jest tests on the compiled Rollup code,
