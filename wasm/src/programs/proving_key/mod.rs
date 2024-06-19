@@ -119,8 +119,8 @@ mod tests {
         let bytes = reqwest::get(TRANSFER_PUBLIC_PROVER).await.unwrap().bytes().await.unwrap().to_vec();
         let key = ProvingKey::from_bytes(&bytes).unwrap();
 
-        let bytes = key.to_bytes().unwrap();
-        assert_eq!(bytes, bytes);
+        let to_bytes = key.to_bytes().unwrap();
+        assert_eq!(bytes, to_bytes);
 
         let transfer_public_proving_key_string = key.to_string();
         let transfer_public_proving_key_from_string =
