@@ -206,7 +206,7 @@ mod tests {
             serde_json::from_str(proving_key_metadata).expect("Metadata was not well-formatted");
         let checksum = metadata["prover_checksum"].as_str().expect("Failed to parse checksum").to_string();
         format!(
-            "https://s3-us-west-1.amazonaws.com/testnet.parameters3/{}.prover.{}",
+            "https://s3-us-west-1.amazonaws.com/testnet3.parameters/{}.prover.{}",
             function_name,
             checksum.get(0..7).unwrap()
         )
