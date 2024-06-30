@@ -10,13 +10,18 @@ interface Key {
 }
 
 function convert(metadata: Metadata): Key {
+    // This looks up the method name in VerifyingKey
+    const verifyingKey = (VerifyingKey as any)[metadata.verifyingKey];
+
+    if (!verifyingKey) {
+        throw new Error("Invalid method name: " + metadata.verifyingKey);
+    }
+
     return {
         locator: metadata.locator,
         prover: metadata.prover,
         verifier: metadata.verifier,
-
-        // This looks up the method name in VerifyingKey
-        verifyingKey: (VerifyingKey as any)[metadata.verifyingKey],
+        verifyingKey,
     };
 }
 

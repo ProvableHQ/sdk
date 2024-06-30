@@ -209,9 +209,9 @@ class AleoKeyProvider implements FunctionKeyProvider {
         url = "/",
     ): Promise<Uint8Array> {
         try {
-            const response = await get(url);
-            const data = await response.arrayBuffer();
-            return new Uint8Array(data);
+        const response = await get(url);
+        const data = await response.arrayBuffer();
+        return new Uint8Array(data);
         } catch (error) {
             throw new Error("Error fetching data." + error);
         }
@@ -511,7 +511,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 } catch (e) {
                     /// If that fails, try to fetch the verifying key from the network as bytes
                     try {
-                        return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUri));
+                    return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUri));
                     } catch (inner) {
                         return new Error("Invalid verifying key. Error: " + inner);
                     }

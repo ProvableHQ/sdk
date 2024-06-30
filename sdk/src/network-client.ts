@@ -84,12 +84,11 @@ class AleoNetworkClient {
       url = "/",
   ): Promise<Type> {
     try {
-      const response = await get(this.host + url, {
-        headers: this.headers
-      });
+    const response = await get(this.host + url, {
+      headers: this.headers
+    });
 
-      return await response.json();
-
+    return await response.json();
     } catch (error) {
       throw new Error("Error fetching data.");
     }
@@ -584,11 +583,10 @@ class AleoNetworkClient {
    */
   async getTransaction(id: string): Promise<TransactionModel | Error> {
     try {
-      return await this.fetchData<TransactionModel>("/transaction/" + id);
+    return await this.fetchData<TransactionModel>("/transaction/" + id);
     } catch (error) {
       throw new Error("Error fetching transaction.");
     }
-
   }
 
   /**
@@ -600,7 +598,7 @@ class AleoNetworkClient {
    */
   async getTransactions(height: number): Promise<Array<TransactionModel> | Error> {
     try {
-      return await this.fetchData<Array<TransactionModel>>("/block/" + height.toString() + "/transactions");
+    return await this.fetchData<Array<TransactionModel>>("/block/" + height.toString() + "/transactions");
     } catch (error) {
       throw new Error("Error fetching transactions.");
     }

@@ -29,7 +29,7 @@ describe('NodeConnection', () => {
     describe('getBlock', () => {
         it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as Block).block_hash).toEqual("ab1hap8jlxaz66yt887gxlgxptkm2y0dy72x529mq6pg3ysy9tzwyqsphva9c");
+            expect((block as Block).block_hash).toEqual("ab17jdwevmgu20kcqazp2wjyy2u2k75rac2mtvuf6w6kjn8egv0uvrqe7mra6");
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
@@ -42,8 +42,8 @@ describe('NodeConnection', () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
             expect((blockRange as Block[]).length).toBe(2);
-            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1hap8jlxaz66yt887gxlgxptkm2y0dy72x529mq6pg3ysy9tzwyqsphva9c");
-            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab18dzmjgqgk5z6x4gggezca7aenqts7289chvhus4a7ydrcj4apvrqq5j5h8");
+            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab17jdwevmgu20kcqazp2wjyy2u2k75rac2mtvuf6w6kjn8egv0uvrqe7mra6");
+            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1avxqxn36nmffvr0pnv498hp5drfudgmyq9tjryrykqvr60anfcxqrqshfc");
 
         }, 60000);
 
@@ -206,7 +206,7 @@ describe('NodeConnection', () => {
         it('should find program mappings and read mappings', async () => {
             const mappings = await connection.getProgramMappingNames("credits.aleo");
             if (!(mappings instanceof Error)) {
-                expect(mappings).toEqual(["committee", "bonded", "unbonding", "account"]);
+                expect(mappings).toEqual(["committee", "delegated", "metadata", "bonded", "unbonding", "account", "withdraw"]);
             }
             const mappingValue = await connection.getProgramMappingValue("credits.aleo", "account", "aleo1rlwt9w0fl242h40w454m68vttd6vm4lmetu5r57unm5g354y9yzsyexf0y");
             if (!(mappingValue instanceof Error)) {
