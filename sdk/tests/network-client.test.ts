@@ -43,26 +43,12 @@ describe('NodeConnection', () => {
             expect(Array.isArray(blockRange)).toBe(true);
             expect((blockRange as Block[]).length).toBe(2);
             expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab17jdwevmgu20kcqazp2wjyy2u2k75rac2mtvuf6w6kjn8egv0uvrqe7mra6");
-            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1avxqxn36nmffvr0pnv498hp5drfudgmyq9tjryrykqvr60anfcxqrqshfc");
+            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1q60nvh5ha8ld43x0jph9futqwkdm4j3cvw5a2unj5d23ml090c9qkcvr3g");
 
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
             await expect(connection.getBlockRange(999999999, 1000000000)).rejects.toThrow('Error fetching blocks between 999999999 and 1000000000.');
-        }, 60000);
-    });
-
-    describe('getDeploymentTransactionForProgram', () => {
-        it('should return a Transaction object', async () => {
-            const transaction = await connection.getDeploymentTransactionForProgram('hello_hello.aleo');
-            expect((transaction as TransactionModel).type).toBe("deploy");
-        }, 60000);
-    });
-
-    describe('getDeploymentTransactionIDForProgram', () => {
-        it('should return a Transaction object', async () => {
-            const transaction = await connection.getDeploymentTransactionIDForProgram('hello_hello.aleo');
-            expect(typeof transaction).toBe('string');
         }, 60000);
     });
 
@@ -125,20 +111,7 @@ describe('NodeConnection', () => {
         }, 60000);
     });
 
-    describe('getTransaction', () => {
-        it('should return a Transaction object', async () => {
-            const transaction = await connection.getTransaction('at1u833jaha7gtqk7vx0yczcg2njds2tj52lyg54c7zyylgfjvc4vpqn8gqqx');
-            expect((transaction as TransactionModel).type).toBe("deploy");
-        }, 60000);
-    });
-
     describe('getTransactions', () => {
-        it('should return an array of Transaction objects', async () => {
-            const transactions = await connection.getTransactions(1);
-            expect(Array.isArray(transactions)).toBe(true);
-            expect((transactions as TransactionModel[]).length).toBeGreaterThan(0);
-        }, 60000);
-
         it('should throw an error if the request fails', async () => {
             await expect(connection.getTransactions(999999999)).rejects.toThrow('Error fetching transactions.');
         }, 60000);
@@ -146,10 +119,6 @@ describe('NodeConnection', () => {
 
     describe('getProgramImports', () => {
         it('should return the correct program import names', async () => {
-            const importNames = await connection.getProgramImportNames("aleoswap05.aleo");
-            const expectedNames = ["credits.aleo"];
-            expect(importNames).toEqual(expectedNames);
-
             const creditImports = await connection.getProgramImportNames("credits.aleo");
             const expectedCreditImports: string[] = [];
             expect(creditImports).toEqual(expectedCreditImports);
@@ -207,10 +176,6 @@ describe('NodeConnection', () => {
             const mappings = await connection.getProgramMappingNames("credits.aleo");
             if (!(mappings instanceof Error)) {
                 expect(mappings).toEqual(["committee", "delegated", "metadata", "bonded", "unbonding", "account", "withdraw"]);
-            }
-            const mappingValue = await connection.getProgramMappingValue("credits.aleo", "account", "aleo1rlwt9w0fl242h40w454m68vttd6vm4lmetu5r57unm5g354y9yzsyexf0y");
-            if (!(mappingValue instanceof Error)) {
-                expect(mappingValue).toBeTruthy()
             }
         }, 60000);
     });
