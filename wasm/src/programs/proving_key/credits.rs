@@ -36,6 +36,18 @@ impl ProvingKey {
         self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::BondPublicProver::METADATA)
     }
 
+    /// Verify if the proving key is for the bond_validator function
+    ///
+    /// @example
+    /// const provingKey = ProvingKey.fromBytes("bond_validator_proving_key.bin");
+    /// provingKey.isBondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+    ///
+    /// @returns {boolean} returns true if the proving key is for the bond_validator function, false if otherwise
+    #[wasm_bindgen(js_name = "isBondValidatorProver")]
+    pub fn is_bond_validator_prover(&self) -> bool {
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::BondValidatorProver::METADATA)
+    }
+
     /// Verify if the proving key is for the claim_unbond function
     ///
     /// @example
@@ -157,6 +169,19 @@ impl ProvingKey {
         self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::TransferPublicProver::METADATA)
     }
 
+    /// Verify if the proving key is for the transfer_public_as_signer function
+    ///
+    /// @example
+    /// const provingKey = ProvingKey.fromBytes("transfer_public_as_signer_proving_key.bin");
+    /// provingKey.isTransferPublicAsSignerProver() ? console.log("Key verified") : throw new Error("Invalid key");
+    ///
+    /// @returns {boolean} returns true if the proving key is for the transfer_public function, false if otherwise
+    #[wasm_bindgen(js_name = "isTransferPublicAsSignerProver")]
+    pub fn is_transfer_public_as_signer_prover(&self) -> bool {
+        self.checksum()
+            == ProvingKey::prover_checksum(snarkvm_parameters::testnet::TransferPublicAsSignerProver::METADATA)
+    }
+
     /// Verify if the proving key is for the transfer_public_to_private function
     ///
     /// @example
@@ -170,26 +195,13 @@ impl ProvingKey {
             == ProvingKey::prover_checksum(snarkvm_parameters::testnet::TransferPublicToPrivateProver::METADATA)
     }
 
-    /// Verify if the proving key is for the unbond_delegator_as_validator function
+    /// Verify if the proving key is for the unbond_public function
     ///
     /// @example
-    /// const provingKey = ProvingKey.fromBytes("unbond_delegator_as_validator_proving_key.bin");
-    /// provingKey.isUnbondDelegatorAsValidatorProver() ? console.log("Key verified") : throw new Error("Invalid key");
+    /// const provingKey = ProvingKey.fromBytes("unbond_public.bin");
+    /// provingKey.isUnbondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
     ///
-    /// @returns {boolean} returns true if the proving key is for the unbond_delegator_as_validator function, false if otherwise
-    #[wasm_bindgen(js_name = "isUnbondDelegatorAsValidatorProver")]
-    pub fn is_unbond_delegator_as_validator_prover(&self) -> bool {
-        self.checksum()
-            == ProvingKey::prover_checksum(snarkvm_parameters::testnet::UnbondDelegatorAsValidatorProver::METADATA)
-    }
-
-    /// Verify if the proving key is for the unbond_delegator_as_delegator function
-    ///
-    /// @example
-    /// const provingKey = ProvingKey.fromBytes("unbond_delegator_as_delegator_proving_key.bin");
-    /// provingKey.isUnbondDelegatorAsDelegatorProver() ? console.log("Key verified") : throw new Error("Invalid key");
-    ///
-    /// @returns {boolean} returns true if the proving key is for the unbond_delegator_as_delegator function, false if otherwise
+    /// @returns {boolean} returns true if the proving key is for the unbond_public_prover function, false if otherwise
     #[wasm_bindgen(js_name = "isUnbondPublicProver")]
     pub fn is_unbond_public_prover(&self) -> bool {
         self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::UnbondPublicProver::METADATA)
@@ -256,7 +268,6 @@ mod tests {
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_set_validator_state_prover());
         assert!(!prover.is_split_prover());
-
         sleep(DELAY).await;
 
         let prover_uri = Metadata::split().prover;
@@ -264,7 +275,6 @@ mod tests {
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_split_prover());
         assert!(!prover.is_transfer_private_prover());
-
         sleep(DELAY).await;
 
         let prover_uri = Metadata::transfer_private().prover;
@@ -295,16 +305,6 @@ mod tests {
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_transfer_public_to_private_prover());
-        assert!(!prover.is_unbond_delegator_as_validator_prover());
-
-        sleep(DELAY).await;
-
-        let prover_uri = Metadata::unbond_delegator_as_validator().prover;
-        let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
-        let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
-        assert!(prover.is_unbond_delegator_as_validator_prover());
-        assert!(!prover.is_unbond_public_prover());
-
         sleep(DELAY).await;
 
         let prover_uri = Metadata::unbond_public().prover;

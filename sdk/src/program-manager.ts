@@ -223,13 +223,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
      * const transaction = await programManager.buildExecutionTransaction({
@@ -330,13 +330,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
      * const transaction = await programManager.execute({
@@ -502,13 +502,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * const record = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
      * const tx_id = await programManager.split(25000000, record);
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -597,6 +597,7 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {string | undefined} caller The caller of the function (if calling transfer_public)
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
      * records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
@@ -607,13 +608,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * await programManager.initialize();
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -624,6 +625,7 @@ class ProgramManager {
         transferType: string,
         fee: number,
         privateFee: boolean,
+        caller?: string,
         recordSearchParams?: RecordSearchParams,
         amountRecord?: RecordPlaintext | string,
         feeRecord?: RecordPlaintext | string,
@@ -672,11 +674,39 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, caller, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
     }
 
     /**
      * Build a transfer_public transaction to transfer credits to another account for later submission to the Aleo network
+     *
+     * @param {number} amount The amount of credits to transfer
+     * @param {string} caller The caller of the transfer (may be different from the signer)
+     * @param {string} recipient The recipient of the transfer
+     * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
+     * @param {number} fee The fee to pay for the transfer
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
+     * records for the transfer transaction
+     * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
+     * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
+     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @returns {Promise<string | Error>} The transaction id of the transfer transaction
+     */
+    async buildTransferPublicTransaction(
+        amount: number,
+        caller: string,
+        recipient: string,
+        fee: number,
+        privateKey?: PrivateKey,
+        offlineQuery?: OfflineQuery
+    ): Promise<Transaction | Error> {
+        return this.buildTransferTransaction(amount, recipient, "public", fee, false, caller, undefined, undefined, undefined, privateKey, offlineQuery);
+    }
+
+    /**
+     * Build a transfer_public_as_signer transaction to transfer credits to another account for later submission to the Aleo network
      *
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
@@ -690,28 +720,15 @@ class ProgramManager {
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<string | Error>} The transaction id of the transfer transaction
-     *
-     * @example
-     * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
-     * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
-     *
-     * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
-     * await programManager.initialize();
-     * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    async buildTransferPublicTransaction(
+    async buildTransferPublicAsSignerTransaction(
         amount: number,
         recipient: string,
         fee: number,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
     ): Promise<Transaction | Error> {
-        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
+        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, undefined, privateKey, offlineQuery);
     }
 
     /**
@@ -722,6 +739,7 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {string | undefined} caller The caller of the function (if calling transfer_public)
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
      * records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
@@ -732,13 +750,12 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://vm.aleo.org/api");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://vm.aleo.org/api", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
      * await programManager.initialize();
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -749,18 +766,19 @@ class ProgramManager {
         transferType: string,
         fee: number,
         privateFee: boolean,
+        caller?: string,
         recordSearchParams?: RecordSearchParams,
         amountRecord?: RecordPlaintext | string,
         feeRecord?: RecordPlaintext | string,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
     ): Promise<string | Error> {
-        const tx = <Transaction>await this.buildTransferTransaction(amount, recipient, transferType, fee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery);
+        const tx = <Transaction>await this.buildTransferTransaction(amount, recipient, transferType, fee, privateFee, caller, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
 
     /**
-     * Build transaction to bond credits to a staking committee for later submission to the Aleo Network
+     * Build transaction to bond credits to a validator for later submission to the Aleo Network
      *
      * @example
      * // Create a keyProvider to handle key management
@@ -771,19 +789,25 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
-     * // Create the bonding transaction
-     * const tx_id = await programManager.bondPublic("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 2000000);
+     * // Create the bonding transaction object for later submission
+     * const tx = await programManager.buildBondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
+     * console.log(tx);
+     *
+     * // The transaction can be later submitted to the network using the network client.
+     * const result = await programManager.networkClient.submitTransaction(tx);
      *
      * @returns string
-     * @param {string} address Address of the validator to bond to, if this address is the same as the signer (i.e. the
+     * @param {string} staker_address Address of the staker who is bonding the credits
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
      * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
-     * requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing
+     * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
      * validator and is different from the address of the executor of this function, it will bond the credits to that
      * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
      * @param {number} amount The amount of credits to bond
      * @param {Partial<ExecuteOptions>} options - Override default execution options.
      */
-    async buildBondPublicTransaction(address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
+    async buildBondPublicTransaction(staker_address: string, validator_address: string, withdrawal_address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const {
@@ -791,7 +815,7 @@ class ProgramManager {
             functionName = "bond_public",
             fee = options.fee || 0.86,
             privateFee = false,
-            inputs = [address, `${scaledAmount.toString()}u64`],
+            inputs = [staker_address, validator_address, withdrawal_address, `${scaledAmount.toString()}u64`],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.bond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.bond_public.verifier,
@@ -815,7 +839,7 @@ class ProgramManager {
     }
 
     /**
-     * Bond credits to a staking committee
+     * Bond credits to validator.
      *
      * @example
      * // Create a keyProvider to handle key management
@@ -827,35 +851,140 @@ class ProgramManager {
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
-     * const tx_id = await programManager.bondPublic("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 2000000);
+     * const tx_id = await programManager.bondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
      *
      * @returns string
-     * @param {string} address Address of the validator to bond to, if this address is the same as the signer (i.e. the
+     * @param {string} staker_address Address of the staker who is bonding the credits
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the signer (i.e. the
      * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
      * requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing
      * validator and is different from the address of the executor of this function, it will bond the credits to that
      * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
      * @param {number} amount The amount of credits to bond
      * @param {Options} options Options for the execution
      */
-    async bondPublic(address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
-        const tx = <Transaction>await this.buildBondPublicTransaction(address, amount, options);
+    async bondPublic(staker_address: string, validator_address: string, withdrawal_address:string, amount: number, options: Partial<ExecuteOptions> = {}) {
+        const tx = <Transaction>await this.buildBondPublicTransaction(staker_address, validator_address, withdrawal_address, amount, options);
         return await this.networkClient.submitTransaction(tx);
     }
 
     /**
-     * Build a transaction to unbond public credits in the Aleo network.
+     * Build a bond_validator transaction for later submission to the Aleo Network.
      *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("YourPrivateKey"));
+     *
+     * // Create the bond validator transaction object for later use.
+     * const tx = await programManager.buildBondValidatorTransaction("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
+     * console.log(tx);
+     *
+     * // The transaction can later be submitted to the network using the network client.
+     * const tx_id = await programManager.networkClient.submitTransaction(tx);
+     *
+     * @returns string
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
+     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
+     * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
+     * validator and is different from the address of the executor of this function, it will bond the credits to that
+     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} amount The amount of credits to bond
+     * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
+     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     */
+    async buildBondValidatorTransaction(validator_address: string, withdrawal_address: string, amount: number, commission: number, options: Partial<ExecuteOptions> = {}) {
+        const scaledAmount = Math.trunc(amount * 1000000);
+
+        const adjustedCommission = Math.trunc(commission)
+
+        const {
+            programName = "credits.aleo",
+            functionName = "bond_validator",
+            fee = options.fee || 0.86,
+            privateFee = false,
+            inputs = [validator_address, withdrawal_address, `${scaledAmount.toString()}u64`, `${adjustedCommission.toString()}u8`],
+            keySearchParams = new AleoKeyProviderParams({
+                proverUri: CREDITS_PROGRAM_KEYS.bond_validator.prover,
+                verifierUri: CREDITS_PROGRAM_KEYS.bond_validator.verifier,
+                cacheKey: "credits.aleo/bond_validator"
+            }),
+            program = this.creditsProgram(),
+            ...additionalOptions
+        } = options;
+
+        const executeOptions: ExecuteOptions = {
+            programName,
+            functionName,
+            fee,
+            privateFee,
+            inputs,
+            keySearchParams,
+            ...additionalOptions
+        };
+
+        return await this.buildExecutionTransaction(executeOptions);
+    }
+
+    /**
+     * Build transaction to bond a validator.
+     *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("YourPrivateKey"));
+     *
+     * // Create the bonding transaction
+     * const tx_id = await programManager.bondValidator("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
+     *
+     * @returns string
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
+     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
+     * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
+     * validator and is different from the address of the executor of this function, it will bond the credits to that
+     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} amount The amount of credits to bond
+     * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
+     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     */
+    async bondValidator(validator_address: string, withdrawal_address: string, amount: number, commission: number, options: Partial<ExecuteOptions> = {}) {
+        const tx = <Transaction>await this.buildBondValidatorTransaction(validator_address, withdrawal_address, amount, commission, options);
+        return await this.networkClient.submitTransaction(tx);
+    }
+
+    /**
+     * Build a transaction to unbond public credits from a validator in the Aleo network.
+     *
+     * @param {string} staker_address - The address of the staker who is unbonding the credits.
      * @param {number} amount - The amount of credits to unbond (scaled by 1,000,000).
      * @param {Partial<ExecuteOptions>} options - Override default execution options.
      * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error message.
      *
      * @example
+     * // Create a keyProvider to handle key management.
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to unbond credits.
      * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
-     * const transaction = await programManager.buildUnbondPublicTransaction(2000000);
-     * console.log(transaction);
+     * const tx = await programManager.buildUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", 2000000);
+     * console.log(tx);
+     *
+     * // The transaction can be submitted later to the network using the network client.
+     * programManager.networkClient.submitTransaction(tx);
      */
-    async buildUnbondPublicTransaction(amount: number, options: Partial<ExecuteOptions> = {}): Promise<Transaction | Error> {
+    async buildUnbondPublicTransaction(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<Transaction | Error> {
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const {
@@ -863,7 +992,7 @@ class ProgramManager {
             functionName = "unbond_public",
             fee = options.fee || 1.3,
             privateFee = false,
-            inputs = [`${scaledAmount.toString()}u64`],
+            inputs = [staker_address, `${scaledAmount.toString()}u64`],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.unbond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.unbond_public.verifier,
@@ -887,7 +1016,7 @@ class ProgramManager {
     }
 
     /**
-     * Unbond a specified amount of staked credits to be used later
+     * Unbond a specified amount of staked credits.
      *
      * @example
      * // Create a keyProvider to handle key management
@@ -898,41 +1027,53 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
-     * // Create the bonding transaction
-     * const tx_id = await programManager.unbondPublic(10);
+     * // Create the bonding transaction and send it to the network
+     * const tx_id = await programManager.unbondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", 10);
      *
      * @returns string
+     * @param {string} staker_address Address of the staker who is unbonding the credits
      * @param {number} amount Amount of credits to unbond. If the address of the executor of this function is an
      * existing validator, it will subtract this amount of credits from the validator's staked credits. If there are
      * less than 1,000,000 credits staked pool after the unbond, the validator will be removed from the validator set.
      * If the address of the executor of this function is not a validator and has credits bonded as a delegator, it will
      * subtract this amount of credits from the delegator's staked credits. If there are less than 10 credits bonded
      * after the unbond operation, the delegator will be removed from the validator's staking pool.
-     * @param {Options} options Options for the execution
+     * @param {ExecuteOptions} options Options for the execution
      */
-    async unbondPublic(amount: number, options: Partial<ExecuteOptions> = {}): Promise<string | Error> {
-        const tx = <Transaction>await this.buildUnbondPublicTransaction(amount, options);
+    async unbondPublic(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<string | Error> {
+        const tx = <Transaction>await this.buildUnbondPublicTransaction(staker_address, amount, options);
         return await this.networkClient.submitTransaction(tx);
     }
 
     /**
      * Build a transaction to claim unbonded public credits in the Aleo network.
      *
+     * @param {string} staker_address - The address of the staker who is claiming the credits.
      * @param {Partial<ExecuteOptions>} options - Override default execution options.
      * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error message.
      *
      * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to claim unbonded credits.
      * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
-     * const transaction = await programManager.buildClaimUnbondPublicTransaction();
-     * console.log(transaction);
+     *
+     * // Create the claim unbonded transaction object for later use.
+     * const tx = await programManager.buildClaimUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j");
+     * console.log(tx);
+     *
+     * // The transaction can be submitted later to the network using the network client.
+     * programManager.networkClient.submitTransaction(tx);
      */
-    async buildClaimUnbondPublicTransaction(options: Partial<ExecuteOptions> = {}): Promise<Transaction | Error> {
+    async buildClaimUnbondPublicTransaction(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<Transaction | Error> {
         const {
             programName = "credits.aleo",
             functionName = "claim_unbond_public",
             fee = options.fee || 2,
             privateFee = false,
-            inputs = [],
+            inputs = [staker_address],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier,
@@ -969,23 +1110,48 @@ class ProgramManager {
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
-     * const tx_id = await programManager.claimUnbondPublic();
+     * const tx_id = await programManager.claimUnbondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j");
      *
+     * @param {string} staker_address Address of the staker who is claiming the credits
+     * @param {ExecuteOptions} options
      * @returns string
-     * @param {Options} options
      */
-    async claimUnbondPublic(options: Partial<ExecuteOptions> = {}): Promise<string | Error> {
-        const tx = <Transaction>await this.buildClaimUnbondPublicTransaction(options);
+    async claimUnbondPublic(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<string | Error> {
+        const tx = <Transaction>await this.buildClaimUnbondPublicTransaction(staker_address, options);
         return await this.networkClient.submitTransaction(tx);
     }
 
     /**
-     * Set Validator State
+     * Build a set_validator_state transaction for later usage.
+     *
+     * This function allows a validator to set their state to be either opened or closed to new stakers.
+     * When the validator is open to new stakers, any staker (including the validator) can bond or unbond from the validator.
+     * When the validator is closed to new stakers, existing stakers can still bond or unbond from the validator, but new stakers cannot bond.
+     *
+     * This function serves two primary purposes:
+     * 1. Allow a validator to leave the committee, by closing themselves to stakers and then unbonding all of their stakers.
+     * 2. Allow a validator to maintain their % of stake, by closing themselves to allowing more stakers to bond to them.
+     *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("ValidatorPrivateKey"));
+     *
+     * // Create the bonding transaction
+     * const tx = await programManager.buildSetValidatorStateTransaction(true);
+     *
+     * // The transaction can be submitted later to the network using the network client.
+     * programManager.networkClient.submitTransaction(tx);
+     *
      * @returns string
      * @param {boolean} validator_state
      * @param {Partial<ExecuteOptions>} options - Override default execution options
      */
-    async setValidatorState(validator_state: boolean, options: Partial<ExecuteOptions> = {}) {
+    async buildSetValidatorStateTransaction(validator_state: boolean, options: Partial<ExecuteOptions> = {}) {
         const {
             programName = "credits.aleo",
             functionName = "set_validator_state",
@@ -1014,40 +1180,36 @@ class ProgramManager {
     }
 
     /**
-     * Unbond Delegator As Validator
-     * @returns {Promise<string | Error>} A promise that resolves to the transaction ID or an error message.
-     * @param {string} address - The address of the delegator.
-     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * Submit a set_validator_state transaction to the Aleo Network.
+     *
+     * This function allows a validator to set their state to be either opened or closed to new stakers.
+     * When the validator is open to new stakers, any staker (including the validator) can bond or unbond from the validator.
+     * When the validator is closed to new stakers, existing stakers can still bond or unbond from the validator, but new stakers cannot bond.
+     *
+     * This function serves two primary purposes:
+     * 1. Allow a validator to leave the committee, by closing themselves to stakers and then unbonding all of their stakers.
+     * 2. Allow a validator to maintain their % of stake, by closing themselves to allowing more stakers to bond to them.
+     *
+     * @example
+     * // Create a keyProvider to handle key management
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache = true;
+     *
+     * // Create a new ProgramManager with the key that will be used to bond credits
+     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * programManager.setAccount(new Account("ValidatorPrivateKey"));
+     *
+     * // Create the bonding transaction
+     * const tx_id = await programManager.setValidatorState(true);
+     *
+     * @returns string
+     * @param {boolean} validator_state
+     * @param {Partial<ExecuteOptions>} options - Override default execution options
      */
-    async unbondDelegatorAsValidator(address: string, options: Partial<ExecuteOptions> = {}) {
-        const {
-            programName = "credits.aleo",
-            functionName = "unbond_delegator_as_validator",
-            fee = 1,
-            privateFee = false,
-            inputs = [address],
-            keySearchParams = new AleoKeyProviderParams({
-                proverUri: CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.prover,
-                verifierUri: CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifier,
-                cacheKey: "credits.aleo/unbond_delegator_as_validator"
-            }),
-            ...additionalOptions
-        } = options;
-
-        const executeOptions: ExecuteOptions = {
-            programName,
-            functionName,
-            fee,
-            privateFee,
-            inputs,
-            keySearchParams,
-            ...additionalOptions
-        };
-
-        return await this.execute(executeOptions);
+    async setValidatorState(validator_state: boolean, options: Partial<ExecuteOptions> = {}) {
+        const tx = <string>await this.buildSetValidatorStateTransaction(validator_state, options);
+        return this.networkClient.submitTransaction(tx);
     }
-
-
 
     /**
      * Verify a proof of execution from an offline execution

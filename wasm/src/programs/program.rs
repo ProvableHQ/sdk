@@ -580,6 +580,11 @@ function add_and_double:
                 "value_type": "committee_state",
             },
             object! {
+                "name": "delegated",
+                "key_type": "address",
+                "value_type": "u64",
+            },
+            object! {
                 "name": "metadata",
                 "key_type": "address",
                 "value_type": "u32",

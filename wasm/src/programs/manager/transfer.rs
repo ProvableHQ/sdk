@@ -63,6 +63,7 @@ impl ProgramManager {
         amount_credits: f64,
         recipient: &str,
         transfer_type: &str,
+        caller: Option<String>,
         amount_record: Option<RecordPlaintext>,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
@@ -113,10 +114,17 @@ impl ProgramManager {
                 ("transfer_private_to_public", inputs)
             }
             "public" | "transfer_public" | "transferPublic" => {
+                let inputs = Array::new_with_length(3);
+                inputs.set(0u32, wasm_bindgen::JsValue::from_str(&caller.unwrap()));
+                inputs.set(1u32, wasm_bindgen::JsValue::from_str(recipient));
+                inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                ("transfer_public", inputs)
+            }
+            "public_as_signer" | "transfer_public_as_signer" | "transferPublicAsSigner" => {
                 let inputs = Array::new_with_length(2);
                 inputs.set(0u32, wasm_bindgen::JsValue::from_str(recipient));
                 inputs.set(1u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
-                ("transfer_public", inputs)
+                ("transfer_public_as_signer", inputs)
             }
             "public_to_private" | "publicToPrivate" | "transfer_public_to_private" | "transferPublicToPrivate" => {
                 let inputs = Array::new_with_length(2);

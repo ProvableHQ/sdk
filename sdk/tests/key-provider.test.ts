@@ -62,7 +62,6 @@ describe('KeyProvider', () => {
             const [transferPrivateToPublicProver, transferPrivateToPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier, CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator);
             const [transferPublicProver, transferPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier, CREDITS_PROGRAM_KEYS.transfer_public.locator);
             const [transferPublicToPrivateProver, transferPublicToPrivateVerifier] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier, CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator);
-            const [unbondDelegatorAsValidatorProver, unbondDelegatorAsValidatorVerifier] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.prover, CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.verifier, CREDITS_PROGRAM_KEYS.unbond_delegator_as_validator.locator);
             const [unbondPublicProver, unbondPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchKeys(CREDITS_PROGRAM_KEYS.unbond_public.prover, CREDITS_PROGRAM_KEYS.unbond_public.verifier, CREDITS_PROGRAM_KEYS.unbond_public.locator);
 
             // Ensure the insertion methods work as expected without throwing an exception
@@ -77,7 +76,6 @@ describe('KeyProvider', () => {
             offlineKeyProvider.insertTransferPrivateToPublicKeys(transferPrivateToPublicProver);
             offlineKeyProvider.insertTransferPublicKeys(transferPublicProver);
             offlineKeyProvider.insertTransferPublicToPrivateKeys(transferPublicToPrivateProver);
-            offlineKeyProvider.insertUnbondDelegatorAsValidatorKeys(unbondDelegatorAsValidatorProver);
             offlineKeyProvider.insertUnbondPublicKeys(unbondPublicProver);
 
             // Ensure the offline key provider methods for credits.aleo return the correct keys
