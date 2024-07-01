@@ -346,7 +346,7 @@ export const ExecuteLegacy = () => {
         try {
             if (id) {
                 axios
-                    .get(`${peerUrl()}/testnet3/program/${id}`)
+                    .get(`${peerUrl()}/testnet/program/${id}`)
                     .then((response) => {
                         setStatus("success");
                         setProgram(response.data);
@@ -392,7 +392,7 @@ export const ExecuteLegacy = () => {
             extra={
                 <Button
                     type="primary"
-                    
+
                     size="middle"
                     onClick={demo}
                 >
@@ -557,7 +557,7 @@ export const ExecuteLegacy = () => {
                         <Space>
                             <Button
                                 type="primary"
-                                
+
                                 size="middle"
                                 onClick={execute}
                             >
@@ -567,7 +567,7 @@ export const ExecuteLegacy = () => {
                             {executeOnline && (
                                 <Button
                                     type="primary"
-                                    
+
                                     size="middle"
                                     onClick={estimate}
                                 >

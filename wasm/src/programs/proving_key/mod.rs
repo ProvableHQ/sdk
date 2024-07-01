@@ -15,7 +15,6 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 mod credits;
-pub use credits::*;
 
 use crate::types::native::{FromBytes, ProvingKeyNative, ToBytes};
 
@@ -110,38 +109,28 @@ impl PartialEq for ProvingKey {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Metadata;
     use wasm_bindgen_test::*;
 
-    const TRANSFER_PUBLIC_PROVER: &str = "https://testnet3.parameters.aleo.org/transfer_public.prover.a74565e";
-
     #[wasm_bindgen_test]
-    async fn test_proving_key_roundtrip() {
-        let fee_proving_key_bytes = reqwest::get(TRANSFER_PUBLIC_PROVER).await.unwrap().bytes().await.unwrap().to_vec();
-        let fee_proving_key = ProvingKey::from_bytes(&fee_proving_key_bytes).unwrap();
-        let bytes = fee_proving_key.to_bytes().unwrap();
-        assert_eq!(bytes, fee_proving_key_bytes);
-    }
+    async fn test_proving_key() {
+        let transer_public_prover = Metadata::transfer_public().prover;
 
-    #[wasm_bindgen_test]
-    async fn test_from_string() {
-        let transfer_public_prover =
-            reqwest::get(TRANSFER_PUBLIC_PROVER).await.unwrap().bytes().await.unwrap().to_vec();
-        let transfer_public_proving_key = ProvingKey::from_bytes(&transfer_public_prover).unwrap();
-        let transfer_public_proving_key_string = transfer_public_proving_key.to_string();
+        let bytes = reqwest::get(transer_public_prover).await.unwrap().bytes().await.unwrap().to_vec();
+        let key = ProvingKey::from_bytes(&bytes).unwrap();
+
+        let to_bytes = key.to_bytes().unwrap();
+        assert_eq!(bytes, to_bytes);
+
+        let transfer_public_proving_key_string = key.to_string();
         let transfer_public_proving_key_from_string =
             ProvingKey::from_string(&transfer_public_proving_key_string).unwrap();
-        assert_eq!(transfer_public_proving_key, transfer_public_proving_key_from_string);
-    }
+        assert_eq!(key, transfer_public_proving_key_from_string);
 
-    #[wasm_bindgen_test]
-    async fn test_prover_checksum() {
-        let transfer_public_prover =
-            reqwest::get(TRANSFER_PUBLIC_PROVER).await.unwrap().bytes().await.unwrap().to_vec();
-        let transfer_public_proving_key = ProvingKey::from_bytes(&transfer_public_prover).unwrap();
-        let transfer_public_proving_key_checksum = transfer_public_proving_key.checksum();
+        let transfer_public_proving_key_checksum = key.checksum();
         assert_eq!(
             transfer_public_proving_key_checksum,
-            "a74565e4fd408a90b2d04b0e6c0dea6bf0ab6a27926ef28049da62d18727f6c6"
+            "846f86cabf9fa50e5abe347e559a8e9f3018459b5af9fdf52f1c44892b05f7e5"
         );
     }
 }

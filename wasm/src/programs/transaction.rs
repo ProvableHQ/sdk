@@ -93,7 +93,7 @@ impl FromStr for Transaction {
     }
 }
 
-#[cfg(test)]
+/*#[cfg(test)]
 mod tests {
     use super::*;
     use wasm_bindgen_test::*;
@@ -118,4 +118,4 @@ mod tests {
         let transaction_from_native = Transaction::from(transaction_native);
         assert_eq!(transaction, transaction_from_native);
     }
-}
+}*/

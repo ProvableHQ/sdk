@@ -10,6 +10,7 @@ export {
     Execution,
     ExecutionResponse,
     Field,
+    Metadata,
     OfflineQuery,
     PrivateKey,
     PrivateKeyCiphertext,

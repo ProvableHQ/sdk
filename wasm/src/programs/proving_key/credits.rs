@@ -33,7 +33,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the bond_public function, false if otherwise
     #[wasm_bindgen(js_name = "isBondPublicProver")]
     pub fn is_bond_public_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::BondPublicProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::BondPublicProver::METADATA)
     }
 
     /// Verify if the proving key is for the claim_unbond function
@@ -45,7 +45,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the claim_unbond function, false if otherwise
     #[wasm_bindgen(js_name = "isClaimUnbondPublicProver")]
     pub fn is_claim_unbond_public_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::ClaimUnbondPublicProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::ClaimUnbondPublicProver::METADATA)
     }
 
     /// Verify if the proving key is for the fee_private function
@@ -57,7 +57,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the fee_private function, false if otherwise
     #[wasm_bindgen(js_name = "isFeePrivateProver")]
     pub fn is_fee_private_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::FeePrivateProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::FeePrivateProver::METADATA)
     }
 
     /// Verify if the proving key is for the fee_public function
@@ -69,7 +69,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the fee_public function, false if otherwise
     #[wasm_bindgen(js_name = "isFeePublicProver")]
     pub fn is_fee_public_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::FeePublicProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::FeePublicProver::METADATA)
     }
 
     /// Verify if the proving key is for the inclusion function
@@ -81,7 +81,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the inclusion function, false if otherwise
     #[wasm_bindgen(js_name = "isInclusionProver")]
     pub fn is_inclusion_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::InclusionProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::InclusionProver::METADATA)
     }
 
     /// Verify if the proving key is for the join function
@@ -93,7 +93,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the join function, false if otherwise
     #[wasm_bindgen(js_name = "isJoinProver")]
     pub fn is_join_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::JoinProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::JoinProver::METADATA)
     }
 
     /// Verify if the proving key is for the set_validator_state function
@@ -105,7 +105,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the set_validator_state function, false if otherwise
     #[wasm_bindgen(js_name = "isSetValidatorStateProver")]
     pub fn is_set_validator_state_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::SetValidatorStateProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::SetValidatorStateProver::METADATA)
     }
 
     /// Verify if the proving key is for the split function
@@ -117,7 +117,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the split function, false if otherwise
     #[wasm_bindgen(js_name = "isSplitProver")]
     pub fn is_split_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::SplitProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::SplitProver::METADATA)
     }
 
     /// Verify if the proving key is for the transfer_private function
@@ -129,7 +129,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the transfer_private function, false if otherwise
     #[wasm_bindgen(js_name = "isTransferPrivateProver")]
     pub fn is_transfer_private_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::TransferPrivateProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::TransferPrivateProver::METADATA)
     }
 
     /// Verify if the proving key is for the transfer_private_to_public function
@@ -142,7 +142,7 @@ impl ProvingKey {
     #[wasm_bindgen(js_name = "isTransferPrivateToPublicProver")]
     pub fn is_transfer_private_to_public_prover(&self) -> bool {
         self.checksum()
-            == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::TransferPrivateToPublicProver::METADATA)
+            == ProvingKey::prover_checksum(snarkvm_parameters::testnet::TransferPrivateToPublicProver::METADATA)
     }
 
     /// Verify if the proving key is for the transfer_public function
@@ -154,7 +154,7 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the transfer_public function, false if otherwise
     #[wasm_bindgen(js_name = "isTransferPublicProver")]
     pub fn is_transfer_public_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::TransferPublicProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::TransferPublicProver::METADATA)
     }
 
     /// Verify if the proving key is for the transfer_public_to_private function
@@ -167,7 +167,7 @@ impl ProvingKey {
     #[wasm_bindgen(js_name = "isTransferPublicToPrivateProver")]
     pub fn is_transfer_public_to_private_prover(&self) -> bool {
         self.checksum()
-            == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::TransferPublicToPrivateProver::METADATA)
+            == ProvingKey::prover_checksum(snarkvm_parameters::testnet::TransferPublicToPrivateProver::METADATA)
     }
 
     /// Verify if the proving key is for the unbond_delegator_as_validator function
@@ -180,7 +180,7 @@ impl ProvingKey {
     #[wasm_bindgen(js_name = "isUnbondDelegatorAsValidatorProver")]
     pub fn is_unbond_delegator_as_validator_prover(&self) -> bool {
         self.checksum()
-            == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::UnbondDelegatorAsValidatorProver::METADATA)
+            == ProvingKey::prover_checksum(snarkvm_parameters::testnet::UnbondDelegatorAsValidatorProver::METADATA)
     }
 
     /// Verify if the proving key is for the unbond_delegator_as_delegator function
@@ -192,111 +192,122 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the unbond_delegator_as_delegator function, false if otherwise
     #[wasm_bindgen(js_name = "isUnbondPublicProver")]
     pub fn is_unbond_public_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet3::UnbondPublicProver::METADATA)
+        self.checksum() == ProvingKey::prover_checksum(snarkvm_parameters::testnet::UnbondPublicProver::METADATA)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Metadata;
     use wasm_bindgen_test::*;
 
-    fn get_proving_key_uri(function_name: &str, proving_key_metadata: &'static str) -> String {
-        let metadata: serde_json::Value =
-            serde_json::from_str(proving_key_metadata).expect("Metadata was not well-formatted");
-        let checksum = metadata["prover_checksum"].as_str().expect("Failed to parse checksum").to_string();
-        format!("https://testnet3.parameters.aleo.org/{}.prover.{}", function_name, checksum.get(0..7).unwrap())
+    // This is needed to fix throttling issues with AWS
+    async fn sleep(time: u32) {
+        gloo_timers::future::TimeoutFuture::new(time).await;
     }
 
     #[wasm_bindgen_test]
     async fn test_proving_key_checksum() {
-        let prover_uri = get_proving_key_uri("bond_public", snarkvm_parameters::testnet3::BondPublicProver::METADATA);
+        const DELAY: u32 = 100;
+
+        let prover_uri = Metadata::bond_public().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_bond_public_prover());
         assert!(!prover.is_claim_unbond_public_prover());
 
-        let prover_uri =
-            get_proving_key_uri("claim_unbond_public", snarkvm_parameters::testnet3::ClaimUnbondPublicProver::METADATA);
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::claim_unbond_public().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_claim_unbond_public_prover());
         assert!(!prover.is_fee_private_prover());
 
-        let prover_uri = get_proving_key_uri("fee_private", snarkvm_parameters::testnet3::FeePrivateProver::METADATA);
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::fee_private().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_fee_private_prover());
         assert!(!prover.is_fee_public_prover());
 
-        let prover_uri = get_proving_key_uri("fee_public", snarkvm_parameters::testnet3::FeePublicProver::METADATA);
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::fee_public().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_fee_public_prover());
         assert!(!prover.is_join_prover());
 
-        let prover_uri = get_proving_key_uri("join", snarkvm_parameters::testnet3::JoinProver::METADATA);
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::join().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_join_prover());
         assert!(!prover.is_set_validator_state_prover());
 
-        let prover_uri =
-            get_proving_key_uri("set_validator_state", snarkvm_parameters::testnet3::SetValidatorStateProver::METADATA);
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::set_validator_state().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_set_validator_state_prover());
         assert!(!prover.is_split_prover());
 
-        let prover_uri = get_proving_key_uri("split", snarkvm_parameters::testnet3::SplitProver::METADATA);
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::split().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_split_prover());
         assert!(!prover.is_transfer_private_prover());
 
-        let prover_uri =
-            get_proving_key_uri("transfer_private", snarkvm_parameters::testnet3::TransferPrivateProver::METADATA);
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::transfer_private().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_transfer_private_prover());
         assert!(!prover.is_transfer_private_to_public_prover());
 
-        let prover_uri = get_proving_key_uri(
-            "transfer_private_to_public",
-            snarkvm_parameters::testnet3::TransferPrivateToPublicProver::METADATA,
-        );
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::transfer_private_to_public().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_transfer_private_to_public_prover());
         assert!(!prover.is_transfer_public_prover());
 
-        let prover_uri =
-            get_proving_key_uri("transfer_public", snarkvm_parameters::testnet3::TransferPublicProver::METADATA);
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::transfer_public().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_transfer_public_prover());
         assert!(!prover.is_transfer_public_to_private_prover());
 
-        let prover_uri = get_proving_key_uri(
-            "transfer_public_to_private",
-            snarkvm_parameters::testnet3::TransferPublicToPrivateProver::METADATA,
-        );
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::transfer_public_to_private().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_transfer_public_to_private_prover());
         assert!(!prover.is_unbond_delegator_as_validator_prover());
 
-        let prover_uri = get_proving_key_uri(
-            "unbond_delegator_as_validator",
-            snarkvm_parameters::testnet3::UnbondDelegatorAsValidatorProver::METADATA,
-        );
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::unbond_delegator_as_validator().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_unbond_delegator_as_validator_prover());
         assert!(!prover.is_unbond_public_prover());
 
-        let prover_uri =
-            get_proving_key_uri("unbond_public", snarkvm_parameters::testnet3::UnbondPublicProver::METADATA);
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::unbond_public().prover;
         let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_unbond_public_prover());

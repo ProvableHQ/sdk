@@ -209,9 +209,9 @@ class AleoKeyProvider implements FunctionKeyProvider {
         url = "/",
     ): Promise<Uint8Array> {
         try {
-            const response = await get(url);
-            const data = await response.arrayBuffer();
-            return new Uint8Array(data);
+        const response = await get(url);
+        const data = await response.arrayBuffer();
+        return new Uint8Array(data);
         } catch (error) {
             throw new Error("Error fetching data." + error);
         }
@@ -298,7 +298,6 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
-     * const AleoProviderParams = new AleoProviderParams("https://testnet3.parameters.aleo.org/transfer_private.");
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
      * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
@@ -356,7 +355,10 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually
-     * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchKeys("https://testnet3.parameters.aleo.org/transfer_private.prover.2a9a6f2", "https://testnet3.parameters.aleo.org/transfer_private.verifier.3a59762");
+     * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchKeys(
+     *     CREDITS_PROGRAM_KEYS.transfer_private.prover,
+     *     CREDITS_PROGRAM_KEYS.transfer_private.verifier,
+     * );
      */
     async fetchKeys(proverUrl: string, verifierUrl: string, cacheKey?: string): Promise<FunctionKeyPair | Error> {
         try {
@@ -509,7 +511,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 } catch (e) {
                     /// If that fails, try to fetch the verifying key from the network as bytes
                     try {
-                        return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUri));
+                    return <VerifyingKey>VerifyingKey.fromBytes(await this.fetchBytes(verifierUri));
                     } catch (inner) {
                         return new Error("Invalid verifying key. Error: " + inner);
                     }
