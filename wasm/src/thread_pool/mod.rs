@@ -88,6 +88,7 @@ extern "C" {
 ///
 /// This will keep the NodeJS process alive until the
 /// Future is resolved.
+#[allow(dead_code)]
 pub fn spawn<A, F>(f: F) -> impl Future<Output = A>
 where
     A: Send + 'static,

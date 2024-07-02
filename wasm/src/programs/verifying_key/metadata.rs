@@ -71,6 +71,17 @@ impl Metadata {
     }
 
     #[wasm_bindgen]
+    pub fn bond_validator() -> Metadata {
+        Metadata::new(
+            "bond_validator",
+            "bondValidatorVerifier",
+            "credits.aleo/bond_validator",
+            snarkvm_parameters::testnet::BondValidatorProver::METADATA,
+            snarkvm_parameters::testnet::BondValidatorVerifier::METADATA,
+        )
+    }
+
+    #[wasm_bindgen]
     pub fn claim_unbond_public() -> Metadata {
         Metadata::new(
             "claim_unbond_public",
@@ -181,6 +192,17 @@ impl Metadata {
     }
 
     #[wasm_bindgen]
+    pub fn transfer_public_as_signer() -> Metadata {
+        Metadata::new(
+            "transfer_public_as_signer",
+            "transferPublicAsSignerVerifier",
+            "credits.aleo/transfer_public_as_signer",
+            snarkvm_parameters::testnet::TransferPublicAsSignerProver::METADATA,
+            snarkvm_parameters::testnet::TransferPublicAsSignerVerifier::METADATA,
+        )
+    }
+
+    #[wasm_bindgen]
     pub fn transfer_public_to_private() -> Metadata {
         Metadata::new(
             "transfer_public_to_private",
@@ -188,17 +210,6 @@ impl Metadata {
             "credits.aleo/transfer_public_to_private",
             snarkvm_parameters::testnet::TransferPublicToPrivateProver::METADATA,
             snarkvm_parameters::testnet::TransferPublicToPrivateVerifier::METADATA,
-        )
-    }
-
-    #[wasm_bindgen]
-    pub fn unbond_delegator_as_validator() -> Metadata {
-        Metadata::new(
-            "unbond_delegator_as_validator",
-            "unbondDelegatorAsValidatorVerifier",
-            "credits.aleo/unbond_delegator_as_validator",
-            snarkvm_parameters::testnet::UnbondDelegatorAsValidatorProver::METADATA,
-            snarkvm_parameters::testnet::UnbondDelegatorAsValidatorVerifier::METADATA,
         )
     }
 

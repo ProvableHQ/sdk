@@ -171,6 +171,8 @@ mod thread_pool;
 mod thread_pool {
     use std::future::Future;
 
+    #[allow(dead_code)]
+    #[allow(clippy::manual_async_fn)]
     pub fn spawn<A, F>(f: F) -> impl Future<Output = A>
     where
         A: Send + 'static,

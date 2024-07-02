@@ -27,6 +27,7 @@ function convert(metadata: Metadata): Key {
 
 const CREDITS_PROGRAM_KEYS = {
     bond_public: convert(Metadata.bond_public()),
+    bond_validator: convert(Metadata.bond_validator()),
     claim_unbond_public: convert(Metadata.claim_unbond_public()),
     fee_private: convert(Metadata.fee_private()),
     fee_public: convert(Metadata.fee_public()),
@@ -37,8 +38,8 @@ const CREDITS_PROGRAM_KEYS = {
     transfer_private: convert(Metadata.transfer_private()),
     transfer_private_to_public: convert(Metadata.transfer_private_to_public()),
     transfer_public: convert(Metadata.transfer_public()),
+    transfer_public_as_signer: convert(Metadata.transfer_public_as_signer()),
     transfer_public_to_private: convert(Metadata.transfer_public_to_private()),
-    unbond_delegator_as_validator: convert(Metadata.unbond_delegator_as_validator()),
     unbond_public: convert(Metadata.unbond_public()),
 };
 
@@ -58,10 +59,14 @@ const VALID_TRANSFER_TYPES = new Set([
     "privateToPublic",
     "transferPrivateToPublic",
     "transfer_public",
+    "transfer_public_as_signer",
     "public",
+    "public_as_signer",
     "transferPublic",
+    "transferPublicAsSigner",
     "transfer_public_to_private",
     "publicToPrivate",
+    "publicAsSigner",
     "transferPublicToPrivate",
 ]);
 const PRIVATE_TRANSFER = new Set([
@@ -79,6 +84,11 @@ const PUBLIC_TRANSFER = new Set([
     "public",
     "transfer_public",
     "transferPublic",
+]);
+const PUBLIC_TRANSFER_AS_SIGNER = new Set([
+    "public_as_signer",
+    "transfer_public_as_signer",
+    "transferPublicAsSigner",
 ]);
 const PUBLIC_TO_PRIVATE_TRANSFER = new Set([
     "public_to_private",
@@ -181,6 +191,7 @@ export {
     PRIVATE_TO_PUBLIC_TRANSFER,
     PRIVATE_TRANSFER_TYPES,
     PUBLIC_TRANSFER,
+    PUBLIC_TRANSFER_AS_SIGNER,
     PUBLIC_TO_PRIVATE_TRANSFER,
     VALID_TRANSFER_TYPES,
     logAndThrow,

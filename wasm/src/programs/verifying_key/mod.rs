@@ -17,7 +17,7 @@
 mod credits;
 mod metadata;
 
-use crate::types::native::{FromBytes, ToBytes, VerifyingKeyNative};
+use crate::types::native::{CurrentNetwork, FromBytes, Network, ToBytes, VerifyingKeyNative};
 
 use sha2::Digest;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -176,11 +176,6 @@ mod tests {
         )
         .unwrap()
         .to_string();
-        let unbond_delegator_as_validator_verifier_string = VerifyingKey::from_bytes(
-            &snarkvm_parameters::testnet::UnbondDelegatorAsValidatorVerifier::load_bytes().unwrap(),
-        )
-        .unwrap()
-        .to_string();
         let unbond_public_verifier_string =
             VerifyingKey::from_bytes(&snarkvm_parameters::testnet::UnbondPublicVerifier::load_bytes().unwrap())
                 .unwrap()
@@ -202,10 +197,6 @@ mod tests {
         println!(
             "transfer_public_to_private_verifier:\nverifying_key: \"{}\"",
             transfer_public_to_private_verifier_string
-        );
-        println!(
-            "unbond_delegator_as_validator_verifier:\nverifying_key: \"{}\"",
-            unbond_delegator_as_validator_verifier_string
         );
         println!("unbond_public_verifier:\nverifying_key: \"{}\"", unbond_public_verifier_string);
     }
