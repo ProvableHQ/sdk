@@ -264,6 +264,7 @@ self.addEventListener("message", (ev) => {
                     transfer_type,
                     fee,
                     privateFee,
+                    Address.from_private_key(PrivateKey.from_string(privateKey)).to_string(),
                     undefined,
                     amountRecord,
                     feeRecord,

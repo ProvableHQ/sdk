@@ -306,7 +306,7 @@ impl ProgramManager {
             let stack = process.get_stack(program_id).map_err(|e| e.to_string())?;
 
             // Calculate the finalize cost for the function identified in the transition
-            let cost = cost_in_microcredits(&stack, function_name).map_err(|e| e.to_string())?;
+            let cost = cost_in_microcredits(stack, function_name).map_err(|e| e.to_string())?;
 
             // Accumulate the finalize cost.
             finalize_cost = finalize_cost
