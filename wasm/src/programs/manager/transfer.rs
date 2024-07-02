@@ -36,8 +36,8 @@ use crate::types::native::{
     TransactionNative,
 };
 use rand::{rngs::StdRng, SeedableRng};
-use wasm_bindgen::JsValue;
 use std::{ops::Add, str::FromStr};
+use wasm_bindgen::JsValue;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -101,7 +101,9 @@ impl ProgramManager {
                     JsValue::from_str(&amount_record.unwrap().to_string()),
                     JsValue::from(recipient),
                     JsValue::from(&amount_microcredits.to_string().add("u64")),
-                ].into_iter().collect::<js_sys::Array>();
+                ]
+                .into_iter()
+                .collect::<js_sys::Array>();
                 ("transfer_private", inputs)
             }
             "private_to_public" | "privateToPublic" | "transfer_private_to_public" | "transferPrivateToPublic" => {
@@ -112,7 +114,9 @@ impl ProgramManager {
                     JsValue::from_str(&amount_record.unwrap().to_string()),
                     JsValue::from(recipient),
                     JsValue::from(&amount_microcredits.to_string().add("u64")),
-                ].into_iter().collect::<js_sys::Array>();
+                ]
+                .into_iter()
+                .collect::<js_sys::Array>();
                 ("transfer_private_to_public", inputs)
             }
             "public" | "transfer_public" | "transferPublic" => {
@@ -120,21 +124,21 @@ impl ProgramManager {
                     JsValue::from(&caller.unwrap()),
                     JsValue::from(recipient),
                     JsValue::from(&amount_microcredits.to_string().add("u64")),
-                ].into_iter().collect::<js_sys::Array>();
+                ]
+                .into_iter()
+                .collect::<js_sys::Array>();
                 ("transfer_public", inputs)
             }
             "public_as_signer" | "transfer_public_as_signer" | "transferPublicAsSigner" => {
-                let inputs = [
-                    JsValue::from(recipient),
-                    JsValue::from(&amount_microcredits.to_string().add("u64")),
-                ].into_iter().collect::<js_sys::Array>();
+                let inputs = [JsValue::from(recipient), JsValue::from(&amount_microcredits.to_string().add("u64"))]
+                    .into_iter()
+                    .collect::<js_sys::Array>();
                 ("transfer_public_as_signer", inputs)
             }
             "public_to_private" | "publicToPrivate" | "transfer_public_to_private" | "transferPublicToPrivate" => {
-                let inputs = [
-                    JsValue::from(recipient),
-                    JsValue::from(&amount_microcredits.to_string().add("u64")),
-                ].into_iter().collect::<js_sys::Array>();
+                let inputs = [JsValue::from(recipient), JsValue::from(&amount_microcredits.to_string().add("u64"))]
+                    .into_iter()
+                    .collect::<js_sys::Array>();
                 ("transfer_public_to_private", inputs)
             }
             _ => return Err("Invalid transfer type".to_string()),
