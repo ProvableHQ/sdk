@@ -1,8 +1,8 @@
 This is a [Next.js](https://nextjs.org/) example project showing Aleo
 integration via Web Workers.
 
-This template is based off the default TypeScript configuration from
-[`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app)
+This template is based on the default TypeScript configuration from
+[`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
 

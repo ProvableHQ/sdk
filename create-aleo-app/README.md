@@ -5,7 +5,7 @@
 > **Compatibility Note:**
 > [Node.js](https://nodejs.org/en/) version 18+
 
-With NPM:
+Use NPM:
 
 ```bash
 npm create aleo-app@latest
@@ -23,7 +23,7 @@ npm create aleo-app@latest my-aleo-app --template react
 npm create aleo-app@latest my-aleo-app -- --template react
 ```
 
-Currently supported template presets include:
+The currently supported template presets include:
 
 - `vanilla`
 - `react-leo`
@@ -34,4 +34,4 @@ You can use `.` for the project name to scaffold in the current directory.
 
 ## More Information
 
-Based off of create-vite: https://github.com/vitejs/vite/tree/main/packages/create-vite
+Based off of `create-vite`: [https://github.com/vitejs/vite/tree/main/packages/create-vite](https://github.com/vitejs/vite/tree/main/packages/create-vite).
