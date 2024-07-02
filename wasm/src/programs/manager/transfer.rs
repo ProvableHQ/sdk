@@ -35,8 +35,8 @@ use crate::types::native::{
     RecordPlaintextNative,
     TransactionNative,
 };
-use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
+use wasm_bindgen::JsValue;
 use std::{ops::Add, str::FromStr};
 
 #[wasm_bindgen]
@@ -97,39 +97,44 @@ impl ProgramManager {
                 if amount_record.is_none() {
                     return Err("Amount record must be provided for private transfers".to_string());
                 }
-                let inputs = Array::new_with_length(3);
-                inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.unwrap().to_string()));
-                inputs.set(1u32, wasm_bindgen::JsValue::from_str(recipient));
-                inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                let inputs = [
+                    JsValue::from_str(&amount_record.unwrap().to_string()),
+                    JsValue::from(recipient),
+                    JsValue::from(&amount_microcredits.to_string().add("u64")),
+                ].into_iter().collect::<js_sys::Array>();
                 ("transfer_private", inputs)
             }
             "private_to_public" | "privateToPublic" | "transfer_private_to_public" | "transferPrivateToPublic" => {
                 if amount_record.is_none() {
                     return Err("Amount record must be provided for private transfers".to_string());
                 }
-                let inputs = Array::new_with_length(3);
-                inputs.set(0u32, wasm_bindgen::JsValue::from_str(&amount_record.unwrap().to_string()));
-                inputs.set(1u32, wasm_bindgen::JsValue::from_str(recipient));
-                inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                let inputs = [
+                    JsValue::from_str(&amount_record.unwrap().to_string()),
+                    JsValue::from(recipient),
+                    JsValue::from(&amount_microcredits.to_string().add("u64")),
+                ].into_iter().collect::<js_sys::Array>();
                 ("transfer_private_to_public", inputs)
             }
             "public" | "transfer_public" | "transferPublic" => {
-                let inputs = Array::new_with_length(3);
-                inputs.set(0u32, wasm_bindgen::JsValue::from_str(&caller.unwrap()));
-                inputs.set(1u32, wasm_bindgen::JsValue::from_str(recipient));
-                inputs.set(2u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                let inputs = [
+                    JsValue::from(&caller.unwrap()),
+                    JsValue::from(recipient),
+                    JsValue::from(&amount_microcredits.to_string().add("u64")),
+                ].into_iter().collect::<js_sys::Array>();
                 ("transfer_public", inputs)
             }
             "public_as_signer" | "transfer_public_as_signer" | "transferPublicAsSigner" => {
-                let inputs = Array::new_with_length(2);
-                inputs.set(0u32, wasm_bindgen::JsValue::from_str(recipient));
-                inputs.set(1u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                let inputs = [
+                    JsValue::from(recipient),
+                    JsValue::from(&amount_microcredits.to_string().add("u64")),
+                ].into_iter().collect::<js_sys::Array>();
                 ("transfer_public_as_signer", inputs)
             }
             "public_to_private" | "publicToPrivate" | "transfer_public_to_private" | "transferPublicToPrivate" => {
-                let inputs = Array::new_with_length(2);
-                inputs.set(0u32, wasm_bindgen::JsValue::from_str(recipient));
-                inputs.set(1u32, wasm_bindgen::JsValue::from_str(&amount_microcredits.to_string().add("u64")));
+                let inputs = [
+                    JsValue::from(recipient),
+                    JsValue::from(&amount_microcredits.to_string().add("u64")),
+                ].into_iter().collect::<js_sys::Array>();
                 ("transfer_public_to_private", inputs)
             }
             _ => return Err("Invalid transfer type".to_string()),
