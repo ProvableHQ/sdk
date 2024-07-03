@@ -2,7 +2,7 @@
 [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 
-[![github]](https://github.com/AleoHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)
+[![github]](https://github.com/ProvableHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)
 
 [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -58,6 +58,6 @@ wasm-pack test --[firefox/chrome/safari]
 ## Building Web Apps
 
 Further documentation and tutorials as to how to use the modules built from this crate to build web apps  will be built 
-in the future. However - in the meantime, the [aleo.tools](https://aleo.tools) website is a good
+in the future. However - in the meantime, the [provable.tools](https://provable.tools) website is a good
 example of how to use these modules to build a web app. Its source code can be found in the 
-[Aleo SDK](https://github.com/AleoHQ/sdk) repo in the `website` folder.
+[Aleo SDK](https://github.com/ProvableHQ/sdk) repo in the `website` folder.

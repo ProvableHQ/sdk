@@ -13,7 +13,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@aleohq/sdk": "^0.6.2",
+        "@provablehq/sdk": "^0.6.2",
         "@ant-design/icons": "^4.4.0",
         "@codemirror/language": "^6.8.0",
         "@codemirror/legacy-modes": "^6.3.3",
@@ -53,5 +53,5 @@
         "webpack-cli": "^5.1.4",
         "webpack-dev-server": "^4.15.1"
     },
-    "homepage": "https://aleo.tools"
+    "homepage": "https://provable.tools"
 }

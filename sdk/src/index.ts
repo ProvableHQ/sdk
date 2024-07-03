@@ -1,4 +1,4 @@
-import {VerifyingKey, Metadata} from "@aleohq/wasm";
+import {VerifyingKey, Metadata} from "@provablehq/wasm";
 
 const KEY_STORE = Metadata.baseUrl();
 
@@ -158,7 +158,7 @@ export {
     ViewKey,
     initThreadPool,
     verifyFunctionExecution,
-} from "@aleohq/wasm";
+} from "@provablehq/wasm";
 
 export { initializeWasm };
 

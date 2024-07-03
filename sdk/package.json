@@ -1,9 +1,9 @@
 {
-  "name": "@aleohq/sdk",
+  "name": "@provablehq/sdk",
   "version": "0.6.9",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
-    "The Aleo Team <hello@aleo.org>"
+    "The Provable Team <hello@provable.com>"
   ],
   "license": "GPL-3.0",
   "type": "module",
@@ -29,7 +29,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AleoHQ/sdk.git"
+    "url": "git+https://github.com/ProvableHQ/sdk.git"
   },
   "keywords": [
     "Aleo",
@@ -38,11 +38,11 @@
     "ZK"
   ],
   "bugs": {
-    "url": "https://github.com/AleoHQ/sdk/issues"
+    "url": "https://github.com/ProvableHQ/sdk/issues"
   },
-  "homepage": "https://github.com/AleoHQ/sdk#readme",
+  "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@aleohq/wasm": "^0.6.0",
+    "@provablehq/wasm": "^0.6.0",
     "comlink": "^4.4.1",
     "mime": "^3.0.0",
     "sync-request": "^6.1.0"

@@ -44,7 +44,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: staging.aleo.tools
+          branch: staging.provable.tools
           folder: website/dist
           clean-exclude: '["dev"]'
 
