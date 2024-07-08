@@ -50,7 +50,7 @@ You can start with a template by running
 npm create aleo-app@latest
 ```
 
-#### Source: [`sdk/create-aleo-app`](https://github.com/Provablehq/sdk/tree/testnet3/create-aleo-app)
+#### Source: [`sdk/create-aleo-app`](https://github.com/ProvableHQ/sdk/tree/testnet3/create-aleo-app)
 
 ## 3. Aleo-Wasm - Zero Knowledge Algorithms in JavaScript + WebAssembly
 <a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Create Aleo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
