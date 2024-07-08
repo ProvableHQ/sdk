@@ -9,7 +9,7 @@
 
 # Zero Knowledge Web App SDK
 
-The [Aleo SDK](https://github.com/Provablehq/sdk) provides tools for building zero knowledge applications. It consists of
+The [Aleo SDK](https://github.com/ProvableHQ/sdk) provides tools for building zero knowledge applications. It consists of
 several TypeScript & JavaScript libraries which provide the following functionality:
 1. [Aleo account  management](https://provable.tools/account)
 2. [Web-based program execution and deployment](https://provable.tools/develop)
