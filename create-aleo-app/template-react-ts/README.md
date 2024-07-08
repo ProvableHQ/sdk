@@ -33,7 +33,7 @@ Your app should be running on http://localhost:5173/
 2. Replace `PRIVATE_KEY=user1PrivateKey` in the `.env` with your own key (you
    can use an existing one or generate your own at https://provable.tools/account)
 
-3. Follow instructions to install Leo here: https://github.com/Provablehq/leo
+3. Follow instructions to install Leo here: https://github.com/ProvableHQ/leo
 
 4. You can edit `helloworld/src/main.leo` and run `leo run` to compile and update the
    Aleo instructions under `build` which are loaded by the web app.
