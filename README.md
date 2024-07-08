@@ -33,7 +33,7 @@ The official Aleo SDK providing Javascript/Typescript tools for creating zero kn
 Start here with the [Aleo SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started building your 
 first zero knowledge web app.
 
-#### Source: [`sdk/sdk`](https://github.com/Provablehq/sdk/tree/testnet3/sdk)
+#### Source: [`sdk/sdk`](https://github.com/ProvableHQ/sdk/tree/testnet3/sdk)
 
 
 ## 2. Create-Aleo-App - Zero Knowledge Web App Examples
