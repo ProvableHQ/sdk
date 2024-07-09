@@ -1,4 +1,4 @@
-import {Account, initThreadPool, ProgramManager, AleoKeyProvider, AleoKeyProviderParams} from "@aleohq/sdk";
+import {Account, initThreadPool, ProgramManager, AleoKeyProvider, AleoKeyProviderParams} from "@provablehq/sdk";
 
 await initThreadPool();
 

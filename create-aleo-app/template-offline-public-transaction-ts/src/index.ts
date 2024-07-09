@@ -1,4 +1,4 @@
-import {Account, Address, CREDITS_PROGRAM_KEYS, initThreadPool, ProgramManager, OfflineQuery, OfflineKeyProvider, OfflineSearchParams, ProvingKey, Transaction} from "@aleohq/sdk";
+import {Account, Address, CREDITS_PROGRAM_KEYS, initThreadPool, ProgramManager, OfflineQuery, OfflineKeyProvider, OfflineSearchParams, ProvingKey, Transaction} from "@provablehq/sdk";
 import { getLocalKey, preDownloadBondingKeys, preDownloadTransferKeys } from "./helpers";
 
 await initThreadPool();

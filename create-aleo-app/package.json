@@ -4,7 +4,7 @@
   "type": "module",
   "license": "GPL-3.0",
   "collaborators": [
-    "The Aleo Team <hello@aleo.org>"
+    "The Provable Team <hello@provable.com>"
   ],
   "bin": {
     "create-aleo-app": "index.js"

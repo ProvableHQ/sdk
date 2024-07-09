@@ -6,7 +6,7 @@ import {
   AleoKeyProvider,
   AleoNetworkClient,
   NetworkRecordProvider,
-} from "@aleohq/sdk";
+} from "@provablehq/sdk";
 
 await initThreadPool();
 

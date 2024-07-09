@@ -1,4 +1,4 @@
-import * as aleo from "@aleohq/sdk";
+import * as aleo from "@provablehq/sdk";
 
 await aleo.initThreadPool();
 

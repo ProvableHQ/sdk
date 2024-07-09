@@ -118,7 +118,7 @@ function Main() {
                         </Content>
                         <Footer style={{ textAlign: "center" }}>
                             Visit the{" "}
-                            <a href="https://github.com/AleoHQ/sdk">
+                            <a href="https://github.com/ProvableHQ/sdk">
                                 Aleo SDK Github repo
                             </a>
                             .

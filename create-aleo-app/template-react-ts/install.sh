@@ -22,7 +22,7 @@ if [ -d "$INSTALL_DIR" ]; then
   git -C "$INSTALL_DIR" pull
 else
   echo "Cloning repository into $INSTALL_DIR..."
-  git clone https://github.com/AleoHQ/leo "$INSTALL_DIR"
+  git clone https://github.com/ProvableHQ/leo "$INSTALL_DIR"
 fi
 
 # build and install
