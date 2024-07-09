@@ -3,7 +3,7 @@ import {
   initThreadPool,
   PrivateKey,
   ProgramManager,
-} from "@aleohq/sdk";
+} from "@provablehq/sdk";
 
 await initThreadPool();
 

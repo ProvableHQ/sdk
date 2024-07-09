@@ -5,9 +5,9 @@
 
 <p align="center">
     <a href="https://developer.aleo.org"> <img alt="Website" src="https://img.shields.io/badge/Developer_Docs-online-blue"></a>
-    <a href="https://circleci.com/gh/AleoHQ/aleo"><img src="https://circleci.com/gh/AleoHQ/sdk.svg?style=svg"></a>
+    <a href="https://circleci.com/gh/ProvableHQ/sdk"><img src="https://circleci.com/gh/ProvableHQ/sdk.svg?style=svg"></a>
     <a href="https://discord.com/invite/aleo"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
-    <a href="https://github.com/AleoHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
+    <a href="https://github.com/ProvableHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
 </p>
 
 ## Tools for Building Zero Knowledge Web Apps
@@ -21,11 +21,11 @@ Aleo provides the ability to run programs in zero knowledge. The Aleo SDK provid
 within the browser and all other levels of the web stack to build privacy preserving applications.
 
 The Aleo SDK provides the following functionality (Click to see examples):
-1. [Aleo account  management](https://aleo.tools/account)
-2. [Web-based program execution and deployment](https://aleo.tools/develop)
-3. [Aleo credit transfers](https://aleo.tools/transfer)
-4. [Management of program state and data](https://aleo.tools/record)
-5. [Communication with the Aleo network](https://aleo.tools/rest)
+1. [Aleo account  management](https://provable.tools/account)
+2. [Web-based program execution and deployment](https://provable.tools/develop)
+3. [Aleo credit transfers](https://provable.tools/transfer)
+4. [Management of program state and data](https://provable.tools/record)
+5. [Communication with the Aleo network](https://provable.tools/rest)
 
 ## Table of Contents
 
@@ -33,7 +33,7 @@ The Aleo SDK provides the following functionality (Click to see examples):
 * [Usage](#Usage)
   * [Zero Knowledge Web App Examples](#Zero-Knowledge-Web-App-Examples)
     * [Create Aleo App](#create-aleo-app)
-    * [Aleo.tools](#aleotools)
+    * [Provable.tools](#provabletools)
   * [Create An Aleo Account](#1-create-an-aleo-account)
   * [Execute Aleo Programs](#2-execute-aleo-programs)
     * [Aleo Programs](#21-aleo-programs)
@@ -62,7 +62,7 @@ The Aleo SDK provides the following functionality (Click to see examples):
 
 To install the Aleo SDK from NPM run:
 
-`npm install @aleohq/sdk` or `yarn add @aleohq/sdk`.
+`npm install @provablehq/sdk` or `yarn add @provablehq/sdk`.
 
 ### Build from source
 
@@ -74,17 +74,17 @@ To build the project from source, go to this project's root and execute:
 
 ### Create Aleo App
 A set of fully functional examples of zero knowledge web apps can be found in
-[create-aleo-app](https://github.com/AleoHQ/sdk/tree/testnet3/create-aleo-app). Create-aleo-app provides several web-app
+[create-aleo-app](https://github.com/ProvableHQ/sdk/tree/testnet3/create-aleo-app). Create-aleo-app provides several web-app
 templates in common web frameworks such as React that can be used as a starting point for building zero knowledge web apps.
 
 Developers can get started immediately with create-react-app by running:
 `npm create aleo-app@latest`
 
-### Aleo.tools
+### Provable.tools
 
-Additionally, the SDK powers [aleo.tools](https://aleo.tools) - a React app that provides a graphical interface for most
-of the functionality provided by the SDK and can be used as a reference for usage of the SDK. Source code for aleo.tools
-can be found [in the SDK repo here](https://github.com/AleoHQ/sdk/tree/testnet3/website)
+Additionally, the SDK powers [provable.tools](https://provable.tools) - a React app that provides a graphical interface for most
+of the functionality provided by the SDK and can be used as a reference for usage of the SDK. Source code for provable.tools
+can be found [in the SDK repo here](https://github.com/ProvableHQ/sdk/tree/testnet3/website)
 
 ## Usage
 
@@ -110,7 +110,7 @@ credits and data from other zero-knowledge Aleo programs.
 
 All of these keys can be created using the account object:
 ```typescript
-import { Account } from '@aleohq/sdk';
+import { Account } from '@provablehq/sdk';
 
 const account = new Account();
 
@@ -168,7 +168,7 @@ The SDK provides the ability execute `Aleo Instructions` programs %100 client-si
 The `ProgramManager` object encapsulates the functionality for executing programs and making zero knowledge proofs about
 them. Under the hood it uses cryptographic code compiled from [SnarkVM](https://developer.aleo.org/aleo) into WebAssembly
 with JavaScript bindings that allow execution of Aleo programs fully within the browser. Users interested in lower level
-details how this is achieved can visit the [aleo-wasm](https://github.com/AleoHQ/sdk/tree/testnet3/wasm) crate.
+details how this is achieved can visit the [aleo-wasm](https://github.com/ProvableHQ/sdk/tree/testnet3/wasm) crate.
 
 The basic execution flow of a program is as follows:
 1. A web app is loaded with an instance of the `ProgramManager` object
@@ -203,7 +203,7 @@ graph LR
 You can enable multi-threading by calling the `initThreadPool` function. This will run the SDK on multiple Workers, which significantly speeds up performance:
 
 ```typescript
-import { Account, initThreadPool } from '@aleohq/sdk';
+import { Account, initThreadPool } from '@provablehq/sdk';
 
 // Enables multi-threading
 await initThreadPool();
@@ -217,7 +217,7 @@ const account = new Account();
 ### 2.4 Local Program Execution
 A simple example of running the hello world program within the web browser and capturing its outputs is shown below:
 ```typescript
-import { Account, Program } from '@aleohq/sdk';
+import { Account, Program } from '@provablehq/sdk';
 
 /// Create the source for the "hello world" program
 const program = "program helloworld.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -252,7 +252,7 @@ any resulting state changes in private or public data.
 
 A simple example of running the hello world program on the Aleo network is shown below:
 ```typescript
-import { Account, AleoNetworkClient, NetworkRecordProvider, ProgramManager, KeySearchParams } from '@aleohq/sdk';
+import { Account, AleoNetworkClient, NetworkRecordProvider, ProgramManager, KeySearchParams } from '@provablehq/sdk';
 
 // Create a key provider that will be used to find public proving & verifying keys for Aleo programs
 const keyProvider = new AleoKeyProvider();
@@ -326,7 +326,7 @@ to the network (as long as it doesn't already currently exist) by paying a deplo
 provides a simple interface for deploying programs to the Aleo network using the program manager.
 
 ```typescript
-import { Account, AleoNetworkClient, NetworkRecordProvider, ProgramManager, KeySearchParams} from '@aleohq/sdk';
+import { Account, AleoNetworkClient, NetworkRecordProvider, ProgramManager, KeySearchParams} from '@provablehq/sdk';
 
 // Create a key provider that will be used to find public proving & verifying keys for Aleo programs
 const keyProvider = new AleoKeyProvider();
@@ -390,7 +390,7 @@ webworkers.
 A worker file that performs the execution can be created as follows:
 `worker.js`
 ```jsx
-import * as aleo from "@aleohq/sdk";
+import * as aleo from "@provablehq/sdk";
 
 // Threads are then initialized to execute the program in parallel using multithreading
 await aleo.initThreadPool();
@@ -653,7 +653,7 @@ export default App;
 </details>
 
 
-A full example of this implementation can be found [here](https://github.com/AleoHQ/sdk/blob/testnet3/create-aleo-app/template-react/src/App.jsx)
+A full example of this implementation can be found [here](https://github.com/ProvableHQ/sdk/blob/testnet3/create-aleo-app/template-react/src/App.jsx)
 
 ## 3. Aleo Credit Transfers
 

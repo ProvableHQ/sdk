@@ -46,7 +46,8 @@ const appConfig = {
             patterns: [
                 { from: "public", to: "public" },
                 { from: "_headers", to: "." },
-                { from: "_redirects", to: "." }],
+                { from: "_redirects", to: "." },
+                { from: "vercel.json", to: "." }],
         }),
         new HtmlWebpackPlugin({
             template: "./index.html",

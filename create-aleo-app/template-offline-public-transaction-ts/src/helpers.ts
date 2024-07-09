@@ -1,4 +1,4 @@
-import { CREDITS_PROGRAM_KEYS } from "@aleohq/sdk";
+import { CREDITS_PROGRAM_KEYS } from "@provablehq/sdk";
 import { promises as fsPromises, writeFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

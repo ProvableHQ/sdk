@@ -1,4 +1,4 @@
-import {Account, initThreadPool, PrivateKey, ProgramManager,} from "@aleohq/sdk";
+import {Account, initThreadPool, PrivateKey, ProgramManager,} from "@provablehq/sdk";
 
 await initThreadPool();
 
