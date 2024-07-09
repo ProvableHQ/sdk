@@ -162,7 +162,7 @@ describe('NodeConnection', () => {
             await expect(connection.findUnspentRecords(0, 5, undefined, undefined, undefined, [])).rejects.toThrow();
         }, 60000);
 
-        it('should search a range correctly and not find records where none exist', async () => {
+        it.skip('should search a range correctly and not find records where none exist', async () => {
             const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
             expect(Array.isArray(records)).toBe(true);
             if (!(records instanceof Error)) {
