@@ -10,7 +10,8 @@
         "dev:webpack": "webpack-dev-server",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0 && prettier . --check",
         "pretty": "prettier . --write",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "deploy": "gh-pages -d dist"
     },
     "dependencies": {
         "@provablehq/sdk": "^0.6.2",
