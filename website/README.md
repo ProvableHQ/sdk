@@ -6,7 +6,7 @@ This project was bootstrapped with [Vite](https://vitejs.dev/).
 
 ### Prerequisites
 
--   Follow [SDK Build Guide](https://github.com/Provablehq/sdk#2-build-guide) to get Rust installed
+-   Follow [SDK Build Guide](https://github.com/ProvableHQ/sdk#2-build-guide) to get Rust installed
 -   Nodejs `18` or `20`. Install through [official website](https://nodejs.org/) or via a node manager like [NVM](https://github.com/creationix/nvm)
 -   [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
 
