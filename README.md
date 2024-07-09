@@ -7,9 +7,9 @@
 </p>
 
 
-# Zero Knowledge Web App SDK
+# Zero-Knowledge Web App SDK
 
-The [Aleo SDK](https://github.com/ProvableHQ/sdk) provides tools for building zero knowledge applications. It consists of
+The [Aleo SDK](https://github.com/ProvableHQ/sdk) provides tools for building zero-knowledge applications. It consists of
 several TypeScript & JavaScript libraries which provide the following functionality:
 1. [Aleo account  management](https://provable.tools/account)
 2. [Web-based program execution and deployment](https://provable.tools/develop)
@@ -20,52 +20,43 @@ several TypeScript & JavaScript libraries which provide the following functional
 All of this functionality is demonstrated on [Provable.tools](https://provable.tools). 
 
 
-The Aleo SDK is divided into three Typescript/Javascript packages
+The Aleo SDK is divided into three TypeScript/JavaScript packages:
 
-## 1. Aleo SDK - Build Zero Knowledge Web Apps
+## 1. Aleo SDK - Build Zero-Knowledge Web Apps
 
 <a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Aleo SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
 
-The official Aleo SDK providing Javascript/Typescript tools for creating zero knowledge app.
+The official Aleo SDK providing JavaScript/TypeScript tools for creating zero-knowledge applications.
 
 ### ⚡ Build your own app
 
 Start here with the [Aleo SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started building your 
-first zero knowledge web app.
+first zero-knowledge web app.
 
 #### Source: [`sdk/sdk`](https://github.com/ProvableHQ/sdk/tree/testnet3/sdk)
 
 
-## 2. Create-Aleo-App - Zero Knowledge Web App Examples
+## 2. Create-Aleo-App - Zero-Knowledge Web App Examples
 <a href="https://www.npmjs.com/package/create-aleo-app"> <img alt="Create Aleo App" src="https://img.shields.io/npm/l/create-aleo-app?label=NPM%20-%20Create-Aleo-App&labelColor=green&color=blue"></a>
 
 Create-aleo-app provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
 start with working examples should start here.
 
-### ⚡ Build your own app
-
-
-You can start with a template by running
-```bash
-npm create aleo-app@latest
-```
-
 #### Source: [`sdk/create-aleo-app`](https://github.com/ProvableHQ/sdk/tree/testnet3/create-aleo-app)
 
-## 3. Aleo-Wasm - Zero Knowledge Algorithms in JavaScript + WebAssembly
+## 3. Aleo Wasm - Zero-Knowledge Algorithms in JavaScript + WebAssembly
 <a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Create Aleo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
 <a href="https://www.npmjs.com/package/@provablehq/nodejs"> <img alt="Create Aleo App" src="https://img.shields.io/npm/l/%40provablehq%2Fnodejs?label=NPM%20-%20Aleo%20Nodejs&labelColor=green&color=blue"></a>
 <a href="https://crates.io/crates/aleo-wasm"> <img alt="Aleo-Wasm" src="https://img.shields.io/crates/v/aleo-wasm.svg?color=neon"></a>
 
-Aleo Wasm is a Rust crate which compiles Aleo code responsible for creating and executing zero knowledge programs into 
+Aleo Wasm is a Rust crate which compiles the Aleo source code responsible for creating and executing zero-knowledge programs into 
 WebAssembly.
 
-When compiled with `wasm-pack` JavaScript bindings are generated for the WebAssembly allowing Aleo zero
-knowledge programs to be used in the browser and NodeJS. This package is available on NPM (linked above). The Aleo WASM
-Readme provides instructions for compiling this crate and using it in web projects for those interested in building from
+When compiled with `wasm-pack`, JavaScript bindings are generated for the WebAssembly allowing Aleo zero-knowledge programs to be used in the browser and Node.js. This package is available on NPM (linked above). The Aleo Wasm
+readme provides instructions for compiling this crate and using it in web projects for those interested in building from
 source.
 
-❗ Currently program execution is only available in web Browsers. However account, program and data management within
+❗ Currently, program execution is only available in web browsers. However, account, program, and data management within
 NodeJS is functional.
 
 Source: [`sdk/wasm`](https://github.com/ProvableHQ/sdk/tree/testnet3/wasm)
@@ -77,12 +68,12 @@ API Documentation, tutorials for the Aleo SDK, and documentation on how to build
 be found on the [Aleo Developer Docs](https://developer.aleo.org/sdk/typescript/overview) page.
 
 #### [SDK Readme](https://github.com/ProvableHQ/sdk/tree/testnet3/sdk#readme)
-The SDK Readme provides concepts core to executing zero knowledge programs in the web and several detailed examples of
+The SDK readme provides concepts core to executing zero-knowledge programs in the web and several detailed examples of
 how to use the SDK to build web apps using Aleo.
 
 #### [Aleo Wasm Readme](https://github.com/ProvableHQ/sdk/tree/testnet3/wasm#readme)
-The Aleo Wasm Readme provides instructions for compiling the Aleo Wasm crate and using it in web projects. Those who
-want to build from source or create their own WebAssembly bindings should start here
+The Aleo Wasm readme provides instructions for compiling the Aleo Wasm crate and using it in web projects. Those who
+want to build from source or create their own WebAssembly bindings should start here.
 
 ## ❤️ Contributors
 
