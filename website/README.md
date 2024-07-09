@@ -6,9 +6,9 @@ This project was bootstrapped with [Vite](https://vitejs.dev/).
 
 ### Prerequisites
 
--   Follow [SDK Build Guide](https://github.com/ProvableHQ/sdk#2-build-guide) to get Rust installed
--   Nodejs `18` or `20`. Install through [official website](https://nodejs.org/) or via a node manager like [NVM](https://github.com/creationix/nvm)
--   [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+-   Follow the [SDK Build Guide](https://github.com/ProvableHQ/sdk#2-build-guide) to get Rust installed
+-   Install Node.js `18` or `20` through the [official website](https://nodejs.org/) or via a node manager like [NVM](https://github.com/creationix/nvm)
+-   Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
 
 ```bash
 rustup toolchain install nightly-2023-05-24
