@@ -33,8 +33,7 @@ The official Aleo SDK providing JavaScript/TypeScript tools for creating zero-kn
 Start here with the [Aleo SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started building your 
 first zero-knowledge web app.
 
-#### Source: [`sdk/sdk`](https://github.com/ProvableHQ/sdk/tree/testnet3/sdk)
-
+#### Source: [`Aleo SDK`](https://www.npmjs.com/package/@provablehq/sdk)
 
 ## 2. Create-Aleo-App - Zero-Knowledge Web App Examples
 <a href="https://www.npmjs.com/package/create-aleo-app"> <img alt="Create Aleo App" src="https://img.shields.io/npm/l/create-aleo-app?label=NPM%20-%20Create-Aleo-App&labelColor=green&color=blue"></a>
@@ -59,7 +58,7 @@ source.
 ❗ Currently, program execution is only available in web browsers. However, account, program, and data management within
 NodeJS is functional.
 
-Source: [`sdk/wasm`](https://github.com/ProvableHQ/sdk/tree/testnet3/wasm)
+Source: [Aleo Wasm](https://www.npmjs.com/package/@provablehq/wasm)
 
 ## 📚 Documentation
 

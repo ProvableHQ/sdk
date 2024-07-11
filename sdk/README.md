@@ -173,7 +173,7 @@ The SDK provides the ability to execute Aleo programs 100% client-side within th
 The `ProgramManager` object encapsulates the functionality for executing programs and making zero-knowledge proofs about
 them. Under the hood it uses cryptographic code compiled from [SnarkVM](https://developer.aleo.org/aleo) into WebAssembly
 with JavaScript bindings that allow for the execution of Aleo programs fully within the browser. Users interested in lower-level
-details on how this is achieved can visit the [aleo-wasm](https://github.com/ProvableHQ/sdk/tree/testnet3/wasm) crate.
+details on how this is achieved can visit the [aleo-wasm](https://www.npmjs.com/package/@provablehq/wasm) crate.
 
 The basic execution flow of a program is as follows:
 1. A web app is loaded with an instance of the `ProgramManager` object
