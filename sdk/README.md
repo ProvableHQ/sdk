@@ -136,9 +136,9 @@ Aleo programs provide the ability for users to make any input or output of a pro
 was run correctly. Keeping program inputs and outputs private allows developers to build privacy into their applications.
 
 Zero-knowledge programs are written in one of two languages:
-1. [Leo](https://developer.aleo.org/leo/language): A high-level, developer friendly language for developing
+1. [Leo](https://docs.leo-lang.org/leo/language): A high-level, developer friendly language for developing
 zero-knowledge programs.
-2. [Aleo Instructions](https://developer.aleo.org/aleo/language): A low-level language that provides developers with fine-grained control over the execution flow of zero-knowledge programs. Leo programs are compiled into Aleo Instructions
+2. [Aleo Instructions](https://docs.leo-lang.org/aleo): A low-level language that provides developers with fine-grained control over the execution flow of zero-knowledge programs. Leo programs are compiled into Aleo Instructions
 under the hood.
 
 Documentation for both languages can be found at [developer.aleo.org](https://developer.aleo.org).
@@ -699,7 +699,7 @@ The total public credits balance of a user is the value of the account mapping a
 More information about `records` and `mappings` and how they are related to private and public balances are explained in the
 [Managing Program Data and Private State](#4-managing-program-data-and-private-state) section.
 
-### 3.2 Transfering Aleo credits
+### 3.2 Transferring Aleo credits
 The `ProgramManager` allows transfers of Aleo credits via the `transfer` method. This function executes the `credits.aleo`
 program under the hood.
 
