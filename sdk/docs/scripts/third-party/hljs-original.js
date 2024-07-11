@@ -417,7 +417,7 @@ var hljs = (function () {
   }
 
   /**
-   * Any of the passed expresssions may match
+   * Any of the passed expressions may match
    *
    * Creates a huge this | this | that | that match
    * @param {(RegExp | string)[] } args

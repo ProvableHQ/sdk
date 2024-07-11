@@ -37,7 +37,7 @@ impl RecordCiphertext {
         Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
     }
 
-    /// Return the string reprensentation of the record ciphertext
+    /// Return the string representation of the record ciphertext
     ///
     /// @returns {string} String representation of the record ciphertext
     #[allow(clippy::inherent_to_string)]

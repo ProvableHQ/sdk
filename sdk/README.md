@@ -1129,7 +1129,7 @@ finalize transfer_public:
 ```
 
 From the perspective of the caller of the API, this is as simple as executing a normal Aleo function. Given the inputs
-to a function with a finalize scope that updates a mapping are valid, the mapping will either be intialized or updated
+to a function with a finalize scope that updates a mapping are valid, the mapping will either be initialized or updated
 by the Aleo network. All the user of the SDK must do is ensure that the inputs to the function are valid.
 
 If function inputs are Invalid, the Network will return an error, but the fee paid for the transaction will still be
