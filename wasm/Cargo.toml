@@ -148,6 +148,8 @@ features = [
 default = [ "serial", "browser" ]
 serial = [ "snarkvm-console/serial", "snarkvm-synthesizer/serial", "snarkvm-ledger-query/serial", "snarkvm-ledger-block/serial", "snarkvm-ledger-store/serial" ]
 browser = [ ]
+testnet = [ ]
+mainnet = [ ]
 
 ## Profiles
 [profile.release]

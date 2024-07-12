@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod field;
-pub use field::*;
+#[cfg(feature = "testnet")]
+mod testnet;
 
-mod networks;
+#[cfg(feature = "testnet")]
+pub use testnet::*;
 
-pub(crate) mod native;
+
+#[cfg(feature = "mainnet")]
+mod mainnet;
+
+#[cfg(feature = "mainnet")]
+pub use mainnet::*;

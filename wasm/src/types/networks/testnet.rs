@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod field;
-pub use field::*;
+pub use snarkvm_circuit_network::AleoTestnetV0 as CurrentAleo;
 
-mod networks;
+pub use snarkvm_console::{
+    network::{TestnetV0 as CurrentNetwork},
+};
 
-pub(crate) mod native;
+pub use snarkvm_parameters::testnet as parameters;
