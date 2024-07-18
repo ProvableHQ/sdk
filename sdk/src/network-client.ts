@@ -10,6 +10,7 @@ import {
   TransactionModel,
   logAndThrow
 } from "./index";
+import JSONbig from "json-bigint";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -88,7 +89,8 @@ class AleoNetworkClient {
       headers: this.headers
     });
 
-    return await response.json();
+    const responseText = await response.text()
+    return await JSONbig.parse(responseText);
     } catch (error) {
       throw new Error("Error fetching data.");
     }
@@ -650,7 +652,8 @@ class AleoNetworkClient {
       });
 
       try {
-        return await response.json();
+        const responseText = await response.text()
+        return await JSONbig.parse(responseText);
 
       } catch (error) {
         throw new Error(`Error posting transaction. Aleo network response: ${(error as Error).message}`);

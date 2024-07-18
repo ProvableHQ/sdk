@@ -42,14 +42,16 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@provablehq/wasm": "^0.6.0",
+    "@provablehq/wasm": "^0.6.10",
     "comlink": "^4.4.1",
+    "json-bigint": "^1.0.0",
     "mime": "^3.0.0",
     "sync-request": "^6.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.5",
     "@types/jest": "^29.5.5",
+    "@types/json-bigint": "^1.0.4",
     "@types/mime": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
     "@typescript-eslint/parser": "^5.41.0",
