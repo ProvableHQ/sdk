@@ -27,7 +27,7 @@ function App() {
         "    output r2 as u32.private;\n";
 
     setLoading(true);
-    const result = await aleoWorker.executeOffline(hello_hello_program,"hello", ["5u32", "5u32"], "APrivateKey1zkp778oUFSck3PZA5xppgp4trFwkkD6xnUXtxcBCfsq4URJ")
+    const result = await aleoWorker.run(hello_hello_program,"hello", ["5u32", "5u32"], "APrivateKey1zkp778oUFSck3PZA5xppgp4trFwkkD6xnUXtxcBCfsq4URJ")
     setLoading(false);
 
     alert(JSON.stringify(result));
@@ -52,7 +52,7 @@ function App() {
             <button onClick={generateAccount}>
               {
                   (account
-                      ? `Account is ${JSON.stringify(account)}`
+                      ? `Account private key is ${JSON.stringify(account)}`
                       : `Click to generate account`)
               }
             </button>

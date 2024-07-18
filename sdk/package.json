@@ -3,7 +3,7 @@
   "version": "0.6.10",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
-    "The Provable Team <hello@provable.com>"
+    "The Provable Team"
   ],
   "license": "GPL-3.0",
   "type": "module",
@@ -34,7 +34,7 @@
   "keywords": [
     "Aleo",
     "Blockchain",
-    "Zero Knowledge",
+    "Zero-Knowledge",
     "ZK"
   ],
   "bugs": {

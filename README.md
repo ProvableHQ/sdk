@@ -10,7 +10,7 @@
 
 The [Aleo SDK](https://github.com/ProvableHQ/sdk) provides tools for building zero-knowledge applications. It consists of
 several TypeScript & JavaScript libraries which provide the following functionality:
-1. [Aleo account  management](https://provable.tools/account)
+1. [Aleo account management](https://provable.tools/account)
 2. [Web-based program execution and deployment](https://provable.tools/develop)
 3. [Aleo credit transfers](https://provable.tools/transfer)
 4. [Management of program state and data](https://provable.tools/record)
@@ -34,17 +34,17 @@ first zero-knowledge web app.
 
 #### Source: [`Aleo SDK`](https://www.npmjs.com/package/@provablehq/sdk)
 
-## 2. Create-Aleo-App - Zero-Knowledge Web App Examples
-<a href="https://www.npmjs.com/package/create-aleo-app"> <img alt="Create Aleo App" src="https://img.shields.io/npm/l/create-aleo-app?label=NPM%20-%20Create-Aleo-App&labelColor=green&color=blue"></a>
+## 2. Create-Leo-App - Zero-Knowledge Web App Examples
+<a href="https://www.npmjs.com/package/create-leo-app"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/create-leo-app?label=NPM%20-%20Create-Leo-App&labelColor=green&color=blue"></a>
 
-Create-aleo-app provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
+Create-leo-app provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
 start with working examples should start here.
 
-#### Source: [`sdk/create-aleo-app`](https://github.com/ProvableHQ/sdk/tree/testnet3/create-aleo-app)
+#### Source: [`sdk/create-leo-app`](https://github.com/ProvableHQ/sdk/tree/testnet3/create-leo-app)
 
 ## 3. Aleo Wasm - Zero-Knowledge Algorithms in JavaScript + WebAssembly
-<a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Create Aleo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
-<a href="https://www.npmjs.com/package/@provablehq/nodejs"> <img alt="Create Aleo App" src="https://img.shields.io/npm/l/%40provablehq%2Fnodejs?label=NPM%20-%20Aleo%20Nodejs&labelColor=green&color=blue"></a>
+<a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
+<a href="https://www.npmjs.com/package/@provablehq/nodejs"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fnodejs?label=NPM%20-%20Aleo%20Nodejs&labelColor=green&color=blue"></a>
 <a href="https://crates.io/crates/aleo-wasm"> <img alt="Aleo-Wasm" src="https://img.shields.io/crates/v/aleo-wasm.svg?color=neon"></a>
 
 Aleo Wasm is a Rust crate which compiles the Aleo source code responsible for creating and executing zero-knowledge programs into 

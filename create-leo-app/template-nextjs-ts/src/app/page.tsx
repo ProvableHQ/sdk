@@ -77,7 +77,7 @@ export default function Home() {
                 <p>
                     <button onClick={generateAccount}>
                         {account
-                            ? `Account is ${JSON.stringify(account)}`
+                            ? `Account private key is ${JSON.stringify(account)}`
                             : `Click to generate account`}
                     </button>
                 </p>
