@@ -119,7 +119,8 @@ jobs:
       - run:
           working_directory: wasm
           command: |
-            cargo clippy
+            cargo clippy --features testnet
+            cargo clippy --features mainnet
 
   check-fmt:
     executor: rust-node

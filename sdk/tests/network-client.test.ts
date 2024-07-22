@@ -1,5 +1,5 @@
 import {jest} from '@jest/globals'
-import {Account, Block, AleoNetworkClient, TransactionModel} from "../src/node";
+import {Account, Block, AleoNetworkClient, TransactionModel} from "../src/testnet/node";
 import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data";
 import {log} from "console";
 jest.retryTimes(3);
