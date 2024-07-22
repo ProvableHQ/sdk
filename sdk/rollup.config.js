@@ -4,10 +4,10 @@ import $package from "./package.json" assert { type: "json" };
 
 export default {
     input: {
-        index: "./src/index.ts",
-        worker: "./src/worker.ts",
-        node: "./src/node.ts",
-        "node-polyfill": "./src/node-polyfill.ts",
+        "testnet/browser": "./src/testnet/browser.ts",
+        "testnet/worker": "./src/shared/worker.ts",
+        "testnet/node": "./src/testnet/node.ts",
+        "node-polyfill": "./src/shared/node-polyfill.ts",
     },
     output: {
         dir: `dist`,

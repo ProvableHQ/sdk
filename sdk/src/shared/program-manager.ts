@@ -21,7 +21,7 @@ import {
     logAndThrow,
     ProgramManagerBase as WasmProgramManager, verifyFunctionExecution, AleoKeyProviderParams, CREDITS_PROGRAM_KEYS,
 } from "./index";
-import {Execution} from "@provablehq/wasm/dist/crates/aleo_wasm";
+import {Execution} from "@provablehq/wasm/testnet.js";
 
 /**
  * Represents the options for executing a transaction in the Aleo network.

@@ -7,12 +7,20 @@
   ],
   "license": "GPL-3.0",
   "type": "module",
-  "main": "./dist/node.js",
-  "browser": "./dist/index.js",
+  "main": "./dist/testnet/node.js",
+  "browser": "./dist/testnet/browser.js",
   "exports": {
     ".": {
-      "node": "./dist/node.js",
-      "default": "./dist/index.js"
+      "node": "./dist/testnet/node.js",
+      "default": "./dist/testnet/browser.js"
+    },
+    "./testnet.js": {
+      "node": "./dist/testnet/node.js",
+      "default": "./dist/testnet/browser.js"
+    },
+    "./mainnet.js": {
+      "node": "./dist/mainnet/node.js",
+      "default": "./dist/mainnet/browser.js"
     }
   },
   "files": [
