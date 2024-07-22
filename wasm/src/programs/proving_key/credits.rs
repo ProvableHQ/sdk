@@ -57,7 +57,8 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the claim_unbond function, false if otherwise
     #[wasm_bindgen(js_name = "isClaimUnbondPublicProver")]
     pub fn is_claim_unbond_public_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::ClaimUnbondPublicProver::METADATA)
+        self.checksum()
+            == ProvingKey::prover_checksum(crate::types::native::parameters::ClaimUnbondPublicProver::METADATA)
     }
 
     /// Verify if the proving key is for the fee_private function
@@ -117,7 +118,8 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the set_validator_state function, false if otherwise
     #[wasm_bindgen(js_name = "isSetValidatorStateProver")]
     pub fn is_set_validator_state_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::SetValidatorStateProver::METADATA)
+        self.checksum()
+            == ProvingKey::prover_checksum(crate::types::native::parameters::SetValidatorStateProver::METADATA)
     }
 
     /// Verify if the proving key is for the split function
@@ -141,7 +143,8 @@ impl ProvingKey {
     /// @returns {boolean} returns true if the proving key is for the transfer_private function, false if otherwise
     #[wasm_bindgen(js_name = "isTransferPrivateProver")]
     pub fn is_transfer_private_prover(&self) -> bool {
-        self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPrivateProver::METADATA)
+        self.checksum()
+            == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPrivateProver::METADATA)
     }
 
     /// Verify if the proving key is for the transfer_private_to_public function

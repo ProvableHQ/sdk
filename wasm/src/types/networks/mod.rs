@@ -20,7 +20,6 @@ mod testnet;
 #[cfg(feature = "testnet")]
 pub use testnet::*;
 
-
 #[cfg(feature = "mainnet")]
 mod mainnet;
 

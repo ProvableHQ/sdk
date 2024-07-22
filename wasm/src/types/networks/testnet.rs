@@ -16,8 +16,6 @@
 
 pub use snarkvm_circuit_network::AleoTestnetV0 as CurrentAleo;
 
-pub use snarkvm_console::{
-    network::{TestnetV0 as CurrentNetwork},
-};
+pub use snarkvm_console::network::TestnetV0 as CurrentNetwork;
 
 pub use snarkvm_parameters::testnet as parameters;

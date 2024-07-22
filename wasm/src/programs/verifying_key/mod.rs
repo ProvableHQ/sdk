@@ -130,10 +130,11 @@ mod tests {
             VerifyingKey::from_bytes(&crate::types::native::parameters::BondPublicVerifier::load_bytes().unwrap())
                 .unwrap()
                 .to_string();
-        let claim_unbond_public_verifier_string =
-            VerifyingKey::from_bytes(&crate::types::native::parameters::ClaimUnbondPublicVerifier::load_bytes().unwrap())
-                .unwrap()
-                .to_string();
+        let claim_unbond_public_verifier_string = VerifyingKey::from_bytes(
+            &crate::types::native::parameters::ClaimUnbondPublicVerifier::load_bytes().unwrap(),
+        )
+        .unwrap()
+        .to_string();
         let fee_private_verifier_string =
             VerifyingKey::from_bytes(&crate::types::native::parameters::FeePrivateVerifier::load_bytes().unwrap())
                 .unwrap()
@@ -150,10 +151,11 @@ mod tests {
             VerifyingKey::from_bytes(&crate::types::native::parameters::JoinVerifier::load_bytes().unwrap())
                 .unwrap()
                 .to_string();
-        let set_validator_state_verifier_string =
-            VerifyingKey::from_bytes(&crate::types::native::parameters::SetValidatorStateVerifier::load_bytes().unwrap())
-                .unwrap()
-                .to_string();
+        let set_validator_state_verifier_string = VerifyingKey::from_bytes(
+            &crate::types::native::parameters::SetValidatorStateVerifier::load_bytes().unwrap(),
+        )
+        .unwrap()
+        .to_string();
         let split_verifier_string =
             VerifyingKey::from_bytes(&crate::types::native::parameters::SplitVerifier::load_bytes().unwrap())
                 .unwrap()
@@ -203,7 +205,8 @@ mod tests {
 
     #[wasm_bindgen_test]
     async fn test_verifying_key_roundtrip() {
-        let transfer_public_verifier_bytes = crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
+        let transfer_public_verifier_bytes =
+            crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
         let transfer_public_verifier = VerifyingKey::from_bytes(&transfer_public_verifier_bytes).unwrap();
         let transfer_public_verifying_key_string = transfer_public_verifier.to_string();
         assert_eq!(transfer_public_verifying_key_string, TRANSFER_PUBLIC_VERIFYING_KEY);
@@ -211,7 +214,8 @@ mod tests {
 
     #[wasm_bindgen_test]
     async fn test_verifier_checksum() {
-        let transfer_public_verifier_bytes = crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
+        let transfer_public_verifier_bytes =
+            crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
         let transfer_public_verifier = VerifyingKey::from_bytes(&transfer_public_verifier_bytes).unwrap();
         let transfer_public_verifying_key_checksum = transfer_public_verifier.checksum();
         assert_eq!(

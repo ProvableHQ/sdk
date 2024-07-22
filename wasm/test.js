@@ -6,7 +6,7 @@ const file = $fs.readFileSync("package.json", { encoding: "utf8" });
 $fs.writeFileSync("package.json", file.replace(/"type": "module",/g, ""));
 
 try {
-    $child.execSync("wasm-pack test --node", {
+    $child.execSync("wasm-pack test --node --features testnet", {
         stdio: "inherit",
     });
 
