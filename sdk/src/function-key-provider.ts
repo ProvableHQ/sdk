@@ -341,7 +341,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
             }
 
             if (proverUrl && verifierUrl) {
-                return await this.fetchKeys(proverUrl, verifierUrl, cacheKey);
+                return await this.fetchRemoteKeys(proverUrl, verifierUrl, cacheKey);
             }
 
             if (cacheKey) {
@@ -376,7 +376,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      *     CREDITS_PROGRAM_KEYS.transfer_private.verifier,
      * );
      */
-    async fetchKeys(proverUrl: string, verifierUrl: string, cacheKey?: string): Promise<FunctionKeyPair | Error> {
+    async fetchRemoteKeys(proverUrl: string, verifierUrl?: string, cacheKey?: string): Promise<FunctionKeyPair | Error> {
         try {
             // If cache is enabled, check if the keys have already been fetched and return them if they have
             if (this.cacheOption) {
@@ -406,16 +406,58 @@ class AleoKeyProvider implements FunctionKeyProvider {
         }
     }
 
-    bondPublicKeys(): Promise<FunctionKeyPair | Error> {
-        return this.fetchKeys(CREDITS_PROGRAM_KEYS.bond_public.prover, CREDITS_PROGRAM_KEYS.bond_public.verifier, CREDITS_PROGRAM_KEYS.bond_public.locator)
+    /***
+     * Fetches the proving key from a remote source.
+     *
+     * @param proverUrl
+     * @param cacheKey
+     *
+     * @returns {Promise<ProvingKey | Error>} Proving key for the specified program
+     */
+    async fetchProvingKey(proverUrl: string, cacheKey?: string): Promise<ProvingKey | Error> {
+        try {
+            // If cache is enabled, check if the keys have already been fetched and return them if they have
+            if (this.cacheOption) {
+                if (!cacheKey) {
+                    cacheKey = proverUrl;
+                }
+                const value = this.cache.get(cacheKey);
+                if (typeof value !== "undefined") {
+                    return ProvingKey.fromBytes(value[0]);
+                } else {
+                    console.debug("Fetching proving keys from url " + proverUrl);
+                    const provingKey = <ProvingKey>ProvingKey.fromBytes(await this.fetchBytes(proverUrl));
+                    return provingKey;
+                }
+            }
+            else {
+                const provingKey = <ProvingKey>ProvingKey.fromBytes(await this.fetchBytes(proverUrl));
+                return provingKey;
+            }
+        } catch (error) {
+            throw new Error(`Error: ${error} fetching fee proving keys from ${proverUrl}`);
+        }
+    }
+
+    async bondPublicKeys(): Promise<FunctionKeyPair | Error> {
+        if (!this.cache.has(CREDITS_PROGRAM_KEYS.bond_public.locator)) {
+            const verifying_key = CREDITS_PROGRAM_KEYS.bond_public.verifyingKey();
+            const proving_key = <ProvingKey>await this.fetchProvingKey(CREDITS_PROGRAM_KEYS.bond_public.prover, CREDITS_PROGRAM_KEYS.bond_public.locator);
+            this.cache.set(CREDITS_PROGRAM_KEYS.bond_public.locator, [proving_key.toBytes(), verifying_key.toBytes()]);
+            return [proving_key, verifying_key];
+        } else {
+            const keyPair = <CachedKeyPair>this.cache.get(CREDITS_PROGRAM_KEYS.bond_public.locator);
+            return [ProvingKey.fromBytes(keyPair[0]), VerifyingKey.fromBytes(keyPair[1])];
+        }
+
     }
 
     bondValidatorKeys(): Promise<FunctionKeyPair | Error> {
-        return this.fetchKeys(CREDITS_PROGRAM_KEYS.bond_validator.prover, CREDITS_PROGRAM_KEYS.bond_validator.verifier, CREDITS_PROGRAM_KEYS.bond_validator.locator)
+        return this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.bond_validator.prover, CREDITS_PROGRAM_KEYS.bond_validator.verifier, CREDITS_PROGRAM_KEYS.bond_validator.locator)
     }
 
     claimUnbondPublicKeys(): Promise<FunctionKeyPair | Error> {
-        return this.fetchKeys(CREDITS_PROGRAM_KEYS.claim_unbond_public.prover, CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier, CREDITS_PROGRAM_KEYS.claim_unbond_public.locator)
+        return this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.claim_unbond_public.prover, CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier, CREDITS_PROGRAM_KEYS.claim_unbond_public.locator)
     }
 
     /**
@@ -438,15 +480,15 @@ class AleoKeyProvider implements FunctionKeyProvider {
      */
     async transferKeys(visibility: string): Promise<FunctionKeyPair | Error> {
         if (PRIVATE_TRANSFER.has(visibility)) {
-            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier, CREDITS_PROGRAM_KEYS.transfer_private.locator);
+            return await this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier, CREDITS_PROGRAM_KEYS.transfer_private.locator);
         } else if (PRIVATE_TO_PUBLIC_TRANSFER.has(visibility)) {
-            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier, CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator);
+            return await this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier, CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator);
         } else if (PUBLIC_TRANSFER.has(visibility)) {
-            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier, CREDITS_PROGRAM_KEYS.transfer_public.locator);
+            return await this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier, CREDITS_PROGRAM_KEYS.transfer_public.locator);
         } else if (PUBLIC_TRANSFER_AS_SIGNER.has(visibility)) {
-            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public_as_signer.prover, CREDITS_PROGRAM_KEYS.transfer_public_as_signer.verifier, CREDITS_PROGRAM_KEYS.transfer_public_as_signer.locator);
+            return await this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_public_as_signer.prover, CREDITS_PROGRAM_KEYS.transfer_public_as_signer.verifier, CREDITS_PROGRAM_KEYS.transfer_public_as_signer.locator);
         } else if (PUBLIC_TO_PRIVATE_TRANSFER.has(visibility)) {
-            return await this.fetchKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier, CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator);
+            return await this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier, CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator);
         } else {
             throw new Error("Invalid visibility type");
         }
@@ -458,7 +500,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
      */
     async joinKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.join.prover, CREDITS_PROGRAM_KEYS.join.verifier, CREDITS_PROGRAM_KEYS.join.locator);
+        return await this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.join.prover, CREDITS_PROGRAM_KEYS.join.verifier, CREDITS_PROGRAM_KEYS.join.locator);
     }
 
     /**
@@ -467,7 +509,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the split function
      * */
     async splitKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.split.prover, CREDITS_PROGRAM_KEYS.split.verifier, CREDITS_PROGRAM_KEYS.split.locator);
+        return await this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.split.prover, CREDITS_PROGRAM_KEYS.split.verifier, CREDITS_PROGRAM_KEYS.split.locator);
     }
 
     /**
@@ -476,7 +518,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the fee function
      */
     async feePrivateKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee_private.prover, CREDITS_PROGRAM_KEYS.fee_private.verifier, CREDITS_PROGRAM_KEYS.fee_private.locator);
+        return await this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.fee_private.prover, CREDITS_PROGRAM_KEYS.fee_private.verifier, CREDITS_PROGRAM_KEYS.fee_private.locator);
     }
 
     /**
@@ -485,7 +527,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the fee function
      */
     async feePublicKeys(): Promise<FunctionKeyPair | Error> {
-        return await this.fetchKeys(CREDITS_PROGRAM_KEYS.fee_public.prover, CREDITS_PROGRAM_KEYS.fee_public.verifier, CREDITS_PROGRAM_KEYS.fee_public.locator);
+        return await this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.fee_public.prover, CREDITS_PROGRAM_KEYS.fee_public.verifier, CREDITS_PROGRAM_KEYS.fee_public.locator);
     }
 
     /**
@@ -544,7 +586,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 
     unBondPublicKeys(): Promise<FunctionKeyPair | Error> {
-        return this.fetchKeys(CREDITS_PROGRAM_KEYS.unbond_public.prover, CREDITS_PROGRAM_KEYS.unbond_public.verifier, CREDITS_PROGRAM_KEYS.unbond_public.locator);
+        return this.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.unbond_public.prover, CREDITS_PROGRAM_KEYS.unbond_public.verifier, CREDITS_PROGRAM_KEYS.unbond_public.locator);
     }
 }
 

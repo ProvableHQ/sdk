@@ -8,6 +8,8 @@ const programManager = new aleo.ProgramManager(defaultHost, keyProvider, undefin
 
 keyProvider.useCache(true);
 
+keyProvider.cacheKeys()
+
 self.postMessage({
     type: "ALEO_WORKER_READY",
 });
