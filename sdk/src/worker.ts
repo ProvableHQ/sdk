@@ -17,7 +17,7 @@ keyProvider.useCache(true);
 let lastLocalProgram: string = "";
 
 export interface WorkerAPI {
-    executeOffline: (
+    run: (
         localProgram: string,
         aleoFunction: string,
         inputs: string[],
@@ -26,7 +26,7 @@ export interface WorkerAPI {
 
     getPrivateKey: () => Promise<PrivateKey>;
 }
-async function executeOffline(
+async function run(
     localProgram: string,
     aleoFunction: string,
     inputs: string[],
@@ -131,5 +131,5 @@ async function getPrivateKey() {
     return privateKey.to_string();
 }
 
-const workerAPI = { executeOffline, getPrivateKey };
+const workerAPI = { run, getPrivateKey };
 expose(workerAPI);

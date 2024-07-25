@@ -78,7 +78,7 @@ jobs:
     steps:
       - setup-sdk
       - run:
-          working_directory: create-aleo-app/template-node
+          working_directory: create-leo-app/template-node
           command: |
             yarn start
 
@@ -87,7 +87,7 @@ jobs:
     steps:
       - setup-sdk
       - run:
-          working_directory: create-aleo-app/template-node-ts
+          working_directory: create-leo-app/template-node-ts
           command: |
             yarn start
 
@@ -96,7 +96,7 @@ jobs:
     steps:
       - setup-sdk
       - run:
-          working_directory: create-aleo-app/template-extension
+          working_directory: create-leo-app/template-extension
           command: |
             yarn build
 
@@ -105,7 +105,7 @@ jobs:
     steps:
       - setup-sdk
       - run:
-          working_directory: create-aleo-app/template-react-leo
+          working_directory: create-leo-app/template-react-leo
           command: |
             yarn build
 
