@@ -11,7 +11,7 @@ import {
     PUBLIC_TRANSFER,
     PUBLIC_TO_PRIVATE_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER
-} from "./index";
+} from "./browser";
 
 /**
  * Search parameters for the offline key provider. This class implements the KeySearchParams interface and includes

@@ -3,6 +3,7 @@ import {
     AleoKeyProvider,
     AleoNetworkClient,
     ExecutionResponse,
+    FunctionExecution,
     FunctionKeyProvider,
     FunctionKeyPair,
     OfflineQuery,
@@ -20,8 +21,7 @@ import {
     VALID_TRANSFER_TYPES,
     logAndThrow,
     ProgramManagerBase as WasmProgramManager, verifyFunctionExecution, AleoKeyProviderParams, CREDITS_PROGRAM_KEYS,
-} from "./index";
-import {Execution} from "@provablehq/wasm/testnet.js";
+} from "./browser";
 
 /**
  * Represents the options for executing a transaction in the Aleo network.
@@ -1213,7 +1213,7 @@ class ProgramManager {
      */
     verifyExecution(executionResponse: ExecutionResponse): boolean {
         try {
-            const execution = <Execution>executionResponse.getExecution();
+            const execution = <FunctionExecution>executionResponse.getExecution();
             const function_id = executionResponse.getFunctionId();
             const program = executionResponse.getProgram();
             const verifyingKey = executionResponse.getVerifyingKey();

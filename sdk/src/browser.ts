@@ -1,8 +1,10 @@
-import {VerifyingKey, Metadata} from "@provablehq/wasm/testnet.js";
+import "./polyfill/shared";
+import {VerifyingKey, Metadata} from "@provablehq/wasm/%%NETWORK%%.js";
 
 const KEY_STORE = Metadata.baseUrl();
 
 interface Key {
+    name: string,
     locator: string,
     prover: string,
     verifier: string,
@@ -18,6 +20,7 @@ function convert(metadata: Metadata): Key {
     }
 
     return {
+        name: metadata.name,
         locator: metadata.locator,
         prover: metadata.prover,
         verifier: metadata.verifier,
@@ -41,6 +44,13 @@ const CREDITS_PROGRAM_KEYS = {
     transfer_public_as_signer: convert(Metadata.transfer_public_as_signer()),
     transfer_public_to_private: convert(Metadata.transfer_public_to_private()),
     unbond_public: convert(Metadata.unbond_public()),
+    getKey: function(key: string): Key {
+        if (this.hasOwnProperty(key)) {
+            return (this as any)[key] as Key;
+        } else {
+            throw new Error(`Key "${key}" not found.`);
+        }
+    }
 };
 
 const PRIVATE_TRANSFER_TYPES = new Set([
@@ -97,19 +107,19 @@ const PUBLIC_TO_PRIVATE_TRANSFER = new Set([
     "transferPublicToPrivate",
 ]);
 
-function logAndThrow(message: string): Error {
+function logAndThrow(message: string): never {
     console.error(message);
-    throw message;
+    throw new Error(message);
 }
 
-import { Account } from "../shared/account";
-import { AleoNetworkClient, ProgramImports } from "../shared/network-client";
-import { Block } from "../shared/models/block";
-import { Execution } from "../shared/models/execution";
-import { Input } from "../shared/models/input";
-import { Output } from "../shared/models/output";
-import { TransactionModel } from "../shared/models/transactionModel";
-import { Transition } from "../shared/models/transition";
+import { Account } from "./account";
+import { AleoNetworkClient, ProgramImports } from "./network-client";
+import { Block } from "./models/block";
+import { Execution } from "./models/execution";
+import { Input } from "./models/input";
+import { Output } from "./models/output";
+import { TransactionModel } from "./models/transactionModel";
+import { Transition } from "./models/transition";
 import {
     AleoKeyProvider,
     AleoKeyProviderParams,
@@ -118,26 +128,26 @@ import {
     FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "../shared/function-key-provider";
+} from "./function-key-provider";
 import {
     OfflineKeyProvider,
     OfflineSearchParams
-} from "../shared/offline-key-provider";
+} from "./offline-key-provider";
 import {
     BlockHeightSearch,
     NetworkRecordProvider,
     RecordProvider,
     RecordSearchParams,
-} from "../shared/record-provider";
+} from "./record-provider";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {
     console.warn("initializeWasm is deprecated, you no longer need to use it");
 }
 
-export { createAleoWorker } from "../shared/managed-worker";
+export { createAleoWorker } from "./managed-worker";
 
-export { ProgramManager } from "../shared/program-manager";
+export { ProgramManager } from "./program-manager";
 
 export {
     Address,
@@ -158,7 +168,7 @@ export {
     ViewKey,
     initThreadPool,
     verifyFunctionExecution,
-} from "@provablehq/wasm/testnet.js";
+} from "@provablehq/wasm/%%NETWORK%%.js";
 
 export { initializeWasm };
 
@@ -175,6 +185,7 @@ export {
     FunctionKeyPair,
     FunctionKeyProvider,
     Input,
+    Key,
     KeySearchParams,
     NetworkRecordProvider,
     ProgramImports,

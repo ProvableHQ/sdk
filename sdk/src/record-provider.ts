@@ -1,4 +1,4 @@
-import { logAndThrow, RecordPlaintext } from "./index";
+import { logAndThrow, RecordPlaintext } from "./browser";
 import { Account } from "./account";
 import { AleoNetworkClient } from "./network-client";
 

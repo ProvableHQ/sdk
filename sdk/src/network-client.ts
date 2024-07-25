@@ -9,7 +9,7 @@ import {
   Transaction,
   TransactionModel,
   logAndThrow
-} from "./index";
+} from "./browser";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -35,7 +35,7 @@ class AleoNetworkClient {
   account: Account | undefined;
 
   constructor(host: string, options?: AleoNetworkClientOptions) {
-    this.host = host + "/testnet";
+    this.host = host;
 
     if (options && options.headers) {
       this.headers = options.headers;

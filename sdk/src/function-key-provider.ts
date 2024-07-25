@@ -9,7 +9,7 @@ import {
     PUBLIC_TRANSFER,
     PUBLIC_TO_PRIVATE_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER
-} from "./index";
+} from "./browser";
 import { get } from "./utils";
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
