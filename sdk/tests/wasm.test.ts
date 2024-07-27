@@ -1,4 +1,4 @@
-import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "../src/testnet/node";
+import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "../src/node";
 import {
     seed,
     message,

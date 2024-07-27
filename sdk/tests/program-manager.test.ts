@@ -7,7 +7,7 @@ import {
     statePathRecordOwnerPrivateKey,
     stateRoot
 } from "./data/account-data";
-import { Account, ExecutionResponse, OfflineQuery, ProgramManager, RecordPlaintext } from "../src/testnet/node";
+import { Account, ExecutionResponse, OfflineQuery, ProgramManager, RecordPlaintext } from "../src/node";
 jest.retryTimes(3);
 
 describe('Program Manager', () => {

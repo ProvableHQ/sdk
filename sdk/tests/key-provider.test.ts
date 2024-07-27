@@ -1,4 +1,4 @@
-import {AleoKeyProvider, CachedKeyPair, CREDITS_PROGRAM_KEYS, FunctionKeyPair, OfflineKeyProvider, ProvingKey, VerifyingKey} from "../src/testnet/node";
+import {AleoKeyProvider, CachedKeyPair, CREDITS_PROGRAM_KEYS, FunctionKeyPair, OfflineKeyProvider, ProvingKey, VerifyingKey} from "../src/node";
 import {jest} from '@jest/globals'
 jest.retryTimes(1);
 

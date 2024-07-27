@@ -35,7 +35,7 @@ class AleoNetworkClient {
   account: Account | undefined;
 
   constructor(host: string, options?: AleoNetworkClientOptions) {
-    this.host = host;
+    this.host = host + "/%%NETWORK%%";
 
     if (options && options.headers) {
       this.headers = options.headers;
