@@ -1698,7 +1698,7 @@
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
 "@provablehq/sdk@^0.6.0", "@provablehq/sdk@^0.6.2", "@provablehq/sdk@file:/Users/brentconn/IdeaProjects/sdk-provablehq/sdk":
-  version "0.6.10"
+  version "0.6.11"
   resolved "file:sdk"
   dependencies:
     "@provablehq/wasm" "^0.6.0"
@@ -1707,7 +1707,7 @@
     sync-request "^6.1.0"
 
 "@provablehq/wasm@^0.6.0", "@provablehq/wasm@file:/Users/brentconn/IdeaProjects/sdk-provablehq/wasm":
-  version "0.6.10"
+  version "0.6.11"
   resolved "file:wasm"
 
 "@rc-component/color-picker@~1.4.1":
@@ -1880,6 +1880,11 @@
   version "4.1.4"
   resolved "https://registry.npmjs.org/@rollup/rollup-darwin-arm64/-/rollup-darwin-arm64-4.1.4.tgz"
   integrity sha512-7vTYrgEiOrjxnjsgdPB+4i7EMxbVp7XXtS+50GJYj695xYTTEMn3HZVEvgtwjOUkAP/Q4HDejm4fIAjLeAfhtg==
+
+"@rollup/rollup-darwin-arm64@4.19.1":
+  version "4.19.1"
+  resolved "https://registry.npmjs.org/@rollup/rollup-darwin-arm64/-/rollup-darwin-arm64-4.19.1.tgz"
+  integrity sha512-8o6eqeFZzVLia2hKPUZk4jdE3zW7LCcZr+MD18tXkgBBid3lssGVAYuox8x6YHoEPDdDa9ixTaStcmx88lio5Q==
 
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"
@@ -2066,10 +2071,10 @@
     "@types/estree" "*"
     "@types/json-schema" "*"
 
-"@types/estree@*", "@types/estree@^1.0.0":
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/@types/estree/-/estree-1.0.2.tgz"
-  integrity sha512-VeiPZ9MMwXjO32/Xu7+OwflfmeoRwkE/qzndw42gGtgJwZopBnzy2gD//NN1+go1mADzkDcqf/KnFRSjTJ8xJA==
+"@types/estree@*", "@types/estree@^1.0.0", "@types/estree@1.0.5":
+  version "1.0.5"
+  resolved "https://registry.npmjs.org/@types/estree/-/estree-1.0.5.tgz"
+  integrity sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==
 
 "@types/express-serve-static-core@*", "@types/express-serve-static-core@^4.17.33":
   version "4.17.37"
@@ -2192,31 +2197,17 @@
   resolved "https://registry.npmjs.org/@types/minimist/-/minimist-1.2.3.tgz"
   integrity sha512-ZYFzrvyWUNhaPomn80dsMNgMeXxNWZBdkuG/hWlUvXvbdUH8ZERNBGXnU87McuGcWDsyzX2aChCv/SVN348k3A==
 
-"@types/node@*", "@types/node@>= 14":
-  version "20.8.5"
-  resolved "https://registry.npmjs.org/@types/node/-/node-20.8.5.tgz"
-  integrity sha512-SPlobFgbidfIeOYlzXiEjSYeIJiOCthv+9tSQVpvk4PAdIIc+2SmjNVzWXk9t0Y7dl73Zdf+OgXKHX9XtkqUpw==
+"@types/node@*", "@types/node@^20", "@types/node@^20.8.7", "@types/node@>= 14":
+  version "20.14.13"
+  resolved "https://registry.npmjs.org/@types/node/-/node-20.14.13.tgz"
+  integrity sha512-+bHoGiZb8UiQ0+WEtmph2IWQCjIqg8MDZMAV+ppRRhUZnquF5mQkP/9vpSwJClEiSM/C7fZZExPzfU0vJTyp8w==
   dependencies:
-    undici-types "~5.25.1"
+    undici-types "~5.26.4"
 
 "@types/node@^10.0.3":
   version "10.17.60"
   resolved "https://registry.npmjs.org/@types/node/-/node-10.17.60.tgz"
   integrity sha512-F0KIgDJfy2nA3zMLmWGKxcH2ZVEtCZXHHdOQs2gSaQ27+lNeEfGxzkIw90aXswATX7AZ33tahPbzy6KAfUreVw==
-
-"@types/node@^20":
-  version "20.8.10"
-  resolved "https://registry.npmjs.org/@types/node/-/node-20.8.10.tgz"
-  integrity sha512-TlgT8JntpcbmKUFzjhsyhGfP2fsiz1Mv56im6enJ905xG1DAYesxJaeSbGqQmAw8OWPdhyJGhGSQGKRNJ45u9w==
-  dependencies:
-    undici-types "~5.26.4"
-
-"@types/node@^20.8.7":
-  version "20.8.10"
-  resolved "https://registry.npmjs.org/@types/node/-/node-20.8.10.tgz"
-  integrity sha512-TlgT8JntpcbmKUFzjhsyhGfP2fsiz1Mv56im6enJ905xG1DAYesxJaeSbGqQmAw8OWPdhyJGhGSQGKRNJ45u9w==
-  dependencies:
-    undici-types "~5.26.4"
 
 "@types/node@^8.0.0":
   version "8.10.66"
@@ -2246,33 +2237,17 @@
   resolved "https://registry.npmjs.org/@types/range-parser/-/range-parser-1.2.5.tgz"
   integrity sha512-xrO9OoVPqFuYyR/loIHjnbvvyRZREYKLjxV4+dY6v3FQR3stQ9ZxIGkaclF7YhI9hfjpuTbu14hZEy94qKLtOA==
 
-"@types/react-dom@^18":
-  version "18.2.14"
-  resolved "https://registry.npmjs.org/@types/react-dom/-/react-dom-18.2.14.tgz"
-  integrity sha512-V835xgdSVmyQmI1KLV2BEIUgqEuinxp9O4G6g3FqO/SqLac049E53aysv0oEFD2kHfejeKU+ZqL2bcFWj9gLAQ==
-  dependencies:
-    "@types/react" "*"
-
-"@types/react-dom@^18.0.11", "@types/react-dom@^18.2.7":
+"@types/react-dom@^18", "@types/react-dom@^18.0.11", "@types/react-dom@^18.2.7":
   version "18.2.13"
   resolved "https://registry.npmjs.org/@types/react-dom/-/react-dom-18.2.13.tgz"
   integrity sha512-eJIUv7rPP+EC45uNYp/ThhSpE16k22VJUknt5OLoH9tbXoi8bMhwLf5xRuWMywamNbWzhrSmU7IBJfPup1+3fw==
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^18.0.37", "@types/react@^18.2.15":
+"@types/react@*", "@types/react@^18", "@types/react@^18.0.37", "@types/react@^18.2.15":
   version "18.2.28"
   resolved "https://registry.npmjs.org/@types/react/-/react-18.2.28.tgz"
   integrity sha512-ad4aa/RaaJS3hyGz0BGegdnSRXQBkd1CCYDCdNjBPg90UUpLgo+WlJqb9fMYUxtehmzF3PJaTWqRZjko6BRzBg==
-  dependencies:
-    "@types/prop-types" "*"
-    "@types/scheduler" "*"
-    csstype "^3.0.2"
-
-"@types/react@^18":
-  version "18.2.33"
-  resolved "https://registry.npmjs.org/@types/react/-/react-18.2.33.tgz"
-  integrity sha512-v+I7S+hu3PIBoVkKGpSYYpiBT1ijqEzWpzQD62/jm4K74hPpSP7FF9BnKG6+fg2+62weJYkkBWDJlZt5JO/9hg==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -2719,15 +2694,10 @@ acorn@^4.0.4:
   resolved "https://registry.npmjs.org/acorn/-/acorn-4.0.13.tgz"
   integrity sha512-fu2ygVGuMmlzG8ZeRJ0bvR41nsAkxxhbyk8bZ1SS521Z7vmgJFTQQlfz/Mp/nJexGBz+v8sC9bM6+lNgskt4Ug==
 
-"acorn@^6.0.0 || ^7.0.0 || ^8.0.0", acorn@^8, acorn@^8.10.0, acorn@^8.7.1, acorn@^8.8.2, acorn@^8.9.0:
+"acorn@^6.0.0 || ^7.0.0 || ^8.0.0", acorn@^8, acorn@^8.10.0, acorn@^8.4.1, acorn@^8.7.1, acorn@^8.8.2, acorn@^8.9.0:
   version "8.10.0"
   resolved "https://registry.npmjs.org/acorn/-/acorn-8.10.0.tgz"
   integrity sha512-F0SAmZ8iUtS//m8DmCTA0jlh6TDKkHQyK6xc6V4KDTyZKA9dnvX9/3sRTVQrWm79glUAZbnmmNcdYwUIHWVybw==
-
-acorn@^8.4.1:
-  version "8.11.2"
-  resolved "https://registry.npmjs.org/acorn/-/acorn-8.11.2.tgz"
-  integrity sha512-nc0Axzp/0FILLEVsm4fNwLCwMttvhEI263QtVPQcbpfZZ3ts0hLsZGOpE6czNlid7CJ9MlyH8reXkpsf3YUY4w==
 
 acorn@~4.0.2:
   version "4.0.13"
@@ -2773,35 +2743,35 @@ ajv@^8.0.0, ajv@^8.8.2, ajv@^8.9.0:
     require-from-string "^2.0.2"
     uri-js "^4.2.2"
 
-"aleo-react-leo-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app/template-react-leo":
+"aleo-react-leo-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app/template-react-leo":
   version "0.0.0"
-  resolved "file:create-aleo-app/template-react-leo"
+  resolved "file:create-leo-app/template-react-leo"
   dependencies:
     "@provablehq/sdk" "^0.6.0"
     comlink "^4.4.1"
     react "^18.2.0"
     react-dom "^18.2.0"
 
-"aleo-react-managed-worker-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app/template-react-managed-worker":
+"aleo-react-managed-worker-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app/template-react-managed-worker":
   version "0.0.0"
-  resolved "file:create-aleo-app/template-react-managed-worker"
+  resolved "file:create-leo-app/template-react-managed-worker"
   dependencies:
     "@provablehq/sdk" "^0.6.0"
     react "^18.2.0"
     react-dom "^18.2.0"
 
-"aleo-react-typescript-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app/template-react-ts":
+"aleo-react-typescript-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app/template-react-ts":
   version "0.0.0"
-  resolved "file:create-aleo-app/template-react-ts"
+  resolved "file:create-leo-app/template-react-ts"
   dependencies:
     "@provablehq/sdk" "^0.6.2"
     comlink "^4.4.1"
     react "^18.2.0"
     react-dom "^18.2.0"
 
-"aleo-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app/template-vanilla":
+"aleo-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app/template-vanilla":
   version "0.0.0"
-  resolved "file:create-aleo-app/template-vanilla"
+  resolved "file:create-leo-app/template-vanilla"
 
 "aleo-website@file:/Users/brentconn/IdeaProjects/sdk-provablehq/website":
   version "0.1.0"
@@ -3873,10 +3843,6 @@ cpr@^3.0.1:
     mkdirp "~0.5.1"
     rimraf "^2.5.4"
 
-"create-aleo-app@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app":
-  version "0.0.12"
-  resolved "file:create-aleo-app"
-
 create-jest@^29.7.0:
   version "29.7.0"
   resolved "https://registry.npmjs.org/create-jest/-/create-jest-29.7.0.tgz"
@@ -3889,6 +3855,10 @@ create-jest@^29.7.0:
     jest-config "^29.7.0"
     jest-util "^29.7.0"
     prompts "^2.0.1"
+
+"create-leo-app@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app":
+  version "0.0.13"
+  resolved "file:create-leo-app"
 
 create-require@^1.1.0:
   version "1.1.1"
@@ -4709,9 +4679,9 @@ express@^4.17.3:
     utils-merge "1.0.1"
     vary "~1.1.2"
 
-"extension-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app/template-extension":
+"extension-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app/template-extension":
   version "0.0.0"
-  resolved "file:create-aleo-app/template-extension"
+  resolved "file:create-leo-app/template-extension"
 
 fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   version "3.1.3"
@@ -6853,9 +6823,9 @@ node-int64@^0.4.0:
   resolved "https://registry.npmjs.org/node-int64/-/node-int64-0.4.0.tgz"
   integrity sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw==
 
-"node-offline-transaction-example@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app/template-offline-public-transaction-ts":
+"node-offline-transaction-example@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app/template-offline-public-transaction-ts":
   version "0.0.0"
-  resolved "file:create-aleo-app/template-offline-public-transaction-ts"
+  resolved "file:create-leo-app/template-offline-public-transaction-ts"
   dependencies:
     "@provablehq/sdk" "^0.6.0"
 
@@ -6864,15 +6834,15 @@ node-releases@^2.0.13:
   resolved "https://registry.npmjs.org/node-releases/-/node-releases-2.0.13.tgz"
   integrity sha512-uYr7J37ae/ORWdZeQ1xxMJe3NtdmqMC/JZK+geofDrkLUApKRHPd18/TxtBOJ4A0/+uUIliorNrfYV6s1b02eQ==
 
-"node-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app/template-node":
+"node-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app/template-node":
   version "0.0.0"
-  resolved "file:create-aleo-app/template-node"
+  resolved "file:create-leo-app/template-node"
   dependencies:
     "@provablehq/sdk" "^0.6.0"
 
-"node-ts-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app/template-node-ts":
+"node-ts-starter@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app/template-node-ts":
   version "0.0.0"
-  resolved "file:create-aleo-app/template-node-ts"
+  resolved "file:create-leo-app/template-node-ts"
   dependencies:
     "@provablehq/sdk" "^0.6.0"
 
@@ -8239,30 +8209,11 @@ rollup-plugin-typescript2@^0.36.0:
     semver "^7.5.4"
     tslib "^2.6.2"
 
-rollup@^1.20.0||^2.0.0||^3.0.0||^4.0.0, rollup@^2.68.0||^3.0.0, rollup@^2.78.0||^3.0.0||^4.0.0, rollup@^3.0, rollup@^3.20.2, rollup@^3.27.1, rollup@^3.27.2, rollup@>=1.26.3:
+rollup@^1.20.0||^2.0.0||^3.0.0||^4.0.0, rollup@^2.68.0||^3.0.0, rollup@^2.78.0||^3.0.0||^4.0.0, rollup@^3.0, rollup@^3.20.2, rollup@^3.27.1, rollup@^3.27.2, rollup@^4.0.0, rollup@>=1.26.3:
   version "3.29.4"
   resolved "https://registry.npmjs.org/rollup/-/rollup-3.29.4.tgz"
   integrity sha512-oWzmBZwvYrU0iJHtDmhsm662rC15FRXmcjCk1xD771dFDx5jJ02ufAQQTn0etB2emNk4J9EZg/yWKpsn9BWGRw==
   optionalDependencies:
-    fsevents "~2.3.2"
-
-rollup@^4.0.0:
-  version "4.1.4"
-  resolved "https://registry.npmjs.org/rollup/-/rollup-4.1.4.tgz"
-  integrity sha512-U8Yk1lQRKqCkDBip/pMYT+IKaN7b7UesK3fLSTuHBoBJacCE+oBqo/dfG/gkUdQNNB2OBmRP98cn2C2bkYZkyw==
-  optionalDependencies:
-    "@rollup/rollup-android-arm-eabi" "4.1.4"
-    "@rollup/rollup-android-arm64" "4.1.4"
-    "@rollup/rollup-darwin-arm64" "4.1.4"
-    "@rollup/rollup-darwin-x64" "4.1.4"
-    "@rollup/rollup-linux-arm-gnueabihf" "4.1.4"
-    "@rollup/rollup-linux-arm64-gnu" "4.1.4"
-    "@rollup/rollup-linux-arm64-musl" "4.1.4"
-    "@rollup/rollup-linux-x64-gnu" "4.1.4"
-    "@rollup/rollup-linux-x64-musl" "4.1.4"
-    "@rollup/rollup-win32-arm64-msvc" "4.1.4"
-    "@rollup/rollup-win32-ia32-msvc" "4.1.4"
-    "@rollup/rollup-win32-x64-msvc" "4.1.4"
     fsevents "~2.3.2"
 
 run-parallel@^1.1.9:
@@ -8868,9 +8819,9 @@ tar@^6.1.11:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
-"template-nextjs@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-aleo-app/template-nextjs-ts":
+"template-nextjs@file:/Users/brentconn/IdeaProjects/sdk-provablehq/create-leo-app/template-nextjs-ts":
   version "0.1.0"
-  resolved "file:create-aleo-app/template-nextjs-ts"
+  resolved "file:create-leo-app/template-nextjs-ts"
   dependencies:
     "@provablehq/sdk" "^0.6.2"
     next "13.5.4"
@@ -9013,10 +8964,10 @@ ts-map@^1.0.3:
   resolved "https://registry.npmjs.org/ts-map/-/ts-map-1.0.3.tgz"
   integrity sha512-vDWbsl26LIcPGmDpoVzjEP6+hvHZkBkLW7JpvwbCv/5IYPJlsbzCVXY3wsCeAxAUeTclNOUZxnLdGh3VBD/J6w==
 
-ts-node@^10.9.1:
-  version "10.9.1"
-  resolved "https://registry.npmjs.org/ts-node/-/ts-node-10.9.1.tgz"
-  integrity sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==
+ts-node@^10.9.1, ts-node@>=9.0.0:
+  version "10.9.2"
+  resolved "https://registry.npmjs.org/ts-node/-/ts-node-10.9.2.tgz"
+  integrity sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==
   dependencies:
     "@cspotcode/source-map-support" "^0.8.0"
     "@tsconfig/node10" "^1.0.7"
@@ -9218,11 +9169,6 @@ underscore@^1.13.2, underscore@~1.13.2:
   version "1.13.6"
   resolved "https://registry.npmjs.org/underscore/-/underscore-1.13.6.tgz"
   integrity sha512-+A5Sja4HP1M08MaXya7p5LvjuM7K6q/2EaC0+iovj/wOcMsTzMvDFbasi/oSapiwOlt252IqsKqPjCl7huKS0A==
-
-undici-types@~5.25.1:
-  version "5.25.3"
-  resolved "https://registry.npmjs.org/undici-types/-/undici-types-5.25.3.tgz"
-  integrity sha512-Ga1jfYwRn7+cP9v8auvEXN1rX3sWqlayd4HP7OKk4mZWylEmu3KzXDUGrQUN6Ol7qo1gPvB2e5gX6udnyEPgdA==
 
 undici-types@~5.26.4:
   version "5.26.5"

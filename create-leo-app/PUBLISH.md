@@ -1,10 +1,10 @@
-# Aleo Wasm
+# create-leo-app
 
 ## Publish instructions
 
 ```bash
 npm login
-npm run build
+yarn build
 npm version patch
-npm publish --access=public
+yarn publish --access=public
 ```
