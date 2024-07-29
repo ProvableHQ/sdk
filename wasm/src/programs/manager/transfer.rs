@@ -63,7 +63,6 @@ impl ProgramManager {
         amount_credits: f64,
         recipient: &str,
         transfer_type: &str,
-        caller: Option<String>,
         amount_record: Option<RecordPlaintext>,
         fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
@@ -121,7 +120,6 @@ impl ProgramManager {
             }
             "public" | "transfer_public" | "transferPublic" => {
                 let inputs = [
-                    JsValue::from(&caller.unwrap()),
                     JsValue::from(recipient),
                     JsValue::from(&amount_microcredits.to_string().add("u64")),
                 ]
