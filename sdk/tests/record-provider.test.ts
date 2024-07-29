@@ -7,6 +7,7 @@ describe.skip('RecordProvider', () => {
     let account: Account;
     let networkClient: AleoNetworkClient;
     let recordProvider: NetworkRecordProvider;
+
     beforeEach(() => {
         account = new Account({privateKey: beaconPrivateKeyString});
         networkClient = new AleoNetworkClient("http://vm.aleo.org/api");
@@ -23,6 +24,6 @@ describe.skip('RecordProvider', () => {
                 log(e)
                 throw e;
             }
-        }, 60000);
+        });
     });
 });

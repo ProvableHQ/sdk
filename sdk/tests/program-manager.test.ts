@@ -18,7 +18,7 @@ describe('Program Manager', () => {
             const execution_result = <ExecutionResponse>await programManager.run(helloProgram, "hello", ["5u32", "5u32"], true, undefined, undefined, undefined, undefined, undefined, undefined)
             expect(execution_result.getOutputs()[0]).equal("10u32");
             programManager.verifyExecution(execution_result);
-        }, 1020000);
+        });
     });
 
     describe('Offline query', () => {
@@ -32,12 +32,12 @@ describe('Program Manager', () => {
             const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecord, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
             const verified = programManager.verifyExecution(execution_result);
             expect(verified).equal(true);
-        }, 1020000);
+        });
     });
 
     describe('Staking - Bond Public', () => {
         it.skip('Should execute bondPublic', async () => {
             // TODO
-        }, 420000);
+        });
     });
 });

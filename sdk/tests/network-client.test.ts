@@ -42,21 +42,21 @@ describe('NodeConnection', () => {
             const account = new Account();
             connection.setAccount(account);
             expect(connection.getAccount()).equal(account);
-        }, 60000);
+        });
     });
 
     describe('getBlock', () => {
         it.skip('should return a Block object', async () => {
             const block = await connection.getBlock(1);
             expect((block as Block).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
-        }, 60000);
+        });
 
         it('should throw an error if the request fails', async () => {
             await expectThrows(
                 () => connection.getBlock(99999999),
                 "Error fetching block.",
             );
-        }, 60000);
+        });
     });
 
     describe('getBlockRange', () => {
@@ -66,18 +66,18 @@ describe('NodeConnection', () => {
             expect((blockRange as Block[]).length).equal(3);
             expect(((blockRange as Block[])[0] as Block).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
             expect(((blockRange as Block[])[1] as Block).block_hash).equal("ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42");
-        }, 60000);
+        });
 
         it('should throw an error if the request fails', async () => {
             expect(await connection.getBlockRange(999999999, 1000000000)).deep.equal([]);
-        }, 60000);
+        });
     });
 
     describe('getProgram', () => {
         it('should return a string', async () => {
             const program = await connection.getProgram('credits.aleo');
             expect(typeof program).equal('string');
-        }, 60000);
+        });
 
         it('should throw an error if the request fails', async () => {
             const program_id = "a" + (Math.random()).toString(32).substring(2) + ".aleo";
@@ -86,14 +86,14 @@ describe('NodeConnection', () => {
                 () => connection.getProgram(program_id),
                 "Error fetching program",
             );
-        }, 60000);
+        });
     });
 
     describe('getLatestBlock', () => {
         it('should return a Block object', async () => {
             const latestBlock = await connection.getLatestBlock();
             expect(typeof (latestBlock as Block).block_hash).equal('string');
-        }, 60000);
+        });
 
         it('should set the X-Aleo-SDK-Version header', async () => {
             expect(windowFetchSpy.args).deep.equal([]);
@@ -112,28 +112,28 @@ describe('NodeConnection', () => {
                     }
                 ],
             ]);
-        }, 60000);
+        });
     });
 
     describe('getLatestCommittee', () => {
         it('should return a string', async () => {
             const latestCommittee = await connection.getLatestCommittee();
             expect(typeof latestCommittee).equal('object');
-        }, 60000);
+        });
     });
 
     describe('getLatestHeight', () => {
         it('should return a number', async () => {
             const latestHeight = await connection.getLatestHeight();
             expect(typeof latestHeight).equal('number');
-        }, 60000);
+        });
     });
 
     describe('getStateRoot', () => {
         it('should return a string', async () => {
             const stateRoot = await connection.getStateRoot();
             expect(typeof stateRoot).equal('string');
-        }, 60000);
+        });
     });
 
     describe('getTransactions', () => {
@@ -142,7 +142,7 @@ describe('NodeConnection', () => {
                 () => connection.getTransactions(999999999),
                 "Error fetching transactions.",
             );
-        }, 60000);
+        });
     });
 
     describe('getProgramImports', () => {
@@ -150,7 +150,7 @@ describe('NodeConnection', () => {
             const creditImports = await connection.getProgramImportNames("credits.aleo");
             const expectedCreditImports: string[] = [];
             expect(creditImports).deep.equal(expectedCreditImports);
-        }, 60000);
+        });
 
         it.skip('should return all nested imports', async () => {
             const imports = await connection.getProgramImports("imported_add_mul.aleo");
@@ -179,7 +179,7 @@ describe('NodeConnection', () => {
                     '    output r2 as u32.private;\n'
             };
             expect(imports).equal(expectedImports);
-        }, 60000);
+        });
     });
 
     describe('findUnspentRecords', () => {
@@ -203,7 +203,7 @@ describe('NodeConnection', () => {
                 () => connection.findUnspentRecords(0, 5, undefined, undefined, undefined, []),
                 "Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient",
             );
-        }, 60000);
+        });
 
         it.skip('should search a range correctly and not find records where none exist', async () => {
             const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
@@ -211,7 +211,7 @@ describe('NodeConnection', () => {
             if (!(records instanceof Error)) {
                 expect(records.length).equal(0);
             }
-        }, 90000);
+        });
     });
 
     describe('Mappings', () => {
@@ -220,6 +220,6 @@ describe('NodeConnection', () => {
             if (!(mappings instanceof Error)) {
                 expect(mappings).deep.equal(["committee", "delegated", "metadata", "bonded", "unbonding", "account", "withdraw"]);
             }
-        }, 60000);
+        });
     });
 });

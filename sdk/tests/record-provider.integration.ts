@@ -42,6 +42,6 @@ describe('RecordProvider', () => {
             } catch (e) {
                 throw e;
             }
-        }, 60000);
+        });
     });
 });

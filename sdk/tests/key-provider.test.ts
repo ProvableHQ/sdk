@@ -19,7 +19,7 @@ describe('KeyProvider', () => {
             } catch (e) {
                 expect(e).instanceof(Error);
             }
-        }, 60000);
+        });
 
         it('Should use cache when set and not use it when not', async () => {
             // Ensure the cache properly downloads and stores keys
@@ -48,7 +48,7 @@ describe('KeyProvider', () => {
             expect(keyProvider.cache.size).equal(0);
             expect(redownloadedProvingKey).instanceof(ProvingKey);
             expect(redownloadedVerifyingKey).instanceof(VerifyingKey);
-        }, 200000);
+        });
 
         it.skip("Should not fetch offline keys that haven't already been stored", async () => {
             // Download the credits.aleo function keys
@@ -139,7 +139,6 @@ describe('KeyProvider', () => {
             expect(transferPublicToPrivateVerifierLocal.isTransferPublicToPrivateVerifier()).equal(true);
             expect(unbondPublicProverLocal.isUnbondPublicProver()).equal(true);
             expect(unbondPublicVerifierLocal.isUnbondPublicVerifier()).equal(true);
-
-        }, 380000);
+        });
     });
 });

@@ -21,7 +21,7 @@ describe('NodeConnection', () => {
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
             }
-        }, 60000);
+        });
 
         it('should find records when a private key is pre-configured', async () => {
             const records = await remoteApiClientWithPrivateKey.findUnspentRecords(0, undefined, undefined, undefined, 100, []);
@@ -29,7 +29,7 @@ describe('NodeConnection', () => {
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
             }
-        }, 60000);
+        });
 
         it('should find records even when block height specified is higher than current block height', async () => {
             const records = await localApiClient.findUnspentRecords(0, 50000000000000, beaconPrivateKeyString, undefined, 100, []);
@@ -37,7 +37,7 @@ describe('NodeConnection', () => {
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
             }
-        }, 60000);
+        });
 
         it('should find records with specified amounts', async () => {
             let records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, []);
@@ -51,7 +51,7 @@ describe('NodeConnection', () => {
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
             }
-        }, 60000);
+        });
 
         it('should not find records with existing nonces', async () => {
             const nonces: string[] = [];
@@ -75,7 +75,6 @@ describe('NodeConnection', () => {
                     });
                 }
             }
-
-        }, 60000);
+        });
     });
 });
