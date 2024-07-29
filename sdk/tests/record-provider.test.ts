@@ -1,8 +1,7 @@
-import {jest} from '@jest/globals'
+import { expect } from "chai";
 import {Account, AleoNetworkClient, BlockHeightSearch, NetworkRecordProvider} from "../src/node";
 import {beaconPrivateKeyString} from "./data/account-data";
 import {log} from "console";
-jest.retryTimes(3);
 
 describe.skip('RecordProvider', () => {
     let account: Account;
@@ -19,7 +18,7 @@ describe.skip('RecordProvider', () => {
             const params = new BlockHeightSearch(0, 100);
             try {
                 const records = await recordProvider.findCreditsRecords([100, 200], true, [], params);
-                expect(<object>records).toEqual([])
+                expect(<object>records).equal([])
             } catch (e) {
                 log(e)
                 throw e;
