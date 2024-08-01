@@ -8,8 +8,6 @@ const programManager = new aleo.ProgramManager(defaultHost, keyProvider, undefin
 console.log("this is the web worker");
 keyProvider.useCache(true);
 
-keyProvider.cacheKeys()
-
 self.postMessage({
     type: "ALEO_WORKER_READY",
 });
@@ -266,7 +264,6 @@ self.addEventListener("message", (ev) => {
                     transfer_type,
                     fee,
                     privateFee,
-                    Address.from_private_key(PrivateKey.from_string(privateKey)).to_string(),
                     undefined,
                     amountRecord,
                     feeRecord,

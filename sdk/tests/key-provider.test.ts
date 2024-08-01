@@ -36,7 +36,7 @@ describe('KeyProvider', () => {
 
             // Ensure the functionKeys method to get the keys and that the cache is used to do so
             const [fetchedProvingKey, fetchedVerifyingKey] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_private)
-            expect(keyProvider.cache.size).toBe(2);
+            expect(keyProvider.cache.size).toBe(1);
             expect(fetchedProvingKey).toBeInstanceOf(ProvingKey);
             expect(fetchedVerifyingKey).toBeInstanceOf(VerifyingKey);
 

@@ -20,6 +20,9 @@ use super::*;
 #[derive(Clone, Debug)]
 pub struct Metadata {
     #[wasm_bindgen(getter_with_clone)]
+    pub name: String,
+
+    #[wasm_bindgen(getter_with_clone)]
     pub locator: String,
 
     #[wasm_bindgen(getter_with_clone)]
@@ -44,6 +47,7 @@ impl Metadata {
         }
 
         Self {
+            name: name.to_string(),
             locator: locator.to_string(),
             prover: format!("{}{}", Self::BASE_URL, url(name, "prover", prover)),
             verifier: url(name, "verifier", verifier),

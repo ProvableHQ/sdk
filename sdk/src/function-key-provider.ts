@@ -386,7 +386,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      *     CREDITS_PROGRAM_KEYS.transfer_private.verifier,
      * );
      */
-    async fetchRemoteKeys(proverUrl: string, verifierUrl?: string, cacheKey?: string): Promise<FunctionKeyPair | Error> {
+    async fetchRemoteKeys(proverUrl: string, verifierUrl: string, cacheKey?: string): Promise<FunctionKeyPair | Error> {
         try {
             // If cache is enabled, check if the keys have already been fetched and return them if they have
             if (this.cacheOption) {
@@ -451,10 +451,12 @@ class AleoKeyProvider implements FunctionKeyProvider {
 
     async fetchCreditsKeys(key: Key): Promise<FunctionKeyPair | Error> {
         try {
-            if (!this.cache.has(key.locator)) {
+            if (!this.cache.has(key.locator) || !this.cacheOption) {
                 const verifying_key = key.verifyingKey()
                 const proving_key = <ProvingKey>await this.fetchProvingKey(key.prover, key.locator);
-                this.cache.set(CREDITS_PROGRAM_KEYS.bond_public.locator, [proving_key.toBytes(), verifying_key.toBytes()]);
+                if (this.cacheOption) {
+                    this.cache.set(CREDITS_PROGRAM_KEYS.bond_public.locator, [proving_key.toBytes(), verifying_key.toBytes()]);
+                }
                 return [proving_key, verifying_key];
             } else {
                 const keyPair = <CachedKeyPair>this.cache.get(key.locator);
