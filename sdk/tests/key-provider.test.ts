@@ -35,7 +35,7 @@ describe('KeyProvider', () => {
             expect(cachedVerifyingKey).toBeInstanceOf(Uint8Array);
 
             // Ensure the functionKeys method to get the keys and that the cache is used to do so
-            const [fetchedProvingKey, fetchedVerifyingKey] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier)
+            const [fetchedProvingKey, fetchedVerifyingKey] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_private)
             expect(keyProvider.cache.size).toBe(2);
             expect(fetchedProvingKey).toBeInstanceOf(ProvingKey);
             expect(fetchedVerifyingKey).toBeInstanceOf(VerifyingKey);
@@ -51,18 +51,18 @@ describe('KeyProvider', () => {
 
         it.skip("Should not fetch offline keys that haven't already been stored", async () => {
             // Download the credits.aleo function keys
-            const [bondPublicProver, bondPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.bond_public.prover, CREDITS_PROGRAM_KEYS.bond_public.verifier, CREDITS_PROGRAM_KEYS.bond_public.locator);
-            const [claimUnbondPublicProver, claimUnbondVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.claim_unbond_public.prover, CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier, CREDITS_PROGRAM_KEYS.claim_unbond_public.locator);
-            const [feePrivateProver, feePrivateVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.fee_private.prover, CREDITS_PROGRAM_KEYS.fee_private.verifier, CREDITS_PROGRAM_KEYS.fee_private.locator);
-            const [feePublicProver, feePublicVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.fee_public.prover, CREDITS_PROGRAM_KEYS.fee_public.verifier, CREDITS_PROGRAM_KEYS.fee_public.locator);
-            const [joinProver, joinVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.join.prover, CREDITS_PROGRAM_KEYS.join.verifier, CREDITS_PROGRAM_KEYS.join.locator);
-            const [setValidatorStateProver, setValidatorStateVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.set_validator_state.prover, CREDITS_PROGRAM_KEYS.set_validator_state.verifier, CREDITS_PROGRAM_KEYS.set_validator_state.locator);
-            const [splitProver, splitVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.split.prover, CREDITS_PROGRAM_KEYS.split.verifier, CREDITS_PROGRAM_KEYS.split.locator);
-            const [transferPrivateProver, transferPrivateVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_private.prover, CREDITS_PROGRAM_KEYS.transfer_private.verifier, CREDITS_PROGRAM_KEYS.transfer_private.locator);
-            const [transferPrivateToPublicProver, transferPrivateToPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public.prover, CREDITS_PROGRAM_KEYS.transfer_private_to_public.verifier, CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator);
-            const [transferPublicProver, transferPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_public.prover, CREDITS_PROGRAM_KEYS.transfer_public.verifier, CREDITS_PROGRAM_KEYS.transfer_public.locator);
-            const [transferPublicToPrivateProver, transferPublicToPrivateVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private.prover, CREDITS_PROGRAM_KEYS.transfer_public_to_private.verifier, CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator);
-            const [unbondPublicProver, unbondPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchRemoteKeys(CREDITS_PROGRAM_KEYS.unbond_public.prover, CREDITS_PROGRAM_KEYS.unbond_public.verifier, CREDITS_PROGRAM_KEYS.unbond_public.locator);
+            const [bondPublicProver, bondPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.bond_public);
+            const [claimUnbondPublicProver, claimUnbondVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.claim_unbond_public);
+            const [feePrivateProver, feePrivateVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.fee_private);
+            const [feePublicProver, feePublicVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.fee_public);
+            const [joinProver, joinVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.join);
+            const [setValidatorStateProver, setValidatorStateVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.set_validator_state);
+            const [splitProver, splitVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.split);
+            const [transferPrivateProver, transferPrivateVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_private);
+            const [transferPrivateToPublicProver, transferPrivateToPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_private_to_public);
+            const [transferPublicProver, transferPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_public);
+            const [transferPublicToPrivateProver, transferPublicToPrivateVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_public_to_private);
+            const [unbondPublicProver, unbondPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.unbond_public);
 
             // Ensure the insertion methods work as expected without throwing an exception
             offlineKeyProvider.insertBondPublicKeys(bondPublicProver);
