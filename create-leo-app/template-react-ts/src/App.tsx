@@ -3,7 +3,7 @@ import reactLogo from "./assets/react.svg";
 import aleoLogo from "./assets/aleo.svg";
 import "./App.css";
 import helloworld_program from "../helloworld/build/main.aleo?raw";
-import { AleoWorker } from "./workers/AleoWorker.js";
+import { AleoWorker } from "./workers/AleoWorker";
 
 const aleoWorker = AleoWorker();
 function App() {
@@ -61,7 +61,7 @@ function App() {
         <p>
           <button onClick={generateAccount}>
             {account
-              ? `Account is ${JSON.stringify(account)}`
+              ? `Account private key is ${JSON.stringify(account)}`
               : `Click to generate account`}
           </button>
         </p>
@@ -73,7 +73,7 @@ function App() {
           </button>
         </p>
         <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
+          Edit <code>src/App.tsx</code> and save to test HMR
         </p>
       </div>
 

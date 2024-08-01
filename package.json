@@ -6,9 +6,10 @@
     "sdk",
     "wasm",
     "website",
-    "create-aleo-app",
-    "create-aleo-app/*"
+    "create-leo-app",
+    "create-leo-app/*"
   ],
+  "type": "module",
   "scripts": {
     "build:wasm": "cd wasm && yarn build",
     "build:sdk": "cd sdk && yarn build",

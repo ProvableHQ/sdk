@@ -1,13 +1,13 @@
 {
-  "name": "create-aleo-app",
-  "version": "0.0.12",
+  "name": "create-leo-app",
+  "version": "0.0.13",
   "type": "module",
   "license": "GPL-3.0",
   "collaborators": [
-    "The Provable Team <hello@provable.com>"
+    "The Provable Team"
   ],
   "bin": {
-    "create-aleo-app": "index.js"
+    "create-leo-app": "index.js"
   },
   "files": [
     "index.js",

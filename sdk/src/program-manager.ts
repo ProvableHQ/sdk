@@ -383,7 +383,7 @@ class ProgramManager {
      * programManager.setAccount(account);
      *
      * /// Get the response and ensure that the program executed correctly
-     * const executionResponse = await programManager.executeOffline(program, "hello", ["5u32", "5u32"]);
+     * const executionResponse = await programManager.run(program, "hello", ["5u32", "5u32"]);
      * const result = executionResponse.getOutputs();
      * assert(result === ["10u32"]);
      */

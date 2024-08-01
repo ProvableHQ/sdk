@@ -1,9 +1,9 @@
 {
   "name": "@provablehq/wasm",
-  "version": "0.6.10",
+  "version": "0.6.11",
   "description": "Wasm build for the SDK",
   "collaborators": [
-    "The Aleo Team <hello@aleo.org>"
+    "The Provable Team"
   ],
   "license": "GPL-3.0",
   "type": "module",
