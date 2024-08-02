@@ -69,7 +69,9 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the inclusion function
     #[wasm_bindgen(js_name = "inclusionVerifier")]
     pub fn inclusion_verifier() -> VerifyingKey {
-        VerifyingKey::get_credits_verifying_key("inclusion")
+        let vk = CurrentNetwork::inclusion_verifying_key().clone();
+        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
+        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
     }
 
     /// Returns the verifying key for the join function
