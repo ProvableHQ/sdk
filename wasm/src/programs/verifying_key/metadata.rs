@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use snarkvm_parameters::canary::BondPublicVerifier;
 use super::*;
 
 #[wasm_bindgen]
@@ -37,9 +36,9 @@ pub struct Metadata {
 }
 
 impl Metadata {
-    const BASE_URL: &'static str = "https://s3-us-west-1.amazonaws.com/testnet.parameters/";
+    const BASE_URL: &'static str = "https://parameters.aleo.org/testnet/";
 
-    fn new(name: &str, verifying_key: VerifyingKey, locator: &str, prover: &'static str, verifier: &'static str) -> Self {
+    fn new(name: &str, verifying_key: &str, locator: &str, prover: &'static str, verifier: &'static str) -> Self {
         fn url(function_name: &str, kind: &str, proving_key_metadata: &'static str) -> String {
             let metadata: serde_json::Value =
                 serde_json::from_str(proving_key_metadata).expect("Metadata was not well-formatted");
@@ -68,7 +67,7 @@ impl Metadata {
     pub fn bond_public() -> Metadata {
         Metadata::new(
             "bond_public",
-            VerifyingKey::bond_public_verifier(),
+            "bondPublicVerifier",
             "credits.aleo/bond_public",
             snarkvm_parameters::testnet::BondPublicProver::METADATA,
             snarkvm_parameters::testnet::BondPublicVerifier::METADATA,
@@ -79,7 +78,7 @@ impl Metadata {
     pub fn bond_validator() -> Metadata {
         Metadata::new(
             "bond_validator",
-            VerifyingKey::bond_validator_verifier(),
+            "bondValidatorVerifier",
             "credits.aleo/bond_validator",
             snarkvm_parameters::testnet::BondValidatorProver::METADATA,
             snarkvm_parameters::testnet::BondValidatorVerifier::METADATA,
@@ -90,7 +89,7 @@ impl Metadata {
     pub fn claim_unbond_public() -> Metadata {
         Metadata::new(
             "claim_unbond_public",
-            VerifyingKey::claim_unbond_public_verifier(),
+            "claimUnbondPublicVerifier",
             "credits.aleo/claim_unbond_public",
             snarkvm_parameters::testnet::ClaimUnbondPublicProver::METADATA,
             snarkvm_parameters::testnet::ClaimUnbondPublicVerifier::METADATA,
@@ -101,7 +100,7 @@ impl Metadata {
     pub fn fee_private() -> Metadata {
         Metadata::new(
             "fee_private",
-            VerifyingKey::fee_private_verifier(),
+            "feePrivateVerifier",
             "credits.aleo/fee_private",
             snarkvm_parameters::testnet::FeePrivateProver::METADATA,
             snarkvm_parameters::testnet::FeePrivateVerifier::METADATA,
@@ -112,7 +111,7 @@ impl Metadata {
     pub fn fee_public() -> Metadata {
         Metadata::new(
             "fee_public",
-            VerifyingKey::fee_public_verifier(),
+            "feePublicVerifier",
             "credits.aleo/fee_public",
             snarkvm_parameters::testnet::FeePublicProver::METADATA,
             snarkvm_parameters::testnet::FeePublicVerifier::METADATA,
@@ -123,7 +122,7 @@ impl Metadata {
     pub fn inclusion() -> Metadata {
         Metadata::new(
             "inclusion",
-            VerifyingKey::inclusion_verifier(),
+            "inclusionVerifier",
             "inclusion",
             snarkvm_parameters::testnet::InclusionProver::METADATA,
             snarkvm_parameters::testnet::InclusionVerifier::METADATA,
@@ -134,7 +133,7 @@ impl Metadata {
     pub fn join() -> Metadata {
         Metadata::new(
             "join",
-            VerifyingKey::join_verifier(),
+            "joinVerifier",
             "credits.aleo/join",
             snarkvm_parameters::testnet::JoinProver::METADATA,
             snarkvm_parameters::testnet::JoinVerifier::METADATA,
@@ -145,7 +144,7 @@ impl Metadata {
     pub fn set_validator_state() -> Metadata {
         Metadata::new(
             "set_validator_state",
-            VerifyingKey::set_validator_state_verifier(),
+            "setValidatorStateVerifier",
             "credits.aleo/set_validator_state",
             snarkvm_parameters::testnet::SetValidatorStateProver::METADATA,
             snarkvm_parameters::testnet::SetValidatorStateVerifier::METADATA,
@@ -156,7 +155,7 @@ impl Metadata {
     pub fn split() -> Metadata {
         Metadata::new(
             "split",
-            VerifyingKey::split_verifier(),
+            "splitVerifier",
             "credits.aleo/split",
             snarkvm_parameters::testnet::SplitProver::METADATA,
             snarkvm_parameters::testnet::SplitVerifier::METADATA,
@@ -167,7 +166,7 @@ impl Metadata {
     pub fn transfer_private() -> Metadata {
         Metadata::new(
             "transfer_private",
-            VerifyingKey::transfer_private_verifier(),
+            "transferPrivateVerifier",
             "credits.aleo/transfer_private",
             snarkvm_parameters::testnet::TransferPrivateProver::METADATA,
             snarkvm_parameters::testnet::TransferPrivateVerifier::METADATA,
@@ -178,7 +177,7 @@ impl Metadata {
     pub fn transfer_private_to_public() -> Metadata {
         Metadata::new(
             "transfer_private_to_public",
-            VerifyingKey::transfer_private_to_public_verifier(),
+            "transferPrivateToPublicVerifier",
             "credits.aleo/transfer_private_to_public",
             snarkvm_parameters::testnet::TransferPrivateToPublicProver::METADATA,
             snarkvm_parameters::testnet::TransferPrivateToPublicVerifier::METADATA,
@@ -189,7 +188,7 @@ impl Metadata {
     pub fn transfer_public() -> Metadata {
         Metadata::new(
             "transfer_public",
-            VerifyingKey::transfer_public_verifier(),
+            "transferPublicVerifier",
             "credits.aleo/transfer_public",
             snarkvm_parameters::testnet::TransferPublicProver::METADATA,
             snarkvm_parameters::testnet::TransferPublicVerifier::METADATA,
@@ -200,7 +199,7 @@ impl Metadata {
     pub fn transfer_public_as_signer() -> Metadata {
         Metadata::new(
             "transfer_public_as_signer",
-            VerifyingKey::transfer_public_as_signer_verifier(),
+            "transferPublicAsSignerVerifier",
             "credits.aleo/transfer_public_as_signer",
             snarkvm_parameters::testnet::TransferPublicAsSignerProver::METADATA,
             snarkvm_parameters::testnet::TransferPublicAsSignerVerifier::METADATA,
@@ -211,7 +210,7 @@ impl Metadata {
     pub fn transfer_public_to_private() -> Metadata {
         Metadata::new(
             "transfer_public_to_private",
-            VerifyingKey::transfer_public_to_private_verifier(),
+            "transferPublicToPrivateVerifier",
             "credits.aleo/transfer_public_to_private",
             snarkvm_parameters::testnet::TransferPublicToPrivateProver::METADATA,
             snarkvm_parameters::testnet::TransferPublicToPrivateVerifier::METADATA,
@@ -222,7 +221,7 @@ impl Metadata {
     pub fn unbond_public() -> Metadata {
         Metadata::new(
             "unbond_public",
-            VerifyingKey::unbond_public_verifier(),
+            "unbondPublicVerifier",
             "credits.aleo/unbond_public",
             snarkvm_parameters::testnet::UnbondPublicProver::METADATA,
             snarkvm_parameters::testnet::UnbondPublicVerifier::METADATA,
