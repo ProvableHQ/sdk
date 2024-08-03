@@ -597,7 +597,6 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {string | undefined} caller The caller of the function (if calling transfer_public)
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
      * records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
@@ -625,7 +624,6 @@ class ProgramManager {
         transferType: string,
         fee: number,
         privateFee: boolean,
-        caller?: string,
         recordSearchParams?: RecordSearchParams,
         amountRecord?: RecordPlaintext | string,
         feeRecord?: RecordPlaintext | string,
@@ -674,14 +672,13 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, caller, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
     }
 
     /**
      * Build a transfer_public transaction to transfer credits to another account for later submission to the Aleo network
      *
      * @param {number} amount The amount of credits to transfer
-     * @param {string} caller The caller of the transfer (may be different from the signer)
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
@@ -696,13 +693,12 @@ class ProgramManager {
      */
     async buildTransferPublicTransaction(
         amount: number,
-        caller: string,
         recipient: string,
         fee: number,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
     ): Promise<Transaction | Error> {
-        return this.buildTransferTransaction(amount, recipient, "public", fee, false, caller, undefined, undefined, undefined, privateKey, offlineQuery);
+        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
     }
 
     /**
@@ -728,7 +724,7 @@ class ProgramManager {
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
     ): Promise<Transaction | Error> {
-        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, undefined, privateKey, offlineQuery);
+        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
     }
 
     /**
@@ -739,7 +735,6 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {string | undefined} caller The caller of the function (if calling transfer_public)
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
      * records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
@@ -766,14 +761,13 @@ class ProgramManager {
         transferType: string,
         fee: number,
         privateFee: boolean,
-        caller?: string,
         recordSearchParams?: RecordSearchParams,
         amountRecord?: RecordPlaintext | string,
         feeRecord?: RecordPlaintext | string,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
     ): Promise<string | Error> {
-        const tx = <Transaction>await this.buildTransferTransaction(amount, recipient, transferType, fee, privateFee, caller, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery);
+        const tx = <Transaction>await this.buildTransferTransaction(amount, recipient, transferType, fee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
 

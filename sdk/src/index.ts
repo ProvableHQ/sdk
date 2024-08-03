@@ -3,6 +3,7 @@ import {VerifyingKey, Metadata} from "@provablehq/wasm";
 const KEY_STORE = Metadata.baseUrl();
 
 interface Key {
+    name: string,
     locator: string,
     prover: string,
     verifier: string,
@@ -18,6 +19,7 @@ function convert(metadata: Metadata): Key {
     }
 
     return {
+        name: metadata.name,
         locator: metadata.locator,
         prover: metadata.prover,
         verifier: metadata.verifier,
@@ -41,6 +43,13 @@ const CREDITS_PROGRAM_KEYS = {
     transfer_public_as_signer: convert(Metadata.transfer_public_as_signer()),
     transfer_public_to_private: convert(Metadata.transfer_public_to_private()),
     unbond_public: convert(Metadata.unbond_public()),
+    getKey: function(key: string): Key | Error {
+        if (this.hasOwnProperty(key)) {
+            return (this as any)[key] as Key;
+        } else {
+            return new Error(`Key "${key}" not found.`);
+        }
+    }
 };
 
 const PRIVATE_TRANSFER_TYPES = new Set([
@@ -175,6 +184,7 @@ export {
     FunctionKeyPair,
     FunctionKeyProvider,
     Input,
+    Key,
     KeySearchParams,
     NetworkRecordProvider,
     ProgramImports,

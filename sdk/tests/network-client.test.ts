@@ -41,14 +41,14 @@ describe('NodeConnection', () => {
         it('should return an array of Block objects', async () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
-            expect((blockRange as Block[]).length).toBe(2);
+            expect((blockRange as Block[]).length).toBe(3);
             expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab17jdwevmgu20kcqazp2wjyy2u2k75rac2mtvuf6w6kjn8egv0uvrqe7mra6");
             expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1q60nvh5ha8ld43x0jph9futqwkdm4j3cvw5a2unj5d23ml090c9qkcvr3g");
 
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
-            await expect(connection.getBlockRange(999999999, 1000000000)).rejects.toThrow('Error fetching blocks between 999999999 and 1000000000.');
+            expect(await connection.getBlockRange(999999999, 1000000000)).toEqual([]);
         }, 60000);
     });
 

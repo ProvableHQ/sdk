@@ -18,12 +18,18 @@ use super::*;
 
 #[wasm_bindgen]
 impl VerifyingKey {
+    fn get_credits_verifying_key(name: &str) -> VerifyingKey {
+        let vk = CurrentNetwork::get_credits_verifying_key(name.to_string()).unwrap().clone();
+        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
+        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+    }
+
     /// Returns the verifying key for the bond_public function
     ///
     /// @returns {VerifyingKey} Verifying key for the bond_public function
     #[wasm_bindgen(js_name = "bondPublicVerifier")]
     pub fn bond_public_verifier() -> VerifyingKey {
-        VerifyingKey::from_bytes(&snarkvm_parameters::testnet::BondPublicVerifier::load_bytes().unwrap()).unwrap()
+        VerifyingKey::get_credits_verifying_key("bond_public")
     }
 
     /// Returns the verifying key for the bond_validator function
@@ -31,9 +37,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the bond_validator function
     #[wasm_bindgen(js_name = "bondValidatorVerifier")]
     pub fn bond_validator_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("bond_validator")
     }
 
     /// Returns the verifying key for the claim_delegator function
@@ -41,9 +45,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the claim_unbond_public function
     #[wasm_bindgen(js_name = "claimUnbondPublicVerifier")]
     pub fn claim_unbond_public_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("claim_unbond_public")
     }
 
     /// Returns the verifying key for the fee_private function
@@ -51,9 +53,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the fee_private function
     #[wasm_bindgen(js_name = "feePrivateVerifier")]
     pub fn fee_private_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("fee_private")
     }
 
     /// Returns the verifying key for the fee_public function
@@ -61,9 +61,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the fee_public function
     #[wasm_bindgen(js_name = "feePublicVerifier")]
     pub fn fee_public_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("fee_public")
     }
 
     /// Returns the verifying key for the inclusion function
@@ -71,7 +69,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the inclusion function
     #[wasm_bindgen(js_name = "inclusionVerifier")]
     pub fn inclusion_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
+        let vk = CurrentNetwork::inclusion_verifying_key().clone();
         let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
         VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
     }
@@ -81,9 +79,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the join function
     #[wasm_bindgen(js_name = "joinVerifier")]
     pub fn join_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("join")
     }
 
     /// Returns the verifying key for the set_validator_state function
@@ -91,9 +87,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the set_validator_state function
     #[wasm_bindgen(js_name = "setValidatorStateVerifier")]
     pub fn set_validator_state_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("set_validator_state")
     }
 
     /// Returns the verifying key for the split function
@@ -101,9 +95,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the split function
     #[wasm_bindgen(js_name = "splitVerifier")]
     pub fn split_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("split")
     }
 
     /// Returns the verifying key for the transfer_private function
@@ -111,9 +103,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the transfer_private function
     #[wasm_bindgen(js_name = "transferPrivateVerifier")]
     pub fn transfer_private_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("transfer_private")
     }
 
     /// Returns the verifying key for the transfer_private_to_public function
@@ -121,9 +111,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the transfer_private_to_public function
     #[wasm_bindgen(js_name = "transferPrivateToPublicVerifier")]
     pub fn transfer_private_to_public_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("transfer_private_to_public")
     }
 
     /// Returns the verifying key for the transfer_public function
@@ -131,9 +119,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the transfer_public function
     #[wasm_bindgen(js_name = "transferPublicVerifier")]
     pub fn transfer_public_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("transfer_public")
     }
 
     /// Returns the verifying key for the transfer_public_as_signer function
@@ -141,9 +127,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the transfer_public_as_signer function
     #[wasm_bindgen(js_name = "transferPublicAsSignerVerifier")]
     pub fn transfer_public_as_signer_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("transfer_public_as_signer")
     }
 
     /// Returns the verifying key for the transfer_public_to_private function
@@ -151,9 +135,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the transfer_public_to_private function
     #[wasm_bindgen(js_name = "transferPublicToPrivateVerifier")]
     pub fn transfer_public_to_private_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("transfer_public_to_private")
     }
 
     /// Returns the verifying key for the unbond_public function
@@ -161,9 +143,7 @@ impl VerifyingKey {
     /// @returns {VerifyingKey} Verifying key for the unbond_public function
     #[wasm_bindgen(js_name = "unbondPublicVerifier")]
     pub fn unbond_public_verifier() -> VerifyingKey {
-        let vk = CurrentNetwork::get_credits_verifying_key("bond_validator".to_string()).unwrap().clone();
-        let num_variables = vk.circuit_info.num_public_and_private_variables as u64;
-        VerifyingKey::from(VerifyingKeyNative::new(vk, num_variables))
+        VerifyingKey::get_credits_verifying_key("unbond_public")
     }
 
     /// Returns the verifying key for the bond_public function

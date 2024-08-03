@@ -5,7 +5,6 @@ await aleo.initThreadPool();
 const defaultHost = "https://api.explorer.aleo.org/v1";
 const keyProvider = new aleo.AleoKeyProvider();
 const programManager = new aleo.ProgramManager(defaultHost, keyProvider, undefined);
-console.log("this is the web worker");
 keyProvider.useCache(true);
 
 self.postMessage({
@@ -264,7 +263,6 @@ self.addEventListener("message", (ev) => {
                     transfer_type,
                     fee,
                     privateFee,
-                    Address.from_private_key(PrivateKey.from_string(privateKey)).to_string(),
                     undefined,
                     amountRecord,
                     feeRecord,
