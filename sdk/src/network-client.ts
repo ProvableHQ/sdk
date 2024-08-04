@@ -77,7 +77,7 @@ class AleoNetworkClient {
    * @param host
    */
   setHost(host: string) {
-    this.host = host + "/testnet";
+    this.host = host + "/%%NETWORK%%";
   }
 
   async fetchData<Type>(
