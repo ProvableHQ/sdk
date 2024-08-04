@@ -36,7 +36,7 @@ pub struct Metadata {
 }
 
 impl Metadata {
-    const BASE_URL: &'static str = "https://parameters.aleo.org/testnet/";
+    const BASE_URL: &'static str = crate::types::native::BASE_URL;
 
     fn new(name: &str, verifying_key: &str, locator: &str, prover: &'static str, verifier: &'static str) -> Self {
         fn url(function_name: &str, kind: &str, proving_key_metadata: &'static str) -> String {

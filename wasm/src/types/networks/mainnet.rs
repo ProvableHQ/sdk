@@ -19,3 +19,5 @@ pub use snarkvm_circuit_network::AleoV0 as CurrentAleo;
 pub use snarkvm_console::network::MainnetV0 as CurrentNetwork;
 
 pub use snarkvm_parameters::mainnet as parameters;
+
+pub const BASE_URL: &'static str = "https://parameters.aleo.org/mainnet/";
