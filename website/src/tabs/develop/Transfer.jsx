@@ -85,7 +85,7 @@ export const Transfer = () => {
             type: "ALEO_TRANSFER",
             privateKey: privateKeyString(),
             amountCredits: amount,
-            transfer_type: visibilityString(),
+            transferType: visibilityString(),
             recipient: recipientString(),
             amountRecord: amountRecord,
             fee: feeAmount,
