@@ -5,7 +5,7 @@ import $package from "./package.json" assert { type: "json" };
 
 const networks = [
     "testnet",
-    //"mainnet",
+    "mainnet",
 ];
 
 function inputs() {
