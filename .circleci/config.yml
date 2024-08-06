@@ -78,7 +78,7 @@ jobs:
     steps:
       - setup-sdk
       - run:
-          working_directory: e2e/testnet
+          working_directory: sdk/e2e/testnet
           command: |
             yarn start
 
@@ -87,7 +87,7 @@ jobs:
     steps:
       - setup-sdk
       - run:
-          working_directory: e2e/mainnet
+          working_directory: sdk/e2e/mainnet
           command: |
             yarn start
 
