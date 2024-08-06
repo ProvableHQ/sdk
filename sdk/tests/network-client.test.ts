@@ -29,7 +29,7 @@ describe('NodeConnection', () => {
     describe('getBlock', () => {
         it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as Block).block_hash).toEqual("ab17jdwevmgu20kcqazp2wjyy2u2k75rac2mtvuf6w6kjn8egv0uvrqe7mra6");
+            expect((block as Block).block_hash).toEqual("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
         }, 60000);
 
         it('should throw an error if the request fails', async () => {
@@ -42,8 +42,8 @@ describe('NodeConnection', () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
             expect((blockRange as Block[]).length).toBe(3);
-            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab17jdwevmgu20kcqazp2wjyy2u2k75rac2mtvuf6w6kjn8egv0uvrqe7mra6");
-            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1q60nvh5ha8ld43x0jph9futqwkdm4j3cvw5a2unj5d23ml090c9qkcvr3g");
+            expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
+            expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42");
 
         }, 60000);
 
