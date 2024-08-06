@@ -1,0 +1,12 @@
+{
+  "name": "e2e-testnet",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@provablehq/sdk": "^0.6.0"
+  }
+}

@@ -73,6 +73,25 @@ jobs:
           yarn test
 
 
+  e2e-testnet:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - run:
+          working_directory: e2e/testnet
+          command: |
+            yarn start
+
+  e2e-mainnet:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - run:
+          working_directory: e2e/mainnet
+          command: |
+            yarn start
+
+
   template-node:
     executor: rust-node
     steps:
@@ -143,6 +162,12 @@ workflows:
       - check-clippy
       - sdk
       - sdk-test:
+          requires:
+            - sdk
+      - e2e-testnet:
+          requires:
+            - sdk
+      - e2e-mainnet:
           requires:
             - sdk
       - template-node:
