@@ -122,6 +122,7 @@ function Main() {
                                 Aleo SDK Github repo
                             </a>
                             .
+                            © 2024 Provable Inc.
                         </Footer>
                     </Layout>
                 </Layout>
