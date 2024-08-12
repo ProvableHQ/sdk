@@ -119,7 +119,7 @@ function Main() {
                         <Footer style={{ textAlign: "center", display:"flex", flexDirection: "column" }}>
                         
                             <a href="https://github.com/ProvableHQ/sdk">
-                            <img src="/github-mark-white.png" style={{height:"24px"}}></img>
+                            <img src="../public/github-mark-white.png" style={{height:"24px"}}></img>
                             </a>
                          
                             © 2024 Provable Inc.
