@@ -116,12 +116,13 @@ function Main() {
                         <Content style={{ padding: "50px 50px" }}>
                             <Outlet />
                         </Content>
-                        <Footer style={{ textAlign: "center" }}>
-                            Visit the{" "}
+                        <Footer style={{ textAlign: "center", display:"flex", flexDirection: "column" }}>
+                        
                             <a href="https://github.com/ProvableHQ/sdk">
-                                Aleo SDK Github repo
+                            <img src="/github-mark-white.png" style={{height:"24px"}}></img>
                             </a>
-                            .
+                         
+                            © 2024 Provable Inc.
                         </Footer>
                     </Layout>
                 </Layout>
