@@ -58,9 +58,9 @@ function Main() {
 
     useEffect(() => {
         setMenuIndex(location.pathname);
-        if (location.pathname === "/") {
-            navigate("/account");
-        }
+        // if (location.pathname === "/") {
+        //     navigate("/account");
+        // }
     }, [location, navigate]);
 
     const [darkMode, setDarkMode] = useState(true);

@@ -1,0 +1,17 @@
+/* Mobile Styles */
+.homepage {
+    padding: 10px;
+    font-size: 14px;
+  }
+  
+  /* Desktop Styles */
+  @media (min-width: 1024px) {
+    .homepage {
+      padding: 20px;
+      font-size: 18px;
+    }
+  }
+
+ body {
+    color: white;
+ }
