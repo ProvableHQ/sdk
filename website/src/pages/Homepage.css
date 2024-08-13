@@ -12,6 +12,19 @@
     }
   }
 
- body {
+body {
     color: white;
  }
+
+ @font-face {
+    font-family: 'AleoSans';
+    src: url('/assets/fonts/AleofontSans-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: 'AleoSans', sans-serif;
+}
+
+
