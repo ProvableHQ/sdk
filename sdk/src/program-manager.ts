@@ -172,7 +172,7 @@ class ProgramManager {
             if (typeof programSource == "string") {
                 throw (`Program ${programObject.id()} already exists on the network, please rename your program`);
             }
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error validating program: ${e.message}`);
         }
 
@@ -189,7 +189,7 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters
         try {
             feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
@@ -197,7 +197,7 @@ class ProgramManager {
         let feeKeys;
         try {
             feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
@@ -206,7 +206,7 @@ class ProgramManager {
         let imports;
         try {
             imports = await this.networkClient.getProgramImports(program);
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
         }
 
@@ -266,7 +266,7 @@ class ProgramManager {
         if (program === undefined) {
             try {
                 program = <string>(await this.networkClient.getProgram(programName));
-            } catch (e) {
+            } catch (e: any) {
                 logAndThrow(`Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`);
             }
         } else if (program instanceof Program) {
@@ -286,7 +286,7 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters
         try {
             feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
@@ -294,7 +294,7 @@ class ProgramManager {
         let feeKeys;
         try {
             feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
@@ -313,7 +313,7 @@ class ProgramManager {
         if (numberOfImports > 0 && !imports) {
             try {
                 imports = <ProgramImports>await this.networkClient.getProgramImports(programName);
-            } catch (e) {
+            } catch (e: any) {
                 logAndThrow(`Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
             }
         }
@@ -465,7 +465,7 @@ class ProgramManager {
         try {
             feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
             joinKeys = <FunctionKeyPair>await this.keyProvider.joinKeys();
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
@@ -474,7 +474,7 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters
         try {
             feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
@@ -482,7 +482,7 @@ class ProgramManager {
         try {
             recordOne = recordOne instanceof RecordPlaintext ? recordOne : RecordPlaintext.fromString(recordOne);
             recordTwo = recordTwo instanceof RecordPlaintext ? recordTwo : RecordPlaintext.fromString(recordTwo);
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow('Records provided are not valid. Please ensure they are valid plaintext records.')
         }
 
@@ -528,7 +528,7 @@ class ProgramManager {
         let splitKeys;
         try {
             splitKeys = <FunctionKeyPair>await this.keyProvider.splitKeys();
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [splitProvingKey, splitVerifyingKey] = splitKeys;
@@ -536,7 +536,7 @@ class ProgramManager {
         // Validate the record to be split
         try {
             amountRecord = amountRecord instanceof RecordPlaintext ? amountRecord : RecordPlaintext.fromString(amountRecord);
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow("Record provided is not valid. Please ensure it is a valid plaintext record.");
         }
 
@@ -584,7 +584,7 @@ class ProgramManager {
                 imports
             );
             return [<ProvingKey>keyPair.provingKey(), <VerifyingKey>keyPair.verifyingKey()];
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Could not synthesize keys - error ${e.message}. Please ensure the program is valid and the inputs are correct.`);
         }
     }
@@ -649,7 +649,7 @@ class ProgramManager {
         try {
             feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
             transferKeys = <FunctionKeyPair>await this.keyProvider.transferKeys(transferType);
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
@@ -667,7 +667,7 @@ class ProgramManager {
                 amountRecord = undefined;
             }
             feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, nonces, feeRecord, recordSearchParams) : undefined;
-        } catch (e) {
+        } catch (e: any) {
             logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
@@ -1265,7 +1265,7 @@ class ProgramManager {
             try {
                 const recordProvider = <RecordProvider>this.recordProvider;
                 return <RecordPlaintext>(await recordProvider.findCreditsRecord(amount, true, nonces, params))
-            } catch (e) {
+            } catch (e: any) {
                 logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
             }
         }
