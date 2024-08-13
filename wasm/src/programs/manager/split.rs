@@ -34,7 +34,7 @@ impl ProgramManager {
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param split_proving_key (optional) Provide a proving key to use for the split function
     /// @param split_verifying_key (optional) Provide a verifying key to use for the split function
-    /// @returns {Transaction | Error} Transaction object
+    /// @returns {Transaction} Transaction object
     #[wasm_bindgen(js_name = buildSplitTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn split(

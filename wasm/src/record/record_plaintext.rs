@@ -43,7 +43,7 @@ impl RecordPlaintext {
     /// Return a record plaintext from a string.
     ///
     /// @param {string} record String representation of a plaintext representation of an Aleo record
-    /// @returns {RecordPlaintext | Error} Record plaintext
+    /// @returns {RecordPlaintext} Record plaintext
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordPlaintext, String> {
         Self::from_str(record).map_err(|_| "The record plaintext string provided was invalid".into())
@@ -78,7 +78,7 @@ impl RecordPlaintext {
     /// @param {PrivateKey} private_key Private key of the account that owns the record
     /// @param {string} program_id Program ID of the program that the record is associated with
     /// @param {string} record_name Name of the record
-    /// @returns {string | Error} Serial number of the record
+    /// @returns {string} Serial number of the record
     #[wasm_bindgen(js_name = serialNumberString)]
     pub fn serial_number_string(
         &self,
