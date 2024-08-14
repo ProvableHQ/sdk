@@ -16,7 +16,7 @@ const Homepage = () => {
      
       <ul className="actionRow">
         <li  className="actionItem">
-          <Link to="/account">Manage Accounts</Link>
+          <Link to="/account">Create and manage accounts</Link>
         </li>
         <li className="actionItem">
           <Link to="/develop" >Execute and deploy programs</Link>
