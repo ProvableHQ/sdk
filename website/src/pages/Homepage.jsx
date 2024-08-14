@@ -28,7 +28,7 @@ const Homepage = () => {
 
 
         <p className="secondSubheader">Build your first zero knowledge app with create-leo-app</p>
-        <button className="button"> <Link to="https://developer.aleo.org/sdk/create-leo-app/tutorial/">Try it now <span className="arrow">&rarr;</span></Link>  </button>
+        <button className="button"> <Link target="_blank" to="https://developer.aleo.org/sdk/create-leo-app/tutorial/">Try it now <span className="arrow">&rarr;</span></Link>  </button>
 
 
         <div className="footer">          
