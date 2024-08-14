@@ -2,8 +2,9 @@
 .homepage {
     padding: 10px;
     font-size: 14px;
-  }
-  .button { 
+}
+
+.button { 
     background-color:#12E172;
     padding: 16px 32px 16px 32px;
     border-radius: 9px;
@@ -29,7 +30,7 @@
 }
 
 .header {
-    font-size:7rem;
+    font-size:3rem;
     max-width: 1200px;
     width: 100%; 
     margin: 10rem auto 0; 
@@ -37,32 +38,45 @@
 }
 
 .subheader {
-    font-size: 2rem;
-    width: 35rem;
+    font-size: 1rem;
     text-align: center;
 }
 
+.secondSubheader {
+    font-size: 16px;
+    text-align: center;
+    margin-top:6rem;
+}
+
+
+
 .actionRow {
     display: flex;
-    flex-direction: row;
-    width: 100%;
-    max-width: 1100px;
+    flex-direction: column;
+    height: 100%;
+    max-height: 100rem;
+    align-items:center;
     justify-content: space-between;
-    margin: 10rem auto 0;
+    margin: 5rem auto 0;
+    padding-left: 0;
+}
+
+.actionRow li:nth-child(2), li:nth-child(3) {
+    margin-top: 2rem;
 }
 
 .actionItem {
-    width: 222px;
-    padding: 2rem 2rem 2rem 2rem;
+    width: 200px;
+    padding: 1rem 1rem 1rem 1rem;
     border: 2px solid white;
-    border-radius: 33px;
+    border-radius: 20px;
     list-style-type: none;
     text-align: center;
     
     a {
         color: white;
         text-decoration: none;
-        font-size: 1.5rem;
+        font-size: 1rem;
         align-content:center;
     }
 }
@@ -77,6 +91,60 @@
     .homepage {
       padding: 20px;
       font-size: 18px;
+    }
+
+    .actionRow {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        max-width: 1000px;
+        justify-content: space-between;
+        margin: 10rem auto 0;
+    }
+
+    .header {
+        font-size:6rem;
+        max-width: 1200px;
+        width: 100%; 
+        margin: 10rem auto 0; 
+        text-align: center;
+    }
+
+    .subheader {
+        font-size: 32px;
+        width: 35rem;
+        text-align: center;
+    }
+
+    .secondSubheader {
+        font-size: 32px;
+        width: 35rem;
+        text-align: center;
+        margin-top:10rem;
+    }
+
+    .actionRow li:nth-child(2), li:nth-child(3) {
+        margin-top: 0;
+    }
+
+    .actionItem {
+        width: 222px;
+        padding: 2rem 2rem 2rem 2rem;
+        border: 2px solid white;
+        border-radius: 30px;
+        list-style-type: none;
+        text-align: center;
+        
+        a {
+            color: white;
+            text-decoration: none;
+            font-size: 24px;
+            align-content:center;
+        }
+    }
+    
+    .actionItem:hover {
+        background-color: #0bb359;
     }
     
   }
@@ -96,5 +164,12 @@ body {
 
 
 .logo {
-    height: 2rem;
+    height: 1.5rem;
+}
+
+.footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top:10rem;
 }

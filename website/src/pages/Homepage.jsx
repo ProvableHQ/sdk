@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from "antd";
+
 
 import './Homepage.css'; 
 
@@ -12,7 +12,7 @@ const Homepage = () => {
       <h1 className="header">Aleo SDK</h1>
       <p className="subheader">The tooling for building zero knowledge applications at your fingertips</p>
         <button className="button"> View Docs <span className="arrow">&rarr;</span> </button>
-        </div>
+    
      
       <ul className="actionRow">
         <li  className="actionItem">
@@ -25,6 +25,21 @@ const Homepage = () => {
           <Link to="/transfer">Manage program state and data</Link>
         </li>
         </ul>
+
+
+        <p className="secondSubheader">Build your first zero knowledge app with create-leo-app</p>
+        <button className="button"> Try it now <span className="arrow">&rarr;</span> </button>
+
+
+        <div className="footer">          
+           <a href="https://github.com/ProvableHQ/sdk">
+                            <img src="../public/github-mark-white.png" style={{height:"24px", marginBottom: "1rem"}}></img>
+                            </a>
+                         
+                            © 2024 Provable Inc.
+                      
+        </div>
+        </div>
     </div>
   );
 };
