@@ -11,7 +11,7 @@ const Homepage = () => {
     <div className="headerContainer">
       <h1 className="header">Aleo SDK</h1>
       <p className="subheader">The tooling for building zero knowledge applications at your fingertips</p>
-        <button className="button"> View Docs <span className="arrow">&rarr;</span> </button>
+        <button className="button"> <Link target="_blank" to="https://developer.aleo.org/sdk/"> View Docs <span className="arrow">&rarr;</span> </Link> </button>
     
      
       <ul className="actionRow">
@@ -28,7 +28,7 @@ const Homepage = () => {
 
 
         <p className="secondSubheader">Build your first zero knowledge app with create-leo-app</p>
-        <button className="button"> Try it now <span className="arrow">&rarr;</span> </button>
+        <button className="button"> <Link to="https://developer.aleo.org/sdk/create-leo-app/tutorial/">Try it now <span className="arrow">&rarr;</span></Link>  </button>
 
 
         <div className="footer">          
