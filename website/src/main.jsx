@@ -80,20 +80,11 @@ function Main() {
                 <WasmLoadingMessage />
                 <Layout style={{ minHeight: "100vh" }}>
                     <Sider breakpoint="lg" collapsedWidth="0" theme="light">
-                        <img
-                            src={
-                                darkMode
-                                    ? "../public/aleosdklight.svg"
-                                    : "../public/aleosdkdark.svg"
-                            }
-                            alt="Aleo SDK Logo"
-                            style={{
-                                height: "32px",
-                                margin: "16px",
-                                fontWeight: "bold",
-                                whiteSpace: "nowrap",
-                            }}
-                        />
+                        <h1 className={darkMode ? "headerDark": "headerLight"}>
+                            <Link to="/">
+                            Aleo SDK
+                            </Link>
+                        </h1>
                         <Menu
                             theme="light"
                             mode="inline"
