@@ -15,47 +15,50 @@ const Homepage = () => {
                 <p className="subheader">
                     The tooling for building zero knowledge applications at your
                     fingertips
-                </p>
-                <button className="button">
-                    {" "}
-                    <Link
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        to="https://developer.aleo.org/sdk/"
-                    >
+                </p>{" "}
+                <Link
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    to="https://developer.aleo.org/sdk/"
+                >
+                    <button className="button">
                         {" "}
                         View Docs <span className="arrow">&rarr;</span>{" "}
-                    </Link>{" "}
-                </button>
-
+                    </button>
+                </Link>{" "}
                 <ul className="actionRow">
-                    <li className="actionItem">
-                        <Link to="/account">Create and manage accounts</Link>
-                    </li>
-                    <li className="actionItem">
-                        <Link to="/develop">Execute and deploy programs</Link>
-                    </li>
-                    <li className="actionItem">
-                        <Link to="/transfer">
-                            Manage program state and data
-                        </Link>
-                    </li>
-                </ul>
+                    <Link to="/account" className="actionItem">
+                        {" "}
+                        <li>
+                            Create and manage accounts{" "}
+                        </li>
+                    </Link>
 
+                    <Link to="/develop" className="actionItem">
+                        {" "}
+                        <li>
+                            Execute and deploy programs{" "}
+                        </li>
+                    </Link>
+
+                    <Link to="/transfer" className="actionItem">
+                        <li>
+                            Manage program state and data
+                        </li>
+                    </Link>
+                </ul>
                 <p className="secondSubheader">
                     Build your first zero knowledge app with create-leo-app
-                </p>
-                <button className="button">
-                    {" "}
-                    <Link
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        to="https://docs.leo-lang.org/sdk/create-leo-app/tutorial/"
-                    >
+                </p>{" "}
+                <Link
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    to="https://docs.leo-lang.org/sdk/create-leo-app/tutorial/"
+                >
+                    <button className="button">
                         Try it now <span className="arrow">&rarr;</span>
-                    </Link>{" "}
-                </button>
-
+                    </button>
+                </Link>{" "}
                 <div className="footer">
                     <a href="https://github.com/ProvableHQ/sdk">
                         <img
