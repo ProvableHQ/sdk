@@ -50,7 +50,7 @@ const Homepage = () => {
                     </Link>
                 </ul>
                 <p className="secondSubheader">
-                    Build your first zero knowledge app with create-leo-app
+                    Build your first zero-knowledge app with create-leo-app
                 </p>{" "}
                 <Link
                     target="_blank"
