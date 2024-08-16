@@ -123,8 +123,8 @@ a:nth-child(3) {
         margin-top: 10rem;
     }
 
-    .actionRow li:nth-child(2),
-    li:nth-child(3) {
+    .actionRow a:nth-child(2),
+    a:nth-child(3) {
         margin-top: 0;
     }
 
