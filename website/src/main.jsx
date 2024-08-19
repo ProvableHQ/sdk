@@ -104,7 +104,7 @@ function Main() {
                         />
                     </Sider>
                     <Layout>
-                        <Content style={{ padding: "50px 50px" }}>
+                        <Content style={{ padding: "50px 50px", margin: "0 auto", minWidth: "850px" }}>
                             <Outlet />
                         </Content>
                         <Footer style={{ textAlign: "center", display:"flex", flexDirection: "column" }}>
