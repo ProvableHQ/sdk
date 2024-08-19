@@ -18,6 +18,17 @@ const Homepage = () => {
                     The tooling for building zero-knowledge applications at your
                     fingertips
                 </p>{" "}
+                <div className="buttonRow"> 
+                <Link
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    to="/account"
+                >
+                    <button className="button">
+                        {" "}
+                        Try now <span className="arrow">&rarr;</span>{" "}
+                    </button>
+                </Link>{" "}
                 <Link
                     target="_blank"
                     rel="noopener noreferrer"
@@ -25,9 +36,10 @@ const Homepage = () => {
                 >
                     <button className="button">
                         {" "}
-                        View Docs <span className="arrow">&rarr;</span>{" "}
+                        See Docs <span className="arrow">&rarr;</span>{" "}
                     </button>
                 </Link>{" "}
+                </div> 
                 <ul className="actionRow">
                     <Link to="/account" className="actionItem">
                         {" "}
@@ -58,7 +70,7 @@ const Homepage = () => {
                     to="https://docs.leo-lang.org/sdk/create-leo-app/tutorial/"
                 >
                     <button className="button">
-                        Try it now <span className="arrow">&rarr;</span>
+                        Try now <span className="arrow">&rarr;</span>
                     </button>
                 </Link>{" "}
                 <div className="footer">
