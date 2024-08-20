@@ -1,10 +1,10 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import "./PrivacyPolicy.css";
 
 const PrivacyPolicy = () => {
     return (
         <div className="privacy-policy">
-            <h1> PROVABLE PRIVACY NOTICE </h1>
+            <h1> Provable Privacy Notice</h1>
             <p> Last Updated: 8/19/2024</p>
             <p>
                 This Privacy Notice explains how Provable Inc., its affiliates
@@ -1291,7 +1291,60 @@ const PrivacyPolicy = () => {
                     the EEA, UK, or Switzerland.
                 </p>
             </div>
+            <br/>
+            <h2> PROVABLE COOKIE NOTICE </h2>
+            <p> Last updated: 8/19/2024 </p>
+            <h2>Scope of Notice</h2>
+    <p>This Cookie Notice supplements the information contained in our Privacy Notice by providing information in the tables set forth below about the cookies which are most frequently used on our websites. The tables may be updated from time to time, so please check back on a regular basis for any changes. For details about the information collected through the use of cookies and the purposes for which such information is used, please read the <em>Our Collection and Use of Personal Data</em> section of our Privacy Notice.</p>
+
+    <h2>Cookie Choices</h2>
+    <p>Please note there is a “Cookie Preferences” manager linked in the footer of our websites that allows you to adjust your cookie preferences on the specific website you are visiting for the specific device and browser you are using at that time (which means you will need to change your preferences on each device and browser you use to interact with the specific website you are visiting). For information about other choices you may have in relation to our use of cookies and other automatic data collection technologies, please refer to the <em>Your Privacy Choices</em> section of our Privacy Notice.</p>
+
+    <h2>Strictly Necessary Cookies</h2>
+    <p>These cookies are essential to making our websites work. They enable core functionality such as security, network management and accessibility. Without these cookies, services that are necessary for you to use our websites, such as accessing secure areas or remembering the information inputted into a webform, are not available. These cookies do not track browsing history on third-party websites. The legal basis for our use of strictly necessary cookies are our legitimate interests, namely being able to provide and maintain our websites.</p>
+
+    <h2>Functional Cookies</h2>
+    <p>These cookies enable a website to remember information that changes the way the website behaves or looks, such as preferred language or the region that an individual is accessing our website from. If you are accessing our websites with an IP address from the European Economic Area, United Kingdom, or Switzerland, you have been asked to consent to the use of these cookies.</p>
+
+    <table>
+        <tr>
+            <th>Cookie Name</th>
+            <th>Cookie Provider</th>
+            <th>When is the Cookie Set?</th>
+            <th>How Long Does the Cookie Last?</th>
+            <th>Purpose of the Cookie</th>
+        </tr>
+        <tr>
+            <td>None.</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
+    <h2>Analytical or Performance Cookies</h2>
+    <p>These cookies collect information about the number of visitors to our websites, and information about how visitors move around our websites when they are using them. This helps us to improve the way our websites work, for example, by ensuring that visitors are finding what they are looking for easily. If you are accessing our websites with an IP address from the European Economic Area, United Kingdom, or Switzerland, you have been asked to consent to the use of these cookies.</p>
+
+    <table>
+        <tr>
+            <th>Cookie Name</th>
+            <th>Cookie Provider</th>
+            <th>When is the Cookie Set?</th>
+            <th>How Long Does the Cookie Last?</th>
+            <th>Purpose of the Cookie</th>
+        </tr>
+        <tr>
+            <td>None.</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
         </div>
+
     );
 };
 
