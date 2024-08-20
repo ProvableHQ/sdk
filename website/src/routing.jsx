@@ -23,6 +23,8 @@ import { Execute } from "./tabs/develop/execute/";
 import { GetMappingNames } from "./tabs/rest/GetMappingNames.jsx";
 import { GetMappingValue } from "./tabs/rest/GetMappingValue.jsx";
 import Homepage from "./pages/Homepage"; 
+import TermsOfUse from "./pages/TermsOfUse";
+import PrivacyPolicy from "./pages/PrivacyPolicy"
 
 export const router = createBrowserRouter([
     {
@@ -118,6 +120,23 @@ export const router = createBrowserRouter([
                     </>
                 ),
             },
+            {
+                path: "/privacy_policy",
+                element: (
+                    <>
+                        <PrivacyPolicy />
+                    </>
+                ),
+            },
+            {
+                path: "/terms_of_use",
+                element: (
+                    <>
+                        <TermsOfUse />
+                    </>
+                ),
+            },
+
         ],
     },
 ]);
