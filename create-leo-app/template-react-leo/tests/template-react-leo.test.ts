@@ -16,7 +16,7 @@ test('generate account', async ({ page }) => {
   await page.goto('/');
 
   // looks like we need to wait a little for react to setup
-  await page.waitForTimeout(1000);
+  await page.waitForSelector('.read-the-docs', { state: 'visible' });
 
   const accountButton = page.getByRole('button', { name: 'Click to generate account' });
   await accountButton.click(); 
@@ -32,7 +32,7 @@ test('local program execution', async ({ page }) => {
   await page.goto('/');
 
   // looks like we need to wait a little for react to setup
-  await page.waitForTimeout(1000);
+  await page.waitForSelector('.read-the-docs', { state: 'visible' });
 
   const executeButton = page.getByRole('button', { name: 'Execute helloworld.aleo' });
   await executeButton.click();
