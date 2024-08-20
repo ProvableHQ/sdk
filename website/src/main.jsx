@@ -112,6 +112,8 @@ function Main() {
                             <a href="https://github.com/ProvableHQ/sdk">
                             <img src="../public/github-mark-white.png" style={{height:"24px"}}></img>
                             </a>
+                            <Link to="/terms_of_use" style={{color: "white"}}> <span>Terms of Use</span> </Link>
+                            <Link to="/privacy_policy" style={{color:"white"}}><span>Privacy Policy</span></Link>
                          
                             © 2024 Provable Inc.
                         </Footer>
