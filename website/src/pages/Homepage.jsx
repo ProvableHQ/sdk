@@ -6,11 +6,11 @@ import "./Homepage.css";
 const Homepage = () => {
     return (
         <div className="homepage">
-          <Link to="https://provable.com/">
-            <img
-                src="../public/primary-wordmark-dark.png"
-                className="logo"
-            ></img>
+            <Link to="https://provable.com/">
+                <img
+                    src="../public/primary-wordmark-dark.png"
+                    className="logo"
+                ></img>
             </Link>
             <div className="headerContainer">
                 <h1 className="header">Aleo SDK</h1>
@@ -31,22 +31,16 @@ const Homepage = () => {
                 <ul className="actionRow">
                     <Link to="/account" className="actionItem">
                         {" "}
-                        <li>
-                            Create and manage accounts{" "}
-                        </li>
+                        <li>Create and manage accounts </li>
                     </Link>
 
                     <Link to="/develop" className="actionItem">
                         {" "}
-                        <li>
-                            Execute and deploy programs{" "}
-                        </li>
+                        <li>Execute and deploy programs </li>
                     </Link>
 
                     <Link to="/transfer" className="actionItem">
-                        <li>
-                            Manage program state and data
-                        </li>
+                        <li>Manage program state and data</li>
                     </Link>
                 </ul>
                 <p className="secondSubheader">
@@ -68,6 +62,13 @@ const Homepage = () => {
                             style={{ height: "24px", marginBottom: "1rem" }}
                         ></img>
                     </a>
+                    <Link to="/terms_of_use" style={{ color: "white", textDecoration: "none" }}>
+                        {" "}
+                        <span>Terms of Use</span>{" "}
+                    </Link>
+                    <Link to="/privacy_policy" style={{ color: "white", textDecoration: "none"}}>
+                        <span>Privacy Policy</span>
+                    </Link>
                     © 2024 Provable Inc.
                 </div>
             </div>
