@@ -23,7 +23,7 @@
 }
 
 .arrow {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "AleoSans";
 }
 
 .headerContainer {
@@ -151,7 +151,7 @@ a:nth-child(3) {
 
 @font-face {
     font-family: "AleoSans";
-    src: url("/assets/fonts/AleofontSans-Regular.otf") format("opentype");
+    src: url("../../public/AleofontSans-Regular.otf") format("opentype");
     font-weight: normal;
     font-style: normal;
 }

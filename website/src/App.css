@@ -9,7 +9,7 @@ input[type="text"]:disabled {
 
 @font-face {
     font-family: "AleoSans";
-    src: url("/assets/fonts/AleofontSans-Regular.otf") format("opentype");
+    src: url("../public/AleofontSans-Regular.otf") format("opentype");
     font-weight: normal;
     font-style: normal;
 }
