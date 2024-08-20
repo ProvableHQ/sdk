@@ -10,6 +10,7 @@ function App() {
   const [count, setCount] = useState(0);
   const [account, setAccount] = useState(null);
   const [executing, setExecuting] = useState(false);
+  const [result, setResult] = useState(null);
   const [deploying, setDeploying] = useState(false);
 
   const generateAccount = async () => {
@@ -19,14 +20,15 @@ function App() {
 
   async function execute() {
     setExecuting(true);
-    const result = await aleoWorker.localProgramExecution(
+    setResult(null)
+    const localresult = await aleoWorker.localProgramExecution(
       helloworld_program,
       "main",
       ["5u32", "5u32"],
     );
     setExecuting(false);
 
-    alert(JSON.stringify(result));
+    setResult((JSON.stringify(localresult)));
   }
 
   async function deploy() {
@@ -72,6 +74,11 @@ function App() {
               : `Execute helloworld.aleo`}
           </button>
         </p>
+        {result !== null &&
+          <p data-testid="result">
+              value is {result}
+          </p>
+        }
         <p>
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>
