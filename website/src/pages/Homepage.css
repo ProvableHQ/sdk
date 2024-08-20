@@ -4,6 +4,14 @@
     font-size: 14px;
 }
 
+.buttonRow { 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+
 .button {
     background-color: #12e172;
     padding: 16px 32px 16px 32px;
@@ -91,6 +99,12 @@ a:nth-child(3) {
     .homepage {
         padding: 20px;
         font-size: 18px;
+    }
+
+    .buttonRow { 
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
     }
 
     .actionRow {
