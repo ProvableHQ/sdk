@@ -141,7 +141,7 @@ export const Join = () => {
         return privateKey;
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 5 }, wrapperCol: { span: 21 } };
     const privateKeyString = () => (privateKey !== null ? privateKey : "");
     const feeRecordString = () => (joinFeeRecord !== null ? joinFeeRecord : "");
     const recordOneString = () => (recordOne !== null ? recordOne : "");

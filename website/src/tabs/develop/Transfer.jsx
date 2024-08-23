@@ -200,7 +200,7 @@ export const Transfer = () => {
         },
     ];
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 5}, wrapperCol: { span: 21 } };
     const feeString = () => (transferFee !== null ? transferFee : "");
     const amountString = () => (transferAmount !== null ? transferAmount : "");
     const recipientString = () => (recipient !== null ? recipient : "");

@@ -117,7 +117,7 @@ export const Split = () => {
         return privateKey;
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 5 }, wrapperCol: { span: 21 } };
     const amountString = () => (splitAmount !== null ? splitAmount : "");
     const privateKeyString = () => (privateKey !== null ? privateKey : "");
     const amountRecordString = () =>
