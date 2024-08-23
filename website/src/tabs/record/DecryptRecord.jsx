@@ -71,7 +71,7 @@ export const DecryptRecord = () => {
         setIsOwner(null);
     };
 
-    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 }};
 
     if (aleo !== null) {
         const recordPlaintext = () =>
@@ -133,7 +133,7 @@ export const DecryptRecord = () => {
                     }
                 >
                     <Form {...layout}>
-                        <Form.Item label="Record (Ciphertext)" colon={false}>
+                        <Form.Item label="Ciphertext" colon={false}>
                             <Input
                                 name="recordCiphertext"
                                 size="large"
@@ -166,7 +166,7 @@ export const DecryptRecord = () => {
                     {
                         <Form {...layout}>
                             <Divider />
-                            <Form.Item label="Record (Plaintext)" colon={false}>
+                            <Form.Item label="Decrypted Record" colon={false}>
                                 {plaintext ? (
                                     <Row align="middle">
                                         <Col span={23}>

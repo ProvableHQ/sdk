@@ -39,7 +39,7 @@ export const GetTransaction = () => {
         }
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const transactionString = useMemo(() => {
         return transaction !== null ? transaction.toString() : ""

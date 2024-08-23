@@ -39,7 +39,7 @@ export const GetBlockByHash = () => {
         }
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const blockString = useMemo(() => {
         return blockByHash !== null ? blockByHash.toString() : ""
