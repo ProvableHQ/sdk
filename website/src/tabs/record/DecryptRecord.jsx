@@ -71,7 +71,7 @@ export const DecryptRecord = () => {
         setIsOwner(null);
     };
 
-    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 },  layout:"vertical"};
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 }};
 
     if (aleo !== null) {
         const recordPlaintext = () =>
