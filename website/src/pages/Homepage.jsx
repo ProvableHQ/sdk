@@ -74,6 +74,7 @@ const Homepage = () => {
                             style={{ height: "24px", marginBottom: "1rem" }}
                         ></img>
                     </a>
+                    <Link to="https://sdk.betteruptime.com/" style={{color: "white"}}> <span>Status</span> </Link>
                     <Link to="/terms_of_use" style={{ color: "white", textDecoration: "none" }}>
                         {" "}
                         <span>Terms of Use</span>{" "}
