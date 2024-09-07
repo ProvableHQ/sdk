@@ -1,4 +1,4 @@
-import { get, post } from "./utils";
+import { get, post, parseJSON } from "./utils";
 import {
   Account,
   Block,
@@ -84,11 +84,13 @@ class AleoNetworkClient {
       url = "/",
   ): Promise<Type> {
     try {
-    const response = await get(this.host + url, {
-      headers: this.headers
-    });
+      const response = await get(this.host + url, {
+        headers: this.headers
+      });
 
-    return await response.json();
+      const text = await response.text();
+      return parseJSON(text);
+
     } catch (error) {
       throw new Error("Error fetching data.");
     }
@@ -648,7 +650,8 @@ class AleoNetworkClient {
       });
 
       try {
-        return await response.json();
+        const text = await response.text();
+        return parseJSON(text);
 
       } catch (error: any) {
         throw new Error(`Error posting transaction. Aleo network response: ${error.message}`);
