@@ -390,9 +390,9 @@ class AleoNetworkClient {
    * @example
    * const latestHeight = networkClient.getLatestHeight();
    */
-  async getLatestHeight(): Promise<number> {
+  async getLatestHeight(): Promise<bigint> {
     try {
-      return await this.fetchData<number>("/latest/height");
+      return await this.fetchData<bigint>("/latest/height");
     } catch (error) {
       throw new Error("Error fetching latest height.");
     }
