@@ -27,7 +27,7 @@ interface AleoNetworkClientOptions {
  * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+ * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
  */
 class AleoNetworkClient {
   host: string;
