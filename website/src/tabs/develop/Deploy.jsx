@@ -200,7 +200,7 @@ export const Deploy = () => {
         return privateKey;
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 5 }, wrapperCol: { span: 21 } };
     const privateKeyString = () => (privateKey !== null ? privateKey : "");
     const programString = () => (program !== null ? program : "");
     const feeRecordString = () =>

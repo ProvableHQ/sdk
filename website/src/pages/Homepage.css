@@ -1,0 +1,187 @@
+/* Mobile Styles */
+.homepage {
+    padding: 10px;
+    font-size: 14px;
+}
+
+.buttonRow { 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+
+.button {
+    background-color: #12e172;
+    padding: 16px 32px 16px 32px;
+    border-radius: 9px;
+    font-size: 18px;
+    color: white;
+    border: none;
+
+    a {
+        text-decoration: none;
+        color: white;
+    }
+}
+
+.button:hover {
+    background-color: #0bb359;
+}
+
+.arrow {
+    font-family: "AleoSans";
+}
+
+.headerContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.header {
+    font-size: 3rem;
+    max-width: 1200px;
+    width: 100%;
+    margin: 10rem auto 0;
+    text-align: center;
+}
+
+.subheader {
+    font-size: 1rem;
+    text-align: center;
+}
+
+.secondSubheader {
+    font-size: 16px;
+    text-align: center;
+    margin-top: 6rem;
+}
+
+.actionRow {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 100rem;
+    align-items: center;
+    justify-content: space-between;
+    margin: 5rem auto 0;
+    padding-left: 0;
+}
+
+.actionRow a:nth-child(2),
+a:nth-child(3) {
+    margin-top: 2rem;
+}
+
+.actionItem {
+    width: 200px;
+    padding: 1rem 1rem 1rem 1rem;
+    border: 2px solid white;
+    border-radius: 20px;
+    list-style-type: none;
+    text-align: center;
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    align-content: center;
+}
+
+.actionItem:hover {
+    background-color: #0bb359;
+}
+
+/* Desktop Styles */
+@media (min-width: 1024px) {
+    .homepage {
+        padding: 20px;
+        font-size: 18px;
+    }
+
+    .buttonRow { 
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+    }
+
+    .actionRow {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        max-width: 800px;
+        justify-content: space-between;
+        margin: 10rem auto 0;
+    }
+
+    .header {
+        font-size: 6rem;
+        max-width: 1200px;
+        width: 100%;
+        margin: 10rem auto 0;
+        text-align: center;
+    }
+
+    .subheader {
+        font-size: 32px;
+        width: 35rem;
+        text-align: center;
+    }
+
+    .secondSubheader {
+        font-size: 32px;
+        width: 35rem;
+        text-align: center;
+        margin-top: 10rem;
+    }
+
+    .actionRow a:nth-child(2),
+    a:nth-child(3) {
+        margin-top: 0;
+    }
+
+    .actionItem {
+        width: 175px;
+        padding: 2rem 2rem 2rem 2rem;
+        border: 2px solid white;
+        border-radius: 30px;
+        list-style-type: none;
+        text-align: center;
+
+        a {
+            color: white;
+            text-decoration: none;
+            font-size: 24px;
+            align-content: center;
+        }
+    }
+
+    .actionItem:hover {
+        background-color: #0bb359;
+    }
+}
+
+@font-face {
+    font-family: "AleoSans";
+    src: url("../../public/AleofontSans-Regular.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: "AleoSans", sans-serif;
+    color: white;
+}
+
+.logo {
+    height: 2rem;
+}
+
+.footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10rem;
+}

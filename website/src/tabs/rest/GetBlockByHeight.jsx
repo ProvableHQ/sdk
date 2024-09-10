@@ -41,7 +41,7 @@ export const GetBlockByHeight = () => {
         }
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const blockString = useMemo(() => {
         return blockByHeight !== null ? blockByHeight.toString() : ""

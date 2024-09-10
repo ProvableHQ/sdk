@@ -58,9 +58,9 @@ function Main() {
 
     useEffect(() => {
         setMenuIndex(location.pathname);
-        if (location.pathname === "/") {
-            navigate("/account");
-        }
+        // if (location.pathname === "/") {
+        //     navigate("/account");
+        // }
     }, [location, navigate]);
 
     const [darkMode, setDarkMode] = useState(true);
@@ -80,20 +80,11 @@ function Main() {
                 <WasmLoadingMessage />
                 <Layout style={{ minHeight: "100vh" }}>
                     <Sider breakpoint="lg" collapsedWidth="0" theme="light">
-                        <img
-                            src={
-                                darkMode
-                                    ? "../public/aleosdklight.svg"
-                                    : "../public/aleosdkdark.svg"
-                            }
-                            alt="Aleo SDK Logo"
-                            style={{
-                                height: "32px",
-                                margin: "16px",
-                                fontWeight: "bold",
-                                whiteSpace: "nowrap",
-                            }}
-                        />
+                        <h1 className={darkMode ? "headerDark": "headerLight"}>
+                            <Link to="/">
+                            Aleo SDK
+                            </Link>
+                        </h1>
                         <Menu
                             theme="light"
                             mode="inline"
@@ -113,15 +104,19 @@ function Main() {
                         />
                     </Sider>
                     <Layout>
-                        <Content style={{ padding: "50px 50px" }}>
+                        <Content style={{ padding: "50px 50px", margin: "0 auto", minWidth: "850px" }}>
                             <Outlet />
                         </Content>
-                        <Footer style={{ textAlign: "center" }}>
-                            Visit the{" "}
+                        <Footer style={{ textAlign: "center", display:"flex", flexDirection: "column" }}>
+                        
                             <a href="https://github.com/ProvableHQ/sdk">
-                                Aleo SDK Github repo
+                            <img src="../public/github-mark-white.png" style={{height:"24px"}}></img>
                             </a>
-                            .
+                            <Link to="https://sdk.betteruptime.com/" style={{color: "white"}}> <span>Status</span> </Link>
+                            <Link to="/terms_of_use" style={{color: "white"}}> <span>Terms of Use</span> </Link>
+                            <Link to="/privacy_policy" style={{color:"white"}}><span>Privacy Policy</span></Link>
+                         
+                            © 2024 Provable Inc.
                         </Footer>
                     </Layout>
                 </Layout>

@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import Main from "./main.jsx";
 import { NewAccount } from "./tabs/account/NewAccount.jsx";
 import { AccountFromPrivateKey } from "./tabs/account/AccountFromPrivateKey.jsx";
@@ -22,15 +22,18 @@ import { Join } from "./tabs/develop/Join.jsx";
 import { Execute } from "./tabs/develop/execute/";
 import { GetMappingNames } from "./tabs/rest/GetMappingNames.jsx";
 import { GetMappingValue } from "./tabs/rest/GetMappingValue.jsx";
+import Homepage from "./pages/Homepage"; 
+import TermsOfUse from "./pages/TermsOfUse";
+import PrivacyPolicy from "./pages/PrivacyPolicy"
 
 export const router = createBrowserRouter([
     {
+        path: "/",
+        element: <Homepage />,
+    },
+    {
         element: <Main />,
         children: [
-            {
-                path: "/",
-                element: <Navigate to="/deploy" replace={false} />,
-            },
             {
                 path: "/account",
                 element: (
@@ -117,6 +120,23 @@ export const router = createBrowserRouter([
                     </>
                 ),
             },
+            {
+                path: "/privacy_policy",
+                element: (
+                    <>
+                        <PrivacyPolicy />
+                    </>
+                ),
+            },
+            {
+                path: "/terms_of_use",
+                element: (
+                    <>
+                        <TermsOfUse />
+                    </>
+                ),
+            },
+
         ],
     },
 ]);

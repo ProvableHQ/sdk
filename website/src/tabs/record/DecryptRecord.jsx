@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Card, Col, Divider, Form, Input, Row, Skeleton } from "antd";
 import { CopyButton } from "../../components/CopyButton";
 import { useAleoWASM } from "../../aleo-wasm-hook";
+import "./DecryptRecord.css";
 
 export const DecryptRecord = () => {
     const [ciphertext, setCiphertext] = useState(null);
@@ -70,7 +71,7 @@ export const DecryptRecord = () => {
         setIsOwner(null);
     };
 
-    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 }};
 
     if (aleo !== null) {
         const recordPlaintext = () =>
@@ -81,81 +82,116 @@ export const DecryptRecord = () => {
             ciphertext !== null ? ciphertext.toString() : "";
 
         return (
-            <Card
-                title="Decrypt Record"
-                style={{ width: "100%" }}
-                extra={
-                    <Button
-                        type="primary"
-                        
-                        size="middle"
-                        onClick={populateForm}
-                    >
-                        Demo
-                    </Button>
-                }
-            >
-                <Form {...layout}>
-                    <Form.Item label="Record (Ciphertext)" colon={false}>
-                        <Input
-                            name="recordCiphertext"
-                            size="large"
-                            placeholder="Record (Ciphertext)"
-                            allowClear
-                            onChange={onCiphertextChange}
-                            value={recordCipherTextString()}
-                        />
-                    </Form.Item>
-                    <Form.Item label="View Key" colon={false}>
-                        <Input
-                            name="viewKey"
-                            size="large"
-                            placeholder="View Key"
-                            allowClear
-                            onChange={onViewKeyChange}
-                            value={viewKeyString()}
-                        />
-                    </Form.Item>
-                </Form>
-                {ciphertext || viewKey ? (
-                    <Row justify="center">
-                        <Col>
+            <div className="container">
+                <h1>Records</h1>
+                <h2>Overview</h2>
+                <ul>
+                    <li>
+                        {" "}
+                        Records are created by Aleo programs and can be used as
+                        inputs for functions within the same program. Once a
+                        record is used, it’s consumed and can’t be reused.
+                    </li>
+                    <li>
+                        Functions that consume records generate new records as
+                        output.
+                    </li>
+                    <li>
+                        Records are <strong>private</strong> by default, tied to
+                        a single Aleo program and a user's private key.
+                    </li>
+                    <li>
+                        The <strong> View Key </strong> is derived from the
+                        private key and allows users to decrypt their encrypted
+                        data and prove ownership of that data.
+                    </li>
+                </ul>
+
+                <br />
+                <p>
+                    Try the demo below! Enter a record and
+                    decrypt it using your View Key to experience how the process
+                    works. You can also click the "Show Demo" button on the
+                    right to generate an example.
+                </p>
+
+                <br />
+
+                <Card
+                    title="Decrypt Record"
+                    style={{ width: "100%" }}
+                    extra={
+                        <>
                             <Button
-                                
+                                type="primary"
                                 size="middle"
-                                onClick={clearForm}
+                                onClick={populateForm}
                             >
-                                Clear
+                                Show Demo
                             </Button>
-                        </Col>
-                    </Row>
-                ) : null}
-                {
+                        </>
+                    }
+                >
                     <Form {...layout}>
-                        <Divider />
-                        <Form.Item label="Record (Plaintext)" colon={false}>
-                            {plaintext ? (
-                                <Row align="middle">
-                                    <Col span={23}>
-                                        <Input.TextArea
-                                            size="large"
-                                            rows={10}
-                                            placeholder="Record (Plaintext)"
-                                            value={recordPlaintext()}
-                                            disabled
-                                        />
-                                    </Col>
-                                    <Col span={1} align="middle">
-                                        <CopyButton data={recordPlaintext()} />
-                                    </Col>
-                                </Row>
-                            ) : (
-                                <Skeleton active />
-                            )}
+                        <Form.Item label="Ciphertext" colon={false}>
+                            <Input
+                                name="recordCiphertext"
+                                size="large"
+                                placeholder="Record (Ciphertext)"
+                                allowClear
+                                onChange={onCiphertextChange}
+                                value={recordCipherTextString()}
+                            />
+                        </Form.Item>
+                        <Form.Item label="View Key" colon={false}>
+                            <Input
+                                name="viewKey"
+                                size="large"
+                                placeholder="View Key"
+                                allowClear
+                                onChange={onViewKeyChange}
+                                value={viewKeyString()}
+                            />
                         </Form.Item>
                     </Form>
-                }
-            </Card>
+                    {ciphertext || viewKey ? (
+                        <Row justify="center">
+                            <Col>
+                                <Button size="middle" onClick={clearForm}>
+                                    Clear
+                                </Button>
+                            </Col>
+                        </Row>
+                    ) : null}
+                    {
+                        <Form {...layout}>
+                            <Divider />
+                            <Form.Item label="Decrypted Record" colon={false}>
+                                {plaintext ? (
+                                    <Row align="middle">
+                                        <Col span={23}>
+                                            <Input.TextArea
+                                                size="large"
+                                                rows={10}
+                                                placeholder="Record (Plaintext)"
+                                                value={recordPlaintext()}
+                                                disabled
+                                            />
+                                        </Col>
+                                        <Col span={1} align="middle">
+                                            <CopyButton
+                                                data={recordPlaintext()}
+                                            />
+                                        </Col>
+                                    </Row>
+                                ) : (
+                                    <Skeleton active />
+                                )}
+                            </Form.Item>
+                        </Form>
+                    }
+                </Card>
+            </div>
         );
     } else {
         return (
