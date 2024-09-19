@@ -43,11 +43,11 @@ const CREDITS_PROGRAM_KEYS = {
     transfer_public_as_signer: convert(Metadata.transfer_public_as_signer()),
     transfer_public_to_private: convert(Metadata.transfer_public_to_private()),
     unbond_public: convert(Metadata.unbond_public()),
-    getKey: function(key: string): Key | Error {
+    getKey: function(key: string): Key {
         if (this.hasOwnProperty(key)) {
             return (this as any)[key] as Key;
         } else {
-            return new Error(`Key "${key}" not found.`);
+            throw new Error(`Key "${key}" not found.`);
         }
     }
 };
@@ -106,9 +106,9 @@ const PUBLIC_TO_PRIVATE_TRANSFER = new Set([
     "transferPublicToPrivate",
 ]);
 
-function logAndThrow(message: string): Error {
+function logAndThrow(message: string): never {
     console.error(message);
-    throw message;
+    throw new Error(message);
 }
 
 import { Account } from "./account";

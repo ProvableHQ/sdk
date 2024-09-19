@@ -31,7 +31,7 @@ impl RecordCiphertext {
     /// Create a record ciphertext from a string
     ///
     /// @param {string} record String representation of a record ciphertext
-    /// @returns {RecordCiphertext | Error} Record ciphertext
+    /// @returns {RecordCiphertext} Record ciphertext
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordCiphertext, String> {
         Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
@@ -50,7 +50,7 @@ impl RecordCiphertext {
     /// decrypt if the record was encrypted by the account corresponding to the view key
     ///
     /// @param {ViewKey} view_key View key used to decrypt the ciphertext
-    /// @returns {RecordPlaintext | Error} Record plaintext object
+    /// @returns {RecordPlaintext} Record plaintext object
     pub fn decrypt(&self, view_key: &ViewKey) -> Result<RecordPlaintext, String> {
         Ok(RecordPlaintext::from(
             self.0.decrypt(view_key).map_err(|_| "Decryption failed - view key did not match record".to_string())?,

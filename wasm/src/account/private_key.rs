@@ -93,7 +93,7 @@ impl PrivateKey {
     /// and will be needed to decrypt the private key later, so it should be stored securely
     ///
     /// @param {string} secret Secret used to encrypt the private key
-    /// @returns {PrivateKeyCiphertext | Error} Ciphertext representation of the private key
+    /// @returns {PrivateKeyCiphertext} Ciphertext representation of the private key
     #[wasm_bindgen(js_name = newEncrypted)]
     pub fn new_encrypted(secret: &str) -> Result<PrivateKeyCiphertext, String> {
         let key = Self::new();
@@ -106,7 +106,7 @@ impl PrivateKey {
     /// decrypt the private key later, so it should be stored securely
     ///
     /// @param {string} secret Secret used to encrypt the private key
-    /// @returns {PrivateKeyCiphertext | Error} Ciphertext representation of the private key
+    /// @returns {PrivateKeyCiphertext} Ciphertext representation of the private key
     #[wasm_bindgen(js_name = toCiphertext)]
     pub fn to_ciphertext(&self, secret: &str) -> Result<PrivateKeyCiphertext, String> {
         let ciphertext =
@@ -118,7 +118,7 @@ impl PrivateKey {
     ///
     /// @param {PrivateKeyCiphertext} ciphertext Ciphertext representation of the private key
     /// @param {string} secret Secret originally used to encrypt the private key
-    /// @returns {PrivateKey | Error} Private key
+    /// @returns {PrivateKey} Private key
     #[wasm_bindgen(js_name = fromPrivateKeyCiphertext)]
     pub fn from_private_key_ciphertext(ciphertext: &PrivateKeyCiphertext, secret: &str) -> Result<PrivateKey, String> {
         let private_key = Encryptor::decrypt_private_key_with_secret(ciphertext, secret)

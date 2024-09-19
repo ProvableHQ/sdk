@@ -209,9 +209,9 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * Get bond_public function keys from the credits.aleo program. The keys must be cached prior to calling this
      * method for it to work.
      *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the bond_public function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the bond_public function
      */
-    bondPublicKeys(): Promise<FunctionKeyPair | Error> {
+    bondPublicKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.bondPublicKeyParams());
     };
 
@@ -219,9 +219,9 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * Get bond_validator function keys from the credits.aleo program. The keys must be cached prior to calling this
      * method for it to work.
      *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the bond_public function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the bond_public function
      */
-    bondValidatorKeys(): Promise<FunctionKeyPair | Error> {
+    bondValidatorKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.bondValidatorKeyParams());
     };
 
@@ -242,9 +242,9 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * Get unbond_public function keys from the credits.aleo program. The keys must be cached prior to calling this
      * method for it to work.
      *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the unbond_public function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the unbond_public function
      */
-    claimUnbondPublicKeys(): Promise<FunctionKeyPair | Error> {
+    claimUnbondPublicKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.claimUnbondPublicKeyParams());
     };
 
@@ -252,7 +252,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * Get arbitrary function key from the offline key provider cache.
      *
      * @param {KeySearchParams | undefined} params - Optional search parameters for the key provider
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the specified program
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the specified program
      *
      * @example
      * /// First cache the keys from local offline resources
@@ -272,7 +272,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * /// Then retrieve the keys
      * const [myFunctionProver, myFunctionVerifier] = await offlineKeyProvider.functionKeys(keyParams);
      */
-    functionKeys(params?: KeySearchParams): Promise<FunctionKeyPair | Error> {
+    functionKeys(params?: KeySearchParams): Promise<FunctionKeyPair> {
         return new Promise((resolve, reject) => {
             if (params === undefined) {
                 reject(new Error("No search parameters provided, cannot retrieve keys"));
@@ -339,9 +339,9 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * Get fee_private function keys from the credits.aleo program. The keys must be cached prior to calling this
      * method for it to work.
      *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
      */
-    feePrivateKeys(): Promise<FunctionKeyPair | Error> {
+    feePrivateKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.feePrivateKeyParams());
     };
 
@@ -349,9 +349,9 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * Get fee_public function keys from the credits.aleo program. The keys must be cached prior to calling this
      * method for it to work.
      *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
      */
-    feePublicKeys(): Promise<FunctionKeyPair | Error> {
+    feePublicKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.feePublicKeyParams());
     };
 
@@ -359,9 +359,9 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * Get join function keys from the credits.aleo program. The keys must be cached prior to calling this
      * method for it to work.
      *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
      */
-    joinKeys(): Promise<FunctionKeyPair | Error> {
+    joinKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.joinKeyParams());
     };
 
@@ -369,9 +369,9 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * Get split function keys from the credits.aleo program. The keys must be cached prior to calling this
      * method for it to work.
      *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
      */
-    splitKeys(): Promise<FunctionKeyPair | Error> {
+    splitKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.splitKeyParams());
     };
 
@@ -380,7 +380,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      *
      *
      * @param {string} visibility Visibility of the transfer function (private, public, privateToPublic, publicToPrivate)
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the specified transfer function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the specified transfer function
      *
      * @example
      * // Create a new OfflineKeyProvider
@@ -397,7 +397,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * /// When they're needed, retrieve the keys from the cache
      * const [transferPublicProvingKey, transferPublicVerifyingKey] = await keyProvider.transferKeys("public");
      */
-    transferKeys(visibility: string): Promise<FunctionKeyPair | Error> {
+    transferKeys(visibility: string): Promise<FunctionKeyPair> {
         if (PRIVATE_TRANSFER.has(visibility)) {
             return this.functionKeys(OfflineSearchParams.transferPrivateKeyParams());
         } else if (PRIVATE_TO_PUBLIC_TRANSFER.has(visibility)) {
@@ -416,9 +416,9 @@ class OfflineKeyProvider implements FunctionKeyProvider {
     /**
      * Get unbond_public function keys from the credits.aleo program
      *
-     * @returns {Promise<FunctionKeyPair | Error>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
      */
-    async unBondPublicKeys(): Promise<FunctionKeyPair | Error> {
+    async unBondPublicKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.unbondPublicKeyParams());
     };
 

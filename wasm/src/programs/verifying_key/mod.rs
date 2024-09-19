@@ -51,7 +51,7 @@ impl VerifyingKey {
     /// Construct a new verifying key from a byte array
     ///
     /// @param {Uint8Array} bytes Byte representation of a verifying key
-    /// @returns {VerifyingKey | Error}
+    /// @returns {VerifyingKey}
     #[wasm_bindgen(js_name = "fromBytes")]
     pub fn from_bytes(bytes: &[u8]) -> Result<VerifyingKey, String> {
         Ok(Self(VerifyingKeyNative::from_bytes_le(bytes).map_err(|e| e.to_string())?))
@@ -60,7 +60,7 @@ impl VerifyingKey {
     /// Create a verifying key from string
     ///
     /// @param {String} string String representation of a verifying key
-    /// @returns {VerifyingKey | Error}
+    /// @returns {VerifyingKey}
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(string: &str) -> Result<VerifyingKey, String> {
         Ok(Self(VerifyingKeyNative::from_str(string).map_err(|e| e.to_string())?))
@@ -68,7 +68,7 @@ impl VerifyingKey {
 
     /// Create a byte array from a verifying key
     ///
-    /// @returns {Uint8Array | Error} Byte representation of a verifying key
+    /// @returns {Uint8Array} Byte representation of a verifying key
     #[wasm_bindgen(js_name = "toBytes")]
     pub fn to_bytes(&self) -> Result<Vec<u8>, String> {
         self.0.to_bytes_le().map_err(|_| "Failed to serialize verifying key".to_string())

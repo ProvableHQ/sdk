@@ -4,7 +4,7 @@ import { getLocalKey, preDownloadBondingKeys, preDownloadTransferKeys } from "./
 await initThreadPool();
 
 /// Build transfer public transaction without connection to the internet
-async function buildTransferPublicTxOffline(recipientAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}): Promise<Error | Transaction>  {
+async function buildTransferPublicTxOffline(recipientAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}): Promise<Transaction>  {
     // Create an offline program manager
     const programManager = new ProgramManager();
 
@@ -47,7 +47,7 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
 }
 
 /// Build bonding and unbonding transactions without connection to the internet
-async function buildBondingTxOffline(stakerAddress: Address,  validatorAddress: Address, withdrawalAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}): Promise<Error | Transaction[]> {
+async function buildBondingTxOffline(stakerAddress: Address,  validatorAddress: Address, withdrawalAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}): Promise<Transaction[]> {
     // Create an offline program manager
     const programManager = new ProgramManager();
 

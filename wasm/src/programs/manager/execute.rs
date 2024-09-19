@@ -143,7 +143,7 @@ impl ProgramManager {
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
-    /// @returns {Transaction | Error}
+    /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildExecutionTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute(
@@ -241,7 +241,7 @@ impl ProgramManager {
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param proving_key (optional) Provide a verifying key to use for the fee estimation
     /// @param verifying_key (optional) Provide a verifying key to use for the fee estimation
-    /// @returns {u64 | Error} Fee in microcredits
+    /// @returns {u64} Fee in microcredits
     #[wasm_bindgen(js_name = estimateExecutionFee)]
     #[allow(clippy::too_many_arguments)]
     pub async fn estimate_execution_fee(
@@ -324,7 +324,7 @@ impl ProgramManager {
     ///
     /// @param program The program containing the function to estimate the finalize fee for
     /// @param function The function to estimate the finalize fee for
-    /// @returns {u64 | Error} Fee in microcredits
+    /// @returns {u64} Fee in microcredits
     #[wasm_bindgen(js_name = estimateFinalizeFee)]
     pub fn estimate_finalize_fee(program: &str, function: &str) -> Result<u64, String> {
         log(

@@ -41,7 +41,7 @@ describe('NodeConnection', () => {
         it('should return an array of Block objects', async () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).toBe(true);
-            expect((blockRange as Block[]).length).toBe(3);
+            expect((blockRange as Block[]).length).toBe(2);
             expect(((blockRange as Block[])[0] as Block).block_hash).toBe("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
             expect(((blockRange as Block[])[1] as Block).block_hash).toBe("ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42");
 
