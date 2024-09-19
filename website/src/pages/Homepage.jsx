@@ -18,7 +18,7 @@ const Homepage = () => {
                     The tooling for building zero-knowledge applications at your
                     fingertips
                 </p>{" "}
-                <div className="buttonRow"> 
+                <div className="buttonRow">
                 <Link
                     target="_blank"
                     rel="noopener noreferrer"
@@ -32,14 +32,14 @@ const Homepage = () => {
                 <Link
                     target="_blank"
                     rel="noopener noreferrer"
-                    to="https://developer.aleo.org/sdk/"
+                    to="https://developer.provable.com/sdk/"
                 >
                     <button className="button">
                         {" "}
                         See Docs <span className="arrow">&rarr;</span>{" "}
                     </button>
                 </Link>{" "}
-                </div> 
+                </div>
                 <ul className="actionRow">
                     <Link to="/account" className="actionItem">
                         {" "}

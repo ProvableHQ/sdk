@@ -46,7 +46,7 @@ function App() {
   return (
     <>
       <div>
-        <a href="https://aleo.org" target="_blank">
+        <a href="https://provable.com" target="_blank">
           <img src={aleoLogo} className="logo" alt="Aleo logo" />
         </a>
         <a href="https://react.dev" target="_blank">

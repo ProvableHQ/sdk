@@ -11,7 +11,7 @@ const PrivacyPolicy = () => {
                 and/or its subsidiaries (collectively referred to as “Provable”,
                 “we”, “our”, or “us”) may collect, use, disclose, and otherwise
                 process personal data including, without limitation, in
-                connection with the websites provable.com, explorer.aleo.org,
+                connection with the websites provable.com, explorer.provable.com,
                 provable.tools, leo-lang.org, any associated webpages and any
                 successor URL(s) or URLs to which they redirect, and any and all
                 related software, documentation, and online, mobile-enabled,

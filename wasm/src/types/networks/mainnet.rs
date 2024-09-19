@@ -20,4 +20,4 @@ pub use snarkvm_console::network::MainnetV0 as CurrentNetwork;
 
 pub use snarkvm_parameters::mainnet as parameters;
 
-pub const BASE_URL: &'static str = "https://parameters.aleo.org/mainnet/";
+pub const BASE_URL: &'static str = "https://parameters.provable.com/mainnet/";

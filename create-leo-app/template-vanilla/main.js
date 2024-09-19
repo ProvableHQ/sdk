@@ -29,7 +29,7 @@ document.querySelector("#app").innerHTML = `
     <a href="https://vitejs.dev" target="_blank">
       <img src="${viteLogo}" class="logo" alt="Vite logo" />
     </a>
-    <a href="https://aleo.org/" target="_blank">
+    <a href="https://provable.com/" target="_blank">
       <img src="${aleoLogo}" class="logo" alt="Aleo logo" />
     </a>
     <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">

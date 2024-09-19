@@ -28,7 +28,7 @@ describe('NodeConnection', () => {
     let windowFetchSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-        connection = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+        connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
         windowFetchSpy = sinon.spy(globalThis, 'fetch');
     });
 
@@ -102,7 +102,7 @@ describe('NodeConnection', () => {
 
             expect(windowFetchSpy.args).deep.equal([
                 [
-                    "https://api.explorer.aleo.org/v1/testnet/latest/block",
+                    "https://api.explorer.provable.com/v1",
                     {
                         "headers": {
                             // @TODO: Run the Jest tests on the compiled Rollup code,

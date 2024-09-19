@@ -16,7 +16,7 @@
 
 //!
 //! [![Crates.io](https://img.shields.io/crates/v/aleo-wasm.svg?color=neon)](https://crates.io/crates/aleo-wasm)
-//! [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+//! [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://provable.com)
 //! [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 //!
 //! [![github]](https://github.com/ProvableHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)
@@ -41,7 +41,7 @@
 //! * Aleo primitives such as `Records`, `Programs`, and `Transactions` and their associated helper methods
 //! * A `ProgramManager` object that contains methods for authoring, deploying, and interacting with Aleo programs
 //!
-//! More information on these concepts can be found at the [Aleo Developer Hub](https://developer.aleo.org/concepts).
+//! More information on these concepts can be found at the [Aleo Developer Hub](https://developer.provable.com/concepts).
 //!
 //! ## Usage
 //! The [wasm-pack](https://crates.io/crates/wasm-pack) tool is used to compile the Rust code in this crate into JavaScript
