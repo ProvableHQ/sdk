@@ -20,4 +20,4 @@ pub use snarkvm_console::network::TestnetV0 as CurrentNetwork;
 
 pub use snarkvm_parameters::testnet as parameters;
 
-pub const BASE_URL: &'static str = "https://parameters.provable.com/testnet/";
+pub const BASE_URL: &'static str = "https://parameters.aleo.org/testnet/";

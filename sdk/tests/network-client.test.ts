@@ -69,7 +69,10 @@ describe('NodeConnection', () => {
         });
 
         it('should throw an error if the request fails', async () => {
-            expect(await connection.getBlockRange(999999999, 1000000000)).deep.equal([]);
+            await expectThrows(
+                () => connection.getBlockRange(999999999, 1000000000),
+                "Error fetching blocks between 999999999 and 1000000000.",
+            );
         });
     });
 
@@ -102,7 +105,7 @@ describe('NodeConnection', () => {
 
             expect(windowFetchSpy.args).deep.equal([
                 [
-                    "https://api.explorer.provable.com/v1",
+                    "https://api.explorer.provable.com/v1/%%NETWORK%%/latest/block",
                     {
                         "headers": {
                             // @TODO: Run the Jest tests on the compiled Rollup code,
