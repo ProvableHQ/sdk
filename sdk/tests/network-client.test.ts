@@ -100,7 +100,7 @@ describe('NodeConnection', () => {
     describe('getLatestHeight', () => {
         it('should return a number', async () => {
             const latestHeight = await connection.getLatestHeight();
-            expect(typeof latestHeight).toBe('bigint');
+            expect(typeof latestHeight).toBe('number');
         }, 60000);
     });
 
