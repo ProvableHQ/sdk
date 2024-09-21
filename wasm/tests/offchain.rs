@@ -112,7 +112,7 @@ async fn test_key_synthesis() {
     let private_key = PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
     let mut key_pair = ProgramManager::synthesize_keypair(&private_key, &credits, "split", inputs, None).await.unwrap();
     let retrieved_proving_key = key_pair.proving_key().unwrap();
-    let retreived_verifying_key = key_pair.verifying_key().unwrap();
+    let retrieved_verifying_key = key_pair.verifying_key().unwrap();
 
     // Ensure program can be executed with the synthesized keypair stored in wasm memory
     let inputs = Array::new();
@@ -127,7 +127,7 @@ async fn test_key_synthesis() {
         true,
         None,
         Some(retrieved_proving_key.clone()),
-        Some(retreived_verifying_key.clone()),
+        Some(retrieved_verifying_key.clone()),
         None,
         None,
     )
@@ -138,7 +138,7 @@ async fn test_key_synthesis() {
     let proving_key = keys.proving_key().unwrap();
     let verifying_key = keys.verifying_key().unwrap();
     assert_eq!(proving_key, retrieved_proving_key);
-    assert_eq!(verifying_key, retreived_verifying_key);
+    assert_eq!(verifying_key, retrieved_verifying_key);
 }
 
 #[wasm_bindgen_test]
