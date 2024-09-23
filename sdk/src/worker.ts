@@ -1,3 +1,4 @@
+import "./polyfill/shared";
 import {initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution, FunctionKeyPair} from "./browser";
 import { AleoKeyProvider, AleoKeyProviderParams} from "./function-key-provider";
 import { expose } from "comlink";
