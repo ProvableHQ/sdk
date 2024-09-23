@@ -31,7 +31,7 @@ describe('KeyProvider', () => {
             expect(verifyingKey).instanceof(VerifyingKey);
 
             const transferCacheKey = keyProvider.cache.keys().next().value;
-            const [cachedProvingKey, cachedVerifyingKey] = <CachedKeyPair>keyProvider.cache.get(transferCacheKey);
+            const [cachedProvingKey, cachedVerifyingKey] = <CachedKeyPair>keyProvider.cache.get(transferCacheKey!);
             expect(cachedProvingKey).instanceof(Uint8Array);
             expect(cachedVerifyingKey).instanceof(Uint8Array);
 
