@@ -1,3 +1,4 @@
+import "./polyfill/shared";
 import {VerifyingKey, Metadata} from "@provablehq/wasm";
 
 const KEY_STORE = Metadata.baseUrl();

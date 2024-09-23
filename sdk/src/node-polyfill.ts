@@ -1,3 +1,4 @@
+import "./polyfill/shared";
 import "./polyfill/crypto";
 import "./polyfill/fetch";
 import "./polyfill/xmlhttprequest";

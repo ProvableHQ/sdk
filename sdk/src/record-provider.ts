@@ -202,12 +202,8 @@ class NetworkRecordProvider implements RecordProvider {
 
         // If the end height is not specified, use the current block height
         if (endHeight == 0) {
-            try {
-                const end = await this.networkClient.getLatestHeight();
-                endHeight = end;
-            } catch (e) {
-                logAndThrow("Unable to get current block height from the network")
-            }
+            const end = await this.networkClient.getLatestHeight();
+            endHeight = end;
         }
 
         // If the start height is greater than the end height, throw an error

@@ -1,3 +1,17 @@
+export function parseJSON(json: string): any {
+    function revive(key: string, value: any, context: any) {
+        if (Number.isInteger(value)) {
+            return BigInt(context.source);
+
+        } else {
+            return value;
+        }
+    }
+
+    return JSON.parse(json, revive as any);
+}
+
+
 export async function get(url: URL | string, options?: RequestInit) {
     const response = await fetch(url, options);
 
