@@ -21,7 +21,7 @@ export const GetTransaction = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://api.explorer.aleo.org/v1/testnet/transaction/${id}`)
+                    .get(`https://api.explorer.provable.com/v1/testnet/transaction/${id}`)
                     .then((response) => {
                         setTransaction(JSON.stringify(response.data, null, 2));
                         setStatus("success");

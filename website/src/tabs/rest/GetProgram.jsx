@@ -31,7 +31,7 @@ export const GetProgram = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://api.explorer.aleo.org/v1/testnet/program/${id}`)
+                    .get(`https://api.explorer.provable.com/v1/testnet/program/${id}`)
                     .then((response) => {
                         setStatus("success");
                         setProgram(response.data);

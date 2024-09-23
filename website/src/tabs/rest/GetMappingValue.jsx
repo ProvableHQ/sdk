@@ -55,7 +55,7 @@ export const GetMappingValue = () => {
             if (programID && mappingName && mappingKey) {
                 axios
                     .get(
-                        `https://api.explorer.aleo.org/v1/testnet/program/${programID}/mapping/${mappingName}/${mappingKey}`,
+                        `https://api.explorer.provable.com/v1/testnet/program/${programID}/mapping/${mappingName}/${mappingKey}`,
                     )
                     .then((response) => {
                         if (response.data === null) {

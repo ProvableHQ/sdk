@@ -11,7 +11,7 @@ import { Account, ExecutionResponse, OfflineQuery, ProgramManager, RecordPlainte
 jest.retryTimes(3);
 
 describe('Program Manager', () => {
-    const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", undefined, undefined);
+    const programManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined);
     programManager.setAccount(new Account({privateKey: statePathRecordOwnerPrivateKey}));
 
     describe('Execute offline', () => {

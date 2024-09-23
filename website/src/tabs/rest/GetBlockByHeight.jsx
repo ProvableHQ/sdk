@@ -21,7 +21,7 @@ export const GetBlockByHeight = () => {
         try {
             if (height) {
                 axios
-                    .get(`https://api.explorer.aleo.org/v1/testnet/block/${height}`)
+                    .get(`https://api.explorer.provable.com/v1/testnet/block/${height}`)
                     .then((response) => {
                         setBlockByHeight(
                             JSON.stringify(response.data, null, 2),
