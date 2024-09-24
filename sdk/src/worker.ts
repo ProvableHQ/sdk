@@ -41,11 +41,11 @@ async function executeOffline(
         // Ensure the program is valid and that it contains the function specified
         const program = programManager.createProgramFromSource(localProgram);
         if (program instanceof Error) {
-            throw "Error creating program from source";
+            throw new Error("Error creating program from source");
         }
         const program_id = program.id();
         if (!program.hasFunction(aleoFunction)) {
-            throw `Program ${program_id} does not contain function ${aleoFunction}`;
+            throw new Error(`Program ${program_id} does not contain function ${aleoFunction}`);
         }
         const cacheKey = `${program_id}:${aleoFunction}`;
 
@@ -55,7 +55,7 @@ async function executeOffline(
         );
 
         if (imports instanceof Error) {
-            throw "Error getting program imports";
+            throw new Error("Error getting program imports");
         }
         // Get the proving and verifying keys for the function
         if (lastLocalProgram !== localProgram) {
@@ -100,7 +100,7 @@ async function executeOffline(
         const keys = keyProvider.getKeys(cacheKey);
 
         if (keys instanceof Error) {
-            throw "Could not get verifying key";
+            throw new Error("Could not get verifying key");
         }
 
         const verifyingKey = keys[1];
