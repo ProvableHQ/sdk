@@ -13,11 +13,13 @@ import {
     Space, Switch,
 } from "antd";
 import { CodeEditor } from "./execute/CodeEditor.jsx";
-import axios from "axios";
+import { useAleoWASM } from "../../aleo-wasm-hook.js";
+
 
 export const Deploy = () => {
     
     const [form] = Form.useForm();
+    const [aleoWASM] = useAleoWASM();
     const [deploymentFeeRecord, setDeploymentFeeRecord] = useState(null);
     const [deployUrl, setDeployUrl] = useState("https://api.explorer.aleo.org/v1");
     const [deploymentFee, setDeploymentFee] = useState("1");
@@ -31,6 +33,7 @@ export const Deploy = () => {
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
     const [messageApi, contextHolder] = message.useMessage();
+    
     function spawnWorker() {
         let worker = new Worker(
             new URL("../../workers/worker.js", import.meta.url),
@@ -211,7 +214,13 @@ export const Deploy = () => {
         deploymentError !== null ? deploymentError : "";
     const feeString = () => (deploymentFee !== null ? deploymentFee : "");
     const peerUrl = () => (deployUrl !== null ? deployUrl : "");
-
+    const generateKey = () => {
+        form.setFieldValue(
+            "private_key",
+            new aleoWASM.PrivateKey().to_string()
+        );
+        form.validateFields(["private_key"]);
+    };
     return (
         <Card
             title="Deploy Program"
@@ -246,17 +255,14 @@ export const Deploy = () => {
                 <Divider />
                 <Form.Item
                     label="Private Key"
+                    name="private_key"
                     colon={false}
                     validateStatus={status}
                 >
-                    <Input.TextArea
-                        name="private_key"
-                        size="small"
-                        placeholder="Private Key"
-                        allowClear
-                        onChange={onPrivateKeyChange}
-                        value={privateKeyString()}
-                    />
+                    <Input.Search
+                            enterButton="Generate Random Key"
+                            onSearch={generateKey}
+                        />
                 </Form.Item>
                 <Form.Item
                     label="Peer Url"
