@@ -2,13 +2,13 @@ version: 2.1
 
 
 orbs:
-  node: circleci/node@5.1.0
+  node: circleci/node@5.2.0
 
 
 executors:
   rust-node:
     docker:
-      - image: cimg/rust:1.73-node
+      - image: cimg/rust:1.80-node
 
 
 commands:
@@ -73,6 +73,25 @@ jobs:
           yarn test
 
 
+  e2e-testnet:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - run:
+          working_directory: sdk/e2e/testnet
+          command: |
+            yarn start
+
+  e2e-mainnet:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - run:
+          working_directory: sdk/e2e/mainnet
+          command: |
+            yarn start
+
+
   template-node:
     executor: rust-node
     steps:
@@ -119,7 +138,8 @@ jobs:
       - run:
           working_directory: wasm
           command: |
-            cargo clippy
+            cargo clippy --features testnet
+            cargo clippy --features mainnet
 
   check-fmt:
     executor: rust-node
@@ -142,6 +162,12 @@ workflows:
       - check-clippy
       - sdk
       - sdk-test:
+          requires:
+            - sdk
+      - e2e-testnet:
+          requires:
+            - sdk
+      - e2e-mainnet:
           requires:
             - sdk
       - template-node:

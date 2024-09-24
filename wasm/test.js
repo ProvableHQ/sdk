@@ -6,8 +6,10 @@ const file = $fs.readFileSync("package.json", { encoding: "utf8" });
 $fs.writeFileSync("package.json", file.replace(/"type": "module",/g, ""));
 
 try {
-    $child.execSync("wasm-pack test --node", {
-        stdio: "inherit",
+    ["testnet", "mainnet"].forEach((network) => {
+        $child.execSync(`wasm-pack test --node --features ${network}`, {
+            stdio: "inherit",
+        });
     });
 
 } finally {

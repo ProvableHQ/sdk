@@ -1,5 +1,6 @@
 import typescript from "rollup-plugin-typescript2";
 import replace from "@rollup/plugin-replace";
+import { globSync } from "glob";
 import $package from "./package.json" assert { type: "json" };
 
 const networks = [
@@ -7,16 +8,22 @@ const networks = [
     "mainnet",
 ];
 
+function inputs() {
+    const files = {};
+
+    globSync("./tests/**/*.ts").forEach((x) => {
+        files[x.replace(/\.[^\.]+$/, "")] = x;
+    });
+
+    return files;
+}
+
 export default networks.map((network) => {
     return {
-        input: {
-            "node-polyfill": "./src/node-polyfill.ts",
-            "browser": "./src/browser.ts",
-            "worker": "./src/worker.ts",
-            "node": "./src/node.ts",
-        },
+        input: inputs(),
         output: {
-            dir: `dist/${network}`,
+            dir: `tmp/${network}`,
+            chunkFileNames: "[name].js",
             format: "es",
             sourcemap: true,
         },
@@ -43,7 +50,7 @@ export default networks.map((network) => {
                 },
             }),
             typescript({
-                tsconfig: "tsconfig.json",
+                tsconfig: "tsconfig.test.json",
                 clean: true,
             }),
         ],

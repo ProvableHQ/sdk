@@ -1,5 +1,5 @@
 import "./polyfill/shared";
-import {VerifyingKey, Metadata} from "@provablehq/wasm";
+import {VerifyingKey, Metadata} from "@provablehq/wasm/%%NETWORK%%.js";
 
 const KEY_STORE = Metadata.baseUrl();
 
@@ -168,7 +168,7 @@ export {
     ViewKey,
     initThreadPool,
     verifyFunctionExecution,
-} from "@provablehq/wasm";
+} from "@provablehq/wasm/%%NETWORK%%.js";
 
 export { initializeWasm };
 

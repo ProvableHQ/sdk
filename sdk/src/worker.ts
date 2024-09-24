@@ -1,11 +1,11 @@
 import "./polyfill/shared";
-import {initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution, FunctionKeyPair} from "./index";
+import {initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution, FunctionKeyPair} from "./browser";
 import { AleoKeyProvider, AleoKeyProviderParams} from "./function-key-provider";
 import { expose } from "comlink";
 
 await initThreadPool();
 
-const defaultHost = "https://api.explorer.aleo.org/v1";
+const defaultHost = "https://api.explorer.provable.com/v1";
 const keyProvider = new AleoKeyProvider();
 const programManager = new ProgramManager(
     defaultHost,

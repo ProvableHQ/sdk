@@ -36,7 +36,7 @@ pub struct Metadata {
 }
 
 impl Metadata {
-    const BASE_URL: &'static str = "https://parameters.aleo.org/testnet/";
+    const BASE_URL: &'static str = crate::types::native::BASE_URL;
 
     fn new(name: &str, verifying_key: &str, locator: &str, prover: &'static str, verifier: &'static str) -> Self {
         fn url(function_name: &str, kind: &str, proving_key_metadata: &'static str) -> String {
@@ -69,8 +69,8 @@ impl Metadata {
             "bond_public",
             "bondPublicVerifier",
             "credits.aleo/bond_public",
-            snarkvm_parameters::testnet::BondPublicProver::METADATA,
-            snarkvm_parameters::testnet::BondPublicVerifier::METADATA,
+            crate::types::native::parameters::BondPublicProver::METADATA,
+            crate::types::native::parameters::BondPublicVerifier::METADATA,
         )
     }
 
@@ -80,8 +80,8 @@ impl Metadata {
             "bond_validator",
             "bondValidatorVerifier",
             "credits.aleo/bond_validator",
-            snarkvm_parameters::testnet::BondValidatorProver::METADATA,
-            snarkvm_parameters::testnet::BondValidatorVerifier::METADATA,
+            crate::types::native::parameters::BondValidatorProver::METADATA,
+            crate::types::native::parameters::BondValidatorVerifier::METADATA,
         )
     }
 
@@ -91,8 +91,8 @@ impl Metadata {
             "claim_unbond_public",
             "claimUnbondPublicVerifier",
             "credits.aleo/claim_unbond_public",
-            snarkvm_parameters::testnet::ClaimUnbondPublicProver::METADATA,
-            snarkvm_parameters::testnet::ClaimUnbondPublicVerifier::METADATA,
+            crate::types::native::parameters::ClaimUnbondPublicProver::METADATA,
+            crate::types::native::parameters::ClaimUnbondPublicVerifier::METADATA,
         )
     }
 
@@ -102,8 +102,8 @@ impl Metadata {
             "fee_private",
             "feePrivateVerifier",
             "credits.aleo/fee_private",
-            snarkvm_parameters::testnet::FeePrivateProver::METADATA,
-            snarkvm_parameters::testnet::FeePrivateVerifier::METADATA,
+            crate::types::native::parameters::FeePrivateProver::METADATA,
+            crate::types::native::parameters::FeePrivateVerifier::METADATA,
         )
     }
 
@@ -113,8 +113,8 @@ impl Metadata {
             "fee_public",
             "feePublicVerifier",
             "credits.aleo/fee_public",
-            snarkvm_parameters::testnet::FeePublicProver::METADATA,
-            snarkvm_parameters::testnet::FeePublicVerifier::METADATA,
+            crate::types::native::parameters::FeePublicProver::METADATA,
+            crate::types::native::parameters::FeePublicVerifier::METADATA,
         )
     }
 
@@ -124,8 +124,8 @@ impl Metadata {
             "inclusion",
             "inclusionVerifier",
             "inclusion",
-            snarkvm_parameters::testnet::InclusionProver::METADATA,
-            snarkvm_parameters::testnet::InclusionVerifier::METADATA,
+            crate::types::native::parameters::InclusionProver::METADATA,
+            crate::types::native::parameters::InclusionVerifier::METADATA,
         )
     }
 
@@ -135,8 +135,8 @@ impl Metadata {
             "join",
             "joinVerifier",
             "credits.aleo/join",
-            snarkvm_parameters::testnet::JoinProver::METADATA,
-            snarkvm_parameters::testnet::JoinVerifier::METADATA,
+            crate::types::native::parameters::JoinProver::METADATA,
+            crate::types::native::parameters::JoinVerifier::METADATA,
         )
     }
 
@@ -146,8 +146,8 @@ impl Metadata {
             "set_validator_state",
             "setValidatorStateVerifier",
             "credits.aleo/set_validator_state",
-            snarkvm_parameters::testnet::SetValidatorStateProver::METADATA,
-            snarkvm_parameters::testnet::SetValidatorStateVerifier::METADATA,
+            crate::types::native::parameters::SetValidatorStateProver::METADATA,
+            crate::types::native::parameters::SetValidatorStateVerifier::METADATA,
         )
     }
 
@@ -157,8 +157,8 @@ impl Metadata {
             "split",
             "splitVerifier",
             "credits.aleo/split",
-            snarkvm_parameters::testnet::SplitProver::METADATA,
-            snarkvm_parameters::testnet::SplitVerifier::METADATA,
+            crate::types::native::parameters::SplitProver::METADATA,
+            crate::types::native::parameters::SplitVerifier::METADATA,
         )
     }
 
@@ -168,8 +168,8 @@ impl Metadata {
             "transfer_private",
             "transferPrivateVerifier",
             "credits.aleo/transfer_private",
-            snarkvm_parameters::testnet::TransferPrivateProver::METADATA,
-            snarkvm_parameters::testnet::TransferPrivateVerifier::METADATA,
+            crate::types::native::parameters::TransferPrivateProver::METADATA,
+            crate::types::native::parameters::TransferPrivateVerifier::METADATA,
         )
     }
 
@@ -179,8 +179,8 @@ impl Metadata {
             "transfer_private_to_public",
             "transferPrivateToPublicVerifier",
             "credits.aleo/transfer_private_to_public",
-            snarkvm_parameters::testnet::TransferPrivateToPublicProver::METADATA,
-            snarkvm_parameters::testnet::TransferPrivateToPublicVerifier::METADATA,
+            crate::types::native::parameters::TransferPrivateToPublicProver::METADATA,
+            crate::types::native::parameters::TransferPrivateToPublicVerifier::METADATA,
         )
     }
 
@@ -190,8 +190,8 @@ impl Metadata {
             "transfer_public",
             "transferPublicVerifier",
             "credits.aleo/transfer_public",
-            snarkvm_parameters::testnet::TransferPublicProver::METADATA,
-            snarkvm_parameters::testnet::TransferPublicVerifier::METADATA,
+            crate::types::native::parameters::TransferPublicProver::METADATA,
+            crate::types::native::parameters::TransferPublicVerifier::METADATA,
         )
     }
 
@@ -201,8 +201,8 @@ impl Metadata {
             "transfer_public_as_signer",
             "transferPublicAsSignerVerifier",
             "credits.aleo/transfer_public_as_signer",
-            snarkvm_parameters::testnet::TransferPublicAsSignerProver::METADATA,
-            snarkvm_parameters::testnet::TransferPublicAsSignerVerifier::METADATA,
+            crate::types::native::parameters::TransferPublicAsSignerProver::METADATA,
+            crate::types::native::parameters::TransferPublicAsSignerVerifier::METADATA,
         )
     }
 
@@ -212,8 +212,8 @@ impl Metadata {
             "transfer_public_to_private",
             "transferPublicToPrivateVerifier",
             "credits.aleo/transfer_public_to_private",
-            snarkvm_parameters::testnet::TransferPublicToPrivateProver::METADATA,
-            snarkvm_parameters::testnet::TransferPublicToPrivateVerifier::METADATA,
+            crate::types::native::parameters::TransferPublicToPrivateProver::METADATA,
+            crate::types::native::parameters::TransferPublicToPrivateVerifier::METADATA,
         )
     }
 
@@ -223,8 +223,8 @@ impl Metadata {
             "unbond_public",
             "unbondPublicVerifier",
             "credits.aleo/unbond_public",
-            snarkvm_parameters::testnet::UnbondPublicProver::METADATA,
-            snarkvm_parameters::testnet::UnbondPublicVerifier::METADATA,
+            crate::types::native::parameters::UnbondPublicProver::METADATA,
+            crate::types::native::parameters::UnbondPublicVerifier::METADATA,
         )
     }
 }

@@ -16,7 +16,7 @@ several TypeScript & JavaScript libraries which provide the following functional
 4. [Management of program state and data](https://provable.tools/record)
 5. [Communication with the Aleo network](https://provable.tools/rest)
 
-All of this functionality is demonstrated on [Provable.tools](https://provable.tools). 
+All of this functionality is demonstrated on [Provable.tools](https://provable.tools).
 
 
 The Aleo SDK is divided into three TypeScript/JavaScript packages:
@@ -29,7 +29,7 @@ The official Aleo SDK providing JavaScript/TypeScript tools for creating zero-kn
 
 ### ⚡ Build your own app
 
-Start here with the [Aleo SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started building your 
+Start here with the [Aleo SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started building your
 first zero-knowledge web app.
 
 #### Source: [`Aleo SDK`](https://www.npmjs.com/package/@provablehq/sdk)
@@ -47,7 +47,7 @@ start with working examples should start here.
 <a href="https://www.npmjs.com/package/@provablehq/nodejs"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fnodejs?label=NPM%20-%20Aleo%20Nodejs&labelColor=green&color=blue"></a>
 <a href="https://crates.io/crates/aleo-wasm"> <img alt="Aleo-Wasm" src="https://img.shields.io/crates/v/aleo-wasm.svg?color=neon"></a>
 
-Aleo Wasm is a Rust crate which compiles the Aleo source code responsible for creating and executing zero-knowledge programs into 
+Aleo Wasm is a Rust crate which compiles the Aleo source code responsible for creating and executing zero-knowledge programs into
 WebAssembly.
 
 When compiled with `wasm-pack`, JavaScript bindings are generated for the WebAssembly allowing Aleo zero-knowledge programs to be used in the browser and Node.js. This package is available on NPM (linked above). The Aleo Wasm

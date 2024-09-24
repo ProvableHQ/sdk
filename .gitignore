@@ -5,6 +5,7 @@
 **/node_modules
 **/target
 **/dist
+**/tmp
 storage*/
 **/.next
 

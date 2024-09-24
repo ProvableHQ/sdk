@@ -11,7 +11,7 @@ import {
     PUBLIC_TRANSFER,
     PUBLIC_TO_PRIVATE_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER
-} from "./index";
+} from "./browser";
 
 /**
  * Search parameters for the offline key provider. This class implements the KeySearchParams interface and includes
@@ -195,7 +195,7 @@ class OfflineSearchParams implements KeySearchParams {
  * const offlineExecuteTx = <Transaction>await this.buildExecutionTransaction("hello_hello.aleo", "hello", 1, false, ["5u32", "5u32"], undefined, offlineSearchParams, undefined, undefined, undefined, undefined, offlineQuery, program);
  *
  * // Broadcast the transaction later on a machine with internet access
- * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+ * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
  * const txId = await networkClient.broadcastTransaction(offlineExecuteTx);
  */
 class OfflineKeyProvider implements FunctionKeyProvider {

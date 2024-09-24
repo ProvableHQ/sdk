@@ -1,2 +1,2 @@
 import "./node-polyfill";
-export * from "./index";
+export * from "./browser";

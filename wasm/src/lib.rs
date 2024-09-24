@@ -16,7 +16,7 @@
 
 //!
 //! [![Crates.io](https://img.shields.io/crates/v/aleo-wasm.svg?color=neon)](https://crates.io/crates/aleo-wasm)
-//! [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+//! [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://provable.com)
 //! [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 //!
 //! [![github]](https://github.com/ProvableHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)

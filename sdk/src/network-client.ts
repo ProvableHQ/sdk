@@ -9,7 +9,7 @@ import {
   Transaction,
   TransactionModel,
   logAndThrow
-} from "./index";
+} from "./browser";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -27,7 +27,7 @@ interface AleoNetworkClientOptions {
  * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+ * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
  */
 class AleoNetworkClient {
   host: string;
@@ -35,7 +35,7 @@ class AleoNetworkClient {
   account: Account | undefined;
 
   constructor(host: string, options?: AleoNetworkClientOptions) {
-    this.host = host + "/testnet";
+    this.host = host + "/%%NETWORK%%";
 
     if (options && options.headers) {
       this.headers = options.headers;
@@ -77,7 +77,7 @@ class AleoNetworkClient {
    * @param host
    */
   setHost(host: string) {
-    this.host = host + "/testnet";
+    this.host = host + "/%%NETWORK%%";
   }
 
   async fetchData<Type>(

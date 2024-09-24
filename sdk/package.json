@@ -7,12 +7,20 @@
   ],
   "license": "GPL-3.0",
   "type": "module",
-  "main": "./dist/node.js",
-  "browser": "./dist/index.js",
+  "main": "./dist/testnet/node.js",
+  "browser": "./dist/testnet/browser.js",
   "exports": {
     ".": {
-      "node": "./dist/node.js",
-      "default": "./dist/index.js"
+      "node": "./dist/testnet/node.js",
+      "default": "./dist/testnet/browser.js"
+    },
+    "./testnet.js": {
+      "node": "./dist/testnet/node.js",
+      "default": "./dist/testnet/browser.js"
+    },
+    "./mainnet.js": {
+      "node": "./dist/mainnet/node.js",
+      "default": "./dist/mainnet/browser.js"
     }
   },
   "files": [
@@ -23,9 +31,7 @@
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js",
     "prepublish": "yarn build",
-    "test": "node --no-warnings --experimental-vm-modules ../node_modules/jest/bin/jest.js --config jest-config.json --detectOpenHandles",
-    "integration": "node --no-warnings --experimental-vm-modules ../node_modules/jest/bin/jest.js --silent=false --runInBand --detectOpenHandles",
-    "clear_jest": "jest --clearCache"
+    "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --parallel --timeout 60000"
   },
   "repository": {
     "type": "git",
@@ -49,24 +55,28 @@
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.5",
-    "@types/jest": "^29.5.5",
+    "@types/chai": "^4.3.16",
     "@types/mime": "^3.0.1",
+    "@types/mocha": "^10.0.7",
+    "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
     "@typescript-eslint/parser": "^5.41.0",
     "better-docs": "^2.7.2",
+    "chai": "^5.1.1",
     "clean-jsdoc-theme": "^4.1.8",
     "core-js": "^3.38.1",
     "cpr": "^3.0.1",
     "eslint": "^8.26.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
-    "jest": "^29.7.0",
+    "glob": "^10.4.5",
     "jsdoc": "^3.6.11",
+    "mocha": "^10.7.0",
     "prettier": "2.7.1",
     "rimraf": "^5.0.1",
     "rollup": "^3.27.2",
     "rollup-plugin-typescript2": "^0.36.0",
-    "ts-jest": "^29.1.1",
+    "sinon": "^18.0.0",
     "typescript": "^5.2.2"
   }
 }

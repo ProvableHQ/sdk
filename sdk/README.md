@@ -275,7 +275,7 @@ import { Account, AleoNetworkClient, NetworkRecordProvider, ProgramManager, Aleo
 const account = new Account();
 
 // Create a network client to connect to the Aleo network
-const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 
 // Create a key provider that will be used to find public proving & verifying keys for Aleo programs
 const keyProvider = new AleoKeyProvider();
@@ -285,7 +285,7 @@ keyProvider.useCache = true;
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager to talk to the Aleo network with the configured key and record providers
-const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
 
 // Set the account for the program manager
 programManager.setAccount(account);
@@ -367,7 +367,7 @@ const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
 
 // Create a record provider that will be used to find records and transaction data for Aleo programs
-const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 
 // Use existing account with funds
 const account = new Account({
@@ -377,7 +377,7 @@ const account = new Account({
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager to talk to the Aleo network with the configured key and record providers
-const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
 programManager.setAccount(account)
 
 // Define an Aleo program to deploy
@@ -429,7 +429,7 @@ A full example of this implementation can be found [here](https://github.com/Pro
 
 Aleo Credits are used to access blockspace and computational resources on the network, with users paying Credits to submit transactions and have them processed.
 
-Aleo credits are defined in the [credits.aleo](https://explorer.aleo.org/program/credits.aleo) program. This program is
+Aleo credits are defined in the [credits.aleo](https://explorer.provable.com/program/credits.aleo) program. This program is
 deployed to the Aleo network and defines data structures representing Aleo credits and the functions used to manage them.
 
 There are two ways to hold Aleo credits:
@@ -544,13 +544,13 @@ import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNe
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user1PrivateKey"});
-const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const USER_1_ADDRESS = "user1Address";
-const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
 programManager.setAccount(account);
 
 // Send a private transfer to yourself
@@ -585,7 +585,7 @@ assert(public_balance === 0);
 As shown above, a public balance of any address can be checked with `getMappingValue` function of the `NetworkClient`.
 
 ```typescript
-const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 const USER_1_ADDRESS = "user1Address";
 const public_balance = networkClient.getMappingValue("credits.aleo", USER_1_ADDRESS);
 ```
@@ -674,13 +674,13 @@ import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNe
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user1PrivateKey"});
-const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const USER_2_ADDRESS = "user2Address";
-const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
 programManager.setAccount(account);
 
 /// Send private transfer to User 2
@@ -695,12 +695,12 @@ import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNe
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user2PrivateKey"});
-const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 const keyProvider = new AleoKeyProvider();
 const recordProvider_User2 = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
-const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
 programManager.setAccount(account);
 
 // Fetch the transaction from the network that user 1 sent
@@ -863,7 +863,7 @@ read the value of a specific key within a mapping.
 ```typescript
 import { AleoNetworkClient } from '@provablehq/sdk';
 
-const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 const creditsMappings = networkClient.getMappings("credits.aleo");
 assert(creditsMappings === ["account"]);
 
@@ -903,20 +903,20 @@ by the Aleo network. All that the user of the SDK must do is ensure that the inp
 If function inputs are invalid, the network will return an error, but the fee paid for the transaction will still be
 consumed. Therefore, it is important to ensure that the inputs to a function are valid before executing it.
 
-A simple example of a mapping update can be shown by simply executing 'transfer_public` as shown below.
+A simple example of a mapping update can be shown by simply executing `transfer_public` as shown below.
 
 ```typescript
 import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNetworkClient } from '@provablehq/sdk';
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user1PrivateKey"});
-const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const RECIPIENT_ADDRESS = "user1Address";
-const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
 programManager.setAccount(account);
 
 // Update or initialize a public balance

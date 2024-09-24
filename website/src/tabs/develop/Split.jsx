@@ -4,7 +4,7 @@ import axios from "axios";
 
 export const Split = () => {
     const [amountRecord, setAmountRecord] = useState(null);
-    const [splitUrl, setSplitUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [splitUrl, setSplitUrl] = useState("https://api.explorer.provable.com/v1");
     const [splitAmount, setSplitAmount] = useState("1.0");
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
@@ -189,7 +189,7 @@ export const Split = () => {
                     <Col justify="center">
                         <Button
                             type="primary"
-                            
+
                             size="middle"
                             onClick={split}
                         >

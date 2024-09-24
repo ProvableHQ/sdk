@@ -7,7 +7,9 @@
     "wasm",
     "website",
     "create-leo-app",
-    "create-leo-app/*"
+    "create-leo-app/*",
+    "e2e",
+    "e2e/*"
   ],
   "type": "module",
   "scripts": {

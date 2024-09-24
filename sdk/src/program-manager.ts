@@ -3,6 +3,7 @@ import {
     AleoKeyProvider,
     AleoNetworkClient,
     ExecutionResponse,
+    FunctionExecution,
     FunctionKeyProvider,
     FunctionKeyPair,
     OfflineQuery,
@@ -20,8 +21,7 @@ import {
     VALID_TRANSFER_TYPES,
     logAndThrow,
     ProgramManagerBase as WasmProgramManager, verifyFunctionExecution, AleoKeyProviderParams, CREDITS_PROGRAM_KEYS,
-} from "./index";
-import {Execution} from "@provablehq/wasm/dist/crates/aleo_wasm";
+} from "./browser";
 
 /**
  * Represents the options for executing a transaction in the Aleo network.
@@ -76,7 +76,7 @@ class ProgramManager {
      * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
      */
     constructor(host?: string | undefined, keyProvider?: FunctionKeyProvider | undefined, recordProvider?: RecordProvider | undefined) {
-        this.host = host ? host : 'https://api.explorer.aleo.org/v1';
+        this.host = host ? host : 'https://api.explorer.provable.com/v1';
         this.networkClient = new AleoNetworkClient(this.host);
 
         this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
@@ -134,13 +134,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Define a fee in credits
      * const fee = 1.2;
@@ -223,13 +223,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
      * const transaction = await programManager.buildExecutionTransaction({
@@ -330,13 +330,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
      * const transaction = await programManager.execute({
@@ -502,13 +502,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      * const record = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
      * const tx_id = await programManager.split(25000000, record);
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -607,13 +607,13 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      * await programManager.initialize();
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -745,12 +745,12 @@ class ProgramManager {
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      * await programManager.initialize();
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -780,7 +780,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction object for later submission
@@ -841,7 +841,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -872,7 +872,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bond validator transaction object for later use.
@@ -935,7 +935,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -971,7 +971,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to unbond credits.
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * const tx = await programManager.buildUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", 2000000);
      * console.log(tx);
      *
@@ -1018,7 +1018,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction and send it to the network
@@ -1052,7 +1052,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to claim unbonded credits.
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      *
      * // Create the claim unbonded transaction object for later use.
      * const tx = await programManager.buildClaimUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j");
@@ -1100,7 +1100,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -1132,7 +1132,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("ValidatorPrivateKey"));
      *
      * // Create the bonding transaction
@@ -1190,7 +1190,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("ValidatorPrivateKey"));
      *
      * // Create the bonding transaction
@@ -1213,7 +1213,7 @@ class ProgramManager {
      */
     verifyExecution(executionResponse: ExecutionResponse): boolean {
         try {
-            const execution = <Execution>executionResponse.getExecution();
+            const execution = <FunctionExecution>executionResponse.getExecution();
             const function_id = executionResponse.getFunctionId();
             const program = executionResponse.getProgram();
             const verifyingKey = executionResponse.getVerifyingKey();

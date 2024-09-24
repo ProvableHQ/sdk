@@ -7,12 +7,16 @@
   ],
   "license": "GPL-3.0",
   "type": "module",
-  "main": "./dist/index.js",
-  "browser": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/testnet/index.js",
+  "browser": "./dist/testnet/index.js",
+  "types": "./dist/testnet/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./worker.js": "./dist/worker.js"
+    ".": "./dist/testnet/index.js",
+    "./worker.js": "./dist/testnet/worker.js",
+    "./testnet.js": "./dist/testnet/index.js",
+    "./testnet/worker.js": "./dist/testnet/worker.js",
+    "./mainnet.js": "./dist/mainnet/index.js",
+    "./mainnet/worker.js": "./dist/mainnet/worker.js"
   },
   "files": [
     "dist",
@@ -34,13 +38,13 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "scripts": {
-    "build": "rimraf dist && rollup -c rollup.config.js && cpr js/types dist && rimraf dist/wasm*",
+    "build": "rimraf dist && node build.js",
     "prepublish": "yarn build",
     "test": "node test.js"
   },
   "devDependencies": {
+    "@rollup/plugin-virtual": "^3.0.2",
     "@wasm-tool/rollup-plugin-rust": "^2.4.2",
-    "cpr": "^3.0.1",
     "rimraf": "^5.0.1",
     "rollup": "^3.27.2"
   }

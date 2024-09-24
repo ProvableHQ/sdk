@@ -40,7 +40,7 @@ Your app should be running on http://localhost:5173/
 
 ## Deploy program from web app
 
-> [!WARNING]  
+> [!WARNING]
 > This is for demonstration purposes or local testing only, in production applications you
 > should avoid building a public facing web app with private key information
 
@@ -62,7 +62,7 @@ Aleo programs deployed require unique names, make sure to edit the program's nam
 2. (Optional) Provide a fee record manually (located in commented code within `worker.js`)
 
    If you do not provide a manual fee record, the SDK will attempt to scan for a record starting at the latest block. A simple way to speed this up would be to make a public transaction to this account right before deploying.
-   
+
 3. Run the web app and hit the deploy button
 
 ## Production deployment

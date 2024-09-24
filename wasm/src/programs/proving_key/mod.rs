@@ -127,10 +127,13 @@ mod tests {
             ProvingKey::from_string(&transfer_public_proving_key_string).unwrap();
         assert_eq!(key, transfer_public_proving_key_from_string);
 
+        #[cfg(feature = "testnet")]
+        let checksum = "846f86cabf9fa50e5abe347e559a8e9f3018459b5af9fdf52f1c44892b05f7e5";
+
+        #[cfg(feature = "mainnet")]
+        let checksum = "f8e5f6437b945174b62313ece8a1c9dcbeac5dfff5b0fef2e968c9b92f86da06";
+
         let transfer_public_proving_key_checksum = key.checksum();
-        assert_eq!(
-            transfer_public_proving_key_checksum,
-            "846f86cabf9fa50e5abe347e559a8e9f3018459b5af9fdf52f1c44892b05f7e5"
-        );
+        assert_eq!(transfer_public_proving_key_checksum, checksum);
     }
 }
