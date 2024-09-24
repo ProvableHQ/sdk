@@ -16,7 +16,7 @@ const TermsOfUse = () => {
                 provided by Provable Inc., a Delaware corporation (including its
                 successors and assigns, “Provable,” “we,” “our,” or “us”),
                 including without limitation as made available on the websites
-                aleo.org, explorer.aleo.org, provable.tools, leo-lang.org,
+                provable.com, explorer.aleo.org, provable.tools, leo-lang.org,
                 any associated webpages and any successor URL(s) or URLs to
                 which they redirect, and any and all related software,
                 documentation, and online, mobile-enabled, and/or digital
