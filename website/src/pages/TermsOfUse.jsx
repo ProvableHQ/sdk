@@ -16,7 +16,7 @@ const TermsOfUse = () => {
                 provided by Provable Inc., a Delaware corporation (including its
                 successors and assigns, “Provable,” “we,” “our,” or “us”),
                 including without limitation as made available on the websites
-                provable.com, explorer.provable.com, provable.tools, leo-lang.org,
+                aleo.org, explorer.aleo.org, provable.tools, leo-lang.org,
                 any associated webpages and any successor URL(s) or URLs to
                 which they redirect, and any and all related software,
                 documentation, and online, mobile-enabled, and/or digital
@@ -303,13 +303,13 @@ const TermsOfUse = () => {
             <h3>2.3 Additional Terms for Explorer</h3>
             <p>
                 <strong>(a) Provable’s Explorer</strong> (currently available at
-                explorer.provable.com) enables you to view and interact with data
+                explorer.aleo.org) enables you to view and interact with data
                 and information relating to the Aleo blockchain. Explorer also
                 provides certain data and information about validator addresses
                 (“Validators”) to connect and view such Validators for purposes
                 of delegating Aleo Credits (as described at{" "}
-                <a href="https://provable.com/aleo-credits/">
-                    https://provable.com/aleo-credits/
+                <a href="https://aleo.org/aleo-credits/">
+                    https://aleo.org/aleo-credits/
                 </a>
                 ) for staking on the Aleo blockchain.
             </p>

@@ -11,7 +11,7 @@ labels: bug
     What's the bug in the Aleo SDK that you found?
     How serious is this bug and what is affected?
 
-    To report a security issue in the Aleo SDK, please email security@provable.com.
+    To report a security issue in the Aleo SDK, please email security@aleo.org.
 -->
 
 (Write your description here)

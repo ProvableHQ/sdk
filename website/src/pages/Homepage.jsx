@@ -32,7 +32,7 @@ const Homepage = () => {
                 <Link
                     target="_blank"
                     rel="noopener noreferrer"
-                    to="https://developer.provable.com/sdk/"
+                    to="https://developer.aleo.org/sdk/"
                 >
                     <button className="button">
                         {" "}
