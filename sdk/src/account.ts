@@ -149,7 +149,7 @@ export class Account {
    *
    * @example
    * // Create a connection to the Aleo network and an account
-   * const connection = new NodeConnection("vm.provable.com/api");
+   * const connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
    * const account = Account.fromCiphertext("ciphertext", "password");
    *
    * // Get a record from the network
