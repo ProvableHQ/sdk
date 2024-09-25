@@ -17,8 +17,7 @@
   "scripts": {
     "dev": "unbuild --stub",
     "build": "unbuild",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "yarn build"
+    "typecheck": "tsc --noEmit"
   },
   "engines": {
     "node": "^14.18.0 || >=16.0.0"

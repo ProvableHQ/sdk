@@ -39,7 +39,6 @@
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "scripts": {
     "build": "rimraf dist && node build.js",
-    "prepublish": "yarn build",
     "test": "node test.js"
   },
   "devDependencies": {
