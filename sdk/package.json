@@ -30,7 +30,6 @@
   ],
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js",
-    "prepublish": "yarn build",
     "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --parallel --timeout 60000"
   },
   "repository": {

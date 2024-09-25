@@ -1,4 +1,4 @@
- {
+{
   "name": "sdk-root",
   "private": true,
   "version": "0.0.0",
@@ -15,7 +15,8 @@
   "scripts": {
     "build:wasm": "cd wasm && yarn build",
     "build:sdk": "cd sdk && yarn build",
-    "build:all": "yarn build:wasm && yarn build:sdk",
+    "build:create-leo-app": "cd create-leo-app && yarn build",
+    "build:all": "yarn build:wasm && yarn build:sdk && yarn build:create-leo-app",
 
     "start:website": "cd website && yarn dev",
 
@@ -23,8 +24,18 @@
     "test:sdk": "cd sdk && yarn test",
     "test": "yarn test:wasm && yarn test:sdk",
 
+    "change-version": "node scripts/change-version.js",
+
+    "deploy:wasm": "cd wasm && npm publish --access=public",
+    "deploy:sdk": "cd sdk && npm publish --access=public",
+    "deploy:create-leo-app": "cd create-leo-app && npm publish --access=public",
+    "deploy": "yarn build:all && yarn deploy:wasm && yarn deploy:sdk && yarn deploy:create-leo-app",
+
     "lint": "prettier . --check",
     "pretty": "prettier . --write"
+  },
+  "optionalDependencies": {
+    "glob": "^11.0.0"
   },
   "devDependencies": {
     "prettier": "3.0.3",
