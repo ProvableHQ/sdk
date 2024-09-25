@@ -19,8 +19,7 @@ async function updateDependency(path, newVersion) {
 
     const replaced = json
         .replace(/"@provablehq\/sdk": *"[^"]+"/g, `"@provablehq/sdk": "^${newVersion}"`)
-        .replace(/"@provablehq\/wasm": *"[^"]+"/g, `"@provablehq/wasm": "^${newVersion}"`)
-        .replace(/"create-leo-app": *"[^"]+"/g, `"create-leo-app": "^${newVersion}"`);
+        .replace(/"@provablehq\/wasm": *"[^"]+"/g, `"@provablehq/wasm": "^${newVersion}"`);
 
     await writeFile(path, replaced);
 }
