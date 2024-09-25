@@ -34,8 +34,10 @@
     "lint": "prettier . --check",
     "pretty": "prettier . --write"
   },
+  "optionalDependencies": {
+    "glob": "^11.0.0"
+  },
   "devDependencies": {
-    "glob": "^11.0.0",
     "prettier": "3.0.3",
     "wasm-pack": "^0.12.1"
   }
