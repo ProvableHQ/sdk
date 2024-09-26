@@ -29,6 +29,7 @@ More information on these concepts can be found at the [Aleo Developer Hub](http
 
 The [rollup-plugin-rust](https://github.com/wasm-tool/rollup-plugin-rust/) tool is used to compile the Rust code in this crate into JavaScript
 modules which can be imported into other JavaScript projects.
+Node version must be `18.0.0` or higher in order for WASM modules to make network requests.
 
 #### Installation
 
@@ -46,7 +47,7 @@ This will produce `.js` and `.wasm` files inside of the `dist` folder.
 
 Run tests in Node.js
 ```bash
-wasm-pack test --node
+npm test
 ```
 
 Run tests in a browser

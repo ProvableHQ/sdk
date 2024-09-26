@@ -6,7 +6,6 @@
     "The Provable Team"
   ],
   "license": "GPL-3.0",
-  "type": "module",
   "main": "./dist/index.js",
   "browser": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -36,12 +35,16 @@
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js && cpr js/types dist && rimraf dist/wasm*",
     "prepublish": "yarn build",
-    "test": "node test.js"
+    "test": "trap \"npm pkg set type='module'\" EXIT && npm pkg delete type && wasm-pack test --node"
   },
   "devDependencies": {
     "@wasm-tool/rollup-plugin-rust": "^2.4.2",
     "cpr": "^3.0.1",
     "rimraf": "^5.0.1",
     "rollup": "^3.27.2"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "type": "module"
 }
