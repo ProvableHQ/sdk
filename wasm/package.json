@@ -6,10 +6,9 @@
     "The Provable Team"
   ],
   "license": "GPL-3.0",
-  "type": "module",
-  "main": "./dist/testnet/index.js",
-  "browser": "./dist/testnet/index.js",
-  "types": "./dist/testnet/index.d.ts",
+  "main": "./dist/index.js",
+  "browser": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/testnet/index.js",
     "./worker.js": "./dist/testnet/worker.js",
@@ -38,13 +37,18 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "scripts": {
-    "build": "rimraf dist && node build.js",
-    "test": "node test.js"
+    "build": "rimraf dist && rollup -c rollup.config.js && cpr js/types dist && rimraf dist/wasm*",
+    "prepublish": "yarn build",
+    "test": "trap \"npm pkg set type='module'\" && echo EXIT && npm pkg delete type \n declare -a networks=('testnet', 'mainnet') \n for n in \"${networks[@]}\" \n do \n wasm-pack test --node --features $n \n done"
   },
   "devDependencies": {
     "@rollup/plugin-virtual": "^3.0.2",
     "@wasm-tool/rollup-plugin-rust": "^2.4.2",
     "rimraf": "^5.0.1",
     "rollup": "^3.27.2"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "type": "module"
 }
