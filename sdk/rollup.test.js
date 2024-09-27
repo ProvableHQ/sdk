@@ -1,7 +1,7 @@
 import typescript from "rollup-plugin-typescript2";
 import replace from "@rollup/plugin-replace";
 import { globSync } from "glob";
-import $package from "./package.json" assert { type: "json" };
+import $package from "./package.json" with { type: "json" };
 
 const networks = [
     "testnet",
