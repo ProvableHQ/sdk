@@ -37,6 +37,17 @@ async function updateVersions(newVersion) {
 }
 
 
+// Updates the version in `Cargo.toml`
+async function updateCargo(newVersion) {
+    const json = await readFile("wasm/Cargo.toml", { encoding: "utf8" });
+
+    const replaced = json
+        .replace(/(name *= *"aleo-wasm"\s+version *= *)"[^"]+"/, `$1"${newVersion}"`);
+
+    await writeFile("wasm/Cargo.toml", replaced);
+}
+
+
 // Updates all of the `package.json` files so they use the correct
 // version of `@provablehq/wasm` and `@provablehq/sdk`
 async function updateDependencies(newVersion) {
@@ -51,4 +62,5 @@ async function updateDependencies(newVersion) {
 const newVersion = process.argv[2];
 
 await updateVersions(newVersion);
+await updateCargo(newVersion);
 await updateDependencies(newVersion);
