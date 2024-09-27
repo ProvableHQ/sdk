@@ -11,7 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.6.0",
+    "@provablehq/sdk": "^0.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
