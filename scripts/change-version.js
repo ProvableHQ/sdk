@@ -42,7 +42,7 @@ async function updateCargo(newVersion) {
     const toml = await readFile("wasm/Cargo.toml", { encoding: "utf8" });
 
     const replaced = toml
-        .replace(/(name *= *"aleo-wasm"\s+version *= *)"[^"]+"/, `$1"${newVersion}"`);
+        .replace(/(\[package\]\s+name *= *"aleo-wasm"\s+version *= *)"[^"]+"/, `$1"${newVersion}"`);
 
     await writeFile("wasm/Cargo.toml", replaced);
 }
