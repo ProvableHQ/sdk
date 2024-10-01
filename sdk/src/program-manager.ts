@@ -1,27 +1,40 @@
+import { Account } from "./account";
+import { AleoNetworkClient, ProgramImports } from "./network-client";
+
 import {
-    Account,
-    AleoKeyProvider,
-    AleoNetworkClient,
-    ExecutionResponse,
-    FunctionExecution,
-    FunctionKeyProvider,
-    FunctionKeyPair,
-    OfflineQuery,
-    KeySearchParams,
-    RecordPlaintext,
     RecordProvider,
     RecordSearchParams,
+} from "./record-provider";
+
+import {
+    AleoKeyProvider,
+    AleoKeyProviderParams,
+    FunctionKeyPair,
+    FunctionKeyProvider,
+    KeySearchParams,
+} from "./function-key-provider";
+
+import {
+    ExecutionResponse,
+    Execution as FunctionExecution,
+    OfflineQuery,
+    RecordPlaintext,
     PrivateKey,
     Program,
-    ProgramImports,
     ProvingKey,
     VerifyingKey,
     Transaction,
+    ProgramManager as WasmProgramManager,
+    verifyFunctionExecution,
+} from "./wasm";
+
+import {
+    CREDITS_PROGRAM_KEYS,
     PRIVATE_TRANSFER_TYPES,
     VALID_TRANSFER_TYPES,
-    logAndThrow,
-    ProgramManagerBase as WasmProgramManager, verifyFunctionExecution, AleoKeyProviderParams, CREDITS_PROGRAM_KEYS,
-} from "./browser";
+} from "./constants";
+
+import { logAndThrow } from "./utils";
 
 /**
  * Represents the options for executing a transaction in the Aleo network.

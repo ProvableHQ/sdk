@@ -1,15 +1,14 @@
-import { get, post, parseJSON } from "./utils";
+import { get, post, parseJSON, logAndThrow } from "./utils";
+import { Account } from "./account";
+import { Block } from "./models/block";
+import { TransactionModel } from "./models/transactionModel";
 import {
-  Account,
-  Block,
   RecordCiphertext,
   Program,
   RecordPlaintext,
   PrivateKey,
   Transaction,
-  TransactionModel,
-  logAndThrow
-} from "./browser";
+} from "./wasm";
 
 type ProgramImports = { [key: string]: string | Program };
 

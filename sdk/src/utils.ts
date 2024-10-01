@@ -1,3 +1,9 @@
+export function logAndThrow(message: string): never {
+    console.error(message);
+    throw new Error(message);
+}
+
+
 export function parseJSON(json: string): any {
     function revive(key: string, value: any, context: any) {
         if (Number.isInteger(value)) {

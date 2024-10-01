@@ -1,4 +1,5 @@
-import { logAndThrow, RecordPlaintext } from "./browser";
+import { RecordPlaintext } from "./wasm";
+import { logAndThrow } from "./utils";
 import { Account } from "./account";
 import { AleoNetworkClient } from "./network-client";
 

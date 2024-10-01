@@ -1,17 +1,23 @@
 import {
+    CachedKeyPair,
+    FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-    FunctionKeyPair,
-    CachedKeyPair,
+} from "./function-key-provider";
+
+import {
     ProvingKey,
     VerifyingKey,
+} from "./wasm";
+
+import {
     CREDITS_PROGRAM_KEYS,
     PRIVATE_TRANSFER,
     PRIVATE_TO_PUBLIC_TRANSFER,
     PUBLIC_TRANSFER,
     PUBLIC_TO_PRIVATE_TRANSFER,
-    PUBLIC_TRANSFER_AS_SIGNER
-} from "./browser";
+    PUBLIC_TRANSFER_AS_SIGNER,
+} from "./constants";
 
 /**
  * Search parameters for the offline key provider. This class implements the KeySearchParams interface and includes
