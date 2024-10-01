@@ -1,6 +1,4 @@
 import {
-    ProvingKey,
-    VerifyingKey,
     CREDITS_PROGRAM_KEYS,
     KEY_STORE,
     Key,
@@ -8,8 +6,14 @@ import {
     PRIVATE_TO_PUBLIC_TRANSFER,
     PUBLIC_TRANSFER,
     PUBLIC_TO_PRIVATE_TRANSFER,
-    PUBLIC_TRANSFER_AS_SIGNER
-} from "./browser";
+    PUBLIC_TRANSFER_AS_SIGNER,
+} from "./constants";
+
+import {
+    ProvingKey,
+    VerifyingKey,
+} from "./wasm";
+
 import { get } from "./utils";
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];

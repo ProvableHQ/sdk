@@ -5,7 +5,7 @@ import {
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
-} from "./browser";
+} from "./wasm";
 
 interface AccountParam {
   privateKey?: string;
