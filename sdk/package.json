@@ -1,6 +1,6 @@
 {
   "name": "@provablehq/sdk",
-  "version": "0.6.12",
+  "version": "0.7.0",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
     "The Provable Team"
@@ -47,7 +47,7 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@provablehq/wasm": "^0.6.0",
+    "@provablehq/wasm": "^0.7.0",
     "comlink": "^4.4.1",
     "mime": "^3.0.0",
     "sync-request": "^6.1.0"
