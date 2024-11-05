@@ -94,7 +94,7 @@ checksum = "7e4f181fc1a372e8ceff89612e5c9b13f72bff5b066da9f8d6827ae65af492c4"
 
 [[package]]
 name = "aleo-wasm"
-version = "0.6.9"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "async-trait",
