@@ -61,7 +61,7 @@ Source: [Aleo Wasm](https://www.npmjs.com/package/@provablehq/wasm)
 
 ## 📚 Documentation
 
-#### [API Documentation](https://docs.leo-lang.org//sdk/typescript/overview)
+#### [API Documentation](https://docs.leo-lang.org/sdk/typescript/overview)
 API Documentation, tutorials for the Aleo SDK, and documentation on how to build Leo and Aleo Instructions programs can
 be found on the [Leo Developer Docs](https://docs.leo-lang.org/sdk/typescript/overview) page.
 
