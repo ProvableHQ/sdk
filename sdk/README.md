@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-    <a href="https://developer.aleo.org"> <img alt="Website" src="https://img.shields.io/badge/Developer_Docs-online-blue"></a>
+    <a href="https://docs.leo-lang.org"> <img alt="Website" src="https://img.shields.io/badge/Developer_Docs-online-blue"></a>
     <a href="https://circleci.com/gh/ProvableHQ/sdk"><img src="https://circleci.com/gh/ProvableHQ/sdk.svg?style=svg"></a>
     <a href="https://discord.com/invite/aleo"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
     <a href="https://github.com/ProvableHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
@@ -182,7 +182,7 @@ function hello:
 The SDK provides the ability to execute Aleo programs 100% client-side within the browser.
 
 The `ProgramManager` object encapsulates the functionality for executing programs and making zero-knowledge proofs about
-them. Under the hood it uses cryptographic code compiled from [SnarkVM](https://developer.aleo.org/aleo) into WebAssembly
+them. Under the hood it uses cryptographic code compiled from [SnarkVM](https://docs.leo-lang.org/aleo) into WebAssembly
 with JavaScript bindings that allow for the execution of Aleo programs fully within the browser. Users interested in lower-level
 details on how this is achieved can visit the [aleo-wasm](https://www.npmjs.com/package/@provablehq/wasm) crate.
 
@@ -395,7 +395,7 @@ const transaction = await programManager.networkClient.getTransaction(tx_id);
 
 The `NetworkRecordProvider` will attempt to scan the network for a fee record for the account provided. Doing a recent
 public transfer to the deploying account will ensure a record is found quickly, or you can provide a fee record manually
-by [scanning](https://developer.aleo.org/testnet/getting_started/deploy_execute/#scan) for a record and passing it as a
+by [scanning](https://docs.leo-lang.org/testnet/getting_started/deploy_execute/#scan) for a record and passing it as a
 string.
 
 ```typescript
@@ -930,7 +930,7 @@ Communication with the Aleo network is done through the `AleoNetworkClient` clas
 data from Aleo network nodes and submit transactions to the Aleo network.
 
 A full list of methods provided by the `AleoNetworkClient` class and usage examples can be found in the
-[Network Client API documentation](https://developer.aleo.org/sdk/typescript/aleo_network_client).
+[Network Client API documentation](https://docs.leo-lang.org/sdk/typescript/aleo_network_client).
 
 ## Further Documentation
 

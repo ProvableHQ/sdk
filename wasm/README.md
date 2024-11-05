@@ -23,7 +23,7 @@ Functionality exposed by this crate includes:
 * Aleo primitives such as `Records`, `Programs`, and `Transactions` and their associated helper methods
 * A `ProgramManager` object that contains methods for authoring, deploying, and interacting with Aleo programs
 
-More information on these concepts can be found at the [Aleo Developer Hub](https://developer.aleo.org/concepts).
+More information on these concepts can be found at the [Aleo Developer Hub](https://docs.leo-lang.org/concepts).
 
 ## Usage
 

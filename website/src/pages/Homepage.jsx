@@ -32,7 +32,7 @@ const Homepage = () => {
                 <Link
                     target="_blank"
                     rel="noopener noreferrer"
-                    to="https://developer.aleo.org/sdk/"
+                    to="https://docs.leo-lang.org/sdk"
                 >
                     <button className="button">
                         {" "}
