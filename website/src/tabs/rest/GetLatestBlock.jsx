@@ -10,7 +10,7 @@ export const GetLatestBlock = () => {
         setLatestBlock(null);
         try {
             axios
-                .get(`https://api.explorer.provable.com/v1/testnet/latest/block`)
+                .get(`https://api.explorer.provable.com/v1/testnet/block/latest`)
                 .then((response) =>
                     setLatestBlock(JSON.stringify(response.data, null, 2)),
                 );
