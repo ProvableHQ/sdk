@@ -105,7 +105,7 @@ describe('NodeConnection', () => {
 
             expect(windowFetchSpy.args).deep.equal([
                 [
-                    "https://api.explorer.provable.com/v1/%%NETWORK%%/latest/block",
+                    "https://api.explorer.provable.com/v1/%%NETWORK%%/block/latest",
                     {
                         "headers": {
                             // @TODO: Run the Jest tests on the compiled Rollup code,

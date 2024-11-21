@@ -364,7 +364,7 @@ class AleoNetworkClient {
    */
   async getLatestBlock(): Promise<Block> {
     try {
-      return await this.fetchData<Block>("/latest/block") as Block;
+      return await this.fetchData<Block>("/block/latest") as Block;
     } catch (error) {
       throw new Error("Error fetching latest block.");
     }
@@ -391,7 +391,7 @@ class AleoNetworkClient {
    */
   async getLatestHeight(): Promise<number> {
     try {
-      return Number(await this.fetchData<bigint>("/latest/height"));
+      return Number(await this.fetchData<bigint>("/block/height/latest"));
     } catch (error) {
       throw new Error("Error fetching latest height.");
     }
@@ -567,7 +567,7 @@ class AleoNetworkClient {
    */
   async getStateRoot(): Promise<string> {
     try {
-      return await this.fetchData<string>("/latest/stateRoot");
+      return await this.fetchData<string>("/stateRoot/latest");
     } catch (error) {
       throw new Error("Error fetching Aleo state root");
     }
