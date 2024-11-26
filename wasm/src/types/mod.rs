@@ -15,8 +15,16 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod field;
-pub use field::*;
+pub use field::Field;
+
+pub mod group;
+pub use group::Group;
+
+pub mod helpers;
 
 mod networks;
 
 pub(crate) mod native;
+
+mod scalar;
+pub use scalar::Scalar;

@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::native::TransactionNative;
+use crate::types::native::{FromBytes, ToBytes, TransactionNative};
 
+use crate::{Field, RecordCiphertext};
+use js_sys::{Array, Object, Reflect, Uint8Array};
 use std::str::FromStr;
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Webassembly Representation of an Aleo transaction
 ///
@@ -38,6 +40,17 @@ impl Transaction {
         Transaction::from_str(transaction)
     }
 
+    /// Create a transaction from a Uint8Array of left endian bytes.
+    ///
+    /// @param {Uint8Array} Uint8Array of left endian bytes encoding a Transaction.
+    /// @returns {Transaction}
+    #[wasm_bindgen(js_name = fromBytesLe)]
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Transaction, String> {
+        let bytes = bytes.to_vec();
+        let transaction = TransactionNative::from_bytes_le(&bytes).map_err(|e| e.to_string())?;
+        Ok(Transaction(transaction))
+    }
+
     /// Get the transaction as a string. If you want to submit this transaction to the Aleo Network
     /// this function will create the string that should be submitted in the `POST` data.
     ///
@@ -46,6 +59,88 @@ impl Transaction {
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
+    }
+
+    /// Get the transaction as a Uint8Array of left endian bytes.
+    ///
+    /// @returns {Uint8Array} Uint8Array representation of the transaction
+    #[wasm_bindgen(js_name = toBytesLe)]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        let array = Uint8Array::new_with_length(bytes.len() as u32);
+        array.copy_from(bytes.as_slice());
+        Ok(array)
+    }
+
+    /// Returns true if the transaction contains the given serial number.
+    ///
+    /// @param {boolean} True if the transaction contains the given serial number.
+    pub fn contains_serial_number(&self, serial_number: &Field) -> bool {
+        self.0.contains_serial_number(serial_number)
+    }
+
+    /// Returns true if the transaction contains the given commitment.
+    ///
+    /// @param {boolean} True if the transaction contains the given commitment.
+    pub fn contains_commitment(&self, commitment: &Field) -> bool {
+        self.0.contains_commitment(commitment)
+    }
+
+    /// Returns the transaction's base fee.
+    pub fn get_base_fee(&self) -> u64 {
+        self.0.base_fee_amount().map(|fee| *fee).unwrap_or(0)
+    }
+
+    /// Returns the transaction's total fee.
+    pub fn get_total_fee(&self) -> u64 {
+        self.0.fee_amount().map(|fee| *fee).unwrap_or(0)
+    }
+
+    /// Returns the transaction's priority fee.
+    ///
+    /// returns {bigint} The transaction's priority fee.
+    pub fn get_priority_fee(&self) -> u64 {
+        self.0.priority_fee_amount().map(|fee| *fee).unwrap_or(0)
+    }
+
+    /// Find a record in the transaction by the record's commitment.
+    pub fn find_record(&self, commitment: &Field) -> Option<RecordCiphertext> {
+        self.0.find_record(commitment).map(|record_ciphertext| RecordCiphertext::from(record_ciphertext))
+    }
+
+    /// Get the record ciphertexts present in a transaction.
+    pub fn get_record_ciphertexts(&self) -> Array {
+        let array = Array::new();
+        self.0.records().for_each(|(commitment, record_ciphertext)| {
+            let object = Object::new();
+            let commitment = Field::from(commitment);
+            let record_ciphertext = RecordCiphertext::from(record_ciphertext);
+            Reflect::set(&object, &JsValue::from_str("commitment"), &JsValue::from(commitment)).unwrap();
+            Reflect::set(&object, &JsValue::from_str("record"), &JsValue::from(record_ciphertext)).unwrap();
+            array.push(&object);
+        });
+        array
+    }
+
+    /// Returns true if the transaction is a deployment transaction.
+    ///
+    /// @returns {boolean} True if the transaction is a deployment transaction
+    pub fn is_deploy(&self) -> bool {
+        self.0.is_deploy()
+    }
+
+    /// Returns true if the transaction is an execution transaction.
+    ///
+    /// @returns {boolean} True if the transaction is an execution transaction
+    pub fn is_execute(&self) -> bool {
+        self.0.is_execute()
+    }
+
+    /// Returns true if the transaction is a fee transaction.
+    ///
+    /// @returns {boolean} True if the transaction is a fee transaction
+    pub fn is_fee(&self) -> bool {
+        self.0.is_fee()
     }
 
     /// Get the id of the transaction. This is the merkle root of the transaction's inclusion proof.

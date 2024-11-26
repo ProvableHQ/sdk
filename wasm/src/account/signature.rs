@@ -16,9 +16,9 @@
 
 use crate::account::{Address, PrivateKey};
 
-use crate::types::native::SignatureNative;
+use crate::types::{Scalar, native::SignatureNative};
 use core::{fmt, ops::Deref, str::FromStr};
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 
 /// Cryptographic signature of a message signed by an Aleo account
@@ -34,6 +34,21 @@ impl Signature {
     /// @returns {Signature} Signature of the message
     pub fn sign(private_key: &PrivateKey, message: &[u8]) -> Self {
         Self(SignatureNative::sign_bytes(private_key, message, &mut StdRng::from_entropy()).unwrap())
+    }
+
+    /// Get an address from a signature.
+    pub fn to_address(&self) -> Address {
+        Address::from(self.0.to_address())
+    }
+
+    /// Get the challenge of a signature.
+    pub fn challenge(&self) -> Scalar {
+        Scalar::from(self.0.challenge())
+    }
+
+    /// Get the response of a signature.
+    pub fn response(&self) -> Scalar {
+        Scalar::from(self.0.response())
     }
 
     /// Verify a signature of a message with an address
@@ -88,7 +103,7 @@ impl Deref for Signature {
 mod tests {
     use super::*;
 
-    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;
 
     const ITERATIONS: u64 = 1_000;

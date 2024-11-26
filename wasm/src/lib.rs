@@ -196,6 +196,28 @@ extern "C" {
     pub fn log(s: &str);
 }
 
+#[macro_export]
+macro_rules! array {
+        ($($value:expr),*$(,)?) => {{
+            let array = Array::new();
+
+            $(array.push(&JsValue::from($value));)*
+
+            array
+        }};
+    }
+
+#[macro_export]
+macro_rules! object {
+        ($($key:literal: $value:expr,)*) => {{
+            let object = Object::new();
+
+            $(Reflect::set(&object, &JsValue::from_str($key), &JsValue::from($value)).unwrap();)*
+
+            object
+        }};
+    }
+
 /// A trait providing convenient methods for accessing the amount of Aleo present in a record
 pub trait Credits {
     /// Get the amount of credits in the record if the record possesses Aleo credits

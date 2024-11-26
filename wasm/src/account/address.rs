@@ -16,7 +16,7 @@
 
 use crate::account::{PrivateKey, Signature, ViewKey};
 
-use crate::types::native::AddressNative;
+use crate::{account::compute_key::ComputeKey, types::native::AddressNative};
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -41,6 +41,13 @@ impl Address {
     /// @returns {Address} Address corresponding to the view key
     pub fn from_view_key(view_key: &ViewKey) -> Self {
         Self(AddressNative::try_from(**view_key).unwrap())
+    }
+
+    /// Derive an Aleo address from a compute key.
+    ///
+    /// @param {ComputeKey} compute_key The compute key to derive the address from
+    pub fn from_compute_key(compute_key: &ComputeKey) -> Self {
+        compute_key.address()
     }
 
     /// Create an aleo address object from a string representation of an address

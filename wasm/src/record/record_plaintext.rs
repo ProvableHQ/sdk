@@ -14,9 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{account::PrivateKey, types::Field, Credits};
+use crate::{
+    Address,
+    Credits,
+    Plaintext,
+    account::PrivateKey,
+    types::{
+        Field,
+        helpers::record_to_js_object,
+        native::{
+            CurrentNetwork,
+            EntryNative,
+            IdentifierNative,
+            PlaintextNative,
+            ProgramIDNative,
+            RecordPlaintextNative,
+        },
+    },
+};
+use snarkvm_console::program::Owner;
 
-use crate::types::native::{IdentifierNative, ProgramIDNative, RecordPlaintextNative};
+use anyhow::Context;
+use js_sys::Object;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -47,6 +66,83 @@ impl RecordPlaintext {
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordPlaintext, String> {
         Self::from_str(record).map_err(|_| "The record plaintext string provided was invalid".into())
+    }
+
+    pub fn get_member(&self, input: String) -> Result<Plaintext, String> {
+        let entry = self
+            .0
+            .data()
+            .get(&IdentifierNative::from_str(&input).map_err(|_| "".to_string())?)
+            .context("Record member not found")
+            .map_err(|e| e.to_string())?;
+        let entry = match entry {
+            EntryNative::Public(entry) => entry,
+            EntryNative::Constant(entry) => entry,
+            EntryNative::Private(entry) => entry,
+        };
+        Ok(Plaintext::from(entry.clone()))
+    }
+
+    /// Get the owner of the record.
+    pub fn owner(&self) -> Result<Address, String> {
+        match self.0.owner() {
+            Owner::<CurrentNetwork, PlaintextNative>::Public(owner) => Ok(Address::from(*owner)),
+            _ => Err("Record is not public".to_string()),
+        }
+    }
+
+    /// Get a representation of a record as a javascript object for usage in client side
+    /// computations. Note that this is not a reversible operation and exists for the convenience
+    /// of discovering and using properties of the record.
+    ///
+    /// The conversion guide is as follows:
+    /// - u8, u16, u32, i8, i16 i32 --> Number
+    /// - u64, u128, i64, i128 --> BigInt
+    /// - Address, Field, Group, Scalar --> String.
+    ///
+    /// Address, Field, Group, and Scalar will all be converted to their bech32 string
+    /// representation. These string representations can be converted back to their respective wasm
+    /// types using the fromString method on the Address, Field, Group, and Scalar objects in this
+    /// library.
+    ///
+    /// @example
+    /// # Create a wasm record from a record string.
+    /// let record_plaintext_wasm = RecordPlainext.from_string("{
+    ///   owner: aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48.private,
+    ///   metadata: {
+    ///     player1: aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48.private,
+    ///     player2: aleo1dreuxnmg9cny8ee9v2u0wr4v4affnwm09u2pytfwz0f2en2shgqsdsfjn6.private,
+    ///     nonce: 660310649780728486489183263981322848354071976582883879926426319832534836534field.private
+    ///   },
+    ///   id: 1953278585719525811355617404139099418855053112960441725284031425961000152405field.private,
+    ///   positions: 50794271u64.private,
+    ///   attempts: 0u64.private,
+    ///   hits: 0u64.private,
+    ///   _nonce: 5668100912391182624073500093436664635767788874314097667746354181784048204413group.public
+    /// }");
+    ///
+    /// let expected_object = {
+    ///   owner: "aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48",
+    ///   metadata: {
+    ///     player1: "aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48",
+    ///     player2: "aleo1dreuxnmg9cny8ee9v2u0wr4v4affnwm09u2pytfwz0f2en2shgqsdsfjn6",
+    ///     nonce: "660310649780728486489183263981322848354071976582883879926426319832534836534field"
+    ///   },
+    ///   id: "1953278585719525811355617404139099418855053112960441725284031425961000152405field",
+    ///   positions: 50794271,
+    ///   attempts: 0,
+    ///   hits: 0,
+    ///   _nonce: "5668100912391182624073500093436664635767788874314097667746354181784048204413group"
+    /// };
+    ///
+    /// # Create the expected object
+    /// let record_plaintext_object = record_plaintext_wasm.to_js_object();
+    /// assert(JSON.stringify(record_plaintext_object) == JSON.stringify(expected_object));
+    ///
+    /// @returns {Object} Javascript object representation of the record
+    #[wasm_bindgen(js_name = "getRecordMembers")]
+    pub fn to_js_object(&self) -> Result<Object, String> {
+        record_to_js_object(&self.0)
     }
 
     /// Returns the record plaintext string
@@ -94,9 +190,35 @@ impl RecordPlaintext {
     }
 }
 
+impl Deref for RecordPlaintext {
+    type Target = RecordPlaintextNative;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl From<RecordPlaintextNative> for RecordPlaintext {
     fn from(record: RecordPlaintextNative) -> Self {
         Self(record)
+    }
+}
+
+impl From<RecordPlaintext> for RecordPlaintextNative {
+    fn from(record: RecordPlaintext) -> Self {
+        record.0
+    }
+}
+
+impl From<&RecordPlaintextNative> for RecordPlaintext {
+    fn from(record: &RecordPlaintextNative) -> Self {
+        Self(record.clone())
+    }
+}
+
+impl From<&RecordPlaintext> for RecordPlaintextNative {
+    fn from(record: &RecordPlaintext) -> Self {
+        record.0.clone()
     }
 }
 
@@ -108,42 +230,56 @@ impl FromStr for RecordPlaintext {
     }
 }
 
-impl Deref for RecordPlaintext {
-    type Target = RecordPlaintextNative;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use wasm_bindgen_test::wasm_bindgen_test;
+    use wasm_bindgen_test::{console_log, wasm_bindgen_test};
 
-    const RECORD: &str = r"{
+    const CREDITS_RECORD: &str = r"{
   owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
   microcredits: 1500000000000000u64.private,
   _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
 }";
 
+    const BATTLESHIP_RECORD: &str = r"{
+  owner: aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48.private,
+  metadata: {
+    player1: aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48.private,
+    player2: aleo1dreuxnmg9cny8ee9v2u0wr4v4affnwm09u2pytfwz0f2en2shgqsdsfjn6.private,
+    nonce: 660310649780728486489183263981322848354071976582883879926426319832534836534field.private
+  },
+  id: 1953278585719525811355617404139099418855053112960441725284031425961000152405field.private,
+  positions: 50794271u64.private,
+  attempts: 0u64.private,
+  hits: 0u64.private,
+  _nonce: 5668100912391182624073500093436664635767788874314097667746354181784048204413group.public
+}";
+
     #[wasm_bindgen_test]
     fn test_to_and_from_string() {
-        let record = RecordPlaintext::from_string(RECORD).unwrap();
-        assert_eq!(record.to_string(), RECORD);
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
+        assert_eq!(record.to_string(), CREDITS_RECORD);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_get_record_member() {
+        let record = RecordPlaintext::from_string(BATTLESHIP_RECORD).unwrap();
+        let positions = record.get_member("positions".to_string()).unwrap();
+        let hits = record.get_member("hits".to_string()).unwrap();
+        console_log!("Battleship positions: {positions:?} - hits: {hits:?}");
     }
 
     #[wasm_bindgen_test]
     fn test_microcredits_from_string() {
-        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         assert_eq!(record.microcredits(), 1500000000000000);
     }
 
     #[wasm_bindgen_test]
     fn test_serial_number() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
-        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         let program_id = "credits.aleo";
         let record_name = "credits";
         let expected_sn = "8170619507075647151199239049653235187042661744691458644751012032123701508940field";
@@ -154,7 +290,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_serial_number_can_run_twice_with_same_private_key() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
-        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         let program_id = "credits.aleo";
         let record_name = "credits";
         let expected_sn = "8170619507075647151199239049653235187042661744691458644751012032123701508940field";
@@ -165,7 +301,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_serial_number_invalid_program_id_returns_err_string() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
-        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         let program_id = "not a real program id";
         let record_name = "token";
         assert!(record.serial_number_string(&pk, program_id, record_name).is_err());
@@ -174,7 +310,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_serial_number_invalid_record_name_returns_err_string() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
-        let record = RecordPlaintext::from_string(RECORD).unwrap();
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         let program_id = "token.aleo";
         let record_name = "not a real record name";
         assert!(record.serial_number_string(&pk, program_id, record_name).is_err());

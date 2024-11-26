@@ -67,19 +67,43 @@ impl RecordCiphertext {
     }
 }
 
-impl FromStr for RecordCiphertext {
-    type Err = anyhow::Error;
-
-    fn from_str(ciphertext: &str) -> Result<Self, Self::Err> {
-        Ok(Self(RecordCiphertextNative::from_str(ciphertext)?))
-    }
-}
-
 impl Deref for RecordCiphertext {
     type Target = RecordCiphertextNative;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<RecordCiphertextNative> for RecordCiphertext {
+    fn from(record: RecordCiphertextNative) -> Self {
+        Self(record)
+    }
+}
+
+impl From<RecordCiphertext> for RecordCiphertextNative {
+    fn from(record: RecordCiphertext) -> Self {
+        record.0
+    }
+}
+
+impl From<&RecordCiphertext> for RecordCiphertextNative {
+    fn from(record: &RecordCiphertext) -> Self {
+        record.0.clone()
+    }
+}
+
+impl From<&RecordCiphertextNative> for RecordCiphertext {
+    fn from(record: &RecordCiphertextNative) -> Self {
+        Self(record.clone())
+    }
+}
+
+impl FromStr for RecordCiphertext {
+    type Err = anyhow::Error;
+
+    fn from_str(ciphertext: &str) -> Result<Self, Self::Err> {
+        Ok(Self(RecordCiphertextNative::from_str(ciphertext)?))
     }
 }
 

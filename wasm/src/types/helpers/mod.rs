@@ -14,23 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod address;
-pub use address::*;
+pub mod literal;
+pub use literal::literal_to_js_value;
 
-pub mod encryptor;
-pub use encryptor::*;
+pub mod plaintext;
+pub use plaintext::insert_plaintext;
 
-pub mod private_key;
-pub use private_key::*;
-
-pub mod private_key_ciphertext;
-pub use private_key_ciphertext::*;
-
-pub mod signature;
-pub use signature::*;
-
-mod compute_key;
-mod graph_key;
-pub mod view_key;
-
-pub use view_key::*;
+pub mod record;
+pub use record::record_to_js_object;
