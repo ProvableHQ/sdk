@@ -24,8 +24,10 @@ use crate::types::native::{
     IdentifierNative,
     ProcessNative,
     ProgramID,
+    ProgramNative,
     VerifyingKeyNative,
 };
+use js_sys::Object;
 
 /// Execution of an Aleo program.
 #[wasm_bindgen]
@@ -83,10 +85,14 @@ pub fn verify_function_execution(
     verifying_key: &VerifyingKey,
     program: &Program,
     function_id: &str,
+    imports: Option<Object>,
 ) -> Result<bool, String> {
     let function = IdentifierNative::from_str(function_id).map_err(|e| e.to_string())?;
     let program_id = ProgramID::<CurrentNetwork>::from_str(&program.id()).unwrap();
-    let mut process = ProcessNative::load_web().map_err(|e| e.to_string())?;
+    let mut process_native = ProcessNative::load_web().map_err(|e| e.to_string())?;
+    let process = &mut process_native;
+    let program_native = ProgramNative::from_str(program.to_string().as_str()).map_err(|e| e.to_string())?;
+    ProgramManager::resolve_imports(process, &program_native, imports)?;
     if &program.id() != "credits.aleo" {
         process.add_program(program).map_err(|e| e.to_string())?;
     }
@@ -109,8 +115,14 @@ mod tests {
         let verifying_key_bytes = crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
         let verifying_key = VerifyingKey::from_bytes(&verifying_key_bytes).unwrap();
         assert!(
-            verify_function_execution(&execution, &verifying_key, &Program::get_credits_program(), "transfer_public")
-                .unwrap()
+            verify_function_execution(
+                &execution,
+                &verifying_key,
+                &Program::get_credits_program(),
+                "transfer_public",
+                None
+            )
+            .unwrap()
         );
     }
 }*/
