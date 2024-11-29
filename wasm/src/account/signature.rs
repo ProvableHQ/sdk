@@ -66,7 +66,7 @@ impl FromStr for Signature {
     type Err = anyhow::Error;
 
     fn from_str(signature: &str) -> Result<Self, Self::Err> {
-        Ok(Self(SignatureNative::from_str(signature).unwrap()))
+        Ok(Self(SignatureNative::from_str(signature)?))
     }
 }
 
