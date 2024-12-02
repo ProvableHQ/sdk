@@ -32,10 +32,11 @@ globalThis.Worker = class Worker extends EventTarget {
         }
 
         const code = `
-            const { workerData } = require("node:worker_threads");
-
-            import(workerData.polyfill)
-                .then(() => import(workerData.url))
+            import("node:worker_threads")
+                .then(({ workerData }) => {
+                    return import(workerData.polyfill)
+                        .then(() => import(workerData.url))
+                })
                 .catch((e) => {
                     // TODO maybe it should send a message to the parent?
                     console.error(e.stack);
