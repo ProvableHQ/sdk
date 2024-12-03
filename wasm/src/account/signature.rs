@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Address, PrivateKey, Scalar, types::native::SignatureNative};
+use crate::{types::native::SignatureNative, Address, PrivateKey, Scalar};
 
 use core::{fmt, ops::Deref, str::FromStr};
-use rand::{SeedableRng, rngs::StdRng};
+use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
 /// Cryptographic signature of a message signed by an Aleo account
@@ -128,7 +128,7 @@ impl FromStr for Signature {
 mod tests {
     use super::*;
 
-    use rand::{Rng, SeedableRng, rngs::StdRng};
+    use rand::{rngs::StdRng, Rng, SeedableRng};
     use wasm_bindgen_test::*;
 
     const ITERATIONS: u64 = 1_000;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Ciphertext, Field, Plaintext, plaintext_to_js_value, types::native::InputNative};
+use crate::{plaintext_to_js_value, types::native::InputNative, Ciphertext, Field, Plaintext};
 
 use js_sys::{JsString, Object, Reflect};
 use wasm_bindgen::JsValue;

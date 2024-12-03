@@ -15,7 +15,7 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::ViewKey;
-use crate::types::{Field, native::GraphKeyNative};
+use crate::types::{native::GraphKeyNative, Field};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;

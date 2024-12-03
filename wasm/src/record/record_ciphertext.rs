@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Field, GraphKey, RecordPlaintext, ViewKey, types::native::RecordCiphertextNative};
+use crate::{types::native::RecordCiphertextNative, Field, GraphKey, RecordPlaintext, ViewKey};
 
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;

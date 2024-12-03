@@ -15,9 +15,9 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Plaintext,
     plaintext_to_js_value,
     types::native::{ArgumentNative, FutureNative},
+    Plaintext,
 };
 
 use js_sys::{Array, JsString, Object, Reflect};

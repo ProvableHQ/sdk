@@ -18,15 +18,15 @@ use super::*;
 use core::ops::Add;
 
 use crate::{
+    execute_fee,
+    execute_program,
+    log,
+    process_inputs,
     ExecutionResponse,
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
     Transaction,
-    execute_fee,
-    execute_program,
-    log,
-    process_inputs,
 };
 
 use crate::types::native::{
@@ -38,7 +38,7 @@ use crate::types::native::{
     TransactionNative,
 };
 use js_sys::{Array, Object};
-use rand::{SeedableRng, rngs::StdRng};
+use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
 
 #[wasm_bindgen]

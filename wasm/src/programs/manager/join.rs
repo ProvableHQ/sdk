@@ -17,14 +17,14 @@
 use super::*;
 
 use crate::{
-    OfflineQuery,
-    PrivateKey,
-    RecordPlaintext,
-    Transaction,
     execute_fee,
     execute_program,
     log,
     process_inputs,
+    OfflineQuery,
+    PrivateKey,
+    RecordPlaintext,
+    Transaction,
 };
 
 use crate::types::native::{
@@ -36,7 +36,7 @@ use crate::types::native::{
     TransactionNative,
 };
 use js_sys::Array;
-use rand::{SeedableRng, rngs::StdRng};
+use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
 
 #[wasm_bindgen]

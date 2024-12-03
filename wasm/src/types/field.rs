@@ -15,8 +15,8 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Plaintext,
     types::native::{FieldNative, LiteralNative, PlaintextNative, Uniform},
+    Plaintext,
 };
 use snarkvm_console::prelude::{Double, One, Pow};
 use std::ops::Deref;

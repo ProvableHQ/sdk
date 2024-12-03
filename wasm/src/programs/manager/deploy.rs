@@ -16,7 +16,7 @@
 
 use super::*;
 
-use crate::{OfflineQuery, PrivateKey, RecordPlaintext, Transaction, execute_fee, log};
+use crate::{execute_fee, log, OfflineQuery, PrivateKey, RecordPlaintext, Transaction};
 
 use crate::types::native::{
     CurrentAleo,
@@ -29,7 +29,7 @@ use crate::types::native::{
     TransactionNative,
 };
 use js_sys::Object;
-use rand::{SeedableRng, rngs::StdRng};
+use rand::{rngs::StdRng, SeedableRng};
 use std::str::FromStr;
 
 #[wasm_bindgen]

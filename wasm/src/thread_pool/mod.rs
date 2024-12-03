@@ -16,7 +16,7 @@
 
 use futures::{channel::oneshot, future::try_join_all};
 use rayon::ThreadBuilder;
-use spmc::{Receiver, Sender, channel};
+use spmc::{channel, Receiver, Sender};
 use std::future::Future;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;

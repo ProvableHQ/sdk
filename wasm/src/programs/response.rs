@@ -27,7 +27,7 @@ use crate::types::native::{
 
 use crate::{Execution, KeyPair, Program, ProvingKey, VerifyingKey};
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 /// Webassembly Representation of an Aleo function execution response
 ///

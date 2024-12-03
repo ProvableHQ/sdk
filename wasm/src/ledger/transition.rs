@@ -15,19 +15,19 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    input_to_js_value,
+    output_to_js_value,
+    types::native::{FromBytes, ToBytes, TransitionNative},
     Field,
     Group,
     RecordCiphertext,
     RecordPlaintext,
     ViewKey,
-    input_to_js_value,
-    output_to_js_value,
-    types::native::{FromBytes, ToBytes, TransitionNative},
 };
 
 use js_sys::{Array, Object, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 #[wasm_bindgen]
 pub struct Transition(TransitionNative);

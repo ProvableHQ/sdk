@@ -15,14 +15,8 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address,
-    Credits,
-    GraphKey,
-    Plaintext,
-    PrivateKey,
     record_to_js_object,
     types::{
-        Field,
         native::{
             CurrentNetwork,
             EntryNative,
@@ -31,7 +25,13 @@ use crate::{
             ProgramIDNative,
             RecordPlaintextNative,
         },
+        Field,
     },
+    Address,
+    Credits,
+    GraphKey,
+    Plaintext,
+    PrivateKey,
 };
 use snarkvm_console::program::Owner;
 

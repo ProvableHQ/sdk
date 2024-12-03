@@ -15,11 +15,11 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    native::{CiphertextNative, FromBytes, ToBytes},
     Field,
     Group,
     Plaintext,
     ViewKey,
-    native::{CiphertextNative, FromBytes, ToBytes},
 };
 
 use js_sys::Uint8Array;
@@ -131,7 +131,7 @@ impl From<&Ciphertext> for CiphertextNative {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{PrivateKey, Transition, plaintext_to_js_value};
+    use crate::{plaintext_to_js_value, PrivateKey, Transition};
     use snarkvm_console::{collections::OrHalt, program::compute_function_id, types::U16};
 
     use crate::types::native::{CurrentNetwork, FieldNative, IdentifierNative, Network, ProgramID};
