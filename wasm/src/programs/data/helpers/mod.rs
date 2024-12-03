@@ -14,11 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod input;
+pub use input::input_to_js_value;
+
 pub mod literal;
 pub use literal::literal_to_js_value;
 
+pub mod output;
+pub use output::output_to_js_value;
+
 pub mod plaintext;
-pub use plaintext::insert_plaintext;
+pub use plaintext::{insert_plaintext, plaintext_to_js_value, struct_to_js_object};
 
 pub mod record;
 pub use record::record_to_js_object;
+
+pub mod future;
+pub use future::future_to_js_value;

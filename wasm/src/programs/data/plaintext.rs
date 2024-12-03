@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::{
-    helpers::plaintext::plaintext_to_js_value,
-    native::{FromBytes, PlaintextNative, ToBytes},
+use crate::{
+    Address,
+    Ciphertext,
+    Field,
+    Scalar,
+    plaintext_to_js_value,
+    types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes},
 };
+use std::ops::Deref;
 
-use crate::types::native::IdentifierNative;
 use js_sys::Uint8Array;
 use std::str::FromStr;
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
@@ -42,8 +46,6 @@ use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 /// // Check if the bond state matches the expected object.
 /// const expectedObject = { validator: "aleo12zlythl7htjdtjjjz3ahdj4vl6wk3zuzm37s80l86qpx8fyx95fqnxcn2f", microcredits: 100000000u64 };
 /// assert( JSON.stringify(bondStateObject) === JSON.stringify(expectedObject) );
-///
-///
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Plaintext(PlaintextNative);
@@ -52,6 +54,10 @@ pub struct Plaintext(PlaintextNative);
 impl Plaintext {
     /// Find plaintext member if the plaintext is a struct. Returns `null` if the plaintext is not
     /// a struct or the member does not exist.
+    ///
+    /// @param {string} name The name of the plaintext member to find.
+    ///
+    /// @returns {Plaintext | undefined} The plaintext member.
     pub fn find(&self, name: String) -> Option<Plaintext> {
         let identifier = IdentifierNative::from_str(&name).ok()?;
         match self.0.find(&[identifier]) {
@@ -60,13 +66,31 @@ impl Plaintext {
         }
     }
 
+    /// Encrypt a plaintext with an address and randomizer.
+    pub fn encrypt(&self, address: &Address, randomizer: &Scalar) -> Result<Ciphertext, String> {
+        self.0.encrypt(address, **randomizer).map_err(|e| e.to_string()).map(Ciphertext::from)
+    }
+
+    /// Encrypt a plaintext with a transition view key.
+    pub fn encrypt_symmetric(&self, transition_view_key: &Field) -> Result<Ciphertext, String> {
+        self.0.encrypt_symmetric(**transition_view_key).map_err(|e| e.to_string()).map(Ciphertext::from)
+    }
+
     /// Creates a plaintext object from a string representation of a plaintext.
+    ///
+    /// @param {string} plaintext The string representation of the plaintext.
+    ///
+    /// @returns {Plaintext} The plaintext object.
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(plaintext: &str) -> Result<Plaintext, String> {
         Ok(Self(PlaintextNative::from_str(plaintext).map_err(|e| e.to_string())?))
     }
 
     /// Get a plaintext object from a series of bytes.
+    ///
+    /// @param {Uint8Array} bytes A left endian byte array representing the plaintext.
+    ///
+    /// @returns {Plaintext} The plaintext object.
     #[wasm_bindgen(js_name = "fromBytesLe")]
     pub fn from_bytes_le(bytes: Uint8Array) -> Result<Plaintext, String> {
         let rust_bytes = bytes.to_vec();
@@ -75,6 +99,8 @@ impl Plaintext {
     }
 
     /// Generate a random plaintext element from a series of bytes.
+    ///
+    /// @param {Uint8Array} bytes A left endian byte array representing the plaintext.
     #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
@@ -84,6 +110,8 @@ impl Plaintext {
     }
 
     /// Returns the string representation of the plaintext.
+    ///
+    /// @returns {string} The string representation of the plaintext.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
@@ -91,9 +119,19 @@ impl Plaintext {
     }
 
     /// Attempt to convert the plaintext to a JS object.
+    ///
+    /// @returns {Object} The JS object representation of the plaintext.
     #[wasm_bindgen(js_name = "toObject")]
     pub fn to_object(&self) -> Result<JsValue, String> {
         Ok(plaintext_to_js_value(&self.0))
+    }
+}
+
+impl Deref for Plaintext {
+    type Target = PlaintextNative;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -106,6 +144,18 @@ impl From<PlaintextNative> for Plaintext {
 impl From<Plaintext> for PlaintextNative {
     fn from(plaintext: Plaintext) -> Self {
         plaintext.0
+    }
+}
+
+impl From<&PlaintextNative> for Plaintext {
+    fn from(plaintext: &PlaintextNative) -> Self {
+        Plaintext::from(plaintext.clone())
+    }
+}
+
+impl From<&Plaintext> for PlaintextNative {
+    fn from(plaintext: &Plaintext) -> Self {
+        plaintext.0.clone()
     }
 }
 

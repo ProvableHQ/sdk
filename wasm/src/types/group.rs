@@ -15,6 +15,7 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Field,
     Plaintext,
     types::{
         Scalar,
@@ -45,6 +46,12 @@ impl Group {
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
+    }
+
+    /// Get the x-coordinate of the group element.
+    #[wasm_bindgen(js_name = "toXCoordinate")]
+    pub fn to_x_coordinate(&self) -> Field {
+        Field::from(self.0.to_x_coordinate())
     }
 
     /// Create a plaintext element from a group element.

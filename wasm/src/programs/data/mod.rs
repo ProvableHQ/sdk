@@ -14,5 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-mod plaintext;
+pub mod ciphertext;
+pub use ciphertext::Ciphertext;
+
+pub mod helpers;
+pub use helpers::*;
+
+pub mod plaintext;
 pub use plaintext::Plaintext;

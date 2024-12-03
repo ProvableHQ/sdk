@@ -76,17 +76,11 @@ impl Address {
     }
 }
 
-impl FromStr for Address {
-    type Err = anyhow::Error;
+impl Deref for Address {
+    type Target = AddressNative;
 
-    fn from_str(address: &str) -> Result<Self, Self::Err> {
-        Ok(Self(AddressNative::from_str(address)?))
-    }
-}
-
-impl From<AddressNative> for Address {
-    fn from(value: AddressNative) -> Self {
-        Self(value)
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -96,11 +90,35 @@ impl fmt::Display for Address {
     }
 }
 
-impl Deref for Address {
-    type Target = AddressNative;
+impl From<AddressNative> for Address {
+    fn from(value: AddressNative) -> Self {
+        Self(value)
+    }
+}
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl From<Address> for AddressNative {
+    fn from(value: Address) -> Self {
+        value.0
+    }
+}
+
+impl From<&AddressNative> for Address {
+    fn from(value: &AddressNative) -> Self {
+        Self(value.clone())
+    }
+}
+
+impl From<&Address> for AddressNative {
+    fn from(value: &Address) -> Self {
+        value.0
+    }
+}
+
+impl FromStr for Address {
+    type Err = anyhow::Error;
+
+    fn from_str(address: &str) -> Result<Self, Self::Err> {
+        Ok(Self(AddressNative::from_str(address)?))
     }
 }
 

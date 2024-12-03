@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{Address, Encryptor, PrivateKeyCiphertext, Signature, ViewKey};
+use crate::{
+    Address,
+    Encryptor,
+    PrivateKeyCiphertext,
+    Signature,
+    ViewKey,
+    types::native::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
+};
 
-use crate::types::native::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes};
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
 use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
@@ -127,6 +133,20 @@ impl PrivateKey {
     }
 }
 
+impl Deref for PrivateKey {
+    type Target = PrivateKeyNative;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl fmt::Display for PrivateKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl From<PrivateKeyNative> for PrivateKey {
     fn from(private_key: PrivateKeyNative) -> Self {
         Self(private_key)
@@ -136,6 +156,12 @@ impl From<PrivateKeyNative> for PrivateKey {
 impl From<PrivateKey> for PrivateKeyNative {
     fn from(private_key: PrivateKey) -> Self {
         private_key.0
+    }
+}
+
+impl From<&PrivateKeyNative> for PrivateKey {
+    fn from(private_key: &PrivateKeyNative) -> Self {
+        Self(*private_key)
     }
 }
 
@@ -149,20 +175,6 @@ impl FromStr for PrivateKey {
 
     fn from_str(private_key: &str) -> Result<Self, Self::Err> {
         Ok(Self(PrivateKeyNative::from_str(private_key)?))
-    }
-}
-
-impl fmt::Display for PrivateKey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Deref for PrivateKey {
-    type Target = PrivateKeyNative;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 

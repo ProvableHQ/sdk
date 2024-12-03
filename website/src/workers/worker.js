@@ -418,5 +418,7 @@ self.addEventListener("message", (ev) => {
                 programManager.setHost(defaultHost);
             }
         })();
+    } else if (ev.data.type === "PROPOSE_GAME") {
+
     }
 });

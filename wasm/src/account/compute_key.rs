@@ -32,6 +32,7 @@ impl ComputeKey {
     /// Create a new compute key from a private key.
     ///
     /// @param {PrivateKey} private_key Private key
+    ///
     /// @returns {ComputeKey} Compute key
     pub fn from_private_key(private_key: &PrivateKey) -> Self {
         Self(ComputeKeyNative::try_from(**private_key).unwrap())
@@ -45,6 +46,8 @@ impl ComputeKey {
     }
 
     /// Get the sk_prf of the compute key.
+    ///
+    /// @returns {Scalar} sk_prf
     pub fn sk_prf(&self) -> Scalar {
         Scalar::from(self.0.sk_prf())
     }
@@ -93,5 +96,42 @@ impl From<&ComputeKey> for ComputeKeyNative {
 impl From<&ComputeKeyNative> for ComputeKey {
     fn from(compute_key: &ComputeKeyNative) -> Self {
         Self(compute_key.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        PrivateKey,
+        types::native::{AddressNative, CurrentNetwork},
+    };
+
+    use snarkvm_console::network::Network;
+
+    #[test]
+    fn test_compute_key_conversions() {
+        // Create a new private key.
+        let private_key = PrivateKey::new();
+        let address = Address::from_private_key(&private_key);
+
+        // Get the compute key from the private key.
+        let compute_key = ComputeKey::from_private_key(&private_key);
+
+        // Assert the address derivation can be computed from the compute key components.
+        // Compute pk_prf := G^sk_prf.
+        let pk_prf = Group::from(CurrentNetwork::g_scalar_multiply(&*compute_key.sk_prf()));
+        // Compute the address := pk_sig + pr_sig + pk_prf.
+        let group = compute_key.pk_sig().add(&compute_key.pr_sig()).add(&pk_prf);
+        let address_native = AddressNative::new(*group);
+        let derived_address = Address::from(address_native);
+
+        // Assert an address can be derived from the compute key via it's official function.
+        let compute_key_address = Address::from_compute_key(&compute_key);
+
+        // Check the address matches all possible derivations from the compute key.
+        assert_eq!(address, compute_key.address());
+        assert_eq!(address, derived_address);
+        assert_eq!(address, compute_key_address);
     }
 }

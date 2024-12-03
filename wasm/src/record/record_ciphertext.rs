@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::RecordPlaintext;
-use crate::account::ViewKey;
+use crate::{Field, GraphKey, RecordPlaintext, ViewKey, types::native::RecordCiphertextNative};
 
-use crate::types::native::RecordCiphertextNative;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -64,6 +62,16 @@ impl RecordCiphertext {
     #[wasm_bindgen(js_name = isOwner)]
     pub fn is_owner(&self, view_key: &ViewKey) -> bool {
         self.0.is_owner(view_key)
+    }
+
+    /// Get the tag of the record using the graph key.
+    ///
+    /// @param {GraphKey} graph key of the account associatd with the record.
+    /// @param {Field} commitment of the record.
+    ///
+    /// @returns {Field} tag of the record.
+    pub fn tag(graph_key: &GraphKey, commitment: Field) -> Result<Field, String> {
+        RecordCiphertextNative::tag(*graph_key.sk_tag(), *commitment).map_err(|e| e.to_string()).map(Field::from)
     }
 }
 
@@ -121,6 +129,7 @@ mod tests {
     const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
     const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
+    const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
 
     // Related material for use in future tests
     const _OWNER_PRIVATE_KEY: &str = "APrivateKey1zkpJkyYRGYtkeHDaFfwsKtUJzia7csiWhfBWPXWhXJzy9Ls";
@@ -143,13 +152,19 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    fn test_decrypt() {
+    fn test_decrypt_and_tag_computation() {
         let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
+        let graph_key = GraphKey::from_view_key(&view_key);
         let plaintext = record.decrypt(&view_key).unwrap();
         assert_eq!(plaintext.to_string(), OWNER_PLAINTEXT);
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         assert!(record.decrypt(&incorrect_view_key).is_err());
+
+        let commitment = plaintext.commitment("credits.aleo", "credits").unwrap();
+        let tag = RecordCiphertext::tag(&graph_key, commitment).unwrap();
+        let expected_tag = Field::from_str(RECORD_TAG).unwrap();
+        assert_eq!(tag, expected_tag);
     }
 
     #[wasm_bindgen_test]

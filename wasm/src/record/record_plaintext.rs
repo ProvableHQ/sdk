@@ -17,11 +17,12 @@
 use crate::{
     Address,
     Credits,
+    GraphKey,
     Plaintext,
-    account::PrivateKey,
+    PrivateKey,
+    record_to_js_object,
     types::{
         Field,
-        helpers::record_to_js_object,
         native::{
             CurrentNetwork,
             EntryNative,
@@ -46,7 +47,6 @@ pub struct RecordPlaintext(RecordPlaintextNative);
 
 #[wasm_bindgen]
 impl RecordPlaintext {
-    #[wasm_bindgen]
     pub fn commitment(&self, program_id: &str, record_name: &str) -> Result<Field, String> {
         Ok(Field::from(
             self.to_commitment(
@@ -174,6 +174,7 @@ impl RecordPlaintext {
     /// @param {PrivateKey} private_key Private key of the account that owns the record
     /// @param {string} program_id Program ID of the program that the record is associated with
     /// @param {string} record_name Name of the record
+    ///
     /// @returns {string} Serial number of the record
     #[wasm_bindgen(js_name = serialNumberString)]
     pub fn serial_number_string(
@@ -187,6 +188,11 @@ impl RecordPlaintext {
         let serial_number = RecordPlaintextNative::serial_number(private_key.into(), commitment.into())
             .map_err(|_| "Serial number derivation failed".to_string())?;
         Ok(serial_number.to_string())
+    }
+
+    /// Get the tag of the record using the graph key.
+    pub fn tag(&self, graph_key: &GraphKey, commitment: Field) -> Result<Field, String> {
+        RecordPlaintextNative::tag(*graph_key.sk_tag(), *commitment).map_err(|e| e.to_string()).map(Field::from)
     }
 }
 
@@ -234,7 +240,7 @@ impl FromStr for RecordPlaintext {
 mod tests {
     use super::*;
 
-    use wasm_bindgen_test::{console_log, wasm_bindgen_test};
+    use wasm_bindgen_test::*;
 
     const CREDITS_RECORD: &str = r"{
   owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
@@ -264,10 +270,26 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_get_record_member() {
+        // Get the record members.
         let record = RecordPlaintext::from_string(BATTLESHIP_RECORD).unwrap();
         let positions = record.get_member("positions".to_string()).unwrap();
         let hits = record.get_member("hits".to_string()).unwrap();
-        console_log!("Battleship positions: {positions:?} - hits: {hits:?}");
+        let metadata = record.get_member("metadata".to_string()).unwrap();
+
+        // Get the struct members.
+        let player_1 = metadata.find("player1".to_string()).unwrap();
+        let player_2 = metadata.find("player2".to_string()).unwrap();
+        let nonce = metadata.find("nonce".to_string()).unwrap();
+
+        // Assert the correct information was extracted.
+        assert_eq!(positions.to_string(), "50794271u64");
+        assert_eq!(hits.to_string(), "0u64");
+        assert_eq!(player_1.to_string(), "aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48");
+        assert_eq!(player_2.to_string(), "aleo1dreuxnmg9cny8ee9v2u0wr4v4affnwm09u2pytfwz0f2en2shgqsdsfjn6");
+        assert_eq!(
+            nonce.to_string(),
+            "660310649780728486489183263981322848354071976582883879926426319832534836534field"
+        );
     }
 
     #[wasm_bindgen_test]

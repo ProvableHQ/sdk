@@ -56,14 +56,6 @@ impl GraphKey {
     }
 }
 
-impl FromStr for GraphKey {
-    type Err = anyhow::Error;
-
-    fn from_str(graph_key: &str) -> Result<Self, Self::Err> {
-        Ok(Self(GraphKeyNative::from_str(graph_key)?))
-    }
-}
-
 impl Deref for GraphKey {
     type Target = GraphKeyNative;
 
@@ -75,6 +67,14 @@ impl Deref for GraphKey {
 impl fmt::Display for GraphKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl FromStr for GraphKey {
+    type Err = anyhow::Error;
+
+    fn from_str(graph_key: &str) -> Result<Self, Self::Err> {
+        Ok(Self(GraphKeyNative::from_str(graph_key)?))
     }
 }
 
@@ -99,5 +99,34 @@ impl From<&GraphKey> for GraphKeyNative {
 impl From<&GraphKeyNative> for GraphKey {
     fn from(value: &GraphKeyNative) -> Self {
         Self(value.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::PrivateKey;
+
+    use wasm_bindgen_test::*;
+
+    #[wasm_bindgen_test]
+    fn test_graph_conversions() {
+        // Derive a new account.
+        let private_key = PrivateKey::new();
+        let view_key = ViewKey::from_private_key(&private_key);
+
+        // Test conversion from view key to graph key.
+        let graph_key = GraphKey::from_view_key(&view_key);
+
+        // Test to and from string.
+        let graph_key_string = graph_key.to_string();
+        let graph_key_from_string = GraphKey::from_string(&graph_key_string);
+        assert_eq!(graph_key, graph_key_from_string);
+
+        // Test conversion of sk_tag to string and back.
+        let sk_tag = graph_key.sk_tag();
+        let sk_tag_string = sk_tag.to_string();
+        let sk_tag_from_string = Field::from_string(&sk_tag_string).unwrap();
+        assert_eq!(sk_tag, sk_tag_from_string);
     }
 }

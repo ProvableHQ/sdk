@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::{
-    helpers::literal_to_js_value,
-    native::{IdentifierNative, PlaintextNative},
+use crate::{
+    literal_to_js_value,
+    types::native::{IdentifierNative, PlaintextNative},
 };
 
 use indexmap::IndexMap;

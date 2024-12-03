@@ -20,11 +20,9 @@ pub use field::Field;
 pub mod group;
 pub use group::Group;
 
-pub mod helpers;
-
 mod networks;
 
 pub(crate) mod native;
 
-mod scalar;
+pub mod scalar;
 pub use scalar::Scalar;

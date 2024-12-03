@@ -33,6 +33,7 @@ pub struct Field(FieldNative);
 impl Field {
     /// Creates a field object from a string representation of a field.
     #[wasm_bindgen(js_name = "fromString")]
+    #[allow(clippy::should_implement_trait)]
     pub fn from_string(field: &str) -> Result<Field, String> {
         Ok(Self(FieldNative::from_str(field).map_err(|e| e.to_string())?))
     }
@@ -126,5 +127,13 @@ impl From<&FieldNative> for Field {
 impl From<&Field> for FieldNative {
     fn from(scalar: &Field) -> Self {
         scalar.0
+    }
+}
+
+impl FromStr for Field {
+    type Err = anyhow::Error;
+
+    fn from_str(field: &str) -> Result<Self, Self::Err> {
+        Ok(Self(FieldNative::from_str(field)?))
     }
 }

@@ -17,8 +17,14 @@
 pub mod address;
 pub use address::*;
 
+pub mod compute_key;
+pub use compute_key::*;
+
 pub mod encryptor;
 pub use encryptor::*;
+
+pub mod graph_key;
+pub use graph_key::*;
 
 pub mod private_key;
 pub use private_key::*;
@@ -29,8 +35,5 @@ pub use private_key_ciphertext::*;
 pub mod signature;
 pub use signature::*;
 
-mod compute_key;
-mod graph_key;
 pub mod view_key;
-
 pub use view_key::*;
