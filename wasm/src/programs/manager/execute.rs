@@ -15,7 +15,6 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
-use core::ops::Add;
 
 use crate::{
     execute_fee,
@@ -31,14 +30,19 @@ use crate::{
 
 use crate::types::native::{
     CurrentAleo,
+    CurrentNetwork,
     IdentifierNative,
     ProcessNative,
     ProgramNative,
     RecordPlaintextNative,
     TransactionNative,
 };
+use core::ops::Add;
 use js_sys::{Array, Object};
 use rand::{rngs::StdRng, SeedableRng};
+use snarkvm_console::prelude::Network;
+use snarkvm_ledger_query::QueryTrait;
+use snarkvm_synthesizer::prelude::cost_in_microcredits_v1;
 use std::str::FromStr;
 
 #[wasm_bindgen]
@@ -284,12 +288,17 @@ impl ProgramManager {
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
         let locator = program.id().to_string().add("/").add(function);
-        if let Some(offline_query) = offline_query {
+
+        let block_height = if let Some(offline_query) = offline_query {
+            let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
             trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+            block_height
         } else {
             let query = QueryNative::from(node_url);
+            let block_height = query.current_block_height_async().await.map_err(|e| e.to_string())?;
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-        }
+            block_height
+        };
         let execution = trace.prove_execution::<CurrentAleo, _>(&locator, rng).map_err(|e| e.to_string())?;
 
         // Get the storage cost in bytes for the program execution
@@ -306,7 +315,11 @@ impl ProgramManager {
             let stack = process.get_stack(program_id).map_err(|e| e.to_string())?;
 
             // Calculate the finalize cost for the function identified in the transition
-            let cost = cost_in_microcredits(stack, function_name).map_err(|e| e.to_string())?;
+            let cost = if block_height >= CurrentNetwork::CONSENSUS_V2_HEIGHT {
+                cost_in_microcredits_v2(stack, function_name).map_err(|e| e.to_string())?
+            } else {
+                cost_in_microcredits_v1(stack, function_name).map_err(|e| e.to_string())?
+            };
 
             // Accumulate the finalize cost.
             finalize_cost = finalize_cost
@@ -339,6 +352,6 @@ impl ProgramManager {
 
         let stack = process.get_stack(program.id()).map_err(|e| e.to_string())?;
 
-        cost_in_microcredits(stack, &function_id).map_err(|e| e.to_string())
+        cost_in_microcredits_v2(stack, &function_id).map_err(|e| e.to_string())
     }
 }
