@@ -25,7 +25,7 @@ const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
 use crate::{KeyPair, PrivateKey, ProvingKey, RecordPlaintext, VerifyingKey};
 
 use crate::types::native::{
-    cost_in_microcredits,
+    cost_in_microcredits_v2,
     deployment_cost,
     IdentifierNative,
     ProcessNative,
