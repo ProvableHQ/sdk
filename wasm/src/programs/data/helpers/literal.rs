@@ -85,9 +85,6 @@ pub fn literal_to_js_value(literal: &LiteralNative) -> JsValue {
             let js_string = literal.to_string();
             (&js_string).into()
         }
-        LiteralNative::String(literal) => {
-            let js_string = literal.to_string();
-            (&js_string).into()
-        }
+        LiteralNative::String(literal) => (&**literal).into(),
     }
 }

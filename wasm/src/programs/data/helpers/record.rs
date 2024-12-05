@@ -16,18 +16,21 @@
 
 use crate::{
     insert_plaintext,
+    object,
     types::native::{EntryNative, RecordPlaintextNative},
 };
 use js_sys::{Object, Reflect};
 
 /// Convert a record to a javascript object.
 pub fn record_to_js_object(record: &RecordPlaintextNative) -> Result<Object, String> {
-    // Create a new javascript object to house the record data.
-    let js_record = Object::new();
-
-    // Insert the owner into the javascript object.
+    let nonce = record.nonce().to_string();
     let owner = record.owner().to_string();
-    Reflect::set(&js_record, &"owner".into(), &owner.into()).unwrap();
+
+    // Insert the owner and nonce.
+    let js_record = object! {
+        "owner": &owner,
+        "_nonce": &nonce,
+    };
 
     // Get the metadata from the record and insert it into the javascript object.
     record.data().iter().for_each(|(key, value)| {
@@ -43,10 +46,6 @@ pub fn record_to_js_object(record: &RecordPlaintextNative) -> Result<Object, Str
             }
         };
     });
-
-    // Insert the nonce into the javascript object.
-    let nonce = record.nonce().to_string();
-    Reflect::set(&js_record, &"_nonce".into(), &nonce.into()).unwrap();
 
     // Return the javascript object representation.
     Ok(js_record)

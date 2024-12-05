@@ -104,9 +104,7 @@ impl Plaintext {
     #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
-        let array = Uint8Array::new_with_length(rust_bytes.len() as u32);
-        array.copy_from(rust_bytes.as_slice());
-        Ok(array)
+        Ok(Uint8Array::from(rust_bytes.as_slice()))
     }
 
     /// Returns the string representation of the plaintext.

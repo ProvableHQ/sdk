@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{plaintext_to_js_value, types::native::InputNative, Ciphertext, Field, Plaintext};
+use crate::{object, plaintext_to_js_value, types::native::InputNative, Ciphertext, Field, Plaintext};
 
-use js_sys::{JsString, Object, Reflect};
+use js_sys::{JsString, Reflect};
 use wasm_bindgen::JsValue;
 
 pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {
@@ -47,8 +47,9 @@ pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {
             }
         }
         InputNative::Record(serial_number, tag) => {
-            let record = Object::new();
-            Reflect::set(&record, &JsString::from("type"), &JsValue::from_str("record")).unwrap();
+            let record = object! {
+                "type": "record",
+            };
             if convert_to_js {
                 Reflect::set(&record, &JsString::from("serialNumber"), &JsValue::from(serial_number.to_string()))
                     .unwrap();
@@ -61,20 +62,25 @@ pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {
             JsValue::from(record)
         }
         InputNative::ExternalRecord(input_commitment) => {
-            let record = Object::new();
-            Reflect::set(&record, &JsString::from("type"), &JsValue::from_str("externalRecord")).unwrap();
+            let external_record = object! {
+                "type": "extneralRecord",
+            };
             if convert_to_js {
-                Reflect::set(&record, &JsString::from("inputCommitment"), &JsValue::from(input_commitment.to_string()))
-                    .unwrap();
+                Reflect::set(
+                    &external_record,
+                    &JsString::from("inputCommitment"),
+                    &JsValue::from(input_commitment.to_string()),
+                )
+                .unwrap();
             } else {
                 Reflect::set(
-                    &record,
+                    &external_record,
                     &JsString::from("inputCommitment"),
                     &JsValue::from(Field::from(input_commitment)),
                 )
                 .unwrap();
             }
-            JsValue::from(record)
+            JsValue::from(external_record)
         }
     }
 }

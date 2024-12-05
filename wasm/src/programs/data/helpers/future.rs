@@ -15,41 +15,36 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    object,
     plaintext_to_js_value,
     types::native::{ArgumentNative, FutureNative},
     Plaintext,
 };
 
-use js_sys::{Array, JsString, Object, Reflect};
+use js_sys::{Array, JsString, Reflect};
 use wasm_bindgen::JsValue;
 
 /// Convert a future to a javascript value.
 pub fn future_to_js_value(argument: &FutureNative, convert_to_js: bool) -> JsValue {
-    let future_object = Object::new();
-    Reflect::set(&future_object, &JsString::from("type"), &JsString::from("future")).unwrap();
-    Reflect::set(&future_object, &JsString::from("programId"), &JsString::from(argument.program_id().to_string()))
-        .unwrap();
-    Reflect::set(
-        &future_object,
-        &JsString::from("functionName"),
-        &JsString::from(argument.function_name().to_string()),
-    )
-    .unwrap();
-    let arguments = Array::new();
-    for argument in argument.arguments() {
-        match argument {
+    let future_object = object! {
+        "type" : "future",
+        "programId" : argument.program_id().to_string(),
+        "functionName" : argument.function_name().to_string(),
+    };
+    let arguments = argument
+        .arguments()
+        .iter()
+        .map(|argument| match argument {
             ArgumentNative::Plaintext(plaintext) => {
                 if convert_to_js {
-                    arguments.push(&plaintext_to_js_value(plaintext));
+                    plaintext_to_js_value(plaintext)
                 } else {
-                    arguments.push(&JsValue::from(Plaintext::from(plaintext)));
+                    JsValue::from(Plaintext::from(plaintext))
                 }
             }
-            ArgumentNative::Future(future) => {
-                arguments.push(&future_to_js_value(future, convert_to_js));
-            }
-        }
-    }
+            ArgumentNative::Future(future) => future_to_js_value(future, convert_to_js),
+        })
+        .collect::<Array>();
     Reflect::set(&future_object, &JsString::from("arguments"), &JsValue::from(&arguments)).unwrap();
     JsValue::from(future_object)
 }

@@ -16,6 +16,7 @@
 
 use crate::{
     future_to_js_value,
+    object,
     plaintext_to_js_value,
     types::native::OutputNative,
     Ciphertext,
@@ -27,7 +28,7 @@ use crate::{
 use js_sys::{JsString, Object, Reflect};
 use wasm_bindgen::JsValue;
 
-pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> Result<JsValue, String> {
+pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue {
     let js_value = match output {
         OutputNative::Constant(_, plaintext) => {
             if let Some(plaintext) = plaintext {
@@ -55,8 +56,12 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> Result<
             }
         }
         OutputNative::Record(commitment, checksum, record_ciphertext) => {
-            let record = Object::new();
-            Reflect::set(&record, &JsString::from("type"), &JsString::from("record")).unwrap();
+            // Create a record object.
+            let record = object! {
+                "type": "record",
+            };
+
+            // Create a record object.
             if convert_to_js {
                 Reflect::set(&record, &JsString::from("commitment"), &JsValue::from(commitment.to_string())).unwrap();
                 Reflect::set(&record, &JsString::from("checksum"), &JsValue::from(checksum.to_string())).unwrap();
@@ -110,5 +115,5 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> Result<
             }
         }
     };
-    Ok(js_value)
+    js_value
 }

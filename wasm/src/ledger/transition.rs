@@ -16,6 +16,7 @@
 
 use crate::{
     input_to_js_value,
+    object,
     output_to_js_value,
     types::native::{FromBytes, ToBytes, TransitionNative},
     Field,
@@ -25,7 +26,7 @@ use crate::{
     ViewKey,
 };
 
-use js_sys::{Array, Object, Reflect, Uint8Array};
+use js_sys::{Array, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -77,9 +78,7 @@ impl Transition {
     #[wasm_bindgen(js_name = toBytesLe)]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
-        let array = Uint8Array::new_with_length(bytes.len() as u32);
-        array.copy_from(bytes.as_slice());
-        Ok(array)
+        Ok(Uint8Array::from(bytes.as_slice()))
     }
 
     #[wasm_bindgen(js_name = programId)]
@@ -121,30 +120,31 @@ impl Transition {
     ///
     /// @returns {Array<RecordPlaintext>} Array of record plaintext objects
     pub fn owned_records(&self, view_key: &ViewKey) -> Array {
-        let array = Array::new();
-        self.0.records().for_each(|(_, record_ciphertext)| {
-            if let Ok(record_plaintext) = record_ciphertext.decrypt(view_key) {
-                let record_ciphertext = RecordPlaintext::from(record_plaintext);
-                array.push(&JsValue::from(record_ciphertext));
-            }
-        });
-        array
+        self.0
+            .records()
+            .filter_map(|(_, record_ciphertext)| {
+                if let Ok(record_plaintext) = record_ciphertext.decrypt(view_key) {
+                    Some(JsValue::from(RecordPlaintext::from(record_plaintext)))
+                } else {
+                    None
+                }
+            })
+            .collect::<Array>()
     }
 
     /// Get the records present in a transition and their commitments.
     ///
     /// @returns {Array<{commitment: Field, record: RecordCiphertext}>} Array of record ciphertext objects
     pub fn records(&self) -> Array {
-        let array = Array::new();
-        self.0.records().for_each(|(commitment, record_ciphertext)| {
-            let object = Object::new();
-            let commitment = Field::from(commitment);
-            let record_ciphertext = RecordCiphertext::from(record_ciphertext);
-            Reflect::set(&object, &JsValue::from_str("commitment"), &JsValue::from(commitment)).unwrap();
-            Reflect::set(&object, &JsValue::from_str("record"), &JsValue::from(record_ciphertext)).unwrap();
-            array.push(&object);
-        });
-        array
+        self.0
+            .records()
+            .map(|(commitment, record_ciphertext)| {
+                object! {
+                    "commitment" : Field::from(commitment),
+                    "record" : RecordCiphertext::from(record_ciphertext),
+                }
+            })
+            .collect::<Array>()
     }
 
     /// Get the inputs of the transition.
@@ -154,11 +154,7 @@ impl Transition {
     ///
     /// @returns {Array} Array of inputs
     pub fn inputs(&self, convert_to_js: bool) -> Array {
-        let js_array = Array::new();
-        for input in self.0.inputs() {
-            js_array.push(&input_to_js_value(input, convert_to_js));
-        }
-        js_array
+        self.0.inputs().iter().map(|input| input_to_js_value(input, convert_to_js)).collect::<Array>()
     }
 
     /// Get the outputs of the transition.
@@ -167,12 +163,8 @@ impl Transition {
     /// the outputs will be in wasm format.
     ///
     /// @returns {Array} Array of outputs
-    pub fn outputs(&self, convert_to_js: bool) -> Result<Array, String> {
-        let js_array = Array::new();
-        for output in self.0.outputs() {
-            js_array.push(&output_to_js_value(output, convert_to_js)?);
-        }
-        Ok(js_array)
+    pub fn outputs(&self, convert_to_js: bool) -> Array {
+        self.0.outputs().iter().map(|output| output_to_js_value(output, convert_to_js)).collect::<Array>()
     }
 
     /// Get the transition public key of the transition.
@@ -235,6 +227,7 @@ impl FromStr for Transition {
 mod tests {
     use super::*;
     use crate::PrivateKey;
+    use js_sys::Object;
 
     use wasm_bindgen_test::wasm_bindgen_test;
 
@@ -340,7 +333,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_output_correctness() {
         let transition = Transition::from_string(TRANSITION).unwrap();
-        let outputs = transition.outputs(true).unwrap();
+        let outputs = transition.outputs(true);
         let output_1 = Object::from(outputs.get(0));
         let output_2 = Object::from(outputs.get(1));
 

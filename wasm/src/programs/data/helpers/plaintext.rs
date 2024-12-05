@@ -20,7 +20,7 @@ use crate::{
 };
 
 use indexmap::IndexMap;
-use js_sys::{Object, Reflect};
+use js_sys::{Array, Object, Reflect};
 use wasm_bindgen::JsValue;
 
 /// Insert a plaintext value into a javascript object.
@@ -34,11 +34,8 @@ pub fn insert_plaintext(js_object: &Object, key: &IdentifierNative, plaintext: &
             let struct_object = struct_to_js_object(struct_members);
             Reflect::set(&js_object, &key.to_string().into(), &struct_object.into()).unwrap();
         }
-        PlaintextNative::Array(plaintext, ..) => {
-            let js_array = js_sys::Array::new();
-            for value in plaintext.iter() {
-                js_array.push(&plaintext_to_js_value(value));
-            }
+        PlaintextNative::Array(array, ..) => {
+            let js_array = array.iter().map(|plaintext| plaintext_to_js_value(plaintext)).collect::<Array>();
             Reflect::set(&js_object, &key.to_string().into(), &js_array.into()).unwrap();
         }
     }
@@ -49,11 +46,8 @@ pub fn plaintext_to_js_value(plaintext: &PlaintextNative) -> JsValue {
     match plaintext {
         PlaintextNative::Literal(literal, _) => literal_to_js_value(literal),
         PlaintextNative::Struct(struct_members, ..) => JsValue::from(struct_to_js_object(struct_members)),
-        PlaintextNative::Array(plaintext, ..) => {
-            let js_array = js_sys::Array::new();
-            for value in plaintext.iter() {
-                js_array.push(&plaintext_to_js_value(value));
-            }
+        PlaintextNative::Array(array, ..) => {
+            let js_array = array.iter().map(|plaintext| plaintext_to_js_value(plaintext)).collect::<Array>();
             JsValue::from(js_array)
         }
     }

@@ -202,9 +202,9 @@ extern "C" {
 #[macro_export]
 macro_rules! array {
         ($($value:expr),*$(,)?) => {{
-            let array = Array::new();
+            let array = ::js_sys::Array::new();
 
-            $(array.push(&JsValue::from($value));)*
+            $(array.push(&::wasm_bindgen::JsValue::from($value));)*
 
             array
         }};
@@ -213,9 +213,9 @@ macro_rules! array {
 #[macro_export]
 macro_rules! object {
         ($($key:literal: $value:expr,)*) => {{
-            let object = Object::new();
+            let object = ::js_sys::Object::new();
 
-            $(Reflect::set(&object, &JsValue::from_str($key), &JsValue::from($value)).unwrap();)*
+            $(Reflect::set(&object, &::wasm_bindgen::JsValue::from_str($key), &::wasm_bindgen::JsValue::from($value)).unwrap();)*
 
             object
         }};

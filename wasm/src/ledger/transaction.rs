@@ -16,6 +16,7 @@
 
 use crate::{
     input_to_js_value,
+    object,
     output_to_js_value,
     types::native::{FromBytes, ToBytes, TransactionNative, U64Native},
     Field,
@@ -77,9 +78,7 @@ impl Transaction {
     #[wasm_bindgen(js_name = toBytesLe)]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
-        let array = Uint8Array::new_with_length(bytes.len() as u32);
-        array.copy_from(bytes.as_slice());
-        Ok(array)
+        Ok(Uint8Array::from(bytes.as_slice()))
     }
 
     /// Returns true if the transaction contains the given serial number.
@@ -145,30 +144,33 @@ impl Transaction {
     ///
     /// @returns {Array<RecordPlaintext>} Array of record plaintext objects
     pub fn owned_records(&self, view_key: &ViewKey) -> Array {
-        let array = Array::new();
-        self.0.records().for_each(|(_, record_ciphertext)| {
-            if let Ok(record_plaintext) = record_ciphertext.decrypt(view_key) {
-                let record_ciphertext = RecordPlaintext::from(record_plaintext);
-                array.push(&JsValue::from(record_ciphertext));
-            }
-        });
-        array
+        self.0
+            .records()
+            .filter_map(|(_, record_ciphertext)| {
+                if let Ok(record_plaintext) = record_ciphertext.decrypt(view_key) {
+                    Some(JsValue::from(RecordPlaintext::from(record_plaintext)))
+                } else {
+                    None
+                }
+            })
+            .collect::<Array>()
     }
 
     /// Get the records present in a transaction and their commitments.
     ///
     /// @returns {Array<{commitment: Field, record: RecordCiphertext}>} Array of record ciphertext objects
     pub fn records(&self) -> Array {
-        let array = Array::new();
-        self.0.records().for_each(|(commitment, record_ciphertext)| {
-            let object = Object::new();
-            let commitment = Field::from(commitment);
-            let record_ciphertext = RecordCiphertext::from(record_ciphertext);
-            Reflect::set(&object, &JsValue::from_str("commitment"), &JsValue::from(commitment)).unwrap();
-            Reflect::set(&object, &JsValue::from_str("record"), &JsValue::from(record_ciphertext)).unwrap();
-            array.push(&object);
-        });
-        array
+        self.0
+            .records()
+            .map(|(commitment, record_ciphertext)| {
+                let commitment = Field::from(commitment);
+                let record_ciphertext = RecordCiphertext::from(record_ciphertext);
+                object! {
+                    "commitment" : commitment,
+                    "record" : record_ciphertext,
+                }
+            })
+            .collect::<Array>()
     }
 
     /// Get a summary of the transaction within a javascript object.
@@ -183,139 +185,62 @@ impl Transaction {
     /// if false the inputs and outputs will be in wasm format.
     ///
     /// @returns {Object} Transaction summary
-    pub fn summary(&self, convert_to_js: bool) -> Result<Object, String> {
-        // Create a transaction object.
-        let transaction = Object::new();
-        let fee = *self.0.fee_amount().unwrap_or(U64Native::new(0));
-        let base_fee = *self.0.base_fee_amount().unwrap_or(U64Native::new(0));
-        let priority_fee = *self.0.priority_fee_amount().unwrap_or(U64Native::new(0));
-        Reflect::set(
-            &transaction,
-            &JsValue::from_str("transactionId"),
-            &JsValue::from_str(&self.transaction_id().to_string()),
-        )
-        .unwrap();
-        Reflect::set(
-            &transaction,
-            &JsValue::from_str("transactionType"),
-            &JsValue::from_str(&self.transaction_type().to_string()),
-        )
-        .unwrap();
-        Reflect::set(&transaction, &JsValue::from_str("baseFee"), &JsValue::from(base_fee)).unwrap();
-        Reflect::set(&transaction, &JsValue::from_str("fee"), &JsValue::from(fee)).unwrap();
-        Reflect::set(&transaction, &JsValue::from_str("priorityFee"), &JsValue::from(priority_fee)).unwrap();
-
+    pub fn summary(&self, convert_to_js: bool) -> Object {
         // If the transaction is an execution, create an array of transitions.
-        if self.0.is_execute() {
-            let transitions = Array::new();
-            for transition in self.0.transitions() {
-                let transition_object = Object::new();
-                Reflect::set(
-                    &transition_object,
-                    &JsValue::from_str("programId"),
-                    &JsValue::from_str(&transition.program_id().to_string()),
-                )
-                .unwrap();
-                Reflect::set(
-                    &transition_object,
-                    &JsValue::from_str("functionName"),
-                    &JsValue::from_str(&transition.function_name().to_string()),
-                )
-                .unwrap();
-                Reflect::set(
-                    &transition_object,
-                    &JsValue::from_str("transitionId"),
-                    &JsValue::from_str(&transition.id().to_string()),
-                )
-                .unwrap();
-
-                let tpk = Group::from(transition.tpk());
-                let tcm = Field::from(transition.tcm());
-                let scm = Field::from(transition.scm());
-                if convert_to_js {
-                    Reflect::set(&transition_object, &JsValue::from_str("tpk"), &JsValue::from_str(&tpk.to_string()))
-                        .unwrap();
-                    Reflect::set(&transition_object, &JsValue::from_str("tcm"), &JsValue::from_str(&tcm.to_string()))
-                        .unwrap();
-                    Reflect::set(&transition_object, &JsValue::from_str("scm"), &JsValue::from_str(&scm.to_string()))
-                        .unwrap();
-                } else {
-                    Reflect::set(&transition_object, &JsValue::from_str("tpk"), &JsValue::from(tpk)).unwrap();
-                    Reflect::set(&transition_object, &JsValue::from_str("tcm"), &JsValue::from(tcm)).unwrap();
-                    Reflect::set(&transition_object, &JsValue::from_str("scm"), &JsValue::from(scm)).unwrap();
+        let transitions = if self.0.is_execute() {
+            let transitions = self.0.transitions().map(|transition| {
+                // Collect the inputs and outputs.
+                let inputs = transition.inputs().iter().map(|input| {
+                    input_to_js_value(input, convert_to_js)
+                }).collect::<Array>();
+                let outputs = transition.outputs().iter().map(|output| {
+                    output_to_js_value(output, convert_to_js)
+                }).collect::<Array>();
+                object! {
+                    "programId" : transition.program_id().to_string(),
+                    "functionName" : transition.function_name().to_string(),
+                    "transitionID" : transition.id().to_string(),
+                    "inputs" : inputs,
+                    "outputs" : outputs,
+                    "tpk" : if convert_to_js { JsValue::from_str(&transition.tpk().to_string()) } else { JsValue::from(Group::from(transition.tpk())) },
+                    "tcm" : if convert_to_js { JsValue::from_str(&transition.tcm().to_string()) } else { JsValue::from(Field::from(transition.tcm())) },
+                    "scm" : if convert_to_js { JsValue::from_str(&transition.scm().to_string()) } else { JsValue::from(Field::from(transition.scm())) },
                 }
-
-                // Get the inputs.
-                let inputs = Array::new();
-                for input in transition.inputs() {
-                    inputs.push(&input_to_js_value(input, convert_to_js));
-                }
-                Reflect::set(&transition_object, &JsValue::from_str("inputs"), &inputs).unwrap();
-
-                // Get the outputs.
-                let outputs = Array::new();
-                for output in transition.outputs() {
-                    outputs.push(&output_to_js_value(output, convert_to_js)?);
-                }
-                Reflect::set(&transition_object, &JsValue::from_str("outputs"), &outputs).unwrap();
-                transitions.push(&transition_object);
-            }
-            Reflect::set(&transaction, &JsValue::from_str("transitions"), &transitions).unwrap();
-        }
+            }).collect::<Array>();
+            JsValue::from(transitions)
+        } else {
+            JsValue::NULL
+        };
 
         // If the transaction is a deployment, summarize the deployment.
-        if let Some(deployment) = self.0.deployment() {
-            let deployment_object = Object::new();
-            Reflect::set(
-                &deployment_object,
-                &JsValue::from_str("programId"),
-                &JsValue::from_str(&deployment.program_id().to_string()),
-            )
-            .unwrap();
-            let functions = Array::new();
-            for (function_name, (verifying_key, _)) in deployment.verifying_keys() {
-                let function = Object::new();
-                Reflect::set(
-                    &function,
-                    &JsValue::from_str("functionName"),
-                    &JsValue::from_str(&function_name.to_string()),
-                )
-                .unwrap();
-                if convert_to_js {
-                    Reflect::set(
-                        &function,
-                        &JsValue::from_str("verifyingKey"),
-                        &JsValue::from_str(&verifying_key.to_string()),
-                    )
-                    .unwrap();
-                } else {
-                    Reflect::set(
-                        &function,
-                        &JsValue::from_str("verifyingKey"),
-                        &JsValue::from(VerifyingKey::from(verifying_key)),
-                    )
-                    .unwrap();
+        let deployment = if let Some(deployment) = self.0.deployment() {
+            let functions = deployment.verifying_keys().iter().map(|(function_name, (verifying_key, _))| {
+                // Create the initial function object.
+                object! {
+                    "functionName" : function_name.to_string(),
+                    "constraints" : verifying_key.circuit_info.num_constraints as u32,
+                    "variables" : verifying_key.num_variables() as u32,
+                    "verifyingKey": if convert_to_js { JsValue::from_str(&verifying_key.to_string()) } else { JsValue::from(VerifyingKey::from(verifying_key)) },
                 }
-                Reflect::set(
-                    &function,
-                    &JsValue::from_str("constraints"),
-                    &JsValue::from(verifying_key.circuit_info.num_constraints as u32),
-                )
-                .unwrap();
-                Reflect::set(
-                    &function,
-                    &JsValue::from_str("variables"),
-                    &JsValue::from(verifying_key.num_variables() as u32),
-                )
-                .unwrap();
-                functions.push(&function);
-            }
-            Reflect::set(&deployment_object, &JsValue::from_str("functions"), &functions).unwrap();
-            Reflect::set(&transaction, &JsValue::from_str("deployment"), &deployment_object).unwrap();
-        }
+            }).collect::<Array>();
+            // Create the deployment object.
+            JsValue::from(object! {
+                "programId" : deployment.program_id().to_string(),
+                "functions" : functions,
+            })
+        } else {
+            JsValue::NULL
+        };
 
-        // Return the transaction summary.
-        Ok(transaction)
+        object! {
+            "transactionId" : self.transaction_id().to_string(),
+            "transactionType" : self.transaction_type().to_string(),
+            "fee" : *self.0.fee_amount().unwrap_or(U64Native::new(0)),
+            "baseFee" : *self.0.base_fee_amount().unwrap_or(U64Native::new(0)),
+            "priorityFee" : *self.0.priority_fee_amount().unwrap_or(U64Native::new(0)),
+            "transitions" : transitions,
+            "deployment" : deployment,
+        }
     }
 
     /// Get the id of the transaction. This is the merkle root of the transaction's inclusion proof.
@@ -346,11 +271,7 @@ impl Transaction {
 
     /// Get the transitions in a transaction.
     pub fn transitions(&self) -> Array {
-        let transitions = Array::new();
-        self.0.transitions().for_each(|transition| {
-            transitions.push(&JsValue::from(Transition::from(transition)));
-        });
-        transitions
+        self.0.transitions().map(|transition| JsValue::from(Transition::from(transition))).collect::<Array>()
     }
 }
 
@@ -450,7 +371,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_transaction_summary_provides_expected_values() {
         let transaction = Transaction::from_string(TRANSACTION_STRING).unwrap();
-        let summary = transaction.summary(true).unwrap();
+        let summary = transaction.summary(true);
         let transaction_id = Reflect::get(&summary, &JsValue::from_str("transactionId")).unwrap().as_string().unwrap();
         assert_eq!(transaction_id, TRANSACTION_ID);
         let transaction_type =
