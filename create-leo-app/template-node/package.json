@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "dev": "node index.js"
   },
   "dependencies": {
     "@provablehq/sdk": "^0.7.0"

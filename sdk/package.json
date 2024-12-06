@@ -50,7 +50,8 @@
     "@provablehq/wasm": "^0.7.0",
     "comlink": "^4.4.1",
     "mime": "^3.0.0",
-    "sync-request": "^6.1.0"
+    "sync-request": "^6.1.0",
+    "core-js": "^3.38.1"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.5",
@@ -63,7 +64,6 @@
     "better-docs": "^2.7.2",
     "chai": "^5.1.1",
     "clean-jsdoc-theme": "^4.1.8",
-    "core-js": "^3.38.1",
     "cpr": "^3.0.1",
     "eslint": "^8.26.0",
     "eslint-config-prettier": "^8.5.0",
