@@ -47,7 +47,7 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@provablehq/wasm": "/Users/privacydaddy/dev/sdk/wasm/dist",
+    "@provablehq/wasm": "^0.7.2",
     "comlink": "^4.4.1",
     "mime": "^3.0.0",
     "sync-request": "^6.1.0",
