@@ -1,9 +1,8 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import {Account, Block, AleoNetworkClient, TransactionModel} from "../src/node";
-import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data";
-import {log} from "console";
-
+import {Account, BlockModel, AleoNetworkClient, TransactionSummary} from "../src/node";
+import {beaconPrivateKeyString} from "./data/account-data";
+import { Plaintext, Transition } from "@provablehq/wasm";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {
@@ -48,7 +47,7 @@ describe('NodeConnection', () => {
     describe('getBlock', () => {
         it.skip('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as Block).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
+            expect((block as BlockModel).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
         });
 
         it('should throw an error if the request fails', async () => {
@@ -63,9 +62,9 @@ describe('NodeConnection', () => {
         it.skip('should return an array of Block objects', async () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).equal(true);
-            expect((blockRange as Block[]).length).equal(3);
-            expect(((blockRange as Block[])[0] as Block).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
-            expect(((blockRange as Block[])[1] as Block).block_hash).equal("ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42");
+            expect((blockRange as BlockModel[]).length).equal(3);
+            expect(((blockRange as BlockModel[])[0] as BlockModel).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
+            expect(((blockRange as BlockModel[])[1] as BlockModel).block_hash).equal("ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42");
         });
 
         it('should throw an error if the request fails', async () => {
@@ -95,7 +94,7 @@ describe('NodeConnection', () => {
     describe('getLatestBlock', () => {
         it('should return a Block object', async () => {
             const latestBlock = await connection.getLatestBlock();
-            expect(typeof (latestBlock as Block).block_hash).equal('string');
+            expect(typeof (latestBlock as BlockModel).block_hash).equal('string');
         });
 
         it('should set the X-Aleo-SDK-Version header', async () => {
@@ -225,4 +224,55 @@ describe('NodeConnection', () => {
             }
         });
     });
+
+    describe('Test object api methods', () => {
+        it('should return a plaintext object that matches the text representation', async () => {
+            // Get both the plaintext and text.
+            const plaintext = await connection.getProgramMappingPlaintext("credits.aleo", "committee", "aleo1n6c5ugxk6tp09vkrjegcpcprssdfcf7283agcdtt8gu9qex2c5xs9c28ay");
+            const text = await connection.getProgramMappingValue("credits.aleo", "committee", "aleo1n6c5ugxk6tp09vkrjegcpcprssdfcf7283agcdtt8gu9qex2c5xs9c28ay");
+
+            // Ensure the plaintext toString is the same as the api response.
+            expect(text).equal(plaintext.toString());
+
+            // Get the fields one by one and ensure they're equal to the object representation's fields.
+            const isOpen = (<Plaintext>plaintext.find("is_open")).toObject();
+            const commission = (<Plaintext>plaintext.find("commission")).toObject();
+            const plaintextObject = plaintext.toObject();
+            expect(plaintextObject.is_open).equal(isOpen);
+            expect(plaintextObject.commission).equal(commission);
+        });
+
+        it('should return a plaintext object that matches the text representation', async () => {
+            // Get the transactions at block 2758488.
+            const transactions = await connection.getTransactionObjects(2758488);
+            const transaction = transactions[0];
+            const transition = <Transition>transaction.transitions()[0];
+            const summary = <TransactionSummary>transactions[0].summary(true);
+
+            // Ensure the transaction metadata was correctly computed.
+            expect(transactions.length).equal(8);
+            expect(transaction.transactionId()).equal("at1y0afe3p5g09mu55tgu82fqsxsn6upp454lp5txfvp8k9jcneayxqhwuvj9");
+            expect(transaction.isExecute()).equal(true);
+            expect(transaction.isFee()).equals(false);
+            expect(transaction.isDeploy()).equals(false);
+            expect(transaction.records().length).equals( 0);
+            expect(transaction).equals("transfer_public");
+
+            // Check the transition object contains the correct transition metadata
+            expect(transition.functionName()).equals("transfer_public");
+            expect(transition.inputs(true).length).equals(2);
+            expect(transition.outputs(true).length).equals(1);
+            expect(transition.tpk().toString()).equals("5505786677709730139587687856338355349602954343267614082103195360896482413755group");
+            expect(transition.tcm()).equals("1455559603629217842263476269813313185104442044684294581757708680601708025726field");
+
+            // Ensure the object summary returns the correct transaction metadata.
+            expect(summary.type).equals(transaction.transactionType());
+            expect(summary.fee).equals(transaction.feeAmount());
+            expect(summary.transitions.length).equals(1);
+            expect(summary.id).equals(transaction.transactionId());
+            expect(summary.fee).equals(transaction.feeAmount());
+            expect(summary.baseFee).equals(transaction.baseFeeAmount());
+            expect(summary.priorityFee).equals(transaction.priorityFeeAmount());
+        });
+    })
 });

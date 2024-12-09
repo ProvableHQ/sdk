@@ -14,23 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    object,
-    plaintext_to_js_value,
-    types::native::{ArgumentNative, FutureNative},
-    Plaintext,
-};
+use crate::{object, plaintext_to_js_value, types::native::{ArgumentNative, FutureNative}, Field, Plaintext};
 
-use js_sys::{Array, JsString, Reflect};
+use js_sys::{Array, Reflect};
 use wasm_bindgen::JsValue;
+use crate::types::native::FieldNative;
 
 /// Convert a future to a javascript value.
-pub fn future_to_js_value(argument: &FutureNative, convert_to_js: bool) -> JsValue {
-    let future_object = object! {
-        "type" : "future",
-        "programId" : argument.program_id().to_string(),
-        "functionName" : argument.function_name().to_string(),
-    };
+pub fn future_to_js_value(argument: &FutureNative, convert_to_js: bool, id: &FieldNative) -> JsValue {
     let arguments = argument
         .arguments()
         .iter()
@@ -42,9 +33,15 @@ pub fn future_to_js_value(argument: &FutureNative, convert_to_js: bool) -> JsVal
                     JsValue::from(Plaintext::from(plaintext))
                 }
             }
-            ArgumentNative::Future(future) => future_to_js_value(future, convert_to_js),
+            ArgumentNative::Future(future) => future_to_js_value(future, convert_to_js, id),
         })
         .collect::<Array>();
-    Reflect::set(&future_object, &JsString::from("arguments"), &JsValue::from(&arguments)).unwrap();
+    let future_object = object! {
+        "type" : "future",
+        "id" : if convert_to_js { JsValue::from(&id.to_string()) } else { JsValue::from(Field::from(id)) },
+        "programId" : argument.program_id().to_string(),
+        "functionName" : argument.function_name().to_string(),
+        "arguments" : arguments,
+    };
     JsValue::from(future_object)
 }

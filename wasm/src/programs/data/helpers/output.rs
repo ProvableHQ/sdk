@@ -25,27 +25,39 @@ use crate::{
     RecordCiphertext,
 };
 
-use js_sys::{JsString, Object, Reflect};
+use js_sys::Reflect;
 use wasm_bindgen::JsValue;
 
 pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue {
     let js_value = match output {
-        OutputNative::Constant(_, plaintext) => {
-            if let Some(plaintext) = plaintext {
+        OutputNative::Constant(id, plaintext) => {
+            let value = if let Some(plaintext) = plaintext {
                 if convert_to_js { plaintext_to_js_value(plaintext) } else { JsValue::from(Plaintext::from(plaintext)) }
             } else {
                 JsValue::NULL
-            }
+            };
+            let constant = object! {
+                "type" : "constant",
+                "id" : if convert_to_js { JsValue::from(id.to_string()) } else { JsValue::from(Field::from(id)) },
+                "value" : value,
+            };
+            JsValue::from(constant)
         }
-        OutputNative::Public(_, plaintext) => {
-            if let Some(plaintext) = plaintext {
+        OutputNative::Public(id, plaintext) => {
+            let value = if let Some(plaintext) = plaintext {
                 if convert_to_js { plaintext_to_js_value(plaintext) } else { JsValue::from(Plaintext::from(plaintext)) }
             } else {
                 JsValue::NULL
-            }
+            };
+            let public_output = object! {
+                "type" : "constant",
+                "id" : if convert_to_js { JsValue::from(id.to_string()) } else { JsValue::from(Field::from(id)) },
+                "value" : value,
+            };
+            JsValue::from(public_output)
         }
-        OutputNative::Private(_, ciphertext) => {
-            if let Some(ciphertext) = ciphertext {
+        OutputNative::Private(id, ciphertext) => {
+            let value = if let Some(ciphertext) = ciphertext {
                 if convert_to_js {
                     JsValue::from_str(&ciphertext.to_string())
                 } else {
@@ -53,66 +65,46 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
                 }
             } else {
                 JsValue::NULL
-            }
+            };
+            let private_output = object! {
+                "type" : "constant",
+                "id" : if convert_to_js { JsValue::from(id.to_string()) } else { JsValue::from(Field::from(id)) },
+                "value" : value,
+            };
+            JsValue::from(private_output)
         }
         OutputNative::Record(commitment, checksum, record_ciphertext) => {
-            // Create a record object.
-            let record = object! {
-                "type": "record",
-            };
-
-            // Create a record object.
-            if convert_to_js {
-                Reflect::set(&record, &JsString::from("commitment"), &JsValue::from(commitment.to_string())).unwrap();
-                Reflect::set(&record, &JsString::from("checksum"), &JsValue::from(checksum.to_string())).unwrap();
-                if let Some(record_ciphertext) = record_ciphertext {
-                    Reflect::set(
-                        &record,
-                        &JsString::from("recordCiphertext"),
-                        &JsValue::from(record_ciphertext.to_string()),
-                    )
-                    .unwrap();
+            let value = if let Some(record_ciphertext) = record_ciphertext {
+                if convert_to_js {
+                    JsValue::from(record_ciphertext.to_string())
+                } else {
+                    JsValue::from(RecordCiphertext::from(record_ciphertext))
                 }
-            } else {
-                Reflect::set(&record, &JsString::from("commitment"), &JsValue::from(Field::from(commitment))).unwrap();
-                Reflect::set(&record, &JsString::from("checksum"), &JsValue::from(Field::from(checksum))).unwrap();
-                if let Some(record_ciphertext) = record_ciphertext {
-                    Reflect::set(
-                        &record,
-                        &JsString::from("recordCiphertext"),
-                        &JsValue::from(RecordCiphertext::from(record_ciphertext)),
-                    )
-                    .unwrap();
-                }
-            }
-            JsValue::from(&record)
-        }
-        OutputNative::ExternalRecord(output_commitment) => {
-            let external_record_object = Object::new();
-            Reflect::set(&external_record_object, &JsString::from("type"), &JsString::from("externalRecord")).unwrap();
-            if convert_to_js {
-                Reflect::set(
-                    &external_record_object,
-                    &JsString::from("outputCommitment"),
-                    &JsString::from(output_commitment.to_string()),
-                )
-                .unwrap();
-            } else {
-                Reflect::set(
-                    &external_record_object,
-                    &JsString::from("outputCommitment"),
-                    &JsValue::from(Field::from(output_commitment)),
-                )
-                .unwrap();
-            }
-            JsValue::from(external_record_object)
-        }
-        OutputNative::Future(_, future) => {
-            if let Some(future) = future {
-                future_to_js_value(future, convert_to_js)
             } else {
                 JsValue::NULL
-            }
+            };
+            let record = object! {
+                "type": "record",
+                "id": if convert_to_js { JsValue::from(commitment.to_string()) } else { JsValue::from(Field::from(commitment)) },
+                "checksum": if convert_to_js { JsValue::from(checksum.to_string()) } else { JsValue::from(Field::from(checksum)) },
+                "value" : value,
+            };
+            JsValue::from(record)
+        }
+        OutputNative::ExternalRecord(output_commitment) => {
+            let external_record_object = object! {
+                "type": "external_record",
+                "id": if convert_to_js { JsValue::from(output_commitment.to_string()) } else { JsValue::from(Field::from(output_commitment)) },
+            };
+            JsValue::from(external_record_object)
+        }
+        OutputNative::Future(id, future) => {
+            let value = if let Some(future) = future {
+                future_to_js_value(future, convert_to_js, id)
+            } else {
+                JsValue::NULL
+            };
+            JsValue::from(&value)
         }
     };
     js_value

@@ -1,4 +1,4 @@
-export type Output = {
+export type OutputJSON = {
     type: string;
     id: string;
     checksum: string;

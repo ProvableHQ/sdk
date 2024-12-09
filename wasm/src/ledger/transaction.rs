@@ -84,6 +84,7 @@ impl Transaction {
     /// Returns true if the transaction contains the given serial number.
     ///
     /// @param {boolean} True if the transaction contains the given serial number.
+    #[wasm_bindgen(js_name = constainsSerialNumber)]
     pub fn contains_serial_number(&self, serial_number: &Field) -> bool {
         self.0.contains_serial_number(serial_number)
     }
@@ -91,21 +92,25 @@ impl Transaction {
     /// Returns true if the transaction contains the given commitment.
     ///
     /// @param {boolean} True if the transaction contains the given commitment.
+    #[wasm_bindgen(js_name = constainsCommitment)]
     pub fn contains_commitment(&self, commitment: &Field) -> bool {
         self.0.contains_commitment(commitment)
     }
 
     /// Find a record in the transaction by the record's commitment.
+    #[wasm_bindgen(js_name = findRecord)]
     pub fn find_record(&self, commitment: &Field) -> Option<RecordCiphertext> {
         self.0.find_record(commitment).map(|record_ciphertext| RecordCiphertext::from(record_ciphertext))
     }
 
     /// Returns the transaction's base fee.
+    #[wasm_bindgen(js_name = baseFeeAmount)]
     pub fn base_fee_amount(&self) -> u64 {
         self.0.base_fee_amount().map(|fee| *fee).unwrap_or(0)
     }
 
     /// Returns the transaction's total fee.
+    #[wasm_bindgen(js_name = feeAmount)]
     pub fn fee_amount(&self) -> u64 {
         self.0.fee_amount().map(|fee| *fee).unwrap_or(0)
     }
@@ -113,6 +118,7 @@ impl Transaction {
     /// Returns the transaction's priority fee.
     ///
     /// returns {bigint} The transaction's priority fee.
+    #[wasm_bindgen(js_name = priorityFeeAmount)]
     pub fn priority_fee_amount(&self) -> u64 {
         self.0.priority_fee_amount().map(|fee| *fee).unwrap_or(0)
     }
@@ -120,6 +126,7 @@ impl Transaction {
     /// Returns true if the transaction is a deployment transaction.
     ///
     /// @returns {boolean} True if the transaction is a deployment transaction
+    #[wasm_bindgen(js_name = isDeploy)]
     pub fn is_deploy(&self) -> bool {
         self.0.is_deploy()
     }
@@ -127,6 +134,7 @@ impl Transaction {
     /// Returns true if the transaction is an execution transaction.
     ///
     /// @returns {boolean} True if the transaction is an execution transaction
+    #[wasm_bindgen(js_name = isExecute)]
     pub fn is_execute(&self) -> bool {
         self.0.is_execute()
     }
@@ -134,6 +142,7 @@ impl Transaction {
     /// Returns true if the transaction is a fee transaction.
     ///
     /// @returns {boolean} True if the transaction is a fee transaction
+    #[wasm_bindgen(js_name = isFee)]
     pub fn is_fee(&self) -> bool {
         self.0.is_fee()
     }
@@ -143,6 +152,7 @@ impl Transaction {
     /// @param {ViewKey} view_key View key used to decrypt the ciphertext
     ///
     /// @returns {Array<RecordPlaintext>} Array of record plaintext objects
+    #[wasm_bindgen(js_name = ownedRecords)]
     pub fn owned_records(&self, view_key: &ViewKey) -> Array {
         self.0
             .records()
@@ -199,7 +209,7 @@ impl Transaction {
                 object! {
                     "programId" : transition.program_id().to_string(),
                     "functionName" : transition.function_name().to_string(),
-                    "transitionID" : transition.id().to_string(),
+                    "id" : transition.id().to_string(),
                     "inputs" : inputs,
                     "outputs" : outputs,
                     "tpk" : if convert_to_js { JsValue::from_str(&transition.tpk().to_string()) } else { JsValue::from(Group::from(transition.tpk())) },
@@ -209,7 +219,7 @@ impl Transaction {
             }).collect::<Array>();
             JsValue::from(transitions)
         } else {
-            JsValue::NULL
+            JsValue::from(Array::new())
         };
 
         // If the transaction is a deployment, summarize the deployment.
@@ -217,7 +227,7 @@ impl Transaction {
             let functions = deployment.verifying_keys().iter().map(|(function_name, (verifying_key, _))| {
                 // Create the initial function object.
                 object! {
-                    "functionName" : function_name.to_string(),
+                    "name" : function_name.to_string(),
                     "constraints" : verifying_key.circuit_info.num_constraints as u32,
                     "variables" : verifying_key.num_variables() as u32,
                     "verifyingKey": if convert_to_js { JsValue::from_str(&verifying_key.to_string()) } else { JsValue::from(VerifyingKey::from(verifying_key)) },
@@ -233,8 +243,8 @@ impl Transaction {
         };
 
         object! {
-            "transactionId" : self.transaction_id().to_string(),
-            "transactionType" : self.transaction_type().to_string(),
+            "id" : self.transaction_id().to_string(),
+            "type" : self.transaction_type().to_string(),
             "fee" : *self.0.fee_amount().unwrap_or(U64Native::new(0)),
             "baseFee" : *self.0.base_fee_amount().unwrap_or(U64Native::new(0)),
             "priorityFee" : *self.0.priority_fee_amount().unwrap_or(U64Native::new(0)),
@@ -250,8 +260,7 @@ impl Transaction {
     /// value can be used to lookup the transaction data on-chain.
     ///
     /// @returns {string} TransactionId
-    #[wasm_bindgen(js_name = transactionId)]
-    pub fn transaction_id(&self) -> String {
+    pub fn id(&self) -> String {
         self.0.id().to_string()
     }
 
@@ -372,10 +381,10 @@ mod tests {
     fn test_transaction_summary_provides_expected_values() {
         let transaction = Transaction::from_string(TRANSACTION_STRING).unwrap();
         let summary = transaction.summary(true);
-        let transaction_id = Reflect::get(&summary, &JsValue::from_str("transactionId")).unwrap().as_string().unwrap();
+        let transaction_id = Reflect::get(&summary, &JsValue::from_str("id")).unwrap().as_string().unwrap();
         assert_eq!(transaction_id, TRANSACTION_ID);
         let transaction_type =
-            Reflect::get(&summary, &JsValue::from_str("transactionType")).unwrap().as_string().unwrap();
+            Reflect::get(&summary, &JsValue::from_str("type")).unwrap().as_string().unwrap();
         assert_eq!(transaction_type, "execute");
         assert!(Reflect::get(&summary, &JsValue::from_str("baseFee")).unwrap().is_bigint());
         assert!(Reflect::get(&summary, &JsValue::from_str("fee")).unwrap().is_bigint());
@@ -411,8 +420,13 @@ mod tests {
         // Check inputs.
         let inputs = Array::from(&Reflect::get(&transition, &JsValue::from_str("inputs")).unwrap()).to_vec();
         assert_eq!(inputs.len(), 2);
-        assert_eq!(inputs[0].as_string().unwrap(), "aleo1nde82xqshcyjq2r3qjel7pphk3zfs928w5dqhuc6g2ywquef7srsmrpjgr");
-        assert!(inputs[1].is_bigint());
+        assert_eq!(Reflect::get(&inputs[0], &JsValue::from_str("type")).unwrap().as_string().unwrap(), "public");
+        assert_eq!(Reflect::get(&inputs[0], &JsValue::from_str("id")).unwrap().as_string().unwrap(), "4751135245718319934677221244600857477393936843410399077399851644790898074286field");
+        assert_eq!(Reflect::get(&inputs[0], &JsValue::from_str("value")).unwrap().as_string().unwrap(), "aleo1nde82xqshcyjq2r3qjel7pphk3zfs928w5dqhuc6g2ywquef7srsmrpjgr");
+        assert_eq!(Reflect::get(&inputs[1], &JsValue::from_str("type")).unwrap().as_string().unwrap(), "public");
+        assert_eq!(Reflect::get(&inputs[1], &JsValue::from_str("id")).unwrap().as_string().unwrap(), "1879683531456735826402444579986765299787803396630464445477045553705002014280field");
+        assert!(Reflect::get(&inputs[1], &JsValue::from_str("value")).unwrap().is_bigint());
+
 
         // Check outputs and future arguments.
         let outputs = Array::from(&Reflect::get(&transition, &JsValue::from_str("outputs")).unwrap()).to_vec();
@@ -469,10 +483,10 @@ mod tests {
         // Check inputs.
         let inputs = Array::from(&Reflect::get(&transition, &JsValue::from_str("inputs")).unwrap()).to_vec();
         assert_eq!(inputs.len(), 3);
-        assert!(inputs[0].is_bigint());
-        assert!(inputs[1].is_bigint());
+        assert!(Reflect::get(&inputs[0], &JsValue::from_str("value")).unwrap().is_bigint());
+        assert!(Reflect::get(&inputs[1], &JsValue::from_str("value")).unwrap().is_bigint());
         assert_eq!(
-            inputs[2].as_string().unwrap(),
+            Reflect::get(&inputs[2], &JsValue::from_str("value")).unwrap().as_string().unwrap(),
             "4485998228444633245424449325268791226620568930423610568011053349827561756688field"
         );
 

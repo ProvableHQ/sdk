@@ -96,6 +96,7 @@ impl Transition {
     /// Returns true if the transition contains the given commitment.
     ///
     /// @param {boolean} True if the transition contains the given commitment.
+    #[wasm_bindgen(js_name = containsCommitment)]
     pub fn contains_commitment(&self, commitment: &Field) -> bool {
         self.0.contains_commitment(commitment)
     }
@@ -105,11 +106,13 @@ impl Transition {
     /// @param {Field} serial_number The serial number to check for
     ///
     /// @returns {bool} True if the transition contains a serial number, false otherwise
+    #[wasm_bindgen(js_name = containsSerialNumber)]
     pub fn contains_serial_number(&self, serial_number: &Field) -> bool {
         self.0.contains_serial_number(serial_number)
     }
 
     /// Find a record in the transition by the record's commitment.
+    #[wasm_bindgen(js_name = findRecord)]
     pub fn find_record(&self, commitment: &Field) -> Option<RecordCiphertext> {
         self.0.find_record(commitment).map(|record_ciphertext| RecordCiphertext::from(record_ciphertext))
     }
@@ -119,6 +122,7 @@ impl Transition {
     /// @param {ViewKey} view_key The view key of the record owner.
     ///
     /// @returns {Array<RecordPlaintext>} Array of record plaintext objects
+    #[wasm_bindgen(js_name = ownedRecords)]
     pub fn owned_records(&self, view_key: &ViewKey) -> Array {
         self.0
             .records()
@@ -323,11 +327,13 @@ mod tests {
         assert_eq!(inputs.length(), 2);
         assert_eq!(Reflect::get(&input_1, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "record");
         assert_eq!(
-            Reflect::get(&input_1, &JsValue::from_str("serialNumber")).unwrap().as_string().unwrap(),
+            Reflect::get(&input_1, &JsValue::from_str("id")).unwrap().as_string().unwrap(),
             INPUT_RECORD_SERIAL_NUMBER
         );
         assert_eq!(Reflect::get(&input_1, &JsValue::from_str("tag")).unwrap().as_string().unwrap(), INPUT_RECORD_TAG);
-        assert!(input_2.is_bigint());
+        assert_eq!(Reflect::get(&input_2, &JsValue::from_str("id")).unwrap().as_string().unwrap(), "4155661860779318196369465902681808025430867777096367712868886959018716227815field");
+        assert_eq!(Reflect::get(&input_2, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "public");
+        assert!(Reflect::get(&input_2, &JsValue::from_str("value")).unwrap().is_bigint());
     }
 
     #[wasm_bindgen_test]
@@ -343,7 +349,7 @@ mod tests {
         // Ensure the record output is correct.
         assert_eq!(Reflect::get(&output_1, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "record");
         assert_eq!(
-            Reflect::get(&output_1, &JsValue::from_str("commitment")).unwrap().as_string().unwrap(),
+            Reflect::get(&output_1, &JsValue::from_str("id")).unwrap().as_string().unwrap(),
             OUTPUT_RECORD_COMMITMENT
         );
         assert_eq!(
@@ -351,12 +357,13 @@ mod tests {
             OUTPUT_CHECKSUM
         );
         assert_eq!(
-            Reflect::get(&output_1, &JsValue::from_str("recordCiphertext")).unwrap().as_string().unwrap(),
+            Reflect::get(&output_1, &JsValue::from_str("value")).unwrap().as_string().unwrap(),
             OUTPUT_RECORD
         );
 
         // Ensure the future output is correct.
         let arguments = Array::from(&Reflect::get(&output_2, &JsValue::from_str("arguments")).unwrap());
+
         assert_eq!(Reflect::get(&output_2, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "future");
         assert_eq!(
             Reflect::get(&output_2, &JsValue::from_str("programId")).unwrap().as_string().unwrap(),

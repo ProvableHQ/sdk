@@ -72,6 +72,7 @@ impl Plaintext {
     }
 
     /// Encrypt a plaintext with a transition view key.
+    #[wasm_bindgen(js_name = encryptSymmetric)]
     pub fn encrypt_symmetric(&self, transition_view_key: &Field) -> Result<Ciphertext, String> {
         self.0.encrypt_symmetric(**transition_view_key).map_err(|e| e.to_string()).map(Ciphertext::from)
     }

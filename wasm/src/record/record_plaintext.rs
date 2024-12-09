@@ -68,6 +68,7 @@ impl RecordPlaintext {
         Self::from_str(record).map_err(|_| "The record plaintext string provided was invalid".into())
     }
 
+    #[wasm_bindgen(js_name = getMember)]
     pub fn get_member(&self, input: String) -> Result<Plaintext, String> {
         let entry = self
             .0
@@ -140,7 +141,7 @@ impl RecordPlaintext {
     /// assert(JSON.stringify(record_plaintext_object) == JSON.stringify(expected_object));
     ///
     /// @returns {Object} Javascript object representation of the record
-    #[wasm_bindgen(js_name = "getRecordMembers")]
+    #[wasm_bindgen(js_name = "toJsObject")]
     pub fn to_js_object(&self) -> Result<Object, String> {
         record_to_js_object(&self.0)
     }

@@ -1,8 +1,9 @@
 import { get, post, parseJSON, logAndThrow } from "./utils";
 import { Account } from "./account";
-import { Block } from "./models/block";
-import { TransactionModel } from "./models/transactionModel";
+import { BlockModel } from "./models/blockModel";
+import { TransactionJSON } from "./models/transaction/transactionJSON";
 import {
+  Plaintext,
   RecordCiphertext,
   Program,
   RecordPlaintext,
@@ -96,7 +97,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Attempts to find unspent records in the Aleo blockchain for a specified private key
+   * Attempts to find unspent records in the Aleo blockchain for a specified private key.
    * @param {number} startHeight - The height at which to start searching for unspent records
    * @param {number} endHeight - The height at which to stop searching for unspent records
    * @param {string | PrivateKey} privateKey - The private key to use to find unspent records
@@ -291,15 +292,15 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the contents of the block at the specified block height
+   * Returns the contents of the block at the specified block height.
    *
    * @param {number} height
    * @example
    * const block = networkClient.getBlock(1234);
    */
-  async getBlock(height: number): Promise<Block> {
+  async getBlock(height: number): Promise<BlockModel> {
     try {
-      const block = await this.fetchData<Block>("/block/" + height);
+      const block = await this.fetchData<BlockModel>("/block/" + height);
       return block;
     } catch (error) {
       throw new Error("Error fetching block.");
@@ -307,16 +308,16 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns a range of blocks between the specified block heights
+   * Returns a range of blocks between the specified block heights.
    *
    * @param {number} start
    * @param {number} end
    * @example
    * const blockRange = networkClient.getBlockRange(2050, 2100);
    */
-  async getBlockRange(start: number, end: number): Promise<Array<Block>> {
+  async getBlockRange(start: number, end: number): Promise<Array<BlockModel>> {
     try {
-      return await this.fetchData<Array<Block>>("/blocks?start=" + start + "&end=" + end);
+      return await this.fetchData<Array<BlockModel>>("/blocks?start=" + start + "&end=" + end);
     } catch (error) {
       const errorMessage = `Error fetching blocks between ${start} and ${end}.`;
       throw new Error(errorMessage);
@@ -324,10 +325,10 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the deployment transaction id associated with the specified program
+   * Returns the deployment transaction id associated with the specified program.
    *
    * @param {Program | string} program
-   * @returns {TransactionModel}
+   * @returns {TransactionJSON}
    */
   async getDeploymentTransactionIDForProgram(program: Program | string): Promise<string> {
     if (program instanceof Program) {
@@ -342,36 +343,51 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the deployment transaction associated with a specified program
+   * Returns the deployment transaction associated with a specified program.
    *
    * @param {Program | string} program
-   * @returns {TransactionModel}
+   * @returns {TransactionJSON}
    */
-  async getDeploymentTransactionForProgram(program: Program | string): Promise<TransactionModel> {
+  async getDeploymentTransactionForProgram(program: Program | string): Promise<TransactionJSON> {
     try {
       const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
-      return <TransactionModel>await this.getTransaction(transaction_id);
+      return <TransactionJSON>await this.getTransaction(transaction_id);
     } catch (error) {
       throw new Error("Error fetching deployment transaction for program.");
     }
   }
 
   /**
-   * Returns the contents of the latest block
+   * Returns the deployment transaction associated with a specified program as a wasm object.
+   *
+   * @param {Program | string} program
+   * @returns {TransactionJSON}
+   */
+  async getDeploymentTransactioObjectnForProgram(program: Program | string): Promise<Transaction> {
+    try {
+      const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
+      return await this.getTransactionObject(transaction_id);
+    } catch (error) {
+      throw new Error("Error fetching deployment transaction for program.");
+    }
+  }
+
+  /**
+   * Returns the contents of the latest block.
    *
    * @example
    * const latestHeight = networkClient.getLatestBlock();
    */
-  async getLatestBlock(): Promise<Block> {
+  async getLatestBlock(): Promise<BlockModel> {
     try {
-      return await this.fetchData<Block>("/block/latest") as Block;
+      return await this.fetchData<BlockModel>("/block/latest") as BlockModel;
     } catch (error) {
       throw new Error("Error fetching latest block.");
     }
   }
 
   /**
-   * Returns the latest committee
+   * Returns the latest committee.
    *
    * @returns {Promise<object>} A javascript object containing the latest committee
    */
@@ -384,7 +400,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the latest block height
+   * Returns the latest block height.
    *
    * @example
    * const latestHeight = networkClient.getLatestHeight();
@@ -398,7 +414,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the source code of a program given a program ID
+   * Returns the source code of a program given a program ID.
    *
    * @param {string} programId The program ID of a program deployed to the Aleo Network
    * @return {Promise<string>} Source code of the program
@@ -417,7 +433,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns a program object from a program ID or program source code
+   * Returns a program object from a program ID or program source code.
    *
    * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
    * @return {Promise<Program>} Source code of the program
@@ -501,7 +517,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Get a list of the program names that a program imports
+   * Get a list of the program names that a program imports.
    *
    * @param {Program | string} inputProgram - The program id or program source code to get the imports of
    * @returns {string[]} - The list of program names that the program imports
@@ -521,7 +537,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the names of the mappings of a program
+   * Returns the names of the mappings of a program.
    *
    * @param {string} programId - The program ID to get the mappings of (e.g. "credits.aleo")
    * @example
@@ -538,11 +554,11 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the value of a program's mapping for a specific key
+   * Returns the value of a program's mapping for a specific key.
    *
    * @param {string} programId - The program ID to get the mapping value of (e.g. "credits.aleo")
    * @param {string} mappingName - The name of the mapping to get the value of (e.g. "account")
-   * @param {string} key - The key of the mapping to get the value of (e.g. "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
+   * @param {string | Plaintext} key - The key of the mapping to get the value of (e.g. "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
    * @return {Promise<string>} String representation of the value of the mapping
    *
    * @example
@@ -551,16 +567,60 @@ class AleoNetworkClient {
    * const expectedValue = "0u64";
    * assert.equal(mappingValue, expectedValue);
    */
-  async getProgramMappingValue(programId: string, mappingName: string, key: string): Promise<string> {
+  async getProgramMappingValue(programId: string, mappingName: string, key: string | Plaintext): Promise<string> {
     try {
-      return await this.fetchData<string>("/program/" + programId + "/mapping/" + mappingName + "/" + key)
+      const keyString = key instanceof Plaintext ? key.toString() : key;
+      return await this.fetchData<string>("/program/" + programId + "/mapping/" + mappingName + "/" + keyString)
     } catch (error) {
       throw new Error("Error fetching mapping value - ensure the mapping exists and the key is correct");
     }
   }
 
+
   /**
-   * Returns the latest state/merkle root of the Aleo blockchain
+   * Returns the value of a mapping as a wasm Plaintext object. Returning an
+   * object in this format allows it to be converted to a Js type and for its
+   * internal members to be inspected if it's a struct or array.
+   *
+   * @example
+   * // Get the bond state as an account.
+   * const unbondedState = networkClient.getMappingPlaintext("credits.aleo", "bonded", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+   *
+   * // Get the two members of the object individually.
+   * const validator = unbondedState.getMember("validator");
+   * const microcredits = unbondedState.getMember("microcredits");
+   *
+   * // Ensure the expected values are correct.
+   * assert.equal(validator, "aleo1u6940v5m0fzud859xx2c9tj2gjg6m5qrd28n636e6fdd2akvfcgqs34mfd");
+   * assert.equal(microcredits, BigInt("9007199254740991"));
+   *
+   * // Get a JS object representation of the unbonded state.
+   * const unbondedStateObject = unbondedState.toObject();
+   *
+   * const expectedState = {
+   *     validator: "aleo1u6940v5m0fzud859xx2c9tj2gjg6m5qrd28n636e6fdd2akvfcgqs34mfd",
+   *     microcredits: BigInt("9007199254740991")
+   * };
+   * assert.equal(unbondedState, expectedState);
+   *
+   * @param {string} programId - The program ID to get the mapping value of (e.g. "credits.aleo")
+   * @param {string} mappingName - The name of the mapping to get the value of (e.g. "account")
+   * @param {string | Plaintext} key - The key of the mapping to get the value of (e.g. "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
+   *
+   * @return {Promise<string>} String representation of the value of the mapping
+   */
+  async getProgramMappingPlaintext(programId: string, mappingName: string, key: string | Plaintext): Promise<Plaintext> {
+    try {
+      const keyString = key instanceof Plaintext ? key.toString() : key;
+      const value = await this.fetchData<string>("/program/" + programId + "/mapping/" + mappingName + "/" + keyString);
+      return Plaintext.fromString(value);
+    } catch (error) {
+      throw new Error("Failed to fetch mapping value");
+    }
+  }
+
+  /**
+   * Returns the latest state/merkle root of the Aleo blockchain.
    *
    * @example
    * const stateRoot = networkClient.getStateRoot();
@@ -574,30 +634,85 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns a transaction by its unique identifier
+   * Returns a transaction by its unique identifier.
    *
    * @param {string} id
    * @example
    * const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
    */
-  async getTransaction(id: string): Promise<TransactionModel> {
+  async getTransaction(transactionId: string): Promise<TransactionJSON> {
     try {
-    return await this.fetchData<TransactionModel>("/transaction/" + id);
+    return await this.fetchData<TransactionJSON>("/transaction/" + transactionId);
     } catch (error) {
       throw new Error("Error fetching transaction.");
     }
   }
 
   /**
-   * Returns the transactions present at the specified block height
+   * Returns a transaction as a wasm object. Getting a transaction of this type will allow the ability for the inputs,
+   * outputs, and records to be searched for and displayed.
+   *
+   * @example
+   * const transactionObject = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+   * // Get the transaction inputs as a JS array.
+   * const transactionOutputs = transactionObject.inputs(true);
+   *
+   * // Get the transaction outputs as a JS object.
+   * const transactionInputs = transactionObject.outputs(true);
+   *
+   * // Get any records generated in transitions in the transaction as a JS object.
+   * const records = transactionObject.records();
+   *
+   * // Get the transaction type.
+   * const transactionType = transactionObject.transactionType();
+   * assert.equal(transactionType, "Execute");
+   *
+   * // Get a JS representation of all inputs, outputs, and transaction metadata.
+   * const transactionSummary = transactionObject.summary();
+   *
+   * @param {string} transactionId
+   * @example
+   */
+  async getTransactionObject(transactionId: string): Promise<Transaction> {
+    try {
+      const transaction = await this.fetchData<string>("/transaction/" + transactionId);
+      return Transaction.fromString(transaction);
+    } catch (error) {
+      throw new Error("Error fetching transaction.");
+    }
+  }
+
+  /**
+   * Returns the transactions present at the specified block height.
    *
    * @param {number} height
    * @example
    * const transactions = networkClient.getTransactions(654);
    */
-  async getTransactions(height: number): Promise<Array<TransactionModel>> {
+  async getTransactions(height: number): Promise<Array<TransactionJSON>> {
     try {
-    return await this.fetchData<Array<TransactionModel>>("/block/" + height.toString() + "/transactions");
+    return await this.fetchData<Array<TransactionJSON>>("/block/" + height.toString() + "/transactions");
+    } catch (error) {
+      throw new Error("Error fetching transactions.");
+    }
+  }
+
+  /**
+   * Returns an array of transactions as wasm objects present at the specified block height.
+   *
+   * @param {number} height
+   * @example
+   * const transactions = networkClient.getTransactionObjects(654);
+   *
+   * let transaction_summaries = transactions.map(transaction => transaction.summary());
+   */
+  async getTransactionObjects(height: number): Promise<Array<Transaction>> {
+    try {
+      return (await this.fetchData<Array<string>>("/block/" + height.toString() + "/transactions"))
+          .reduce<Array<Transaction>>((acc, transaction) => {
+              acc.push(Transaction.fromString(transaction));
+              return acc;
+            }, []);
     } catch (error) {
       throw new Error("Error fetching transactions.");
     }
@@ -609,9 +724,27 @@ class AleoNetworkClient {
    * @example
    * const transactions = networkClient.getTransactionsInMempool();
    */
-  async getTransactionsInMempool(): Promise<Array<TransactionModel>> {
+  async getTransactionsInMempool(): Promise<Array<TransactionJSON>> {
     try {
-      return await this.fetchData<Array<TransactionModel>>("/memoryPool/transactions");
+      return await this.fetchData<Array<TransactionJSON>>("/memoryPool/transactions");
+    } catch (error) {
+      throw new Error("Error fetching transactions from mempool.");
+    }
+  }
+
+  /**
+   * Returns the transactions in the memory pool as wasm objects.
+   *
+   * @example
+   * const transactions = networkClient.getTransactionsInMempool();
+   */
+  async getTransactionObjectsInMempool(): Promise<Array<Transaction>> {
+    try {
+      return (await this.fetchData<Array<string>>("/memoryPool/transactions"))
+          .reduce<Array<Transaction>>((acc, transaction) => {
+        acc.push(Transaction.fromString(transaction));
+        return acc;
+      }, []);
     } catch (error) {
       throw new Error("Error fetching transactions from mempool.");
     }
@@ -633,7 +766,7 @@ class AleoNetworkClient {
   }
 
   /**
-   * Submit an execute or deployment transaction to the Aleo network
+   * Submit an execute or deployment transaction to the Aleo network.
    *
    * @param {Transaction | string} transaction  - The transaction to submit to the network
    * @returns {string} - The transaction id of the submitted transaction or the resulting error
@@ -643,6 +776,32 @@ class AleoNetworkClient {
     try {
       const response = await post(this.host + "/transaction/broadcast", {
         body: transaction_string,
+        headers: Object.assign({}, this.headers, {
+          "Content-Type": "application/json",
+        }),
+      });
+
+      try {
+        const text = await response.text();
+        return parseJSON(text);
+
+      } catch (error: any) {
+        throw new Error(`Error posting transaction. Aleo network response: ${error.message}`);
+      }
+    } catch (error: any) {
+      throw new Error(`Error posting transaction: No response received: ${error.message}`);
+    }
+  }
+
+  /**
+   * Submit a solution to the Aleo network.
+   *
+   * @param {string} solution The string representation of the solution desired to be submitted to the network.
+   */
+  async submitSolution(solution: string): Promise<string> {
+    try {
+      const response = await post(this.host + "/solution/broadcast", {
+        body: solution,
         headers: Object.assign({}, this.headers, {
           "Content-Type": "application/json",
         }),

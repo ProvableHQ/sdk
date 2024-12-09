@@ -23,7 +23,7 @@ describe('Program Manager', () => {
 
     describe('Offline query', () => {
         it.skip('The offline query should work as expected', async () => {
-            const offlineQuery = new OfflineQuery(stateRoot);
+            const offlineQuery = new OfflineQuery(1, stateRoot);
             const record_plaintext = RecordPlaintext.fromString(statePathRecord);
             const commitment = record_plaintext.commitment("credits.aleo", "credits").toString();
             offlineQuery.addStatePath(commitment, recordStatePath);

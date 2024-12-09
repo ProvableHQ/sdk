@@ -22,13 +22,13 @@ use crate::{
     Field,
     Plaintext,
 };
-use snarkvm_console::prelude::Double;
-use std::ops::Deref;
+use snarkvm_console::prelude::{Double, Zero};
 
 use once_cell::sync::OnceCell;
-use std::str::FromStr;
+use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// Elliptic curve element.
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Group(GroupNative);
@@ -77,6 +77,7 @@ impl Group {
     }
 
     /// Multiply a group element by a scalar element.
+    #[wasm_bindgen(js_name = scalarMultiply)]
     pub fn scalar_multiply(&self, scalar: &Scalar) -> Group {
         Group(self.0 * **scalar)
     }
@@ -86,9 +87,25 @@ impl Group {
         Group(self.0.double())
     }
 
-    /// Get the negation of the group element.
-    pub fn negate(&self) -> Group {
+    /// Get the inverse of the group element. This is the reflection of the point about the axis
+    /// of symmetry i.e. (x,y) -> (x, -y).
+    pub fn inverse(&self) -> Group {
         Group(-self.0)
+    }
+
+    /// Check if one group element equals another.
+    pub fn equals(&self, other: &Group) -> bool {
+        self.0 == GroupNative::from(other)
+    }
+
+    /// Get the group identity element under the group operation (i.e. the point at infinity.)
+    pub fn zero() -> Group {
+        Group::from(GroupNative::zero())
+    }
+
+    /// Get the generator of the group.
+    pub fn generator() -> Group {
+        Group::from(GroupNative::generator())
     }
 }
 

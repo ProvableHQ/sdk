@@ -18,13 +18,14 @@ use crate::{
     types::native::{FieldNative, LiteralNative, PlaintextNative, Uniform},
     Plaintext,
 };
-use snarkvm_console::prelude::{Double, One, Pow};
+use snarkvm_console::prelude::{Double, One, Pow, Zero};
 use std::ops::Deref;
 
 use once_cell::sync::OnceCell;
 use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// Field element.
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Field(FieldNative);
@@ -87,6 +88,9 @@ impl Field {
         Field(-self.0)
     }
 
+    /// Get the zero element of the field.
+    pub fn zero() -> Field { Field(FieldNative::zero()) }
+
     /// Get the one element of the field.
     pub fn one() -> Field {
         Field(FieldNative::one())
@@ -95,6 +99,11 @@ impl Field {
     /// Double the field element.
     pub fn double(&self) -> Field {
         Field(self.0.double())
+    }
+
+    /// Check if one field element equals another.
+    pub fn equals(&self, other: &Field) -> bool {
+        self.0 == FieldNative::from(other)
     }
 }
 

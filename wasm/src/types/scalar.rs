@@ -15,7 +15,7 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::native::{PlaintextNative, ScalarNative, Uniform};
-use snarkvm_console::prelude::{Double, One, Pow};
+use snarkvm_console::prelude::{Double, One, Pow, Zero};
 use std::ops::Deref;
 
 use crate::{types::native::LiteralNative, Plaintext};
@@ -23,6 +23,7 @@ use once_cell::sync::OnceCell;
 use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// Scalar field element.
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Scalar(ScalarNative);
@@ -54,22 +55,22 @@ impl Scalar {
         Scalar(ScalarNative::rand(rng))
     }
 
-    /// Add two field elements.
+    /// Add two scalar elements.
     pub fn add(&self, other: &Scalar) -> Scalar {
         Scalar(self.0 + other.0)
     }
 
-    /// Subtract two field elements.
+    /// Subtract two scalar elements.
     pub fn subtract(&self, other: &Scalar) -> Scalar {
         Scalar(self.0 - other.0)
     }
 
-    /// Multiply two field elements.
+    /// Multiply two scalar elements.
     pub fn multiply(&self, other: &Scalar) -> Scalar {
         Scalar(self.0 * other.0)
     }
 
-    /// Divide two field elements.
+    /// Divide two scalar elements.
     pub fn divide(&self, other: &Scalar) -> Scalar {
         Scalar(self.0 / other.0)
     }
@@ -79,12 +80,12 @@ impl Scalar {
         Scalar(self.0.double())
     }
 
-    /// Power of a field element.
+    /// Power of a scalar element.
     pub fn pow(&self, other: &Scalar) -> Scalar {
         Scalar(self.0.pow(other.0))
     }
 
-    /// Invert the field element.
+    /// Invert the scalar element.
     pub fn inverse(&self) -> Scalar {
         Scalar(-self.0)
     }
@@ -92,6 +93,14 @@ impl Scalar {
     /// Creates a one valued element of the scalar field.
     pub fn one() -> Scalar {
         Scalar(ScalarNative::one())
+    }
+
+    /// Creates a zero valued element of the scalar field
+    pub fn zero() -> Scalar { Scalar(ScalarNative::zero())}
+
+    /// Check if one scalar element equals another.
+    pub fn equals(&self, other: &Scalar) -> bool {
+        self.0 == ScalarNative::from(other)
     }
 }
 

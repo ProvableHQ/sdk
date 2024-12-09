@@ -2,12 +2,20 @@ import "./polyfill/shared";
 
 import { Account } from "./account";
 import { AleoNetworkClient, ProgramImports } from "./network-client";
-import { Block } from "./models/block";
-import { Execution } from "./models/execution";
-import { Input } from "./models/input";
-import { Output } from "./models/output";
-import { TransactionModel } from "./models/transactionModel";
-import { Transition } from "./models/transition";
+import { BlockModel } from "./models/blockModel";
+import { ExecutionJSON } from "./models/executionJSON";
+import { FunctionObject } from "./models/functionObject";
+import { InputJSON } from "./models/input/inputJSON";
+import { InputObject } from "./models/input/inputObject";
+import { OutputJSON } from "./models/output/outputJSON";
+import { OutputObject } from "./models/output/outputObject";
+import { PlaintextArray} from "./models/plaintext/array";
+import { PlaintextLiteral} from "./models/plaintext/literal";
+import { PlaintextStruct} from "./models/plaintext/struct";
+import { TransactionJSON } from "./models/transaction/transactionJSON";
+import { TransactionSummary } from "./models/transaction/transactionSummary";
+import { TransitionJSON } from "./models/transition/transitionJSON";
+import { TransitionObject } from "./models/transition/transitionObject";
 import {
     AleoKeyProvider,
     AleoKeyProviderParams,
@@ -41,10 +49,13 @@ export { logAndThrow } from "./utils";
 
 export {
     Address,
+    Ciphertext,
     Execution as FunctionExecution,
     ExecutionResponse,
     Field,
+    Group,
     OfflineQuery,
+    Plaintext,
     PrivateKey,
     PrivateKeyCiphertext,
     Program,
@@ -53,7 +64,9 @@ export {
     RecordCiphertext,
     RecordPlaintext,
     Signature,
+    Scalar,
     Transaction,
+    Transition,
     VerifyingKey,
     ViewKey,
     initThreadPool,
@@ -81,21 +94,27 @@ export {
     AleoKeyProviderParams,
     AleoKeyProviderInitParams,
     AleoNetworkClient,
-    Block,
+    BlockModel,
     BlockHeightSearch,
     CachedKeyPair,
-    Execution,
+    ExecutionJSON,
+    FunctionObject,
     FunctionKeyPair,
     FunctionKeyProvider,
-    Input,
+    InputJSON,
+    InputObject,
     KeySearchParams,
     NetworkRecordProvider,
     ProgramImports,
     OfflineKeyProvider,
     OfflineSearchParams,
-    Output,
+    PlaintextArray,
+    PlaintextLiteral,
+    PlaintextStruct,
+    OutputJSON,
+    OutputObject,
     RecordProvider,
     RecordSearchParams,
-    TransactionModel,
-    Transition,
+    TransactionJSON,
+    TransactionSummary,
 };
