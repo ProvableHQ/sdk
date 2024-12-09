@@ -243,7 +243,7 @@ impl Transaction {
         };
 
         object! {
-            "id" : self.transaction_id().to_string(),
+            "id" : self.id().to_string(),
             "type" : self.transaction_type().to_string(),
             "fee" : *self.0.fee_amount().unwrap_or(U64Native::new(0)),
             "baseFee" : *self.0.base_fee_amount().unwrap_or(U64Native::new(0)),
@@ -339,7 +339,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_transaction_string_constructor_and_accessor_methods() {
         let transaction = Transaction::from_string(TRANSACTION_STRING).unwrap();
-        let transaction_id = transaction.transaction_id();
+        let transaction_id = transaction.id();
         let transaction_type = transaction.transaction_type();
         let recovered_string = transaction.to_string();
         assert_eq!(transaction_id, TRANSACTION_ID);
