@@ -331,7 +331,10 @@ mod tests {
             INPUT_RECORD_SERIAL_NUMBER
         );
         assert_eq!(Reflect::get(&input_1, &JsValue::from_str("tag")).unwrap().as_string().unwrap(), INPUT_RECORD_TAG);
-        assert_eq!(Reflect::get(&input_2, &JsValue::from_str("id")).unwrap().as_string().unwrap(), "4155661860779318196369465902681808025430867777096367712868886959018716227815field");
+        assert_eq!(
+            Reflect::get(&input_2, &JsValue::from_str("id")).unwrap().as_string().unwrap(),
+            "4155661860779318196369465902681808025430867777096367712868886959018716227815field"
+        );
         assert_eq!(Reflect::get(&input_2, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "public");
         assert!(Reflect::get(&input_2, &JsValue::from_str("value")).unwrap().is_bigint());
     }
@@ -356,10 +359,7 @@ mod tests {
             Reflect::get(&output_1, &JsValue::from_str("checksum")).unwrap().as_string().unwrap(),
             OUTPUT_CHECKSUM
         );
-        assert_eq!(
-            Reflect::get(&output_1, &JsValue::from_str("value")).unwrap().as_string().unwrap(),
-            OUTPUT_RECORD
-        );
+        assert_eq!(Reflect::get(&output_1, &JsValue::from_str("value")).unwrap().as_string().unwrap(), OUTPUT_RECORD);
 
         // Ensure the future output is correct.
         let arguments = Array::from(&Reflect::get(&output_2, &JsValue::from_str("arguments")).unwrap());

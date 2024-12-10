@@ -14,11 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{object, plaintext_to_js_value, types::native::{ArgumentNative, FutureNative}, Field, Plaintext};
+use crate::{
+    object,
+    plaintext_to_js_value,
+    types::native::{ArgumentNative, FutureNative},
+    Field,
+    Plaintext,
+};
 
+use crate::types::native::FieldNative;
 use js_sys::{Array, Reflect};
 use wasm_bindgen::JsValue;
-use crate::types::native::FieldNative;
 
 /// Convert a future to a javascript value.
 pub fn future_to_js_value(argument: &FutureNative, convert_to_js: bool, id: &FieldNative) -> JsValue {

@@ -96,7 +96,9 @@ impl Scalar {
     }
 
     /// Creates a zero valued element of the scalar field
-    pub fn zero() -> Scalar { Scalar(ScalarNative::zero())}
+    pub fn zero() -> Scalar {
+        Scalar(ScalarNative::zero())
+    }
 
     /// Check if one scalar element equals another.
     pub fn equals(&self, other: &Scalar) -> bool {

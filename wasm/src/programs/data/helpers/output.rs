@@ -99,11 +99,8 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
             JsValue::from(external_record_object)
         }
         OutputNative::Future(id, future) => {
-            let value = if let Some(future) = future {
-                future_to_js_value(future, convert_to_js, id)
-            } else {
-                JsValue::NULL
-            };
+            let value =
+                if let Some(future) = future { future_to_js_value(future, convert_to_js, id) } else { JsValue::NULL };
             JsValue::from(&value)
         }
     };

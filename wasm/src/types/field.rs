@@ -89,7 +89,9 @@ impl Field {
     }
 
     /// Get the zero element of the field.
-    pub fn zero() -> Field { Field(FieldNative::zero()) }
+    pub fn zero() -> Field {
+        Field(FieldNative::zero())
+    }
 
     /// Get the one element of the field.
     pub fn one() -> Field {

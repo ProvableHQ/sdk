@@ -383,8 +383,7 @@ mod tests {
         let summary = transaction.summary(true);
         let transaction_id = Reflect::get(&summary, &JsValue::from_str("id")).unwrap().as_string().unwrap();
         assert_eq!(transaction_id, TRANSACTION_ID);
-        let transaction_type =
-            Reflect::get(&summary, &JsValue::from_str("type")).unwrap().as_string().unwrap();
+        let transaction_type = Reflect::get(&summary, &JsValue::from_str("type")).unwrap().as_string().unwrap();
         assert_eq!(transaction_type, "execute");
         assert!(Reflect::get(&summary, &JsValue::from_str("baseFee")).unwrap().is_bigint());
         assert!(Reflect::get(&summary, &JsValue::from_str("fee")).unwrap().is_bigint());
@@ -421,12 +420,20 @@ mod tests {
         let inputs = Array::from(&Reflect::get(&transition, &JsValue::from_str("inputs")).unwrap()).to_vec();
         assert_eq!(inputs.len(), 2);
         assert_eq!(Reflect::get(&inputs[0], &JsValue::from_str("type")).unwrap().as_string().unwrap(), "public");
-        assert_eq!(Reflect::get(&inputs[0], &JsValue::from_str("id")).unwrap().as_string().unwrap(), "4751135245718319934677221244600857477393936843410399077399851644790898074286field");
-        assert_eq!(Reflect::get(&inputs[0], &JsValue::from_str("value")).unwrap().as_string().unwrap(), "aleo1nde82xqshcyjq2r3qjel7pphk3zfs928w5dqhuc6g2ywquef7srsmrpjgr");
+        assert_eq!(
+            Reflect::get(&inputs[0], &JsValue::from_str("id")).unwrap().as_string().unwrap(),
+            "4751135245718319934677221244600857477393936843410399077399851644790898074286field"
+        );
+        assert_eq!(
+            Reflect::get(&inputs[0], &JsValue::from_str("value")).unwrap().as_string().unwrap(),
+            "aleo1nde82xqshcyjq2r3qjel7pphk3zfs928w5dqhuc6g2ywquef7srsmrpjgr"
+        );
         assert_eq!(Reflect::get(&inputs[1], &JsValue::from_str("type")).unwrap().as_string().unwrap(), "public");
-        assert_eq!(Reflect::get(&inputs[1], &JsValue::from_str("id")).unwrap().as_string().unwrap(), "1879683531456735826402444579986765299787803396630464445477045553705002014280field");
+        assert_eq!(
+            Reflect::get(&inputs[1], &JsValue::from_str("id")).unwrap().as_string().unwrap(),
+            "1879683531456735826402444579986765299787803396630464445477045553705002014280field"
+        );
         assert!(Reflect::get(&inputs[1], &JsValue::from_str("value")).unwrap().is_bigint());
-
 
         // Check outputs and future arguments.
         let outputs = Array::from(&Reflect::get(&transition, &JsValue::from_str("outputs")).unwrap()).to_vec();
