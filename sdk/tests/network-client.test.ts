@@ -1,8 +1,10 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import {Account, BlockModel, AleoNetworkClient, TransactionSummary} from "../src/node";
+import { Account, BlockJSON, AleoNetworkClient, TransactionSummary, InputObject, OutputObject } from "../src/node";
 import {beaconPrivateKeyString} from "./data/account-data";
 import { Plaintext, Transition } from "@provablehq/wasm";
+import { TransitionObject } from "../src/models/transition/transitionObject";
+import { PlaintextObject } from "../src/models/plaintext/plaintext";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {
@@ -47,7 +49,7 @@ describe('NodeConnection', () => {
     describe('getBlock', () => {
         it.skip('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as BlockModel).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
+            expect((block as BlockJSON).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
         });
 
         it('should throw an error if the request fails', async () => {
@@ -62,9 +64,9 @@ describe('NodeConnection', () => {
         it.skip('should return an array of Block objects', async () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).equal(true);
-            expect((blockRange as BlockModel[]).length).equal(3);
-            expect(((blockRange as BlockModel[])[0] as BlockModel).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
-            expect(((blockRange as BlockModel[])[1] as BlockModel).block_hash).equal("ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42");
+            expect((blockRange as BlockJSON[]).length).equal(3);
+            expect(((blockRange as BlockJSON[])[0] as BlockJSON).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
+            expect(((blockRange as BlockJSON[])[1] as BlockJSON).block_hash).equal("ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42");
         });
 
         it('should throw an error if the request fails', async () => {
@@ -94,7 +96,7 @@ describe('NodeConnection', () => {
     describe('getLatestBlock', () => {
         it('should return a Block object', async () => {
             const latestBlock = await connection.getLatestBlock();
-            expect(typeof (latestBlock as BlockModel).block_hash).equal('string');
+            expect(typeof (latestBlock as BlockJSON).block_hash).equal('string');
         });
 
         it('should set the X-Aleo-SDK-Version header', async () => {
@@ -225,54 +227,95 @@ describe('NodeConnection', () => {
         });
     });
 
-    describe('Test object api methods', () => {
-        it('should return a plaintext object that matches the text representation', async () => {
-            // Get both the plaintext and text.
-            const plaintext = await connection.getProgramMappingPlaintext("credits.aleo", "committee", "aleo1n6c5ugxk6tp09vkrjegcpcprssdfcf7283agcdtt8gu9qex2c5xs9c28ay");
-            const text = await connection.getProgramMappingValue("credits.aleo", "committee", "aleo1n6c5ugxk6tp09vkrjegcpcprssdfcf7283agcdtt8gu9qex2c5xs9c28ay");
+    describe('Test API methods that return wasm objects', () => {
+        it('should return a struct whose object representation matches the wasm representation', async () => {
+            // Ensure we're on testnet.
+            const transactions = await connection.getTransactionObjects(27400);
+            if (transactions.length > 1) {
+                // Check the credits.aleo mapping.
+                const plaintext = await connection.getProgramMappingPlaintext("credits.aleo", "committee", "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal");
+                const text = await connection.getProgramMappingValue("credits.aleo", "committee", "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal");
 
-            // Ensure the plaintext toString is the same as the api response.
-            expect(text).equal(plaintext.toString());
+                // Ensure the plaintext toString is the same as the api response.
+                expect(text).equal(plaintext.toString());
 
-            // Get the fields one by one and ensure they're equal to the object representation's fields.
-            const isOpen = (<Plaintext>plaintext.find("is_open")).toObject();
-            const commission = (<Plaintext>plaintext.find("commission")).toObject();
-            const plaintextObject = plaintext.toObject();
-            expect(plaintextObject.is_open).equal(isOpen);
-            expect(plaintextObject.commission).equal(commission);
+                // Ensure the JS object representation matches the wasm representation.
+                const isOpen = (<Plaintext>plaintext.find("is_open")).toObject();
+                const commission = (<Plaintext>plaintext.find("commission")).toObject();
+                const plaintextObject = plaintext.toObject();
+                expect(plaintextObject.is_open).equal(isOpen);
+                expect(plaintextObject.commission).equal(commission);
+            }
         });
 
-        it('should return a plaintext object that matches the text representation', async () => {
-            // Get the transactions at block 2758488.
-            const transactions = await connection.getTransactionObjects(2758488);
-            const transaction = transactions[0];
-            const transition = <Transition>transaction.transitions()[0];
-            const summary = <TransactionSummary>transactions[0].summary(true);
+        it('should have a correct transaction summary', async () => {
+            // Get the transactions at block 27400 on testnet.
+            const transactions = await connection.getTransactionObjects(27400);
+            if (transactions.length > 1) {
+                const transaction = transactions[0];
+                const transition = <Transition>transaction.transitions()[0];
+                const summary = <TransactionSummary>transactions[0].summary(true);
 
-            // Ensure the transaction metadata was correctly computed.
-            expect(transactions.length).equal(8);
-            expect(transaction.transactionId()).equal("at1y0afe3p5g09mu55tgu82fqsxsn6upp454lp5txfvp8k9jcneayxqhwuvj9");
-            expect(transaction.isExecute()).equal(true);
-            expect(transaction.isFee()).equals(false);
-            expect(transaction.isDeploy()).equals(false);
-            expect(transaction.records().length).equals( 0);
-            expect(transaction).equals("transfer_public");
+                // Ensure the transaction metadata was correctly computed.
+                expect(transactions.length).equal(3);
+                expect(transaction.id()).equal("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
+                expect(transaction.isExecute()).equal(true);
+                expect(transaction.isFee()).equals(false);
+                expect(transaction.isDeploy()).equals(false);
+                expect(transaction.records().length).equals( 0);
 
-            // Check the transition object contains the correct transition metadata
-            expect(transition.functionName()).equals("transfer_public");
-            expect(transition.inputs(true).length).equals(2);
-            expect(transition.outputs(true).length).equals(1);
-            expect(transition.tpk().toString()).equals("5505786677709730139587687856338355349602954343267614082103195360896482413755group");
-            expect(transition.tcm()).equals("1455559603629217842263476269813313185104442044684294581757708680601708025726field");
+                // Check the transition object contains the correct transition metadata
+                expect(transition.programId()).equals("puzzle_arcade_coin_v001.aleo")
+                expect(transition.functionName()).equals("mint");
+                expect(transition.inputs(true).length).equals(2);
+                expect(transition.outputs(true).length).equals(1);
+                expect(transition.tpk().toString()).equals("6666707959509237020554863505720154589525217196021270704042929032892063700604group");
+                expect(transition.tcm().toString()).equals("5140704971235445395514301730284508935687584564904251867869912904008739082032field");
+                expect(transition.scm().toString()).equals("4048085747685910464005835076598544744404883618916202014212851266936759881218field");
 
-            // Ensure the object summary returns the correct transaction metadata.
-            expect(summary.type).equals(transaction.transactionType());
-            expect(summary.fee).equals(transaction.feeAmount());
-            expect(summary.transitions.length).equals(1);
-            expect(summary.id).equals(transaction.transactionId());
-            expect(summary.fee).equals(transaction.feeAmount());
-            expect(summary.baseFee).equals(transaction.baseFeeAmount());
-            expect(summary.priorityFee).equals(transaction.priorityFeeAmount());
+                // Ensure the object summary returns the correct transaction metadata.
+                expect(summary.type).equals(transaction.transactionType());
+                expect(summary.fee).equals(transaction.feeAmount());
+                expect(summary.transitions.length).equals(1);
+                expect(<string>summary.transitions[0].tpk).equals("6666707959509237020554863505720154589525217196021270704042929032892063700604group");
+                expect(<string>summary.transitions[0].tcm).equals("5140704971235445395514301730284508935687584564904251867869912904008739082032field");
+                expect(<string>summary.transitions[0].scm).equals("4048085747685910464005835076598544744404883618916202014212851266936759881218field");
+                expect(summary.transitions[0].functionName).equals("transfer_public");
+                expect(summary.id).equals(transaction.transactionId());
+                expect(summary.fee).equals(transaction.feeAmount());
+                expect(summary.baseFee).equals(transaction.baseFeeAmount());
+                expect(summary.priorityFee).equals(transaction.priorityFeeAmount());
+
+                // Check inputs.
+                const transition_summary = <TransitionObject>summary.transitions[0];
+                const transition_inputs = <InputObject[]>transition_summary.inputs;
+                const transition_outputs = <OutputObject[]>transition_summary.outputs;
+                // Ensure the transition_summary matches the wasm object.
+                expect(transition_summary.tpk).equals(transition.tpk().toString());
+                expect(transition_summary.tcm).equals(transition.tcm().toString());
+                expect(transition_summary.scm).equals(transition.scm().toString());
+                expect(transition_summary.functionName).equals(transition.functionName());
+                expect(transition_summary.id).equals(transition.id());
+                expect(transition_summary.program).equals(transition.programId());
+                expect(transition_inputs.length).equals(transition.inputs(true).length);
+                expect(transition_outputs.length).equals(transition.outputs(true).length);
+
+                // Check the summary's inputs and outputs match expected values.
+                const transition_input_1 = <InputObject>transition_inputs[0];
+                const transition_input_2 = <InputObject>transition_inputs[1];
+                const transition_output_1 = <OutputObject>transition_outputs[0];
+                const transition_future_arguments = <PlaintextObject[]>transition_output_1.arguments;
+                expect(transition_input_1.type).equals("public");
+                expect(transition_input_2.type).equals("public");
+                expect(<string>transition_input_1.value).equals("aleo1mltea0uj6865k5qvvf4er424wg8kqgh4ldlkgav7qzrzrw3mmvgq5rj3s8");
+                expect(<bigint>transition_input_1.value).equals(BigInt(1000000));
+                expect(transition_output_1.type).equals("future");
+                expect(<string>transition_output_1.programId).equals("credits.aleo");
+                expect(<string>transition_output_1.functionName).equals("transfer_public");
+                expect(transition_future_arguments.length).equals(2);
+                expect(<string>transition_future_arguments[0]).equals("aleo193cgzzpr5lcwq6rmzq4l2ctg5f4mznead080mclfgrc0e5k0w5pstfdfps");
+                expect(<bigint>transition_future_arguments[1]).equals(BigInt(1449));
+            }
         });
     })
 });

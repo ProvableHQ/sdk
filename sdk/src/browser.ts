@@ -2,7 +2,7 @@ import "./polyfill/shared";
 
 import { Account } from "./account";
 import { AleoNetworkClient, ProgramImports } from "./network-client";
-import { BlockModel } from "./models/blockModel";
+import { BlockJSON } from "./models/blockJSON";
 import { ExecutionJSON } from "./models/executionJSON";
 import { FunctionObject } from "./models/functionObject";
 import { InputJSON } from "./models/input/inputJSON";
@@ -94,7 +94,7 @@ export {
     AleoKeyProviderParams,
     AleoKeyProviderInitParams,
     AleoNetworkClient,
-    BlockModel,
+    BlockJSON,
     BlockHeightSearch,
     CachedKeyPair,
     ExecutionJSON,

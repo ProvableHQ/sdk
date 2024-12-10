@@ -1,6 +1,6 @@
 import { get, post, parseJSON, logAndThrow } from "./utils";
 import { Account } from "./account";
-import { BlockModel } from "./models/blockModel";
+import { BlockJSON } from "./models/blockJSON";
 import { TransactionJSON } from "./models/transaction/transactionJSON";
 import {
   Plaintext,
@@ -298,9 +298,9 @@ class AleoNetworkClient {
    * @example
    * const block = networkClient.getBlock(1234);
    */
-  async getBlock(height: number): Promise<BlockModel> {
+  async getBlock(height: number): Promise<BlockJSON> {
     try {
-      const block = await this.fetchData<BlockModel>("/block/" + height);
+      const block = await this.fetchData<BlockJSON>("/block/" + height);
       return block;
     } catch (error) {
       throw new Error("Error fetching block.");
@@ -315,9 +315,9 @@ class AleoNetworkClient {
    * @example
    * const blockRange = networkClient.getBlockRange(2050, 2100);
    */
-  async getBlockRange(start: number, end: number): Promise<Array<BlockModel>> {
+  async getBlockRange(start: number, end: number): Promise<Array<BlockJSON>> {
     try {
-      return await this.fetchData<Array<BlockModel>>("/blocks?start=" + start + "&end=" + end);
+      return await this.fetchData<Array<BlockJSON>>("/blocks?start=" + start + "&end=" + end);
     } catch (error) {
       const errorMessage = `Error fetching blocks between ${start} and ${end}.`;
       throw new Error(errorMessage);
@@ -378,9 +378,9 @@ class AleoNetworkClient {
    * @example
    * const latestHeight = networkClient.getLatestBlock();
    */
-  async getLatestBlock(): Promise<BlockModel> {
+  async getLatestBlock(): Promise<BlockJSON> {
     try {
-      return await this.fetchData<BlockModel>("/block/latest") as BlockModel;
+      return await this.fetchData<BlockJSON>("/block/latest") as BlockJSON;
     } catch (error) {
       throw new Error("Error fetching latest block.");
     }

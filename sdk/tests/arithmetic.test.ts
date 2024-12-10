@@ -7,7 +7,7 @@ describe('Field and Group Arithmetic Tests', () => {
         sinon.restore();
     });
 
-    describe('Field and group arithmetic', () => {
+    describe('Field and Group arithmetic', () => {
         it('Check field arithmetic functions work as expected', () => {
             // Create the 2 field element.
             const a = Field.fromString("2field");
@@ -45,17 +45,17 @@ describe('Field and Group Arithmetic Tests', () => {
 
         it('Check scalar field arithmetic', () => {
             // Create the 2 scalar element.
-            const a = Scalar.fromString("2field");
+            const a = Scalar.fromString("2scalar");
             // Create the inverse of the 2 scalar element.
             const ainv = a.inverse();
             // Create another 2 scale element.
-            const b = Scalar.fromString("2field");
+            const b = Scalar.fromString("2scalar");
             // Double the scalar through addition.
             const c = a.add(b);
             // Double the scalar through the double operation.
             const d = a.double();
             // Create the 8 scalar from string.
-            const eight = Scalar.fromString("8field");
+            const eight = Scalar.fromString("8scalar");
             // Create the 0 scalar.
             const zero = Scalar.zero();
             // Create the 0 scalar through adding a and ainv.

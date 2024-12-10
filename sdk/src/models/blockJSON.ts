@@ -1,6 +1,6 @@
 import { ConfirmedTransaction } from "./confirmed_transaction";
 
-export type BlockModel = {
+export type BlockJSON = {
     block_hash: string;
     previous_hash: string;
     header: Header;
