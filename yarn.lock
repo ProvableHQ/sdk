@@ -1879,6 +1879,11 @@
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
+"@provablehq/wasm@^0.7.2":
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/@provablehq/wasm/-/wasm-0.7.2.tgz#3beb59583078ec40175ee76454760e8468912e2b"
+  integrity sha512-RARdSoyml70goROIJx7wI/1+TEiHz9q44aeUO5WxVeCBwjkkGDgFJWVSWFzlnehvKTB5yFa/vo7pgXvU45zzqA==
+
 "@rc-component/async-validator@^5.0.3":
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/@rc-component/async-validator/-/async-validator-5.0.4.tgz#5291ad92f00a14b6766fc81735c234277f83e948"
