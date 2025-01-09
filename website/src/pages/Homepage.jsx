@@ -82,7 +82,7 @@ const Homepage = () => {
                     <Link to="/privacy_policy" style={{ color: "white", textDecoration: "none"}}>
                         <span>Privacy Policy</span>
                     </Link>
-                    © 2024 Provable Inc.
+                    © 2025 Provable Inc.
                 </div>
             </div>
         </div>
