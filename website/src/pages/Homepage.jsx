@@ -8,7 +8,7 @@ const Homepage = () => {
         <div className="homepage">
             <Link to="https://provable.com/">
                 <img
-                    src="../public/primary-wordmark-dark.png"
+                    src="../public/provable-logo-light.svg"
                     className="logo"
                 ></img>
             </Link>
