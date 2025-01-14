@@ -1,8 +1,8 @@
 import { InputObject } from "../input/inputObject";
 import { OutputObject } from "../output/outputObject";
-import { Field, Group } from "@provablehq/wasm";
+import { Field, Group } from "../../wasm";
 
-export type TransitionObject = {
+export interface TransitionObject {
     id: string;
     program: string;
     functionName: string;

@@ -1,6 +1,6 @@
-import { VerifyingKey } from "@provablehq/wasm";
+import { VerifyingKey } from "../wasm";
 
-export type FunctionObject = {
+export interface FunctionObject {
     "name" : string,
     "constraints" : number,
     "variables" : number,

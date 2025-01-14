@@ -1,7 +1,7 @@
 import { InputJSON } from "../input/inputJSON";
 import { OutputJSON } from "../output/outputJSON";
 
-export type TransitionJSON = {
+export interface TransitionJSON {
     id: string;
     program: string;
     function: string;

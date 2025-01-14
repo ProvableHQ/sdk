@@ -49,9 +49,9 @@
   "dependencies": {
     "@provablehq/wasm": "^0.7.2",
     "comlink": "^4.4.1",
+    "core-js": "^3.38.1",
     "mime": "^3.0.0",
-    "sync-request": "^6.1.0",
-    "core-js": "^3.38.1"
+    "sync-request": "^6.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.5",
@@ -61,9 +61,9 @@
     "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
     "@typescript-eslint/parser": "^5.41.0",
-    "better-docs": "^2.7.2",
+    "better-docs": "^2.7.3",
     "chai": "^5.1.1",
-    "clean-jsdoc-theme": "^4.1.8",
+    "clean-jsdoc-theme": "^4.3.0",
     "cpr": "^3.0.1",
     "eslint": "^8.26.0",
     "eslint-config-prettier": "^8.5.0",

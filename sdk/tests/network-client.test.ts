@@ -1,10 +1,8 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Account, BlockJSON, AleoNetworkClient, TransactionSummary, InputObject, OutputObject } from "../src/node";
-import {beaconPrivateKeyString} from "./data/account-data";
-import { Plaintext, Transition } from "@provablehq/wasm";
-import { TransitionObject } from "../src/models/transition/transitionObject";
-import { PlaintextObject } from "../src/models/plaintext/plaintext";
+import { Account, BlockJSON, AleoNetworkClient, TransactionObject, InputObject, OutputObject } from "../src/node";
+import { beaconPrivateKeyString } from "./data/account-data";
+import { Plaintext,  PlaintextObject, Transition, TransitionObject } from "../src/node";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {
@@ -254,7 +252,7 @@ describe('NodeConnection', () => {
             if (transactions.length > 1) {
                 const transaction = transactions[0];
                 const transition = <Transition>transaction.transitions()[0];
-                const summary = <TransactionSummary>transactions[0].summary(true);
+                const summary = <TransactionObject>transactions[0].summary(true);
 
                 // Ensure the transaction metadata was correctly computed.
                 expect(transactions.length).equal(3);

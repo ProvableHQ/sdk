@@ -1,6 +1,6 @@
 import { TransitionJSON } from "./transition/transitionJSON";
 
-export type ExecutionJSON = {
+export interface ExecutionJSON {
     edition: number;
     transitions?: (TransitionJSON)[];
 }

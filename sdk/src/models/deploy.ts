@@ -1,6 +1,6 @@
 import { FunctionObject } from "./functionObject";
 
-export type DeploymentMetadata = {
+export interface DeploymentMetadata {
     "programId" : string,
     "functions" : FunctionObject[]
 }

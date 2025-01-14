@@ -2,7 +2,8 @@ import "./polyfill/shared";
 
 import { Account } from "./account";
 import { AleoNetworkClient, ProgramImports } from "./network-client";
-import { BlockJSON } from "./models/blockJSON";
+import { BlockJSON, Header, Metadata } from "./models/blockJSON";
+import { DeploymentMetadata } from "./models/deploy";
 import { ExecutionJSON } from "./models/executionJSON";
 import { FunctionObject } from "./models/functionObject";
 import { InputJSON } from "./models/input/inputJSON";
@@ -11,9 +12,10 @@ import { OutputJSON } from "./models/output/outputJSON";
 import { OutputObject } from "./models/output/outputObject";
 import { PlaintextArray} from "./models/plaintext/array";
 import { PlaintextLiteral} from "./models/plaintext/literal";
+import { PlaintextObject } from "./models/plaintext/plaintext";
 import { PlaintextStruct} from "./models/plaintext/struct";
 import { TransactionJSON } from "./models/transaction/transactionJSON";
-import { TransactionSummary } from "./models/transaction/transactionSummary";
+import { TransactionObject } from "./models/transaction/transactionObject";
 import { TransitionJSON } from "./models/transition/transitionJSON";
 import { TransitionObject } from "./models/transition/transitionObject";
 import {
@@ -97,24 +99,30 @@ export {
     BlockJSON,
     BlockHeightSearch,
     CachedKeyPair,
+    DeploymentMetadata,
     ExecutionJSON,
     FunctionObject,
     FunctionKeyPair,
     FunctionKeyProvider,
+    Header,
     InputJSON,
     InputObject,
     KeySearchParams,
+    Metadata,
     NetworkRecordProvider,
     ProgramImports,
     OfflineKeyProvider,
     OfflineSearchParams,
     PlaintextArray,
     PlaintextLiteral,
+    PlaintextObject,
     PlaintextStruct,
     OutputJSON,
     OutputObject,
     RecordProvider,
     RecordSearchParams,
     TransactionJSON,
-    TransactionSummary,
+    TransactionObject,
+    TransitionJSON,
+    TransitionObject,
 };

@@ -1,6 +1,6 @@
 import { TransactionJSON } from "./transaction/transactionJSON";
 
-export type ConfirmedTransaction = {
+export interface ConfirmedTransaction {
     type: string;
     id: string;
     transaction: TransactionJSON;

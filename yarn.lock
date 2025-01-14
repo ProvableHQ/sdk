@@ -3403,9 +3403,9 @@ batch@0.6.1:
   resolved "https://registry.npmjs.org/batch/-/batch-0.6.1.tgz"
   integrity sha512-x+VAiMRL6UPkx+kudNvxTl6hB2XNNCG2r+7wixVfIYwu/2HKRXimwQyaumLjMveWvT2Hkd/cAJw+QBMfJ/EKVw==
 
-better-docs@^2.7.2:
+better-docs@^2.7.3:
   version "2.7.3"
-  resolved "https://registry.npmjs.org/better-docs/-/better-docs-2.7.3.tgz"
+  resolved "https://registry.yarnpkg.com/better-docs/-/better-docs-2.7.3.tgz#bdeec1b24514bc22562af2a277c2cf527abbe726"
   integrity sha512-OEk9e7RQUQbo1DmVo0mdsALZ+mT0SwIen7/DGnN4xKNktXKgz1j7+KQ2pObNHHVSFGu8YMQW/Ig1v6eiTkdnbw==
   dependencies:
     brace "^0.11.1"
@@ -3724,9 +3724,9 @@ clean-css@^5.2.2, clean-css@~5.3.2:
   dependencies:
     source-map "~0.6.0"
 
-clean-jsdoc-theme@^4.1.8:
+clean-jsdoc-theme@^4.3.0:
   version "4.3.0"
-  resolved "https://registry.npmjs.org/clean-jsdoc-theme/-/clean-jsdoc-theme-4.3.0.tgz"
+  resolved "https://registry.yarnpkg.com/clean-jsdoc-theme/-/clean-jsdoc-theme-4.3.0.tgz#6cd55ff7b25ff6d1719ae0ff9f1cdb5ef07bf640"
   integrity sha512-QMrBdZ2KdPt6V2Ytg7dIt0/q32U4COpxvR0UDhPjRRKRL0o0MvRCR5YpY37/4rPF1SI1AYEKAWyof7ndCb/dzA==
   dependencies:
     "@jsdoc/salty" "^0.2.4"

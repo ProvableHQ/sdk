@@ -1,6 +1,6 @@
 import { ExecutionJSON } from "../executionJSON";
 
-export type TransactionJSON = {
+export interface TransactionJSON {
     type: string;
     id: string;
     execution: ExecutionJSON;

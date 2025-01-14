@@ -1,7 +1,7 @@
 import { TransitionObject } from "../transition/transitionObject";
 import { DeploymentMetadata } from "../deploy";
 
-export type TransactionSummary = {
+export interface TransactionObject {
     id : string;
     type : string;
     fee : bigint;
