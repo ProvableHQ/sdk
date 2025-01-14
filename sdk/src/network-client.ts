@@ -717,7 +717,8 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the transactions in the memory pool.
+   * Returns the transactions in the memory pool. This method will only work with a validator node with its REST API
+   * enabled.
    *
    * @example
    * const transactions = networkClient.getTransactionsInMempool();
@@ -731,7 +732,8 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the transactions in the memory pool as wasm objects.
+   * Returns the transactions in the memory pool as wasm objects. This method will only work with a validator node with
+   * its REST API enabled.
    *
    * @example
    * const transactions = networkClient.getTransactionsInMempool();
