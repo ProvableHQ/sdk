@@ -30,7 +30,9 @@ jobs:
       - name: Install and Build
         run: |
           yarn
-          yarn build:all
+          yarn build:wasm
+          sleep 25
+          yarn build:sdk && yarn build:create-leo-app
           cd website
           yarn build
         env:
