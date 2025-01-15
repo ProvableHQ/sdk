@@ -1,7 +1,7 @@
 import { TransitionJSON } from "./transition/transitionJSON";
 
-export interface ExecutionJSON {
-    transitions: TransitionJSON[];
-    proof: string[];
+export interface FeeJSON {
+    transition: TransitionJSON;
     global_state_root: string;
+    proof: string;
 }

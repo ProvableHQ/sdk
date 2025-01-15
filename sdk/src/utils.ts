@@ -8,7 +8,6 @@ export function parseJSON(json: string): any {
     function revive(key: string, value: any, context: any) {
         if (Number.isInteger(value)) {
             return BigInt(context.source);
-
         } else {
             return value;
         }

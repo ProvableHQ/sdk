@@ -1,7 +1,10 @@
 import { TransactionJSON } from "./transaction/transactionJSON";
+import { FinalizeJSON } from "./finalizeJSON";
 
-export interface ConfirmedTransaction {
+export interface ConfirmedTransactionJSON {
+    status: string
     type: string;
-    id: string;
+    index: number;
     transaction: TransactionJSON;
+    finalize: FinalizeJSON[];
 }

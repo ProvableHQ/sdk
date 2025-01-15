@@ -224,18 +224,20 @@ impl Transaction {
 
         // If the transaction is a deployment, summarize the deployment.
         let deployment = if let Some(deployment) = self.0.deployment() {
-            let functions = deployment.verifying_keys().iter().map(|(function_name, (verifying_key, _))| {
+            let functions = deployment.verifying_keys().iter().map(|(function_name, (verifying_key, certificate))| {
                 // Create the initial function object.
                 object! {
                     "name" : function_name.to_string(),
                     "constraints" : verifying_key.circuit_info.num_constraints as u32,
                     "variables" : verifying_key.num_variables() as u32,
                     "verifyingKey": if convert_to_js { JsValue::from_str(&verifying_key.to_string()) } else { JsValue::from(VerifyingKey::from(verifying_key)) },
+                    "certificate" : certificate.to_string(),
                 }
             }).collect::<Array>();
             // Create the deployment object.
             JsValue::from(object! {
-                "programId" : deployment.program_id().to_string(),
+                "edition" : deployment.edition(),
+                "program" : deployment.program_id().to_string(),
                 "functions" : functions,
             })
         } else {
@@ -281,6 +283,20 @@ impl Transaction {
     /// Get the transitions in a transaction.
     pub fn transitions(&self) -> Array {
         self.0.transitions().map(|transition| JsValue::from(Transition::from(transition))).collect::<Array>()
+    }
+
+    /// Get the verifying keys in a transaction.
+    pub fn verifying_keys(&self) -> Array {
+        self.0.deployment().map(|deployment| {
+            deployment.verifying_keys().iter().map(|(function_name, (verifying_key, certificate))| {
+                object! {
+                    "program" : deployment.program_id().to_string(),
+                    "functionName" : function_name.to_string(),
+                    "verifyingKey" : verifying_key.to_string(),
+                    "certificate" : certificate.to_string(),
+                }
+            }).collect::<Array>()
+        }).unwrap_or_else(|| Array::new())
     }
 }
 

@@ -5,4 +5,5 @@ export interface FunctionObject {
     "constraints" : number,
     "variables" : number,
     "verifyingKey" : string | VerifyingKey,
+    "certificate" : string,
 }

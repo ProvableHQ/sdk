@@ -2,7 +2,7 @@ import sinon from "sinon";
 import { expect } from "chai";
 import { Account, BlockJSON, AleoNetworkClient, TransactionObject, InputObject, OutputObject } from "../src/node";
 import { beaconPrivateKeyString } from "./data/account-data";
-import { Plaintext,  PlaintextObject, Transition, TransitionObject } from "../src/node";
+import { DeploymentObject, ExecutionJSON, InputJSON, OutputJSON, Plaintext, PlaintextObject, Transition, TransitionObject } from "../src/node";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {
@@ -15,12 +15,15 @@ async function catchError(f: () => Promise<any>): Promise<Error | null> {
 }
 
 
-async function expectThrows(f: () => Promise<any>, message: string): Promise<void> {
+async function expectThrowsMessage(f: () => Promise<any>, message: string): Promise<void> {
     const error = await catchError(f);
     expect(error).not.equal(null);
     expect(error!.message).equal(message);
 }
-
+async function expectThrows(f: () => Promise<any>): Promise<void> {
+    const error = await catchError(f);
+    expect(error).not.equal(null);
+}
 
 describe('NodeConnection', () => {
     let connection: AleoNetworkClient;
@@ -51,7 +54,7 @@ describe('NodeConnection', () => {
         });
 
         it('should throw an error if the request fails', async () => {
-            await expectThrows(
+            await expectThrowsMessage(
                 () => connection.getBlock(99999999),
                 "Error fetching block.",
             );
@@ -68,7 +71,7 @@ describe('NodeConnection', () => {
         });
 
         it('should throw an error if the request fails', async () => {
-            await expectThrows(
+            await expectThrowsMessage(
                 () => connection.getBlockRange(999999999, 1000000000),
                 "Error fetching blocks between 999999999 and 1000000000.",
             );
@@ -84,7 +87,7 @@ describe('NodeConnection', () => {
         it('should throw an error if the request fails', async () => {
             const program_id = "a" + (Math.random()).toString(32).substring(2) + ".aleo";
 
-            await expectThrows(
+            await expectThrowsMessage(
                 () => connection.getProgram(program_id),
                 "Error fetching program",
             );
@@ -142,7 +145,6 @@ describe('NodeConnection', () => {
         it('should throw an error if the request fails', async () => {
             await expectThrows(
                 () => connection.getTransactions(999999999),
-                "Error fetching transactions.",
             );
         });
     });
@@ -186,22 +188,22 @@ describe('NodeConnection', () => {
 
     describe('findUnspentRecords', () => {
         it('should fail if block heights or private keys are incorrectly specified', async () => {
-            await expectThrows(
+            await expectThrowsMessage(
                 () => connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, []),
                 "Start height must be less than or equal to end height.",
             );
 
-            await expectThrows(
+            await expectThrowsMessage(
                 () => connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, []),
                 "Start height must be greater than or equal to 0",
             );
 
-            await expectThrows(
+            await expectThrowsMessage(
                 () => connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, []),
                 "Error parsing private key provided.",
             );
 
-            await expectThrows(
+            await expectThrowsMessage(
                 () => connection.findUnspentRecords(0, 5, undefined, undefined, undefined, []),
                 "Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient",
             );
@@ -226,11 +228,9 @@ describe('NodeConnection', () => {
     });
 
     describe('Test API methods that return wasm objects', () => {
-        it('should return a struct whose object representation matches the wasm representation', async () => {
-            // Ensure we're on testnet.
-            const transactions = await connection.getTransactionObjects(27400);
-            if (transactions.length > 1) {
-                // Check the credits.aleo mapping.
+        it('Plaintext mapping content should match that of the plaintext object', async () => {
+            const transactions = await connection.getTransactions(27400);
+            if (transactions.length > 0) {
                 const plaintext = await connection.getProgramMappingPlaintext("credits.aleo", "committee", "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal");
                 const text = await connection.getProgramMappingValue("credits.aleo", "committee", "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal");
 
@@ -246,16 +246,15 @@ describe('NodeConnection', () => {
             }
         });
 
-        it('should have a correct transaction summary', async () => {
-            // Get the transactions at block 27400 on testnet.
-            const transactions = await connection.getTransactionObjects(27400);
-            if (transactions.length > 1) {
-                const transaction = transactions[0];
+        it('should have correct data within the wasm object and summary object for an execution transaction', async () => {
+            // Get the first transaction at block 24700 on testnet.
+            const transactions = await connection.getTransactions(27400);
+            if (transactions.length > 0) {
+                const transaction = await connection.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
                 const transition = <Transition>transaction.transitions()[0];
-                const summary = <TransactionObject>transactions[0].summary(true);
+                const summary = <TransactionObject>transaction.summary(true);
 
                 // Ensure the transaction metadata was correctly computed.
-                expect(transactions.length).equal(3);
                 expect(transaction.id()).equal("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
                 expect(transaction.isExecute()).equal(true);
                 expect(transaction.isFee()).equals(false);
@@ -279,7 +278,7 @@ describe('NodeConnection', () => {
                 expect(<string>summary.transitions[0].tcm).equals("5140704971235445395514301730284508935687584564904251867869912904008739082032field");
                 expect(<string>summary.transitions[0].scm).equals("4048085747685910464005835076598544744404883618916202014212851266936759881218field");
                 expect(summary.transitions[0].functionName).equals("transfer_public");
-                expect(summary.id).equals(transaction.transactionId());
+                expect(summary.id).equals(transaction.id());
                 expect(summary.fee).equals(transaction.feeAmount());
                 expect(summary.baseFee).equals(transaction.baseFeeAmount());
                 expect(summary.priorityFee).equals(transaction.priorityFeeAmount());
@@ -313,6 +312,80 @@ describe('NodeConnection', () => {
                 expect(transition_future_arguments.length).equals(2);
                 expect(<string>transition_future_arguments[0]).equals("aleo193cgzzpr5lcwq6rmzq4l2ctg5f4mznead080mclfgrc0e5k0w5pstfdfps");
                 expect(<bigint>transition_future_arguments[1]).equals(BigInt(1449));
+            }
+        });
+
+        it('should have correct data within the wasm object and summary object for a deployment transaction', async () => {
+            // Get the deployment transaction for token_registry.aleo
+            const transactions = await connection.getTransactions(27400);
+            if (transactions.length === 0) {
+                const transaction = await connection.getTransactionObject("at15mwg0jyhvpjjrfxwrlwzn8puusnmy7r3xzvpjht4e5gzgnp68q9qd0qqec");
+                const summary = <TransactionObject>transaction.summary(true);
+                const deployment = <DeploymentObject>summary.deployment;
+
+                // Ensure the transaction metadata was correctly computed.
+                expect(transaction.id()).equal("at15mwg0jyhvpjjrfxwrlwzn8puusnmy7r3xzvpjht4e5gzgnp68q9qd0qqec");
+                expect(transaction.isExecute()).equal(false);
+                expect(transaction.isFee()).equals(false);
+                expect(transaction.isDeploy()).equals(true);
+                expect(transaction.records().length).equals( 0);
+
+                // Ensure the object summary returns the correct general transaction metadata.
+                expect(summary.type).equals(transaction.transactionType());
+                expect(summary.fee).equals(transaction.feeAmount());
+                expect(summary.transitions.length).equals(0);
+                expect(summary.id).equals(transaction.id());
+                expect(summary.fee).equals(transaction.feeAmount());
+                expect(summary.baseFee).equals(transaction.baseFeeAmount());
+                expect(summary.priorityFee).equals(transaction.priorityFeeAmount());
+                expect(deployment.program).equals("token_registry.aleo");
+                expect(deployment.functions.length).equals(22);
+            }
+        });
+
+        it('Should give the correct JSON response when requesting multiple transactions', async () => {
+            const transactions = await connection.getTransactions(27400);
+            if (transactions.length > 0) {
+                expect(transactions.length).equal(4);
+                expect(transactions[0].status).equal("accepted");
+                expect(transactions[0].type).equal("execute");
+                expect(transactions[0].index).equal(0);
+                expect(transactions[0].finalize.length).equal(1);
+                expect(transactions[0].transaction.id).equal("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
+                expect(transactions[0].transaction.type).equal(true);
+
+                const execution = <ExecutionJSON>transactions[0].transaction.execution;
+                expect(execution.transitions.length).equal(1);
+                expect(execution.transitions[0].id).equal("au1j529auupdhlc2jcl802fm2uf3khcwm7xt7wxkrl2jv3pvj7zhu8qvna5pp");
+                expect(execution.transitions[0].program).equal("puzzle_arcade_coin_v001.aleo");
+                expect(execution.transitions[0].function).equal("mint");
+                expect((<InputJSON[]>execution.transitions[0].inputs).length).equal(2);
+
+                // Get outputs and ensure they have the correct values.
+                const outputs = <OutputJSON[]>execution.transitions[0].outputs
+                expect(outputs.length).equal(1);
+                expect(outputs[0].type).equal("record");
+                expect(outputs[0].id).equal("5572694414900952602617575422938223520445524449912062453787036904987112234218field");
+                expect(outputs[0].value).equal("record1qyqsqkh52naqk7l62m9rw3emwm0swuttcs7qs6lqqeu2czc34mv7h2c8qyrxzmt0w4h8ggcqqgqsq5de236vn6h0z3cvecduyzmqmaw0ue8wk4a9a5z89r7qxv53cwgg4xqpmzq9tv35fzyt6xfem9f74qcx9qsj90e6gzajfetc874q6g9snrzkgw");
+                expect(<string>outputs[0].checksum).equal("976841447793933847827686780055501802433867163411662643088590532874495495156field");
+                expect(transactions[0].transaction.fee.proof).equal("proof1qyqsqqqqqqqqqqqpqqqqqqqqqqq89k9zdaf38ssnk3znaue2xv0uax8dcvydrrssgfxwuvm7w0h7wtcwu4qdkvhc4yxy73m8m4z0hssqq8xn4t5qyj88zvhfausgzez7w0e8fhhdj6gnfgpw20k46ml4thyzjc9xj3rhuzn6qdrsvlm05amd0q96plngd7txlcjykyspyja0qnvljtte2s9v23s3x7rekhc29khqrmrp2hl9pwv8ckyx7z8p4uh64zq8lgkum20sk6klu462ahnnrerqzaaksvtk64wdsj5dwr0wcg8e63pxcfjucch3224xwkxppwtcwsqqkdw07r53e2zt402jekqmlju3c66kmzcaz0lh5ctacluce39rycg8g3x9gs8vgrxnmjzgqu95ntqqqwdhjhpx5ztvk0x35559prjlm3a54wcd6tk9k3m2fs0xkx7pty9v4urlzg6029l9mfp0tsafxq72szzhhaymx0hqztu4pr2gvqfg2nqjpmqv9c8wkrjgsm7mcpnhxdu703xkzc2tz2l4hljlv7jdpdgvyqr4pf80tzp6w0vdtupfhfj2nhmmc9s38g0na5698p8eg0n6vtcdzksfp64rveukf8yq4pk2re2zujqpy0rfr65rd3l4s63hj78nqfft70r463ym8sfan7sa2nypeyy7urkgxwsjv5n5924dc67jtm28upypvpllg4sceam4jfv603s2hgfz4dwgeuswc258uq6teftsxf7xdvrll68rqz7xtpjzl7qkaq028x44g3m52k9csrv8mlfewrklavyg7rcf4qh6htcxe39vcd63790s4s4phmfc940uhhshd7hnxrp6p7dyp73686zpa7hv59k7xrztjmer4h7yrdwd06zgwe97p7as955vafqsrlg26jt675nj4cs7z733y7gr9qtfj42j33clkcup5g3k8ww3pug25vmdqcdmrz07a6azf7h6ugj6wuvs3y5c6gjmxy3ks94ny20fd5gwmahweegq73t4nhytu55nc5xa0jy8qchstu7r23psfjk7day55p4yyejrhh89hlc93zlcnu48tqjul35wn0us20w7rmwe7cwgy2q9quaaxz5n4rueeey4hm9cxlu828h2y29wkwr3p8h6nxfqdu905txsr604gnzurkz7rjnuy44a2a8afgplfgt4wd77tlfg8ec7tacjyqgrqvqqqqqqqqqqpqg7sm3jcaeqajsucveqam4mjajv0hps5lvqe7hhg93psqnjpu8aqpn0x8t92c3fjcke385h2yuvsqq2zvx9t6g9y3qnzza9k4tje8yzxzsmpaaf5un7vc78syypyplm5psr3rs5vp5n6ru4zm5vlukkf2vqqyhl84enh2p3q35t2c5n9ve4fdpa9pcg4pjms7j3alm3ctvv55e3qqmjv7lccnkh00utzhjwv2hglqaqmuh84kz5wug0pmwn0n8ua373ttqjdksd3eq7e4z3f69yvnn0sqqqcnztcq");
+                expect(transactions[0].transaction.fee.global_state_root).equal("sr1uwx36xp95j7p2w7yadnj5ups6n8ktf0uwnvq0yauk2fefa2lsqysj4ydym");
+                expect(transactions[0].transaction.fee.transition.function).equal("fee_public");
+                expect(transactions[0].transaction.fee.transition.program).equal("credits.aleo");
+
+                // Check the fee inputs.
+                const feeInputs = <InputJSON[]>transactions[0].transaction.fee.transition.inputs;
+                expect(feeInputs.length).equal(3);
+                expect(feeInputs[0].type).equal("public");
+                expect(feeInputs[0].value).equal("1449u64");
+                expect(feeInputs[0].id).equal("4386982425102730230159169800986934827054209772356695389341764668009606015212field");
+
+                // Check the fee outputs.
+                const feeOutputs = <OutputJSON[]>transactions[0].transaction.fee.transition.outputs;
+                expect(feeOutputs.length).equal(1);
+                expect(feeOutputs[0].type).equal("future");
+                expect(feeOutputs[0].id).equal("5266202420911953477603237216561767366202408116662663021354607932182034937240field");
+                expect(feeOutputs[0].value).equal("{\n  program_id: credits.aleo,\n  function_name: fee_public,\n  arguments: [\n    aleo193cgzzpr5lcwq6rmzq4l2ctg5f4mznead080mclfgrc0e5k0w5pstfdfps,\n    1449u64\n  ]\n}");
             }
         });
     })

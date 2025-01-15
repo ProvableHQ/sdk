@@ -1,10 +1,10 @@
-import { ConfirmedTransaction } from "./confirmed_transaction";
+import { ConfirmedTransactionJSON } from "./confirmed_transaction";
 
 export type BlockJSON = {
     block_hash: string;
     previous_hash: string;
     header: Header;
-    transactions?: (ConfirmedTransaction)[];
+    transactions?: (ConfirmedTransactionJSON)[];
     signature: string;
 }
 export type Header = {

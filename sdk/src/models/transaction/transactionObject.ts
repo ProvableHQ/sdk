@@ -1,5 +1,5 @@
 import { TransitionObject } from "../transition/transitionObject";
-import { DeploymentMetadata } from "../deploy";
+import { DeploymentObject } from "../deployment/deploymentObject";
 
 export interface TransactionObject {
     id : string;
@@ -8,5 +8,5 @@ export interface TransactionObject {
     baseFee : bigint;
     priorityFee : bigint;
     transitions : TransitionObject[];
-    deployment?: DeploymentMetadata;
+    deployment? : DeploymentObject;
 }

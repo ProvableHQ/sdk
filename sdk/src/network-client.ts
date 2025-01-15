@@ -10,6 +10,7 @@ import {
   PrivateKey,
   Transaction,
 } from "./wasm";
+import { ConfirmedTransactionJSON } from "./models/confirmed_transaction";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -80,17 +81,37 @@ class AleoNetworkClient {
     this.host = host + "/%%NETWORK%%";
   }
 
+  /**
+   * Fetches data from the Aleo network and returns it as a JSON object.
+   *
+   * @param url
+   */
   async fetchData<Type>(
       url = "/",
   ): Promise<Type> {
     try {
+      return parseJSON(await this.fetchRaw(url));
+    } catch (error) {
+      throw new Error("Error fetching data.");
+    }
+  }
+
+  /**
+   * Fetches data from the Aleo network and returns it as an unparsed string.
+   *
+   * This method should be used when it is desired to reconstitute data returned
+   * from the network into a WASM object.
+   *
+   * @param url
+   */
+  async fetchRaw(
+      url = "/",
+  ): Promise<string> {
+    try {
       const response = await get(this.host + url, {
         headers: this.headers
       });
-
-      const text = await response.text();
-      return parseJSON(text);
-
+      return await response.text();
     } catch (error) {
       throw new Error("Error fetching data.");
     }
@@ -612,10 +633,10 @@ class AleoNetworkClient {
   async getProgramMappingPlaintext(programId: string, mappingName: string, key: string | Plaintext): Promise<Plaintext> {
     try {
       const keyString = key instanceof Plaintext ? key.toString() : key;
-      const value = await this.fetchData<string>("/program/" + programId + "/mapping/" + mappingName + "/" + keyString);
+      const value = await this.fetchRaw("/program/" + programId + "/mapping/" + mappingName + "/" + keyString);
       return Plaintext.fromString(value);
     } catch (error) {
-      throw new Error("Failed to fetch mapping value");
+      throw new Error("Failed to fetch mapping value." + error);
     }
   }
 
@@ -676,7 +697,7 @@ class AleoNetworkClient {
    */
   async getTransactionObject(transactionId: string): Promise<Transaction> {
     try {
-      const transaction = await this.fetchData<string>("/transaction/" + transactionId);
+      const transaction = await this.fetchRaw("/transaction/" + transactionId);
       return Transaction.fromString(transaction);
     } catch (error) {
       throw new Error("Error fetching transaction.");
@@ -690,35 +711,16 @@ class AleoNetworkClient {
    * @example
    * const transactions = networkClient.getTransactions(654);
    */
-  async getTransactions(height: number): Promise<Array<TransactionJSON>> {
+  async getTransactions(height: number): Promise<Array<ConfirmedTransactionJSON>> {
     try {
-    return await this.fetchData<Array<TransactionJSON>>("/block/" + height.toString() + "/transactions");
+      return await this.fetchData<Array<ConfirmedTransactionJSON>>("/block/" + height.toString() + "/transactions");
     } catch (error) {
-      throw new Error("Error fetching transactions.");
+      throw new Error("Error fetching transactions. " + error);
     }
   }
 
   /**
-   * Returns an array of transactions as wasm objects present at the specified block height.
-   *
-   * @param {number} height
-   * @example
-   * const transactions = networkClient.getTransactionObjects(654);
-   *
-   * let transaction_summaries = transactions.map(transaction => transaction.summary());
-   */
-  async getTransactionObjects(height: number): Promise<Array<Transaction>> {
-    try {
-      const transactionStrings = await this.fetchData<Array<string>>(`/block/${height}/transactions`);
-      return transactionStrings.map(transaction => Transaction.fromString(transaction));
-    } catch (error) {
-      throw new Error("Error fetching transactions.");
-    }
-  }
-
-  /**
-   * Returns the transactions in the memory pool. This method will only work with a validator node with its REST API
-   * enabled.
+   * Returns the transactions in the memory pool. This method requires access to a validator's REST API.
    *
    * @example
    * const transactions = networkClient.getTransactionsInMempool();
@@ -726,22 +728,6 @@ class AleoNetworkClient {
   async getTransactionsInMempool(): Promise<Array<TransactionJSON>> {
     try {
       return await this.fetchData<Array<TransactionJSON>>("/memoryPool/transactions");
-    } catch (error) {
-      throw new Error("Error fetching transactions from mempool.");
-    }
-  }
-
-  /**
-   * Returns the transactions in the memory pool as wasm objects. This method will only work with a validator node with
-   * its REST API enabled.
-   *
-   * @example
-   * const transactions = networkClient.getTransactionsInMempool();
-   */
-  async getTransactionObjectsInMempool(): Promise<Array<Transaction>> {
-    try {
-      const transactionStrings = await this.fetchData<Array<string>>("/memoryPool/transactions");
-      return transactionStrings.map(transaction => Transaction.fromString(transaction));
     } catch (error) {
       throw new Error("Error fetching transactions from mempool.");
     }

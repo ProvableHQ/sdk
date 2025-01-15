@@ -3,13 +3,17 @@ import "./polyfill/shared";
 import { Account } from "./account";
 import { AleoNetworkClient, ProgramImports } from "./network-client";
 import { BlockJSON, Header, Metadata } from "./models/blockJSON";
-import { DeploymentMetadata } from "./models/deploy";
+import { ConfirmedTransactionJSON } from "./models/confirmed_transaction";
+import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON";
+import { DeploymentObject } from "./models/deployment/deploymentObject";
 import { ExecutionJSON } from "./models/executionJSON";
+import { FeeJSON} from "./models/feeJSON";
 import { FunctionObject } from "./models/functionObject";
 import { InputJSON } from "./models/input/inputJSON";
 import { InputObject } from "./models/input/inputObject";
 import { OutputJSON } from "./models/output/outputJSON";
 import { OutputObject } from "./models/output/outputObject";
+import { OwnerJSON } from "./models/ownerJSON";
 import { PlaintextArray} from "./models/plaintext/array";
 import { PlaintextLiteral} from "./models/plaintext/literal";
 import { PlaintextObject } from "./models/plaintext/plaintext";
@@ -99,8 +103,11 @@ export {
     BlockJSON,
     BlockHeightSearch,
     CachedKeyPair,
-    DeploymentMetadata,
+    ConfirmedTransactionJSON,
+    DeploymentJSON,
+    DeploymentObject,
     ExecutionJSON,
+    FeeJSON,
     FunctionObject,
     FunctionKeyPair,
     FunctionKeyProvider,
@@ -113,6 +120,7 @@ export {
     ProgramImports,
     OfflineKeyProvider,
     OfflineSearchParams,
+    OwnerJSON,
     PlaintextArray,
     PlaintextLiteral,
     PlaintextObject,
@@ -125,4 +133,5 @@ export {
     TransactionObject,
     TransitionJSON,
     TransitionObject,
+    VerifyingKeys,
 };
