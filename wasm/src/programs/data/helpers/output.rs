@@ -34,7 +34,7 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
             let value = if let Some(plaintext) = plaintext {
                 if convert_to_js { plaintext_to_js_value(plaintext) } else { JsValue::from(Plaintext::from(plaintext)) }
             } else {
-                JsValue::NULL
+                JsValue::UNDEFINED
             };
             let constant = object! {
                 "type" : "constant",
@@ -47,7 +47,7 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
             let value = if let Some(plaintext) = plaintext {
                 if convert_to_js { plaintext_to_js_value(plaintext) } else { JsValue::from(Plaintext::from(plaintext)) }
             } else {
-                JsValue::NULL
+                JsValue::UNDEFINED
             };
             let public_output = object! {
                 "type" : "constant",
@@ -64,7 +64,7 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
                     JsValue::from(Ciphertext::from(ciphertext))
                 }
             } else {
-                JsValue::NULL
+                JsValue::UNDEFINED
             };
             let private_output = object! {
                 "type" : "constant",
@@ -81,7 +81,7 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
                     JsValue::from(RecordCiphertext::from(record_ciphertext))
                 }
             } else {
-                JsValue::NULL
+                JsValue::UNDEFINED
             };
             let record = object! {
                 "type": "record",
@@ -99,8 +99,11 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
             JsValue::from(external_record_object)
         }
         OutputNative::Future(id, future) => {
-            let value =
-                if let Some(future) = future { future_to_js_value(future, convert_to_js, id) } else { JsValue::NULL };
+            let value = if let Some(future) = future {
+                future_to_js_value(future, convert_to_js, id)
+            } else {
+                JsValue::UNDEFINED
+            };
             JsValue::from(&value)
         }
     };

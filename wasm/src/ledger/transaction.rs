@@ -14,7 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{input_to_js_value, object, output_to_js_value, types::native::{FromBytes, ToBytes, TransactionNative, U64Native}, Address, Field, Group, RecordCiphertext, RecordPlaintext, Signature, Transition, VerifyingKey, ViewKey};
+use crate::{
+    input_to_js_value,
+    object,
+    output_to_js_value,
+    types::native::{FromBytes, ToBytes, TransactionNative, U64Native},
+    Address,
+    Field,
+    Group,
+    RecordCiphertext,
+    RecordPlaintext,
+    Signature,
+    Transition,
+    VerifyingKey,
+    ViewKey,
+};
 
 use js_sys::{Array, Object, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -213,7 +227,7 @@ impl Transaction {
             };
             JsValue::from(execution_object)
         } else {
-            JsValue::NULL
+            JsValue::UNDEFINED
         };
 
         // If the transaction is a deployment, summarize the deployment.
@@ -229,7 +243,6 @@ impl Transaction {
                 }
             }).collect::<Array>();
 
-
             // Create the deployment object.
             JsValue::from(object! {
                 "edition" : deployment.edition(),
@@ -237,7 +250,7 @@ impl Transaction {
                 "functions" : functions,
             })
         } else {
-            JsValue::NULL
+            JsValue::UNDEFINED
         };
 
         let owner = self.0.owner().map(|owner| {
@@ -247,7 +260,7 @@ impl Transaction {
             };
             JsValue::from(owner)
         })
-            .unwrap_or_else(|| JsValue::NULL);
+            .unwrap_or_else(|| JsValue::UNDEFINED);
 
         // Extract the fee execution.
         let fee = match &self.0 {
@@ -258,12 +271,9 @@ impl Transaction {
 
         let fee_execution = if let Some(fee) = fee {
             // Collect the inputs and outputs.
-            let inputs = fee.inputs().iter().map(|input| {
-                input_to_js_value(input, convert_to_js)
-            }).collect::<Array>();
-            let outputs = fee.outputs().iter().map(|output| {
-                output_to_js_value(output, convert_to_js)
-            }).collect::<Array>();
+            let inputs = fee.inputs().iter().map(|input| input_to_js_value(input, convert_to_js)).collect::<Array>();
+            let outputs =
+                fee.outputs().iter().map(|output| output_to_js_value(output, convert_to_js)).collect::<Array>();
             let fee_transition = object! {
                 "program" : fee.program_id().to_string(),
                 "function" : fee.function_name().to_string(),
@@ -281,7 +291,7 @@ impl Transaction {
             };
             JsValue::from(execution_object)
         } else {
-            JsValue::NULL
+            JsValue::UNDEFINED
         };
 
         object! {
@@ -458,10 +468,14 @@ mod tests {
         let execution = Object::from(Reflect::get(&summary, &JsValue::from_str("execution")).unwrap());
         let transitions = Array::from(&Reflect::get(&execution, &JsValue::from_str("transitions")).unwrap()).to_vec();
         assert_eq!(transitions.len(), 2);
-        let global_state_root = Reflect::get(&execution, &JsValue::from_str("global_state_root")).unwrap().as_string().unwrap();
+        let global_state_root =
+            Reflect::get(&execution, &JsValue::from_str("global_state_root")).unwrap().as_string().unwrap();
         let proof = Reflect::get(&execution, &JsValue::from_str("proof")).unwrap().as_string().unwrap();
         assert_eq!(&global_state_root, "sr1cxx6uf72kla7hzu65m394fljpup39h3efe97xsn2wm2gl9apjgyqdr94ud");
-        assert_eq!(&proof, "proof1qyqsqqqqqqqqqqqpqqqqqqqqqqqvs2nmr0pnyufteq8wtf080x3vwfh5yk08d6pjmedl8j7gx6a42das2ul7rm9x6wn5tvars43nudvqq9gshva80utleuytjesa4vmkq4cv6kfcm6axn2pwf7klzk402gf9qn5t0ssz3mut0ycjcjwss4e76qrh46q8r8calfmrwmpmwj2j063rsgtvq4v85v8gzlyyy233f90pztncnx9pr65l28vuqwx86n0p2xqws3lw0a2qs4smanr5eq78rgn2t2vtvnfu07589676v86kjxdfc6nqdvmghjvc25zzh7qwj2jxmk5qtu5ecxd8mpx00mjs4q2sen68w57zk6c3e7xnm7jeelrqhuexaae9n8v9ddagrl27wwn8zg8vwv9srrar48d0aqslsmzt6lqnxq2mwn0y89zxtrsfs8uzphrc3geu9y5pn2m90k45s5cqt4ypw8rqea53qprslzcs0xpuhc6gc59lfxk0fz49wj70pxe4wczpnxcendf6f7ep49svrsamw2nn39y02dt3l85ztqr09hcxd6h9382cq2s3j890g6ezu2lktszy278dxhuxj47qmmjs2m2p78ud9s3m7pkrusrqwj65f6qv4h0spx0jsrs0vcyapz868egt4g6jf9zwmdkfn5d4966234td44gzcvzwghl2tcxxpl0vt70366upqd7se7pf8vmlvujalgwglgzu2tnrp474nmuvewflrd6eg8j6usg5c6l5vydrkjav4lqx8n4d83nre9qex57ut3nunlyccedx3npxuqzu4fk6293yxxd0sd05jrtxkjpckqrvaaxnng22j9dxnlrvxm24ql5880tdnd8mwsmhz9hf4tnwlrl65xu2x9tuqz5c4nsha95hqlksj3mapzmc5672md4hckakxfpt28znt0st8p3xwt05a3usl3remvc9e5ng8quakjgax4aquczfqvdxzwstm8et5tgdptkt84wnklwn5c8cy93ezx7rh4jve5dn2t8zcn32vph0d8sx583j6uqz6sg8mjs6upgdsf47d6ageygydpve89p3tsshx5vt98jzet9hnkfacky5hpxgqlgnm0dvchgylg3prq05gq7kzdu8narls66gg7nxml0hzqsrh0lqez38m40dzt9zzg985frap8m43ehfk5z9lpsazc7jx0fyp2qcrncdqvqqqqqqqqqqqkfq8j9ez9zl7gycv3wzsjez8amk3lkrptn62v0xp805dmckhl38k3hn0vc5v54wre6m0n8mcvz3qyq2fchjxd29juplmjywlrfz83zkq2ev6mxryx5dz43tcwneamnpa5m6ezycmqed4dsfrm342e3693qqq8gj3sheypdtugcnxfuvw5pqn5glpxc8hy8efn8z366lm6l46luqpfn0c6cv8jnfkqg8x0djhm97ex4w43ljp2q3p48puy5qg7plrl3082j669dptpvp62h8wrmvl4ggsyqqxqxmd4");
+        assert_eq!(
+            &proof,
+            "proof1qyqsqqqqqqqqqqqpqqqqqqqqqqqvs2nmr0pnyufteq8wtf080x3vwfh5yk08d6pjmedl8j7gx6a42das2ul7rm9x6wn5tvars43nudvqq9gshva80utleuytjesa4vmkq4cv6kfcm6axn2pwf7klzk402gf9qn5t0ssz3mut0ycjcjwss4e76qrh46q8r8calfmrwmpmwj2j063rsgtvq4v85v8gzlyyy233f90pztncnx9pr65l28vuqwx86n0p2xqws3lw0a2qs4smanr5eq78rgn2t2vtvnfu07589676v86kjxdfc6nqdvmghjvc25zzh7qwj2jxmk5qtu5ecxd8mpx00mjs4q2sen68w57zk6c3e7xnm7jeelrqhuexaae9n8v9ddagrl27wwn8zg8vwv9srrar48d0aqslsmzt6lqnxq2mwn0y89zxtrsfs8uzphrc3geu9y5pn2m90k45s5cqt4ypw8rqea53qprslzcs0xpuhc6gc59lfxk0fz49wj70pxe4wczpnxcendf6f7ep49svrsamw2nn39y02dt3l85ztqr09hcxd6h9382cq2s3j890g6ezu2lktszy278dxhuxj47qmmjs2m2p78ud9s3m7pkrusrqwj65f6qv4h0spx0jsrs0vcyapz868egt4g6jf9zwmdkfn5d4966234td44gzcvzwghl2tcxxpl0vt70366upqd7se7pf8vmlvujalgwglgzu2tnrp474nmuvewflrd6eg8j6usg5c6l5vydrkjav4lqx8n4d83nre9qex57ut3nunlyccedx3npxuqzu4fk6293yxxd0sd05jrtxkjpckqrvaaxnng22j9dxnlrvxm24ql5880tdnd8mwsmhz9hf4tnwlrl65xu2x9tuqz5c4nsha95hqlksj3mapzmc5672md4hckakxfpt28znt0st8p3xwt05a3usl3remvc9e5ng8quakjgax4aquczfqvdxzwstm8et5tgdptkt84wnklwn5c8cy93ezx7rh4jve5dn2t8zcn32vph0d8sx583j6uqz6sg8mjs6upgdsf47d6ageygydpve89p3tsshx5vt98jzet9hnkfacky5hpxgqlgnm0dvchgylg3prq05gq7kzdu8narls66gg7nxml0hzqsrh0lqez38m40dzt9zzg985frap8m43ehfk5z9lpsazc7jx0fyp2qcrncdqvqqqqqqqqqqqkfq8j9ez9zl7gycv3wzsjez8amk3lkrptn62v0xp805dmckhl38k3hn0vc5v54wre6m0n8mcvz3qyq2fchjxd29juplmjywlrfz83zkq2ev6mxryx5dz43tcwneamnpa5m6ezycmqed4dsfrm342e3693qqq8gj3sheypdtugcnxfuvw5pqn5glpxc8hy8efn8z366lm6l46luqpfn0c6cv8jnfkqg8x0djhm97ex4w43ljp2q3p48puy5qg7plrl3082j669dptpvp62h8wrmvl4ggsyqqxqxmd4"
+        );
 
         // Check the transfer_public transition.
         let transition = Object::from(transitions[0].clone());
@@ -586,7 +600,8 @@ mod tests {
         // Check the fee execution.
         let fee_execution = Object::from(Reflect::get(&summary, &JsValue::from_str("fee")).unwrap());
         let fee_transition = Object::from(Reflect::get(&fee_execution, &JsValue::from_str("transition")).unwrap());
-        let fee_stateroot = Reflect::get(&fee_execution, &JsValue::from_str("global_state_root")).unwrap().as_string().unwrap();
+        let fee_stateroot =
+            Reflect::get(&fee_execution, &JsValue::from_str("global_state_root")).unwrap().as_string().unwrap();
         assert_eq!(&fee_stateroot, "sr1cxx6uf72kla7hzu65m394fljpup39h3efe97xsn2wm2gl9apjgyqdr94ud");
         assert_eq!(
             Reflect::get(&fee_transition, &JsValue::from_str("program")).unwrap().as_string().unwrap(),

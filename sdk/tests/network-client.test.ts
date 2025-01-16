@@ -341,7 +341,7 @@ describe('NodeConnection', () => {
                 // Ensure the object summary returns the correct general transaction metadata.
                 expect(summary.type).equals(transaction.transactionType());
                 expect(summary.feeAmount).equals(transaction.feeAmount());
-                expect(summary.execution).equals(null);
+                expect(summary.execution).equals(undefined);
                 expect(summary.id).equals(transaction.id());
                 expect(summary.feeAmount).equals(transaction.feeAmount());
                 expect(summary.baseFee).equals(transaction.baseFeeAmount());

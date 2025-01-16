@@ -25,7 +25,7 @@ pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {
             let value = if let Some(plaintext) = plaintext {
                 if convert_to_js { plaintext_to_js_value(plaintext) } else { JsValue::from(Plaintext::from(plaintext)) }
             } else {
-                JsValue::NULL
+                JsValue::UNDEFINED
             };
             let constant_input = object! {
                 "type": "constant",
@@ -38,7 +38,7 @@ pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {
             let value = if let Some(plaintext) = plaintext {
                 if convert_to_js { plaintext_to_js_value(plaintext) } else { JsValue::from(Plaintext::from(plaintext)) }
             } else {
-                JsValue::NULL
+                JsValue::UNDEFINED
             };
             let public_input = object! {
                 "type" : "public",
@@ -55,7 +55,7 @@ pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {
                     JsValue::from(Ciphertext::from(ciphertext))
                 }
             } else {
-                JsValue::NULL
+                JsValue::UNDEFINED
             };
             let private_input = object! {
                 "type" : "private",
