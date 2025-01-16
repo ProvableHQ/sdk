@@ -6,7 +6,7 @@ export function logAndThrow(message: string): never {
 
 export function parseJSON(json: string): any {
     function revive(key: string, value: any, context: any) {
-        if (Number.isInteger(value)) {
+        if (Number.isInteger(value) && value.length > 15) {
             return BigInt(context.source);
         } else {
             return value;

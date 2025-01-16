@@ -207,8 +207,8 @@ impl Transaction {
                     output_to_js_value(output, convert_to_js)
                 }).collect::<Array>();
                 object! {
-                    "programId" : transition.program_id().to_string(),
-                    "functionName" : transition.function_name().to_string(),
+                    "program" : transition.program_id().to_string(),
+                    "function" : transition.function_name().to_string(),
                     "id" : transition.id().to_string(),
                     "inputs" : inputs,
                     "outputs" : outputs,
@@ -287,16 +287,23 @@ impl Transaction {
 
     /// Get the verifying keys in a transaction.
     pub fn verifying_keys(&self) -> Array {
-        self.0.deployment().map(|deployment| {
-            deployment.verifying_keys().iter().map(|(function_name, (verifying_key, certificate))| {
-                object! {
-                    "program" : deployment.program_id().to_string(),
-                    "functionName" : function_name.to_string(),
-                    "verifyingKey" : verifying_key.to_string(),
-                    "certificate" : certificate.to_string(),
-                }
-            }).collect::<Array>()
-        }).unwrap_or_else(|| Array::new())
+        self.0
+            .deployment()
+            .map(|deployment| {
+                deployment
+                    .verifying_keys()
+                    .iter()
+                    .map(|(function_name, (verifying_key, certificate))| {
+                        object! {
+                            "program" : deployment.program_id().to_string(),
+                            "function" : function_name.to_string(),
+                            "verifyingKey" : verifying_key.to_string(),
+                            "certificate" : certificate.to_string(),
+                        }
+                    })
+                    .collect::<Array>()
+            })
+            .unwrap_or_else(|| Array::new())
     }
 }
 
@@ -412,11 +419,11 @@ mod tests {
         // Check the transfer_public transition.
         let transition = Object::from(transitions[0].clone());
         assert_eq!(
-            Reflect::get(&transition, &JsValue::from_str("programId")).unwrap().as_string().unwrap(),
+            Reflect::get(&transition, &JsValue::from_str("program")).unwrap().as_string().unwrap(),
             "credits.aleo"
         );
         assert_eq!(
-            Reflect::get(&transition, &JsValue::from_str("functionName")).unwrap().as_string().unwrap(),
+            Reflect::get(&transition, &JsValue::from_str("function")).unwrap().as_string().unwrap(),
             "transfer_public"
         );
         assert_eq!(
@@ -459,11 +466,11 @@ mod tests {
         assert_eq!(outputs.len(), 1);
         assert_eq!(Reflect::get(&output, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "future");
         assert_eq!(
-            Reflect::get(&output, &JsValue::from_str("programId")).unwrap().as_string().unwrap(),
+            Reflect::get(&output, &JsValue::from_str("program")).unwrap().as_string().unwrap(),
             "credits.aleo"
         );
         assert_eq!(
-            Reflect::get(&output, &JsValue::from_str("functionName")).unwrap().as_string().unwrap(),
+            Reflect::get(&output, &JsValue::from_str("function")).unwrap().as_string().unwrap(),
             "transfer_public"
         );
 
@@ -483,11 +490,11 @@ mod tests {
         // Check fee_public transition.
         let transition = Object::from(transitions[1].clone());
         assert_eq!(
-            Reflect::get(&transition, &JsValue::from_str("programId")).unwrap().as_string().unwrap(),
+            Reflect::get(&transition, &JsValue::from_str("program")).unwrap().as_string().unwrap(),
             "credits.aleo"
         );
         assert_eq!(
-            Reflect::get(&transition, &JsValue::from_str("functionName")).unwrap().as_string().unwrap(),
+            Reflect::get(&transition, &JsValue::from_str("function")).unwrap().as_string().unwrap(),
             "fee_public"
         );
         assert_eq!(
@@ -521,11 +528,11 @@ mod tests {
         assert_eq!(outputs.len(), 1);
         assert_eq!(Reflect::get(&output, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "future");
         assert_eq!(
-            Reflect::get(&output, &JsValue::from_str("programId")).unwrap().as_string().unwrap(),
+            Reflect::get(&output, &JsValue::from_str("program")).unwrap().as_string().unwrap(),
             "credits.aleo"
         );
         assert_eq!(
-            Reflect::get(&output, &JsValue::from_str("functionName")).unwrap().as_string().unwrap(),
+            Reflect::get(&output, &JsValue::from_str("function")).unwrap().as_string().unwrap(),
             "fee_public"
         );
 

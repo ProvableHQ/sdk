@@ -57,12 +57,12 @@ impl Plaintext {
     ///
     /// @param {string} name The name of the plaintext member to find.
     ///
-    /// @returns {Plaintext | undefined} The plaintext member.
-    pub fn find(&self, name: String) -> Option<Plaintext> {
-        let identifier = IdentifierNative::from_str(&name).ok()?;
+    /// @returns {Plaintext} The plaintext member.
+    pub fn find(&self, name: String) -> Result<Plaintext, String> {
+        let identifier = IdentifierNative::from_str(&name).map_err(|e| e.to_string())?;
         match self.0.find(&[identifier]) {
-            Ok(plaintext) => Some(Plaintext(plaintext)),
-            Err(_) => None,
+            Ok(plaintext) => Ok(Plaintext(plaintext)),
+            Err(e) => Err(e.to_string()),
         }
     }
 
@@ -117,6 +117,18 @@ impl Plaintext {
         self.0.to_string()
     }
 
+    /// Gives the type of the plaintext.
+    ///
+    /// @returns {string} The type of the plaintext.
+    #[wasm_bindgen(js_name = "plaintextType")]
+    pub fn plaintext_type(&self) -> String {
+        match &self.0 {
+            PlaintextNative::Literal(literal, _) => literal.to_type().type_name().to_string(),
+            PlaintextNative::Struct(..) => "struct".to_string(),
+            PlaintextNative::Array(..) => "array".to_string(),
+        }
+    }
+
     /// Attempt to convert the plaintext to a JS object.
     ///
     /// @returns {Object} The JS object representation of the plaintext.
@@ -166,7 +178,7 @@ mod tests {
 
     use wasm_bindgen_test::wasm_bindgen_test;
 
-    const STRUCT: &str = "{ microcredits: 100000000u64, height: 1653124u32 }";
+    const STRUCT: &str = "{\n  microcredits: 100000000u64,\n  height: 1653124u32\n}";
 
     const NESTED_STRUCT: &str = "{ player: aleo13nnjqa7h2u4mpl95guz97nhzkhlde750zsjnw59tkgdwc85lyurs295lxc, health: 100u8, inventory: { coins: 5u32, snacks: { candies: 5u64, vegetals: 6u64 } }, secret: 2group, cipher: 2scalar, is_alive: true }";
 

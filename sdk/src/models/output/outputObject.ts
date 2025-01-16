@@ -12,7 +12,7 @@ export interface OutputObject {
     id: string | Field,
     value?: Ciphertext | Plaintext | PlaintextObject,
     checksum?: string | Field,
-    programId?: string,
-    functionName?: string,
+    program?: string,
+    function?: string,
     arguments?: Array<Plaintext> | Array<OutputObject>
 }

@@ -30,7 +30,7 @@
   ],
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js",
-    "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --parallel --timeout 60000"
+    "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --timeout 60000"
   },
   "repository": {
     "type": "git",

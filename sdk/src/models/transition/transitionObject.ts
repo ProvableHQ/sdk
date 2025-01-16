@@ -5,7 +5,7 @@ import { Field, Group } from "../../wasm";
 export interface TransitionObject {
     id: string;
     program: string;
-    functionName: string;
+    function: string;
     inputs?: (InputObject)[];
     outputs?: (OutputObject)[];
     proof: string;

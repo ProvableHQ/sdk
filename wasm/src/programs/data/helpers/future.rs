@@ -45,8 +45,8 @@ pub fn future_to_js_value(argument: &FutureNative, convert_to_js: bool, id: &Fie
     let future_object = object! {
         "type" : "future",
         "id" : if convert_to_js { JsValue::from(&id.to_string()) } else { JsValue::from(Field::from(id)) },
-        "programId" : argument.program_id().to_string(),
-        "functionName" : argument.function_name().to_string(),
+        "program" : argument.program_id().to_string(),
+        "function" : argument.function_name().to_string(),
         "arguments" : arguments,
     };
     JsValue::from(future_object)

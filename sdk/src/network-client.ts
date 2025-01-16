@@ -634,7 +634,7 @@ class AleoNetworkClient {
     try {
       const keyString = key instanceof Plaintext ? key.toString() : key;
       const value = await this.fetchRaw("/program/" + programId + "/mapping/" + mappingName + "/" + keyString);
-      return Plaintext.fromString(value);
+      return Plaintext.fromString(JSON.parse(value));
     } catch (error) {
       throw new Error("Failed to fetch mapping value." + error);
     }

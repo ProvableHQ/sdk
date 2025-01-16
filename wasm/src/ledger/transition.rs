@@ -366,11 +366,11 @@ mod tests {
 
         assert_eq!(Reflect::get(&output_2, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "future");
         assert_eq!(
-            Reflect::get(&output_2, &JsValue::from_str("programId")).unwrap().as_string().unwrap(),
+            Reflect::get(&output_2, &JsValue::from_str("program")).unwrap().as_string().unwrap(),
             "token_registry.aleo"
         );
         assert_eq!(
-            Reflect::get(&output_2, &JsValue::from_str("functionName")).unwrap().as_string().unwrap(),
+            Reflect::get(&output_2, &JsValue::from_str("function")).unwrap().as_string().unwrap(),
             "burn_private"
         );
 

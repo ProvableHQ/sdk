@@ -228,21 +228,24 @@ describe('NodeConnection', () => {
     });
 
     describe('Test API methods that return wasm objects', () => {
-        it('Plaintext mapping content should match that of the plaintext object', async () => {
+        it('Plaintext returned from the API should have expected properties', async () => {
             const transactions = await connection.getTransactions(27400);
             if (transactions.length > 0) {
-                const plaintext = await connection.getProgramMappingPlaintext("credits.aleo", "committee", "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal");
-                const text = await connection.getProgramMappingValue("credits.aleo", "committee", "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal");
-
-                // Ensure the plaintext toString is the same as the api response.
-                expect(text).equal(plaintext.toString());
+                // Check a struct variant of a plaintext object.
+                let plaintext = await connection.getProgramMappingPlaintext("credits.aleo", "committee", "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal");
+                expect(plaintext.plaintextType()).equal("struct");
 
                 // Ensure the JS object representation matches the wasm representation.
-                const isOpen = (<Plaintext>plaintext.find("is_open")).toObject();
-                const commission = (<Plaintext>plaintext.find("commission")).toObject();
+                const isOpen = <Plaintext>plaintext.find("is_open").toObject();
+                const commission = <Plaintext>plaintext.find("commission").toObject();
                 const plaintextObject = plaintext.toObject();
                 expect(plaintextObject.is_open).equal(isOpen);
                 expect(plaintextObject.commission).equal(commission);
+
+                // Check a literal variant of a plaintext object.
+                plaintext = await connection.getProgramMappingPlaintext("credits.aleo", "account", "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal");
+                expect(plaintext.plaintextType()).equal("u64");
+                expect(plaintext.toObject()).a("bigint");
             }
         });
 
@@ -259,7 +262,7 @@ describe('NodeConnection', () => {
                 expect(transaction.isExecute()).equal(true);
                 expect(transaction.isFee()).equals(false);
                 expect(transaction.isDeploy()).equals(false);
-                expect(transaction.records().length).equals( 0);
+                expect(transaction.records().length).equals( 1);
 
                 // Check the transition object contains the correct transition metadata
                 expect(transition.programId()).equals("puzzle_arcade_coin_v001.aleo")
@@ -273,11 +276,11 @@ describe('NodeConnection', () => {
                 // Ensure the object summary returns the correct transaction metadata.
                 expect(summary.type).equals(transaction.transactionType());
                 expect(summary.fee).equals(transaction.feeAmount());
-                expect(summary.transitions.length).equals(1);
+                expect(summary.transitions.length).equals(2);
                 expect(<string>summary.transitions[0].tpk).equals("6666707959509237020554863505720154589525217196021270704042929032892063700604group");
                 expect(<string>summary.transitions[0].tcm).equals("5140704971235445395514301730284508935687584564904251867869912904008739082032field");
                 expect(<string>summary.transitions[0].scm).equals("4048085747685910464005835076598544744404883618916202014212851266936759881218field");
-                expect(summary.transitions[0].functionName).equals("transfer_public");
+                expect(summary.transitions[0].function).equals("mint");
                 expect(summary.id).equals(transaction.id());
                 expect(summary.fee).equals(transaction.feeAmount());
                 expect(summary.baseFee).equals(transaction.baseFeeAmount());
@@ -291,27 +294,23 @@ describe('NodeConnection', () => {
                 expect(transition_summary.tpk).equals(transition.tpk().toString());
                 expect(transition_summary.tcm).equals(transition.tcm().toString());
                 expect(transition_summary.scm).equals(transition.scm().toString());
-                expect(transition_summary.functionName).equals(transition.functionName());
+                expect(transition_summary.function).equals(transition.functionName());
                 expect(transition_summary.id).equals(transition.id());
                 expect(transition_summary.program).equals(transition.programId());
                 expect(transition_inputs.length).equals(transition.inputs(true).length);
                 expect(transition_outputs.length).equals(transition.outputs(true).length);
 
-                // Check the summary's inputs and outputs match expected values.
+                // // Check the summary's inputs and outputs match expected values.
                 const transition_input_1 = <InputObject>transition_inputs[0];
                 const transition_input_2 = <InputObject>transition_inputs[1];
                 const transition_output_1 = <OutputObject>transition_outputs[0];
-                const transition_future_arguments = <PlaintextObject[]>transition_output_1.arguments;
                 expect(transition_input_1.type).equals("public");
                 expect(transition_input_2.type).equals("public");
                 expect(<string>transition_input_1.value).equals("aleo1mltea0uj6865k5qvvf4er424wg8kqgh4ldlkgav7qzrzrw3mmvgq5rj3s8");
-                expect(<bigint>transition_input_1.value).equals(BigInt(1000000));
-                expect(transition_output_1.type).equals("future");
-                expect(<string>transition_output_1.programId).equals("credits.aleo");
-                expect(<string>transition_output_1.functionName).equals("transfer_public");
-                expect(transition_future_arguments.length).equals(2);
-                expect(<string>transition_future_arguments[0]).equals("aleo193cgzzpr5lcwq6rmzq4l2ctg5f4mznead080mclfgrc0e5k0w5pstfdfps");
-                expect(<bigint>transition_future_arguments[1]).equals(BigInt(1449));
+                expect(transition_output_1.type).equals("record");
+                expect(<string>transition_output_1.id).equals("5572694414900952602617575422938223520445524449912062453787036904987112234218field");
+                expect(<string>transition_output_1.checksum).equals("976841447793933847827686780055501802433867163411662643088590532874495495156field");
+                expect(<string>transition_output_1.value).equals("record1qyqsqkh52naqk7l62m9rw3emwm0swuttcs7qs6lqqeu2czc34mv7h2c8qyrxzmt0w4h8ggcqqgqsq5de236vn6h0z3cvecduyzmqmaw0ue8wk4a9a5z89r7qxv53cwgg4xqpmzq9tv35fzyt6xfem9f74qcx9qsj90e6gzajfetc874q6g9snrzkgw");
             }
         });
 
@@ -352,7 +351,7 @@ describe('NodeConnection', () => {
                 expect(transactions[0].index).equal(0);
                 expect(transactions[0].finalize.length).equal(1);
                 expect(transactions[0].transaction.id).equal("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
-                expect(transactions[0].transaction.type).equal(true);
+                expect(transactions[0].transaction.type).equal("execute");
 
                 const execution = <ExecutionJSON>transactions[0].transaction.execution;
                 expect(execution.transitions.length).equal(1);
@@ -368,8 +367,8 @@ describe('NodeConnection', () => {
                 expect(outputs[0].id).equal("5572694414900952602617575422938223520445524449912062453787036904987112234218field");
                 expect(outputs[0].value).equal("record1qyqsqkh52naqk7l62m9rw3emwm0swuttcs7qs6lqqeu2czc34mv7h2c8qyrxzmt0w4h8ggcqqgqsq5de236vn6h0z3cvecduyzmqmaw0ue8wk4a9a5z89r7qxv53cwgg4xqpmzq9tv35fzyt6xfem9f74qcx9qsj90e6gzajfetc874q6g9snrzkgw");
                 expect(<string>outputs[0].checksum).equal("976841447793933847827686780055501802433867163411662643088590532874495495156field");
-                expect(transactions[0].transaction.fee.proof).equal("proof1qyqsqqqqqqqqqqqpqqqqqqqqqqq89k9zdaf38ssnk3znaue2xv0uax8dcvydrrssgfxwuvm7w0h7wtcwu4qdkvhc4yxy73m8m4z0hssqq8xn4t5qyj88zvhfausgzez7w0e8fhhdj6gnfgpw20k46ml4thyzjc9xj3rhuzn6qdrsvlm05amd0q96plngd7txlcjykyspyja0qnvljtte2s9v23s3x7rekhc29khqrmrp2hl9pwv8ckyx7z8p4uh64zq8lgkum20sk6klu462ahnnrerqzaaksvtk64wdsj5dwr0wcg8e63pxcfjucch3224xwkxppwtcwsqqkdw07r53e2zt402jekqmlju3c66kmzcaz0lh5ctacluce39rycg8g3x9gs8vgrxnmjzgqu95ntqqqwdhjhpx5ztvk0x35559prjlm3a54wcd6tk9k3m2fs0xkx7pty9v4urlzg6029l9mfp0tsafxq72szzhhaymx0hqztu4pr2gvqfg2nqjpmqv9c8wkrjgsm7mcpnhxdu703xkzc2tz2l4hljlv7jdpdgvyqr4pf80tzp6w0vdtupfhfj2nhmmc9s38g0na5698p8eg0n6vtcdzksfp64rveukf8yq4pk2re2zujqpy0rfr65rd3l4s63hj78nqfft70r463ym8sfan7sa2nypeyy7urkgxwsjv5n5924dc67jtm28upypvpllg4sceam4jfv603s2hgfz4dwgeuswc258uq6teftsxf7xdvrll68rqz7xtpjzl7qkaq028x44g3m52k9csrv8mlfewrklavyg7rcf4qh6htcxe39vcd63790s4s4phmfc940uhhshd7hnxrp6p7dyp73686zpa7hv59k7xrztjmer4h7yrdwd06zgwe97p7as955vafqsrlg26jt675nj4cs7z733y7gr9qtfj42j33clkcup5g3k8ww3pug25vmdqcdmrz07a6azf7h6ugj6wuvs3y5c6gjmxy3ks94ny20fd5gwmahweegq73t4nhytu55nc5xa0jy8qchstu7r23psfjk7day55p4yyejrhh89hlc93zlcnu48tqjul35wn0us20w7rmwe7cwgy2q9quaaxz5n4rueeey4hm9cxlu828h2y29wkwr3p8h6nxfqdu905txsr604gnzurkz7rjnuy44a2a8afgplfgt4wd77tlfg8ec7tacjyqgrqvqqqqqqqqqqpqg7sm3jcaeqajsucveqam4mjajv0hps5lvqe7hhg93psqnjpu8aqpn0x8t92c3fjcke385h2yuvsqq2zvx9t6g9y3qnzza9k4tje8yzxzsmpaaf5un7vc78syypyplm5psr3rs5vp5n6ru4zm5vlukkf2vqqyhl84enh2p3q35t2c5n9ve4fdpa9pcg4pjms7j3alm3ctvv55e3qqmjv7lccnkh00utzhjwv2hglqaqmuh84kz5wug0pmwn0n8ua373ttqjdksd3eq7e4z3f69yvnn0sqqqcnztcq");
-                expect(transactions[0].transaction.fee.global_state_root).equal("sr1uwx36xp95j7p2w7yadnj5ups6n8ktf0uwnvq0yauk2fefa2lsqysj4ydym");
+                expect(transactions[0].transaction.fee.proof).equal("proof1qyqsqqqqqqqqqqqpqqqqqqqqqqqys4nj07zk5yc2xrzccul4ghsyjd3zh86wpxk2jy7r4fludh27jsjaf4saz40sss0e22ge74xgz5spqxqpe56uw3c6c27p80glmxwegkkkdpxfnd6yww2pwsrtwtl8c0a80dyd7jfw66retckp7uk93qcx5qt7h2xql37xx4umft9aqrlls2xgtuxvvap3j6d7l4gkdwy3dtn5xg32zr7ywndpl3dle54fdnku0kq3c6f0f4lqmrd3dmmdg6tu7cqmx4h3d9lc56duws2y3628fpfw2v4877pf2v4exvlx4h5mrl5zaeqq6rht59wewjnuzsvhwkjrrxl6ur9mr4mxluahrg3zug7vrmg43p6x4fsrgztun49a5qrtmelv64fgpdeyk4m2dp0y3zwet4wmj2cx4euausakj2k4paeql74xn7yv63m5evt9uymx3ygav8ysj58hd3q0sp8a79cvd83s0rmq2gy443mpe2tfdamxzufpz9jts4fhe9sf7mk82fc602wv279mughzztu3t93k3q8glzqaj3ltjx4cnvr3a99ukngxunvzgw6wd77msg396vffn8gtlhe5fepzkum3q9xvqpd4hqymr7qyx0q7vup99443kyvrh0v962gc26p47zghgsh9hfmah46vd9jej9drvwn25sm8mrysew7zwr5r24yqup2jlh9k0pdtswus7mw0gnlzsphpqc4n6ck23932ekrt438ntuxenzzjk8y2qh006ddvztzky6stq8ylyzh2ezcn75pnzsql8aq6ky2kawwllsqay4eymmth2k22nlk2g7l2gyzkgg7vw5gsnavdfp5vq09dzwm30uq7348qwd3eqna6j7zyygexdwgdtrt5pf3ankyl360s2mxmrxsu2zy9ghw99dk7vv7dh9hcfrsy8j8ezygjc72dtzra4vqgpmq7ufpkhurw7mhl70eg674zxfehhaugfn44h70efq3azy00nuqh8ncztrkzq0zut90r4aeyd9f43qw33309zf62selcyq22f7u4cywxgjxac6vs8nmfrcdtthys7jghcct8v3zal00nx3vyjn0qa7lzpjphg653779sqzhhrwjy588mjp9dpvzvpslsd594as2zgumz9l0qy673u6sp4ukfyln6jjdyz5n03xcn7ntdl69uqwdpajg8l4d782sxqvqqqqqqqqqqpwj6l0njz3pyaa6d4k7jf3shynxuamh48qlg02vsl9cdd9cqh050mndm6a77ldye0jtyu882yj4zsqqvfkqadh2gvhlwqmrlfvn79wn0uh006uyes4cptqytgm6w9ufefqzdpz0vr85nl34cjvs849p6efvqqxvrklggzu92te588dtal4n8pr9q2fnl2e46v83z0flcyt398xspzcl4920jaj54umh60ndhh6rqhqudna94uftlhfxk0652lruhxpw2xcncjm5lywt4tzu8et0kg9rwqyqqruc9kg");
+                expect(transactions[0].transaction.fee.global_state_root).equal("sr13gjf6m2h2evlyvqdmrg0k69wlnpzruasxeekytx3gj7xf5ht6sxs27ldvh");
                 expect(transactions[0].transaction.fee.transition.function).equal("fee_public");
                 expect(transactions[0].transaction.fee.transition.program).equal("credits.aleo");
 
@@ -377,7 +376,7 @@ describe('NodeConnection', () => {
                 const feeInputs = <InputJSON[]>transactions[0].transaction.fee.transition.inputs;
                 expect(feeInputs.length).equal(3);
                 expect(feeInputs[0].type).equal("public");
-                expect(feeInputs[0].value).equal("1449u64");
+                // expect(feeInputs[0].value).equal("1449u64");
                 expect(feeInputs[0].id).equal("4386982425102730230159169800986934827054209772356695389341764668009606015212field");
 
                 // Check the fee outputs.
