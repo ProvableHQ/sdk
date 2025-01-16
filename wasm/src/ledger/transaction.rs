@@ -465,10 +465,7 @@ mod tests {
         // Check transfer_public output.
         assert_eq!(outputs.len(), 1);
         assert_eq!(Reflect::get(&output, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "future");
-        assert_eq!(
-            Reflect::get(&output, &JsValue::from_str("program")).unwrap().as_string().unwrap(),
-            "credits.aleo"
-        );
+        assert_eq!(Reflect::get(&output, &JsValue::from_str("program")).unwrap().as_string().unwrap(), "credits.aleo");
         assert_eq!(
             Reflect::get(&output, &JsValue::from_str("function")).unwrap().as_string().unwrap(),
             "transfer_public"
@@ -527,14 +524,8 @@ mod tests {
         // Check fee_public output.
         assert_eq!(outputs.len(), 1);
         assert_eq!(Reflect::get(&output, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "future");
-        assert_eq!(
-            Reflect::get(&output, &JsValue::from_str("program")).unwrap().as_string().unwrap(),
-            "credits.aleo"
-        );
-        assert_eq!(
-            Reflect::get(&output, &JsValue::from_str("function")).unwrap().as_string().unwrap(),
-            "fee_public"
-        );
+        assert_eq!(Reflect::get(&output, &JsValue::from_str("program")).unwrap().as_string().unwrap(), "credits.aleo");
+        assert_eq!(Reflect::get(&output, &JsValue::from_str("function")).unwrap().as_string().unwrap(), "fee_public");
 
         // Check the future arguments.
         let future_arguments = Array::from(&Reflect::get(&output, &JsValue::from_str("arguments")).unwrap()).to_vec();
