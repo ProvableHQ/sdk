@@ -357,7 +357,7 @@ describe('NodeConnection', () => {
                 expect(transactions.length).equal(4);
                 expect(transactions[0].status).equal("accepted");
                 expect(transactions[0].type).equal("execute");
-                expect(transactions[0].index).equal(0);
+                expect(transactions[0].index).equal(BigInt(0));
                 expect(transactions[0].finalize.length).equal(1);
                 expect(transactions[0].transaction.id).equal("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
                 expect(transactions[0].transaction.type).equal("execute");
