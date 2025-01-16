@@ -6,14 +6,15 @@ import { BlockJSON, Header, Metadata } from "./models/blockJSON";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction";
 import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON";
 import { DeploymentObject } from "./models/deployment/deploymentObject";
-import { ExecutionJSON } from "./models/executionJSON";
-import { FeeJSON} from "./models/feeJSON";
+import { ExecutionJSON, FeeExecutionJSON } from "./models/execution/executionJSON";
+import { ExecutionObject, FeeExecutionObject } from "./models/execution/executionObject";
+import { FinalizeJSON } from "./models/finalizeJSON";
 import { FunctionObject } from "./models/functionObject";
 import { InputJSON } from "./models/input/inputJSON";
 import { InputObject } from "./models/input/inputObject";
 import { OutputJSON } from "./models/output/outputJSON";
 import { OutputObject } from "./models/output/outputObject";
-import { OwnerJSON } from "./models/ownerJSON";
+import { OwnerJSON } from "./models/owner/ownerJSON";
 import { PlaintextArray} from "./models/plaintext/array";
 import { PlaintextLiteral} from "./models/plaintext/literal";
 import { PlaintextObject } from "./models/plaintext/plaintext";
@@ -107,7 +108,10 @@ export {
     DeploymentJSON,
     DeploymentObject,
     ExecutionJSON,
-    FeeJSON,
+    ExecutionObject,
+    FeeExecutionJSON,
+    FeeExecutionObject,
+    FinalizeJSON,
     FunctionObject,
     FunctionKeyPair,
     FunctionKeyProvider,

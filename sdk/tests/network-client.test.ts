@@ -1,6 +1,14 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Account, BlockJSON, AleoNetworkClient, TransactionObject, InputObject, OutputObject } from "../src/node";
+import {
+    Account,
+    BlockJSON,
+    AleoNetworkClient,
+    TransactionObject,
+    InputObject,
+    OutputObject,
+    ExecutionObject
+} from "../src/node";
 import { beaconPrivateKeyString } from "./data/account-data";
 import { DeploymentObject, ExecutionJSON, InputJSON, OutputJSON, Plaintext, PlaintextObject, Transition, TransitionObject } from "../src/node";
 
@@ -274,20 +282,21 @@ describe('NodeConnection', () => {
                 expect(transition.scm().toString()).equals("4048085747685910464005835076598544744404883618916202014212851266936759881218field");
 
                 // Ensure the object summary returns the correct transaction metadata.
+                const execution = <ExecutionObject>summary.execution;
                 expect(summary.type).equals(transaction.transactionType());
-                expect(summary.fee).equals(transaction.feeAmount());
-                expect(summary.transitions.length).equals(2);
-                expect(<string>summary.transitions[0].tpk).equals("6666707959509237020554863505720154589525217196021270704042929032892063700604group");
-                expect(<string>summary.transitions[0].tcm).equals("5140704971235445395514301730284508935687584564904251867869912904008739082032field");
-                expect(<string>summary.transitions[0].scm).equals("4048085747685910464005835076598544744404883618916202014212851266936759881218field");
-                expect(summary.transitions[0].function).equals("mint");
+                expect(summary.feeAmount).equals(transaction.feeAmount());
+                expect(execution.transitions.length).equals(2);
+                expect(<string>execution.transitions[0].tpk).equals("6666707959509237020554863505720154589525217196021270704042929032892063700604group");
+                expect(<string>execution.transitions[0].tcm).equals("5140704971235445395514301730284508935687584564904251867869912904008739082032field");
+                expect(<string>execution.transitions[0].scm).equals("4048085747685910464005835076598544744404883618916202014212851266936759881218field");
+                expect(execution.transitions[0].function).equals("mint");
                 expect(summary.id).equals(transaction.id());
-                expect(summary.fee).equals(transaction.feeAmount());
+                expect(summary.feeAmount).equals(transaction.feeAmount());
                 expect(summary.baseFee).equals(transaction.baseFeeAmount());
                 expect(summary.priorityFee).equals(transaction.priorityFeeAmount());
 
                 // Check inputs.
-                const transition_summary = <TransitionObject>summary.transitions[0];
+                const transition_summary = <TransitionObject>execution.transitions[0];
                 const transition_inputs = <InputObject[]>transition_summary.inputs;
                 const transition_outputs = <OutputObject[]>transition_summary.outputs;
                 // Ensure the transition_summary matches the wasm object.
@@ -331,10 +340,10 @@ describe('NodeConnection', () => {
 
                 // Ensure the object summary returns the correct general transaction metadata.
                 expect(summary.type).equals(transaction.transactionType());
-                expect(summary.fee).equals(transaction.feeAmount());
-                expect(summary.transitions.length).equals(0);
+                expect(summary.feeAmount).equals(transaction.feeAmount());
+                expect(summary.execution).equals(null);
                 expect(summary.id).equals(transaction.id());
-                expect(summary.fee).equals(transaction.feeAmount());
+                expect(summary.feeAmount).equals(transaction.feeAmount());
                 expect(summary.baseFee).equals(transaction.baseFeeAmount());
                 expect(summary.priorityFee).equals(transaction.priorityFeeAmount());
                 expect(deployment.program).equals("token_registry.aleo");

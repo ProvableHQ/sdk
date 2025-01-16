@@ -14,19 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    input_to_js_value,
-    object,
-    output_to_js_value,
-    types::native::{FromBytes, ToBytes, TransactionNative, U64Native},
-    Field,
-    Group,
-    RecordCiphertext,
-    RecordPlaintext,
-    Transition,
-    VerifyingKey,
-    ViewKey,
-};
+use crate::{input_to_js_value, object, output_to_js_value, types::native::{FromBytes, ToBytes, TransactionNative, U64Native}, Address, Field, Group, RecordCiphertext, RecordPlaintext, Signature, Transition, VerifyingKey, ViewKey};
 
 use js_sys::{Array, Object, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -197,7 +185,7 @@ impl Transaction {
     /// @returns {Object} Transaction summary
     pub fn summary(&self, convert_to_js: bool) -> Object {
         // If the transaction is an execution, create an array of transitions.
-        let transitions = if self.0.is_execute() {
+        let execution = if self.0.is_execute() {
             let transitions = self.0.transitions().map(|transition| {
                 // Collect the inputs and outputs.
                 let inputs = transition.inputs().iter().map(|input| {
@@ -217,9 +205,15 @@ impl Transaction {
                     "scm" : if convert_to_js { JsValue::from_str(&transition.scm().to_string()) } else { JsValue::from(Field::from(transition.scm())) },
                 }
             }).collect::<Array>();
-            JsValue::from(transitions)
+            let execution = self.0.execution().unwrap();
+            let execution_object = object! {
+                "global_state_root" : execution.global_state_root().to_string(),
+                "proof" : execution.proof().map(|proof| proof.to_string()).unwrap_or("".to_string()),
+                "transitions" : transitions,
+            };
+            JsValue::from(execution_object)
         } else {
-            JsValue::from(Array::new())
+            JsValue::NULL
         };
 
         // If the transaction is a deployment, summarize the deployment.
@@ -234,6 +228,8 @@ impl Transaction {
                     "certificate" : certificate.to_string(),
                 }
             }).collect::<Array>();
+
+
             // Create the deployment object.
             JsValue::from(object! {
                 "edition" : deployment.edition(),
@@ -244,14 +240,60 @@ impl Transaction {
             JsValue::NULL
         };
 
+        let owner = self.0.owner().map(|owner| {
+            let owner = object! {
+                "address" : if convert_to_js { JsValue::from_str(&owner.address().to_string()) } else { JsValue::from( Address::from(owner.address())) },
+                "signature" : if convert_to_js { JsValue::from_str(&owner.signature().to_string()) } else { JsValue::from( Signature::from(owner.signature()) ) },
+            };
+            JsValue::from(owner)
+        })
+            .unwrap_or_else(|| JsValue::NULL);
+
+        // Extract the fee execution.
+        let fee = match &self.0 {
+            TransactionNative::Deploy(_, _, _, fee) => Some(fee),
+            TransactionNative::Execute(_, _, fee) => fee.as_ref(),
+            TransactionNative::Fee(_, fee) => Some(fee),
+        };
+
+        let fee_execution = if let Some(fee) = fee {
+            // Collect the inputs and outputs.
+            let inputs = fee.inputs().iter().map(|input| {
+                input_to_js_value(input, convert_to_js)
+            }).collect::<Array>();
+            let outputs = fee.outputs().iter().map(|output| {
+                output_to_js_value(output, convert_to_js)
+            }).collect::<Array>();
+            let fee_transition = object! {
+                "program" : fee.program_id().to_string(),
+                "function" : fee.function_name().to_string(),
+                "id" : fee.id().to_string(),
+                "inputs" : inputs,
+                "outputs" : outputs,
+                "tpk" : if convert_to_js { JsValue::from_str(&fee.tpk().to_string()) } else { JsValue::from(Group::from(fee.tpk())) },
+                "tcm" : if convert_to_js { JsValue::from_str(&fee.tcm().to_string()) } else { JsValue::from(Field::from(fee.tcm())) },
+                "scm" : if convert_to_js { JsValue::from_str(&fee.scm().to_string()) } else { JsValue::from(Field::from(fee.scm())) },
+            };
+            let execution_object = object! {
+                "global_state_root" : fee.global_state_root().to_string(),
+                "proof" : fee.proof().map(|proof| proof.to_string()).unwrap_or("".to_string()),
+                "transition" : fee_transition,
+            };
+            JsValue::from(execution_object)
+        } else {
+            JsValue::NULL
+        };
+
         object! {
             "id" : self.id().to_string(),
             "type" : self.transaction_type().to_string(),
-            "fee" : *self.0.fee_amount().unwrap_or(U64Native::new(0)),
+            "execution" : execution,
+            "deployment" : deployment,
+            "fee" : fee_execution,
+            "owner" : owner,
+            "feeAmount" : *self.0.fee_amount().unwrap_or(U64Native::new(0)),
             "baseFee" : *self.0.base_fee_amount().unwrap_or(U64Native::new(0)),
             "priorityFee" : *self.0.priority_fee_amount().unwrap_or(U64Native::new(0)),
-            "transitions" : transitions,
-            "deployment" : deployment,
         }
     }
 
@@ -409,12 +451,17 @@ mod tests {
         let transaction_type = Reflect::get(&summary, &JsValue::from_str("type")).unwrap().as_string().unwrap();
         assert_eq!(transaction_type, "execute");
         assert!(Reflect::get(&summary, &JsValue::from_str("baseFee")).unwrap().is_bigint());
-        assert!(Reflect::get(&summary, &JsValue::from_str("fee")).unwrap().is_bigint());
+        assert!(Reflect::get(&summary, &JsValue::from_str("feeAmount")).unwrap().is_bigint());
         assert!(Reflect::get(&summary, &JsValue::from_str("priorityFee")).unwrap().is_bigint());
 
-        // Get the transitions.
-        let transitions = Array::from(&Reflect::get(&summary, &JsValue::from_str("transitions")).unwrap()).to_vec();
+        // Get the execution.
+        let execution = Object::from(Reflect::get(&summary, &JsValue::from_str("execution")).unwrap());
+        let transitions = Array::from(&Reflect::get(&execution, &JsValue::from_str("transitions")).unwrap()).to_vec();
         assert_eq!(transitions.len(), 2);
+        let global_state_root = Reflect::get(&execution, &JsValue::from_str("global_state_root")).unwrap().as_string().unwrap();
+        let proof = Reflect::get(&execution, &JsValue::from_str("proof")).unwrap().as_string().unwrap();
+        assert_eq!(&global_state_root, "sr1cxx6uf72kla7hzu65m394fljpup39h3efe97xsn2wm2gl9apjgyqdr94ud");
+        assert_eq!(&proof, "proof1qyqsqqqqqqqqqqqpqqqqqqqqqqqvs2nmr0pnyufteq8wtf080x3vwfh5yk08d6pjmedl8j7gx6a42das2ul7rm9x6wn5tvars43nudvqq9gshva80utleuytjesa4vmkq4cv6kfcm6axn2pwf7klzk402gf9qn5t0ssz3mut0ycjcjwss4e76qrh46q8r8calfmrwmpmwj2j063rsgtvq4v85v8gzlyyy233f90pztncnx9pr65l28vuqwx86n0p2xqws3lw0a2qs4smanr5eq78rgn2t2vtvnfu07589676v86kjxdfc6nqdvmghjvc25zzh7qwj2jxmk5qtu5ecxd8mpx00mjs4q2sen68w57zk6c3e7xnm7jeelrqhuexaae9n8v9ddagrl27wwn8zg8vwv9srrar48d0aqslsmzt6lqnxq2mwn0y89zxtrsfs8uzphrc3geu9y5pn2m90k45s5cqt4ypw8rqea53qprslzcs0xpuhc6gc59lfxk0fz49wj70pxe4wczpnxcendf6f7ep49svrsamw2nn39y02dt3l85ztqr09hcxd6h9382cq2s3j890g6ezu2lktszy278dxhuxj47qmmjs2m2p78ud9s3m7pkrusrqwj65f6qv4h0spx0jsrs0vcyapz868egt4g6jf9zwmdkfn5d4966234td44gzcvzwghl2tcxxpl0vt70366upqd7se7pf8vmlvujalgwglgzu2tnrp474nmuvewflrd6eg8j6usg5c6l5vydrkjav4lqx8n4d83nre9qex57ut3nunlyccedx3npxuqzu4fk6293yxxd0sd05jrtxkjpckqrvaaxnng22j9dxnlrvxm24ql5880tdnd8mwsmhz9hf4tnwlrl65xu2x9tuqz5c4nsha95hqlksj3mapzmc5672md4hckakxfpt28znt0st8p3xwt05a3usl3remvc9e5ng8quakjgax4aquczfqvdxzwstm8et5tgdptkt84wnklwn5c8cy93ezx7rh4jve5dn2t8zcn32vph0d8sx583j6uqz6sg8mjs6upgdsf47d6ageygydpve89p3tsshx5vt98jzet9hnkfacky5hpxgqlgnm0dvchgylg3prq05gq7kzdu8narls66gg7nxml0hzqsrh0lqez38m40dzt9zzg985frap8m43ehfk5z9lpsazc7jx0fyp2qcrncdqvqqqqqqqqqqqkfq8j9ez9zl7gycv3wzsjez8amk3lkrptn62v0xp805dmckhl38k3hn0vc5v54wre6m0n8mcvz3qyq2fchjxd29juplmjywlrfz83zkq2ev6mxryx5dz43tcwneamnpa5m6ezycmqed4dsfrm342e3693qqq8gj3sheypdtugcnxfuvw5pqn5glpxc8hy8efn8z366lm6l46luqpfn0c6cv8jnfkqg8x0djhm97ex4w43ljp2q3p48puy5qg7plrl3082j669dptpvp62h8wrmvl4ggsyqqxqxmd4");
 
         // Check the transfer_public transition.
         let transition = Object::from(transitions[0].clone());
@@ -519,6 +566,61 @@ mod tests {
 
         // Check outputs and future arguments.
         let outputs = Array::from(&Reflect::get(&transition, &JsValue::from_str("outputs")).unwrap()).to_vec();
+        let output = Object::from(outputs[0].clone());
+
+        // Check fee_public output.
+        assert_eq!(outputs.len(), 1);
+        assert_eq!(Reflect::get(&output, &JsValue::from_str("type")).unwrap().as_string().unwrap(), "future");
+        assert_eq!(Reflect::get(&output, &JsValue::from_str("program")).unwrap().as_string().unwrap(), "credits.aleo");
+        assert_eq!(Reflect::get(&output, &JsValue::from_str("function")).unwrap().as_string().unwrap(), "fee_public");
+
+        // Check the future arguments.
+        let future_arguments = Array::from(&Reflect::get(&output, &JsValue::from_str("arguments")).unwrap()).to_vec();
+        assert_eq!(future_arguments.len(), 2);
+        assert_eq!(
+            future_arguments[0].as_string().unwrap(),
+            "aleo12zlythl7htjdtjjjz3ahdj4vl6wk3zuzm37s80l86qpx8fyx95fqnxcn2f"
+        );
+        assert!(future_arguments[1].is_bigint());
+
+        // Check the fee execution.
+        let fee_execution = Object::from(Reflect::get(&summary, &JsValue::from_str("fee")).unwrap());
+        let fee_transition = Object::from(Reflect::get(&fee_execution, &JsValue::from_str("transition")).unwrap());
+        let fee_stateroot = Reflect::get(&fee_execution, &JsValue::from_str("global_state_root")).unwrap().as_string().unwrap();
+        assert_eq!(&fee_stateroot, "sr1cxx6uf72kla7hzu65m394fljpup39h3efe97xsn2wm2gl9apjgyqdr94ud");
+        assert_eq!(
+            Reflect::get(&fee_transition, &JsValue::from_str("program")).unwrap().as_string().unwrap(),
+            "credits.aleo"
+        );
+        assert_eq!(
+            Reflect::get(&fee_transition, &JsValue::from_str("function")).unwrap().as_string().unwrap(),
+            "fee_public"
+        );
+        assert_eq!(
+            Reflect::get(&transition, &JsValue::from_str("tpk")).unwrap().as_string().unwrap(),
+            "5133974047416696841315369281389544483681028470433387841583387079449986330429group"
+        );
+        assert_eq!(
+            Reflect::get(&transition, &JsValue::from_str("tcm")).unwrap().as_string().unwrap(),
+            "795609109724429421407275371955802534344227027480936262614604311690962025301field"
+        );
+        assert_eq!(
+            Reflect::get(&transition, &JsValue::from_str("scm")).unwrap().as_string().unwrap(),
+            "3903849113674739385296398736730232388289952783409244858026975082444581569623field"
+        );
+
+        // Check inputs.
+        let inputs = Array::from(&Reflect::get(&fee_transition, &JsValue::from_str("inputs")).unwrap()).to_vec();
+        assert_eq!(inputs.len(), 3);
+        assert!(Reflect::get(&inputs[0], &JsValue::from_str("value")).unwrap().is_bigint());
+        assert!(Reflect::get(&inputs[1], &JsValue::from_str("value")).unwrap().is_bigint());
+        assert_eq!(
+            Reflect::get(&inputs[2], &JsValue::from_str("value")).unwrap().as_string().unwrap(),
+            "4485998228444633245424449325268791226620568930423610568011053349827561756688field"
+        );
+
+        // Check outputs and future arguments.
+        let outputs = Array::from(&Reflect::get(&fee_transition, &JsValue::from_str("outputs")).unwrap()).to_vec();
         let output = Object::from(outputs[0].clone());
 
         // Check fee_public output.

@@ -1,5 +1,6 @@
+import { Plaintext } from "../../wasm";
 import { PlaintextArray } from "./array";
 import { PlaintextLiteral } from "./literal";
 import { PlaintextStruct } from "./struct";
 
-export type PlaintextObject = PlaintextArray| PlaintextLiteral | PlaintextStruct;
+export type PlaintextObject = PlaintextArray| PlaintextLiteral | PlaintextStruct | Plaintext;
