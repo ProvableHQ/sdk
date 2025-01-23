@@ -2400,7 +2400,7 @@ __metadata:
   resolution: "@provablehq/wasm@workspace:wasm"
   dependencies:
     "@rollup/plugin-virtual": "npm:^3.0.2"
-    "@wasm-tool/rollup-plugin-rust": "npm:^3.0.2"
+    "@wasm-tool/rollup-plugin-rust": "npm:^3.0.3"
     binaryen: "npm:^121.0.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.31.0"
@@ -3331,7 +3331,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^22.10.8":
+"@types/node@npm:*, @types/node@npm:^22.10.9":
   version: 22.10.10
   resolution: "@types/node@npm:22.10.10"
   dependencies:
@@ -3690,7 +3690,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wasm-tool/rollup-plugin-rust@npm:^3.0.2":
+"@wasm-tool/rollup-plugin-rust@npm:^3.0.3":
   version: 3.0.3
   resolution: "@wasm-tool/rollup-plugin-rust@npm:3.0.3"
   dependencies:
@@ -4135,7 +4135,7 @@ __metadata:
     "@babel/preset-typescript": "npm:^7.26.0"
     "@provablehq/sdk": "npm:^0.7.0"
     "@types/babel__generator": "npm:^7.6.8"
-    "@types/node": "npm:^22.10.8"
+    "@types/node": "npm:^22.10.9"
     "@types/react": "npm:^19.0.7"
     "@types/react-dom": "npm:^19.0.3"
     "@vitejs/plugin-react": "npm:^4.3.4"
@@ -12955,7 +12955,7 @@ __metadata:
   resolution: "template-nextjs@workspace:create-leo-app/template-nextjs-ts"
   dependencies:
     "@provablehq/sdk": "npm:^0.7.0"
-    "@types/node": "npm:^22.10.8"
+    "@types/node": "npm:^22.10.9"
     "@types/react": "npm:^19.0.7"
     "@types/react-dom": "npm:^19.0.3"
     next: "npm:15.1.6"

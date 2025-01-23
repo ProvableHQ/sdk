@@ -20,3 +20,4 @@ rust/src/program/.DS_Store
 .netlify
 
 package-lock.json
+.yarn
