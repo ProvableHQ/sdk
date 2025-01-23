@@ -26,7 +26,8 @@ export const FieldArithmetic = () => {
         { value: "mul", label: "Multiply (×)" },
         { value: "div", label: "Divide (÷)" },
         { value: "pow", label: "Power (x^y)" },
-        { value: "inv", label: "Inverse (1/x)" },
+        { value: "inv", label: "Additive Inverse (-x)" },
+        { value: "mulinv", label: "Multiplicative Inverse (1/x)"},
         { value: "equals", label: "Equals (==)" },
     ];
 
@@ -46,56 +47,57 @@ export const FieldArithmetic = () => {
     };
 
     const calculateResult = (num1, num2, op) => {
-        if (num1 === "" || num2 === "") {
+        if ((op === "inv" && num1 === "") || 
+            (op !== "inv" && (num1 === "" || num2 === ""))) {
             setResult("");
             return;
         }
 
         try {
             let field1Text = num1;
-            let field2Text = num2;
             if (!field1Text.includes("field")) {
                 field1Text = field1Text + "field";
             }
-            if (!field2Text.includes("field")) {
-                field2Text = field2Text + "field"
-            }
-            console.log(field1Text + " " + op + " " + field2Text);
             const field1 = wasm.Field.fromString(field1Text);
-            const field2 = wasm.Field.fromString(field2Text);
             let resultField;
 
-            switch (op) {
-                case "add":
-                    resultField = field1.add(field2);
-                    break;
-                case "sub":
-                    resultField = field1.subtract(field2);
-                    break;
-                case "mul":
-                    resultField = field1.multiply(field2);
-                    break;
-                case "div":
-                    if (field2.toString() === "0") {
-                        setResult("Cannot divide by zero");
-                        return;
-                    }
-                    resultField = field1.divide(field2);
-                    break;
-                case "pow":
-                    resultField = field1.pow(field2);
-                    break;
-                case "inv":
-                    resultField = field1.inverse();
-                    break;
-                case "exp":
-                    resultField = field1.pow(field2);
-                    break;
-                case "equals":
-                    resultField = field1.equals(field2);
-                    break;
-                default:
-                    resultField = field1.add(field2);
+            if (op === "inv") {
+                resultField = field1.inverse();
+            } else if (op === "mulinv") {
+                resultField = field1.divide(field1).divide(field1)
+            } else {
+                let field2Text = num2;
+                if (!field2Text.includes("field")) {
+                    field2Text = field2Text + "field"
+                }
+                const field2 = wasm.Field.fromString(field2Text);
+
+                switch (op) {
+                    case "add":
+                        resultField = field1.add(field2);
+                        break;
+                    case "sub":
+                        resultField = field1.subtract(field2);
+                        break;
+                    case "mul":
+                        resultField = field1.multiply(field2);
+                        break;
+                    case "div":
+                        if (field2.toString() === "0") {
+                            setResult("Cannot divide by zero");
+                            return;
+                        }
+                        resultField = field1.divide(field2);
+                        break;
+                    case "pow":
+                        resultField = field1.pow(field2);
+                        break;
+                    case "equals":
+                        resultField = field1.equals(field2);
+                        break;
+                    default:
+                        resultField = field1.add(field2);
+                }
             }
 
             setResult(resultField.toString());
@@ -113,7 +115,7 @@ export const FieldArithmetic = () => {
 
     return (
         <Card
-            title="Field Arithmetic"
+            title="Finite Field Arithmetic"
             style={{ width: "100%" }}
         >
             <Form {...layout}>
@@ -134,7 +136,7 @@ export const FieldArithmetic = () => {
                         />
                         <Button 
                             size="large"
-                            onClick={() => setFieldValueOne(generateRandomField())}
+                            onClick={() => onFirstNumberChange({target:{value:generateRandomField()}})}
                             style={{ width: '110px' }}
                         >
                             Random
@@ -160,30 +162,32 @@ export const FieldArithmetic = () => {
                     </Radio.Group>
                 </Form.Item>
 
-                <Form.Item 
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Field Element 2</span>}
-                    colon={false}
-                    style={{ marginBottom: '24px' }}
-                >
-                    <Input.Group compact>
-                        <Input
-                            name="elementTwo"
-                            size="large"
-                            placeholder="Enter second number"
-                            value={fieldValueTwo}
-                            allowClear={true}
-                            onChange={onSecondNumberChange}
-                            style={{ width: 'calc(100% - 110px)' }}
-                        />
-                        <Button 
-                            size="large"
-                            onClick={() => setFieldValueTwo(generateRandomField())}
-                            style={{ width: '110px' }}
-                        >
-                            Random
-                        </Button>
-                    </Input.Group>
-                </Form.Item>
+                {operation !== "inv" && operation !== "mulinv" && (
+                    <Form.Item 
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Field Element 2</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Input.Group compact>
+                            <Input
+                                name="elementTwo"
+                                size="large"
+                                placeholder="Enter second number"
+                                value={fieldValueTwo}
+                                allowClear={true}
+                                onChange={onSecondNumberChange}
+                                style={{ width: 'calc(100% - 110px)' }}
+                            />
+                            <Button 
+                                size="large"
+                                onClick={() => onSecondNumberChange({target:{value:generateRandomField()}})}
+                                style={{ width: '110px' }}
+                            >
+                                Random
+                            </Button>
+                        </Input.Group>
+                    </Form.Item>
+                )}
 
                 <Divider />
                 <Form.Item 

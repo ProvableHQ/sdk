@@ -23,8 +23,8 @@ const menuItems = [
         icon: <UserOutlined />,
     },
     {
-        label: <Link to="/record">Record</Link>,
-        key: "/record",
+        label: <Link to="/protocol">Protocol</Link>,
+        key: "/protocol",
         icon: <ProfileOutlined />,
     },
     {

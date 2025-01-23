@@ -14,8 +14,8 @@ export const GroupArithmetic = () => {
     const operations = [
         { value: "add", label: "Add (G1+G2)" },
         { value: "sub", label: "Subtract (G1+(-G2))" },
-        { value: "scalar mul", label: "Scalar Multiply (a×G)" },
-        { value: "double", label: "Double (2×G)" },
+        { value: "scalar mul", label: "Scalar Multiply (a*G)" },
+        { value: "double", label: "Double (2*G)" },
         { value: "neg", label: "Negate ((x, y) -> (-x, y))" },
         { value: "equals", label: "Equals (G1 == G2)" },
     ];
@@ -42,7 +42,7 @@ export const GroupArithmetic = () => {
 
     const generateRandomScalar = () => {
         try {
-            const randomScalar = wasm.Scalar.random();
+            let randomScalar = wasm.Scalar.random();
             return randomScalar.toString();
         } catch (error) {
             console.error("Error generating random scalar:", error);
@@ -72,33 +72,50 @@ export const GroupArithmetic = () => {
 
     const calculateResult = (group1Str, group2Str, op, scalar = scalarValue) => {
         if ((op === "scalar mul" && (group1Str === "" || scalar === "")) || 
-            (op !== "scalar mul" && op !== "neg" && op !== "double" && (group1Str === "" || group2Str === ""))) {
+            (op !== "scalar mul" && op !== "neg" && op !== "double" && (group1Str === "" || group2Str === "")) ||
+            ((op === "neg" || op === "double") && group1Str === "")) {
             setResult("");
             return;
         }
 
         try {
-            const group1 = wasm.Group.fromString(group1Str);
+            let group1String = group1Str;
+            let group2String = group2Str;
+            if (!group1String.includes("group")) {
+                group1String = group1Str + "group"
+            }
+            if (!group2String.includes("group")) {
+                group2String = group1Str + "group"
+            }
+            const group1 = wasm.Group.fromString(group1String);
             let resultGroup;
 
             switch (op) {
                 case "add":
-                    const group2 = wasm.Group.fromString(group2Str);
+                    const group2 = wasm.Group.fromString(group2String);
                     resultGroup = group1.add(group2);
                     break;
                 case "sub":
-                    const group2Sub = wasm.Group.fromString(group2Str);
+                    const group2Sub = wasm.Group.fromString(group2String);
                     resultGroup = group1.subtract(group2Sub);
                     break;
                 case "scalar mul":
-                    const scalarField = wasm.Scalar.fromString(scalar);
-                    resultGroup = group1.mul(scalarField);
+                    let scalarText = scalar;
+                    if (!scalarText.includes("scalar")) {
+                        scalarText = scalarText + "scalar";
+                    }
+                    const scalarField = wasm.Scalar.fromString(scalarText);
+                    resultGroup = group1.scalarMultiply(scalarField);
                     break;
                 case "double":
                     resultGroup = group1.double();
                     break;
                 case "neg":
                     resultGroup = group1.inverse();
+                    break;
+                case "equals":
+                    const group2Eq = wasm.Group.fromString(group2String);
+                    resultGroup = group1.equals(group2Eq);
                     break;
                 default:
                     resultGroup = group1;
@@ -111,6 +128,30 @@ export const GroupArithmetic = () => {
         }
     };
 
+    const onRandomGroupOne = () => {
+        const newValue = generateRandomGroup();
+        setGroupValueOne(newValue);
+        calculateResult(newValue, groupValueTwo, operation);
+    };
+
+    const onGeneratorOne = () => {
+        const newValue = generateGenerator();
+        setGroupValueOne(newValue);
+        calculateResult(newValue, groupValueTwo, operation);
+    };
+
+    const onRandomGroupTwo = () => {
+        const newValue = generateRandomGroup();
+        setGroupValueTwo(newValue);
+        calculateResult(groupValueOne, newValue, operation);
+    };
+
+    const onGeneratorTwo = () => {
+        const newValue = generateGenerator();
+        setGroupValueTwo(newValue);
+        calculateResult(groupValueOne, newValue, operation);
+    };
+
     const layout = { 
         labelCol: { span: 6 }, 
         wrapperCol: { span: 18 },
@@ -119,7 +160,7 @@ export const GroupArithmetic = () => {
 
     return (
         <Card
-            title="Group Arithmetic"
+            title="Eliptic Curve Group Arithmetic"
             style={{ width: "100%" }}
         >
             <Form {...layout}>
@@ -140,14 +181,14 @@ export const GroupArithmetic = () => {
                         />
                         <Button 
                             size="large"
-                            onClick={() => setGroupValueOne(generateRandomGroup())}
+                            onClick={onRandomGroupOne}
                             style={{ width: '110px' }}
                         >
                             Random
                         </Button>
                         <Button 
                             size="large"
-                            onClick={() => setGroupValueOne(generateGenerator())}
+                            onClick={onGeneratorOne}
                             style={{ width: '110px' }}
                         >
                             Generator
@@ -173,7 +214,39 @@ export const GroupArithmetic = () => {
                     </Radio.Group>
                 </Form.Item>
 
-                {operation === "scalar mul" ? (
+                {operation !== "scalar mul" && operation !== "neg" && operation !== "double" ? (
+                    <Form.Item 
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Group Element 2</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Input.Group compact>
+                            <Input
+                                name="groupElementTwo"
+                                size="large"
+                                placeholder="Enter second group element"
+                                value={groupValueTwo}
+                                allowClear={true}
+                                onChange={onSecondGroupChange}
+                                style={{ width: 'calc(100% - 220px)' }}
+                            />
+                            <Button 
+                                size="large"
+                                onClick={onRandomGroupTwo}
+                                style={{ width: '110px' }}
+                            >
+                                Random
+                            </Button>
+                            <Button 
+                                size="large"
+                                onClick={onGeneratorTwo}
+                                style={{ width: '110px' }}
+                            >
+                                Generator
+                            </Button>
+                        </Input.Group>
+                    </Form.Item>
+                ) : operation === "scalar mul" ? (
                     <Form.Item 
                         label={<span style={{ whiteSpace: 'nowrap' }}>Scalar</span>}
                         colon={false}
@@ -198,39 +271,7 @@ export const GroupArithmetic = () => {
                             </Button>
                         </Input.Group>
                     </Form.Item>
-                ) : (
-                    <Form.Item 
-                        label={<span style={{ whiteSpace: 'nowrap' }}>Group Element 2</span>}
-                        colon={false}
-                        style={{ marginBottom: '24px' }}
-                    >
-                        <Input.Group compact>
-                            <Input
-                                name="groupElementTwo"
-                                size="large"
-                                placeholder="Enter second group element"
-                                value={groupValueTwo}
-                                allowClear={true}
-                                onChange={onSecondGroupChange}
-                                style={{ width: 'calc(100% - 220px)' }}
-                            />
-                            <Button 
-                                size="large"
-                                onClick={() => setGroupValueTwo(generateRandomGroup())}
-                                style={{ width: '110px' }}
-                            >
-                                Random
-                            </Button>
-                            <Button 
-                                size="large"
-                                onClick={() => setGroupValueTwo(generateGenerator())}
-                                style={{ width: '110px' }}
-                            >
-                                Generator
-                            </Button>
-                        </Input.Group>
-                    </Form.Item>
-                )}
+                ) : null}
 
                 <Divider />
                 <Form.Item 

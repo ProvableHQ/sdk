@@ -84,7 +84,7 @@ export const DecryptRecord = () => {
         return (
             <div className="container">
                 <h1>Records</h1>
-                <h2>Overview</h2>
+                <h2>Description</h2>
                 <ul>
                     <li>
                         {" "}
@@ -93,8 +93,8 @@ export const DecryptRecord = () => {
                         record is used, it’s consumed and can’t be reused.
                     </li>
                     <li>
-                        Functions that consume records generate new records as
-                        output.
+                        Functions can consume records as input and/or generate 
+                        new records as output.
                     </li>
                     <li>
                         Records are <strong>private</strong> by default, tied to
