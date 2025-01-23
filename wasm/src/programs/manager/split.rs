@@ -16,11 +16,11 @@
 
 use super::*;
 
-use crate::{execute_program, log, process_inputs, OfflineQuery, PrivateKey, RecordPlaintext, Transaction};
+use crate::{OfflineQuery, PrivateKey, RecordPlaintext, Transaction, execute_program, log, process_inputs};
 
 use crate::types::native::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, TransactionNative};
 use js_sys::Array;
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use std::{ops::Add, str::FromStr};
 
 #[wasm_bindgen]

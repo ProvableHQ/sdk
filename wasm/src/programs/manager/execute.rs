@@ -17,15 +17,15 @@
 use super::*;
 
 use crate::{
-    execute_fee,
-    execute_program,
-    log,
-    process_inputs,
     ExecutionResponse,
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
     Transaction,
+    execute_fee,
+    execute_program,
+    log,
+    process_inputs,
 };
 
 use crate::types::native::{
@@ -39,7 +39,7 @@ use crate::types::native::{
 };
 use core::ops::Add;
 use js_sys::{Array, Object};
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use snarkvm_console::prelude::Network;
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::cost_in_microcredits_v1;

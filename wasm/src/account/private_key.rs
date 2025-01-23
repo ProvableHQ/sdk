@@ -24,7 +24,7 @@ use crate::{
 };
 
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 
 /// Private key of an Aleo account
