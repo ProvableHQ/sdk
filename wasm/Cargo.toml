@@ -139,6 +139,7 @@ mainnet = [ ]
 [profile.release]
 opt-level = 3
 lto = true
+strip = true
 
 [profile.dev]
 opt-level = 3

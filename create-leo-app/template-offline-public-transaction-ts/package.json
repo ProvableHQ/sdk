@@ -11,9 +11,9 @@
     "@provablehq/sdk": "^0.7.0"
   },
   "devDependencies": {
-    "rimraf": "^5.0.1",
-    "rollup": "^3.27.2",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.31.0",
     "rollup-plugin-typescript2": "^0.36.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.7.3"
   }
 }

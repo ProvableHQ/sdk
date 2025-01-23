@@ -1,4 +1,5 @@
 import * as $fs from "node:fs/promises";
+import * as $path from "node:path";
 import { rollup } from "rollup";
 import virtual from "@rollup/plugin-virtual";
 import rust from "@wasm-tool/rollup-plugin-rust";
@@ -19,21 +20,18 @@ async function buildRollup(input, output) {
 async function buildWasm(network) {
     await buildRollup({
         input: {
-            "aleo_wasm": "entry",
+            "aleo_wasm": "./Cargo.toml",
+            "aleo_wasm_custom": "./Cargo.toml?custom",
         },
         plugins: [
-            virtual({
-                "entry": `export { default } from "./Cargo.toml";`,
-            }),
-
             rust({
-                cargoArgs: [
-                    // This enables multi-threading
-                    "--config", `build.rustflags=["-C", "target-feature=+atomics,+bulk-memory,+mutable-globals", "-C", "link-arg=--max-memory=4294967296"]`,
-                    "--no-default-features",
-                    "--features", `browser,${network}`,
-                    "-Z", "build-std=panic_abort,std",
-                ],
+                extraArgs: {
+                    cargo: [
+                        "--no-default-features",
+                        "--features", `browser,${network}`,
+                    ],
+                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt"],
+                },
 
                 experimental: {
                     typescriptDeclarationDir: `dist/${network}`,
@@ -45,46 +43,18 @@ async function buildWasm(network) {
         format: "es",
         sourcemap: true,
         assetFileNames: `[name][extname]`,
+        chunkFileNames: `tmp/[name].js`,
+        entryFileNames: `tmp/[name].js`,
     });
 }
 
 
 async function buildJS(network) {
-    const js = `import wasm from "./dist/${network}/aleo_wasm.js";
+    const js = `export * from "./dist/${network}/tmp/aleo_wasm.js";
 
-const {
-    initThreadPool: wasmInitThreadPool,
-    Address,
-    Ciphertext,
-    Execution,
-    ExecutionResponse,
-    Field,
-    Group,
-    Metadata,
-    OfflineQuery,
-    Plaintext,
-    Private,
-    PrivateKey,
-    PrivateKeyCiphertext,
-    Program,
-    ProvingKey,    
-    RecordCiphertext,
-    RecordPlaintext,
-    ProgramManager,
-    Scalar,
-    Signature,
-    Transaction,
-    Transition,
-    ViewKey,
-    VerifyingKey,
-    verifyFunctionExecution,
-} = await wasm({
-    importHook: () => {
-        return new URL("aleo_wasm.wasm", import.meta.url);
-    },
-});
+import { initThreadPool as wasmInitThreadPool } from "./dist/${network}/tmp/aleo_wasm.js";
 
-async function initThreadPool(threads) {
+export async function initThreadPool(threads) {
     if (threads == null) {
         threads = navigator.hardwareConcurrency;
     }
@@ -92,34 +62,7 @@ async function initThreadPool(threads) {
     console.info(\`Spawning \${threads} threads\`);
 
     await wasmInitThreadPool(new URL("worker.js", import.meta.url), threads);
-}
-
-export {
-    initThreadPool,
-    Address,
-    Ciphertext,
-    Execution,
-    ExecutionResponse,
-    Field,
-    Group,
-    Metadata,
-    OfflineQuery,
-    PrivateKey,
-    PrivateKeyCiphertext,
-    Program,
-    ProvingKey,
-    RecordCiphertext,
-    RecordPlaintext,
-    Plaintext,
-    ProgramManager,
-    Signature,
-    Scalar,
-    Transaction,
-    Transition,
-    ViewKey,
-    VerifyingKey,
-    verifyFunctionExecution,
-};`;
+}`;
 
     await buildRollup({
         input: {
@@ -139,11 +82,11 @@ export {
 
 
 async function buildWorker(network) {
-    const worker = `import wasm from "./dist/${network}/aleo_wasm.js";
+    const worker = `import { init } from "./dist/${network}/tmp/aleo_wasm_custom.js";
 
-async function initializeWorker(wasm) {
+async function initializeWorker() {
     // Wait for the main thread to send us the Module, Memory, and Rayon thread pointer.
-    function wait() {
+    function waitForEvent() {
         return new Promise((resolve) => {
             addEventListener("message", (event) => {
                 resolve(event.data);
@@ -154,15 +97,10 @@ async function initializeWorker(wasm) {
         });
     }
 
-    const [initWasm, { module, memory, address }] = await Promise.all([
-        wasm,
-        wait(),
-    ]);
+    const { module, memory, address } = await waitForEvent();
 
     // Runs the Wasm inside of the Worker, but using the main thread's Module and Memory.
-    const exports = await initWasm({
-        initializeHook: (init, path) => init(module, memory),
-    });
+    const exports = await init({ module, memory });
 
     // Tells the main thread that we're finished initializing.
     postMessage(null);
@@ -174,7 +112,7 @@ async function initializeWorker(wasm) {
     close();
 }
 
-await initializeWorker(wasm);`;
+await initializeWorker();`;
 
     await buildRollup({
         input: {
@@ -201,31 +139,7 @@ async function buildTypes(network) {
  */
 export function initThreadPool(threads?: number): Promise<void>;
 
-export {
-    Address,
-    Ciphertext,
-    Execution,
-    ExecutionResponse,
-    Field,
-    Group,
-    Metadata,
-    OfflineQuery,
-    Plaintext,
-    PrivateKey,
-    PrivateKeyCiphertext,
-    Program,
-    ProvingKey,
-    RecordCiphertext,
-    RecordPlaintext,
-    ProgramManager,
-    Scalar,
-    Signature,
-    Transaction,
-    Transition,
-    ViewKey,
-    VerifyingKey,
-    verifyFunctionExecution,
-} from "./aleo_wasm";`;
+export * from "./aleo_wasm";`;
 
     const worker = `export {};`;
 
@@ -259,6 +173,11 @@ async function build(network) {
     await Promise.all([
         buildJS(network),
         buildWorker(network),
+    ]);
+
+    await Promise.all([
+        $fs.rm($path.join("dist", network, "tmp"), { recursive: true }),
+        $fs.rm($path.join("dist", network, "aleo_wasm_custom.d.ts")),
     ]);
 }
 

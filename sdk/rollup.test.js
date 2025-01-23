@@ -33,7 +33,7 @@ export default networks.map((network) => {
             "node:os",
             "node:fs",
             "node:crypto",
-            "mime/lite.js",
+            "mime/lite",
             "sync-request",
 
             // Used by the SDK

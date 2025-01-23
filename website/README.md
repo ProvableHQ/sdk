@@ -11,8 +11,6 @@ This project was bootstrapped with [Vite](https://vitejs.dev/).
 -   Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
 
 ```bash
-rustup toolchain install nightly-2024-07-21
-rustup component add rust-src --toolchain nightly-2024-07-21
 yarn
 yarn dev
 ```

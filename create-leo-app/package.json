@@ -6,9 +6,7 @@
   "collaborators": [
     "The Provable Team"
   ],
-  "bin": {
-    "create-leo-app": "index.js"
-  },
+  "bin": "index.js",
   "files": [
     "index.js",
     "template-extension",
@@ -31,11 +29,11 @@
     "node": "^14.18.0 || >=16.0.0"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.2",
-    "@types/prompts": "^2.4.4",
+    "@types/minimist": "^1.2.5",
+    "@types/prompts": "^2.4.9",
     "kolorist": "^1.8.0",
     "minimist": "^1.2.8",
     "prompts": "^2.4.2",
-    "unbuild": "^1.2.1"
+    "unbuild": "^3.3.1"
   }
 }
