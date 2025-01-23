@@ -27,6 +27,16 @@ async function buildWasm(network) {
             rust({
                 extraArgs: {
                     cargo: [
+                        "--config", "build.rustflags=" + JSON.stringify([
+                            // This enables multi-threading
+                            "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+                            "-C", "link-arg=--max-memory=4294967296",
+
+                            // Strips out debug information
+                            "-Z", "location-detail=none",
+                            "-Z", "fmt-debug=none",
+                        ]),
+
                         "--no-default-features",
                         "--features", `browser,${network}`,
                     ],
