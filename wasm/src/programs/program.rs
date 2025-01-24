@@ -501,28 +501,9 @@ impl FromStr for Program {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{array, object};
 
     use wasm_bindgen_test::*;
-
-    macro_rules! array {
-        ($($value:expr),*$(,)?) => {{
-            let array = Array::new();
-
-            $(array.push(&JsValue::from($value));)*
-
-            array
-        }};
-    }
-
-    macro_rules! object {
-        ($($key:literal: $value:expr,)*) => {{
-            let object = Object::new();
-
-            $(Reflect::set(&object, &JsValue::from_str($key), &JsValue::from($value)).unwrap();)*
-
-            object
-        }};
-    }
 
     const TOKEN_ISSUE: &str = r#"program token_issue.aleo;
 

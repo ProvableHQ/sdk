@@ -14,33 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-mod macros;
+pub mod input;
+pub use input::input_to_js_value;
 
-pub mod data;
-pub use data::*;
+pub mod literal;
+pub use literal::literal_to_js_value;
 
-pub mod execution;
-pub use execution::*;
+pub mod output;
+pub use output::output_to_js_value;
 
-pub mod keypair;
-pub use keypair::*;
+pub mod plaintext;
+pub use plaintext::{insert_plaintext, plaintext_to_js_value, struct_to_js_object};
 
-#[cfg(feature = "browser")]
-pub mod manager;
-#[cfg(feature = "browser")]
-pub use manager::*;
+pub mod record;
+pub use record::record_to_js_object;
 
-pub mod offline_query;
-pub use offline_query::*;
-
-pub mod program;
-pub use program::*;
-
-pub mod proving_key;
-pub use proving_key::*;
-
-pub mod response;
-pub use response::*;
-
-pub mod verifying_key;
-pub use verifying_key::*;
+pub mod future;
+pub use future::future_to_js_value;

@@ -155,6 +155,9 @@
 pub mod account;
 pub use account::*;
 
+pub mod ledger;
+pub use ledger::*;
+
 pub mod programs;
 pub use programs::*;
 
@@ -162,7 +165,7 @@ pub mod record;
 pub use record::*;
 
 pub mod types;
-pub use types::Field;
+pub use types::{Field, Group, Scalar};
 
 #[cfg(not(test))]
 mod thread_pool;
@@ -195,6 +198,28 @@ extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     pub fn log(s: &str);
 }
+
+#[macro_export]
+macro_rules! array {
+        ($($value:expr),*$(,)?) => {{
+            let array = ::js_sys::Array::new();
+
+            $(array.push(&::wasm_bindgen::JsValue::from($value));)*
+
+            array
+        }};
+    }
+
+#[macro_export]
+macro_rules! object {
+        ($($key:literal: $value:expr,)*) => {{
+            let object = ::js_sys::Object::new();
+
+            $(Reflect::set(&object, &::wasm_bindgen::JsValue::from_str($key), &::wasm_bindgen::JsValue::from($value)).unwrap();)*
+
+            object
+        }};
+    }
 
 /// A trait providing convenient methods for accessing the amount of Aleo present in a record
 pub trait Credits {

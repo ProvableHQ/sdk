@@ -16,7 +16,7 @@
 
 use crate::account::{PrivateKey, Signature, ViewKey};
 
-use crate::types::native::AddressNative;
+use crate::{account::compute_key::ComputeKey, types::native::AddressNative};
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -41,6 +41,13 @@ impl Address {
     /// @returns {Address} Address corresponding to the view key
     pub fn from_view_key(view_key: &ViewKey) -> Self {
         Self(AddressNative::try_from(**view_key).unwrap())
+    }
+
+    /// Derive an Aleo address from a compute key.
+    ///
+    /// @param {ComputeKey} compute_key The compute key to derive the address from
+    pub fn from_compute_key(compute_key: &ComputeKey) -> Self {
+        compute_key.address()
     }
 
     /// Create an aleo address object from a string representation of an address
@@ -69,17 +76,11 @@ impl Address {
     }
 }
 
-impl FromStr for Address {
-    type Err = anyhow::Error;
+impl Deref for Address {
+    type Target = AddressNative;
 
-    fn from_str(address: &str) -> Result<Self, Self::Err> {
-        Ok(Self(AddressNative::from_str(address)?))
-    }
-}
-
-impl From<AddressNative> for Address {
-    fn from(value: AddressNative) -> Self {
-        Self(value)
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -89,11 +90,35 @@ impl fmt::Display for Address {
     }
 }
 
-impl Deref for Address {
-    type Target = AddressNative;
+impl From<AddressNative> for Address {
+    fn from(value: AddressNative) -> Self {
+        Self(value)
+    }
+}
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl From<Address> for AddressNative {
+    fn from(value: Address) -> Self {
+        value.0
+    }
+}
+
+impl From<&AddressNative> for Address {
+    fn from(value: &AddressNative) -> Self {
+        Self(value.clone())
+    }
+}
+
+impl From<&Address> for AddressNative {
+    fn from(value: &Address) -> Self {
+        value.0
+    }
+}
+
+impl FromStr for Address {
+    type Err = anyhow::Error;
+
+    fn from_str(address: &str) -> Result<Self, Self::Err> {
+        Ok(Self(AddressNative::from_str(address)?))
     }
 }
 

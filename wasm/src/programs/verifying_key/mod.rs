@@ -92,21 +92,27 @@ impl Deref for VerifyingKey {
     }
 }
 
+impl From<VerifyingKeyNative> for VerifyingKey {
+    fn from(verifying_key: VerifyingKeyNative) -> VerifyingKey {
+        VerifyingKey(verifying_key)
+    }
+}
+
 impl From<VerifyingKey> for VerifyingKeyNative {
     fn from(verifying_key: VerifyingKey) -> VerifyingKeyNative {
         verifying_key.0
     }
 }
 
-impl From<&VerifyingKey> for VerifyingKeyNative {
-    fn from(verifying_key: &VerifyingKey) -> VerifyingKeyNative {
-        verifying_key.0.clone()
+impl From<&VerifyingKeyNative> for VerifyingKey {
+    fn from(verifying_key: &VerifyingKeyNative) -> VerifyingKey {
+        VerifyingKey::from(verifying_key.clone())
     }
 }
 
-impl From<VerifyingKeyNative> for VerifyingKey {
-    fn from(verifying_key: VerifyingKeyNative) -> VerifyingKey {
-        VerifyingKey(verifying_key)
+impl From<&VerifyingKey> for VerifyingKeyNative {
+    fn from(verifying_key: &VerifyingKey) -> VerifyingKeyNative {
+        verifying_key.0.clone()
     }
 }
 

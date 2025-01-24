@@ -17,7 +17,7 @@
 use super::{Address, PrivateKey};
 use crate::record::RecordCiphertext;
 
-use crate::types::native::ViewKeyNative;
+use crate::{types::native::ViewKeyNative, Scalar};
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -58,6 +58,11 @@ impl ViewKey {
         Address::from_view_key(self)
     }
 
+    /// Get the underlying scalar of a view key.
+    pub fn to_scalar(&self) -> Scalar {
+        Scalar::from(*self.0)
+    }
+
     /// Decrypt a record ciphertext with a view key
     ///
     /// @param {string} ciphertext String representation of a record ciphertext
@@ -71,6 +76,30 @@ impl ViewKey {
     }
 }
 
+impl From<ViewKeyNative> for ViewKey {
+    fn from(view_key: ViewKeyNative) -> Self {
+        Self(view_key)
+    }
+}
+
+impl From<ViewKey> for ViewKeyNative {
+    fn from(view_key: ViewKey) -> Self {
+        view_key.0
+    }
+}
+
+impl From<&ViewKeyNative> for ViewKey {
+    fn from(view_key: &ViewKeyNative) -> Self {
+        Self(*view_key)
+    }
+}
+
+impl From<&ViewKey> for ViewKeyNative {
+    fn from(view_key: &ViewKey) -> Self {
+        view_key.0
+    }
+}
+
 impl FromStr for ViewKey {
     type Err = anyhow::Error;
 
@@ -79,17 +108,17 @@ impl FromStr for ViewKey {
     }
 }
 
-impl fmt::Display for ViewKey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
 impl Deref for ViewKey {
     type Target = ViewKeyNative;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl fmt::Display for ViewKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
