@@ -50,7 +50,7 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
                 JsValue::UNDEFINED
             };
             let public_output = object! {
-                "type" : "constant",
+                "type" : "public",
                 "id" : if convert_to_js { JsValue::from(id.to_string()) } else { JsValue::from(Field::from(id)) },
                 "value" : value,
             };
@@ -67,7 +67,7 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
                 JsValue::UNDEFINED
             };
             let private_output = object! {
-                "type" : "constant",
+                "type" : "private",
                 "id" : if convert_to_js { JsValue::from(id.to_string()) } else { JsValue::from(Field::from(id)) },
                 "value" : value,
             };
