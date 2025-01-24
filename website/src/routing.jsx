@@ -5,7 +5,7 @@ import { AccountFromPrivateKey } from "./tabs/account/AccountFromPrivateKey.jsx"
 import { AddressFromViewKey } from "./tabs/account/AddressFromViewKey.jsx";
 import { SignMessage } from "./tabs/account/SignMessage.jsx";
 import { VerifyMessage } from "./tabs/account/VerifyMessage.jsx";
-import { DecryptRecord } from "./tabs/record/DecryptRecord.jsx";
+import { DecryptRecord } from "./tabs/protocol/DecryptRecord.jsx";
 import { GetLatestBlockHeight } from "./tabs/rest/GetLatestBlockHeight.jsx";
 import { GetLatestBlock } from "./tabs/rest/GetLatestBlock.jsx";
 import { GetBlockByHeight } from "./tabs/rest/GetBlockByHeight.jsx";
@@ -22,9 +22,12 @@ import { Join } from "./tabs/develop/Join.jsx";
 import { Execute } from "./tabs/develop/execute/";
 import { GetMappingNames } from "./tabs/rest/GetMappingNames.jsx";
 import { GetMappingValue } from "./tabs/rest/GetMappingValue.jsx";
+import { FieldArithmetic } from "./tabs/algebra/FieldArithmetic.jsx";
+import { GroupArithmetic } from "./tabs/algebra/GroupArithmetic.jsx";
 import Homepage from "./pages/Homepage"; 
 import TermsOfUse from "./pages/TermsOfUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy"
+import { TransactionInfo } from "./tabs/protocol/TransactionInfo.jsx";
 
 export const router = createBrowserRouter([
     {
@@ -51,10 +54,12 @@ export const router = createBrowserRouter([
                 ),
             },
             {
-                path: "/record",
+                path: "/protocol",
                 element: (
                     <>
                         <DecryptRecord />
+                        <br />
+                        <TransactionInfo />
                     </>
                 ),
             },
@@ -109,6 +114,16 @@ export const router = createBrowserRouter([
                         <Split />
                         <br />
                         <Join />
+                    </>
+                ),
+            },
+            {
+                path: "/algebra",
+                element: (
+                    <>
+                        <FieldArithmetic />
+                        <br />
+                        <GroupArithmetic />
                     </>
                 ),
             },

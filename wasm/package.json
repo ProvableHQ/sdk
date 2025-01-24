@@ -1,7 +1,7 @@
 {
   "name": "@provablehq/wasm",
-  "version": "0.7.6",
-  "description": "Wasm build for the SDK",
+  "version": "0.8.0",
+  "description": "SnarkVM WASM binaries with javascript bindings",
   "collaborators": [
     "The Provable Team"
   ],
