@@ -2,7 +2,7 @@ name: Website
 on:
   push:
     branches:
-      - testnet3
+      - mainnet
 
 jobs:
   deploy:
