@@ -99,7 +99,7 @@ jobs:
       - run:
           working_directory: create-leo-app/template-node
           command: |
-            yarn start
+            yarn dev
 
   template-node-ts:
     executor: rust-node
@@ -108,7 +108,7 @@ jobs:
       - run:
           working_directory: create-leo-app/template-node-ts
           command: |
-            yarn start
+            yarn dev
 
   template-extension:
     executor: rust-node

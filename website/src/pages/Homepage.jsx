@@ -8,7 +8,7 @@ const Homepage = () => {
         <div className="homepage">
             <Link to="https://provable.com/">
                 <img
-                    src="../public/primary-wordmark-dark.png"
+                    src="../public/provable-logo-light.svg"
                     className="logo"
                 ></img>
             </Link>
@@ -82,7 +82,7 @@ const Homepage = () => {
                     <Link to="/privacy_policy" style={{ color: "white", textDecoration: "none"}}>
                         <span>Privacy Policy</span>
                     </Link>
-                    © 2024 Provable Inc.
+                    © 2025 Provable Inc.
                 </div>
             </div>
         </div>

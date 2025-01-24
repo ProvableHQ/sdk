@@ -40,7 +40,7 @@ first zero-knowledge web app.
 Create-leo-app provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
 start with working examples should start here.
 
-#### Source: [`sdk/create-leo-app`](https://github.com/ProvableHQ/sdk/tree/testnet3/create-leo-app)
+#### Source: [`sdk/create-leo-app`](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app)
 
 ## 3. Aleo Wasm - Zero-Knowledge Algorithms in JavaScript + WebAssembly
 <a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
@@ -65,11 +65,11 @@ Source: [Aleo Wasm](https://www.npmjs.com/package/@provablehq/wasm)
 API Documentation, tutorials for the Aleo SDK, and documentation on how to build Leo and Aleo Instructions programs can
 be found on the [Leo Developer Docs](https://docs.leo-lang.org/sdk/typescript/overview) page.
 
-#### [SDK Readme](https://github.com/ProvableHQ/sdk/tree/testnet3/sdk#readme)
+#### [SDK Readme](https://github.com/ProvableHQ/sdk/tree/mainnet/sdk#readme)
 The SDK readme provides concepts core to executing zero-knowledge programs in the web and several detailed examples of
 how to use the SDK to build web apps using Aleo.
 
-#### [Aleo Wasm Readme](https://github.com/ProvableHQ/sdk/tree/testnet3/wasm#readme)
+#### [Aleo Wasm Readme](https://github.com/ProvableHQ/sdk/tree/mainnet/wasm#readme)
 The Aleo Wasm readme provides instructions for compiling the Aleo Wasm crate and using it in web projects. Those who
 want to build from source or create their own WebAssembly bindings should start here.
 

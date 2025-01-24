@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "rimraf dist/js && rollup --config",
-    "start": "npm run build && node dist/index.js"
+    "dev": "npm run build && node dist/index.js"
   },
   "dependencies": {
     "@provablehq/sdk": "^0.7.0"

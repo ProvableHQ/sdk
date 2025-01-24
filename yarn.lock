@@ -1514,16 +1514,16 @@
   resolved "https://registry.npmjs.org/@pkgjs/parseargs/-/parseargs-0.11.0.tgz"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@provablehq/sdk@^0.7.0", "@provablehq/sdk@file:/Users/privacydaddy/dev/sdk/sdk":
+"@provablehq/sdk@^0.7.2", "@provablehq/sdk@file:/Users/privacydaddy/dev/sdk/sdk":
   version "0.7.0"
   resolved "file:sdk"
   dependencies:
-    "@provablehq/wasm" "^0.7.0"
+    "@provablehq/wasm" "^0.7.2"
     comlink "^4.4.1"
     mime "^3.0.0"
     sync-request "^6.1.0"
 
-"@provablehq/wasm@^0.7.0", "@provablehq/wasm@file:/Users/privacydaddy/dev/sdk/wasm":
+"@provablehq/wasm@^0.7.2", "@provablehq/wasm@file:/Users/privacydaddy/dev/sdk/wasm":
   version "0.7.0"
   resolved "file:wasm"
   dependencies:

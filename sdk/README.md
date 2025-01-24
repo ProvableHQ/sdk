@@ -90,7 +90,7 @@ In your project's `package.json`, ensure that the following line is added above 
 
 ### Create Leo App
 A set of fully functional examples of zero-knowledge web apps can be found in
-[create-leo-app](https://github.com/ProvableHQ/sdk/tree/testnet3/create-leo-app). Create Leo App provides several web app
+[create-leo-app](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app). Create Leo App provides several web app
 templates in common web frameworks such as React that can be used as a starting point for building zero-knowledge web apps.
 
 Developers can get started immediately with create-leo-app by running:
@@ -100,7 +100,7 @@ Developers can get started immediately with create-leo-app by running:
 
 Additionally, the SDK powers [provable.tools](https://provable.tools) - a React app that provides a graphical interface for most
 of the functionality provided by the SDK and can be used as a reference for usage of the SDK. Source code for provable.tools
-can be found [in the SDK repo here](https://github.com/ProvableHQ/sdk/tree/testnet3/website).
+can be found [in the SDK repo here](https://github.com/ProvableHQ/sdk/tree/mainnet/website).
 
 ## Usage
 
@@ -421,7 +421,7 @@ Program execution is a computationally-expensive process. For this reason, it is
 web workers. Create-Leo-App will automatically create a web worker for you that performs the execution called `worker.js`.
 
 
-A full example of this implementation can be found [here](https://github.com/ProvableHQ/sdk/tree/testnet3/create-leo-app/template-vanilla)
+A full example of this implementation can be found [here](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app/template-vanilla)
 
 ## 3. Aleo Credit Transfers
 

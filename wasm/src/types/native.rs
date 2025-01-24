@@ -41,7 +41,7 @@ use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
 pub use snarkvm_ledger_query::Query;
 pub use snarkvm_ledger_store::helpers::memory::BlockMemory;
 pub use snarkvm_synthesizer::{
-    process::{cost_in_microcredits, deployment_cost},
+    process::{cost_in_microcredits_v2, deployment_cost},
     snark::{ProvingKey, VerifyingKey},
     Process,
     Program,
