@@ -122,7 +122,7 @@ function Main() {
                             <Link to="/terms_of_use" style={{color: "white"}}> <span>Terms of Use</span> </Link>
                             <Link to="/privacy_policy" style={{color:"white"}}><span>Privacy Policy</span></Link>
                          
-                            © 2024 Provable Inc.
+                            © 2025 Provable Inc.
                         </Footer>
                     </Layout>
                 </Layout>
