@@ -11,6 +11,6 @@
     "devDependencies": {
         "@provablehq/sdk": "^0.7.0",
         "tslib": "^2.6.2",
-        "vite": "^4.4.12"
+        "vite": "^4.5.6"
     }
 }
