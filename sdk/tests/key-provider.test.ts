@@ -20,7 +20,6 @@ describe('KeyProvider', () => {
                 expect(e).instanceof(Error);
             }
         });
-
         it('Should use cache when set and not use it when not', async () => {
             // Ensure the cache properly downloads and stores keys
             keyProvider.useCache(true);

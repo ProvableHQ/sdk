@@ -1,6 +1,6 @@
 {
   "name": "@provablehq/wasm",
-  "version": "0.7.0",
+  "version": "0.7.6",
   "description": "Wasm build for the SDK",
   "collaborators": [
     "The Provable Team"

@@ -15,17 +15,13 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::*;
-use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::prelude::wasm_bindgen;
-
-use crate::types::native::{
-    CurrentNetwork,
-    ExecutionNative,
-    IdentifierNative,
-    ProcessNative,
-    ProgramID,
-    VerifyingKeyNative,
+use crate::{
+    types::native::{CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramID, VerifyingKeyNative},
+    Transition,
 };
+use js_sys::Array;
+use std::{ops::Deref, str::FromStr};
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 /// Execution of an Aleo program.
 #[wasm_bindgen]
@@ -35,6 +31,8 @@ pub struct Execution(ExecutionNative);
 #[wasm_bindgen]
 impl Execution {
     /// Returns the string representation of the execution.
+    ///
+    /// @returns {string} The string representation of the execution.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
@@ -42,9 +40,33 @@ impl Execution {
     }
 
     /// Creates an execution object from a string representation of an execution.
+    ///
+    /// @returns {Execution | Error} The wasm representation of an execution object.
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(execution: &str) -> Result<Execution, String> {
         Ok(Self(ExecutionNative::from_str(execution).map_err(|e| e.to_string())?))
+    }
+
+    /// Returns the global state root of the execution.
+    ///
+    /// @returns {Execution | Error} The global state root used in the execution.
+    #[wasm_bindgen(js_name = "globalStateRoot")]
+    pub fn global_state_root(&self) -> String {
+        self.0.global_state_root().to_string()
+    }
+
+    /// Returns the proof of the execution.
+    ///
+    /// @returns {string} The execution proof.
+    pub fn proof(&self) -> String {
+        self.0.proof().map(|proof| proof.to_string()).unwrap_or("".to_string())
+    }
+
+    /// Returns the transitions present in the execution.
+    ///
+    /// @returns Array<Transition> the array of transitions present in the execution.
+    pub fn transitions(&self) -> Array {
+        self.0.transitions().map(|transition| JsValue::from(Transition::from(transition))).collect::<Array>()
     }
 }
 

@@ -1,6 +1,6 @@
-export type Output = {
+export interface OutputJSON {
     type: string;
     id: string;
-    checksum: string;
+    checksum?: string;
     value: string;
 }
