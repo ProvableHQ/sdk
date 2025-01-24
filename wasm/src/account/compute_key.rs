@@ -16,8 +16,8 @@
 
 use super::PrivateKey;
 use crate::{
-    types::{native::ComputeKeyNative, Group, Scalar},
     Address,
+    types::{Group, Scalar, native::ComputeKeyNative},
 };
 
 use core::{convert::TryFrom, ops::Deref};
@@ -103,8 +103,8 @@ impl From<&ComputeKeyNative> for ComputeKey {
 mod tests {
     use super::*;
     use crate::{
-        types::native::{AddressNative, CurrentNetwork},
         PrivateKey,
+        types::native::{AddressNative, CurrentNetwork},
     };
 
     use snarkvm_console::network::Network;

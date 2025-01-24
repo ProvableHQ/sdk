@@ -15,18 +15,18 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    plaintext_to_js_value,
-    types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes},
     Address,
     Ciphertext,
     Field,
     Scalar,
+    plaintext_to_js_value,
+    types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes},
 };
 use std::ops::Deref;
 
 use js_sys::Uint8Array;
 use std::str::FromStr;
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// SnarkVM Plaintext object. Plaintext is a fundamental monadic type used to represent Aleo
 /// primitive types (boolean, field, group, i8, i16, i32, i64, i128, u8, u16, u32, u64, u128,

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{types::native::SignatureNative, Address, PrivateKey, Scalar};
+use crate::{Address, PrivateKey, Scalar, types::native::SignatureNative};
 
 use core::{fmt, ops::Deref, str::FromStr};
 use rand::{SeedableRng, rngs::StdRng};

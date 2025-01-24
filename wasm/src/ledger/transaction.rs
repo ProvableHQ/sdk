@@ -15,10 +15,6 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    input_to_js_value,
-    object,
-    output_to_js_value,
-    types::native::{FromBytes, ToBytes, TransactionNative, U64Native},
     Address,
     Execution,
     Field,
@@ -30,11 +26,15 @@ use crate::{
     Transition,
     VerifyingKey,
     ViewKey,
+    input_to_js_value,
+    object,
+    output_to_js_value,
+    types::native::{FromBytes, ToBytes, TransactionNative, U64Native},
 };
 
 use js_sys::{Array, Object, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Webassembly Representation of an Aleo transaction
 ///

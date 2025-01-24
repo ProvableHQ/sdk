@@ -17,7 +17,7 @@
 use super::{Address, PrivateKey};
 use crate::record::RecordCiphertext;
 
-use crate::{types::native::ViewKeyNative, Scalar};
+use crate::{Scalar, types::native::ViewKeyNative};
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 

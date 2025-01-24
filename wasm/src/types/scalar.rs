@@ -18,7 +18,7 @@ use crate::types::native::{PlaintextNative, ScalarNative, Uniform};
 use snarkvm_console::prelude::{Double, One, Pow, Zero};
 use std::ops::Deref;
 
-use crate::{types::native::LiteralNative, Plaintext};
+use crate::{Plaintext, types::native::LiteralNative};
 use once_cell::sync::OnceCell;
 use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
