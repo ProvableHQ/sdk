@@ -34,7 +34,7 @@ async function buildWasm(network) {
 
                             // Strips out debug information
                             "-Z", "location-detail=none",
-                            //"-Z", "fmt-debug=none",
+                            "-Z", "fmt-debug=none",
                         ]),
 
                         "--no-default-features",

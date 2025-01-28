@@ -55,7 +55,7 @@ impl ExecutionResponse {
         let program = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let verifying_key = process
             .get_verifying_key(program.id(), function_id)
-            .map_err(|_| format!("Could not find verifying key for {:?}/{:?}", program.id(), function_id))?;
+            .map_err(|_| format!("Could not find verifying key for {}/{}", program.id(), function_id))?;
 
         Ok(Self {
             execution,
@@ -75,7 +75,7 @@ impl ExecutionResponse {
     ) -> Result<(), String> {
         let proving_key = process
             .get_proving_key(program_id, function_id)
-            .map_err(|_| format!("Could not find proving key for {:?}/{:?}", program_id, function_id))?;
+            .map_err(|_| format!("Could not find proving key for {}/{}", program_id, function_id))?;
         self.proving_key = Some(proving_key);
         Ok(())
     }
@@ -131,7 +131,7 @@ impl ExecutionResponse {
     /// Returns the function identifier
     #[wasm_bindgen(js_name = "getFunctionId")]
     pub fn get_function_id(&self) -> String {
-        format!("{:?}", self.function_id)
+        self.function_id.to_string()
     }
 
     /// Returns the program
