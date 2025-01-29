@@ -152,6 +152,12 @@ export const GroupArithmetic = () => {
         calculateResult(groupValueOne, newValue, operation);
     };
 
+    const onScalarRandom = () => {
+        const newValue = generateRandomScalar();
+        setScalarValue(newValue);
+        calculateResult(groupValueOne, groupValueTwo, operation, newValue);
+    }
+
     const layout = { 
         labelCol: { span: 6 }, 
         wrapperCol: { span: 18 },
@@ -264,7 +270,7 @@ export const GroupArithmetic = () => {
                             />
                             <Button 
                                 size="large"
-                                onClick={() => setScalarValue(generateRandomScalar())}
+                                onClick={onScalarRandom}
                                 style={{ width: '110px' }}
                             >
                                 Random
