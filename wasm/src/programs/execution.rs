@@ -16,12 +16,12 @@
 
 pub use super::*;
 use crate::{
-    types::native::{CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramID, VerifyingKeyNative},
     Transition,
+    types::native::{CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramID, VerifyingKeyNative},
 };
 use js_sys::Array;
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Execution of an Aleo program.
 #[wasm_bindgen]

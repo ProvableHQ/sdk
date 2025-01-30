@@ -15,16 +15,16 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    types::native::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
     Address,
     Encryptor,
     PrivateKeyCiphertext,
     Signature,
     ViewKey,
+    types::native::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
 };
 
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 
 /// Private key of an Aleo account

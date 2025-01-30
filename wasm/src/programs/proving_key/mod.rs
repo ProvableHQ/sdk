@@ -76,7 +76,7 @@ impl ProvingKey {
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
-        format!("{:?}", self.0)
+        self.0.to_string()
     }
 }
 

@@ -15,14 +15,14 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    future_to_js_value,
-    object,
-    plaintext_to_js_value,
-    types::native::OutputNative,
     Ciphertext,
     Field,
     Plaintext,
     RecordCiphertext,
+    future_to_js_value,
+    object,
+    plaintext_to_js_value,
+    types::native::OutputNative,
 };
 
 use js_sys::Reflect;

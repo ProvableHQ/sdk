@@ -2,7 +2,7 @@ version: 2.1
 
 
 orbs:
-  node: circleci/node@5.2.0
+  node: circleci/node@7.0.0
 
 
 executors:
@@ -40,7 +40,9 @@ commands:
       - cargo_fetch:
           working_directory: wasm
       - node/install-packages:
-          pkg-manager: yarn
+          check-cache: always
+          pkg-manager: yarn-berry
+          with-cache: false
 
 
   setup-sdk:

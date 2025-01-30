@@ -141,7 +141,7 @@ globalThis.XMLHttpRequest = class extends EventTarget implements XMLHttpRequest 
             }
         });
 
-        const buffer = (response.body as Buffer).buffer;
+        const buffer = (response.body as Buffer).buffer as any;
 
         const responseText = new TextDecoder("iso-8859-5", { fatal: true }).decode(buffer);
 

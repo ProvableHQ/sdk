@@ -1,5 +1,5 @@
 import * as $fs from "node:fs";
-import $mime from "mime/lite.js";
+import $mime from "mime/lite";
 
 
 const oldFetch = globalThis.fetch;

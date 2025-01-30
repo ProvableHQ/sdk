@@ -21,7 +21,7 @@ use crate::{
 
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Webassembly Representation of an Aleo program
 #[wasm_bindgen]

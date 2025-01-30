@@ -15,12 +15,12 @@
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    types::{
-        native::{GroupNative, LiteralNative, PlaintextNative, Uniform},
-        Scalar,
-    },
     Field,
     Plaintext,
+    types::{
+        Scalar,
+        native::{GroupNative, LiteralNative, PlaintextNative, Uniform},
+    },
 };
 use snarkvm_console::prelude::{Double, Zero};
 

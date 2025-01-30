@@ -8,12 +8,12 @@
     "dev": "npm run build && node dist/index.js"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.7.0"
+    "@provablehq/sdk": "^0.8.0"
   },
   "devDependencies": {
-    "rimraf": "^5.0.1",
-    "rollup": "^3.27.2",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.32.0",
     "rollup-plugin-typescript2": "^0.36.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.7.3"
   }
 }
