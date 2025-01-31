@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+:root {
+    /* Font Settings */
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    font-weight: 400;
+
+    /* Color Scheme */
+    color-scheme: light dark;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
+
+    /* Other Settings */
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+
+    /* Primary Colors */
+    --primary-color: #646cff;
+    --primary-hover: #535bf2;
+    --button-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --button-hover-bg: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+    --card-bg: rgba(255, 255, 255, 0.1);
+    --overlay-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Reset and Base Styles */
+a {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--primary-hover);
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-image: url('assetsg-image.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+    color: #ffffff;
+}
+
+/* Overlay for Better Readability */
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--overlay-color);
+    z-index: 0;
+}
+
+#app {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    width: 90%;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    background: var(--card-bg);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(8.5px);
+    -webkit-backdrop-filter: blur(8.5px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 0.5em;
+    font-weight: 700;
+}
+
+p {
+    font-size: 1.1em;
+    margin-bottom: 1.5em;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.card {
+    padding: 1.5em;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5em;
+}
+
+/* #duckImage {
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0;
+  }
+  
+  #duckImage.loaded {
+    opacity: 1;
+  }
+   */
+
+button {
+    border: none;
+    border-radius: 30px;
+    padding: 0.75em 2em;
+    font-size: 1em;
+    font-weight: 600;
+    color: #ffffff;
+    background: var(--button-bg);
+    cursor: pointer;
+    transition: background 0.5s ease, transform 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+    background: var(--button-hover-bg);
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+img#duckImage {
+    max-width: 100%;
+    height: auto;
+    border: 4px solid #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+img#duckImage:hover {
+    transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 2em;
+    }
+
+    p {
+        font-size: 1em;
+    }
+
+    button {
+        padding: 0.6em 1.5em;
+        font-size: 0.9em;
+    }
+}
