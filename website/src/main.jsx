@@ -69,7 +69,10 @@ function Main() {
         // }
     }, [location, navigate]);
 
-    const [darkMode, setDarkMode] = useState(true);
+    // follow the theme of the system
+    const [darkMode, setDarkMode] = useState(
+        window.matchMedia("(prefers-color-scheme: dark)").matches,
+    );
 
     return (
         <ConfigProvider
