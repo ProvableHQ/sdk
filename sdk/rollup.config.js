@@ -27,7 +27,7 @@ export default networks.map((network) => {
             "node:fs",
             "node:crypto",
             "mime/lite",
-            "sync-request",
+            "xmlhttprequest-ssl",
 
             // Used by the SDK
             "comlink",
