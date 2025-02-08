@@ -2372,6 +2372,7 @@ __metadata:
     sinon: "npm:^19.0.2"
     sync-request: "npm:^6.1.0"
     typescript: "npm:^5.7.3"
+    xmlhttprequest-ssl: "npm:^3.1.0"
   languageName: unknown
   linkType: soft
 
@@ -14087,6 +14088,13 @@ __metadata:
   version: 2.0.4
   resolution: "xmlcreate@npm:2.0.4"
   checksum: 10c0/fc4234e2d1942877d761d4f3d64410b54633d2ec60b13a5d56a6a06545aba39a0df8ed7ded10785a302f632eb4f0a4fedbf4bf10e17892e11d5075244b9e5705
+  languageName: node
+  linkType: hard
+
+"xmlhttprequest-ssl@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "xmlhttprequest-ssl@npm:3.1.0"
+  checksum: 10c0/66e8bd30adc90425bf71a3df82bf864ed854aebd0943ade0bf22717d119d47b7c913bae3df1f17c3aac6e72fe7588cd22c50cff9b48837a63b23c99024ebb9f1
   languageName: node
   linkType: hard
 
