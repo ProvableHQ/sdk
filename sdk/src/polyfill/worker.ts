@@ -10,90 +10,92 @@ if (globalThis.navigator == null) {
     } as Navigator;
 }
 
-globalThis.Worker = class Worker extends EventTarget {
-    private _worker: import("node:worker_threads").Worker;
+if (globalThis.Worker == null) {
+    globalThis.Worker = class Worker extends EventTarget {
+        private _worker: import("node:worker_threads").Worker;
 
-    constructor(url: string | URL, options?: WorkerOptions | undefined) {
-        super();
+        constructor(url: string | URL, options?: WorkerOptions | undefined) {
+            super();
 
-        if (url instanceof URL) {
-            if (url.protocol !== "file:") {
-                throw new Error("Worker only supports file: URLs");
+            if (url instanceof URL) {
+                if (url.protocol !== "file:") {
+                    throw new Error("Worker only supports file: URLs");
+                }
+
+                url = url.href;
+
+            } else {
+                throw new Error("Filepaths are unreliable, use `new URL(\"...\", import.meta.url)` instead.");
             }
 
-            url = url.href;
+            if (!options || options.type !== "module") {
+                throw new Error("Workers must use \`type: \"module\"\`");
+            }
 
-        } else {
-            throw new Error("Filepaths are unreliable, use `new URL(\"...\", import.meta.url)` instead.");
+            const code = `
+                import("node:worker_threads")
+                    .then(({ workerData }) => {
+                        return import(workerData.polyfill)
+                            .then(() => import(workerData.url))
+                    })
+                    .catch((e) => {
+                        // TODO maybe it should send a message to the parent?
+                        console.error(e.stack);
+                    });
+            `;
+
+            this._worker = new $worker.Worker(code, {
+                eval: true,
+                workerData: {
+                    url,
+                    polyfill: new URL("node-polyfill.js", import.meta.url).href,
+                },
+            });
+
+            this._worker.on("message", (data) => {
+                this.dispatchEvent(new MessageEvent("message", { data }));
+            });
+
+            this._worker.on("messageerror", (error) => {
+                throw new Error("UNIMPLEMENTED");
+            });
+
+            this._worker.on("error", (error) => {
+                // TODO attach the error to the event somehow
+                const event = new Event("error");
+                this.dispatchEvent(event);
+            });
         }
 
-        if (!options || options.type !== "module") {
-            throw new Error("Workers must use \`type: \"module\"\`");
-        }
-
-        const code = `
-            import("node:worker_threads")
-                .then(({ workerData }) => {
-                    return import(workerData.polyfill)
-                        .then(() => import(workerData.url))
-                })
-                .catch((e) => {
-                    // TODO maybe it should send a message to the parent?
-                    console.error(e.stack);
-                });
-        `;
-
-        this._worker = new $worker.Worker(code, {
-            eval: true,
-            workerData: {
-                url,
-                polyfill: new URL("node-polyfill.js", import.meta.url).href,
-            },
-        });
-
-        this._worker.on("message", (data) => {
-            this.dispatchEvent(new MessageEvent("message", { data }));
-        });
-
-        this._worker.on("messageerror", (error) => {
+        set onmessage(f: () => void) {
             throw new Error("UNIMPLEMENTED");
-        });
+        }
 
-        this._worker.on("error", (error) => {
-            // TODO attach the error to the event somehow
-            const event = new Event("error");
-            this.dispatchEvent(event);
-        });
-    }
+        set onmessageerror(f: () => void) {
+            throw new Error("UNIMPLEMENTED");
+        }
 
-    set onmessage(f: () => void) {
-        throw new Error("UNIMPLEMENTED");
-    }
+        set onerror(f: () => void) {
+            throw new Error("UNIMPLEMENTED");
+        }
 
-    set onmessageerror(f: () => void) {
-        throw new Error("UNIMPLEMENTED");
-    }
+        postMessage(message: any, transfer: Array<Transferable>): void;
+        postMessage(message: any, options?: StructuredSerializeOptions | undefined): void;
+        postMessage(value: any, transfer: any) {
+            this._worker.postMessage(value, transfer);
+        }
 
-    set onerror(f: () => void) {
-        throw new Error("UNIMPLEMENTED");
-    }
+        terminate() {
+            this._worker.terminate();
+        }
 
-    postMessage(message: any, transfer: Array<Transferable>): void;
-    postMessage(message: any, options?: StructuredSerializeOptions | undefined): void;
-    postMessage(value: any, transfer: any) {
-        this._worker.postMessage(value, transfer);
-    }
-
-    terminate() {
-        this._worker.terminate();
-    }
-
-    // This is Node-specific, it allows the process to exit
-    // even if the Worker is still running.
-    unref() {
-        this._worker.unref();
-    }
-};
+        // This is Node-specific, it allows the process to exit
+        // even if the Worker is still running.
+        unref() {
+            this._worker.unref();
+        }
+    };
+}
 
 
 if (!$worker.isMainThread) {
