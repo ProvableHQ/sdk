@@ -13,14 +13,14 @@ npm create leo-app@latest
 
 Then follow the prompts!
 
-You can also directly specify the project name and the template you want to use via additional command line options. For example, to scaffold an Aleo + React project, run:
+You can also directly specify the project name you want to use via additional command line options. For example, to scaffold a Leo project, run:
 
 ```bash
 # npm 6.x
-npm create leo-app@latest my-leo-app --template react
+npm create leo-app@latest my-leo-app
 
 # npm 7+, extra double-dash is needed:
-npm create leo-app@latest my-leo-app -- --template react
+npm create leo-app@latest my-leo-app
 ```
 
 Currently supported template presets include:
