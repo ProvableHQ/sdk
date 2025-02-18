@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+assetsInclude: ['**/*.wasm'],
     worker: {
         format: "es",
     },
@@ -12,7 +13,7 @@ export default defineConfig({
         sourcemap: true,
     },
     optimizeDeps: {
-        exclude: ["@provablehq/wasm", "@provablehq/sdk"],
+        exclude: ["@provablehq/wasm"],
     },
     server: {
         fs: {
