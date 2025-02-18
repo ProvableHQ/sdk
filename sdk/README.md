@@ -34,29 +34,29 @@ The Aleo SDK provides the following functionality (Click to see examples):
 
 * [Installation](#Installation)
 * [Usage](#Usage)
-  * [Zero-Knowledge Web App Examples](#Zero-Knowledge-Web-App-Examples)
+  * [Zero-Knowledge Web App Examples](#Getting-Started-Zero-Knowledge-Web-App-Examples)
     * [Create Leo App](#create-leo-app)
     * [Provable.tools](#provabletools)
   * [Create An Aleo Account](#1-create-an-aleo-account)
   * [Execute Aleo Programs](#2-execute-aleo-programs)
     * [Aleo Programs](#21-aleo-programs)
     * [Program Execution Model](#22-program-execution-model)
-    * [WebAssembly Initialization](#23-wasm-initialization)
+    * [Multithreading](#23-multithreading)
     * [Local Program Execution](#24-local-program-execution)
     * [Online Program Execution](#25-program-execution-on-the-aleo-network)
     * [Program Proving Keys and Records](#26-program-proving-keys--program-records)
     * [Deploy Programs](#27-deploy-a-new-program-to-the-aleo-network)
     * [React Example](#28-react-example)
-  * [Aleo Credit Transfers](#3-value-transfers)
+  * [Aleo Credit Transfers](#3-aleo-credit-transfers)
     * [Aleo Credits](#31-aleo-credits)
-    * [Transfer Aleo Credits](#32-transfer-aleo-credits)
+    * [Transfer Aleo Credits](#32-transferring-aleo-credits)
     * [Check Public Balances](#32-checking-public-balances)
   * [Program Data and Private State](#4-managing-program-data-and-private-state)
-    * [Private State Data: Records](#41-private-state-data--records)
-    * [Record Usage Example](#42-record-usage-example--private-value-transfers)
-    * [Public State Data: Mappings](#43-public-state-data--mappings)
+    * [Private State Data: Records](#41-private-state-data-records)
+    * [Record Usage Example](#42-record-usage-example-private-value-transfers)
+    * [Public State Data: Mappings](#43-public-state-data-mappings)
     * [Reading Mappings](#44-reading-mappings)
-    * [Initializing and Updating Mappings](#45-initializing--updating-mappings)
+    * [Updating Mappings](#45-updating-mappings)
   * [Communicating with the Aleo Network](#5-communicating-with-the-aleo-network)
 * [Further Documentation](#further-documentation)
 ## Installation
@@ -215,7 +215,8 @@ The SDK provides the ability to execute Aleo programs 100% client-side within th
 
 The `ProgramManager` object encapsulates the functionality for executing programs and making zero-knowledge proofs about
 them. Under the hood it uses cryptographic code compiled from [SnarkVM](https://docs.leo-lang.org/aleo) into WebAssembly
-with JavaScript bindings that allow for the execution of Aleo programs fully within the browser. 
+with JavaScript bindings that allow for the execution of Aleo programs fully within the browser. Users interested in lower-level
+details on how this is achieved can visit the [aleo-wasm](https://crates.io/crates/aleo-wasm) crate.
 
 The basic execution flow of a program within the SDK is as follows:
 1. A web app creates an instance of the `ProgramManager` object.
@@ -226,7 +227,7 @@ The basic execution flow of a program within the SDK is as follows:
 6. The result is returned to the javascript environment in the form of an `Execution Transaction`.
 7. The execution is sent to the Aleo network.
 
-### 2.3 WebAssembly Initialization
+### 2.3 Multithreading
 
 You can enable multithreading by calling the `initThreadPool` function. This will run the SDK on multiple workers, 
 which significantly speeds up performance:
@@ -426,7 +427,7 @@ step by running:
 
 `npm create leo-app@latest`
 
-You will then be prompted to select either Vanilla, React, or Node.js as the template for the project. For this example, select Vanilla.
+You will then be prompted to select either Vanilla, React, or Node.js as the template for the project. For this example, select React.
 
 #### Program execution
 
@@ -884,7 +885,7 @@ const publicCredits = networkClient.getMapping("credits.aleo", "[a valid aleo ac
 assert(publicCredits === "0u64");
 ```
 
-### 4.5 Initializing & updating mappings
+### 4.5 Updating mappings
 Updating mappings is done by executing a program function on the Aleo network which has a finalize block that updates the
 program's mapping. For instance, the `transfer_public` function in the `credits.aleo` program updates the `account`
 mapping (and thus a user's balance) when called.
