@@ -205,7 +205,9 @@ network. This transaction is then verified by the Aleo network's validator nodes
 4. **Optional Execution of On-Chain Logic:** Any Aleo function can optionally contain on-chain logic to be executed by
 the Aleo Network's validator nodes. This logic can be used to do further computations and update on-chain key-value 
 stores called `mappings` which store a program's public on-chain state.
-5. **Addition 
+5. **Addition to the Ledger**: If the proof is valid, the transaction is added to the Aleo ledger within a 
+specific block and all changes the execution made to the program's state are recorded within the Aleo blockchain.
+
 
 #### Program Execution with the Aleo SDK
 
