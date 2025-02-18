@@ -13,8 +13,9 @@ several TypeScript & JavaScript libraries which provide the following functional
 1. [Aleo account management](https://provable.tools/account)
 2. [Web-based program execution and deployment](https://provable.tools/develop)
 3. [Aleo credit transfers](https://provable.tools/transfer)
-4. [Management of program state and data](https://provable.tools/record)
+4. [Management of program state and data](https://provable.tools/protocol)
 5. [Communication with the Aleo network](https://provable.tools/rest)
+6. [Aleo Cryptographic Primitives](https://provable.tools/algebra)
 
 All of this functionality is demonstrated on [Provable.tools](https://provable.tools).
 
@@ -44,8 +45,6 @@ start with working examples should start here.
 
 ## 3. Aleo Wasm - Zero-Knowledge Algorithms in JavaScript + WebAssembly
 <a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
-<a href="https://www.npmjs.com/package/@provablehq/nodejs"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fnodejs?label=NPM%20-%20Aleo%20Nodejs&labelColor=green&color=blue"></a>
-<a href="https://crates.io/crates/aleo-wasm"> <img alt="Aleo-Wasm" src="https://img.shields.io/crates/v/aleo-wasm.svg?color=neon"></a>
 
 Aleo Wasm is a Rust crate which compiles the Aleo source code responsible for creating and executing zero-knowledge programs into
 WebAssembly.

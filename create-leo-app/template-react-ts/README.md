@@ -2,15 +2,11 @@
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/fork/github/ProvableHQ/sdk/tree/mainnet/create-leo-app/template-react)
 
-This template provides a minimal setup to get React and Aleo working in Vite
+This template provides a minimal setup to get React and Aleo working in Webpack
 with HMR and some ESLint rules.
 
 This template includes a Leo program that is loaded by the web app located in
 the `helloworld` directory.
-
-Note: Webpack is currently used for production builds due to a
-[bug](https://github.com/vitejs/vite/issues/13367) with Vite related to nested
-workers.
 
 ### Start in development mode
 
