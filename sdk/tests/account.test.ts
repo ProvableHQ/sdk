@@ -1,9 +1,7 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Account } from "../src/account";
-import { Address, PrivateKey, RecordCiphertext, ViewKey } from "../src/wasm";
+import { Account, Address, ComputeKey, PrivateKey, RecordCiphertext, ViewKey } from "../src/node";
 import { seed, message, beaconPrivateKeyString, beaconViewKeyString, beaconAddressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from "./data/account-data";
-import { ComputeKey } from "../src/wasm";
 
 describe('Account', () => {
     afterEach(() => {
@@ -45,7 +43,6 @@ describe('Account', () => {
             expect(account.privateKey().to_string()).equal(beaconPrivateKeyString);
             expect(account.viewKey().to_string()).equal(beaconViewKeyString);
             expect(account.address().to_string()).equal(beaconAddressString);
-            expect(account.computeKey().to_string()).equal(beaconAddressString);
             expect(account.toString()).equal(beaconAddressString);
         });
 
