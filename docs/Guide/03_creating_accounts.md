@@ -57,9 +57,9 @@ flowchart TD
         )
         B --> D(
             View Key:
-            The key by which a
-            user may decrypt
-            data that they owns
+            The key that allows
+            an account to decrypt
+            private data it owns
             and prove ownership
             of data.
             
@@ -69,7 +69,7 @@ flowchart TD
             Key used to trustlessly
             run applications and
             generate transactions on
-            a user's behalf.
+            an account's behalf.
         )
     end
 ```
@@ -78,14 +78,14 @@ Please note that all keys are considered sensitive information and should be sto
 
 ## Creating an Account
 
-A new account may be created as displayed below:
+A new account can be created as displayed below:
 ```typescript
 import { Account } from '@provablehq/sdk';
 
 const account = new Account();
 ```
 
-Alternatively, you may create an account with your own private key:
+Alternatively, an account can be created with an existing private key:
 ```typescript
 import { Account } from '@provablehq/sdk';
 import { PrivateKey } from './wasm';
