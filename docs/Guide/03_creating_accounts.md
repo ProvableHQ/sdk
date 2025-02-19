@@ -1,12 +1,58 @@
 ---
 id: accounts
-title: Creating Aleo Accounts
-sidebar_label: Creating Aleo Accounts
+title: Creating and Managing Aleo Accounts
+sidebar_label: Creating and Managing Aleo Accounts
 ---
+# Account Creation and Management
 
 The first step in operating a zero-knowledge web application is creating a private key which serves as a cryptographic
 identity for a user. From it, the user's address and several other useful cryptographic keys that comprise the user's
 identity are derived.
+
+A new account may be created as displayed below:
+```typescript
+import { Account } from '@provablehq/sdk';
+
+const account = new Account();
+```
+
+Alternatively, you may create an account with your own private key:
+```typescript
+import { Account } from '@provablehq/sdk';
+import { PrivateKey } from './wasm';
+
+// From a newly generated private key
+const privateKey = new PrivateKey();
+const account = new Account({ privateKey });
+
+// From a private key derived from its string representation
+const privateKey2 = PrivateKey.fromString('somePrivateKey');
+const account2 = new Account({
+    privateKey: privateKey2,
+});
+
+// From a private key string
+const account3 = new Account({
+    privateKey: 'somePrivateKey',
+});
+```
+
+Or an encrypted ciphertext of the private key:
+```typescript
+import { Account } from '@provablehq/sdk';
+import { PrivateKey } from './wasm';
+
+// From a newly generated encrypted private key
+const password = 'password';
+const ciphertext = PrivateKey.newEncrypted(password);
+const account = Account.fromCiphertext(ciphertext, password);
+
+// From the encryption of an existing private key
+const privateKey = PrivateKey.fromString('somePrivateKey');
+const otherPassword = 'otherPassword';
+const otherCiphertext = privateKey.toCiphertext(otherPassword);
+const otherAccount = Account.fromCiphertext(otherCiphertext, otherPassword);
+```
 
 The total list of keys which comprise an Aleo account are as follows:
 
@@ -36,6 +82,7 @@ const account = new Account();
 // Individual keys can be then be accessed through the following methods
 const privateKey = account.privateKey();
 const viewKey = account.viewKey();
+const computeKey = account.computeKey();
 const address = account.address();
 ```
 
