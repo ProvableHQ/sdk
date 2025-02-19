@@ -44,32 +44,34 @@ const address = account.address();
 
 ```mermaid
 flowchart TD
-    A[Account] --> B(
-        Private Key:
-        An account's private and
-        unique identity.
-    )
-    B --> C(
-        Address:
-        An account's unique
-        public identifier.
-    )
-    B --> D(
-        View Key:
-        The key by which a
-        user may decrypt
-        data that they owns
-        and prove ownership
-        of data.
-        
-    )
-    B --> E(
-        Compute Key:
-        Key used to trustlessly
-        run applications and
-        generate transactions on
-        a user's behalf.
-    )
+    subgraph Account
+        B(
+            Private Key:
+            An account's private and
+            unique identity.
+        )
+        B --> C(
+            Address:
+            An account's unique
+            public identifier.
+        )
+        B --> D(
+            View Key:
+            The key by which a
+            user may decrypt
+            data that they owns
+            and prove ownership
+            of data.
+            
+        )
+        B --> E(
+            Compute Key:
+            Key used to trustlessly
+            run applications and
+            generate transactions on
+            a user's behalf.
+        )
+    end
 ```
 
 Please note that all keys are considered sensitive information and should be stored securely.
@@ -93,14 +95,14 @@ const privateKey = new PrivateKey();
 const account = new Account({ privateKey });
 
 // From a private key derived from its string representation
-const privateKey2 = PrivateKey.fromString('somePrivateKey');
+const privateKey2 = PrivateKey.fromString('APrivateKey1...');
 const account2 = new Account({
     privateKey: privateKey2,
 });
 
 // From a private key string
 const account3 = new Account({
-    privateKey: 'somePrivateKey',
+    privateKey: 'APrivateKey1...',
 });
 ```
 
