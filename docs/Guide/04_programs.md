@@ -70,7 +70,7 @@ Program functions can have private inputs or outputs. When a function is execute
 The `Transitions` provide useful information on the function execution and its inputs & outputs, and the proof provides 
 certainty that the function was executed correctly. This allows outside verifiers to trust that the private inputs and 
 outputs are correct without the need to see them. This is the core of the Aleo protocol's privacy guarantees as it 
-allows for fully private execution of programs. 
+allows for fully private execution of programs.
 
 ### Lifecycle of an Execution
 
@@ -120,6 +120,17 @@ graph
     style SDK fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
     linkStyle default stroke:#f229e0,stroke-width:2px;
 ```
+### Function Proving and Verifying Keys
+
+Since each function in a program has a proof associated with it, each function in a program has something called a 
+`ProvingKey` and `VerifyingKey`. These keys are cryptographic material that uniquely identifies the structure of the
+function and are required to build the proof and verify the proof respectively. A unique `ProvingKey` and `VerifyingKey`
+is generated for each function in a program.
+
+If an execution in the SDK does not have the keys, it will generate them. However, generating them is a computationally 
+expensive process, and significantly slows down the execution process if they need. It is wise for developers to store 
+them for re-use when possible. The SDK provides an interface called the `KeyProvider` to enable developers to define 
+easy ways to retrieve these keys.
 
 ### Aleo Programming Languages
 
