@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Account, Address, PrivateKey, RecordCiphertext, ViewKey } from "@provablehq/sdk";
+import { Account, Address, PrivateKey, RecordCiphertext, ViewKey } from "@provablehq/sdk/%%NETWORK%%.js";
 import { seed, message, beaconPrivateKeyString, beaconViewKeyString, beaconAddressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from "./data/account-data";
 
 describe('Account', () => {

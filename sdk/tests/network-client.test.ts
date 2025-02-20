@@ -16,7 +16,7 @@ import {
     PlaintextObject,
     Transition,
     TransitionObject,
-} from "@provablehq/sdk";
+} from "@provablehq/sdk/%%NETWORK%%.js";
 import { beaconPrivateKeyString } from "./data/account-data";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "@provablehq/sdk";
+import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "@provablehq/sdk/%%NETWORK%%.js";
 import {
     seed,
     message,
