@@ -1,14 +1,16 @@
 ---
 id: accounts
-title: Creating Aleo Accounts
-sidebar_label: Creating Aleo Accounts
+title: Creating and Managing Aleo Accounts
+sidebar_label: Creating and Managing Aleo Accounts
 ---
+# Account Creation and Management
 
 The first step in operating a zero-knowledge web application is creating a private key which serves as a cryptographic
 identity for a user. From it, the user's address and several other useful cryptographic keys that comprise the user's
 identity are derived.
 
-The total list of keys which comprise an Aleo account are as follows:
+
+## Account Keys
 
 #### Private Key
 The `Private Key` can be thought of as the identity of a user and is the most sensitive of the keys within an Aleo account.
@@ -36,7 +38,87 @@ const account = new Account();
 // Individual keys can be then be accessed through the following methods
 const privateKey = account.privateKey();
 const viewKey = account.viewKey();
+const computeKey = account.computeKey();
 const address = account.address();
 ```
 
+```mermaid
+flowchart TD
+    subgraph Account
+        B(
+            Private Key:
+            An account's private and
+            unique identity.
+        )
+        B --> C(
+            Address:
+            An account's unique
+            public identifier.
+        )
+        B --> D(
+            View Key:
+            The key that allows
+            an account to decrypt
+            private data it owns
+            and prove ownership
+            of data.
+            
+        )
+        B --> E(
+            Compute Key:
+            Key used to trustlessly
+            run applications and
+            generate transactions on
+            an account's behalf.
+        )
+    end
+```
+
 Please note that all keys are considered sensitive information and should be stored securely.
+
+## Creating an Account
+
+A new account can be created as displayed below:
+```typescript
+import { Account } from '@provablehq/sdk';
+
+const account = new Account();
+```
+
+Alternatively, an account can be created with an existing private key:
+```typescript
+import { Account } from '@provablehq/sdk';
+import { PrivateKey } from './wasm';
+
+// From a newly generated private key
+const privateKey = new PrivateKey();
+const account = new Account({ privateKey });
+
+// From a private key derived from its string representation
+const privateKey2 = PrivateKey.fromString('APrivateKey1...');
+const account2 = new Account({
+    privateKey: privateKey2,
+});
+
+// From a private key string
+const account3 = new Account({
+    privateKey: 'APrivateKey1...',
+});
+```
+
+Or an encrypted ciphertext of the private key:
+```typescript
+import { Account } from '@provablehq/sdk';
+import { PrivateKey } from './wasm';
+
+// From a newly generated encrypted private key
+const password = 'password';
+const ciphertext = PrivateKey.newEncrypted(password);
+const account = Account.fromCiphertext(ciphertext, password);
+
+// From the encryption of an existing private key
+const privateKey = PrivateKey.fromString('APrivateKey1...');
+const otherPassword = 'otherPassword';
+const otherCiphertext = privateKey.toCiphertext(otherPassword);
+const otherAccount = Account.fromCiphertext(otherCiphertext, otherPassword);
+```
