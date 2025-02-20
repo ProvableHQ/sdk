@@ -57,6 +57,7 @@ export { logAndThrow } from "./utils";
 export {
     Address,
     Ciphertext,
+    ComputeKey,
     Execution as FunctionExecution,
     ExecutionResponse,
     Field,
