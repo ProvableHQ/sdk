@@ -7,10 +7,17 @@ import {
     TransactionObject,
     InputObject,
     OutputObject,
-    ExecutionObject
-} from "../src/node";
+    ExecutionObject,
+    DeploymentObject,
+    ExecutionJSON,
+    InputJSON,
+    OutputJSON,
+    Plaintext,
+    PlaintextObject,
+    Transition,
+    TransitionObject,
+} from "@provablehq/sdk";
 import { beaconPrivateKeyString } from "./data/account-data";
-import { DeploymentObject, ExecutionJSON, InputJSON, OutputJSON, Plaintext, PlaintextObject, Transition, TransitionObject } from "../src/node";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import {Account, AleoNetworkClient, BlockHeightSearch, NetworkRecordProvider} from "../src/node";
+import {Account, AleoNetworkClient, BlockHeightSearch, NetworkRecordProvider} from "@provablehq/sdk";
 import {beaconPrivateKeyString} from "./data/account-data";
 
 describe.skip('RecordProvider', () => {
