@@ -29,6 +29,10 @@ Applications built with the Aleo SDK include:
 * **Zero Knowledge Identity Management**
 * **Aleo Wallets**
 
+## Why Build on Aleo?
+
+
+
 ## Features
 The Aleo SDK provides the following features. Follow the links below for live demonstrations of these features on 
 [provable.tools](https://provable.tools)

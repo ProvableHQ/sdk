@@ -222,6 +222,7 @@ graph
     style Outputs fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
     style Inputs fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
     style SDK fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+    linkStyle default stroke:#f229e0,stroke-width:2px;
 ```
 
 ## Building Transactions with the SDK
