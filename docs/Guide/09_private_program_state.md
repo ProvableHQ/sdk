@@ -19,7 +19,7 @@ A straightforward example of a usage of records in a program can be demonstrated
 value transfers of Aleo credits on the Aleo network.
 
 Aleo credits are used for all on-chain execution and deployment fees. Credits can be public
-or private. Private credits are represented by the `credits` record in the [credits.aleo](https://www.aleo.network/programs/credits.aleo)
+or private. Private credits are represented by the `credits` record in the [credits.aleo](https://explorer.provable.com/program/credits.aleo)
 program.
 
 ```
