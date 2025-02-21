@@ -6,14 +6,19 @@
   "tags": {
     "allowUnknownTags": ["optional"]
   },
-  "plugins": ["node_modules/better-docs/typescript"],
+  "plugins": ["node_modules/better-docs/typescript", "node_modules/kis-jsdoc-plugin"],
+  "templates": {
+    "markdown": {
+      "tocfilename": "toc.md"
+    }
+  },
   "opts": {
     "encoding": "utf8",
     "readme": "./README.md",
     "destination": "sdk/docs/",
     "recurse": true,
     "verbose": true,
-    "template": "./node_modules/clean-jsdoc-theme",
+    "template": "node_modules/kis-jsdoc-plugin/templates/markdown",
     "theme_opts": {
       "default_theme": "dark",
       "static_dir": ["sdk/docs/public"],
