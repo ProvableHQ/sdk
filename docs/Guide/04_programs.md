@@ -104,7 +104,8 @@ graph LR
 
 Programs are collections of functions, private records, data structure definitions and on-chain public data-stores.
 
-When a function within a program is executed with any mix of private or public inputs, the output is:
+When a function within a program is executed with any mix of private or public inputs, the output is an `Execution` 
+object that contains:
 1. A proof that the function was executed correctly.
 2. A list of `Transitions` which enumerate the following
    - **Public Inputs/Outputs:** A list of public inputs/outputs
@@ -164,18 +165,6 @@ graph LR
     style PublicData fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
     linkStyle default stroke:#f229e0,stroke-width:2px;
 ```
-
-### Function Proving and Verifying Keys
-
-Since each function in a program has a proof associated with it, each function in a program has something called a 
-`ProvingKey` and `VerifyingKey`. These keys are cryptographic material that uniquely identifies the structure of the
-function and are required to build the proof and verify the proof respectively. A unique `ProvingKey` and `VerifyingKey`
-is generated for each function in a program.
-
-If an execution in the SDK does not have the keys, it will generate them. However, generating them is a computationally 
-expensive process, and significantly slows down the execution process if they need. It is wise for developers to store 
-them for re-use when possible. The SDK provides an interface called the `KeyProvider` to enable developers to define 
-easy ways to retrieve these keys.
 
 ### Aleo Programming Languages
 
