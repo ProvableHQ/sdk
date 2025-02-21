@@ -35,6 +35,8 @@ mapping score:
 function update_score:
     input r0 as address.public;
     input r1 as u64.public;
+    async update_score r0 r1 into r2;
+    output r2 as player_mapping_example.aleo/update_score.future;
 
 // The finalize code block will be executed by Aleo network nodes.
 // When it runs it will update the value of the mapping.
@@ -76,14 +78,15 @@ mapping (and thus a user's balance) when called.
 function transfer_public:
     input r0 as address.public;
     input r1 as u64.public;
-    finalize self.caller r0 r1;
+    async transfer_public self.caller r0 r1 into r2;
+    output r2 as credits.aleo/transfer_public.future;
 
 // The finalize block run by nodes on the Aleo network which update a user's public balance
 finalize transfer_public:
     input r0 as address.public;
     input r1 as address.public;
     input r2 as u64.public;
-    get.or_use account[r0] 0u64 into r3;
+    get account[r0] into r3;
     sub r3 r2 into r4;
     set r4 into account[r0];
     get.or_use account[r1] 0u64 into r5;
@@ -92,8 +95,8 @@ finalize transfer_public:
 ```
 
 From the perspective of the caller of the API, this is as simple as executing a normal Aleo function. Given the inputs
-to a function with a finalize scope that updates a mapping are valid, the mapping will either be intialized or updated
-by the Aleo network. All that the user of the SDK must do is ensure that the inputs to the function are valid.
+to a function with an async scope that updates a mapping are valid, the mapping will either be initialized or updated
+by the Aleo Validators when a new block is added. All that the user of the SDK must do is ensure that the inputs to the function are valid.
 
 If function inputs are invalid, the network will return an error, but the fee paid for the transaction will still be
 consumed. Therefore, it is important to ensure that the inputs to a function are valid before executing it.
