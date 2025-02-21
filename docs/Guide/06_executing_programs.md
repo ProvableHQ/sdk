@@ -1,3 +1,9 @@
+---
+id: executing_programs
+title: Executing Aleo Programs
+sidebar_label: Executing Aleo Programs
+---
+
 The Provable SDK provides the ability to build `Execution transactions` locally and submit them to the Aleo Network.
 
 The `ProgramManager` class encapsulates the functionality for executing programs and building `Execution Transactions`. 
