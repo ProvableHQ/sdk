@@ -4,12 +4,119 @@ title: Aleo Programs and Transactions
 sidebar_label: Programs and Transactions
 ---
 
-## Programs
+Programs lie at the core of the Aleo protocol. All transactions either execute program functions or deploy new programs. 
+Program function executions are the primary method of updating the state of the Aleo Blockchain. This section 
+introduces the core ideass behind programs, the structure of a program, and the lifecycle of an Execution transaction.
 
-### Overview
+```mermaid
+graph TD
+    subgraph BlockN
+        LedgerStateN[("Ledger State N")]
+        ProgramStateN[("Program States N")]
+    end
+    subgraph BlockN+1
+        LedgerStateN+1[("Ledger State N+1")]
+        ProgramStateN+1[("Program States N+1")]
+    end
+    subgraph batchProposal["Approved Transactions"]
+        ExecutionTransaction1["ExecutionTx
+        credits.aleo:transfer_private"]
+        ExecutionTransaction2["ExecutionTx
+        token_registry.aleo:mint_private"]
+        DeploymentTransaction1["DeploymentTx
+        credential_store.aleo"]
+    end
+    BlockN --> batchProposal --> BlockN+1
+    
+    classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+    style BlockN fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+    style BlockN+1 fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+    style batchProposal fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+    linkStyle default stroke:#f229e0,stroke-width:2px;
+```
 
-Programs lie at the core of the Aleo protocol. Programs are collections of functions, private records, data structure 
-definitions and on-chain public datastores.
+## Function Privacy
+
+Every program on Aleo is open source and has one or more functions that can be executed. When a function is executed 
+and included within a transaction that is accepted into a block, it causes a state change on the Aleo network. The 
+designers of a function can choose to make some or all of this state change private
+
+
+### Private Inputs and Outputs
+
+Program functions can have private inputs or outputs that are only visible to the caller of the function (and in some 
+cases, intended receivers) and encrypted for everyone else. This paradigm allows for privacy preserving actions such as 
+private transfers of assets, lending approvals which do not require the lender to know the borrower's assets, 
+private machine learning inferences, and more.
+
+```mermaid
+graph 
+    subgraph PrivateValue["Private Value Transfers"]
+        Sender(["Sender(Private)"])
+        Amount(["Amount(Private)"])
+        Receiver["Receiver(Private)"]
+        transfer_private[["transfer_private"]]
+        Sender -.- transfer_private -.-> Receiver
+        Amount -.- transfer_private
+    end
+   classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+   style PrivateValue fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+   linkStyle default stroke:#f229e0,stroke-width:2px;
+```
+
+```mermaid
+graph LR
+   subgraph PrivateLending["Private Lending"]
+      Balance(["Balance(Private)"])
+      Score(["Credit Score(Private)"])
+      Accounts(["Number of Accounts(Private)"])
+      Approval["Loan Approval(Public)"]
+      zk_lender[["zkLendingApproval"]]
+      Balance -.- zk_lender -.-> Approval
+      Score -.- zk_lender
+      Accounts -.- zk_lender
+   end
+   classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+   style PrivateLending fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+   linkStyle default stroke:#f229e0,stroke-width:2px;
+```
+```mermaid
+graph LR
+   subgraph ZkML["ZkML"]
+      Medication(["Medication Names(Private)"])
+      Class(["Age (Private)"])
+      Dosage(["Dosage(Private)"])
+      Interaction["Interaction(Public)"]
+      Warn["Risk Recommendation(Private)"]
+      zkDecision[["medicalDecisionTree"]]
+      Medication -.- zkDecision
+      Class -.- zkDecision
+      Dosage -.- zkDecision
+      zkDecision -.-> Interaction
+        zkDecision -.-> Warn
+   end
+   classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+   style ZkML fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+   linkStyle default stroke:#f229e0,stroke-width:2px;
+```
+
+### Structure of a Program
+
+Programs are collections of functions, private records, data structure definitions and on-chain public data-stores.
+
+When a function within a program is executed with any mix of private or public inputs, the output is:
+1. A proof that the function was executed correctly.
+2. A list of `Transitions` which enumerate the following
+   - **Public Inputs/Outputs:** A list of public inputs/outputs
+   - **Encryped Private Input/Outputs:** A list of encrypted private inputs/outputs that is
+     only decryptable by the holder of private key (or view key) of the user who executed the program.
+   - **Records:** Special, encrypted UTXO-like structs that store longterm private state.
+   - **Futures:** Any optional code marked as a future to be executed on chain later
+
+The `Transitions` provides a transcript of the function's inputs and outputs and the proof provides certainty that the 
+function was executed correctly. This allows outside verifiers to trust that the private inputs and outputs are correct 
+without the need to see them. This is the core of the Aleo protocol's privacy guarantees as it allows for fully private
+execution of programs.
 
 ```mermaid
 graph LR
@@ -58,68 +165,6 @@ graph LR
     linkStyle default stroke:#f229e0,stroke-width:2px;
 ```
 
-Program functions can have private inputs or outputs. When a function is executed, the output is:
-1. A proof that the function was executed correctly.
-2. A list of `Transitions` which enumerate the following
-   - **Public Inputs/Outputs:** A list of public inputs/outputs
-   - **Encryped Private Input/Outputs:** A list of encrypted private inputs/outputs that is 
-   only decryptable by the holder of private key (or view key) of the user who executed the program.
-   - **Records:** Special, encrypted UTXO-like structs that store longterm private state.
-   - **Futures:** Any optional code marked as a future to be executed on chain later
-
-The `Transitions` provide useful information on the function execution and its inputs & outputs, and the proof provides 
-certainty that the function was executed correctly. This allows outside verifiers to trust that the private inputs and 
-outputs are correct without the need to see them. This is the core of the Aleo protocol's privacy guarantees as it 
-allows for fully private execution of programs.
-
-### Lifecycle of an Execution
-
-When a function is executed within the Provable SDK, it is executed locally and when the execution finishes, the SDK 
-wraps the execution in an `Execution Transaction` and submits it to the Aleo network. Once the Aleo network receives,
-it is verified by the network's validators. If the transaction is valid and has the required fee, it is added to
-the ledger in a block which updates the state of the program.
-
-```mermaid
-graph 
-    subgraph Transaction["Execute Transaction"]
-        subgraph Execution
-            Proof@{ shape: document, label: "Proof" }
-            subgraph Transition
-                subgraph Outputs
-                    PrivateOutputs@{ shape: procs, label: "private"}
-                    PublicOutputs@{ shape: procs, label: "public"}
-                    RecordOutputs@{ shape: docs, label: "records"}
-                    FutureOutputs[["Futures"]]
-                end
-                subgraph Inputs
-                    PrivateInputs@{ shape: procs, label: "private"}
-                    PublicInputs@{ shape: procs, label: "public"}
-                    RecordInputs@{ shape: docs, label: "records"}
-                end
-            end
-        end
-        Fee
-    end
-    caller
-    subgraph SDK
-        execute[[".execute()"]]
-        submitTransaction[[".submitTransaction()"]]
-    end
-    caller-.->execute
-    execute-.->Transaction
-    Transaction-.->submitTransaction
-    submitTransaction-.->AleoNetwork{"Aleo Network"}
-
-%% Styling (All text black)
-    classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
-    style Execution fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
-    style Transition fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
-    style Transaction fill:#ffdbd0,stroke:#f229e0,stroke-width:2px,color:#000;
-    style Outputs fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
-    style Inputs fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
-    style SDK fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
-    linkStyle default stroke:#f229e0,stroke-width:2px;
-```
 ### Function Proving and Verifying Keys
 
 Since each function in a program has a proof associated with it, each function in a program has something called a 
