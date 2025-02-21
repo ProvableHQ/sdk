@@ -75,6 +75,44 @@ __recordProvider__ | `RecordProvider` | **
 
 ---
 
+### `buildDeploymentTransaction(program, fee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a deployment transaction for submission to the Aleo network.
+
+Parameters | Type | Description
+--- | --- | ---
+__program__ | `string` | *Program source code*
+__fee__ | `number` | *Fee to pay for the transaction*
+__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
+__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for searching for a record to use
+pay the deployment fee*
+__feeRecord__ | `string` | *Optional Fee record to use for the transaction*
+__privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transaction*
+__*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
+
+#### Examples
+
+```javascript
+// Create a new NetworkClient, KeyProvider, and RecordProvider
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+
+// Initialize a program manager with the key provider to automatically fetch keys for deployments
+const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Define a fee in credits
+const fee = 1.2;
+
+// Create the deployment transaction.
+const tx = await programManager.buildDeploymentTransaction(program, fee, false);
+```
+
+---
+
 ### `deploy(program, fee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -108,7 +146,7 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 const fee = 1.2;
 
 // Deploy the program
-const tx_id = await programManager.deploy(program, fee);
+const tx_id = await programManager.deploy(program, fee, false);
 
 // Verify the transaction was successful
 const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -880,6 +918,44 @@ __recordProvider__ | `RecordProvider` | **
 
 ---
 
+### `buildDeploymentTransaction(program, fee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a deployment transaction for submission to the Aleo network.
+
+Parameters | Type | Description
+--- | --- | ---
+__program__ | `string` | *Program source code*
+__fee__ | `number` | *Fee to pay for the transaction*
+__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
+__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for searching for a record to use
+pay the deployment fee*
+__feeRecord__ | `string` | *Optional Fee record to use for the transaction*
+__privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transaction*
+__*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
+
+#### Examples
+
+```javascript
+// Create a new NetworkClient, KeyProvider, and RecordProvider
+const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+
+// Initialize a program manager with the key provider to automatically fetch keys for deployments
+const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Define a fee in credits
+const fee = 1.2;
+
+// Create the deployment transaction.
+const tx = await programManager.buildDeploymentTransaction(program, fee, false);
+```
+
+---
+
 ### `deploy(program, fee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -913,7 +989,7 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 const fee = 1.2;
 
 // Deploy the program
-const tx_id = await programManager.deploy(program, fee);
+const tx_id = await programManager.deploy(program, fee, false);
 
 // Verify the transaction was successful
 const transaction = await programManager.networkClient.getTransaction(tx_id);
