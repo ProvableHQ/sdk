@@ -7,7 +7,7 @@ import {
     statePathRecordOwnerPrivateKey,
     stateRoot
 } from "./data/account-data";
-import { Account, ExecutionResponse, OfflineQuery, ProgramManager, RecordPlaintext } from "../src/node";
+import { Account, ExecutionResponse, OfflineQuery, ProgramManager, RecordPlaintext } from "@provablehq/sdk/%%NETWORK%%.js";
 
 describe('Program Manager', () => {
     const programManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined);
