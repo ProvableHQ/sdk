@@ -4,16 +4,51 @@ title: Aleo Credit Transfers
 sidebar_label: Aleo Credits Transfers
 ---
 
-# Aleo Credit Transfers
+## Credits.aleo
+
+The official currency of Aleo Network are called `Aleo Credits`. All fees paid for transactions and rewards for staking
+and mining on the Aleo Network are transacted in Aleo Credits.
+
+Unlike other popular Blockchains like Ethereum, there is no special `transfer` transaction type. Instead, a native 
+program called [credits.aleo](https://explorer.provable.com/program/credits.aleo) governs transfers, usage, and ownership
+of Aleo Credits. All value transfers on the Aleo Network are done by calling functions in the `credits.aleo` program
+via `Execute` transactions. This enables users to send Aleo Credits privately, publicly, or a mix of both as well as
+initiate staking and other advanced on-chain operations with Aleo credits.
+
+A small selection of the credit transfer functions available in credits.aleo is visualized below:
+
+```mermaid
+graph
+    subgraph credits["program credits.aleo"]
+        transfer_public[["transfer_public"]]
+        transfer_private[["transfer_private"]]
+        transfer_private_to_public[["transfer_private_to_public"]]
+        transfer_public_to_private[["transfer_public_to_private"]]
+    end
+    sender1(["sender (aleo1address123...)"])-."Public Inputs:
+    (sender, receiver, amount)".-transfer_public-."Public Outputs:
+    (sender, receiver, amount)".->receiver1(["receiver (aleo1addressJ21...)"])
+    sender2(["sender (hidden)"])-."Private (Hidden) Inputs:
+    record".-transfer_private-."Private (Hidden)  Outputs:
+    record".->receiver2(["receiver (hidden)"])
+    sender3(["sender (hidden)"])-."Private (Hidden) Inputs:
+    record".-transfer_private_to_public-."Public Outputs:
+    (receiver, amount)".->receiver3(["receiver (aleo1addressJ21...)"])
+    sender4(["sender (aleo1address123...)"])-."Public Inputs:
+    (sender, amount)".-transfer_public_to_private-."Private Outputs:
+    record".->receiver4(["receiver (hidden)"])
+
+classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+style credits fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+linkStyle default stroke:#f229e0,stroke-width:2px;
+```
 
 ##  Aleo credits
 
-Aleo Credits are used to access blockspace and computational resources on the network, with users paying Credits to submit transactions and have them processed.
+Aleo Credits are used to pay all fees on the network. They are also used to initiate staking, to bond in new validators,
+and are used as the currency to used to pay staking and mining rewards. 
 
-Aleo credits are defined in the [credits.aleo](https://explorer.provable.com/program/credits.aleo) program. This program is
-deployed to the Aleo network and defines data structures representing Aleo credits and the functions used to manage them.
-
-There are two ways to hold Aleo credits:
+There are two main ways to hold Aleo credits within credits.aleo:
 
 ### 1 - Private balances via  `credits.aleo` records
 The first method is owning a `credits` record which enables a participant in the Aleo
@@ -25,10 +60,15 @@ record credits:
 ```
 
 A user's total private credits balance will consist of all unspent `credits` records owned by the user with a non-zero
-`microcredits` value.
+`microcredits` value. These records are analogous to UTXOs in Bitcoin. It is generally the responsibility of a wallet
+application to scan the chain for records that belong to a user and determine which are spent and unspent in order
+to calculate the user's total private balance and private transaction history.
 
 ### 2 - Public balances via `credits.aleo` account mappings
 The second method is by holding a `balance` in the `account` mapping in the `credits.aleo` program on the Aleo network.
+This mapping is an on-chain key-value store associated with the `credits.aleo` program that is maintained and updated 
+by Aleo validators at each block. This public balance is visible to all participants in the network and is analogous to
+the account balances in Ethereum.
 
 ```
 mapping account:
@@ -56,6 +96,8 @@ graph LR
     t1-.record2 \n owner: user1address \n amount: 6000u64.->user1
     t1--record3  \n owner: user2address \n balance: 4000u64-->user2
 
+    classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+    linkStyle default stroke:#f229e0,stroke-width:2px;
 ```
 
 ### 2. `transfer_private_to_public`
@@ -72,6 +114,9 @@ graph LR
     user1--record3 \n owner: user2address \n balance: 4000u64-->t1[transfer_private_to_public]
     t1-.record4 \n owner: user2address \n amount: 1000u64.->user1
     t1--amount 3000u64-->m1
+    
+    classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+    linkStyle default stroke:#f229e0,stroke-width:2px;
 ```
 
 ### 3. `transfer_public`
@@ -82,15 +127,20 @@ any records.
 
 ```mermaid
 graph LR
-    subgraph credits.aleo account mappings - state 2
+    subgraph state2["credits.aleo account mappings - state 2"]
         m3[account mapping \n key: user4address \n value: 3000u64]
         m4[account mapping \n key: user3address \n value: 0u64]
     end
 
-    subgraph credits.aleo account mappings - state 1
+    subgraph state1["credits.aleo account mappings - state 1"]
         m2[account mapping \n key: user3address \n value: 3000u64]--transfer_public \n recipient: user4address \n amount: 3000u64-->m3
         m1[account mapping \n key: user4address \n value: N/A]
     end
+
+    classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+    style state1 fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+    style state2 fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+    linkStyle default stroke:#f229e0,stroke-width:2px;
 ```
 
 ### 4. `transfer_public_to_private`
@@ -102,16 +152,20 @@ as a private output.
 
 ```mermaid
 graph LR
-    subgraph credits.aleo account mappings - state 2
+    subgraph state2["credits.aleo account mappings - state 2"]
         m2[account mapping \n key: user5address \n value: 0u64]
     end
 
-    subgraph credits.aleo account mappings - state 1
+    subgraph state1["credits.aleo account mappings - state 1"]
         m1[account mapping \n key: user5address \n value: 3000u64]
     end
 
     m1--recipient: user6address \n amount: 3000u64-->transfer_public_to_private
     transfer_public_to_private--record5 \n owner: user6address \n amount: 3000u64-->user6
+    classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+    style state1 fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+    style state2 fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
+    linkStyle default stroke:#f229e0,stroke-width:2px;
 ```
 
 All four of these functions can be used to transfer credits between users via the `transfer` function in the
@@ -159,11 +213,14 @@ public_balance = programManager.networkClient.getMappingValue("credits.aleo", my
 assert(public_balance === 0);
 ```
 
-## Checking public balances
-As shown above, a public balance of any address can be checked with `getMappingValue` function of the `NetworkClient`.
+## Public balances
+The `account` mapping of `credits.aleo` contains the public balances of all addresses on the Aleo network. A public 
+balance of any address can be checked with `getMappingValue` function of the `NetworkClient`.
 
 ```typescript
 const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 const USER_1_ADDRESS = "user1Address";
 const public_balance = networkClient.getMappingValue("credits.aleo", USER_1_ADDRESS);
 ```
+
+## Private Balances

@@ -3,18 +3,58 @@ id: setup
 title: Zero Knowledge JS App Setup
 sidebar_label: Project Setup
 ---
-# Project Setup
 
 ## Installation
 
-The first step to creating an app that interacts with the Aleo network is to install the Provable SDK.
+The Provable SDK can be installed via npm and yarn package managers.
+
+### NPM
+
+```bash
+yarn add @provablehq/sdk
+```
+
+### Yarn
+
 ```bash
 npm install @provablehq/sdk
 ```
 
+## Network Selection
+
+The Provable SDK contains modules for interacting with both the `mainnet` and `testnet` networks. The `mainnet` and 
+`testnet` networks are **NOT** interoperable so it is required to explicitly select the desired network. Any 
+transactions built for the `mainnet` network will not be valid on the `testnet` network and vice versa.
+
+The following import syntax is used to select the desired network:
+
+### Mainnet
+```typescript
+import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk/mainnet.js';
+```
+
+### Testnet
+```typescript
+import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk/testnet.js';
+```
+
+If no network is explicitly selected, the SDK defaults to the `testnet` network.
+
+```typescript
+import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk';
+```
+
+
 ## WebAssembly Initialization
 
-Before being able to utilize `WebAssembly` it must be initialized within the Browser or Node environment. This is done by calling initThreadPool function which initializes `wasm` memory and creates a wasm instance which can take advantage of multiple available threads on the host machine.
+When the SDK is imported, single-threaded `WebAssembly` is enabled by default. However, it is recommended to enable
+multithreaded `WebAssembly` as it is much more performant and eliminates the possibility of a computationally expensive
+operation blocking the main thread.
+
+Multi-threaded `WebAssembly` is enabled by calling the `initThreadPool` function at the beginning of the application.
+This starts multiple `WebWorker` threads and provides access to the `WebAssembly` instance and memory to each thread.
+
+**This function only needs to be called once and should be called before any other SDK functions.**
 ```typescript
 import { Account, initThreadPool } from '@provablehq/sdk/mainnet.js';
 
@@ -27,56 +67,28 @@ const account = new Account();
 // Perform further program logic...
 ```
 
-## Network Selection
+## Configuration
 
-The Provable SDK contains modules for interacting with both the `mainnet` and `testnet` networks. The network may be specified in the import statement as the filename. If no file is specified `testnet` will be used by default.
+### Top-Level Await
 
-### Testnet
-```typescript
-import { Account, ProgramManager, initThreadPool } from 'provable/sdk/testnet.js';
+Top level await is a feature that allows you to use the `await` keyword outside of an `async` function. 
+This feature is necessary for the Provable SDK to function correctly.
+
+In webpack this is enabled with the following options within `webpack.config.js`:
+
+```json
+experiments: {
+    asyncWebAssembly: true,
+    topLevelAwait: true,
+},
 ```
 
-### Mainnet
-```typescript
-import { Account, ProgramManager, initThreadPool } from 'provable/sdk/mainnet.js';
-```
+### NodeJS Version (Node.JS Projects Only)
 
-## Program Manager
+The Provable SDK requires a minimum of Node.js version 20 and recommends using node version 22+ for best performance.
 
-In order to interact with the network via program execution a ProgramManager object must be created.
-```typescript
-import { Account, ProgramManager, initThreadPool } from 'provable/sdk/mainnet.js';
+### Framework Specific Configuration
 
-// Enables multithreading
-await initThreadPool();
-
-// Create a new Aleo account
-const account = new Account();
-
-// Create a new ProgramManager object
-const programManager = new ProgramManager();
-// Set the ProgramManager's account to the executor account
-programManager.setAccount(account);
-```
-Once the `ProgramManager` has been created it can be used to execute programs.
-```typescript
-import { Account, ProgramManager, initThreadPool } from 'provable/sdk/mainnet.js';
-
-await initThreadPool();
-
-const account = new Account();
-
-const programManager = new ProgramManager();
-programManager.setAccount(account);
-
-const transaction = await programManager.execute({
-    programName: "add.aleo",
-    functionName: "add",
-    fee: 0.020,
-    privateFee: false,
-    inputs: ["5u32", "5u32"],
-    keySearchParams: { "cacheKey": "hello_hello:hello" }
-});
-const result = await programManager.networkClient.submitTransaction(transaction);
-```
-Using the SDK as outlined above allows for a JavaScript app to interact with the Aleo network. The npm package [create-leo-app](https://www.npmjs.com/package/create-leo-app) offers several templates for building zero knowledge JavaScript apps using several popular frameworks including React, Next.js, and Node.
+The npm package [create-leo-app](https://www.npmjs.com/package/create-leo-app) offers several templates for building zero knowledge JavaScript apps using several
+popular frameworks including React, Next.js, and Node. Examining the configuration of these templates can provide 
+additional guidance on how to configure your project.
