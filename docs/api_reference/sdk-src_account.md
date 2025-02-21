@@ -4,7 +4,7 @@
 
 
 
-[Source file](../src/account.ts)
+[Source file](../../sdk/src/account.ts)
 
 # Class `Account`
 

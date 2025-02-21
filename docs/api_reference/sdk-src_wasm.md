@@ -4,7 +4,7 @@
 
 
 
-[Source file](../src/wasm.ts)
+[Source file](../../sdk/src/wasm.ts)
 
 # Class `Address`
 

@@ -15,7 +15,7 @@
   "opts": {
     "encoding": "utf8",
     "readme": "./README.md",
-    "destination": "sdk/docs/",
+    "destination": "docs/api_reference",
     "recurse": true,
     "verbose": true,
     "template": "node_modules/kis-jsdoc-plugin/templates/markdown",

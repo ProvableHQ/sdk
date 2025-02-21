@@ -4,7 +4,7 @@
 
 
 
-[Source file](../src/program-manager.ts)
+[Source file](../../sdk/src/program-manager.ts)
 
 # Class `ProgramManager`
 

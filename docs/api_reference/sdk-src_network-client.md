@@ -4,7 +4,7 @@
 
 
 
-[Source file](../src/network-client.ts)
+[Source file](../../sdk/src/network-client.ts)
 
 # Class `AleoNetworkClient`
 
