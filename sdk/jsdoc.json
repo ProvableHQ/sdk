@@ -1,6 +1,6 @@
 {
   "source": {
-    "include": ["sdk/src/account.ts", "sdk/src/function-key-provider.ts", "sdk/src/network-client.ts", "sdk/src/offline-key-provider.ts", "sdk/src/program-manager.ts", "sdk/src/record-provider.ts"],
+    "include": ["sdk/src/account.ts", "sdk/src/function-key-provider.ts", "sdk/src/network-client.ts", "sdk/src/offline-key-provider.ts", "sdk/src/program-manager.ts", "sdk/src/record-provider.ts", "sdk/src/wasm.ts"],
     "includePattern": ".+\\.ts?$"
   },
   "tags": {

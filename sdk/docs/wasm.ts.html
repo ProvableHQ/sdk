@@ -1,0 +1,2069 @@
+<!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: wasm.ts</title><!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="";baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body data-theme="dark"><div class="sidebar-container"><div class="sidebar" id="sidebar"><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Account.html">Account</a></div><div class="sidebar-section-children"><a href="Address.html">Address</a></div><div class="sidebar-section-children"><a href="AleoKeyProvider.html">AleoKeyProvider</a></div><div class="sidebar-section-children"><a href="AleoKeyProviderParams.html">AleoKeyProviderParams</a></div><div class="sidebar-section-children"><a href="AleoKeyProviderParams_AleoKeyProviderParams.html">AleoKeyProviderParams</a></div><div class="sidebar-section-children"><a href="AleoNetworkClient.html">AleoNetworkClient</a></div><div class="sidebar-section-children"><a href="BlockHeightSearch.html">BlockHeightSearch</a></div><div class="sidebar-section-children"><a href="Ciphertext.html">Ciphertext</a></div><div class="sidebar-section-children"><a href="Execution.html">Execution</a></div><div class="sidebar-section-children"><a href="ExecutionResponse.html">ExecutionResponse</a></div><div class="sidebar-section-children"><a href="Field.html">Field</a></div><div class="sidebar-section-children"><a href="Group.html">Group</a></div><div class="sidebar-section-children"><a href="KeyPair.html">KeyPair</a></div><div class="sidebar-section-children"><a href="KeyPair_KeyPair.html">KeyPair</a></div><div class="sidebar-section-children"><a href="NetworkRecordProvider.html">NetworkRecordProvider</a></div><div class="sidebar-section-children"><a href="OfflineKeyProvider.html">OfflineKeyProvider</a></div><div class="sidebar-section-children"><a href="OfflineQuery.html">OfflineQuery</a></div><div class="sidebar-section-children"><a href="OfflineQuery_OfflineQuery.html">OfflineQuery</a></div><div class="sidebar-section-children"><a href="OfflineSearchParams.html">OfflineSearchParams</a></div><div class="sidebar-section-children"><a href="OfflineSearchParams_OfflineSearchParams.html">OfflineSearchParams</a></div><div class="sidebar-section-children"><a href="Plaintext.html">Plaintext</a></div><div class="sidebar-section-children"><a href="PrivateKey.html">PrivateKey</a></div><div class="sidebar-section-children"><a href="PrivateKey_PrivateKey.html">PrivateKey</a></div><div class="sidebar-section-children"><a href="PrivateKeyCiphertext.html">PrivateKeyCiphertext</a></div><div class="sidebar-section-children"><a href="Program.html">Program</a></div><div class="sidebar-section-children"><a href="ProgramManager.html">ProgramManager</a></div><div class="sidebar-section-children"><a href="ProgramManager_ProgramManager.html">ProgramManager</a></div><div class="sidebar-section-children"><a href="ProvingKey.html">ProvingKey</a></div><div class="sidebar-section-children"><a href="RecordCiphertext.html">RecordCiphertext</a></div><div class="sidebar-section-children"><a href="RecordPlaintext.html">RecordPlaintext</a></div><div class="sidebar-section-children"><a href="Scalar.html">Scalar</a></div><div class="sidebar-section-children"><a href="Signature.html">Signature</a></div><div class="sidebar-section-children"><a href="Transaction.html">Transaction</a></div><div class="sidebar-section-children"><a href="VerifyingKey.html">VerifyingKey</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-interfaces"><div>Interfaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="ExecuteOptions.html">ExecuteOptions</a></div><div class="sidebar-section-children"><a href="FunctionKeyProvider.html">FunctionKeyProvider</a></div><div class="sidebar-section-children"><a href="KeySearchParams.html">KeySearchParams</a></div><div class="sidebar-section-children"><a href="RecordProvider.html">RecordProvider</a></div><div class="sidebar-section-children"><a href="RecordSearchParams.html">RecordSearchParams</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">wasm.ts</h1></header><article><pre class="prettyprint source lang-js"><code>/* tslint:disable */
+/* eslint-disable */
+/**
+ * Verify an execution with a single function and a single transition. Executions with multiple
+ * transitions or functions will fail to verify. Also, this does not verify that the state root of
+ * the execution is included in the Aleo Network ledger.
+ *
+ * @param {Execution} execution The function execution to verify
+ * @param {VerifyingKey} verifying_key The verifying key for the function
+ * @param {Program} program The program that the function execution belongs to
+ * @param {String} function_id The name of the function that was executed
+ * @returns {boolean} True if the execution is valid, false otherwise
+ */
+export function verifyFunctionExecution(execution: Execution, verifying_key: VerifyingKey, program: Program, function_id: string): boolean;
+export function runRayonThread(receiver: number): void;
+export function initThreadPool(url: URL, num_threads: number): Promise&lt;void>;
+/**
+ * Public address of an Aleo account
+ */
+export class Address {
+  private constructor();
+  free(): void;
+  /**
+   * Derive an Aleo address from a private key
+   *
+   * @param {PrivateKey} private_key The private key to derive the address from
+   * @returns {Address} Address corresponding to the private key
+   */
+  static from_private_key(private_key: PrivateKey): Address;
+  /**
+   * Derive an Aleo address from a view key
+   *
+   * @param {ViewKey} view_key The view key to derive the address from
+   * @returns {Address} Address corresponding to the view key
+   */
+  static from_view_key(view_key: ViewKey): Address;
+  /**
+   * Derive an Aleo address from a compute key.
+   *
+   * @param {ComputeKey} compute_key The compute key to derive the address from
+   */
+  static from_compute_key(compute_key: ComputeKey): Address;
+  /**
+   * Create an aleo address object from a string representation of an address
+   *
+   * @param {string} address String representation of an addressm
+   * @returns {Address} Address
+   */
+  static from_string(address: string): Address;
+  /**
+   * Get a string representation of an Aleo address object
+   *
+   * @param {Address} Address
+   * @returns {string} String representation of the address
+   */
+  to_string(): string;
+  /**
+   * Verify a signature for a message signed by the address
+   *
+   * @param {Uint8Array} Byte array representing a message signed by the address
+   * @returns {boolean} Boolean representing whether or not the signature is valid
+   */
+  verify(message: Uint8Array, signature: Signature): boolean;
+}
+/**
+ * SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
+ * object provides decryption methods to recover the plaintext from the ciphertext (given the
+ * api consumer has the proper decryption materials).
+ */
+export class Ciphertext {
+  private constructor();
+  free(): void;
+  /**
+   * Decrypt the ciphertext using the given view key.
+   *
+   * @param {ViewKey} The view key of the account that encrypted the ciphertext.
+   * @param {Group} The nonce used to encrypt the ciphertext.
+   *
+   * @returns {Plaintext} The decrypted plaintext.
+   */
+  decrypt(view_key: ViewKey, nonce: Group): Plaintext;
+  /**
+   * Decrypts a ciphertext into plaintext using the given transition view key.
+   *
+   * @param {Field} transition_view_key The transition view key that was used to encrypt the ciphertext.
+   *
+   * @returns {Plaintext} The decrypted plaintext.
+   */
+  decryptSymmetric(transition_view_key: Field): Plaintext;
+  /**
+   * Deserialize a left endian byte array into a Ciphertext.
+   *
+   * @param {Uint8Array} bytes The byte array representing the Ciphertext.
+   *
+   * @returns {Ciphertext} The Ciphertext object.
+   */
+  static fromBytesLe(bytes: Uint8Array): Ciphertext;
+  /**
+   * Deserialize a Ciphertext string into a Ciphertext object.
+   *
+   * @param {string} ciphertext A string representation of the ciphertext.
+   *
+   * @returns {Ciphertext} The Ciphertext object.
+   */
+  static fromString(ciphertext: string): Ciphertext;
+  /**
+   * Serialize a Ciphertext object into a byte array.
+   *
+   * @returns {Uint8Array} The serialized Ciphertext.
+   */
+  toBytes(): Uint8Array;
+  /**
+   * Serialize a Ciphertext into a js string.
+   *
+   * @returns {string} The serialized Ciphertext.
+   */
+  toString(): string;
+}
+export class ComputeKey {
+  private constructor();
+  free(): void;
+  /**
+   * Create a new compute key from a private key.
+   *
+   * @param {PrivateKey} private_key Private key
+   *
+   * @returns {ComputeKey} Compute key
+   */
+  static from_private_key(private_key: PrivateKey): ComputeKey;
+  /**
+   * Get the address from the compute key.
+   *
+   * @returns {Address}
+   */
+  address(): Address;
+  /**
+   * Get the sk_prf of the compute key.
+   *
+   * @returns {Scalar} sk_prf
+   */
+  sk_prf(): Scalar;
+  /**
+   * Get the pr_tag of the compute key.
+   *
+   * @returns {Group} pr_tag
+   */
+  pk_sig(): Group;
+  /**
+   * Get the pr_sig of the compute key.
+   *
+   * @returns {Group} pr_sig
+   */
+  pr_sig(): Group;
+}
+/**
+ * Execution of an Aleo program.
+ */
+export class Execution {
+  private constructor();
+  free(): void;
+  /**
+   * Returns the string representation of the execution.
+   *
+   * @returns {string} The string representation of the execution.
+   */
+  toString(): string;
+  /**
+   * Creates an execution object from a string representation of an execution.
+   *
+   * @returns {Execution | Error} The wasm representation of an execution object.
+   */
+  static fromString(execution: string): Execution;
+  /**
+   * Returns the global state root of the execution.
+   *
+   * @returns {Execution | Error} The global state root used in the execution.
+   */
+  globalStateRoot(): string;
+  /**
+   * Returns the proof of the execution.
+   *
+   * @returns {string} The execution proof.
+   */
+  proof(): string;
+  /**
+   * Returns the transitions present in the execution.
+   *
+   * @returns Array&lt;Transition> the array of transitions present in the execution.
+   */
+  transitions(): Array&lt;any>;
+}
+/**
+ * Webassembly Representation of an Aleo function execution response
+ *
+ * This object is returned by the execution of an Aleo function off-chain. It provides methods for
+ * retrieving the outputs of the function execution.
+ */
+export class ExecutionResponse {
+  private constructor();
+  free(): void;
+  /**
+   * Get the outputs of the executed function
+   *
+   * @returns {Array} Array of strings representing the outputs of the function
+   */
+  getOutputs(): Array&lt;any>;
+  /**
+   * Returns the execution object if present, null if otherwise.
+   *
+   * @returns {Execution | undefined} The execution object if present, null if otherwise
+   */
+  getExecution(): Execution | undefined;
+  /**
+   * Returns the program keys if present
+   */
+  getKeys(): KeyPair;
+  /**
+   * Returns the proving_key if the proving key was cached in the Execution response.
+   * Note the proving key is removed from the response object after the first call to this
+   * function. Subsequent calls will return null.
+   *
+   * @returns {ProvingKey | undefined} The proving key
+   */
+  getProvingKey(): ProvingKey | undefined;
+  /**
+   * Returns the verifying_key associated with the program
+   *
+   * @returns {VerifyingKey} The verifying key
+   */
+  getVerifyingKey(): VerifyingKey;
+  /**
+   * Returns the function identifier
+   */
+  getFunctionId(): string;
+  /**
+   * Returns the program
+   */
+  getProgram(): Program;
+}
+/**
+ * Field element.
+ */
+export class Field {
+  private constructor();
+  free(): void;
+  /**
+   * Creates a field object from a string representation of a field.
+   */
+  static fromString(field: string): Field;
+  /**
+   * Create a plaintext element from a group element.
+   */
+  toPlaintext(): Plaintext;
+  /**
+   * Returns the string representation of the field.
+   */
+  toString(): string;
+  /**
+   * Generate a random field element.
+   */
+  static random(): Field;
+  /**
+   * Add two field elements.
+   */
+  add(other: Field): Field;
+  /**
+   * Subtract two field elements.
+   */
+  subtract(other: Field): Field;
+  /**
+   * Multiply two field elements.
+   */
+  multiply(other: Field): Field;
+  /**
+   * Divide two field elements.
+   */
+  divide(other: Field): Field;
+  /**
+   * Power of a field element.
+   */
+  pow(other: Field): Field;
+  /**
+   * Invert the field element.
+   */
+  inverse(): Field;
+  /**
+   * Get the zero element of the field.
+   */
+  static zero(): Field;
+  /**
+   * Get the one element of the field.
+   */
+  static one(): Field;
+  /**
+   * Double the field element.
+   */
+  double(): Field;
+  /**
+   * Check if one field element equals another.
+   */
+  equals(other: Field): boolean;
+}
+export class GraphKey {
+  private constructor();
+  free(): void;
+  /**
+   * Create a new graph key from a view key.
+   *
+   * @param {ViewKey} view_key View key
+   * @returns {GraphKey} Graph key
+   */
+  static from_view_key(view_key: ViewKey): GraphKey;
+  /**
+   * Create a new graph key from a string representation of a graph key
+   *
+   * @param {string} graph_key String representation of a graph key
+   * @returns {GraphKey} Graph key
+   */
+  static from_string(graph_key: string): GraphKey;
+  /**
+   * Get a string representation of a graph key
+   *
+   * @returns {string} String representation of a graph key
+   */
+  to_string(): string;
+  /**
+   * Get the sk_tag of the graph key. Used to determine ownership of records.
+   */
+  sk_tag(): Field;
+}
+/**
+ * Elliptic curve element.
+ */
+export class Group {
+  private constructor();
+  free(): void;
+  /**
+   * Creates a group object from a string representation of a group.
+   */
+  static fromString(group: string): Group;
+  /**
+   * Returns the string representation of the group.
+   */
+  toString(): string;
+  /**
+   * Get the x-coordinate of the group element.
+   */
+  toXCoordinate(): Field;
+  /**
+   * Create a plaintext element from a group element.
+   */
+  toPlaintext(): Plaintext;
+  /**
+   * Generate a random group element.
+   */
+  static random(): Group;
+  /**
+   * Add two group elements.
+   */
+  add(other: Group): Group;
+  /**
+   * Subtract two group elements (equivalently: add the inverse of an element).
+   */
+  subtract(other: Group): Group;
+  /**
+   * Multiply a group element by a scalar element.
+   */
+  scalarMultiply(scalar: Scalar): Group;
+  /**
+   * Double the group element.
+   */
+  double(): Group;
+  /**
+   * Get the inverse of the group element. This is the reflection of the point about the axis
+   * of symmetry i.e. (x,y) -> (x, -y).
+   */
+  inverse(): Group;
+  /**
+   * Check if one group element equals another.
+   */
+  equals(other: Group): boolean;
+  /**
+   * Get the group identity element under the group operation (i.e. the point at infinity.)
+   */
+  static zero(): Group;
+  /**
+   * Get the generator of the group.
+   */
+  static generator(): Group;
+}
+/**
+ * Key pair object containing both the function proving and verifying keys
+ */
+export class KeyPair {
+  free(): void;
+  /**
+   * Create new key pair from proving and verifying keys
+   *
+   * @param {ProvingKey} proving_key Proving key corresponding to a function in an Aleo program
+   * @param {VerifyingKey} verifying_key Verifying key corresponding to a function in an Aleo program
+   * @returns {KeyPair} Key pair object containing both the function proving and verifying keys
+   */
+  constructor(proving_key: ProvingKey, verifying_key: VerifyingKey);
+  /**
+   * Get the proving key. This method will remove the proving key from the key pair
+   *
+   * @returns {ProvingKey}
+   */
+  provingKey(): ProvingKey;
+  /**
+   * Get the verifying key. This method will remove the verifying key from the key pair
+   *
+   * @returns {VerifyingKey}
+   */
+  verifyingKey(): VerifyingKey;
+}
+export class Metadata {
+  private constructor();
+  free(): void;
+  static baseUrl(): string;
+  static bond_public(): Metadata;
+  static bond_validator(): Metadata;
+  static claim_unbond_public(): Metadata;
+  static fee_private(): Metadata;
+  static fee_public(): Metadata;
+  static inclusion(): Metadata;
+  static join(): Metadata;
+  static set_validator_state(): Metadata;
+  static split(): Metadata;
+  static transfer_private(): Metadata;
+  static transfer_private_to_public(): Metadata;
+  static transfer_public(): Metadata;
+  static transfer_public_as_signer(): Metadata;
+  static transfer_public_to_private(): Metadata;
+  static unbond_public(): Metadata;
+  name: string;
+  locator: string;
+  prover: string;
+  verifier: string;
+  verifyingKey: string;
+}
+/**
+ * An offline query object used to insert the global state root and state paths needed to create
+ * a valid inclusion proof offline.
+ */
+export class OfflineQuery {
+  free(): void;
+  /**
+   * Creates a new offline query object. The state root is required to be passed in as a string
+   */
+  constructor(block_height: number, state_root: string);
+  /**
+   * Add a new block height to the offline query object.
+   */
+  addBlockHeight(block_height: number): void;
+  /**
+   * Add a new state path to the offline query object.
+   *
+   * @param {string} commitment: The commitment corresponding to a record inpout
+   * @param {string} state_path: The state path corresponding to the commitment
+   */
+  addStatePath(commitment: string, state_path: string): void;
+  /**
+   * Get a json string representation of the offline query object
+   */
+  toString(): string;
+  /**
+   * Create an offline query object from a json string representation
+   */
+  static fromString(s: string): OfflineQuery;
+}
+/**
+ * SnarkVM Plaintext object. Plaintext is a fundamental monadic type used to represent Aleo
+ * primitive types (boolean, field, group, i8, i16, i32, i64, i128, u8, u16, u32, u64, u128,
+ * scalar, and signature), struct types, and array types.
+ *
+ * In the context of a web or NodeJS application, this type is useful for turning an Aleo type into
+ * a JS value, object, or array that might be necessary for performing computations within the
+ * application.
+ *
+ * @example
+ * // Get the bond state of an existing address.
+ * const bondState = await fetch(https://api.explorer.provable.com/v1/mainnet/program/credits.aleo/mapping/bond_state/aleo12zlythl7htjdtjjjz3ahdj4vl6wk3zuzm37s80l86qpx8fyx95fqnxcn2f);
+ * // Convert the bond state to a Plaintext object.
+ * const bondStatePlaintext = Plaintext.fromString(bond_state);
+ * // Convert the Plaintext object to a JS object.
+ * const bondStateObject = bond_state_plaintext.toObject();
+ * // Check if the bond state matches the expected object.
+ * const expectedObject = { validator: "aleo12zlythl7htjdtjjjz3ahdj4vl6wk3zuzm37s80l86qpx8fyx95fqnxcn2f", microcredits: 100000000u64 };
+ * assert( JSON.stringify(bondStateObject) === JSON.stringify(expectedObject) );
+ */
+export class Plaintext {
+  private constructor();
+  free(): void;
+  /**
+   * Find plaintext member if the plaintext is a struct. Returns `null` if the plaintext is not
+   * a struct or the member does not exist.
+   *
+   * @param {string} name The name of the plaintext member to find.
+   *
+   * @returns {Plaintext} The plaintext member.
+   */
+  find(name: string): Plaintext;
+  /**
+   * Encrypt a plaintext with an address and randomizer.
+   */
+  encrypt(address: Address, randomizer: Scalar): Ciphertext;
+  /**
+   * Encrypt a plaintext with a transition view key.
+   */
+  encryptSymmetric(transition_view_key: Field): Ciphertext;
+  /**
+   * Creates a plaintext object from a string representation of a plaintext.
+   *
+   * @param {string} plaintext The string representation of the plaintext.
+   *
+   * @returns {Plaintext} The plaintext object.
+   */
+  static fromString(plaintext: string): Plaintext;
+  /**
+   * Get a plaintext object from a series of bytes.
+   *
+   * @param {Uint8Array} bytes A left endian byte array representing the plaintext.
+   *
+   * @returns {Plaintext} The plaintext object.
+   */
+  static fromBytesLe(bytes: Uint8Array): Plaintext;
+  /**
+   * Generate a random plaintext element from a series of bytes.
+   *
+   * @param {Uint8Array} bytes A left endian byte array representing the plaintext.
+   */
+  toBytesLe(): Uint8Array;
+  /**
+   * Returns the string representation of the plaintext.
+   *
+   * @returns {string} The string representation of the plaintext.
+   */
+  toString(): string;
+  /**
+   * Gives the type of the plaintext.
+   *
+   * @returns {string} The type of the plaintext.
+   */
+  plaintextType(): string;
+  /**
+   * Attempt to convert the plaintext to a JS object.
+   *
+   * @returns {Object} The JS object representation of the plaintext.
+   */
+  toObject(): any;
+}
+/**
+ * Private key of an Aleo account
+ */
+export class PrivateKey {
+  free(): void;
+  /**
+   * Generate a new private key using a cryptographically secure random number generator
+   *
+   * @returns {PrivateKey}
+   */
+  constructor();
+  /**
+   * Get a private key from a series of unchecked bytes
+   *
+   * @param {Uint8Array} seed Unchecked 32 byte long Uint8Array acting as the seed for the private key
+   * @returns {PrivateKey}
+   */
+  static from_seed_unchecked(seed: Uint8Array): PrivateKey;
+  /**
+   * Get a private key from a string representation of a private key
+   *
+   * @param {string} seed String representation of a private key
+   * @returns {PrivateKey}
+   */
+  static from_string(private_key: string): PrivateKey;
+  /**
+   * Get a string representation of the private key. This function should be used very carefully
+   * as it exposes the private key plaintext
+   *
+   * @returns {string} String representation of a private key
+   */
+  to_string(): string;
+  /**
+   * Get the view key corresponding to the private key
+   *
+   * @returns {ViewKey}
+   */
+  to_view_key(): ViewKey;
+  /**
+   * Get the address corresponding to the private key
+   *
+   * @returns {Address}
+   */
+  to_address(): Address;
+  /**
+   * Sign a message with the private key
+   *
+   * @param {Uint8Array} Byte array representing a message signed by the address
+   * @returns {Signature} Signature generated by signing the message with the address
+   */
+  sign(message: Uint8Array): Signature;
+  /**
+   * Get a new randomly generated private key ciphertext using a secret. The secret is sensitive
+   * and will be needed to decrypt the private key later, so it should be stored securely
+   *
+   * @param {string} secret Secret used to encrypt the private key
+   * @returns {PrivateKeyCiphertext} Ciphertext representation of the private key
+   */
+  static newEncrypted(secret: string): PrivateKeyCiphertext;
+  /**
+   * Encrypt an existing private key with a secret. The secret is sensitive and will be needed to
+   * decrypt the private key later, so it should be stored securely
+   *
+   * @param {string} secret Secret used to encrypt the private key
+   * @returns {PrivateKeyCiphertext} Ciphertext representation of the private key
+   */
+  toCiphertext(secret: string): PrivateKeyCiphertext;
+  /**
+   * Get private key from a private key ciphertext and secret originally used to encrypt it
+   *
+   * @param {PrivateKeyCiphertext} ciphertext Ciphertext representation of the private key
+   * @param {string} secret Secret originally used to encrypt the private key
+   * @returns {PrivateKey} Private key
+   */
+  static fromPrivateKeyCiphertext(ciphertext: PrivateKeyCiphertext, secret: string): PrivateKey;
+}
+/**
+ * Private Key in ciphertext form
+ */
+export class PrivateKeyCiphertext {
+  private constructor();
+  free(): void;
+  /**
+   * Encrypt a private key using a secret string. The secret is sensitive and will be needed to
+   * decrypt the private key later, so it should be stored securely
+   *
+   * @param {PrivateKey} private_key Private key to encrypt
+   * @param {string} secret Secret to encrypt the private key with
+   * @returns {PrivateKeyCiphertext} Private key ciphertext
+   */
+  static encryptPrivateKey(private_key: PrivateKey, secret: string): PrivateKeyCiphertext;
+  /**
+   * Decrypts a private ciphertext using a secret string. This must be the same secret used to
+   * encrypt the private key
+   *
+   * @param {string} secret Secret used to encrypt the private key
+   * @returns {PrivateKey} Private key
+   */
+  decryptToPrivateKey(secret: string): PrivateKey;
+  /**
+   * Returns the ciphertext string
+   *
+   * @returns {string} Ciphertext string
+   */
+  toString(): string;
+  /**
+   * Creates a PrivateKeyCiphertext from a string
+   *
+   * @param {string} ciphertext Ciphertext string
+   * @returns {PrivateKeyCiphertext} Private key ciphertext
+   */
+  static fromString(ciphertext: string): PrivateKeyCiphertext;
+}
+/**
+ * Webassembly Representation of an Aleo program
+ */
+export class Program {
+  private constructor();
+  free(): void;
+  /**
+   * Create a program from a program string
+   *
+   * @param {string} program Aleo program source code
+   * @returns {Program} Program object
+   */
+  static fromString(program: string): Program;
+  /**
+   * Get a string representation of the program
+   *
+   * @returns {string} String containing the program source code
+   */
+  toString(): string;
+  /**
+   * Determine if a function is present in the program
+   *
+   * @param {string} functionName Name of the function to check for
+   * @returns {boolean} True if the program is valid, false otherwise
+   */
+  hasFunction(function_name: string): boolean;
+  /**
+   * Get javascript array of functions names in the program
+   *
+   * @returns {Array} Array of all function names present in the program
+   *
+   * @example
+   * const expected_functions = [
+   *   "mint",
+   *   "transfer_private",
+   *   "transfer_private_to_public",
+   *   "transfer_public",
+   *   "transfer_public_to_private",
+   *   "join",
+   *   "split",
+   *   "fee"
+   * ]
+   *
+   * const credits_program = aleo_wasm.Program.getCreditsProgram();
+   * const credits_functions = credits_program.getFunctions();
+   * console.log(credits_functions === expected_functions); // Output should be "true"
+   */
+  getFunctions(): Array&lt;any>;
+  /**
+   * Get a javascript object representation of the function inputs and types. This can be used
+   * to generate a web form to capture user inputs for an execution of a function.
+   *
+   * @param {string} function_name Name of the function to get inputs for
+   * @returns {Array} Array of function inputs
+   *
+   * @example
+   * const expected_inputs = [
+   *     {
+   *       type:"record",
+   *       visibility:"private",
+   *       record:"credits",
+   *       members:[
+   *         {
+   *           name:"microcredits",
+   *           type:"u64",
+   *           visibility:"private"
+   *         }
+   *       ],
+   *       register:"r0"
+   *     },
+   *     {
+   *       type:"address",
+   *       visibility:"private",
+   *       register:"r1"
+   *     },
+   *     {
+   *       type:"u64",
+   *       visibility:"private",
+   *       register:"r2"
+   *     }
+   * ];
+   *
+   * const credits_program = aleo_wasm.Program.getCreditsProgram();
+   * const transfer_function_inputs = credits_program.getFunctionInputs("transfer_private");
+   * console.log(transfer_function_inputs === expected_inputs); // Output should be "true"
+   */
+  getFunctionInputs(function_name: string): Array&lt;any>;
+  /**
+   * Get a the list of a program's mappings and the names/types of their keys and values.
+   *
+   * @returns {Array} - An array of objects representing the mappings in the program
+   * @example
+   * const expected_mappings = [
+   *    {
+   *       name: "account",
+   *       key_name: "owner",
+   *       key_type: "address",
+   *       value_name: "microcredits",
+   *       value_type: "u64"
+   *    }
+   * ]
+   *
+   * const credits_program = aleo_wasm.Program.getCreditsProgram();
+   * const credits_mappings = credits_program.getMappings();
+   * console.log(credits_mappings === expected_mappings); // Output should be "true"
+   */
+  getMappings(): Array&lt;any>;
+  /**
+   * Get a javascript object representation of a program record and its types
+   *
+   * @param {string} record_name Name of the record to get members for
+   * @returns {Object} Object containing the record name, type, and members
+   *
+   * @example
+   *
+   * const expected_record = {
+   *     type: "record",
+   *     record: "Credits",
+   *     members: [
+   *       {
+   *         name: "owner",
+   *         type: "address",
+   *         visibility: "private"
+   *       },
+   *       {
+   *         name: "microcredits",
+   *         type: "u64",
+   *         visibility: "private"
+   *       }
+   *     ];
+   *  };
+   *
+   * const credits_program = aleo_wasm.Program.getCreditsProgram();
+   * const credits_record = credits_program.getRecordMembers("Credits");
+   * console.log(credits_record === expected_record); // Output should be "true"
+   */
+  getRecordMembers(record_name: string): object;
+  /**
+   * Get a javascript object representation of a program struct and its types
+   *
+   * @param {string} struct_name Name of the struct to get members for
+   * @returns {Array} Array containing the struct members
+   *
+   * @example
+   *
+   * const STRUCT_PROGRAM = "program token_issue.aleo;
+   *
+   * struct token_metadata:
+   *     network as u32;
+   *     version as u32;
+   *
+   * struct token:
+   *     token_id as u32;
+   *     metadata as token_metadata;
+   *
+   * function no_op:
+   *    input r0 as u64;
+   *    output r0 as u64;"
+   *
+   * const expected_struct_members = [
+   *    {
+   *      name: "token_id",
+   *      type: "u32",
+   *    },
+   *    {
+   *      name: "metadata",
+   *      type: "struct",
+   *      struct_id: "token_metadata",
+   *      members: [
+   *       {
+   *         name: "network",
+   *         type: "u32",
+   *       }
+   *       {
+   *         name: "version",
+   *         type: "u32",
+   *       }
+   *     ]
+   *   }
+   * ];
+   *
+   * const program = aleo_wasm.Program.fromString(STRUCT_PROGRAM);
+   * const struct_members = program.getStructMembers("token");
+   * console.log(struct_members === expected_struct_members); // Output should be "true"
+   */
+  getStructMembers(struct_name: string): Array&lt;any>;
+  /**
+   * Get the credits.aleo program
+   *
+   * @returns {Program} The credits.aleo program
+   */
+  static getCreditsProgram(): Program;
+  /**
+   * Get the id of the program
+   *
+   * @returns {string} The id of the program
+   */
+  id(): string;
+  /**
+   * Get a unique address of the program
+   *
+   * @returns {Address} The address of the program
+   */
+  address(): Address;
+  /**
+   * Determine equality with another program
+   *
+   * @param {Program} other The other program to compare
+   * @returns {boolean} True if the programs are equal, false otherwise
+   */
+  isEqual(other: Program): boolean;
+  /**
+   * Get program_imports
+   *
+   * @returns {Array} The program imports
+   *
+   * @example
+   *
+   * const DOUBLE_TEST = "import multiply_test.aleo;
+   *
+   * program double_test.aleo;
+   *
+   * function double_it:
+   *     input r0 as u32.private;
+   *     call multiply_test.aleo/multiply 2u32 r0 into r1;
+   *     output r1 as u32.private;";
+   *
+   * const expected_imports = [
+   *    "multiply_test.aleo"
+   * ];
+   *
+   * const program = aleo_wasm.Program.fromString(DOUBLE_TEST_PROGRAM);
+   * const imports = program.getImports();
+   * console.log(imports === expected_imports); // Output should be "true"
+   */
+  getImports(): Array&lt;any>;
+}
+export class ProgramManager {
+  private constructor();
+  free(): void;
+  /**
+   * Deploy an Aleo program
+   *
+   * @param private_key The private key of the sender
+   * @param program The source code of the program being deployed
+   * @param imports A javascript object holding the source code of any imported programs in the
+   * form \{"program_name1": "program_source_code", "program_name2": "program_source_code", ..\}.
+   * Note that all imported programs must be deployed on chain before the main program in order
+   * for the deployment to succeed
+   * @param fee_credits The amount of credits to pay as a fee
+   * @param fee_record The record to spend the fee from
+   * @param url The url of the Aleo network node to send the transaction to
+   * @param imports (optional) Provide a list of imports to use for the program deployment in the
+   * form of a javascript object where the keys are a string of the program name and the values
+   * are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+   * @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+   * @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+   * @returns {Transaction}
+   */
+  static buildDeploymentTransaction(private_key: PrivateKey, program: string, fee_credits: number, fee_record?: RecordPlaintext | null, url?: string | null, imports?: object | null, fee_proving_key?: ProvingKey | null, fee_verifying_key?: VerifyingKey | null, offline_query?: OfflineQuery | null): Promise&lt;Transaction>;
+  /**
+   * Estimate the fee for a program deployment
+   *
+   * Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+   *
+   * @param program The source code of the program being deployed
+   * @param imports (optional) Provide a list of imports to use for the deployment fee estimation
+   * in the form of a javascript object where the keys are a string of the program name and the values
+   * are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+   * @returns {u64}
+   */
+  static estimateDeploymentFee(program: string, imports?: object | null): Promise&lt;bigint>;
+  /**
+   * Estimate the component of the deployment cost which comes from the fee for the program name.
+   * Note that this cost does not represent the entire cost of deployment. It is additional to
+   * the cost of the size (in bytes) of the deployment.
+   *
+   * Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+   *
+   * @param name The name of the program to be deployed
+   * @returns {u64}
+   */
+  static estimateProgramNameCost(name: string): bigint;
+  /**
+   * Execute an arbitrary function locally
+   *
+   * @param {PrivateKey} private_key The private key of the sender
+   * @param {string} program The source code of the program being executed
+   * @param {string} function The name of the function to execute
+   * @param {Array} inputs A javascript array of inputs to the function
+   * @param {boolean} prove_execution If true, the execution will be proven and an execution object
+   * containing the proof and the encrypted inputs and outputs needed to verify the proof offline
+   * will be returned.
+   * @param {boolean} cache Cache the proving and verifying keys in the Execution response.
+   * If this is set to 'true' the keys synthesized will be stored in the Execution Response
+   * and the `ProvingKey` and `VerifyingKey` can be retrieved from the response via the `.getKeys()`
+   * method.
+   * @param {Object | undefined} imports (optional) Provide a list of imports to use for the function execution in the
+   * form of a javascript object where the keys are a string of the program name and the values
+   * are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+   * @param {ProvingKey | undefined} proving_key (optional) Provide a verifying key to use for the function execution
+   * @param {VerifyingKey | undefined} verifying_key (optional) Provide a verifying key to use for the function execution
+   */
+  static executeFunctionOffline(private_key: PrivateKey, program: string, _function: string, inputs: Array&lt;any>, prove_execution: boolean, cache: boolean, imports?: object | null, proving_key?: ProvingKey | null, verifying_key?: VerifyingKey | null, url?: string | null, offline_query?: OfflineQuery | null): Promise&lt;ExecutionResponse>;
+  /**
+   * Execute Aleo function and create an Aleo execution transaction
+   *
+   * @param private_key The private key of the sender
+   * @param program The source code of the program being executed
+   * @param function The name of the function to execute
+   * @param inputs A javascript array of inputs to the function
+   * @param fee_credits The amount of credits to pay as a fee
+   * @param fee_record The record to spend the fee from
+   * @param url The url of the Aleo network node to send the transaction to
+   * If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
+   * `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
+   * and used for subsequent transactions. If this is set to 'false' the proving and verifying
+   * keys will be deallocated from memory after the transaction is executed.
+   * @param imports (optional) Provide a list of imports to use for the function execution in the
+   * form of a javascript object where the keys are a string of the program name and the values
+   * are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+   * @param proving_key (optional) Provide a verifying key to use for the function execution
+   * @param verifying_key (optional) Provide a verifying key to use for the function execution
+   * @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+   * @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+   * @returns {Transaction}
+   */
+  static buildExecutionTransaction(private_key: PrivateKey, program: string, _function: string, inputs: Array&lt;any>, fee_credits: number, fee_record?: RecordPlaintext | null, url?: string | null, imports?: object | null, proving_key?: ProvingKey | null, verifying_key?: VerifyingKey | null, fee_proving_key?: ProvingKey | null, fee_verifying_key?: VerifyingKey | null, offline_query?: OfflineQuery | null): Promise&lt;Transaction>;
+  /**
+   * Estimate Fee for Aleo function execution. Note if "cache" is set to true, the proving and
+   * verifying keys will be stored in the ProgramManager's memory and used for subsequent
+   * program executions.
+   *
+   * Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+   *
+   * @param private_key The private key of the sender
+   * @param program The source code of the program to estimate the execution fee for
+   * @param function The name of the function to execute
+   * @param inputs A javascript array of inputs to the function
+   * @param url The url of the Aleo network node to send the transaction to
+   * @param imports (optional) Provide a list of imports to use for the fee estimation in the
+   * form of a javascript object where the keys are a string of the program name and the values
+   * are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+   * @param proving_key (optional) Provide a verifying key to use for the fee estimation
+   * @param verifying_key (optional) Provide a verifying key to use for the fee estimation
+   * @returns {u64} Fee in microcredits
+   */
+  static estimateExecutionFee(private_key: PrivateKey, program: string, _function: string, inputs: Array&lt;any>, url?: string | null, imports?: object | null, proving_key?: ProvingKey | null, verifying_key?: VerifyingKey | null, offline_query?: OfflineQuery | null): Promise&lt;bigint>;
+  /**
+   * Estimate the finalize fee component for executing a function. This fee is additional to the
+   * size of the execution of the program in bytes. If the function does not have a finalize
+   * step, then the finalize fee is 0.
+   *
+   * Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+   *
+   * @param program The program containing the function to estimate the finalize fee for
+   * @param function The function to estimate the finalize fee for
+   * @returns {u64} Fee in microcredits
+   */
+  static estimateFinalizeFee(program: string, _function: string): bigint;
+  /**
+   * Join two records together to create a new record with an amount of credits equal to the sum
+   * of the credits of the two original records
+   *
+   * @param private_key The private key of the sender
+   * @param record_1 The first record to combine
+   * @param record_2 The second record to combine
+   * @param fee_credits The amount of credits to pay as a fee
+   * @param fee_record The record to spend the fee from
+   * @param url The url of the Aleo network node to send the transaction to
+   * @param join_proving_key (optional) Provide a proving key to use for the join function
+   * @param join_verifying_key (optional) Provide a verifying key to use for the join function
+   * @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+   * @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+   * @returns {Transaction} Transaction object
+   */
+  static buildJoinTransaction(private_key: PrivateKey, record_1: RecordPlaintext, record_2: RecordPlaintext, fee_credits: number, fee_record?: RecordPlaintext | null, url?: string | null, join_proving_key?: ProvingKey | null, join_verifying_key?: VerifyingKey | null, fee_proving_key?: ProvingKey | null, fee_verifying_key?: VerifyingKey | null, offline_query?: OfflineQuery | null): Promise&lt;Transaction>;
+  /**
+   * Split an Aleo credits record into two separate records. This function does not require a fee.
+   *
+   * @param private_key The private key of the sender
+   * @param split_amount The amount of the credit split. This amount will be subtracted from the
+   * value of the record and two new records will be created with the split amount and the remainder
+   * @param amount_record The record to split
+   * @param url The url of the Aleo network node to send the transaction to
+   * @param split_proving_key (optional) Provide a proving key to use for the split function
+   * @param split_verifying_key (optional) Provide a verifying key to use for the split function
+   * @returns {Transaction} Transaction object
+   */
+  static buildSplitTransaction(private_key: PrivateKey, split_amount: number, amount_record: RecordPlaintext, url?: string | null, split_proving_key?: ProvingKey | null, split_verifying_key?: VerifyingKey | null, offline_query?: OfflineQuery | null): Promise&lt;Transaction>;
+  /**
+   * Send credits from one Aleo account to another
+   *
+   * @param private_key The private key of the sender
+   * @param amount_credits The amount of credits to send
+   * @param recipient The recipient of the transaction
+   * @param transfer_type The type of the transfer (options: "private", "public", "private_to_public", "public_to_private")
+   * @param amount_record The record to fund the amount from
+   * @param fee_credits The amount of credits to pay as a fee
+   * @param fee_record The record to spend the fee from
+   * @param url The url of the Aleo network node to send the transaction to
+   * @param transfer_verifying_key (optional) Provide a verifying key to use for the transfer
+   * function
+   * @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+   * @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+   * @returns {Transaction}
+   */
+  static buildTransferTransaction(private_key: PrivateKey, amount_credits: number, recipient: string, transfer_type: string, amount_record: RecordPlaintext | null | undefined, fee_credits: number, fee_record?: RecordPlaintext | null, url?: string | null, transfer_proving_key?: ProvingKey | null, transfer_verifying_key?: VerifyingKey | null, fee_proving_key?: ProvingKey | null, fee_verifying_key?: VerifyingKey | null, offline_query?: OfflineQuery | null): Promise&lt;Transaction>;
+  /**
+   * Synthesize proving and verifying keys for a program
+   *
+   * @param program {string} The program source code of the program to synthesize keys for
+   * @param function_id {string} The function to synthesize keys for
+   * @param inputs {Array} The inputs to the function
+   * @param imports {Object | undefined} The imports for the program
+   */
+  static synthesizeKeyPair(private_key: PrivateKey, program: string, function_id: string, inputs: Array&lt;any>, imports?: object | null): Promise&lt;KeyPair>;
+}
+/**
+ * Proving key for a function within an Aleo program
+ */
+export class ProvingKey {
+  private constructor();
+  free(): void;
+  /**
+   * Verify if the proving key is for the bond_public function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("bond_public_proving_key.bin");
+   * provingKey.isBondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the bond_public function, false if otherwise
+   */
+  isBondPublicProver(): boolean;
+  /**
+   * Verify if the proving key is for the bond_validator function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("bond_validator_proving_key.bin");
+   * provingKey.isBondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the bond_validator function, false if otherwise
+   */
+  isBondValidatorProver(): boolean;
+  /**
+   * Verify if the proving key is for the claim_unbond function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("claim_unbond_proving_key.bin");
+   * provingKey.isClaimUnbondProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the claim_unbond function, false if otherwise
+   */
+  isClaimUnbondPublicProver(): boolean;
+  /**
+   * Verify if the proving key is for the fee_private function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("fee_private_proving_key.bin");
+   * provingKey.isFeePrivateProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the fee_private function, false if otherwise
+   */
+  isFeePrivateProver(): boolean;
+  /**
+   * Verify if the proving key is for the fee_public function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("fee_public_proving_key.bin");
+   * provingKey.isFeePublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the fee_public function, false if otherwise
+   */
+  isFeePublicProver(): boolean;
+  /**
+   * Verify if the proving key is for the inclusion function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("inclusion_proving_key.bin");
+   * provingKey.isInclusionProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the inclusion function, false if otherwise
+   */
+  isInclusionProver(): boolean;
+  /**
+   * Verify if the proving key is for the join function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("join_proving_key.bin");
+   * provingKey.isJoinProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the join function, false if otherwise
+   */
+  isJoinProver(): boolean;
+  /**
+   * Verify if the proving key is for the set_validator_state function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("set_validator_set_proving_key.bin");
+   * provingKey.isSetValidatorStateProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the set_validator_state function, false if otherwise
+   */
+  isSetValidatorStateProver(): boolean;
+  /**
+   * Verify if the proving key is for the split function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("split_proving_key.bin");
+   * provingKey.isSplitProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the split function, false if otherwise
+   */
+  isSplitProver(): boolean;
+  /**
+   * Verify if the proving key is for the transfer_private function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("transfer_private_proving_key.bin");
+   * provingKey.isTransferPrivateProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the transfer_private function, false if otherwise
+   */
+  isTransferPrivateProver(): boolean;
+  /**
+   * Verify if the proving key is for the transfer_private_to_public function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("transfer_private_to_public_proving_key.bin");
+   * provingKey.isTransferPrivateToPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the transfer_private_to_public function, false if otherwise
+   */
+  isTransferPrivateToPublicProver(): boolean;
+  /**
+   * Verify if the proving key is for the transfer_public function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("transfer_public_proving_key.bin");
+   * provingKey.isTransferPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the transfer_public function, false if otherwise
+   */
+  isTransferPublicProver(): boolean;
+  /**
+   * Verify if the proving key is for the transfer_public_as_signer function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("transfer_public_as_signer_proving_key.bin");
+   * provingKey.isTransferPublicAsSignerProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the transfer_public function, false if otherwise
+   */
+  isTransferPublicAsSignerProver(): boolean;
+  /**
+   * Verify if the proving key is for the transfer_public_to_private function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("transfer_public_to_private_proving_key.bin");
+   * provingKey.isTransferPublicToPrivateProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the transfer_public_to_private function, false if otherwise
+   */
+  isTransferPublicToPrivateProver(): boolean;
+  /**
+   * Verify if the proving key is for the unbond_public function
+   *
+   * @example
+   * const provingKey = ProvingKey.fromBytes("unbond_public.bin");
+   * provingKey.isUnbondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+   *
+   * @returns {boolean} returns true if the proving key is for the unbond_public_prover function, false if otherwise
+   */
+  isUnbondPublicProver(): boolean;
+  /**
+   * Return the checksum of the proving key
+   *
+   * @returns {string} Checksum of the proving key
+   */
+  checksum(): string;
+  /**
+   * Create a copy of the proving key
+   *
+   * @returns {ProvingKey} A copy of the proving key
+   */
+  copy(): ProvingKey;
+  /**
+   * Construct a new proving key from a byte array
+   *
+   * @param {Uint8Array} bytes Byte array representation of a proving key
+   * @returns {ProvingKey}
+   */
+  static fromBytes(bytes: Uint8Array): ProvingKey;
+  /**
+   * Create a proving key from string
+   *
+   * @param {string} String representation of the proving key
+   */
+  static fromString(string: string): ProvingKey;
+  /**
+   * Return the byte representation of a proving key
+   *
+   * @returns {Uint8Array} Byte array representation of a proving key
+   */
+  toBytes(): Uint8Array;
+  /**
+   * Get a string representation of the proving key
+   *
+   * @returns {string} String representation of the proving key
+   */
+  toString(): string;
+}
+/**
+ * Encrypted Aleo record
+ */
+export class RecordCiphertext {
+  private constructor();
+  free(): void;
+  /**
+   * Create a record ciphertext from a string
+   *
+   * @param {string} record String representation of a record ciphertext
+   * @returns {RecordCiphertext} Record ciphertext
+   */
+  static fromString(record: string): RecordCiphertext;
+  /**
+   * Return the string reprensentation of the record ciphertext
+   *
+   * @returns {string} String representation of the record ciphertext
+   */
+  toString(): string;
+  /**
+   * Decrypt the record ciphertext into plaintext using the view key. The record will only
+   * decrypt if the record was encrypted by the account corresponding to the view key
+   *
+   * @param {ViewKey} view_key View key used to decrypt the ciphertext
+   * @returns {RecordPlaintext} Record plaintext object
+   */
+  decrypt(view_key: ViewKey): RecordPlaintext;
+  /**
+   * Determines if the account corresponding to the view key is the owner of the record
+   *
+   * @param {ViewKey} view_key View key used to decrypt the ciphertext
+   * @returns {boolean}
+   */
+  isOwner(view_key: ViewKey): boolean;
+  /**
+   * Get the tag of the record using the graph key.
+   *
+   * @param {GraphKey} graph key of the account associatd with the record.
+   * @param {Field} commitment of the record.
+   *
+   * @returns {Field} tag of the record.
+   */
+  static tag(graph_key: GraphKey, commitment: Field): Field;
+}
+/**
+ * Plaintext representation of an Aleo record
+ */
+export class RecordPlaintext {
+  private constructor();
+  free(): void;
+  commitment(program_id: string, record_name: string): Field;
+  /**
+   * Return a record plaintext from a string.
+   *
+   * @param {string} record String representation of a plaintext representation of an Aleo record
+   * @returns {RecordPlaintext} Record plaintext
+   */
+  static fromString(record: string): RecordPlaintext;
+  getMember(input: string): Plaintext;
+  /**
+   * Get the owner of the record.
+   */
+  owner(): Address;
+  /**
+   * Get a representation of a record as a javascript object for usage in client side
+   * computations. Note that this is not a reversible operation and exists for the convenience
+   * of discovering and using properties of the record.
+   *
+   * The conversion guide is as follows:
+   * - u8, u16, u32, i8, i16 i32 --> Number
+   * - u64, u128, i64, i128 --> BigInt
+   * - Address, Field, Group, Scalar --> String.
+   *
+   * Address, Field, Group, and Scalar will all be converted to their bech32 string
+   * representation. These string representations can be converted back to their respective wasm
+   * types using the fromString method on the Address, Field, Group, and Scalar objects in this
+   * library.
+   *
+   * @example
+   * # Create a wasm record from a record string.
+   * let record_plaintext_wasm = RecordPlainext.from_string("{
+   *   owner: aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48.private,
+   *   metadata: {
+   *     player1: aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48.private,
+   *     player2: aleo1dreuxnmg9cny8ee9v2u0wr4v4affnwm09u2pytfwz0f2en2shgqsdsfjn6.private,
+   *     nonce: 660310649780728486489183263981322848354071976582883879926426319832534836534field.private
+   *   },
+   *   id: 1953278585719525811355617404139099418855053112960441725284031425961000152405field.private,
+   *   positions: 50794271u64.private,
+   *   attempts: 0u64.private,
+   *   hits: 0u64.private,
+   *   _nonce: 5668100912391182624073500093436664635767788874314097667746354181784048204413group.public
+   * }");
+   *
+   * let expected_object = {
+   *   owner: "aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48",
+   *   metadata: {
+   *     player1: "aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48",
+   *     player2: "aleo1dreuxnmg9cny8ee9v2u0wr4v4affnwm09u2pytfwz0f2en2shgqsdsfjn6",
+   *     nonce: "660310649780728486489183263981322848354071976582883879926426319832534836534field"
+   *   },
+   *   id: "1953278585719525811355617404139099418855053112960441725284031425961000152405field",
+   *   positions: 50794271,
+   *   attempts: 0,
+   *   hits: 0,
+   *   _nonce: "5668100912391182624073500093436664635767788874314097667746354181784048204413group"
+   * };
+   *
+   * # Create the expected object
+   * let record_plaintext_object = record_plaintext_wasm.to_js_object();
+   * assert(JSON.stringify(record_plaintext_object) == JSON.stringify(expected_object));
+   *
+   * @returns {Object} Javascript object representation of the record
+   */
+  toJsObject(): object;
+  /**
+   * Returns the record plaintext string
+   *
+   * @returns {string} String representation of the record plaintext
+   */
+  toString(): string;
+  /**
+   * Returns the amount of microcredits in the record
+   *
+   * @returns {u64} Amount of microcredits in the record
+   */
+  microcredits(): bigint;
+  /**
+   * Returns the nonce of the record. This can be used to uniquely identify a record.
+   *
+   * @returns {string} Nonce of the record
+   */
+  nonce(): string;
+  /**
+   * Attempt to get the serial number of a record to determine whether or not is has been spent
+   *
+   * @param {PrivateKey} private_key Private key of the account that owns the record
+   * @param {string} program_id Program ID of the program that the record is associated with
+   * @param {string} record_name Name of the record
+   *
+   * @returns {string} Serial number of the record
+   */
+  serialNumberString(private_key: PrivateKey, program_id: string, record_name: string): string;
+  /**
+   * Get the tag of the record using the graph key.
+   */
+  tag(graph_key: GraphKey, commitment: Field): Field;
+}
+/**
+ * Scalar field element.
+ */
+export class Scalar {
+  private constructor();
+  free(): void;
+  /**
+   * Returns the string representation of the group.
+   */
+  toString(): string;
+  /**
+   * Create a plaintext element from a group element.
+   */
+  toPlaintext(): Plaintext;
+  /**
+   * Creates a group object from a string representation of a group.
+   */
+  static fromString(group: string): Scalar;
+  /**
+   * Generate a random group element.
+   */
+  static random(): Scalar;
+  /**
+   * Add two scalar elements.
+   */
+  add(other: Scalar): Scalar;
+  /**
+   * Subtract two scalar elements.
+   */
+  subtract(other: Scalar): Scalar;
+  /**
+   * Multiply two scalar elements.
+   */
+  multiply(other: Scalar): Scalar;
+  /**
+   * Divide two scalar elements.
+   */
+  divide(other: Scalar): Scalar;
+  /**
+   * Double the scalar element.
+   */
+  double(): Scalar;
+  /**
+   * Power of a scalar element.
+   */
+  pow(other: Scalar): Scalar;
+  /**
+   * Invert the scalar element.
+   */
+  inverse(): Scalar;
+  /**
+   * Creates a one valued element of the scalar field.
+   */
+  static one(): Scalar;
+  /**
+   * Creates a zero valued element of the scalar field
+   */
+  static zero(): Scalar;
+  /**
+   * Check if one scalar element equals another.
+   */
+  equals(other: Scalar): boolean;
+}
+/**
+ * Cryptographic signature of a message signed by an Aleo account
+ */
+export class Signature {
+  private constructor();
+  free(): void;
+  /**
+   * Sign a message with a private key
+   *
+   * @param {PrivateKey} private_key The private key to sign the message with
+   * @param {Uint8Array} message Byte representation of the message to sign
+   * @returns {Signature} Signature of the message
+   */
+  static sign(private_key: PrivateKey, message: Uint8Array): Signature;
+  /**
+   * Get an address from a signature.
+   *
+   * @returns {Address} Address object
+   */
+  to_address(): Address;
+  /**
+   * Get the challenge of a signature.
+   */
+  challenge(): Scalar;
+  /**
+   * Get the response of a signature.
+   */
+  response(): Scalar;
+  /**
+   * Verify a signature of a message with an address
+   *
+   * @param {Address} address The address to verify the signature with
+   * @param {Uint8Array} message Byte representation of the message to verify
+   * @returns {boolean} True if the signature is valid, false otherwise
+   */
+  verify(address: Address, message: Uint8Array): boolean;
+  /**
+   * Get a signature from a string representation of a signature
+   *
+   * @param {string} signature String representation of a signature
+   * @returns {Signature} Signature
+   */
+  static from_string(signature: string): Signature;
+  /**
+   * Get a string representation of a signature
+   *
+   * @returns {string} String representation of a signature
+   */
+  to_string(): string;
+}
+/**
+ * Webassembly Representation of an Aleo transaction
+ *
+ * This object is created when generating an on-chain function deployment or execution and is the
+ * object that should be submitted to the Aleo Network in order to deploy or execute a function.
+ */
+export class Transaction {
+  private constructor();
+  free(): void;
+  /**
+   * Create a transaction from a string
+   *
+   * @param {string} transaction String representation of a transaction
+   * @returns {Transaction}
+   */
+  static fromString(transaction: string): Transaction;
+  /**
+   * Create a transaction from a Uint8Array of left endian bytes.
+   *
+   * @param {Uint8Array} Uint8Array of left endian bytes encoding a Transaction.
+   * @returns {Transaction}
+   */
+  static fromBytesLe(bytes: Uint8Array): Transaction;
+  /**
+   * Get the transaction as a string. If you want to submit this transaction to the Aleo Network
+   * this function will create the string that should be submitted in the `POST` data.
+   *
+   * @returns {string} String representation of the transaction
+   */
+  toString(): string;
+  /**
+   * Get the transaction as a Uint8Array of left endian bytes.
+   *
+   * @returns {Uint8Array} Uint8Array representation of the transaction
+   */
+  toBytesLe(): Uint8Array;
+  /**
+   * Returns true if the transaction contains the given serial number.
+   *
+   * @param {boolean} True if the transaction contains the given serial number.
+   */
+  constainsSerialNumber(serial_number: Field): boolean;
+  /**
+   * Returns true if the transaction contains the given commitment.
+   *
+   * @param {boolean} True if the transaction contains the given commitment.
+   */
+  constainsCommitment(commitment: Field): boolean;
+  /**
+   * Find a record in the transaction by the record's commitment.
+   */
+  findRecord(commitment: Field): RecordCiphertext | undefined;
+  /**
+   * Returns the transaction's base fee.
+   */
+  baseFeeAmount(): bigint;
+  /**
+   * Returns the transaction's total fee.
+   */
+  feeAmount(): bigint;
+  /**
+   * Returns the transaction's priority fee.
+   *
+   * returns {bigint} The transaction's priority fee.
+   */
+  priorityFeeAmount(): bigint;
+  /**
+   * Returns true if the transaction is a deployment transaction.
+   *
+   * @returns {boolean} True if the transaction is a deployment transaction
+   */
+  isDeploy(): boolean;
+  /**
+   * Returns true if the transaction is an execution transaction.
+   *
+   * @returns {boolean} True if the transaction is an execution transaction
+   */
+  isExecute(): boolean;
+  /**
+   * Returns true if the transaction is a fee transaction.
+   *
+   * @returns {boolean} True if the transaction is a fee transaction
+   */
+  isFee(): boolean;
+  /**
+   * Returns the program deployed within the transaction if the transaction is a deployment
+   * transaction.
+   *
+   * @returns {Program | undefined} The program deployed within the transaction.
+   */
+  deployedProgram(): Program | undefined;
+  /**
+   * Returns the execution within the transaction (if present).
+   *
+   * @returns {Execution | undefined} The execution within the transaction.
+   */
+  execution(): Execution | undefined;
+  /**
+   * Get the record plaintext present in a transaction owned by a specific view key.
+   *
+   * @param {ViewKey} view_key View key used to decrypt the ciphertext
+   *
+   * @returns {Array&lt;RecordPlaintext>} Array of record plaintext objects
+   */
+  ownedRecords(view_key: ViewKey): Array&lt;any>;
+  /**
+   * Get the records present in a transaction and their commitments.
+   *
+   * @returns {Array&lt;{commitment: Field, record: RecordCiphertext}>} Array of record ciphertext objects
+   */
+  records(): Array&lt;any>;
+  /**
+   * Get a summary of the transaction within a javascript object.
+   *
+   * If the transaction is an execution transaction, this function will return a list of the
+   * transitions and their inputs and outputs.
+   *
+   * If the transaction is a deployment transaction, this function will return the program id and
+   * a list of the functions and their verifying keys, constraint, and variable counts.
+   *
+   * @param {boolean} convert_to_js If true the inputs and outputs will be converted to JS objects,
+   * if false the inputs and outputs will be in wasm format.
+   *
+   * @returns {Object} Transaction summary
+   */
+  summary(convert_to_js: boolean): object;
+  /**
+   * Get the id of the transaction. This is the merkle root of the transaction's inclusion proof.
+   *
+   * This value can be used to query the status of the transaction on the Aleo Network to see
+   * if it was successful. If successful, the transaction will be included in a block and this
+   * value can be used to lookup the transaction data on-chain.
+   *
+   * @returns {string} TransactionId
+   */
+  id(): string;
+  /**
+   * Get the
+   * Get the type of the transaction (will return "deploy" or "execute")
+   *
+   * @returns {string} Transaction type
+   */
+  transactionType(): string;
+  /**
+   * Get the transitions in a transaction.
+   *
+   * @returns {Array&lt;Transition>} Array of transition objects
+   */
+  transitions(): Array&lt;any>;
+  /**
+   * Get the verifying keys in a transaction.
+   *
+   * @returns {Array&lt;Object>} Array of verifying keys.
+   */
+  verifyingKeys(): Array&lt;any>;
+}
+export class Transition {
+  private constructor();
+  free(): void;
+  /**
+   * Get the transition ID
+   *
+   * @returns {string} The transition ID
+   */
+  id(): string;
+  /**
+   * Create a transition from a string
+   *
+   * @param {string} transition String representation of a transition
+   * @returns {Transition}
+   */
+  static fromString(transition: string): Transition;
+  /**
+   * Create a transition from a Uint8Array of left endian bytes.
+   *
+   * @param {Uint8Array} Uint8Array of left endian bytes encoding a Transition.
+   * @returns {Transition}
+   */
+  static fromBytesLe(bytes: Uint8Array): Transition;
+  /**
+   * Get the transition as a string. If you want to submit this transition to the Aleo Network
+   * this function will create the string that should be submitted in the `POST` data.
+   *
+   * @returns {string} String representation of the transition
+   */
+  toString(): string;
+  /**
+   * Get the transition as a Uint8Array of left endian bytes.
+   *
+   * @returns {Uint8Array} Uint8Array representation of the transition
+   */
+  toBytesLe(): Uint8Array;
+  /**
+   * Get the program ID of the transition.
+   */
+  programId(): string;
+  /**
+   * Get the function name of the transition.
+   */
+  functionName(): string;
+  /**
+   * Returns true if the transition contains the given commitment.
+   *
+   * @param {boolean} True if the transition contains the given commitment.
+   */
+  containsCommitment(commitment: Field): boolean;
+  /**
+   * Check if the transition contains a serial number.
+   *
+   * @param {Field} serial_number The serial number to check for
+   *
+   * @returns {bool} True if the transition contains a serial number, false otherwise
+   */
+  containsSerialNumber(serial_number: Field): boolean;
+  /**
+   * Find a record in the transition by the record's commitment.
+   */
+  findRecord(commitment: Field): RecordCiphertext | undefined;
+  /**
+   * Get the record plaintext present in a transition owned by a specific view key.
+   *
+   * @param {ViewKey} view_key The view key of the record owner.
+   *
+   * @returns {Array&lt;RecordPlaintext>} Array of record plaintext objects
+   */
+  ownedRecords(view_key: ViewKey): Array&lt;any>;
+  /**
+   * Get the records present in a transition and their commitments.
+   *
+   * @returns {Array&lt;{commitment: Field, record: RecordCiphertext}>} Array of record ciphertext objects
+   */
+  records(): Array&lt;any>;
+  /**
+   * Get the inputs of the transition.
+   *
+   * @param {bool} convert_to_js If true the inputs will be converted to JS objects, if false
+   * the inputs will be in wasm format.
+   *
+   * @returns {Array} Array of inputs
+   */
+  inputs(convert_to_js: boolean): Array&lt;any>;
+  /**
+   * Get the outputs of the transition.
+   *
+   * @param {bool} convert_to_js If true the outputs will be converted to JS objects, if false
+   * the outputs will be in wasm format.
+   *
+   * @returns {Array} Array of outputs
+   */
+  outputs(convert_to_js: boolean): Array&lt;any>;
+  /**
+   * Get the transition public key of the transition.
+   */
+  tpk(): Group;
+  /**
+   * Get the transition commitment of the transition.
+   */
+  tcm(): Field;
+  /**
+   * Get the transition signer commitment of the transition.
+   */
+  scm(): Field;
+}
+/**
+ * Verifying key for a function within an Aleo program
+ */
+export class VerifyingKey {
+  private constructor();
+  free(): void;
+  /**
+   * Returns the verifying key for the bond_public function
+   *
+   * @returns {VerifyingKey} Verifying key for the bond_public function
+   */
+  static bondPublicVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the bond_validator function
+   *
+   * @returns {VerifyingKey} Verifying key for the bond_validator function
+   */
+  static bondValidatorVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the claim_delegator function
+   *
+   * @returns {VerifyingKey} Verifying key for the claim_unbond_public function
+   */
+  static claimUnbondPublicVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the fee_private function
+   *
+   * @returns {VerifyingKey} Verifying key for the fee_private function
+   */
+  static feePrivateVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the fee_public function
+   *
+   * @returns {VerifyingKey} Verifying key for the fee_public function
+   */
+  static feePublicVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the inclusion function
+   *
+   * @returns {VerifyingKey} Verifying key for the inclusion function
+   */
+  static inclusionVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the join function
+   *
+   * @returns {VerifyingKey} Verifying key for the join function
+   */
+  static joinVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the set_validator_state function
+   *
+   * @returns {VerifyingKey} Verifying key for the set_validator_state function
+   */
+  static setValidatorStateVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the split function
+   *
+   * @returns {VerifyingKey} Verifying key for the split function
+   */
+  static splitVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the transfer_private function
+   *
+   * @returns {VerifyingKey} Verifying key for the transfer_private function
+   */
+  static transferPrivateVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the transfer_private_to_public function
+   *
+   * @returns {VerifyingKey} Verifying key for the transfer_private_to_public function
+   */
+  static transferPrivateToPublicVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the transfer_public function
+   *
+   * @returns {VerifyingKey} Verifying key for the transfer_public function
+   */
+  static transferPublicVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the transfer_public_as_signer function
+   *
+   * @returns {VerifyingKey} Verifying key for the transfer_public_as_signer function
+   */
+  static transferPublicAsSignerVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the transfer_public_to_private function
+   *
+   * @returns {VerifyingKey} Verifying key for the transfer_public_to_private function
+   */
+  static transferPublicToPrivateVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the unbond_public function
+   *
+   * @returns {VerifyingKey} Verifying key for the unbond_public function
+   */
+  static unbondPublicVerifier(): VerifyingKey;
+  /**
+   * Returns the verifying key for the bond_public function
+   *
+   * @returns {VerifyingKey} Verifying key for the bond_public function
+   */
+  isBondPublicVerifier(): boolean;
+  /**
+   * Returns the verifying key for the bond_validator function
+   *
+   * @returns {VerifyingKey} Verifying key for the bond_validator function
+   */
+  isBondValidatorVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the claim_delegator function
+   *
+   * @returns {bool}
+   */
+  isClaimUnbondPublicVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the fee_private function
+   *
+   * @returns {bool}
+   */
+  isFeePrivateVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the fee_public function
+   *
+   * @returns {bool}
+   */
+  isFeePublicVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the inclusion function
+   *
+   * @returns {bool}
+   */
+  isInclusionVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the join function
+   *
+   * @returns {bool}
+   */
+  isJoinVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the set_validator_state function
+   *
+   * @returns {bool}
+   */
+  isSetValidatorStateVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the split function
+   *
+   * @returns {bool}
+   */
+  isSplitVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the transfer_private function
+   *
+   * @returns {bool}
+   */
+  isTransferPrivateVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the transfer_private_to_public function
+   *
+   * @returns {bool}
+   */
+  isTransferPrivateToPublicVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the transfer_public function
+   *
+   * @returns {bool}
+   */
+  isTransferPublicVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the transfer_public_as_signer function
+   *
+   * @returns {bool}
+   */
+  isTransferPublicAsSignerVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the transfer_public_to_private function
+   *
+   * @returns {bool}
+   */
+  isTransferPublicToPrivateVerifier(): boolean;
+  /**
+   * Verifies the verifying key is for the unbond_public function
+   *
+   * @returns {bool}
+   */
+  isUnbondPublicVerifier(): boolean;
+  /**
+   * Get the checksum of the verifying key
+   *
+   * @returns {string} Checksum of the verifying key
+   */
+  checksum(): string;
+  /**
+   * Create a copy of the verifying key
+   *
+   * @returns {VerifyingKey} A copy of the verifying key
+   */
+  copy(): VerifyingKey;
+  /**
+   * Construct a new verifying key from a byte array
+   *
+   * @param {Uint8Array} bytes Byte representation of a verifying key
+   * @returns {VerifyingKey}
+   */
+  static fromBytes(bytes: Uint8Array): VerifyingKey;
+  /**
+   * Create a verifying key from string
+   *
+   * @param {String} string String representation of a verifying key
+   * @returns {VerifyingKey}
+   */
+  static fromString(string: string): VerifyingKey;
+  /**
+   * Create a byte array from a verifying key
+   *
+   * @returns {Uint8Array} Byte representation of a verifying key
+   */
+  toBytes(): Uint8Array;
+  /**
+   * Get a string representation of the verifying key
+   *
+   * @returns {String} String representation of the verifying key
+   */
+  toString(): string;
+}
+export class ViewKey {
+  private constructor();
+  free(): void;
+  /**
+   * Create a new view key from a private key
+   *
+   * @param {PrivateKey} private_key Private key
+   * @returns {ViewKey} View key
+   */
+  static from_private_key(private_key: PrivateKey): ViewKey;
+  /**
+   * Create a new view key from a string representation of a view key
+   *
+   * @param {string} view_key String representation of a view key
+   * @returns {ViewKey} View key
+   */
+  static from_string(view_key: string): ViewKey;
+  /**
+   * Get a string representation of a view key
+   *
+   * @returns {string} String representation of a view key
+   */
+  to_string(): string;
+  /**
+   * Get the address corresponding to a view key
+   *
+   * @returns {Address} Address
+   */
+  to_address(): Address;
+  /**
+   * Get the underlying scalar of a view key.
+   */
+  to_scalar(): Scalar;
+  /**
+   * Decrypt a record ciphertext with a view key
+   *
+   * @param {string} ciphertext String representation of a record ciphertext
+   * @returns {string} String representation of a record plaintext
+   */
+  decrypt(ciphertext: string): string;
+}</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Account.html">Account</a></div><div class="sidebar-section-children"><a href="Address.html">Address</a></div><div class="sidebar-section-children"><a href="AleoKeyProvider.html">AleoKeyProvider</a></div><div class="sidebar-section-children"><a href="AleoKeyProviderParams.html">AleoKeyProviderParams</a></div><div class="sidebar-section-children"><a href="AleoKeyProviderParams_AleoKeyProviderParams.html">AleoKeyProviderParams</a></div><div class="sidebar-section-children"><a href="AleoNetworkClient.html">AleoNetworkClient</a></div><div class="sidebar-section-children"><a href="BlockHeightSearch.html">BlockHeightSearch</a></div><div class="sidebar-section-children"><a href="Ciphertext.html">Ciphertext</a></div><div class="sidebar-section-children"><a href="Execution.html">Execution</a></div><div class="sidebar-section-children"><a href="ExecutionResponse.html">ExecutionResponse</a></div><div class="sidebar-section-children"><a href="Field.html">Field</a></div><div class="sidebar-section-children"><a href="Group.html">Group</a></div><div class="sidebar-section-children"><a href="KeyPair.html">KeyPair</a></div><div class="sidebar-section-children"><a href="KeyPair_KeyPair.html">KeyPair</a></div><div class="sidebar-section-children"><a href="NetworkRecordProvider.html">NetworkRecordProvider</a></div><div class="sidebar-section-children"><a href="OfflineKeyProvider.html">OfflineKeyProvider</a></div><div class="sidebar-section-children"><a href="OfflineQuery.html">OfflineQuery</a></div><div class="sidebar-section-children"><a href="OfflineQuery_OfflineQuery.html">OfflineQuery</a></div><div class="sidebar-section-children"><a href="OfflineSearchParams.html">OfflineSearchParams</a></div><div class="sidebar-section-children"><a href="OfflineSearchParams_OfflineSearchParams.html">OfflineSearchParams</a></div><div class="sidebar-section-children"><a href="Plaintext.html">Plaintext</a></div><div class="sidebar-section-children"><a href="PrivateKey.html">PrivateKey</a></div><div class="sidebar-section-children"><a href="PrivateKey_PrivateKey.html">PrivateKey</a></div><div class="sidebar-section-children"><a href="PrivateKeyCiphertext.html">PrivateKeyCiphertext</a></div><div class="sidebar-section-children"><a href="Program.html">Program</a></div><div class="sidebar-section-children"><a href="ProgramManager.html">ProgramManager</a></div><div class="sidebar-section-children"><a href="ProgramManager_ProgramManager.html">ProgramManager</a></div><div class="sidebar-section-children"><a href="ProvingKey.html">ProvingKey</a></div><div class="sidebar-section-children"><a href="RecordCiphertext.html">RecordCiphertext</a></div><div class="sidebar-section-children"><a href="RecordPlaintext.html">RecordPlaintext</a></div><div class="sidebar-section-children"><a href="Scalar.html">Scalar</a></div><div class="sidebar-section-children"><a href="Signature.html">Signature</a></div><div class="sidebar-section-children"><a href="Transaction.html">Transaction</a></div><div class="sidebar-section-children"><a href="VerifyingKey.html">VerifyingKey</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-interfaces"><div>Interfaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="ExecuteOptions.html">ExecuteOptions</a></div><div class="sidebar-section-children"><a href="FunctionKeyProvider.html">FunctionKeyProvider</a></div><div class="sidebar-section-children"><a href="KeySearchParams.html">KeySearchParams</a></div><div class="sidebar-section-children"><a href="RecordProvider.html">RecordProvider</a></div><div class="sidebar-section-children"><a href="RecordSearchParams.html">RecordSearchParams</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>
