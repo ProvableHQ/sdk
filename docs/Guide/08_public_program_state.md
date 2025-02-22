@@ -24,12 +24,12 @@ and a public `u64` value representing the number of microcredits owned by the ad
 Mappings within programs are identified by the `mapping` identifier. Any program where this keyword appears contains an
 on-chain mapping. An example of a program that uses a mapping is shown below:
 ```
-program player_mapping_example.aleo
+program player_mapping_example.aleo;
 
 // The mapping identifier representing a score
 mapping score:
-    key player as address.public;
-    value score as u64.public;
+    key as address.public;
+    value as u64.public;
 
 // The update score function
 function update_score:
@@ -45,7 +45,7 @@ finalize update_score:
     input r1 as u64.public;
     get.or_use score[r0] 0u64 into r2;
     add r1 r2 into r3;
-    set r3 into account[r0];
+    set r3 into score[r0];
 ```
 
 Note that the above function has a `finalize` identifier. This identifier is used to identify a portion of a function's
