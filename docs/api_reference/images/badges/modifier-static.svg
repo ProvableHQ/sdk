@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink" width="39" height="20">
+  <g shape-rendering="crispEdges">
+    <path fill="#36796f" d="M0 0h0v20H0z"/>
+    <path fill="#36796f" d="M0 0h39v20H0z"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110">
+    <text x="195" y="140" transform="scale(.1)" textLength="290">static</text>
+  </g>
+</svg>
