@@ -1,13 +1,11 @@
 ---
-id: private-state-data
-title: Private Program State
-sidebar_label: Private Program State
+id: private-state
+title: Records - Persistent Private Program State
+sidebar_label: Records and Private Program State
 ---
 
-# Private Program State
-
 ## Records
-Records are analogous to the concept of [UTXOs](https://en.wikipedia.org/wiki/Unspent_transaction_output). When a record is
+Records are analogous to the Bitcoin concept of [UTXOs](https://en.wikipedia.org/wiki/Unspent_transaction_output). When a record is
 created by a program, it can then be consumed later by the same program as an input to a function. Once a record is used
 as an input, it is considered consumed and cannot be used again. In many cases a new record will be created from the output
 of the function. Records are private by default and are associated with a single Aleo program and a single private key
@@ -197,7 +195,7 @@ record, the amount transferred, and both the sender and recipient addresses are 
 </details>
 
 
-#### Record Decryption
+## Record Decryption
 
 If a user receives a private record from a program execution, they can use the SDK to decrypt encrypted records with
 their view keys and view their contents. Only records that are owned by the user can be decrypted. Decryption of records
@@ -225,3 +223,6 @@ if (RecordCiphertext.is_owner(account.viewKey())) {
    console.log(recordPlaintext.toString());
 }
 ```
+
+## Finding Records
+

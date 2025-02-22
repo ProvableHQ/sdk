@@ -1,5 +1,5 @@
 ---
-id: transfers
+id: deployment
 title: Deploying Programs
 sidebar_label: Deploying Programs
 ---

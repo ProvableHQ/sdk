@@ -1,5 +1,5 @@
 ---
-id: executing_programs
+id: execution
 title: Executing Aleo Programs
 sidebar_label: Executing Aleo Programs
 ---
