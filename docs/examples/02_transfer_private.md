@@ -38,7 +38,7 @@ while (!transactionFound) {
         transactionObj = await programManager.networkClient.getTransactionObject(result);
         transactionFound = true;
     } catch (e) {
-        console.log("ERROR:", e);
+        console.error(e);
     }
 }
 

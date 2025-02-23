@@ -7,8 +7,8 @@ sidebar_label: Executing Aleo Programs
 The Provable SDK provides the ability to build `Execution transactions` locally and submit them to the Aleo Network.
 
 The `ProgramManager` class encapsulates the functionality for executing programs and building `Execution Transactions`. 
-The ProgramManager calls code from [SnarkVM](https://github.com/ProvableHQ/SnarkVM) that has been compiled into WebAssembly.
-This code runs the execution, creates the resulting transitions and the ZkSnark proof of the execution within the 
+The ProgramManager calls code from [snarkVM](https://github.com/ProvableHQ/snarkVM) that has been compiled into WebAssembly.
+This code runs the execution, creates the resulting transitions and the zk-SNARK proof of the execution within the 
 local WebAssembly environment and returns an `Execution Transaction` when it is finished. Once the transaction is built,
 it is submitted to the Aleo network using the `NetworkClient` class.
 
@@ -199,7 +199,7 @@ const [storedProvingKey, storedVerifyingKey] = await keyProvider.functionKeys({ 
 ## 3. Local program execution
 
 It is also possible to simply execute a program locally without sending a transaction to the Aleo network. This can be 
-useful if a developer wants to use the SDK to use Aleo's ZkSnarks outside of the Blockchain network or run a test 
+useful if a developer wants to use the SDK to use Aleo's zk-SNARKs outside of the Blockchain network or run a test 
 execution of a program while developing. For this purpose the `ProgramManager` class has a method called `run` that can 
 be used to execute a program locally.
 

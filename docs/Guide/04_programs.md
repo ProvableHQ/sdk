@@ -177,7 +177,7 @@ Programs on Aleo are written in one of two languages:
 Documentation for both languages can be found at [docs.leo-lang.org](https://docs.leo-lang.org/). 
 
 Those interested in attempting to build programs immediately should visit the Leo Playground at 
-[playground.leo-lang.org](https://playground.leo-lang.org/).
+[play.leo-lang.org](https://play.leo-lang.org/).
 
 #### "Hello World" in Leo
 ```

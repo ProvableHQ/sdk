@@ -92,7 +92,7 @@ __*return*__ | `boolean` | *Boolean representing whether or not the signature is
 
 # Class `Ciphertext`
 
-SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
+snarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
 object provides decryption methods to recover the plaintext from the ciphertext (given the
 api consumer has the proper decryption materials).
 
@@ -806,7 +806,7 @@ __*return*__ | [OfflineQuery](sdk-src_wasm.md) | **
 
 # Class `Plaintext`
 
-SnarkVM Plaintext object. Plaintext is a fundamental monadic type used to represent Aleo
+snarkVM Plaintext object. Plaintext is a fundamental monadic type used to represent Aleo
 primitive types (boolean, field, group, i8, i16, i32, i64, i128, u8, u16, u32, u64, u128,
 scalar, and signature), struct types, and array types.
 
