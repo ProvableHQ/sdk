@@ -56,5 +56,4 @@ the VM.
 These tools can be used to build private applications both on and off the Aleo Network. A deeper dive into snarkVM can 
 be found in the section [How does Aleo Enable Privacy?](99_apendix.md).
 
-## 2. SnarkOS & the Aleo Network
 
