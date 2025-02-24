@@ -18,7 +18,7 @@ sidebar_label: Overview
 
 
 The [Aleo SDK](https://github.com/ProvableHQ/sdk) is an open source TypeScript/JavaScript SDK for building private full stack web applications. The 
-SDK provides an easy API for using Aleo's core suite of cryptographic primitives, ZkSnarks and private program execution 
+SDK provides an easy API for using Aleo's core suite of cryptographic primitives, zk-SNARKs and private program execution 
 protocol directly within Javascript. It also provides APIs for interacting with nodes and applications on the Aleo Network.
 
 Applications built with the Aleo SDK include:

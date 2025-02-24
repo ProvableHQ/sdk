@@ -169,15 +169,15 @@ graph LR
 ### Aleo Programming Languages
 
 Programs on Aleo are written in one of two languages:
-1. [Leo](https://docs.leo-lang.org/leo/language): A high-level, developer-friendly language for developing zero-knowledge programs.
+1. [Leo](https://docs.leo-lang.org/leo): A high-level, developer-friendly language for developing zero-knowledge programs.
 
-2. [Aleo Instructions](https://docs.leo-lang.org/aleo/language): A low-level language that provides developers with fine-grained control over the execution
+2. [Aleo Instructions](https://developer.aleo.org/guides/aleo/aleo/): A low-level language that provides developers with fine-grained control over the execution
    flow of zero-knowledge programs. Leo code is compiled into Aleo Instructions under the hood.
 
-Documentation for both languages can be found at [docs.leo-lang.org](https://docs.leo-lang.org/). 
+Documentation for both languages can be found at [docs.leo-lang.org](https://docs.leo-lang.org/leo). 
 
 Those interested in attempting to build programs immediately should visit the Leo Playground at 
-[playground.leo-lang.org](https://playground.leo-lang.org/).
+[play.leo-lang.org](https://play.leo-lang.org/).
 
 #### "Hello World" in Leo
 ```

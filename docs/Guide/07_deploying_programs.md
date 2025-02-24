@@ -13,7 +13,7 @@ Programs on Aleo are written in one of two languages:
 
 ### Leo Language
 Leo is a high-level, developer-friendly language for developing zero-knowledge programs. The
-[Leo Playground](https://playground.leo-lang.org/) provides a web IDE that allows developers to build, test and deploy
+[Leo Playground](https://play.leo-lang.org/) provides a web IDE that allows developers to build, test and deploy
 new programs for. Documentation and tutorials on the Leo Language can be found at [docs.leo-lang.org](https://docs.leo-lang.org/).
 
 ### Aleo Instructions
