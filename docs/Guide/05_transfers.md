@@ -224,3 +224,6 @@ const public_balance = networkClient.getMappingValue("credits.aleo", USER_1_ADDR
 ```
 
 ## Private Balances
+The private balance of an address is the sum of all unspent `credits` records owned by the address. A full article on
+how to calculate the private balance of an address is available in the [finding records](./10_finding_records.md) of 
+the documentation.

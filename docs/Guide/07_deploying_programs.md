@@ -17,30 +17,30 @@ Leo is a high-level, developer-friendly language for developing zero-knowledge p
 new programs for. Documentation and tutorials on the Leo Language can be found at [docs.leo-lang.org](https://docs.leo-lang.org/).
 
 ### Aleo Instructions
-Aleo instructions are a lower level language  that provides developers with fine-grained control over the execution
+Aleo instructions is a lower level language  that provides developers with fine-grained control over the execution
 flow of zero-knowledge programs. It is written to be syntactically similar to the R1CS constraint systems that Aleo 
 programs compile into. A full guide to this language can be found at
-[docs.leo-lang.org/aleo/language]https://docs.leo-lang.org/aleo/language.
+[docs.leo-lang.org/aleo/language](https://docs.leo-lang.org/aleo/language).
 
 ## Deploying a Program
 
-### How Deployments are Built
+### How to Create a Program Deployment
 Programs are deployed by building a `Deployment Transaction`. This is done by calling the SDK `deploy` or 
-`buildDeploymentTransaction` method. Under the hood these methods execute each function in the Aleo program to derive 
-verifying keys from them that can be stored on the Aleo Network in order to verify future Executions of the program's 
-functions. When this is done, these keys are stored in a `Deployment Transaction`and sent to the Aleo Network. 
-If the program name is available and the fee is sufficient, the program will be stored on the Aleo Network and can be 
-executed via `Execution Transactions` by any party.
+`buildDeploymentTransaction` method. Under the hood these methods execute and prove each function in the Aleo program to 
+derive verifying keys. These keys are stored in a `Deployment Transaction`and sent to the Aleo Network. 
+
+If the program name is available and the fee is sufficient, the program will be stored on the Aleo Network. Once a 
+is deployed, its functions can be executed via `Execution Transactions` by any party.
 
 Programs can be deployed to either the Aleo Testnet or Mainnet. It is highly recommended that developers test their 
 programs on the Testnet before deploying them to Aleo Mainnet. 
 
 ### Deploying a Program with the Provable SDK
 
-When ready to deploy a program, the `Aleo Instructions source code` must be imported into the JS/TS environment as a 
-`string`. If the program is written in `Leo` it must first be compiled to Aleo Instructions. Once the source code is 
-available with JS/TS it can be deployed using the ProgramManager, the following snippet demonstrates how to deploy a 
-program using the Provable SDK:
+When ready to deploy a program, the `Aleo Instructions` source code must be imported into the JS/TS environment as a 
+`string`. If the program is written in `Leo` it must first be compiled to `Aleo Instructions`. Once the source code is 
+available with JS/TS, it can be deployed using the ProgramManager. The following code snippet demonstrates how to deploy 
+a program using the Provable SDK:
 ```typescript
 import { Account, AleoNetworkClient, NetworkRecordProvider, ProgramManager, AleoKeyProvider} from '@provablehq/sdk/testnet.js';
 

@@ -97,12 +97,10 @@ blocks.
 
 ### Updating Mappings with the SDK
 
-From the perspective of the caller of the API, this is as simple as executing a normal Aleo function. Given the inputs
-to a function with an async scope that updates a mapping are valid, the mapping will either be initialized or updated
-by the Aleo Validators when a new block is added. All that the user of the SDK must do is ensure that the inputs to the function are valid.
-
-If function inputs are invalid, the network will return an error, but the fee paid for the transaction will still be
-consumed. Therefore, it is important to ensure that the inputs to a function are valid before executing it.
+Updating mappings requires executing an Aleo function that has a `finalize` block which updates the mapping. If the
+inputs to the function are valid and the correct fee is paid, the network will execute the function and update the mapping.
+If function inputs are invalid or an invalid fee is paid, the network will return an error, but the fee paid for the 
+transaction will still be consumed. Therefore, it is important to ensure the fee and inputs are correct before executing.
 
 A simple example of a mapping update can be shown by simply executing `transfer_public` as shown below.
 
