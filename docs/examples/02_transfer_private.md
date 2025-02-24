@@ -19,14 +19,16 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 programManager.setAccount(account);
 
 // Create a record for the sender using the transfer_public_to_private function.
-const transaction = await programManager.buildExecutionTransaction({
-    programName: "credits.aleo",
-    functionName: "transfer_public_to_private",
-    fee: 0.020,
-    privateFee: false,
-    inputs: [account.address().to_string(), "5u64"],
-    keySearchParams: { "cacheKey": "credits:transfer_private" },
-});
+const transaction = await programManager
+    .buildTransferTransaction(
+        5,
+        account
+            .address()
+            .to_string(),
+        "publicToPrivate",
+        0.1,
+        false,
+    );
 // Broadcast the transaction to the Aleo network.
 let result = await programManager.networkClient.submitTransaction(transaction);
 
@@ -52,14 +54,16 @@ const recipient = new Account();
 
 // Execute `transfer_private` function in `credits.aleo`
 // Privately send 5 microcredits to the recipient from the sender's record
-const transaction2 = await programManager.buildExecutionTransaction({
-    programName: "credits.aleo",
-    functionName: "transfer_private",
-    fee: 0.020,
-    privateFee: false,
-    inputs: [record, recipient.address().to_string(), "5u64"],
-    keySearchParams: { "cacheKey": "credits:transfer_private" },
-})
+const transaction2 = await programManager
+    .buildTransferTransaction(
+        5,
+        recipient
+            .address()
+            .to_string(),
+        "private",
+        0.1,
+        false
+    );
 // Broadcast the transaction to the Aleo network.
 const result2 = await programManager.networkClient.submitTransaction(transaction2);
 //

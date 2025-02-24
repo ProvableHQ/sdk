@@ -21,17 +21,17 @@ programManager.setAccount(account);
 // Create recipient account.
 const recipient = new Account();
 
-// Execute `transfer_public` function in `credits.aleo`
+// Build a public transfer transaction.
 // Publicly send 5 microcredits to the recipient
-const transaction2 = await programManager.buildExecutionTransaction({
-  programName: "credits.aleo",
-  functionName: "transfer_public",
-  fee: 0.020,
-  privateFee: false,
-  inputs: [recipient.address(), "5u32"],
-  keySearchParams: { "cacheKey": "credits:transfer_public" }
-});
+const transaction = await programManager
+  .buildTransferPublicTransaction(
+    5,
+    recipient
+      .address()
+      .to_string(),
+    0.1
+  );
 
 // Broadcast the transaction to the Aleo network.
-const result2 = await programManager.networkClient.submitTransaction(transaction2);
+const result = await programManager.networkClient.submitTransaction(transaction);
 ```
