@@ -4,9 +4,6 @@ title: Finding Records
 sidebar_label: Finding Records
 ---
 
-Records are UTXO-like objects, and as in most Blockchains with UTXO objects, identifying those that belong to a specific
-user can be a challenging exercise. 
-
 Records are stored as outputs of transitions contained within execution transactions. To find records, implementors of 
 web apps must:
 * Scan the Aleo network for transitions that contain records.
@@ -62,7 +59,15 @@ graph TD
     style Transition2 fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
 ```
 
-## Optimizing Web Search
+## Finding records within the SDK
+Current there are two pathways to find records using the Provable SDK.
+
+### Using the `NetworkClient` Convenience Methods
+The network provider 
+
+### Using the `RecordProvider` Interface
+
+## Optimizing web search
 Using naive approaches such as scanning the entire Blockchain history can be a time-consuming process and degrade the
 experience of a web app. Fortunately, strategies can be used to optimize the process.
 
