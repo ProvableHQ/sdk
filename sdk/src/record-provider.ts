@@ -190,6 +190,7 @@ class NetworkRecordProvider implements RecordProvider {
     async findCreditsRecords(microcredits: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[]> {
         let startHeight = 0;
         let endHeight = 0;
+        let maxAmount = undefined;
 
         if (searchParameters) {
             if ("startHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
@@ -198,6 +199,22 @@ class NetworkRecordProvider implements RecordProvider {
 
             if ("endHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
                 endHeight = searchParameters["endHeight"];
+            }
+
+            if ("amounts" in searchParameters && Array.isArray(searchParameters["amounts"]) && searchParameters["amount"].every((item: any) => typeof item === 'number')) {
+                microcredits = searchParameters["amounts"];
+            }
+
+            if ("amounts" in searchParameters && Array.isArray(searchParameters["amounts"]) && searchParameters["amount"].every((item: any) => typeof item === 'number')) {
+                microcredits = searchParameters["amounts"];
+            }
+
+            if ("maxAmount" in searchParameters && typeof searchParameters["maxAmount"] == "number") {
+                maxAmount = searchParameters["maxAmount"];
+            }
+
+            if ("unspent" in searchParameters && typeof searchParameters["unspent"] == "boolean") {
+                unspent = searchParameters["unspent"]
             }
         }
 
@@ -212,7 +229,7 @@ class NetworkRecordProvider implements RecordProvider {
             logAndThrow("Start height must be less than end height");
         }
 
-        return await this.networkClient.findUnspentRecords(startHeight, endHeight, this.account.privateKey(), microcredits, undefined, nonces);
+        return await this.networkClient.findRecords(startHeight, endHeight, unspent, ["credits.aleo"], microcredits, maxAmount, nonces, this.account.privateKey());
     }
 
     /**
@@ -247,7 +264,9 @@ class NetworkRecordProvider implements RecordProvider {
 
         try {
             records = await this.findCreditsRecords([microcredits], unspent, nonces, searchParameters);
-        } catch (e) {}
+        } catch (e) {
+            console.log("No records found with error:", e);
+        }
 
         if (records && records.length > 0) {
             return records[0];
@@ -261,14 +280,65 @@ class NetworkRecordProvider implements RecordProvider {
      * Find an arbitrary record. WARNING: This function is not implemented yet and will throw an error.
      */
     async findRecord(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext> {
-        throw new Error("Method not implemented.");
+        throw new Error("Not implemented");
     }
 
     /**
-     * Find multiple arbitrary records. WARNING: This function is not implemented yet and will throw an error.
+     * Find multiple records from a specified program.
      */
     async findRecords(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[]> {
-        throw new Error("Method not implemented.");
+        let startHeight = 0;
+        let endHeight = 0;
+        let amounts = undefined;
+        let maxAmount = undefined;
+        let programs = undefined;
+
+        if (searchParameters) {
+            if ("startHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+                startHeight = searchParameters["startHeight"];
+            }
+
+            if ("endHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+                endHeight = searchParameters["endHeight"];
+            }
+
+            if ("amounts" in searchParameters && Array.isArray(searchParameters["amounts"]) && searchParameters["amounts"].every((item: any) => typeof item === 'number')) {
+                amounts = searchParameters["amounts"];
+            }
+
+            if ("maxAmount" in searchParameters && typeof searchParameters["maxAmount"] == "number") {
+                maxAmount = searchParameters["maxAmount"];
+            }
+
+            if ("nonces" in searchParameters && Array.isArray(searchParameters["nonces"]) && searchParameters["nonces"].every((item: any) => typeof item === "string")) {
+                nonces = searchParameters["nonces"];
+            }
+
+            if ("program" in searchParameters && typeof searchParameters["program"] == "string") {
+                programs = [searchParameters["program"]];
+            }
+
+            if ("programs" in searchParameters && Array.isArray(searchParameters["programs"]) && searchParameters["programs"].every((item: any) => typeof item === "string")) {
+                programs = searchParameters["programs"];
+            }
+
+            if ("unspent" in searchParameters && typeof searchParameters["unspent"] == "boolean") {
+                unspent = searchParameters["unspent"]
+            }
+        }
+
+        // If the end height is not specified, use the current block height
+        if (endHeight == 0) {
+            const end = await this.networkClient.getLatestHeight();
+            endHeight = end;
+        }
+
+        // If the start height is greater than the end height, throw an error
+        if (startHeight >= endHeight) {
+            logAndThrow("Start height must be less than end height");
+        }
+
+        return await this.networkClient.findRecords(startHeight, endHeight, unspent, programs, amounts, maxAmount, nonces, this.account.privateKey());
     }
 
 }

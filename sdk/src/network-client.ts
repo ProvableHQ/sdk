@@ -28,7 +28,7 @@ interface AleoNetworkClientOptions {
  * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+ * const publicnetworkClient = AleoNetworkClient.fromCiphertext("
  */
 class AleoNetworkClient {
   host: string;
@@ -118,13 +118,16 @@ class AleoNetworkClient {
   }
 
   /**
-   * Attempts to find unspent records in the Aleo blockchain for a specified private key.
+   * Attempts to find unspent records in the Aleo blockchain for a specified account.
+   *
    * @param {number} startHeight - The height at which to start searching for unspent records
    * @param {number} endHeight - The height at which to stop searching for unspent records
-   * @param {string | PrivateKey} privateKey - The private key to use to find unspent records
+   * @param {boolean} unspent - Whether to search for unspent records or all records
+   * @param {string[]} programs - The program(s) to search for unspent records in
    * @param {number[]} amounts - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
    * @param {number} maxMicrocredits - The maximum number of microcredits to search for
    * @param {string[]} nonces - The nonces of already found records to exclude from the search
+   * @param {string | PrivateKey} privateKey - An optional private key to use to find unspent records.
    *
    * @example
    * // Find all unspent records
@@ -140,13 +143,15 @@ class AleoNetworkClient {
    * const maxMicrocredits = 100000;
    * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
    */
-  async findUnspentRecords(
+  async findRecords(
       startHeight: number,
       endHeight: number | undefined,
-      privateKey: string | PrivateKey | undefined,
-      amounts: number[] | undefined,
+      unspent: boolean = false,
+      programs?: string[],
+      amounts?: number[] | undefined,
       maxMicrocredits?: number | undefined,
       nonces?: string[] | undefined,
+      privateKey?: string | PrivateKey | undefined,
   ): Promise<Array<RecordPlaintext>> {
     nonces = nonces || [];
     // Ensure start height is not negative
@@ -226,9 +231,11 @@ class AleoNetworkClient {
                 if (transaction.execution && !(typeof transaction.execution.transitions == "undefined")) {
                   for (let k = 0; k < transaction.execution.transitions.length; k++) {
                     const transition = transaction.execution.transitions[k];
-                    // Only search for unspent records in credits.aleo (for now)
-                    if (transition.program !== "credits.aleo") {
-                      continue;
+                    // Only search for unspent records in the specified programs.
+                    if (!(typeof programs === "undefined")) {
+                      if (!programs.includes(transition.program)) {
+                        continue;
+                      }
                     }
                     if (!(typeof transition.outputs == "undefined")) {
                       for (let l = 0; l < transition.outputs.length; l++) {
@@ -248,14 +255,36 @@ class AleoNetworkClient {
                                 continue;
                               }
 
-                              // Otherwise record the nonce that has been found
-                              const serialNumber = recordPlaintext.serialNumberString(resolvedPrivateKey, "credits.aleo", "credits");
-                              // Attempt to see if the serial number is spent
-                              try {
-                                await this.getTransitionId(serialNumber);
-                              } catch (error) {
-                                // If it's not found, add it to the list of unspent records
-                                if (!amounts) {
+                              if (unspent) {
+                                // Otherwise record the nonce that has been found
+                                const serialNumber = recordPlaintext.serialNumberString(resolvedPrivateKey, "credits.aleo", "credits");
+                                // Attempt to see if the serial number is spent
+                                try {
+                                  await this.getTransitionId(serialNumber);
+                                  continue;
+                                } catch (error) {
+                                  console.log("Found unspent record!")
+                                }
+                              }
+
+                              // Add the record to the list of records if the user did not specify amounts.
+                              if (!amounts) {
+                                records.push(recordPlaintext);
+                                // If the user specified a maximum number of microcredits, check if the search has found enough
+                                if (typeof maxMicrocredits === "number") {
+                                  totalRecordValue += recordPlaintext.microcredits();
+                                  // Exit if the search has found the amount specified
+                                  if (totalRecordValue >= BigInt(maxMicrocredits)) {
+                                    return records;
+                                  }
+                                }
+                              }
+
+                              // If the user specified a list of amounts, check if the search has found them
+                              if (!(typeof amounts === "undefined") && amounts.length > 0) {
+                                let amounts_found = 0;
+                                if (recordPlaintext.microcredits() > amounts[amounts_found]) {
+                                  amounts_found += 1;
                                   records.push(recordPlaintext);
                                   // If the user specified a maximum number of microcredits, check if the search has found enough
                                   if (typeof maxMicrocredits === "number") {
@@ -265,24 +294,8 @@ class AleoNetworkClient {
                                       return records;
                                     }
                                   }
-                                }
-                                // If the user specified a list of amounts, check if the search has found them
-                                if (!(typeof amounts === "undefined") && amounts.length > 0) {
-                                  let amounts_found = 0;
-                                  if (recordPlaintext.microcredits() > amounts[amounts_found]) {
-                                      amounts_found += 1;
-                                      records.push(recordPlaintext);
-                                      // If the user specified a maximum number of microcredits, check if the search has found enough
-                                      if (typeof maxMicrocredits === "number") {
-                                        totalRecordValue += recordPlaintext.microcredits();
-                                        // Exit if the search has found the amount specified
-                                        if (totalRecordValue >= BigInt(maxMicrocredits)) {
-                                          return records;
-                                        }
-                                      }
-                                      if (records.length >= amounts.length) {
-                                        return records;
-                                      }
+                                  if (records.length >= amounts.length) {
+                                    return records;
                                   }
                                 }
                               }
@@ -310,6 +323,43 @@ class AleoNetworkClient {
       }
     }
     return records;
+  }
+
+  /**
+   * Attempts to find unspent records in the Aleo blockchain for a specified account.
+   *
+   * @param {number} startHeight - The height at which to start searching for unspent records
+   * @param {number} endHeight - The height at which to stop searching for unspent records
+   * @param {string | PrivateKey} privateKey - The private key to use to find unspent records
+   * @param {number[]} amounts - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
+   * @param {number} maxMicrocredits - The maximum number of microcredits to search for
+   * @param {string[]} nonces - The nonces of already found records to exclude from the search
+   * @param {string[]} programs - The program(s) to search for unspent records in
+   *
+   * @example
+   * // Find all unspent records
+   * const privateKey = "[PRIVATE_KEY]";
+   * const records = networkClient.findUnspentRecords(0, undefined, privateKey);
+   *
+   * // Find specific amounts
+   * const startHeight = 500000;
+   * const amounts = [600000, 1000000];
+   * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, amounts);
+   *
+   * // Find specific amounts with a maximum number of cumulative microcredits
+   * const maxMicrocredits = 100000;
+   * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
+   */
+  async findUnspentRecords(
+      startHeight: number,
+      endHeight: number | undefined,
+      programs?: string[],
+      amounts?: number[] | undefined,
+      maxMicrocredits?: number | undefined,
+      nonces?: string[] | undefined,
+      privateKey?: string | PrivateKey | undefined,
+  ): Promise<Array<RecordPlaintext>> {
+    return await this.findRecords(startHeight, endHeight, true, programs, amounts, maxMicrocredits, nonces, privateKey);
   }
 
   /**
