@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import {AleoKeyProvider, CachedKeyPair, CREDITS_PROGRAM_KEYS, FunctionKeyPair, OfflineKeyProvider, ProvingKey, VerifyingKey} from "../src/node";
+import {AleoKeyProvider, CachedKeyPair, CREDITS_PROGRAM_KEYS, FunctionKeyPair, OfflineKeyProvider, ProvingKey, VerifyingKey} from "@provablehq/sdk/%%NETWORK%%.js";
 
 describe('KeyProvider', () => {
     let keyProvider: AleoKeyProvider;

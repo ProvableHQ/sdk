@@ -134,7 +134,7 @@ class ProgramManager {
     }
 
     /**
-     * Deploy an Aleo program to the Aleo network
+     * Builds a deployment transaction for submission to the Aleo network.
      *
      * @param {string} program Program source code
      * @param {number} fee Fee to pay for the transaction
@@ -158,20 +158,17 @@ class ProgramManager {
      * // Define a fee in credits
      * const fee = 1.2;
      *
-     * // Deploy the program
-     * const tx_id = await programManager.deploy(program, fee);
-     *
-     * // Verify the transaction was successful
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     * // Create the deployment transaction.
+     * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
      */
-    async deploy(
+    async buildDeploymentTransaction(
         program: string,
         fee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
-    ): Promise<string> {
+    ): Promise<Transaction> {
         // Ensure the program is valid and does not exist on the network
         try {
             const programObject = Program.fromString(program);
@@ -224,7 +221,49 @@ class ProgramManager {
         }
 
         // Build a deployment transaction and submit it to the network
-        const tx = await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
+        return await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
+    }
+
+    /**
+     * Deploy an Aleo program to the Aleo network
+     *
+     * @param {string} program Program source code
+     * @param {number} fee Fee to pay for the transaction
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
+     * pay the deployment fee
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @returns {string} The transaction id of the deployed program or a failure message from the network
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for deployments
+     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     *
+     * // Define a fee in credits
+     * const fee = 1.2;
+     *
+     * // Deploy the program
+     * const tx_id = await programManager.deploy(program, fee, false);
+     *
+     * // Verify the transaction was successful
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     */
+    async deploy(
+        program: string,
+        fee: number,
+        privateFee: boolean,
+        recordSearchParams?: RecordSearchParams,
+        feeRecord?: string | RecordPlaintext,
+        privateKey?: PrivateKey,
+    ): Promise<string> {
+        const tx = <Transaction>await this.buildDeploymentTransaction(program, fee, privateFee, recordSearchParams, feeRecord, privateKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
