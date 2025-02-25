@@ -21,13 +21,13 @@ programManager.setAccount(account);
 // Create a record for the sender using the transfer_public_to_private function.
 const transaction = await programManager
     .buildTransferTransaction(
-        5,
-        account
+        5,                 // The amount to be transferred in credits (not microcredits)
+        account            // The address of the recipient (In this case, your own address).
             .address()
             .to_string(),
-        "publicToPrivate",
-        0.1,
-        false,
+        "publicToPrivate", // The transfer type.
+        0.1,               // The fee amount.
+        false,             // Indicates whether or not the fee will be private. 
     );
 // Broadcast the transaction to the Aleo network.
 let result = await programManager.networkClient.submitTransaction(transaction);
@@ -56,13 +56,13 @@ const recipient = new Account();
 // Privately send 5 microcredits to the recipient from the sender's record
 const transaction2 = await programManager
     .buildTransferTransaction(
-        5,
-        recipient
+        5,                 // The amount to be transferred in credits (not microcredits)
+        recipient          // The address of the recipient.
             .address()
             .to_string(),
-        "private",
-        0.1,
-        false
+        "private",         // The transfer type.
+        0.1,               // The fee amount.
+        false,             // Indicates whether or not the fee will be private.
     );
 // Broadcast the transaction to the Aleo network.
 const result2 = await programManager.networkClient.submitTransaction(transaction2);

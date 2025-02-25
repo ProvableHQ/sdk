@@ -25,11 +25,11 @@ const recipient = new Account();
 // Publicly send 5 microcredits to the recipient
 const transaction = await programManager
   .buildTransferPublicTransaction(
-    5,
-    recipient
+    5,              // The amount to be transferred in credits (not microcredits)
+    recipient       // The address of the recipient.
       .address()
       .to_string(),
-    0.1
+    0.1             // The fee amount.
   );
 
 // Broadcast the transaction to the Aleo network.
