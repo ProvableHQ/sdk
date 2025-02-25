@@ -29,10 +29,6 @@ Applications built with the Aleo SDK include:
 * **Zero Knowledge Identity Management**
 * **Aleo Wallets**
 
-## Why Build on Aleo?
-
-
-
 ## Features
 The Aleo SDK provides the following features. Follow the links below for live demonstrations of these features on 
 [provable.tools](https://provable.tools)
@@ -48,7 +44,7 @@ The Aleo SDK provides the following features. Follow the links below for live de
 
 Developers interested in using the SDK to build private web applications can get started with the following resources.
 
-### [The SDK Guide](https://docs.leo-lang.org/sdk/typescript/overview)
+### [The SDK Guide](https://docs.explorer.provable.com/docs/sdk/6p7047svvq2ox-intro-to-aleo)
 <a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Aleo SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
 
 A step-by-step guide to building private web applications with the Aleo SDK. The guide covers creating Aleo accounts,
@@ -63,7 +59,7 @@ A suite of examples and templates for building private web applications in a var
 examples can be easily installed and run using the `create-leo-app` command line tool. The examples cover a wide range 
 of use cases such as Private NFTs, offline transaction signing, and usage of the SDK in React, Next, and VanillaJS.
 
-### [SDK API Documentation](https://docs.leo-lang.org/sdk/typescript/account)
+### [SDK API Documentation](https://docs.explorer.provable.com/docs/sdk/0qgi3uyhotv62-account)
 For developers who prefer to dive straight into the code, the SDK API documentation provides a comprehensive reference
 for all the SDK's classes, methods, and interfaces. The documentation is generated from the SDK's TypeScript source code.
 

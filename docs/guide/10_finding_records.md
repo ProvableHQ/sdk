@@ -11,7 +11,7 @@ execution transactions. To find records, implementors of web apps must:
 * Check to see if the record is "spent" or "unspent" by checking if the record has appeared in any function inputs.
 * Optionally decrypt the record if the data within it is desired.
 
-```mermaidjs
+```mermaid
 graph TD
     subgraph BlockN+2
     end
@@ -116,6 +116,8 @@ search for an appropriate record to pay the fee.
 A usage example of the `RecordProvider` is shown below using the `NetworkRecordProvider` implementation of the
 `RecordProvider` interface.
 ```typescript
+import { AleoNetworkClient, AleoKeyProvider, NetworkRecordProvider, ProgramManager } from '@provablehq/sdk';
+
 // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
 const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 const keyProvider = new AleoKeyProvider();
@@ -153,7 +155,7 @@ const transaction = await programManager.buildExecutionTransaction({
   functionName: "transfer_private",
   fee: 0.040,
   privateFee: true,
-  inputs: ["aleoAddress1..", "10_000_000u64"],
+  inputs: ["aleoAddress1..", "10000000u64"],
   recordSearchParams: feeRecordSearchParameters, // Specify the record search parameters for the fee record.
 });
 
