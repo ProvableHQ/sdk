@@ -28,7 +28,8 @@ interface AleoNetworkClientOptions {
  * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * const publicnetworkClient = AleoNetworkClient.fromCiphertext("
+ * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+ * const publicnetworkClient = new AleoNetworkClient("http://localhost:3030", undefined, account);
  */
 class AleoNetworkClient {
   host: string;
@@ -118,11 +119,11 @@ class AleoNetworkClient {
   }
 
   /**
-   * Attempts to find unspent records in the Aleo blockchain for a specified account.
+   * Attempt to find records in the Aleo blockchain.
    *
    * @param {number} startHeight - The height at which to start searching for unspent records
    * @param {number} endHeight - The height at which to stop searching for unspent records
-   * @param {boolean} unspent - Whether to search for unspent records or all records
+   * @param {boolean} unspent - Whether to search for unspent records only
    * @param {string[]} programs - The program(s) to search for unspent records in
    * @param {number[]} amounts - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
    * @param {number} maxMicrocredits - The maximum number of microcredits to search for
@@ -130,18 +131,14 @@ class AleoNetworkClient {
    * @param {string | PrivateKey} privateKey - An optional private key to use to find unspent records.
    *
    * @example
-   * // Find all unspent records
-   * const privateKey = "[PRIVATE_KEY]";
-   * const records = networkClient.findUnspentRecords(0, undefined, privateKey);
-   *
    * // Find specific amounts
    * const startHeight = 500000;
    * const amounts = [600000, 1000000];
-   * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, amounts);
+   * const records = networkClient.findRecords(startHeight, undefined, true, ["credits.aleo"] amounts);
    *
    * // Find specific amounts with a maximum number of cumulative microcredits
    * const maxMicrocredits = 100000;
-   * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
+   * const records = networkClient.findRecords(startHeight, undefined, true, ["credits.aleo"] undefined, maxMicrocredits);
    */
   async findRecords(
       startHeight: number,
@@ -326,29 +323,26 @@ class AleoNetworkClient {
   }
 
   /**
-   * Attempts to find unspent records in the Aleo blockchain for a specified account.
+   * Attempts to find unspent records in the Aleo blockchain.
    *
    * @param {number} startHeight - The height at which to start searching for unspent records
    * @param {number} endHeight - The height at which to stop searching for unspent records
-   * @param {string | PrivateKey} privateKey - The private key to use to find unspent records
+   * @param {string[]} programs - The program(s) to search for unspent records in
    * @param {number[]} amounts - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
    * @param {number} maxMicrocredits - The maximum number of microcredits to search for
    * @param {string[]} nonces - The nonces of already found records to exclude from the search
-   * @param {string[]} programs - The program(s) to search for unspent records in
+   * @param {string | PrivateKey} privateKey - An optional private key to use to find unspent records.
    *
    * @example
-   * // Find all unspent records
-   * const privateKey = "[PRIVATE_KEY]";
-   * const records = networkClient.findUnspentRecords(0, undefined, privateKey);
-   *
    * // Find specific amounts
    * const startHeight = 500000;
+   * const endHeight = 550000;
    * const amounts = [600000, 1000000];
-   * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, amounts);
+   * const records = networkClient.findUnspentRecords(startHeight, endHeight, ["credits.aleo"], amounts);
    *
    * // Find specific amounts with a maximum number of cumulative microcredits
    * const maxMicrocredits = 100000;
-   * const records = networkClient.findUnspentRecords(startHeight, undefined, privateKey, undefined, maxMicrocredits);
+   * const records = networkClient.findUnspentRecords(startHeight, undefined, ["credits.aleo"], undefined, maxMicrocredits);
    */
   async findUnspentRecords(
       startHeight: number,
@@ -434,7 +428,7 @@ class AleoNetworkClient {
    * @param {Program | string} program
    * @returns {TransactionJSON}
    */
-  async getDeploymentTransactioObjectnForProgram(program: Program | string): Promise<Transaction> {
+  async getDeploymentTransactionObjectForProgram(program: Program | string): Promise<Transaction> {
     try {
       const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
       return await this.getTransactionObject(transaction_id);
@@ -613,7 +607,15 @@ class AleoNetworkClient {
    * @param {string} programId - The program ID to get the mappings of (e.g. "credits.aleo")
    * @example
    * const mappings = networkClient.getProgramMappingNames("credits.aleo");
-   * const expectedMappings = ["account"];
+   * const expectedMappings = [
+   *   "committee",
+   *   "delegated",
+   *   "metadata",
+   *   "bonded",
+   *   "unbonding",
+   *   "account",
+   *   "withdraw"
+   * ];
    * assert.deepStrictEqual(mappings, expectedMappings);
    */
   async getProgramMappingNames(programId: string): Promise<Array<string>> {

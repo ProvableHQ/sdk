@@ -138,7 +138,7 @@ __*return*__ | `boolean` | **
 ```javascript
 // Create a connection to the Aleo network and an account
 const connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
-const account = Account.fromCiphertext("ciphertext", "password");
+const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
 
 // Get a record from the network
 const record = connection.getBlock(1234);
@@ -297,7 +297,7 @@ __*return*__ | `boolean` | **
 ```javascript
 // Create a connection to the Aleo network and an account
 const connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
-const account = Account.fromCiphertext("ciphertext", "password");
+const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
 
 // Get a record from the network
 const record = connection.getBlock(1234);
