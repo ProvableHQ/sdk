@@ -11,13 +11,13 @@ The Provable SDK can be installed via npm and yarn package managers.
 ### NPM
 
 ```bash
-yarn add @provablehq/sdk
+npm install @provablehq/sdk
 ```
 
 ### Yarn
 
 ```bash
-npm install @provablehq/sdk
+yarn add @provablehq/sdk
 ```
 
 ## Network Selection
