@@ -18,15 +18,18 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 // Set the account as the program caller.
 programManager.setAccount(account);
 
-// Create a record for the sender using the transfer_public_to_private function.
-const transaction = await programManager.buildExecutionTransaction({
-    programName: "credits.aleo",
-    functionName: "transfer_public_to_private",
-    fee: 0.020,
-    privateFee: false,
-    inputs: [account.address().to_string(), "5u64"],
-    keySearchParams: { "cacheKey": "credits:transfer_private" },
-});
+// Build a transfer_public_to_private transaction.
+// Create a credits record for the sender.
+const transaction = await programManager
+    .buildTransferTransaction(
+        5,                 // The amount to be transferred in credits (not microcredits)
+        account            // The address of the recipient (In this case, your own address).
+            .address()
+            .to_string(),
+        "publicToPrivate", // The transfer type.
+        0.1,               // The fee amount.
+        false,             // Indicates whether or not the fee will be private. 
+    );
 // Broadcast the transaction to the Aleo network.
 let result = await programManager.networkClient.submitTransaction(transaction);
 
@@ -50,16 +53,18 @@ let record = transactionRecords[0];
 // This new account will stand in as the recipient in this transfer.
 const recipient = new Account();
 
-// Execute `transfer_private` function in `credits.aleo`
+// Build a transfer_private transaction.
 // Privately send 5 microcredits to the recipient from the sender's record
-const transaction2 = await programManager.buildExecutionTransaction({
-    programName: "credits.aleo",
-    functionName: "transfer_private",
-    fee: 0.020,
-    privateFee: false,
-    inputs: [record, recipient.address().to_string(), "5u64"],
-    keySearchParams: { "cacheKey": "credits:transfer_private" },
-})
+const transaction2 = await programManager
+    .buildTransferTransaction(
+        5,                 // The amount to be transferred in credits (not microcredits)
+        recipient          // The address of the recipient.
+            .address()
+            .to_string(),
+        "private",         // The transfer type.
+        0.1,               // The fee amount.
+        false,             // Indicates whether or not the fee will be private.
+    );
 // Broadcast the transaction to the Aleo network.
 const result2 = await programManager.networkClient.submitTransaction(transaction2);
 //
