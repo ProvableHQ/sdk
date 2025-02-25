@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "@provablehq/sdk/%%NETWORK%%.js";
+import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "../src/node";
 import {
     seed,
     message,
@@ -191,7 +191,7 @@ describe('WASM Objects', () => {
         });
 
         it('properly assesses equality and inequality', () => {
-            const viewKey1 = new (ViewKey as any)();
+            const viewKey1 = new (ViewKey)();
             const viewKey2 = ViewKey.from_string(viewKeyString);
             const viewKey3 = ViewKey.from_string(viewKeyString);
 

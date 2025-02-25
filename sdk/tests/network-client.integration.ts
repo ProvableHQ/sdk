@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data";
-import {Account, AleoNetworkClient} from "@provablehq/sdk/%%NETWORK%%.js";
+import {Account, AleoNetworkClient} from "../src/browser";
 
 describe('NodeConnection', () => {
     let localApiClient: AleoNetworkClient;
