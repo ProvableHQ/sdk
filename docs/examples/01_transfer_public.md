@@ -21,7 +21,7 @@ programManager.setAccount(account);
 // Create recipient account.
 const recipient = new Account();
 
-// Build a public transfer transaction.
+// Build a transfer_public transaction.
 // Publicly send 5 microcredits to the recipient
 const transaction = await programManager
   .buildTransferPublicTransaction(

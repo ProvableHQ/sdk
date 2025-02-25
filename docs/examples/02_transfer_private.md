@@ -18,7 +18,8 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 // Set the account as the program caller.
 programManager.setAccount(account);
 
-// Create a record for the sender using the transfer_public_to_private function.
+// Build a transfer_public_to_private transaction.
+// Create a credits record for the sender.
 const transaction = await programManager
     .buildTransferTransaction(
         5,                 // The amount to be transferred in credits (not microcredits)
@@ -52,7 +53,7 @@ let record = transactionRecords[0];
 // This new account will stand in as the recipient in this transfer.
 const recipient = new Account();
 
-// Execute `transfer_private` function in `credits.aleo`
+// Build a transfer_private transaction.
 // Privately send 5 microcredits to the recipient from the sender's record
 const transaction2 = await programManager
     .buildTransferTransaction(
