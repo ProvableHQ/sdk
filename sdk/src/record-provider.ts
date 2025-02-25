@@ -205,10 +205,6 @@ class NetworkRecordProvider implements RecordProvider {
                 microcredits = searchParameters["amounts"];
             }
 
-            if ("amounts" in searchParameters && Array.isArray(searchParameters["amounts"]) && searchParameters["amount"].every((item: any) => typeof item === 'number')) {
-                microcredits = searchParameters["amounts"];
-            }
-
             if ("maxAmount" in searchParameters && typeof searchParameters["maxAmount"] == "number") {
                 maxAmount = searchParameters["maxAmount"];
             }
