@@ -17,8 +17,8 @@ sidebar_label: Overview
 </p>
 
 
-The [Provable SDK](https://github.com/ProvableHQ/sdk) is an open source TypeScript/JavaScript SDK for building private full stack web applications. The
-SDK provides an easy API for using Aleo's core suite of cryptographic primitives, zk-SNARKs and private program execution
+The [Aleo SDK](https://github.com/ProvableHQ/sdk) is an open source TypeScript/JavaScript SDK for building private full stack web applications. The 
+SDK provides an easy API for using Aleo's core suite of cryptographic primitives, zk-SNARKs and private program execution 
 protocol directly within Javascript. It also provides APIs for interacting with nodes and applications on the Aleo Network.
 
 Applications built with the Aleo SDK include:
@@ -30,7 +30,7 @@ Applications built with the Aleo SDK include:
 * **Aleo Wallets**
 
 ## Features
-The Aleo SDK provides the following features. Follow the links below for live demonstrations of these features on
+The Aleo SDK provides the following features. Follow the links below for live demonstrations of these features on 
 [provable.tools](https://provable.tools)
 1. [Aleo account management](https://provable.tools/account)
 2. [Aleo cryptographic primitives](https://provable.tools/algebra)
@@ -55,8 +55,8 @@ state, and best practices for building private web applications.
 
 <a href="https://www.npmjs.com/package/create-leo-app"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/create-leo-app?label=NPM%20-%20Create-Leo-App&labelColor=green&color=blue"></a>
 
-A suite of examples and templates for building private web applications in a variety of Javascript frameworks. These
-examples can be easily installed and run using the `create-leo-app` command line tool. The examples cover a wide range
+A suite of examples and templates for building private web applications in a variety of Javascript frameworks. These 
+examples can be easily installed and run using the `create-leo-app` command line tool. The examples cover a wide range 
 of use cases such as Private NFTs, offline transaction signing, and usage of the SDK in React, Next, and VanillaJS.
 
 ### [SDK API Documentation](https://docs.explorer.provable.com/docs/sdk/0qgi3uyhotv62-account)
@@ -65,5 +65,5 @@ for all the SDK's classes, methods, and interfaces. The documentation is generat
 
 ### [Leo Language Documentation](https://docs.leo-lang.org)
 For developers who want to build their own zero knowledge programs, the Leo Language provides an easy-to-use imperative
-programming language for writing zero knowledge programs on Aleo. In conjuction with the SDK, private programs built
+programming language for writing zero knowledge programs on Aleo. In conjuction with the SDK, private programs built 
 using Leo can be turned into fully functional private web applications.

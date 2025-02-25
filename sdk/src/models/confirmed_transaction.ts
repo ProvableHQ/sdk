@@ -4,7 +4,7 @@ import { FinalizeJSON } from "./finalizeJSON";
 export interface ConfirmedTransactionJSON {
     status: string
     type: string;
-    index: number;
+    index: bigint;
     transaction: TransactionJSON;
     finalize: FinalizeJSON[];
 }

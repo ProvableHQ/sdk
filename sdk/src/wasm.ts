@@ -1,6 +1,7 @@
 export {
     Address,
     Ciphertext,
+    ComputeKey,
     Execution,
     ExecutionResponse,
     Field,
