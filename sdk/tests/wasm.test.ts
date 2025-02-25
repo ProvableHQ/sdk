@@ -191,7 +191,7 @@ describe('WASM Objects', () => {
         });
 
         it('properly assesses equality and inequality', () => {
-            const viewKey1 = new (ViewKey)();
+            const viewKey1 = new ViewKey();
             const viewKey2 = ViewKey.from_string(viewKeyString);
             const viewKey3 = ViewKey.from_string(viewKeyString);
 
