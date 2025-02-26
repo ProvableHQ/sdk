@@ -1713,3 +1713,248 @@ __program__ | `string` | *The program source code*
 __*return*__ | `boolean` | **
 
 ---
+
+### `buildDeploymentTransaction(private_key, program, imports, fee_credits, fee_record, url, imports, fee_proving_key, fee_verifying_key) ► Transaction`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Deploy an Aleo program
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | `undefined` | *The private key of the sender*
+__program__ | `undefined` | *The source code of the program being deployed*
+__imports__ | `undefined` | *A javascript object holding the source code of any imported programs in the
+form \{&quot;program_name1&quot;: &quot;program_source_code&quot;, &quot;program_name2&quot;: &quot;program_source_code&quot;, ..\}.
+Note that all imported programs must be deployed on chain before the main program in order
+for the deployment to succeed*
+__fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
+__fee_record__ | `undefined` | *The record to spend the fee from*
+__url__ | `undefined` | *The url of the Aleo network node to send the transaction to*
+__imports__ | `undefined` | *(optional) Provide a list of imports to use for the program deployment in the
+form of a javascript object where the keys are a string of the program name and the values
+are a string representing the program source code \{ &quot;hello.aleo&quot;: &quot;hello.aleo source code&quot; \}*
+__fee_proving_key__ | `undefined` | *(optional) Provide a proving key to use for the fee execution*
+__fee_verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the fee execution*
+__*return*__ | [Transaction](sdk-src_wasm.md) | **
+
+---
+
+### `estimateDeploymentFee(program, imports) ► u64`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Estimate the fee for a program deployment
+
+Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+
+Parameters | Type | Description
+--- | --- | ---
+__program__ | `undefined` | *The source code of the program being deployed*
+__imports__ | `undefined` | *(optional) Provide a list of imports to use for the deployment fee estimation
+in the form of a javascript object where the keys are a string of the program name and the values
+are a string representing the program source code \{ &quot;hello.aleo&quot;: &quot;hello.aleo source code&quot; \}*
+__*return*__ | `u64` | **
+
+---
+
+### `estimateProgramNameCost(name) ► u64`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Estimate the component of the deployment cost which comes from the fee for the program name.
+Note that this cost does not represent the entire cost of deployment. It is additional to
+the cost of the size (in bytes) of the deployment.
+
+Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+
+Parameters | Type | Description
+--- | --- | ---
+__name__ | `undefined` | *The name of the program to be deployed*
+__*return*__ | `u64` | **
+
+---
+
+### `executeFunctionOffline(private_key, program, function, inputs, prove_execution, cache, imports, proving_key, verifying_key) ► Promise.<ExecutionResponse>`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Execute an arbitrary function locally
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | [PrivateKey](sdk-src_wasm.md) | *The private key of the sender*
+__program__ | `string` | *The source code of the program being executed*
+__function__ | `string` | *The name of the function to execute*
+__inputs__ | `Array` | *A javascript array of inputs to the function*
+__prove_execution__ | `boolean` | *If true, the execution will be proven and an execution object
+containing the proof and the encrypted inputs and outputs needed to verify the proof offline
+will be returned.*
+__cache__ | `boolean` | *Cache the proving and verifying keys in the Execution response.
+If this is set to &#x27;true&#x27; the keys synthesized will be stored in the Execution Response
+and the &#x60;ProvingKey&#x60; and &#x60;VerifyingKey&#x60; can be retrieved from the response via the &#x60;.getKeys()&#x60;
+method.*
+__imports__ | `Object` | *(optional) Provide a list of imports to use for the function execution in the
+form of a javascript object where the keys are a string of the program name and the values
+are a string representing the program source code \{ &quot;hello.aleo&quot;: &quot;hello.aleo source code&quot; \}*
+__proving_key__ | [ProvingKey](sdk-src_wasm.md) | *(optional) Provide a verifying key to use for the function execution*
+__verifying_key__ | [VerifyingKey](sdk-src_wasm.md) | *(optional) Provide a verifying key to use for the function execution*
+__*return*__ | `Promise.<ExecutionResponse>` | **
+
+---
+
+### `buildExecutionTransaction(private_key, program, function, inputs, fee_credits, fee_record, url, imports, proving_key, verifying_key, fee_proving_key, fee_verifying_key) ► Transaction`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Execute Aleo function and create an Aleo execution transaction
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | `undefined` | *The private key of the sender*
+__program__ | `undefined` | *The source code of the program being executed*
+__function__ | `undefined` | *The name of the function to execute*
+__inputs__ | `undefined` | *A javascript array of inputs to the function*
+__fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
+__fee_record__ | `undefined` | *The record to spend the fee from*
+__url__ | `undefined` | *The url of the Aleo network node to send the transaction to
+If this is set to &#x27;true&#x27; the keys synthesized (or passed in as optional parameters via the
+&#x60;proving_key&#x60; and &#x60;verifying_key&#x60; arguments) will be stored in the ProgramManager&#x27;s memory
+and used for subsequent transactions. If this is set to &#x27;false&#x27; the proving and verifying
+keys will be deallocated from memory after the transaction is executed.*
+__imports__ | `undefined` | *(optional) Provide a list of imports to use for the function execution in the
+form of a javascript object where the keys are a string of the program name and the values
+are a string representing the program source code \{ &quot;hello.aleo&quot;: &quot;hello.aleo source code&quot; \}*
+__proving_key__ | `undefined` | *(optional) Provide a verifying key to use for the function execution*
+__verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the function execution*
+__fee_proving_key__ | `undefined` | *(optional) Provide a proving key to use for the fee execution*
+__fee_verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the fee execution*
+__*return*__ | [Transaction](sdk-src_wasm.md) | **
+
+---
+
+### `estimateExecutionFee(private_key, program, function, inputs, url, imports, proving_key, verifying_key) ► u64`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Estimate Fee for Aleo function execution. Note if &quot;cache&quot; is set to true, the proving and
+verifying keys will be stored in the ProgramManager&#x27;s memory and used for subsequent
+program executions.
+
+Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | `undefined` | *The private key of the sender*
+__program__ | `undefined` | *The source code of the program to estimate the execution fee for*
+__function__ | `undefined` | *The name of the function to execute*
+__inputs__ | `undefined` | *A javascript array of inputs to the function*
+__url__ | `undefined` | *The url of the Aleo network node to send the transaction to*
+__imports__ | `undefined` | *(optional) Provide a list of imports to use for the fee estimation in the
+form of a javascript object where the keys are a string of the program name and the values
+are a string representing the program source code \{ &quot;hello.aleo&quot;: &quot;hello.aleo source code&quot; \}*
+__proving_key__ | `undefined` | *(optional) Provide a verifying key to use for the fee estimation*
+__verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the fee estimation*
+__*return*__ | `u64` | *Fee in microcredits*
+
+---
+
+### `estimateFinalizeFee(program, function) ► u64`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Estimate the finalize fee component for executing a function. This fee is additional to the
+size of the execution of the program in bytes. If the function does not have a finalize
+step, then the finalize fee is 0.
+
+Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
+
+Parameters | Type | Description
+--- | --- | ---
+__program__ | `undefined` | *The program containing the function to estimate the finalize fee for*
+__function__ | `undefined` | *The function to estimate the finalize fee for*
+__*return*__ | `u64` | *Fee in microcredits*
+
+---
+
+### `buildJoinTransaction(private_key, record_1, record_2, fee_credits, fee_record, url, join_proving_key, join_verifying_key, fee_proving_key, fee_verifying_key) ► Transaction`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Join two records together to create a new record with an amount of credits equal to the sum
+of the credits of the two original records
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | `undefined` | *The private key of the sender*
+__record_1__ | `undefined` | *The first record to combine*
+__record_2__ | `undefined` | *The second record to combine*
+__fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
+__fee_record__ | `undefined` | *The record to spend the fee from*
+__url__ | `undefined` | *The url of the Aleo network node to send the transaction to*
+__join_proving_key__ | `undefined` | *(optional) Provide a proving key to use for the join function*
+__join_verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the join function*
+__fee_proving_key__ | `undefined` | *(optional) Provide a proving key to use for the fee execution*
+__fee_verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the fee execution*
+__*return*__ | [Transaction](sdk-src_wasm.md) | *Transaction object*
+
+---
+
+### `buildSplitTransaction(private_key, split_amount, amount_record, url, split_proving_key, split_verifying_key) ► Transaction`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Split an Aleo credits record into two separate records. This function does not require a fee.
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | `undefined` | *The private key of the sender*
+__split_amount__ | `undefined` | *The amount of the credit split. This amount will be subtracted from the
+value of the record and two new records will be created with the split amount and the remainder*
+__amount_record__ | `undefined` | *The record to split*
+__url__ | `undefined` | *The url of the Aleo network node to send the transaction to*
+__split_proving_key__ | `undefined` | *(optional) Provide a proving key to use for the split function*
+__split_verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the split function*
+__*return*__ | [Transaction](sdk-src_wasm.md) | *Transaction object*
+
+---
+
+### `buildTransferTransaction(private_key, amount_credits, recipient, transfer_type, amount_record, fee_credits, fee_record, url, transfer_verifying_key, fee_proving_key, fee_verifying_key) ► Transaction`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Send credits from one Aleo account to another
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | `undefined` | *The private key of the sender*
+__amount_credits__ | `undefined` | *The amount of credits to send*
+__recipient__ | `undefined` | *The recipient of the transaction*
+__transfer_type__ | `undefined` | *The type of the transfer (options: &quot;private&quot;, &quot;public&quot;, &quot;private_to_public&quot;, &quot;public_to_private&quot;)*
+__amount_record__ | `undefined` | *The record to fund the amount from*
+__fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
+__fee_record__ | `undefined` | *The record to spend the fee from*
+__url__ | `undefined` | *The url of the Aleo network node to send the transaction to*
+__transfer_verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the transfer
+function*
+__fee_proving_key__ | `undefined` | *(optional) Provide a proving key to use for the fee execution*
+__fee_verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the fee execution*
+__*return*__ | [Transaction](sdk-src_wasm.md) | **
+
+---
+
+### `synthesizeKeyPair(program, function_id, inputs, imports) ► Promise.<KeyPair>`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Synthesize proving and verifying keys for a program
+
+Parameters | Type | Description
+--- | --- | ---
+__program__ | `string` | *The program source code of the program to synthesize keys for*
+__function_id__ | `string` | *The function to synthesize keys for*
+__inputs__ | `Array` | *The inputs to the function*
+__imports__ | `Object` | *The imports for the program*
+__*return*__ | `Promise.<KeyPair>` | **
+
+---

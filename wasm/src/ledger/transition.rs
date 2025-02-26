@@ -30,6 +30,10 @@ use js_sys::{Array, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
+/// Webassembly Representation of an Aleo transition
+/// 
+/// This object is representative of an
+/// atomic unit of chain state change
 #[wasm_bindgen]
 pub struct Transition(TransitionNative);
 

@@ -23,6 +23,7 @@ use crate::{
 use core::{convert::TryFrom, ops::Deref};
 use wasm_bindgen::prelude::*;
 
+/// Compute key of an Aleo account
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ComputeKey(ComputeKeyNative);
