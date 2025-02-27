@@ -5,7 +5,7 @@ sidebar_label: Overview
 ---
 
 <p align="center">
-    <img alt="Aleo SDK" width="1412" src="../.resources/banner.png">
+    <img alt="Provable SDK" width="1412" src="../.resources/banner.png">
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@ sidebar_label: Overview
     <a href="https://circleci.com/gh/ProvableHQ/sdk"><img src="https://circleci.com/gh/ProvableHQ/sdk.svg?style=svg"></a>
     <a href="https://discord.com/invite/aleo"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
     <a href="https://github.com/ProvableHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
-    <a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Aleo SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
+    <a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
 </p>
 
 
@@ -21,7 +21,7 @@ The [Provable SDK](https://github.com/ProvableHQ/sdk) is an open source TypeScri
 SDK provides an easy API for using Aleo's core suite of cryptographic primitives, zk-SNARKs and private program execution
 protocol directly within Javascript. It also provides APIs for interacting with nodes and applications on the Aleo Network.
 
-Applications built with the Aleo SDK include:
+Applications built with the Provable SDK include:
 * **Private DeFi**
 * **Private Data Custody Systems**
 * **Zk Games & Gaming Toolkits**
@@ -30,7 +30,7 @@ Applications built with the Aleo SDK include:
 * **Aleo Wallets**
 
 ## Features
-The Aleo SDK provides the following features. Follow the links below for live demonstrations of these features on
+The Provable SDK provides the following features. Follow the links below for live demonstrations of these features on
 [provable.tools](https://provable.tools)
 1. [Aleo account management](https://provable.tools/account)
 2. [Aleo cryptographic primitives](https://provable.tools/algebra)

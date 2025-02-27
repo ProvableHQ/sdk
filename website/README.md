@@ -1,4 +1,4 @@
-# Aleo SDK Website
+# Provable SDK Website
 
 This project was bootstrapped with [Vite](https://vitejs.dev/).
 
