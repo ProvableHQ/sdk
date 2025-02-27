@@ -853,6 +853,35 @@ class AleoNetworkClient {
       throw new Error(`Error posting transaction: No response received: ${error.message}`);
     }
   }
+
+  /**
+   * Await a transaction to be confirmed on the Aleo network.
+   *
+   * @param {string} solution The string representation of the solution desired to be submitted to the network.
+   */
+  async waitForTransactionConfirmation(
+      transactionId: string,
+      checkInterval: number = 2000,  // Poll every 2 seconds
+      timeout: number = 45000        // Timeout after 45 seconds
+  ): Promise<Transaction> {
+    const startTime = Date.now();
+
+    return new Promise<Transaction>((resolve, reject) => {
+      const interval = setInterval(async () => {
+        try {
+          // Replace with actual Aleo transaction lookup API
+          const transaction = <Transaction>await this.getTransactionObject(transactionId);
+          resolve(transaction);
+          if (Date.now() - startTime > timeout) {
+            clearInterval(interval);
+            reject(new Error("Transaction confirmation timed out"));
+          }
+        } catch (error) {
+          console.error("Error checking transaction:", error);
+        }
+      }, checkInterval);
+    });
+  }
 }
 
 export { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports }

@@ -106,6 +106,10 @@ export class Account {
     return this._address;
   }
 
+  clone() {
+    return new Account({ privateKey: this._privateKey.to_string() });
+  }
+
   toString() {
     return this.address().to_string()
   }

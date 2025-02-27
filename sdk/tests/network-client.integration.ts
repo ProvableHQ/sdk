@@ -16,7 +16,7 @@ describe('NodeConnection', () => {
 
         // Integration tests to be run with a local node (run with -s flag)
         it('should find records', async () => {
-            const records = await localApiClient.findUnspentRecords(0, undefined, beaconPrivateKeyString, undefined, undefined, []);
+            const records = await localApiClient.findUnspentRecords(0, undefined, undefined, undefined, undefined, []);
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
