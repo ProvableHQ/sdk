@@ -1,8 +1,4 @@
----
-id: overview
-title: SDK for Building Zero Knowledge Web Apps
-sidebar_label: Overview
----
+# Provable SDK for Building Zero-Knowledge Web Apps
 
 <p align="center">
     <img alt="Provable SDK" width="1412" src="../.resources/banner.png">
