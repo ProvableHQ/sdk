@@ -22,7 +22,7 @@ Applications built with the Provable SDK include:
 * **Private Data Custody Systems**
 * **Zk Games & Gaming Toolkits**
 * **ZkML**
-* **Zero Knowledge Identity Management**
+* **Zero-Knowledge Identity Management**
 * **Aleo Wallets**
 
 ## Features
@@ -30,7 +30,7 @@ The Provable SDK provides the following features. Follow the links below for liv
 [provable.tools](https://provable.tools)
 1. [Aleo account management](https://provable.tools/account)
 2. [Aleo cryptographic primitives](https://provable.tools/algebra)
-3. [Web based zero knowledge program execution and deployment](https://provable.tools/develop)
+3. [Web based zero-knowledge program execution and deployment](https://provable.tools/develop)
 4. [Aleo credit transfers and staking](https://provable.tools/transfer)
 5. [Management of program state](https://provable.tools/protocol)
 6. [Communication with the Aleo network](https://provable.tools/rest)
@@ -41,9 +41,9 @@ The Provable SDK provides the following features. Follow the links below for liv
 Developers interested in using the SDK to build private web applications can get started with the following resources.
 
 ### [The SDK Guide](https://docs.explorer.provable.com/docs/sdk/6p7047svvq2ox-intro-to-aleo)
-<a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Aleo SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
+<a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
 
-A step-by-step guide to building private web applications with the Aleo SDK. The guide covers creating Aleo accounts,
+A step-by-step guide to building private web applications with the Provable SDK. The guide covers creating Aleo accounts,
 transferring and receiving aleo credits, executing/deploying/interacting with Aleo programs, managing private and public
 state, and best practices for building private web applications.
 
@@ -60,6 +60,6 @@ For developers who prefer to dive straight into the code, the SDK API documentat
 for all the SDK's classes, methods, and interfaces. The documentation is generated from the SDK's TypeScript source code.
 
 ### [Leo Language Documentation](https://docs.leo-lang.org)
-For developers who want to build their own zero knowledge programs, the Leo Language provides an easy-to-use imperative
-programming language for writing zero knowledge programs on Aleo. In conjuction with the SDK, private programs built
+For developers who want to build their own zero-knowledge programs, the Leo Language provides an easy-to-use imperative
+programming language for writing zero-knowledge programs on Aleo. In conjuction with the SDK, private programs built
 using Leo can be turned into fully functional private web applications.

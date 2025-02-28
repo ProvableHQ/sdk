@@ -1,6 +1,6 @@
 ---
 id: intro
-title: Intro to Aleo via the Aleo SDK
+title: Intro to Aleo via the Provable SDK
 sidebar_label: Intro
 ---
 

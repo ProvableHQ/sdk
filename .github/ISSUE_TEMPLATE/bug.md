@@ -8,17 +8,17 @@ labels: bug
 ## 🐛 Bug Report
 
 <!--
-    What's the bug in the Aleo SDK that you found?
+    What's the bug in the Provable SDK that you found?
     How serious is this bug and what is affected?
 
-    To report a security issue in the Aleo SDK, please email security@aleo.org.
+    To report a security issue in the Provable SDK, please email security@aleo.org.
 -->
 
 (Write your description here)
 
 ## Steps to Reproduce
 
-<!-- How do I reproduce this issue in the Aleo SDK? -->
+<!-- How do I reproduce this issue in the Provable SDK? -->
 
 #### Code snippet to reproduce
 
@@ -35,7 +35,7 @@ labels: bug
 ## Expected Behavior
 
 <!--
-    What was supposed to happen in the Aleo SDK?
+    What was supposed to happen in the Provable SDK?
     What happened instead?
 -->
 
@@ -43,6 +43,6 @@ labels: bug
 
 ## Your Environment
 
-- <!-- Aleo SDK Version -->
+- <!-- Provable SDK Version -->
 - <!-- Rust Version -->
 - <!-- Computer OS -->

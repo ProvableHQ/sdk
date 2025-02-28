@@ -11,7 +11,7 @@ An Aleo account is defined as a Private Key, and several other cryptographic key
 ### Private Key
 The `Private Key` can be thought of as the core identity of a user. It is the most sensitive of the keys within an Aleo 
 account and is used to derive all other keys. It is used to sign and create new program executions, to encrypt & decrypt
-private data within a zero knowledge function execution, and to generate signatures, commitments, and other key material 
+private data within a zero-knowledge function execution, and to generate signatures, commitments, and other key material 
 used in zero-knowledge proofs.
 
 ### View Key

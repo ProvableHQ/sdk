@@ -1,6 +1,6 @@
 ---
 id: setup
-title: Zero Knowledge JS App Setup
+title: Zero-Knowledge JS App Setup
 sidebar_label: Project Setup
 ---
 
@@ -89,6 +89,6 @@ The Provable SDK requires a minimum of Node.js version 20 and recommends using n
 
 ### Framework Specific Configuration
 
-The npm package [create-leo-app](https://www.npmjs.com/package/create-leo-app) offers several templates for building zero knowledge JavaScript apps using several
+The npm package [create-leo-app](https://www.npmjs.com/package/create-leo-app) offers several templates for building zero-knowledge JavaScript apps using several
 popular frameworks including React, Next.js, and Node. Examining the configuration of these templates can provide 
 additional guidance on how to configure your project.

@@ -1,9 +1,9 @@
 # Offline Transaction Builder 
 
 ## 1. Overview
-### 1.1 Proving Keys for Zero Knowledge Function Execution
-To achieve zero knowledge execution, all Aleo functions require a `ProvingKey` and `VerifyingKey` in order to build a
-zero knowledge ZkSnark proof of execution. If a user does not possess these keys for a function, they are normally
+### 1.1 Proving Keys for Zero-Knowledge Function Execution
+To achieve zero-knowledge execution, all Aleo functions require a `ProvingKey` and `VerifyingKey` in order to build a
+zero-knowledge ZkSnark proof of execution. If a user does not possess these keys for a function, they are normally
 downloaded from the internet when the function is called.
 
 ### 1.2 Key Providers
