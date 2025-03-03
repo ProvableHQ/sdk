@@ -92,7 +92,7 @@ class AleoNetworkClient {
     try {
       return parseJSON(await this.fetchRaw(url));
     } catch (error) {
-      throw new Error("Error fetching data.");
+      throw new Error(`Error fetching data: ${error}`);
     }
   }
 
@@ -113,7 +113,7 @@ class AleoNetworkClient {
       });
       return await response.text();
     } catch (error) {
-      throw new Error("Error fetching data.");
+      throw new Error(`Error fetching data: ${error}`);
     }
   }
 
@@ -185,10 +185,10 @@ class AleoNetworkClient {
       if (typeof blockHeight === "number") {
         latestHeight = blockHeight;
       } else {
-        throw new Error("Error fetching latest block height.");
+        throw new Error(`Error fetching latest block height: Expected type 'number' got '${typeof blockHeight}'`);
       }
     } catch (error) {
-      throw new Error("Error fetching latest block height.");
+      throw new Error(`Error fetching latest block height: ${error}`);
     }
 
     // If no end height is specified or is greater than the latest height, set the end height to the latest height
@@ -324,8 +324,24 @@ class AleoNetworkClient {
       const block = await this.fetchData<BlockJSON>("/block/" + height);
       return block;
     } catch (error) {
-      throw new Error("Error fetching block.");
+      throw new Error(`Error fetching block ${height}: ${error}`);
     }
+  }
+
+  /**
+   * Returns the contents of the block with the specified hash.
+   * 
+   * @param {string} hash
+   * @example
+   * const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
+   */
+  async getBlockByHash(hash: string): Promise<BlockJSON> {
+      try {
+        const block = await this.fetchData<BlockJSON>(`/block/${hash}`);
+        return block;
+      } catch (error) {
+        throw new Error(`Error fetching block ${hash}: ${error}`);
+      }
   }
 
   /**
@@ -339,9 +355,8 @@ class AleoNetworkClient {
   async getBlockRange(start: number, end: number): Promise<Array<BlockJSON>> {
     try {
       return await this.fetchData<Array<BlockJSON>>("/blocks?start=" + start + "&end=" + end);
-    } catch (error) {
-      const errorMessage = `Error fetching blocks between ${start} and ${end}.`;
-      throw new Error(errorMessage);
+    } catch (error) {;
+      throw new Error(`Error fetching blocks between ${start} and ${end}: ${error}`);
     }
   }
 
@@ -353,13 +368,13 @@ class AleoNetworkClient {
    */
   async getDeploymentTransactionIDForProgram(program: Program | string): Promise<string> {
     if (program instanceof Program) {
-      program = program.toString();
+      program = program.id();
     }
     try {
       const id = await this.fetchData<string>("/find/transactionID/deployment/" + program);
       return id.replace("\"", "")
     } catch (error) {
-      throw new Error("Error fetching deployment transaction for program.");
+      throw new Error(`Error fetching deployment transaction for program ${program}: ${error}`);
     }
   }
 
@@ -370,11 +385,14 @@ class AleoNetworkClient {
    * @returns {TransactionJSON}
    */
   async getDeploymentTransactionForProgram(program: Program | string): Promise<TransactionJSON> {
+    if (program instanceof Program) {
+      program = program.id();
+    }
     try {
       const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
       return <TransactionJSON>await this.getTransaction(transaction_id);
     } catch (error) {
-      throw new Error("Error fetching deployment transaction for program.");
+      throw new Error(`Error fetching deployment transaction for program ${program}: ${error}`);
     }
   }
 
@@ -385,11 +403,29 @@ class AleoNetworkClient {
    * @returns {TransactionJSON}
    */
   async getDeploymentTransactioObjectnForProgram(program: Program | string): Promise<Transaction> {
+    if (program instanceof Program) {
+      program = program.id();
+    }
     try {
       const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
       return await this.getTransactionObject(transaction_id);
     } catch (error) {
-      throw new Error("Error fetching deployment transaction for program.");
+      throw new Error(`Error fetching deployment transaction for program ${program}: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the deployment transaction associated with a specified program as a wasm object.
+   *
+   * @param {Program | string} program
+   * @returns {TransactionJSON}
+   */
+  async getDeploymentTransactioObjectForProgram(program: Program | string): Promise<Transaction> {
+    try {
+      const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
+      return await this.getTransactionObject(transaction_id);
+    } catch (error) {
+      throw new Error(`Error fetching deployment transaction for program ${program}: ${error}`);
     }
   }
 
@@ -403,7 +439,7 @@ class AleoNetworkClient {
     try {
       return await this.fetchData<BlockJSON>("/block/latest") as BlockJSON;
     } catch (error) {
-      throw new Error("Error fetching latest block.");
+      throw new Error(`Error fetching latest block: ${error}`);
     }
   }
 
@@ -416,7 +452,25 @@ class AleoNetworkClient {
     try {
       return await this.fetchData<object>("/committee/latest");
     } catch (error) {
-      throw new Error("Error fetching latest block.");
+      throw new Error(`Error fetching latest committee: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the committe at the specified block height.
+   * 
+   * @param {number} height
+   * 
+   * @returns {Promise<object>} A javascript object containing the committee
+   * 
+   * @example
+   * const committee = await networkClient.getCommitteByBlockHeight(1234);
+   */
+  async getCommitteeByBlockHeight(height: number): Promise<object> {
+    try {
+      return await this.fetchData<object>(`/committee/${height}`);
+    } catch (error) {
+      throw new Error(`Error fetching committee at height ${height}: ${error}`);
     }
   }
 
@@ -430,7 +484,21 @@ class AleoNetworkClient {
     try {
       return Number(await this.fetchData<bigint>("/block/height/latest"));
     } catch (error) {
-      throw new Error("Error fetching latest height.");
+      throw new Error(`Error fetching latest height: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the latest block hash.
+   * 
+   * @example
+   * const latestHash - newtworkClient.getLatestHash();
+   */
+  async getLatestHash(): Promise<string> {
+    try {
+      return String(await this.fetchData<string>("/block/hash/latest"));
+    } catch (error) {
+      throw new Error(`Error fetching latest hash: ${error}`);
     }
   }
 
@@ -449,7 +517,7 @@ class AleoNetworkClient {
     try {
       return await this.fetchData<string>("/program/" + programId)
     } catch (error) {
-      throw new Error("Error fetching program");
+      throw new Error(`Error fetching program ${programId}: ${error}`);
     }
   }
 
@@ -477,7 +545,7 @@ class AleoNetworkClient {
       try {
         return Program.fromString(<string>(await this.getProgram(inputProgram)));
       } catch (error) {
-        throw new Error(`${inputProgram} is neither a program name or a valid program`);
+        throw new Error(`${inputProgram} is neither a program name or a valid program: ${error}`);
       }
     }
   }
@@ -553,7 +621,7 @@ class AleoNetworkClient {
       const program = inputProgram instanceof Program ? inputProgram : <Program>(await this.getProgramObject(inputProgram));
       return program.getImports();
     } catch (error: any) {
-      throw new Error("Error fetching program imports with error: " + error.message);
+      throw new Error(`Error fetching imports for program ${inputProgram instanceof Program ? inputProgram.id() : inputProgram}: ${error.message}`);
     }
   }
 
@@ -568,9 +636,9 @@ class AleoNetworkClient {
    */
   async getProgramMappingNames(programId: string): Promise<Array<string>> {
     try {
-      return await this.fetchData<Array<string>>("/program/" + programId + "/mappings")
+      return await this.fetchData<Array<string>>(`/program/${programId}/mappings`)
     } catch (error) {
-      throw new Error("Error fetching program mappings - ensure the program exists on chain before trying again");
+      throw new Error(`Error fetching mappings for program ${programId} - ensure the program exists on chain before trying again`);
     }
   }
 
@@ -591,9 +659,9 @@ class AleoNetworkClient {
   async getProgramMappingValue(programId: string, mappingName: string, key: string | Plaintext): Promise<string> {
     try {
       const keyString = key instanceof Plaintext ? key.toString() : key;
-      return await this.fetchData<string>("/program/" + programId + "/mapping/" + mappingName + "/" + keyString)
+      return await this.fetchData<string>(`/program/${programId}/mapping/${mappingName}/${keyString}`);
     } catch (error) {
-      throw new Error("Error fetching mapping value - ensure the mapping exists and the key is correct");
+      throw new Error(`Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct`);
     }
   }
 
@@ -632,32 +700,33 @@ class AleoNetworkClient {
    */
   async getProgramMappingPlaintext(programId: string, mappingName: string, key: string | Plaintext): Promise<Plaintext> {
     try {
-      const keyString = key instanceof Plaintext ? key.toString() : key;
-      const value = await this.fetchRaw("/program/" + programId + "/mapping/" + mappingName + "/" + keyString);
+      const value = await this.getProgramMappingValue(programId, mappingName, key);
       return Plaintext.fromString(JSON.parse(value));
     } catch (error) {
-      throw new Error("Failed to fetch mapping value." + error);
+      throw new Error(`${error}`);
     }
   }
 
   /**
    * Returns the latest state/merkle root of the Aleo blockchain.
    *
+   * @param {number} height - The height for which the state root is fetched, if blank then the latest state root will be returned.
+   * 
    * @example
    * const stateRoot = networkClient.getStateRoot();
    */
-  async getStateRoot(): Promise<string> {
+  async getStateRoot(height?: number): Promise<string> {
     try {
-      return await this.fetchData<string>("/stateRoot/latest");
+      return await this.fetchData<string>(`/stateRoot/${height ?? "latest"}`);
     } catch (error) {
-      throw new Error("Error fetching Aleo state root");
+      throw new Error(`Error fetching ${height === undefined || height === null ? 'latest state root' : `state root at block ${height}`}: ${error}`);
     }
   }
 
   /**
    * Returns a transaction by its unique identifier.
    *
-   * @param {string} id
+   * @param {string} transactionId
    * @example
    * const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
    */
@@ -665,7 +734,22 @@ class AleoNetworkClient {
     try {
     return await this.fetchData<TransactionJSON>("/transaction/" + transactionId);
     } catch (error) {
-      throw new Error("Error fetching transaction.");
+      throw new Error(`Error fetching transaction ${transactionId}: ${error}`);
+    }
+  }
+
+  /**
+   * Returns a confirmed transaction by its unique identifier.
+   * 
+   * @param {string} transactionId
+   * @example
+   * const transaction = networkClient.getConfirmedTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+   */
+  async getConfirmedTransaction(transactionId: string): Promise<ConfirmedTransactionJSON> {
+    try {
+      return await this.fetchData<ConfirmedTransactionJSON>(`/transaction/confirmed/${transactionId}`);
+    } catch (error) {
+      throw new Error(`Error fetching confirmed transaction ${transactionId}: ${error}`);
     }
   }
 
@@ -700,7 +784,7 @@ class AleoNetworkClient {
       const transaction = await this.fetchRaw("/transaction/" + transactionId);
       return Transaction.fromString(transaction);
     } catch (error) {
-      throw new Error("Error fetching transaction.");
+      throw new Error(`Error fetching transaction object ${transactionId}: ${error}`);
     }
   }
 
@@ -715,7 +799,22 @@ class AleoNetworkClient {
     try {
       return await this.fetchData<Array<ConfirmedTransactionJSON>>("/block/" + height.toString() + "/transactions");
     } catch (error) {
-      throw new Error("Error fetching transactions. " + error);
+      throw new Error(`Error fetching transactions: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the transactions present in the block with the specified hash.
+   * 
+   * @param {string} hash
+   * @example
+   * const transactions = networkClient.getTransactionsByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
+   */
+  async getTransactionsByHash(hash: string): Promise<Array<ConfirmedTransactionJSON>> {
+    try {
+      return await this.fetchData<Array<ConfirmedTransactionJSON>>(`/block/${hash}/transactions`);
+    } catch (error) {
+      throw new Error(`Error fetching transactions for block ${hash}: ${error}`);
     }
   }
 
@@ -729,7 +828,7 @@ class AleoNetworkClient {
     try {
       return await this.fetchData<Array<TransactionJSON>>("/memoryPool/transactions");
     } catch (error) {
-      throw new Error("Error fetching transactions from mempool.");
+      throw new Error(`Error fetching transactions from mempool: ${error}`);
     }
   }
 
@@ -744,7 +843,7 @@ class AleoNetworkClient {
     try {
       return await this.fetchData<string>("/find/transitionID/" + inputOrOutputID);
     } catch (error) {
-      throw new Error("Error fetching transition ID.");
+      throw new Error(`Error fetching transition ID for input/output ${inputOrOutputID}: ${error}`);
     }
   }
 
