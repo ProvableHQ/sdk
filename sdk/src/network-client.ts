@@ -701,7 +701,7 @@ class AleoNetworkClient {
   async getProgramMappingPlaintext(programId: string, mappingName: string, key: string | Plaintext): Promise<Plaintext> {
     try {
       const value = await this.getProgramMappingValue(programId, mappingName, key);
-      return Plaintext.fromString(JSON.parse(value));
+      return Plaintext.fromString(value);
     } catch (error) {
       throw new Error(`${error}`);
     }
@@ -715,11 +715,11 @@ class AleoNetworkClient {
    * @example
    * const stateRoot = networkClient.getStateRoot();
    */
-  async getStateRoot(height?: number): Promise<string> {
+  async getStateRoot(): Promise<string> {
     try {
-      return await this.fetchData<string>(`/stateRoot/${height ?? "latest"}`);
+      return await this.fetchData<string>('/stateRoot/latest');
     } catch (error) {
-      throw new Error(`Error fetching ${height === undefined || height === null ? 'latest state root' : `state root at block ${height}`}: ${error}`);
+      throw new Error(`Error fetching latest state root: ${error}`);
     }
   }
 
@@ -812,7 +812,9 @@ class AleoNetworkClient {
    */
   async getTransactionsByHash(hash: string): Promise<Array<ConfirmedTransactionJSON>> {
     try {
-      return await this.fetchData<Array<ConfirmedTransactionJSON>>(`/block/${hash}/transactions`);
+      const block = await this.fetchData<BlockJSON>(`/block/${hash}`);
+      const height = block.header.metadata.height;
+      return await this.getTransactions(height);
     } catch (error) {
       throw new Error(`Error fetching transactions for block ${hash}: ${error}`);
     }
