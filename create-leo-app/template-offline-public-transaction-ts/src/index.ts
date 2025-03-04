@@ -17,8 +17,10 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     const feePublicKeyBytes = await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.fee_public.locator]);
     const transferPublicAsSignerKeyBytes = await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.transfer_public_as_signer.locator]);
     const feePublicProvingKey = ProvingKey.fromBytes(feePublicKeyBytes);
-    const transferPublicProvingKey = ProvingKey.fromBytes(transferPublicAsSignerKeyBytes);
-
+    const transferPublicProvingKey = ProvingKey.fromBytes(
+        await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.transfer_public.locator])
+    );
+    
     // Create an offline key provider
     console.log("Creating offline key provider");
     const offlineKeyProvider = new OfflineKeyProvider();
@@ -27,10 +29,25 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     // keys into the key manager.
     console.log("Inserting proving keys into key provider");
     offlineKeyProvider.insertFeePublicKeys(feePublicProvingKey);
+
+try {
     offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
+    console.log("Successfully inserted proving key");
+} catch (err) {
+    console.error("Failed to insert proving key:", err);
+}
+
 
     // Create an offline query to complete the inclusion proof
-    const offlineQuery = new OfflineQuery(latestStateRoot);
+    let offlineQuery: OfflineQuery;
+    const blockHeight = 0;
+    // TODO this is a placeholder block height for now, which offlineQuery now requires
+try {
+    const offlineQuery = new OfflineQuery(blockHeight, latestStateRoot);
+    console.log("Successfully created OfflineQuery", offlineQuery);
+} catch (err) {
+    console.error("Failed to create OfflineQuery:", err);
+}
 
     // Insert the key provider into the program manager
     programManager.setKeyProvider(offlineKeyProvider);
@@ -84,13 +101,10 @@ async function buildBondingTxOffline(stakerAddress: Address,  validatorAddress: 
     // Build the bonding transactions offline
     console.log("Building a bond_public execution transaction offline");
     const bondPublicOptions = {
-        executionParams: {
-            keySearchParams: OfflineSearchParams.bondPublicKeyParams()
-        },
-        offlineParams: {
-            offlineQuery: new OfflineQuery(latestStateRoot)
-        }
-    }
+        keySearchParams: OfflineSearchParams.bondPublicKeyParams(),
+        offlineQuery: new OfflineQuery(latestStateRoot)
+    };
+    
 
     const bondTx = <Transaction>await programManager.buildBondPublicTransaction(
         stakerAddress.to_string(),
@@ -103,13 +117,9 @@ async function buildBondingTxOffline(stakerAddress: Address,  validatorAddress: 
 
     console.log("Building an unbond_public execution transaction offline")
     const unbondPublicOptions = {
-        executionParams: {
-            keySearchParams: OfflineSearchParams.unbondPublicKeyParams()
-        },
-        offlineParams: {
-            offlineQuery: new OfflineQuery(latestStateRoot)
-        }
-    }
+        keySearchParams: OfflineSearchParams.unbondPublicKeyParams(),
+        offlineQuery: new OfflineQuery(latestStateRoot)
+    };
 
     const unBondTx = <Transaction>await programManager.buildUnbondPublicTransaction(stakerAddress.to_string(), amount, unbondPublicOptions);
     console.log("\nunbond_public transaction built!\n");
@@ -117,13 +127,9 @@ async function buildBondingTxOffline(stakerAddress: Address,  validatorAddress: 
     console.log("Building a claim_unbond_public transaction offline")
     // Build the claim unbonding transaction offline
     const claimUnbondPublicOptions = {
-        executionParams: {
-            keySearchParams: OfflineSearchParams.claimUnbondPublicKeyParams()
-        },
-        offlineParams: {
-            offlineQuery: new OfflineQuery(latestStateRoot)
-        }
-    }
+        keySearchParams: OfflineSearchParams.claimUnbondPublicKeyParams(),
+        offlineQuery: new OfflineQuery(latestStateRoot)
+    };
 
     const claimUnbondTx = <Transaction>await programManager.buildClaimUnbondPublicTransaction(stakerAddress.to_string(), claimUnbondPublicOptions);
     console.log("\nclaim_unbond_public transaction built!\n");
