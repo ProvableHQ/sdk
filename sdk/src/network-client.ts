@@ -421,7 +421,7 @@ class AleoNetworkClient {
    * @param {Program | string} program
    * @returns {TransactionJSON}
    */
-  async getDeploymentTransactioObjectForProgram(program: Program | string): Promise<Transaction> {
+  async getDeploymentTransactionObjectForProgram(program: Program | string): Promise<Transaction> {
     try {
       const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
       return await this.getTransactionObject(transaction_id);
