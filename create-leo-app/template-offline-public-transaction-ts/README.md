@@ -1,9 +1,9 @@
 # Offline Transaction Builder 
 
 ## 1. Overview
-### 1.1 Proving Keys for Zero Knowledge Function Execution
-To achieve zero knowledge execution, all Aleo functions require a `ProvingKey` and `VerifyingKey` in order to build a
-zero knowledge ZkSnark proof of execution. If a user does not possess these keys for a function, they are normally
+### 1.1 Proving Keys for Zero-Knowledge Function Execution
+To achieve zero-knowledge execution, all Aleo functions require a `ProvingKey` and `VerifyingKey` in order to build a
+zero-knowledge zk-SNARK proof of execution. If a user does not possess these keys for a function, they are normally
 downloaded from the internet when the function is called.
 
 ### 1.2 Key Providers
@@ -31,7 +31,7 @@ construction of the offline transaction.
 ### 2.1 Pre-Download the Keys
 First run this command online to download the key material to disk:
 
-`npm start`
+`npm run build`
 
 Once this command is run, all proving keys for the `transfer_public`, `bond_public`, `unbond_public`, and
 `claim_unbond_public` functions will be downloaded to the `./keys` folder. The machine can then be disconnected from
@@ -43,7 +43,7 @@ adding the key material yourself.
 
 Once the key material is downloaded, turn off your internet connection and run the following command:
 
-`npm start`
+`npm run dev`
 
 You should see the transactions being built and the resulting transaction IDs printed to the console.
 
