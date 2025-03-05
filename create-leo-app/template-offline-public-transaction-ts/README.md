@@ -28,24 +28,17 @@ construction of the offline transaction.
 
 ## 2. Usage
 
-### 2.1 Pre-Download the Keys
-First run this command online to download the key material to disk:
-
 `npm run build`
 
+`npm run dev`
+
 Once this command is run, all proving keys for the `transfer_public`, `bond_public`, `unbond_public`, and
-`claim_unbond_public` functions will be downloaded to the `./keys` folder. The machine can then be disconnected from
+`claim_unbond_public` functions will be downloaded to the `dist/keys` folder. The machine can then be disconnected from
 the internet and the `OfflineKeyProvider` will search this directory for the function proving keys when building the
 transaction instead of connecting to the internet. Alternatively you can skip the online step entirely by adding the proving key creating this directory manually and
 adding the key material yourself.
 
-### 2.2 Build the Transaction Offline
-
-Once the key material is downloaded, turn off your internet connection and run the following command:
-
-`npm run dev`
-
-You should see the transactions being built and the resulting transaction IDs printed to the console.
+Once the keys are downloaded to your local machine, the offline transactions will be built without requiring an internet connection.
 
 ## 3. Notes
 
