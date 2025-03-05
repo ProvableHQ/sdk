@@ -15,7 +15,6 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     // Create the proving keys from the key bytes on the offline machine
     console.log("Creating proving keys from local key files");
     const feePublicKeyBytes = await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.fee_public.locator]);
-    const transferPublicAsSignerKeyBytes = await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.transfer_public_as_signer.locator]);
     const feePublicProvingKey = ProvingKey.fromBytes(feePublicKeyBytes);
     const transferPublicProvingKey = ProvingKey.fromBytes(
         await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.transfer_public.locator])
@@ -180,7 +179,7 @@ console.log(`\n-----------------bond_public transaction-----------------\n${bond
 console.log(`---------------------------------------------------------`);
 console.log(`\n----------------unbond_public transaction:---------------\n${bondTransactions[1]}`);
 console.log(`---------------------------------------------------------`);
-console.log(`\n-----------------claim_unbond transaction:---------------\n${bondTransactions[2]}`);
+console.log(`\n-----------------claim_unbond_public transaction:---------------\n${bondTransactions[2]}`);
 console.log(`---------------------------------------------------------`);
 //---------------------------------------------------------
 

@@ -21,10 +21,13 @@ the internet for it. This provides a way to build Aleo execution transactions wi
 This pathway is suitable for use-cases such as hardware wallets or air-gapped machines used
 for building secure transactions.
 
-### 1.4 Assumptions
+### 1.4 Transaction Types
 
-The key material in this example is assumed to be pre-downloaded onto the machine performing the 
-construction of the offline transaction.
+Several types of transactions can be built and executed using this template:
+
+`bond_public`
+`unbond_public`
+`claim_unbond_public`
 
 ## 2. Usage
 
