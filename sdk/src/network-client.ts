@@ -3,6 +3,7 @@ import { Account } from "./account";
 import { BlockJSON } from "./models/blockJSON";
 import { TransactionJSON } from "./models/transaction/transactionJSON";
 import {
+  Address,
   Plaintext,
   RecordCiphertext,
   Program,
@@ -331,16 +332,16 @@ class AleoNetworkClient {
   /**
    * Returns the contents of the block with the specified hash.
    * 
-   * @param {string} hash
+   * @param {string} blockHash
    * @example
    * const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
    */
-  async getBlockByHash(hash: string): Promise<BlockJSON> {
+  async getBlockByHash(blockHash: string): Promise<BlockJSON> {
       try {
-        const block = await this.fetchData<BlockJSON>(`/block/${hash}`);
+        const block = await this.fetchData<BlockJSON>(`/block/${blockHash}`);
         return block;
       } catch (error) {
-        throw new Error(`Error fetching block ${hash}: ${error}`);
+        throw new Error(`Error fetching block ${blockHash}: ${error}`);
       }
   }
 
@@ -700,17 +701,34 @@ class AleoNetworkClient {
    */
   async getProgramMappingPlaintext(programId: string, mappingName: string, key: string | Plaintext): Promise<Plaintext> {
     try {
-      const value = await this.getProgramMappingValue(programId, mappingName, key);
-      return Plaintext.fromString(value);
+      const keyString = key instanceof Plaintext ? key.toString() : key;
+      const value = await this.fetchRaw(`/program/${programId}/mapping/${mappingName}/${keyString}`);
+      return Plaintext.fromString(JSON.parse(value));
     } catch (error) {
-      throw new Error(`${error}`);
+      throw new Error("Failed to fetch mapping value." + error);
+    }
+  }
+
+  /**
+   * Returns the public balance of an address from the account mapping in credits.aleo
+   * 
+   * @param {string} address
+   * 
+   * @example
+   * const account = new Account();
+   * const publicBalance = networkClient.getPublicBalance(account.address());
+   */
+  async getPublicBalance(address: Address): Promise<number> {
+    try {
+      const balanceStr = await this.getProgramMappingValue('credits.aleo', 'account', address.to_string());
+      return balanceStr ? parseInt(balanceStr) : 0;
+    } catch (error) {
+      throw new Error(`Error fetching public balance for ${address}: ${error}`);
     }
   }
 
   /**
    * Returns the latest state/merkle root of the Aleo blockchain.
-   *
-   * @param {number} height - The height for which the state root is fetched, if blank then the latest state root will be returned.
    * 
    * @example
    * const stateRoot = networkClient.getStateRoot();
@@ -804,19 +822,19 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the transactions present in the block with the specified hash.
+   * Returns the confirmed transactions present in the block with the specified block hash.
    * 
-   * @param {string} hash
+   * @param {string} blockHash
    * @example
    * const transactions = networkClient.getTransactionsByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
    */
-  async getTransactionsByHash(hash: string): Promise<Array<ConfirmedTransactionJSON>> {
+  async getTransactionsByBlockHash(blockHash: string): Promise<Array<ConfirmedTransactionJSON>> {
     try {
-      const block = await this.fetchData<BlockJSON>(`/block/${hash}`);
+      const block = await this.fetchData<BlockJSON>(`/block/${blockHash}`);
       const height = block.header.metadata.height;
       return await this.getTransactions(height);
     } catch (error) {
-      throw new Error(`Error fetching transactions for block ${hash}: ${error}`);
+      throw new Error(`Error fetching transactions for block ${blockHash}: ${error}`);
     }
   }
 

@@ -221,12 +221,19 @@ describe('NodeConnection', () => {
         });
     });
 
-    describe('getTransactionsByHash', () => {
+    describe('getTransactionsByBlockHash', () => {
         it('should return an array of Transaction objects', async () => {
             const hash = network === 'testnet' ?
                 'ab1sm6kyqle2ftg4z8gegafqrjy0jwjhzu6fmy73726dgszrtxhxvfqha0eee' : 'ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9';
-            const transactions = await connection.getTransactionsByHash(hash);
+            const transactions = await connection.getTransactionsByBlockHash(hash);
             expect(transactions.length).equals(4);
+        });
+
+        it('should throw an error if the request fails', async () => {
+            await expectThrowsMessage(
+                () => connection.getTransactionsByBlockHash("fakeHash"),
+                'Error fetching transactions for block fakeHash'
+            )
         })
     });
 
@@ -321,6 +328,14 @@ describe('NodeConnection', () => {
             if (!(mappings instanceof Error)) {
                 expect(mappings).deep.equal(["committee", "delegated", "metadata", "bonded", "unbonding", "account", "withdraw"]);
             }
+        });
+    });
+
+    describe('Test credits.aleo convenience methods', () => {
+        it('Public balance returned for a given address', async () => {
+            const account = new Account();
+            const publicBalance = await connection.getPublicBalance(account.address());
+            expect(publicBalance).equals(0);
         });
     });
 
