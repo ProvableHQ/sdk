@@ -166,9 +166,9 @@ describe('NodeConnection', () => {
         });
     });
 
-    describe('getLatestHash', () => {
+    describe('getLatestBlockHash', () => {
         it('should return a string', async () => {
-            const latestHash = await connection.getLatestHash();
+            const latestHash = await connection.getLatestBlockHash();
             expect(typeof latestHash).equal('string');
         });
 

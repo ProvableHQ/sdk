@@ -316,16 +316,16 @@ class AleoNetworkClient {
   /**
    * Returns the contents of the block at the specified block height.
    *
-   * @param {number} height
+   * @param {number} blockHeight
    * @example
    * const block = networkClient.getBlock(1234);
    */
-  async getBlock(height: number): Promise<BlockJSON> {
+  async getBlock(blockHeight: number): Promise<BlockJSON> {
     try {
-      const block = await this.fetchData<BlockJSON>("/block/" + height);
+      const block = await this.fetchData<BlockJSON>("/block/" + blockHeight);
       return block;
     } catch (error) {
-      throw new Error(`Error fetching block ${height}: ${error}`);
+      throw new Error(`Error fetching block ${blockHeight}: ${error}`);
     }
   }
 
@@ -460,18 +460,18 @@ class AleoNetworkClient {
   /**
    * Returns the committe at the specified block height.
    * 
-   * @param {number} height
+   * @param {number} blockHeight
    * 
    * @returns {Promise<object>} A javascript object containing the committee
    * 
    * @example
    * const committee = await networkClient.getCommitteByBlockHeight(1234);
    */
-  async getCommitteeByBlockHeight(height: number): Promise<object> {
+  async getCommitteeByBlockHeight(blockHeight: number): Promise<object> {
     try {
-      return await this.fetchData<object>(`/committee/${height}`);
+      return await this.fetchData<object>(`/committee/${blockHeight}`);
     } catch (error) {
-      throw new Error(`Error fetching committee at height ${height}: ${error}`);
+      throw new Error(`Error fetching committee at height ${blockHeight}: ${error}`);
     }
   }
 
@@ -493,9 +493,9 @@ class AleoNetworkClient {
    * Returns the latest block hash.
    * 
    * @example
-   * const latestHash - newtworkClient.getLatestHash();
+   * const latestHash - newtworkClient.getLatestBlockHash();
    */
-  async getLatestHash(): Promise<string> {
+  async getLatestBlockHash(): Promise<string> {
     try {
       return String(await this.fetchData<string>("/block/hash/latest"));
     } catch (error) {
@@ -809,13 +809,13 @@ class AleoNetworkClient {
   /**
    * Returns the transactions present at the specified block height.
    *
-   * @param {number} height
+   * @param {number} blockHeight
    * @example
    * const transactions = networkClient.getTransactions(654);
    */
-  async getTransactions(height: number): Promise<Array<ConfirmedTransactionJSON>> {
+  async getTransactions(blockHeight: number): Promise<Array<ConfirmedTransactionJSON>> {
     try {
-      return await this.fetchData<Array<ConfirmedTransactionJSON>>("/block/" + height.toString() + "/transactions");
+      return await this.fetchData<Array<ConfirmedTransactionJSON>>("/block/" + blockHeight.toString() + "/transactions");
     } catch (error) {
       throw new Error(`Error fetching transactions: ${error}`);
     }
