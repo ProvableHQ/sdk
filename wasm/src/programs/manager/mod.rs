@@ -39,6 +39,7 @@ use js_sys::{Object, Reflect};
 use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// Managment object that handles the deployment and execution of Aleo programs
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct ProgramManager;

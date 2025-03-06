@@ -21,6 +21,7 @@ use crate::{Scalar, types::native::ViewKeyNative};
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
+/// View key of an Aleo account
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ViewKey(ViewKeyNative);

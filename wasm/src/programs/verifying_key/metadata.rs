@@ -16,6 +16,7 @@
 
 use super::*;
 
+/// Helper struct that specifies where to find proving and verifying key material for credits.aleo
 #[wasm_bindgen]
 #[derive(Clone, Debug)]
 pub struct Metadata {

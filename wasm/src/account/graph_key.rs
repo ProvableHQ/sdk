@@ -20,6 +20,7 @@ use crate::types::{Field, native::GraphKeyNative};
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
+/// Graph key used to calculate the tag of a record
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GraphKey(GraphKeyNative);

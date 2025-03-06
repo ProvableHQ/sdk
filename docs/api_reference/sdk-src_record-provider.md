@@ -111,7 +111,7 @@ Find an arbitrary record. WARNING: This function is not implemented yet and will
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Find multiple arbitrary records. WARNING: This function is not implemented yet and will throw an error.
+Find multiple records from a specified program.
 
 ---
 
@@ -220,7 +220,7 @@ __*return*__ | `Promise.<RecordPlaintext>` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Find multiple arbitrary records. WARNING: This function is not implemented yet and will throw an error.
+Find multiple records from a specified program.
 
 Parameters | Type | Description
 --- | --- | ---
