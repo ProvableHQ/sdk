@@ -31,7 +31,7 @@ use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Webassembly Representation of an Aleo transition
-/// 
+///
 /// Transitions represent an atomic unit of state change from a function execution
 #[wasm_bindgen]
 pub struct Transition(TransitionNative);
