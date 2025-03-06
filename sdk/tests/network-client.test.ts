@@ -2,7 +2,6 @@ import sinon from "sinon";
 import { expect } from "chai";
 import {
     Account,
-    BlockJSON,
     AleoNetworkClient,
     TransactionObject,
     InputObject,
@@ -17,6 +16,7 @@ import {
     Transition,
     TransitionObject,
 } from "@provablehq/sdk/%%NETWORK%%.js";
+import { BlockJSON } from "../src/models/blockJSON";
 import { beaconPrivateKeyString } from "./data/account-data";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
@@ -33,7 +33,7 @@ async function catchError(f: () => Promise<any>): Promise<Error | null> {
 async function expectThrowsMessage(f: () => Promise<any>, message: string): Promise<void> {
     const error = await catchError(f);
     expect(error).not.equal(null);
-    expect(error!.message).equal(message);
+    expect(error!.message).contains(message);
 }
 async function expectThrows(f: () => Promise<any>): Promise<void> {
     const error = await catchError(f);
@@ -69,32 +69,57 @@ describe('NodeConnection', () => {
     });
 
     describe('getBlock', () => {
-        it.skip('should return a Block object', async () => {
+        it('should return a Block object', async () => {
             const block = await connection.getBlock(1);
-            expect((block as BlockJSON).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
+            if (network === "testnet") {
+                expect((block as BlockJSON).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
+            } else {
+                expect((block as BlockJSON).block_hash).equal("ab1yvrttjzr7d9tu2a6e8n0908amgyjddgv6mmndh75rxkwa44hcugqy3wtc2");
+            }
         });
 
         it('should throw an error if the request fails', async () => {
             await expectThrowsMessage(
                 () => connection.getBlock(99999999),
-                "Error fetching block.",
+                "Error fetching block 99999999",
             );
         });
     });
 
+    describe('getBlockByHash', () => {
+        it('should return a Block object', async () => {
+            let hash = network === "testnet" ?
+                "ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me" : "ab1yvrttjzr7d9tu2a6e8n0908amgyjddgv6mmndh75rxkwa44hcugqy3wtc2";
+            const block = await connection.getBlockByHash(hash);
+            expect((block as BlockJSON).block_hash).equal(hash);
+        });
+
+        it('should throw an error if the request fails', async () => {
+            await expectThrowsMessage(
+                () => connection.getBlockByHash("ahhh"),
+                "Error fetching block ahhh",
+            )
+        });
+    });
+
     describe('getBlockRange', () => {
-        it.skip('should return an array of Block objects', async () => {
+        it('should return an array of Block objects', async () => {
             const blockRange = await connection.getBlockRange(1, 3);
             expect(Array.isArray(blockRange)).equal(true);
-            expect((blockRange as BlockJSON[]).length).equal(3);
-            expect(((blockRange as BlockJSON[])[0] as BlockJSON).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
-            expect(((blockRange as BlockJSON[])[1] as BlockJSON).block_hash).equal("ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42");
+            expect((blockRange as BlockJSON[]).length).equal(2);
+            if (network === "testnet") {
+                expect(((blockRange as BlockJSON[])[0] as BlockJSON).block_hash).equal("ab1eddc3np4h6duwf5a7ht6u0x5maa08780l885j6xq0s7l88df0qrq3d72me");
+                expect(((blockRange as BlockJSON[])[1] as BlockJSON).block_hash).equal("ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42");
+            } else {
+                expect(((blockRange as BlockJSON[])[0] as BlockJSON).block_hash).equal("ab1yvrttjzr7d9tu2a6e8n0908amgyjddgv6mmndh75rxkwa44hcugqy3wtc2");
+                expect(((blockRange as BlockJSON[])[1] as BlockJSON).block_hash).equal("ab17ddfwqlx3v4ke8h5l2lpcp5agk2flvpwgpd4l37peck7y7uvsqqsxvvnlr");
+            }
         });
 
         it('should throw an error if the request fails', async () => {
             await expectThrowsMessage(
                 () => connection.getBlockRange(999999999, 1000000000),
-                "Error fetching blocks between 999999999 and 1000000000.",
+                "Error fetching blocks between 999999999 and 1000000000",
             );
         });
     });
@@ -141,6 +166,32 @@ describe('NodeConnection', () => {
         });
     });
 
+    describe('getLatestBlockHash', () => {
+        it('should return a string', async () => {
+            const latestHash = await connection.getLatestBlockHash();
+            expect(typeof latestHash).equal('string');
+        });
+
+        it('should set the X-Aleo-SDK-Version header', async () => {
+            expect(windowFetchSpy.args).deep.equal([]);
+
+            await connection.getLatestBlock();
+
+            expect(windowFetchSpy.args).deep.equal([
+                [
+                    "https://api.explorer.provable.com/v1/%%NETWORK%%/block/latest",
+                    {
+                        "headers": {
+                            // @TODO: Run the Jest tests on the compiled Rollup code,
+                            //        so that way the version is properly replaced.
+                            "X-Aleo-SDK-Version": "%%VERSION%%"
+                        }
+                    }
+                ],
+            ]);
+        });
+    })
+
     describe('getLatestCommittee', () => {
         it('should return a string', async () => {
             const latestCommittee = await connection.getLatestCommittee();
@@ -169,6 +220,38 @@ describe('NodeConnection', () => {
             );
         });
     });
+
+    describe('getTransactionsByBlockHash', () => {
+        it('should return an array of Transaction objects', async () => {
+            const hash = network === 'testnet' ?
+                'ab1sm6kyqle2ftg4z8gegafqrjy0jwjhzu6fmy73726dgszrtxhxvfqha0eee' : 'ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9';
+            const transactions = await connection.getTransactionsByBlockHash(hash);
+            expect(transactions.length).equals(4);
+        });
+
+        it('should throw an error if the request fails', async () => {
+            await expectThrowsMessage(
+                () => connection.getTransactionsByBlockHash("fakeHash"),
+                'Error fetching transactions for block fakeHash'
+            )
+        })
+    });
+
+    describe('getConfirmedTransaction', () => {
+        it('should return a ConfirmedTransaction object', async () => {
+            const transactionId = network === 'testnet' ?
+                'at13rluumel7k9cnpaulhj7lwcsc8ntqn7wkv509fye848atczwxgpqqh2p43' : 'at1uushc49p5ldhdqtkuw0gvfzrednnvzd55yrxkx5uqksjj5cqecpscgavk8';
+            const transaction = await connection.getConfirmedTransaction(transactionId);
+            expect(transaction.transaction.id).equals(transactionId);
+        });
+
+        it('should throw an error if the request fails', async () => {
+            await expectThrowsMessage(
+                () => connection.getConfirmedTransaction('badTransactionId'),
+                'Error fetching confirmed transaction badTransactionId',
+            );
+        });
+    })
 
     describe('getProgramImports', () => {
         it('should return the correct program import names', async () => {
@@ -245,6 +328,14 @@ describe('NodeConnection', () => {
             if (!(mappings instanceof Error)) {
                 expect(mappings).deep.equal(["committee", "delegated", "metadata", "bonded", "unbonding", "account", "withdraw"]);
             }
+        });
+    });
+
+    describe('Test credits.aleo convenience methods', () => {
+        it('Public balance returned for a given address', async () => {
+            const account = new Account();
+            const publicBalance = await connection.getPublicBalance(account.address());
+            expect(publicBalance).equals(0);
         });
     });
 
