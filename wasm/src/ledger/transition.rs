@@ -32,8 +32,7 @@ use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Webassembly Representation of an Aleo transition
 /// 
-/// This object is representative of an
-/// atomic unit of chain state change
+/// Transitions represent an atomic unit of state change from a function execution
 #[wasm_bindgen]
 pub struct Transition(TransitionNative);
 
