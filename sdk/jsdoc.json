@@ -1,6 +1,6 @@
 {
   "source": {
-    "include": ["src/account.ts", "src/dev-server-client.ts", "src/key-provider.ts", "src/network-client.ts", "src/program-manager.ts", "src/record-provider.ts"],
+    "include": ["sdk/src/account.ts", "sdk/src/function-key-provider.ts", "sdk/src/network-client.ts", "sdk/src/offline-key-provider.ts", "sdk/src/program-manager.ts", "sdk/src/record-provider.ts"],
     "includePattern": ".+\\.ts?$"
   },
   "tags": {
@@ -10,14 +10,14 @@
   "opts": {
     "encoding": "utf8",
     "readme": "./README.md",
-    "destination": "docs/",
+    "destination": "sdk/docs/",
     "recurse": true,
     "verbose": true,
     "template": "./node_modules/clean-jsdoc-theme",
     "theme_opts": {
       "default_theme": "dark",
-      "static_dir": ["./public"],
-      "homepageTitle": "Aleo SDK"
+      "static_dir": ["sdk/docs/public"],
+      "homepageTitle": "Provable SDK"
     }
   },
   "markdown": {

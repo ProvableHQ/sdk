@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{Address, PrivateKey};
+use crate::{Address, PrivateKey, Scalar, types::native::SignatureNative};
 
-use crate::types::native::SignatureNative;
 use core::{fmt, ops::Deref, str::FromStr};
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 
 /// Cryptographic signature of a message signed by an Aleo account
@@ -34,6 +33,23 @@ impl Signature {
     /// @returns {Signature} Signature of the message
     pub fn sign(private_key: &PrivateKey, message: &[u8]) -> Self {
         Self(SignatureNative::sign_bytes(private_key, message, &mut StdRng::from_entropy()).unwrap())
+    }
+
+    /// Get an address from a signature.
+    ///
+    /// @returns {Address} Address object
+    pub fn to_address(&self) -> Address {
+        Address::from(self.0.to_address())
+    }
+
+    /// Get the challenge of a signature.
+    pub fn challenge(&self) -> Scalar {
+        Scalar::from(self.0.challenge())
+    }
+
+    /// Get the response of a signature.
+    pub fn response(&self) -> Scalar {
+        Scalar::from(self.0.response())
     }
 
     /// Verify a signature of a message with an address
@@ -62,11 +78,11 @@ impl Signature {
     }
 }
 
-impl FromStr for Signature {
-    type Err = anyhow::Error;
+impl Deref for Signature {
+    type Target = SignatureNative;
 
-    fn from_str(signature: &str) -> Result<Self, Self::Err> {
-        Ok(Self(SignatureNative::from_str(signature).unwrap()))
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -76,11 +92,35 @@ impl fmt::Display for Signature {
     }
 }
 
-impl Deref for Signature {
-    type Target = SignatureNative;
+impl From<SignatureNative> for Signature {
+    fn from(signature: SignatureNative) -> Self {
+        Self(signature)
+    }
+}
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl From<Signature> for SignatureNative {
+    fn from(signature: Signature) -> Self {
+        signature.0
+    }
+}
+
+impl From<&SignatureNative> for Signature {
+    fn from(signature: &SignatureNative) -> Self {
+        Self(*signature)
+    }
+}
+
+impl From<&Signature> for SignatureNative {
+    fn from(signature: &Signature) -> Self {
+        signature.0
+    }
+}
+
+impl FromStr for Signature {
+    type Err = anyhow::Error;
+
+    fn from_str(signature: &str) -> Result<Self, Self::Err> {
+        Ok(Self(SignatureNative::from_str(signature).unwrap()))
     }
 }
 
@@ -88,7 +128,7 @@ impl Deref for Signature {
 mod tests {
     use super::*;
 
-    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;
 
     const ITERATIONS: u64 = 1_000;

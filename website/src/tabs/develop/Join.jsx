@@ -6,7 +6,7 @@ export const Join = () => {
     const [joinFeeRecord, setJoinFeeRecord] = useState(null);
     const [recordOne, setRecordOne] = useState(null);
     const [recordTwo, setRecordTwo] = useState(null);
-    const [joinUrl, setJoinUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [joinUrl, setJoinUrl] = useState("https://api.explorer.provable.com/v1");
     const [joinFee, setJoinFee] = useState("1.0");
     const [privateFee, setPrivateFee] = useState(true);
     const [loading, setLoading] = useState(false);
@@ -251,7 +251,7 @@ export const Join = () => {
                     <Col justify="center">
                         <Button
                             type="primary"
-                            
+
                             size="middle"
                             onClick={join}
                         >

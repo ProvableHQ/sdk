@@ -1,16 +1,11 @@
 # React + Aleo + Leo
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/fork/github/ProvableHQ/sdk/tree/testnet3/create-leo-app/template-react)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/fork/github/ProvableHQ/sdk/tree/mainnet/create-leo-app/template-react)
 
-This template provides a minimal setup to get React and Aleo working in Vite
-with HMR and some ESLint rules.
+This template provides a minimal setup to get React and Aleo working in Webpack or Vite with HMR and some ESLint rules.
 
 This template includes a Leo program that is loaded by the web app located in
 the `helloworld` directory.
-
-Note: Webpack is currently used for production builds due to a
-[bug](https://github.com/vitejs/vite/issues/13367) with Vite related to nested
-workers.
 
 ### Start in development mode
 
@@ -40,12 +35,12 @@ Your app should be running on http://localhost:5173/
 
 ## Deploy program from web app
 
-> [!WARNING]  
+> [!WARNING]
 > This is for demonstration purposes or local testing only, in production applications you
 > should avoid building a public facing web app with private key information
 
 Information on generating a private key, seeding a wallet with funds, and finding a spendable record can be found here
-if you are unfamiliar: https://developer.aleo.org/testnet/getting_started/deploy_execute_demo
+if you are unfamiliar: https://docs.leo-lang.org/testnet/getting_started/deploy_execute_demo
 
 Aleo programs deployed require unique names, make sure to edit the program's name to something unique in `helloworld/src/main.leo`, `helloworld/program.json`, rename `helloworld/inputs/helloworld.in` and rebuild.
 
@@ -62,7 +57,7 @@ Aleo programs deployed require unique names, make sure to edit the program's nam
 2. (Optional) Provide a fee record manually (located in commented code within `worker.js`)
 
    If you do not provide a manual fee record, the SDK will attempt to scan for a record starting at the latest block. A simple way to speed this up would be to make a public transaction to this account right before deploying.
-   
+
 3. Run the web app and hit the deploy button
 
 ## Production deployment

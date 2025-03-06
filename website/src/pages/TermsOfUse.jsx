@@ -858,7 +858,7 @@ const TermsOfUse = () => {
                 version of the Terms is the original, governing instrument of
                 the understanding between you and us. In the event of any
                 conflict between the English version of these Terms and any
-                translation, the English version will prevail. 
+                translation, the English version will prevail.
                 </p>
 
                <h2>13.2 Arbitration</h2>
@@ -878,7 +878,7 @@ const TermsOfUse = () => {
                 indirectly, as a User or consumer (each, a “Claim,” and,
                 collectively, “Claims”). This Arbitration Agreement will apply,
                 without limitation, to all Claims that arose or were asserted
-                before or after your consent to these Terms. 
+                before or after your consent to these Terms.
                 </p>
                 <p> (b) Opting Out of
                 Arbitration Agreement. If you are a new User, you can reject and
@@ -942,7 +942,7 @@ const TermsOfUse = () => {
                 PREVENTING YOU FROM ASSERTING CLAIMS IN A SMALL CLAIMS COURT,
                 PROVIDED THAT YOUR CLAIMS QUALIFY AND SO LONG AS THE MATTER
                 REMAINS IN SUCH COURT AND ADVANCES ON ONLY AN INDIVIDUAL
-                (NON-CLASS, NON-COLLECTIVE, AND NON-REPRESENTATIVE) BASIS. 
+                (NON-CLASS, NON-COLLECTIVE, AND NON-REPRESENTATIVE) BASIS.
                 </p>
                 <p>(E)
                 Severability. If this Arbitration Agreement is found to be void,
@@ -965,7 +965,7 @@ const TermsOfUse = () => {
                 the parties agree that litigation of any dispute regarding the
                 entitlement to public injunctive relief will be stayed pending
                 the outcome of any individual claims in arbitration. </p>
-                
+
                 <p> 13.3
                 <strong>Class Action/Jury Trial Waiver. </strong>
                 BY ENTERING INTO THESE TERMS,
@@ -982,11 +982,11 @@ const TermsOfUse = () => {
                 PROVABLE AGREE THAT THE ARBITRATOR MAY AWARD RELIEF ONLY TO AN
                 INDIVIDUAL CLAIMANT AND ONLY TO THE EXTENT NECESSARY TO PROVIDE
                 RELIEF ON YOUR INDIVIDUAL CLAIM(S). ANY RELIEF AWARDED MAY NOT
-                AFFECT OTHER USERS. 
-                
+                AFFECT OTHER USERS.
+
                 </p>
                 <h2>
-                    14. U.S. Government Restricted Rights 
+                    14. U.S. Government Restricted Rights
                     </h2>
                 <p>To the
                 extent the Platform is being used by or on behalf of the U.S.
@@ -997,11 +997,11 @@ const TermsOfUse = () => {
                 rights with respect to the Platform as are granted to all other
                 Users hereunder, in accordance with 48 C.F.R. §227.7202 and 48
                 C.F.R. §12.212, as applicable.
-                
+
                 </p>
                 <h2> 15. Export Controls, Sanctions
-                and Anti-Money Laundering 
-                </h2> 
+                and Anti-Money Laundering
+                </h2>
                 <p> You understand and acknowledge that
                 the Platform may be subject to export control laws and
                 regulations. You will comply with all applicable import and
@@ -1011,8 +1011,8 @@ const TermsOfUse = () => {
                 and economic sanctions maintained by the U.S. Treasury
                 Department’s Office of Foreign Assets Control (“OFAC”), and the
                 International Traffic in Arms Regulations maintained by the U.S.
-                State Department. You represent and warrant that: 
-                
+                State Department. You represent and warrant that:
+
                 <p> (a) You will
                 not access the Platform from any country, region, territory or
                 jurisdiction that is the target of comprehensive territorial or
@@ -1020,26 +1020,26 @@ const TermsOfUse = () => {
                 region, territory or jurisdiction a “Sanctioned Country”),
                 which, as of the time of this Agreement, are Crimea, Cuba, Iran,
                 North Korea, Syria, the so-called Donetsk People’s Republic, and
-                the so-called Luhansk People’s Republic; 
+                the so-called Luhansk People’s Republic;
                 </p>
-                
+
                 <p>(b) You will not
                 provide access to the Platform to any person that is, or that is
                 owned or controlled by a person that is, the target of any
                 sanctions administered or enforced by OFAC or the U.S.
                 Department of State,(collectively, “Sanctions”) or that is
-                located, organized or resident in any Sanctioned Country; 
+                located, organized or resident in any Sanctioned Country;
                 </p>
                 <p>(c)
                 None of you, your subsidiaries, directors, officers, employees,
                 agents or affiliates is a person that is, or is owned or
-                controlled by persons that are, the target of any Sanctions; 
+                controlled by persons that are, the target of any Sanctions;
                 </p>
                 <p>(d)
                 None of you, your subsidiaries, directors, officers, employees,
                 agents or affiliates are located, organized, or resident in, or
                 owned or controlled by persons that are located, organized or
-                resident in a Sanctioned Country; 14 
+                resident in a Sanctioned Country; 14
                 </p>
                 <p>(e) You will not utilize
                 the Platform in any manner that, directly or directly, conducts,
@@ -1047,7 +1047,7 @@ const TermsOfUse = () => {
                 person that is the target of Sanctions or is located, organized
                 or resident in a Sanctioned Country or in any other manner that
                 would result in a violation of Sanctions by any person,
-                including Provable; 
+                including Provable;
                 </p>
                 <p>(f) You will not utilize the Platform in any
                 manner that, directly or indirectly, conducts, facilitates,
@@ -1057,13 +1057,13 @@ const TermsOfUse = () => {
                 of any applicable law, rule or regulation of any jurisdiction
                 concerning or relating to anti-money laundering, including the
                 USA PATRIOT Act of 2001, as amended (“Anti-Money Laundering
-                Laws”); and 
+                Laws”); and
                 </p><p>(g) You have conducted and will conduct all
                 activities generating funds, assets or other items of value
                 introduced to the Platform in compliance with applicable
-                Anti-Money Laundering Laws and Sanctions. 
+                Anti-Money Laundering Laws and Sanctions.
                 </p>
-                
+
                 <h2>16. General Provisions</h2>
                 <p>16.1 Assignment. These Terms, and any rights and licenses
                 granted hereunder, may not be transferred or assigned by you
@@ -1071,7 +1071,7 @@ const TermsOfUse = () => {
                 by us without restriction. Any attempted transfer or assignment
                 in violation hereof will be null and void.
                 </p>
-                
+
                 <p>16.2 Notification
                 Procedures and Changes to these Terms. We may provide
                 notifications, whether such notifications are required by
@@ -1111,7 +1111,7 @@ const TermsOfUse = () => {
                 deemed invalid by a court of competent jurisdiction, the
                 invalidity of such provision will not affect the validity of the
                 remaining provisions of these Terms, which will remain in full
-                force and effect. 
+                force and effect.
                 </p>
                 <p>16.4 Interpretation. For purposes of these
                 Terms, (a) the words “include,” “includes” and “including” are
@@ -1133,7 +1133,7 @@ const TermsOfUse = () => {
                 these Terms will be deemed a further or continuing waiver of
                 such term or of any other term, and our failure to assert any
                 right or provision under these Terms will not constitute a
-                waiver of such right or provision. 
+                waiver of such right or provision.
                 </p>16.6 California Residents.
                 The provider of the Platform is: Provable Inc., 5470 Kietzke
                 Lane, STE 300, Reno, NV 89511. If you are a California resident,
@@ -1142,7 +1142,7 @@ const TermsOfUse = () => {
                 Consumer Services of the California Department of Consumer
                 Affairs by contacting it in writing at 1625 North Market Blvd.,
                 Suite N 112 Sacramento, CA 95834, or by telephone at (800)
-                952-5210 or (916) 445-1254. 
+                952-5210 or (916) 445-1254.
                 <p>16.7 Contact. If you have any
                 questions about these Terms and/or the Platform, please contact
                 us at termsofuse@provable.com.

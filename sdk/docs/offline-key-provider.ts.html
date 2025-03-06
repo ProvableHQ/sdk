@@ -1,0 +1,609 @@
+<!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: offline-key-provider.ts</title><!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="";baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body data-theme="dark"><div class="sidebar-container"><div class="sidebar" id="sidebar"><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Account.html">Account</a></div><div class="sidebar-section-children"><a href="AleoKeyProvider.html">AleoKeyProvider</a></div><div class="sidebar-section-children"><a href="AleoKeyProviderParams.html">AleoKeyProviderParams</a></div><div class="sidebar-section-children"><a href="AleoKeyProviderParams_AleoKeyProviderParams.html">AleoKeyProviderParams</a></div><div class="sidebar-section-children"><a href="AleoNetworkClient.html">AleoNetworkClient</a></div><div class="sidebar-section-children"><a href="BlockHeightSearch.html">BlockHeightSearch</a></div><div class="sidebar-section-children"><a href="NetworkRecordProvider.html">NetworkRecordProvider</a></div><div class="sidebar-section-children"><a href="OfflineKeyProvider.html">OfflineKeyProvider</a></div><div class="sidebar-section-children"><a href="OfflineSearchParams.html">OfflineSearchParams</a></div><div class="sidebar-section-children"><a href="OfflineSearchParams_OfflineSearchParams.html">OfflineSearchParams</a></div><div class="sidebar-section-children"><a href="ProgramManager.html">ProgramManager</a></div><div class="sidebar-section-children"><a href="ProgramManager_ProgramManager.html">ProgramManager</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-interfaces"><div>Interfaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="ExecuteOptions.html">ExecuteOptions</a></div><div class="sidebar-section-children"><a href="FunctionKeyProvider.html">FunctionKeyProvider</a></div><div class="sidebar-section-children"><a href="KeySearchParams.html">KeySearchParams</a></div><div class="sidebar-section-children"><a href="RecordProvider.html">RecordProvider</a></div><div class="sidebar-section-children"><a href="RecordSearchParams.html">RecordSearchParams</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">offline-key-provider.ts</h1></header><article><pre class="prettyprint source lang-js"><code>import {
+    CachedKeyPair,
+    FunctionKeyPair,
+    FunctionKeyProvider,
+    KeySearchParams,
+} from "./function-key-provider";
+
+import {
+    ProvingKey,
+    VerifyingKey,
+} from "./wasm";
+
+import {
+    CREDITS_PROGRAM_KEYS,
+    PRIVATE_TRANSFER,
+    PRIVATE_TO_PUBLIC_TRANSFER,
+    PUBLIC_TRANSFER,
+    PUBLIC_TO_PRIVATE_TRANSFER,
+    PUBLIC_TRANSFER_AS_SIGNER,
+} from "./constants";
+
+/**
+ * Search parameters for the offline key provider. This class implements the KeySearchParams interface and includes
+ * a convenience method for creating a new instance of this class for each function of the credits.aleo program.
+ *
+ * @example
+ * // If storing a key for a custom program function
+ * offlineSearchParams = new OfflineSearchParams("myprogram.aleo/myfunction");
+ *
+ * // If storing a key for a credits.aleo program function
+ * bondPublicKeyParams = OfflineSearchParams.bondPublicKeyParams();
+ */
+class OfflineSearchParams implements KeySearchParams {
+    cacheKey: string | undefined;
+    verifyCreditsKeys: boolean | undefined;
+
+    /**
+     * Create a new OfflineSearchParams instance.
+     *
+     * @param {string} cacheKey - Key used to store the local function proving &amp; verifying keys. This should be stored
+     * under the naming convention "programName/functionName" (i.e. "myprogram.aleo/myfunction")
+     * @param {boolean} verifyCreditsKeys - Whether to verify the keys against the credits.aleo program,
+     * defaults to false, but should be set to true if using keys from the credits.aleo program
+     */
+    constructor(cacheKey: string, verifyCreditsKeys = false) {
+        this.cacheKey = cacheKey;
+        this.verifyCreditsKeys = verifyCreditsKeys;
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the bond_public function of the credits.aleo program.
+     */
+    static bondPublicKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.bond_public.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the bond_validator function of the credits.aleo program.
+     */
+    static bondValidatorKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.bond_validator.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the claim_unbond_public function of the
+     */
+    static claimUnbondPublicKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.claim_unbond_public.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the fee_private function of the credits.aleo program.
+     */
+    static feePrivateKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.fee_private.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the fee_public function of the credits.aleo program.
+     */
+    static feePublicKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.fee_public.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the inclusion prover function.
+     */
+    static inclusionKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.inclusion.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the join function of the credits.aleo program.
+     */
+    static joinKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.join.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the set_validator_state function of the credits.aleo program.
+     */
+    static setValidatorStateKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.set_validator_state.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the split function of the credits.aleo program.
+     */
+    static splitKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.split.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the transfer_private function of the credits.aleo program.
+     */
+    static transferPrivateKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_private.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the transfer_private_to_public function of the credits.aleo program.
+     */
+    static transferPrivateToPublicKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the transfer_public function of the credits.aleo program.
+     */
+    static transferPublicKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_public.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the transfer_public_as_signer function of the credits.aleo program.
+     */
+    static transferPublicAsSignerKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_public_as_signer.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the transfer_public_to_private function of the credits.aleo program.
+     */
+    static transferPublicToPrivateKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator, true);
+    }
+
+    /**
+     * Create a new OfflineSearchParams instance for the unbond_public function of the credits.aleo program.
+     */
+    static unbondPublicKeyParams(): OfflineSearchParams {
+        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.unbond_public.locator, true);
+    }
+}
+
+/**
+ * A key provider meant for building transactions offline on devices such as hardware wallets. This key provider is not
+ * able to contact the internet for key material and instead relies on the user to insert Aleo function proving &amp;
+ * verifying keys from local storage prior to usage.
+ *
+ * @example
+ * // Create an offline program manager
+ * const programManager = new ProgramManager();
+ *
+ * // Create a temporary account for the execution of the program
+ * const account = new Account();
+ * programManager.setAccount(account);
+ *
+ * // Create the proving keys from the key bytes on the offline machine
+ * console.log("Creating proving keys from local key files");
+ * const program = "program hello_hello.aleo; function hello: input r0 as u32.public; input r1 as u32.private; add r0 r1 into r2; output r2 as u32.private;";
+ * const myFunctionProver = await getLocalKey("/path/to/my/function/hello_hello.prover");
+ * const myFunctionVerifier = await getLocalKey("/path/to/my/function/hello_hello.verifier");
+ * const feePublicProvingKeyBytes = await getLocalKey("/path/to/credits.aleo/feePublic.prover");
+ *
+ * myFunctionProvingKey = ProvingKey.fromBytes(myFunctionProver);
+ * myFunctionVerifyingKey = VerifyingKey.fromBytes(myFunctionVerifier);
+ * const feePublicProvingKey = ProvingKey.fromBytes(feePublicKeyBytes);
+ *
+ * // Create an offline key provider
+ * console.log("Creating offline key provider");
+ * const offlineKeyProvider = new OfflineKeyProvider();
+ *
+ * // Cache the keys
+ * // Cache the proving and verifying keys for the custom hello function
+ * OfflineKeyProvider.cacheKeys("hello_hello.aleo/hello", myFunctionProvingKey, myFunctionVerifyingKey);
+ *
+ * // Cache the proving key for the fee_public function (the verifying key is automatically cached)
+ * OfflineKeyProvider.insertFeePublicKey(feePublicProvingKey);
+ *
+ * // Create an offline query using the latest state root in order to create the inclusion proof
+ * const offlineQuery = new OfflineQuery("latestStateRoot");
+ *
+ * // Insert the key provider into the program manager
+ * programManager.setKeyProvider(offlineKeyProvider);
+ *
+ * // Create the offline search params
+ * const offlineSearchParams = new OfflineSearchParams("hello_hello.aleo/hello");
+ *
+ * // Create the offline transaction
+ * const offlineExecuteTx = &lt;Transaction>await this.buildExecutionTransaction("hello_hello.aleo", "hello", 1, false, ["5u32", "5u32"], undefined, offlineSearchParams, undefined, undefined, undefined, undefined, offlineQuery, program);
+ *
+ * // Broadcast the transaction later on a machine with internet access
+ * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+ * const txId = await networkClient.broadcastTransaction(offlineExecuteTx);
+ */
+class OfflineKeyProvider implements FunctionKeyProvider {
+    cache: Map&lt;string, CachedKeyPair>;
+
+    constructor() {
+        this.cache = new Map&lt;string, CachedKeyPair>();
+    }
+
+    /**
+     * Get bond_public function keys from the credits.aleo program. The keys must be cached prior to calling this
+     * method for it to work.
+     *
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the bond_public function
+     */
+    bondPublicKeys(): Promise&lt;FunctionKeyPair> {
+        return this.functionKeys(OfflineSearchParams.bondPublicKeyParams());
+    };
+
+    /**
+     * Get bond_validator function keys from the credits.aleo program. The keys must be cached prior to calling this
+     * method for it to work.
+     *
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the bond_public function
+     */
+    bondValidatorKeys(): Promise&lt;FunctionKeyPair> {
+        return this.functionKeys(OfflineSearchParams.bondValidatorKeyParams());
+    };
+
+
+    /**
+     * Cache a set of keys. This will overwrite any existing keys with the same keyId. The user can check if a keyId
+     * exists in the cache using the containsKeys method prior to calling this method if overwriting is not desired.
+     *
+     * @param {string} keyId access key for the cache
+     * @param {FunctionKeyPair} keys keys to cache
+     */
+    cacheKeys(keyId: string, keys: FunctionKeyPair): void {
+        const [provingKey, verifyingKey] = keys;
+        this.cache.set(keyId, [provingKey.toBytes(), verifyingKey.toBytes()]);
+    };
+
+    /**
+     * Get unbond_public function keys from the credits.aleo program. The keys must be cached prior to calling this
+     * method for it to work.
+     *
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the unbond_public function
+     */
+    claimUnbondPublicKeys(): Promise&lt;FunctionKeyPair> {
+        return this.functionKeys(OfflineSearchParams.claimUnbondPublicKeyParams());
+    };
+
+    /**
+     * Get arbitrary function key from the offline key provider cache.
+     *
+     * @param {KeySearchParams | undefined} params - Optional search parameters for the key provider
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the specified program
+     *
+     * @example
+     * /// First cache the keys from local offline resources
+     * const offlineKeyProvider = new OfflineKeyProvider();
+     * const myFunctionVerifyingKey = VerifyingKey.fromString("verifier...");
+     * const myFunctionProvingKeyBytes = await readBinaryFile('./resources/myfunction.prover');
+     * const myFunctionProvingKey = ProvingKey.fromBytes(myFunctionProvingKeyBytes);
+     *
+     * /// Cache the keys for future use with a memorable locator
+     * offlineKeyProvider.cacheKeys("myprogram.aleo/myfunction", [myFunctionProvingKey, myFunctionVerifyingKey]);
+     *
+     * /// When they're needed, retrieve the keys from the cache
+     *
+     * /// First create a search parameter object with the same locator used to cache the keys
+     * const keyParams = new OfflineSearchParams("myprogram.aleo/myfunction");
+     *
+     * /// Then retrieve the keys
+     * const [myFunctionProver, myFunctionVerifier] = await offlineKeyProvider.functionKeys(keyParams);
+     */
+    functionKeys(params?: KeySearchParams): Promise&lt;FunctionKeyPair> {
+        return new Promise((resolve, reject) => {
+            if (params === undefined) {
+                reject(new Error("No search parameters provided, cannot retrieve keys"));
+            } else {
+                const keyId = params.cacheKey;
+                const verifyCreditsKeys = params.verifyCreditsKeys;
+                if (this.cache.has(keyId)) {
+                    const [provingKeyBytes, verifyingKeyBytes] = this.cache.get(keyId) as CachedKeyPair;
+                    const provingKey = ProvingKey.fromBytes(provingKeyBytes);
+                    const verifyingKey = VerifyingKey.fromBytes(verifyingKeyBytes);
+                    if (verifyCreditsKeys) {
+                        const keysMatchExpected = this.verifyCreditsKeys(keyId, provingKey, verifyingKey)
+                        if (!keysMatchExpected) {
+                            reject (new Error(`Cached keys do not match expected keys for ${keyId}`));
+                        }
+                    }
+                    resolve([provingKey, verifyingKey]);
+                } else {
+                    reject(new Error("Keys not found in cache for " + keyId));
+                }
+            }
+        });
+    };
+
+    /**
+     * Determines if the keys for a given credits function match the expected keys.
+     *
+     * @returns {boolean} Whether the keys match the expected keys
+     */
+    verifyCreditsKeys(locator: string, provingKey: ProvingKey, verifyingKey: VerifyingKey): boolean {
+        switch (locator) {
+            case CREDITS_PROGRAM_KEYS.bond_public.locator:
+                return provingKey.isBondPublicProver() &amp;&amp; verifyingKey.isBondPublicVerifier();
+            case CREDITS_PROGRAM_KEYS.claim_unbond_public.locator:
+                return provingKey.isClaimUnbondPublicProver() &amp;&amp; verifyingKey.isClaimUnbondPublicVerifier();
+            case CREDITS_PROGRAM_KEYS.fee_private.locator:
+                return provingKey.isFeePrivateProver() &amp;&amp; verifyingKey.isFeePrivateVerifier();
+            case CREDITS_PROGRAM_KEYS.fee_public.locator:
+                return provingKey.isFeePublicProver() &amp;&amp; verifyingKey.isFeePublicVerifier();
+            case CREDITS_PROGRAM_KEYS.inclusion.locator:
+                return provingKey.isInclusionProver() &amp;&amp; verifyingKey.isInclusionVerifier();
+            case CREDITS_PROGRAM_KEYS.join.locator:
+                return provingKey.isJoinProver() &amp;&amp; verifyingKey.isJoinVerifier();
+            case CREDITS_PROGRAM_KEYS.set_validator_state.locator:
+                return provingKey.isSetValidatorStateProver() &amp;&amp; verifyingKey.isSetValidatorStateVerifier();
+            case CREDITS_PROGRAM_KEYS.split.locator:
+                return provingKey.isSplitProver() &amp;&amp; verifyingKey.isSplitVerifier();
+            case CREDITS_PROGRAM_KEYS.transfer_private.locator:
+                return provingKey.isTransferPrivateProver() &amp;&amp; verifyingKey.isTransferPrivateVerifier();
+            case CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator:
+                return provingKey.isTransferPrivateToPublicProver() &amp;&amp; verifyingKey.isTransferPrivateToPublicVerifier();
+            case CREDITS_PROGRAM_KEYS.transfer_public.locator:
+                return provingKey.isTransferPublicProver() &amp;&amp; verifyingKey.isTransferPublicVerifier();
+            case CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator:
+                return provingKey.isTransferPublicToPrivateProver() &amp;&amp; verifyingKey.isTransferPublicToPrivateVerifier();
+            case CREDITS_PROGRAM_KEYS.unbond_public.locator:
+                return provingKey.isUnbondPublicProver() &amp;&amp; verifyingKey.isUnbondPublicVerifier();
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Get fee_private function keys from the credits.aleo program. The keys must be cached prior to calling this
+     * method for it to work.
+     *
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the join function
+     */
+    feePrivateKeys(): Promise&lt;FunctionKeyPair> {
+        return this.functionKeys(OfflineSearchParams.feePrivateKeyParams());
+    };
+
+    /**
+     * Get fee_public function keys from the credits.aleo program. The keys must be cached prior to calling this
+     * method for it to work.
+     *
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the join function
+     */
+    feePublicKeys(): Promise&lt;FunctionKeyPair> {
+        return this.functionKeys(OfflineSearchParams.feePublicKeyParams());
+    };
+
+    /**
+     * Get join function keys from the credits.aleo program. The keys must be cached prior to calling this
+     * method for it to work.
+     *
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the join function
+     */
+    joinKeys(): Promise&lt;FunctionKeyPair> {
+        return this.functionKeys(OfflineSearchParams.joinKeyParams());
+    };
+
+    /**
+     * Get split function keys from the credits.aleo program. The keys must be cached prior to calling this
+     * method for it to work.
+     *
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the join function
+     */
+    splitKeys(): Promise&lt;FunctionKeyPair> {
+        return this.functionKeys(OfflineSearchParams.splitKeyParams());
+    };
+
+    /**
+     * Get keys for a variant of the transfer function from the credits.aleo program.
+     *
+     *
+     * @param {string} visibility Visibility of the transfer function (private, public, privateToPublic, publicToPrivate)
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the specified transfer function
+     *
+     * @example
+     * // Create a new OfflineKeyProvider
+     * const offlineKeyProvider = new OfflineKeyProvider();
+     *
+     * // Cache the keys for future use with the official locator
+     * const transferPublicProvingKeyBytes = await readBinaryFile('./resources/transfer_public.prover.a74565e');
+     * const transferPublicProvingKey = ProvingKey.fromBytes(transferPublicProvingKeyBytes);
+     *
+     * // Cache the transfer_public keys for future use with the OfflinKeyProvider's convenience method for
+     * // transfer_public (the verifying key will be cached automatically)
+     * offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
+     *
+     * /// When they're needed, retrieve the keys from the cache
+     * const [transferPublicProvingKey, transferPublicVerifyingKey] = await keyProvider.transferKeys("public");
+     */
+    transferKeys(visibility: string): Promise&lt;FunctionKeyPair> {
+        if (PRIVATE_TRANSFER.has(visibility)) {
+            return this.functionKeys(OfflineSearchParams.transferPrivateKeyParams());
+        } else if (PRIVATE_TO_PUBLIC_TRANSFER.has(visibility)) {
+            return this.functionKeys(OfflineSearchParams.transferPrivateToPublicKeyParams());
+        } else if (PUBLIC_TRANSFER.has(visibility)) {
+            return this.functionKeys(OfflineSearchParams.transferPublicKeyParams());
+        } else if (PUBLIC_TRANSFER_AS_SIGNER.has(visibility)) {
+            return this.functionKeys(OfflineSearchParams.transferPublicAsSignerKeyParams());
+        } else if (PUBLIC_TO_PRIVATE_TRANSFER.has(visibility)) {
+            return this.functionKeys(OfflineSearchParams.transferPublicToPrivateKeyParams());
+        } else {
+            throw new Error("Invalid visibility type");
+        }
+    };
+
+    /**
+     * Get unbond_public function keys from the credits.aleo program
+     *
+     * @returns {Promise&lt;FunctionKeyPair>} Proving and verifying keys for the join function
+     */
+    async unBondPublicKeys(): Promise&lt;FunctionKeyPair> {
+        return this.functionKeys(OfflineSearchParams.unbondPublicKeyParams());
+    };
+
+    /**
+     * Insert the proving and verifying keys for the bond_public function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for bond_public before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertBondPublicKeys(provingKey: ProvingKey) {
+        if (provingKey.isBondPublicProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.bond_public.locator, [provingKey.toBytes(), VerifyingKey.bondPublicVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for bond_public");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the claim_unbond_public function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for claim_unbond_public before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertClaimUnbondPublicKeys(provingKey: ProvingKey) {
+        if (provingKey.isClaimUnbondPublicProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.claim_unbond_public.locator, [provingKey.toBytes(), VerifyingKey.claimUnbondPublicVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for claim_unbond_public");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the fee_private function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for fee_private before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertFeePrivateKeys(provingKey: ProvingKey) {
+        if (provingKey.isFeePrivateProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.fee_private.locator, [provingKey.toBytes(), VerifyingKey.feePrivateVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for fee_private");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the fee_public function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for fee_public before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertFeePublicKeys(provingKey: ProvingKey) {
+        if (provingKey.isFeePublicProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.fee_public.locator, [provingKey.toBytes(), VerifyingKey.feePublicVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for fee_public");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the join function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for join before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertJoinKeys(provingKey: ProvingKey) {
+        if (provingKey.isJoinProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.join.locator, [provingKey.toBytes(), VerifyingKey.joinVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for join");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the set_validator_state function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for set_validator_state before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertSetValidatorStateKeys(provingKey: ProvingKey) {
+        if (provingKey.isSetValidatorStateProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.set_validator_state.locator, [provingKey.toBytes(), VerifyingKey.setValidatorStateVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for set_validator_state");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the split function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for split before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertSplitKeys(provingKey: ProvingKey) {
+        if (provingKey.isSplitProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.split.locator, [provingKey.toBytes(), VerifyingKey.splitVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for split");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the transfer_private function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for transfer_private before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertTransferPrivateKeys(provingKey: ProvingKey) {
+        if (provingKey.isTransferPrivateProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_private.locator, [provingKey.toBytes(), VerifyingKey.transferPrivateVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for transfer_private");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the transfer_private_to_public function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for transfer_private_to_public before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertTransferPrivateToPublicKeys(provingKey: ProvingKey) {
+        if (provingKey.isTransferPrivateToPublicProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator, [provingKey.toBytes(), VerifyingKey.transferPrivateToPublicVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for transfer_private_to_public");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the transfer_public function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for transfer_public before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertTransferPublicKeys(provingKey: ProvingKey) {
+        if (provingKey.isTransferPublicProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_public.locator, [provingKey.toBytes(), VerifyingKey.transferPublicVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for transfer_public");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the transfer_public_to_private function into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for transfer_public_to_private before inserting them into the cache.
+     *
+     * @param provingKey
+     */
+    insertTransferPublicToPrivateKeys(provingKey: ProvingKey) {
+        if (provingKey.isTransferPublicToPrivateProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator, [provingKey.toBytes(), VerifyingKey.transferPublicToPrivateVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for transfer_public_to_private");
+        }
+    }
+
+    insertUnbondPublicKeys(provingKey: ProvingKey) {
+        if (provingKey.isUnbondPublicProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.unbond_public.locator, [provingKey.toBytes(), VerifyingKey.unbondPublicVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for unbond_public");
+        }
+    }
+}
+
+
+export {OfflineKeyProvider, OfflineSearchParams}
+</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Account.html">Account</a></div><div class="sidebar-section-children"><a href="AleoKeyProvider.html">AleoKeyProvider</a></div><div class="sidebar-section-children"><a href="AleoKeyProviderParams.html">AleoKeyProviderParams</a></div><div class="sidebar-section-children"><a href="AleoKeyProviderParams_AleoKeyProviderParams.html">AleoKeyProviderParams</a></div><div class="sidebar-section-children"><a href="AleoNetworkClient.html">AleoNetworkClient</a></div><div class="sidebar-section-children"><a href="BlockHeightSearch.html">BlockHeightSearch</a></div><div class="sidebar-section-children"><a href="NetworkRecordProvider.html">NetworkRecordProvider</a></div><div class="sidebar-section-children"><a href="OfflineKeyProvider.html">OfflineKeyProvider</a></div><div class="sidebar-section-children"><a href="OfflineSearchParams.html">OfflineSearchParams</a></div><div class="sidebar-section-children"><a href="OfflineSearchParams_OfflineSearchParams.html">OfflineSearchParams</a></div><div class="sidebar-section-children"><a href="ProgramManager.html">ProgramManager</a></div><div class="sidebar-section-children"><a href="ProgramManager_ProgramManager.html">ProgramManager</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-interfaces"><div>Interfaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="ExecuteOptions.html">ExecuteOptions</a></div><div class="sidebar-section-children"><a href="FunctionKeyProvider.html">FunctionKeyProvider</a></div><div class="sidebar-section-children"><a href="KeySearchParams.html">KeySearchParams</a></div><div class="sidebar-section-children"><a href="RecordProvider.html">RecordProvider</a></div><div class="sidebar-section-children"><a href="RecordSearchParams.html">RecordSearchParams</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>

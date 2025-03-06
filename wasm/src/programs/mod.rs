@@ -16,6 +16,9 @@
 
 mod macros;
 
+pub mod data;
+pub use data::*;
+
 pub mod execution;
 pub use execution::*;
 
@@ -38,9 +41,6 @@ pub use proving_key::*;
 
 pub mod response;
 pub use response::*;
-
-pub mod transaction;
-pub use transaction::*;
 
 pub mod verifying_key;
 pub use verifying_key::*;

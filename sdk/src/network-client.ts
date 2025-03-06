@@ -1,15 +1,17 @@
-import { get, post } from "./utils";
+import { get, post, parseJSON, logAndThrow } from "./utils";
+import { Account } from "./account";
+import { BlockJSON } from "./models/blockJSON";
+import { TransactionJSON } from "./models/transaction/transactionJSON";
 import {
-  Account,
-  Block,
+  Address,
+  Plaintext,
   RecordCiphertext,
   Program,
   RecordPlaintext,
   PrivateKey,
   Transaction,
-  TransactionModel,
-  logAndThrow
-} from "./index";
+} from "./wasm";
+import { ConfirmedTransactionJSON } from "./models/confirmed_transaction";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -27,7 +29,7 @@ interface AleoNetworkClientOptions {
  * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
  *
  * // Connection to a public beacon node
- * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+ * const publicnetworkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
  */
 class AleoNetworkClient {
   host: string;
@@ -35,7 +37,7 @@ class AleoNetworkClient {
   account: Account | undefined;
 
   constructor(host: string, options?: AleoNetworkClientOptions) {
-    this.host = host + "/testnet";
+    this.host = host + "/%%NETWORK%%";
 
     if (options && options.headers) {
       this.headers = options.headers;
@@ -77,25 +79,47 @@ class AleoNetworkClient {
    * @param host
    */
   setHost(host: string) {
-    this.host = host + "/testnet";
+    this.host = host + "/%%NETWORK%%";
   }
 
+  /**
+   * Fetches data from the Aleo network and returns it as a JSON object.
+   *
+   * @param url
+   */
   async fetchData<Type>(
       url = "/",
   ): Promise<Type> {
     try {
-    const response = await get(this.host + url, {
-      headers: this.headers
-    });
-
-    return await response.json();
+      return parseJSON(await this.fetchRaw(url));
     } catch (error) {
-      throw new Error("Error fetching data.");
+      throw new Error(`Error fetching data: ${error}`);
     }
   }
 
   /**
-   * Attempts to find unspent records in the Aleo blockchain for a specified private key
+   * Fetches data from the Aleo network and returns it as an unparsed string.
+   *
+   * This method should be used when it is desired to reconstitute data returned
+   * from the network into a WASM object.
+   *
+   * @param url
+   */
+  async fetchRaw(
+      url = "/",
+  ): Promise<string> {
+    try {
+      const response = await get(this.host + url, {
+        headers: this.headers
+      });
+      return await response.text();
+    } catch (error) {
+      throw new Error(`Error fetching data: ${error}`);
+    }
+  }
+
+  /**
+   * Attempts to find unspent records in the Aleo blockchain for a specified private key.
    * @param {number} startHeight - The height at which to start searching for unspent records
    * @param {number} endHeight - The height at which to stop searching for unspent records
    * @param {string | PrivateKey} privateKey - The private key to use to find unspent records
@@ -124,7 +148,7 @@ class AleoNetworkClient {
       amounts: number[] | undefined,
       maxMicrocredits?: number | undefined,
       nonces?: string[] | undefined,
-  ): Promise<Array<RecordPlaintext> | Error> {
+  ): Promise<Array<RecordPlaintext>> {
     nonces = nonces || [];
     // Ensure start height is not negative
     if (startHeight < 0) {
@@ -162,10 +186,10 @@ class AleoNetworkClient {
       if (typeof blockHeight === "number") {
         latestHeight = blockHeight;
       } else {
-        throw new Error("Error fetching latest block height.");
+        throw new Error(`Error fetching latest block height: Expected type 'number' got '${typeof blockHeight}'`);
       }
     } catch (error) {
-      throw new Error("Error fetching latest block height.");
+      throw new Error(`Error fetching latest block height: ${error}`);
     }
 
     // If no end height is specified or is greater than the latest height, set the end height to the latest height
@@ -190,83 +214,81 @@ class AleoNetworkClient {
         // Get 50 blocks (or the difference between the start and end if less than 50)
         const blocks = await this.getBlockRange(start, end);
         end = start;
-        if (!(blocks instanceof Error)) {
-          // Iterate through blocks to find unspent records
-          for (let i = 0; i < blocks.length; i++) {
-            const block = blocks[i];
-            const transactions = block.transactions;
-            if (!(typeof transactions === "undefined")) {
-              for (let j = 0; j < transactions.length; j++) {
-                const confirmedTransaction = transactions[j];
-                // Search for unspent records in execute transactions of credits.aleo
-                if (confirmedTransaction.type == "execute") {
-                  const transaction = confirmedTransaction.transaction;
-                  if (transaction.execution && !(typeof transaction.execution.transitions == "undefined")) {
-                    for (let k = 0; k < transaction.execution.transitions.length; k++) {
-                      const transition = transaction.execution.transitions[k];
-                      // Only search for unspent records in credits.aleo (for now)
-                      if (transition.program !== "credits.aleo") {
-                        continue;
-                      }
-                      if (!(typeof transition.outputs == "undefined")) {
-                        for (let l = 0; l < transition.outputs.length; l++) {
-                          const output = transition.outputs[l];
-                          if (output.type === "record") {
-                            try {
-                              // Create a wasm record ciphertext object from the found output
-                              const record = RecordCiphertext.fromString(output.value);
-                              // Determine if the record is owned by the specified view key
-                              if (record.isOwner(viewKey)) {
-                                // Decrypt the record and get the serial number
-                                const recordPlaintext = record.decrypt(viewKey);
+        // Iterate through blocks to find unspent records
+        for (let i = 0; i < blocks.length; i++) {
+          const block = blocks[i];
+          const transactions = block.transactions;
+          if (!(typeof transactions === "undefined")) {
+            for (let j = 0; j < transactions.length; j++) {
+              const confirmedTransaction = transactions[j];
+              // Search for unspent records in execute transactions of credits.aleo
+              if (confirmedTransaction.type == "execute") {
+                const transaction = confirmedTransaction.transaction;
+                if (transaction.execution && !(typeof transaction.execution.transitions == "undefined")) {
+                  for (let k = 0; k < transaction.execution.transitions.length; k++) {
+                    const transition = transaction.execution.transitions[k];
+                    // Only search for unspent records in credits.aleo (for now)
+                    if (transition.program !== "credits.aleo") {
+                      continue;
+                    }
+                    if (!(typeof transition.outputs == "undefined")) {
+                      for (let l = 0; l < transition.outputs.length; l++) {
+                        const output = transition.outputs[l];
+                        if (output.type === "record") {
+                          try {
+                            // Create a wasm record ciphertext object from the found output
+                            const record = RecordCiphertext.fromString(output.value);
+                            // Determine if the record is owned by the specified view key
+                            if (record.isOwner(viewKey)) {
+                              // Decrypt the record and get the serial number
+                              const recordPlaintext = record.decrypt(viewKey);
 
-                                // If the record has already been found, skip it
-                                const nonce = recordPlaintext.nonce();
-                                if (nonces.includes(nonce)) {
-                                  continue;
-                                }
+                              // If the record has already been found, skip it
+                              const nonce = recordPlaintext.nonce();
+                              if (nonces.includes(nonce)) {
+                                continue;
+                              }
 
-                                // Otherwise record the nonce that has been found
-                                const serialNumber = recordPlaintext.serialNumberString(resolvedPrivateKey, "credits.aleo", "credits");
-                                // Attempt to see if the serial number is spent
-                                try {
-                                  await this.getTransitionId(serialNumber);
-                                } catch (error) {
-                                  // If it's not found, add it to the list of unspent records
-                                  if (!amounts) {
-                                    records.push(recordPlaintext);
-                                    // If the user specified a maximum number of microcredits, check if the search has found enough
-                                    if (typeof maxMicrocredits === "number") {
-                                      totalRecordValue += recordPlaintext.microcredits();
-                                      // Exit if the search has found the amount specified
-                                      if (totalRecordValue >= BigInt(maxMicrocredits)) {
-                                        return records;
-                                      }
+                              // Otherwise record the nonce that has been found
+                              const serialNumber = recordPlaintext.serialNumberString(resolvedPrivateKey, "credits.aleo", "credits");
+                              // Attempt to see if the serial number is spent
+                              try {
+                                await this.getTransitionId(serialNumber);
+                              } catch (error) {
+                                // If it's not found, add it to the list of unspent records
+                                if (!amounts) {
+                                  records.push(recordPlaintext);
+                                  // If the user specified a maximum number of microcredits, check if the search has found enough
+                                  if (typeof maxMicrocredits === "number") {
+                                    totalRecordValue += recordPlaintext.microcredits();
+                                    // Exit if the search has found the amount specified
+                                    if (totalRecordValue >= BigInt(maxMicrocredits)) {
+                                      return records;
                                     }
                                   }
-                                  // If the user specified a list of amounts, check if the search has found them
-                                  if (!(typeof amounts === "undefined") && amounts.length > 0) {
-                                    let amounts_found = 0;
-                                    if (recordPlaintext.microcredits() > amounts[amounts_found]) {
-                                        amounts_found += 1;
-                                        records.push(recordPlaintext);
-                                        // If the user specified a maximum number of microcredits, check if the search has found enough
-                                        if (typeof maxMicrocredits === "number") {
-                                          totalRecordValue += recordPlaintext.microcredits();
-                                          // Exit if the search has found the amount specified
-                                          if (totalRecordValue >= BigInt(maxMicrocredits)) {
-                                            return records;
-                                          }
-                                        }
-                                        if (records.length >= amounts.length) {
+                                }
+                                // If the user specified a list of amounts, check if the search has found them
+                                if (!(typeof amounts === "undefined") && amounts.length > 0) {
+                                  let amounts_found = 0;
+                                  if (recordPlaintext.microcredits() > amounts[amounts_found]) {
+                                      amounts_found += 1;
+                                      records.push(recordPlaintext);
+                                      // If the user specified a maximum number of microcredits, check if the search has found enough
+                                      if (typeof maxMicrocredits === "number") {
+                                        totalRecordValue += recordPlaintext.microcredits();
+                                        // Exit if the search has found the amount specified
+                                        if (totalRecordValue >= BigInt(maxMicrocredits)) {
                                           return records;
                                         }
-                                    }
+                                      }
+                                      if (records.length >= amounts.length) {
+                                        return records;
+                                      }
                                   }
                                 }
                               }
-                            } catch (error) {
                             }
+                          } catch (error) {
                           }
                         }
                       }
@@ -292,114 +314,197 @@ class AleoNetworkClient {
   }
 
   /**
-   * Returns the contents of the block at the specified block height
+   * Returns the contents of the block at the specified block height.
    *
-   * @param {number} height
+   * @param {number} blockHeight
    * @example
    * const block = networkClient.getBlock(1234);
    */
-  async getBlock(height: number): Promise<Block | Error> {
+  async getBlock(blockHeight: number): Promise<BlockJSON> {
     try {
-      const block = await this.fetchData<Block>("/block/" + height);
+      const block = await this.fetchData<BlockJSON>("/block/" + blockHeight);
       return block;
     } catch (error) {
-      throw new Error("Error fetching block.");
+      throw new Error(`Error fetching block ${blockHeight}: ${error}`);
     }
   }
 
   /**
-   * Returns a range of blocks between the specified block heights
+   * Returns the contents of the block with the specified hash.
+   * 
+   * @param {string} blockHash
+   * @example
+   * const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
+   */
+  async getBlockByHash(blockHash: string): Promise<BlockJSON> {
+      try {
+        const block = await this.fetchData<BlockJSON>(`/block/${blockHash}`);
+        return block;
+      } catch (error) {
+        throw new Error(`Error fetching block ${blockHash}: ${error}`);
+      }
+  }
+
+  /**
+   * Returns a range of blocks between the specified block heights.
    *
    * @param {number} start
    * @param {number} end
    * @example
    * const blockRange = networkClient.getBlockRange(2050, 2100);
    */
-  async getBlockRange(start: number, end: number): Promise<Array<Block> | Error> {
+  async getBlockRange(start: number, end: number): Promise<Array<BlockJSON>> {
     try {
-      return await this.fetchData<Array<Block>>("/blocks?start=" + start + "&end=" + end);
-    } catch (error) {
-      const errorMessage = "Error fetching blocks between " + start + " and " + end + "."
-      throw new Error(errorMessage);
+      return await this.fetchData<Array<BlockJSON>>("/blocks?start=" + start + "&end=" + end);
+    } catch (error) {;
+      throw new Error(`Error fetching blocks between ${start} and ${end}: ${error}`);
     }
   }
 
   /**
-   * Returns the deployment transaction id associated with the specified program
+   * Returns the deployment transaction id associated with the specified program.
    *
    * @param {Program | string} program
-   * @returns {TransactionModel | Error}
+   * @returns {TransactionJSON}
    */
-  async getDeploymentTransactionIDForProgram(program: Program | string): Promise<string | Error> {
+  async getDeploymentTransactionIDForProgram(program: Program | string): Promise<string> {
     if (program instanceof Program) {
-      program = program.toString();
+      program = program.id();
     }
     try {
       const id = await this.fetchData<string>("/find/transactionID/deployment/" + program);
       return id.replace("\"", "")
     } catch (error) {
-      throw new Error("Error fetching deployment transaction for program.");
+      throw new Error(`Error fetching deployment transaction for program ${program}: ${error}`);
     }
   }
 
   /**
-   * Returns the deployment transaction associated with a specified program
+   * Returns the deployment transaction associated with a specified program.
    *
    * @param {Program | string} program
-   * @returns {TransactionModel | Error}
+   * @returns {TransactionJSON}
    */
-  async getDeploymentTransactionForProgram(program: Program | string): Promise<TransactionModel | Error> {
+  async getDeploymentTransactionForProgram(program: Program | string): Promise<TransactionJSON> {
+    if (program instanceof Program) {
+      program = program.id();
+    }
     try {
       const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
-      return <TransactionModel>await this.getTransaction(transaction_id);
+      return <TransactionJSON>await this.getTransaction(transaction_id);
     } catch (error) {
-      throw new Error("Error fetching deployment transaction for program.");
+      throw new Error(`Error fetching deployment transaction for program ${program}: ${error}`);
     }
   }
 
   /**
-   * Returns the contents of the latest block
+   * Returns the deployment transaction associated with a specified program as a wasm object.
+   *
+   * @param {Program | string} program
+   * @returns {TransactionJSON}
+   */
+  async getDeploymentTransactioObjectnForProgram(program: Program | string): Promise<Transaction> {
+    if (program instanceof Program) {
+      program = program.id();
+    }
+    try {
+      const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
+      return await this.getTransactionObject(transaction_id);
+    } catch (error) {
+      throw new Error(`Error fetching deployment transaction for program ${program}: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the deployment transaction associated with a specified program as a wasm object.
+   *
+   * @param {Program | string} program
+   * @returns {TransactionJSON}
+   */
+  async getDeploymentTransactionObjectForProgram(program: Program | string): Promise<Transaction> {
+    try {
+      const transaction_id = <string>await this.getDeploymentTransactionIDForProgram(program);
+      return await this.getTransactionObject(transaction_id);
+    } catch (error) {
+      throw new Error(`Error fetching deployment transaction for program ${program}: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the contents of the latest block.
    *
    * @example
    * const latestHeight = networkClient.getLatestBlock();
    */
-  async getLatestBlock(): Promise<Block | Error> {
+  async getLatestBlock(): Promise<BlockJSON> {
     try {
-      return await this.fetchData<Block>("/latest/block") as Block;
+      return await this.fetchData<BlockJSON>("/block/latest") as BlockJSON;
     } catch (error) {
-      throw new Error("Error fetching latest block.");
+      throw new Error(`Error fetching latest block: ${error}`);
     }
   }
 
   /**
-   * Returns the latest committee
+   * Returns the latest committee.
    *
    * @returns {Promise<object>} A javascript object containing the latest committee
    */
-  async getLatestCommittee(): Promise<object | Error> {
+  async getLatestCommittee(): Promise<object> {
     try {
       return await this.fetchData<object>("/committee/latest");
     } catch (error) {
-      throw new Error("Error fetching latest block.");
+      throw new Error(`Error fetching latest committee: ${error}`);
     }
   }
 
   /**
-   * Returns the latest block height
+   * Returns the committe at the specified block height.
+   * 
+   * @param {number} blockHeight
+   * 
+   * @returns {Promise<object>} A javascript object containing the committee
+   * 
+   * @example
+   * const committee = await networkClient.getCommitteByBlockHeight(1234);
+   */
+  async getCommitteeByBlockHeight(blockHeight: number): Promise<object> {
+    try {
+      return await this.fetchData<object>(`/committee/${blockHeight}`);
+    } catch (error) {
+      throw new Error(`Error fetching committee at height ${blockHeight}: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the latest block height.
    *
    * @example
    * const latestHeight = networkClient.getLatestHeight();
    */
-  async getLatestHeight(): Promise<number | Error> {
+  async getLatestHeight(): Promise<number> {
     try {
-      return await this.fetchData<number>("/latest/height");
+      return Number(await this.fetchData<bigint>("/block/height/latest"));
     } catch (error) {
-      throw new Error("Error fetching latest height.");
+      throw new Error(`Error fetching latest height: ${error}`);
     }
   }
 
   /**
-   * Returns the source code of a program given a program ID
+   * Returns the latest block hash.
+   * 
+   * @example
+   * const latestHash - newtworkClient.getLatestBlockHash();
+   */
+  async getLatestBlockHash(): Promise<string> {
+    try {
+      return String(await this.fetchData<string>("/block/hash/latest"));
+    } catch (error) {
+      throw new Error(`Error fetching latest hash: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the source code of a program given a program ID.
    *
    * @param {string} programId The program ID of a program deployed to the Aleo Network
    * @return {Promise<string>} Source code of the program
@@ -409,19 +514,19 @@ class AleoNetworkClient {
    * const expectedSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
    * assert.equal(program, expectedSource);
    */
-  async getProgram(programId: string): Promise<string | Error> {
+  async getProgram(programId: string): Promise<string> {
     try {
       return await this.fetchData<string>("/program/" + programId)
     } catch (error) {
-      throw new Error("Error fetching program");
+      throw new Error(`Error fetching program ${programId}: ${error}`);
     }
   }
 
   /**
-   * Returns a program object from a program ID or program source code
+   * Returns a program object from a program ID or program source code.
    *
    * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
-   * @return {Promise<Program | Error>} Source code of the program
+   * @return {Promise<Program>} Source code of the program
    *
    * @example
    * const programID = "hello_hello.aleo";
@@ -434,14 +539,14 @@ class AleoNetworkClient {
    * // Both program objects should be equal
    * assert.equal(programObjectFromID.to_string(), programObjectFromSource.to_string());
    */
-  async getProgramObject(inputProgram: string): Promise<Program | Error> {
+  async getProgramObject(inputProgram: string): Promise<Program> {
     try {
       return Program.fromString(inputProgram);
     } catch (error) {
       try {
         return Program.fromString(<string>(await this.getProgram(inputProgram)));
       } catch (error) {
-        throw new Error(`${inputProgram} is neither a program name or a valid program`);
+        throw new Error(`${inputProgram} is neither a program name or a valid program: ${error}`);
       }
     }
   }
@@ -471,7 +576,7 @@ class AleoNetworkClient {
    * programImports = await networkClient.getProgramImports(double_test);
    * assert.deepStrictEqual(programImports, expectedImports);
    */
-  async getProgramImports(inputProgram: Program | string): Promise<ProgramImports | Error> {
+  async getProgramImports(inputProgram: Program | string): Promise<ProgramImports> {
     try {
       const imports: ProgramImports = {};
 
@@ -496,13 +601,13 @@ class AleoNetworkClient {
         }
       }
       return imports;
-    } catch (error) {
-      throw logAndThrow("Error fetching program imports: " + error)
+    } catch (error: any) {
+      logAndThrow("Error fetching program imports: " + error.message);
     }
   }
 
   /**
-   * Get a list of the program names that a program imports
+   * Get a list of the program names that a program imports.
    *
    * @param {Program | string} inputProgram - The program id or program source code to get the imports of
    * @returns {string[]} - The list of program names that the program imports
@@ -512,17 +617,17 @@ class AleoNetworkClient {
    * const expectedImportsNames = ["multiply_test.aleo"];
    * assert.deepStrictEqual(programImportsNames, expectedImportsNames);
    */
-  async getProgramImportNames(inputProgram: Program | string): Promise<string[] | Error> {
+  async getProgramImportNames(inputProgram: Program | string): Promise<string[]> {
     try {
       const program = inputProgram instanceof Program ? inputProgram : <Program>(await this.getProgramObject(inputProgram));
       return program.getImports();
-    } catch (error) {
-      throw new Error("Error fetching program imports with error: " + error);
+    } catch (error: any) {
+      throw new Error(`Error fetching imports for program ${inputProgram instanceof Program ? inputProgram.id() : inputProgram}: ${error.message}`);
     }
   }
 
   /**
-   * Returns the names of the mappings of a program
+   * Returns the names of the mappings of a program.
    *
    * @param {string} programId - The program ID to get the mappings of (e.g. "credits.aleo")
    * @example
@@ -530,20 +635,20 @@ class AleoNetworkClient {
    * const expectedMappings = ["account"];
    * assert.deepStrictEqual(mappings, expectedMappings);
    */
-  async getProgramMappingNames(programId: string): Promise<Array<string> | Error> {
+  async getProgramMappingNames(programId: string): Promise<Array<string>> {
     try {
-      return await this.fetchData<Array<string>>("/program/" + programId + "/mappings")
+      return await this.fetchData<Array<string>>(`/program/${programId}/mappings`)
     } catch (error) {
-      throw new Error("Error fetching program mappings - ensure the program exists on chain before trying again");
+      throw new Error(`Error fetching mappings for program ${programId} - ensure the program exists on chain before trying again`);
     }
   }
 
   /**
-   * Returns the value of a program's mapping for a specific key
+   * Returns the value of a program's mapping for a specific key.
    *
    * @param {string} programId - The program ID to get the mapping value of (e.g. "credits.aleo")
    * @param {string} mappingName - The name of the mapping to get the value of (e.g. "account")
-   * @param {string} key - The key of the mapping to get the value of (e.g. "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
+   * @param {string | Plaintext} key - The key of the mapping to get the value of (e.g. "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
    * @return {Promise<string>} String representation of the value of the mapping
    *
    * @example
@@ -552,69 +657,198 @@ class AleoNetworkClient {
    * const expectedValue = "0u64";
    * assert.equal(mappingValue, expectedValue);
    */
-  async getProgramMappingValue(programId: string, mappingName: string, key: string): Promise<string | Error> {
+  async getProgramMappingValue(programId: string, mappingName: string, key: string | Plaintext): Promise<string> {
     try {
-      return await this.fetchData<string>("/program/" + programId + "/mapping/" + mappingName + "/" + key)
+      const keyString = key instanceof Plaintext ? key.toString() : key;
+      return await this.fetchData<string>(`/program/${programId}/mapping/${mappingName}/${keyString}`);
     } catch (error) {
-      throw new Error("Error fetching mapping value - ensure the mapping exists and the key is correct");
+      throw new Error(`Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct`);
+    }
+  }
+
+
+  /**
+   * Returns the value of a mapping as a wasm Plaintext object. Returning an
+   * object in this format allows it to be converted to a Js type and for its
+   * internal members to be inspected if it's a struct or array.
+   *
+   * @example
+   * // Get the bond state as an account.
+   * const unbondedState = networkClient.getMappingPlaintext("credits.aleo", "bonded", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+   *
+   * // Get the two members of the object individually.
+   * const validator = unbondedState.getMember("validator");
+   * const microcredits = unbondedState.getMember("microcredits");
+   *
+   * // Ensure the expected values are correct.
+   * assert.equal(validator, "aleo1u6940v5m0fzud859xx2c9tj2gjg6m5qrd28n636e6fdd2akvfcgqs34mfd");
+   * assert.equal(microcredits, BigInt("9007199254740991"));
+   *
+   * // Get a JS object representation of the unbonded state.
+   * const unbondedStateObject = unbondedState.toObject();
+   *
+   * const expectedState = {
+   *     validator: "aleo1u6940v5m0fzud859xx2c9tj2gjg6m5qrd28n636e6fdd2akvfcgqs34mfd",
+   *     microcredits: BigInt("9007199254740991")
+   * };
+   * assert.equal(unbondedState, expectedState);
+   *
+   * @param {string} programId - The program ID to get the mapping value of (e.g. "credits.aleo")
+   * @param {string} mappingName - The name of the mapping to get the value of (e.g. "account")
+   * @param {string | Plaintext} key - The key of the mapping to get the value of (e.g. "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
+   *
+   * @return {Promise<string>} String representation of the value of the mapping
+   */
+  async getProgramMappingPlaintext(programId: string, mappingName: string, key: string | Plaintext): Promise<Plaintext> {
+    try {
+      const keyString = key instanceof Plaintext ? key.toString() : key;
+      const value = await this.fetchRaw(`/program/${programId}/mapping/${mappingName}/${keyString}`);
+      return Plaintext.fromString(JSON.parse(value));
+    } catch (error) {
+      throw new Error("Failed to fetch mapping value." + error);
     }
   }
 
   /**
-   * Returns the latest state/merkle root of the Aleo blockchain
-   *
+   * Returns the public balance of an address from the account mapping in credits.aleo
+   * 
+   * @param {string} address
+   * 
+   * @example
+   * const account = new Account();
+   * const publicBalance = networkClient.getPublicBalance(account.address());
+   */
+  async getPublicBalance(address: Address): Promise<number> {
+    try {
+      const balanceStr = await this.getProgramMappingValue('credits.aleo', 'account', address.to_string());
+      return balanceStr ? parseInt(balanceStr) : 0;
+    } catch (error) {
+      throw new Error(`Error fetching public balance for ${address}: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the latest state/merkle root of the Aleo blockchain.
+   * 
    * @example
    * const stateRoot = networkClient.getStateRoot();
    */
-  async getStateRoot(): Promise<string | Error> {
+  async getStateRoot(): Promise<string> {
     try {
-      return await this.fetchData<string>("/latest/stateRoot");
+      return await this.fetchData<string>('/stateRoot/latest');
     } catch (error) {
-      throw new Error("Error fetching Aleo state root");
+      throw new Error(`Error fetching latest state root: ${error}`);
     }
   }
 
   /**
-   * Returns a transaction by its unique identifier
+   * Returns a transaction by its unique identifier.
    *
-   * @param {string} id
+   * @param {string} transactionId
    * @example
    * const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
    */
-  async getTransaction(id: string): Promise<TransactionModel | Error> {
+  async getTransaction(transactionId: string): Promise<TransactionJSON> {
     try {
-    return await this.fetchData<TransactionModel>("/transaction/" + id);
+    return await this.fetchData<TransactionJSON>("/transaction/" + transactionId);
     } catch (error) {
-      throw new Error("Error fetching transaction.");
+      throw new Error(`Error fetching transaction ${transactionId}: ${error}`);
     }
   }
 
   /**
-   * Returns the transactions present at the specified block height
+   * Returns a confirmed transaction by its unique identifier.
+   * 
+   * @param {string} transactionId
+   * @example
+   * const transaction = networkClient.getConfirmedTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+   */
+  async getConfirmedTransaction(transactionId: string): Promise<ConfirmedTransactionJSON> {
+    try {
+      return await this.fetchData<ConfirmedTransactionJSON>(`/transaction/confirmed/${transactionId}`);
+    } catch (error) {
+      throw new Error(`Error fetching confirmed transaction ${transactionId}: ${error}`);
+    }
+  }
+
+  /**
+   * Returns a transaction as a wasm object. Getting a transaction of this type will allow the ability for the inputs,
+   * outputs, and records to be searched for and displayed.
    *
-   * @param {number} height
+   * @example
+   * const transactionObject = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+   * // Get the transaction inputs as a JS array.
+   * const transactionOutputs = transactionObject.inputs(true);
+   *
+   * // Get the transaction outputs as a JS object.
+   * const transactionInputs = transactionObject.outputs(true);
+   *
+   * // Get any records generated in transitions in the transaction as a JS object.
+   * const records = transactionObject.records();
+   *
+   * // Get the transaction type.
+   * const transactionType = transactionObject.transactionType();
+   * assert.equal(transactionType, "Execute");
+   *
+   * // Get a JS representation of all inputs, outputs, and transaction metadata.
+   * const transactionSummary = transactionObject.summary();
+   *
+   * @param {string} transactionId
+   * @example
+   * const transaction = networkClient.getTransactionObject("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+   */
+  async getTransactionObject(transactionId: string): Promise<Transaction> {
+    try {
+      const transaction = await this.fetchRaw("/transaction/" + transactionId);
+      return Transaction.fromString(transaction);
+    } catch (error) {
+      throw new Error(`Error fetching transaction object ${transactionId}: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the transactions present at the specified block height.
+   *
+   * @param {number} blockHeight
    * @example
    * const transactions = networkClient.getTransactions(654);
    */
-  async getTransactions(height: number): Promise<Array<TransactionModel> | Error> {
+  async getTransactions(blockHeight: number): Promise<Array<ConfirmedTransactionJSON>> {
     try {
-    return await this.fetchData<Array<TransactionModel>>("/block/" + height.toString() + "/transactions");
+      return await this.fetchData<Array<ConfirmedTransactionJSON>>("/block/" + blockHeight.toString() + "/transactions");
     } catch (error) {
-      throw new Error("Error fetching transactions.");
+      throw new Error(`Error fetching transactions: ${error}`);
     }
   }
 
   /**
-   * Returns the transactions in the memory pool.
+   * Returns the confirmed transactions present in the block with the specified block hash.
+   * 
+   * @param {string} blockHash
+   * @example
+   * const transactions = networkClient.getTransactionsByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
+   */
+  async getTransactionsByBlockHash(blockHash: string): Promise<Array<ConfirmedTransactionJSON>> {
+    try {
+      const block = await this.fetchData<BlockJSON>(`/block/${blockHash}`);
+      const height = block.header.metadata.height;
+      return await this.getTransactions(height);
+    } catch (error) {
+      throw new Error(`Error fetching transactions for block ${blockHash}: ${error}`);
+    }
+  }
+
+  /**
+   * Returns the transactions in the memory pool. This method requires access to a validator's REST API.
    *
    * @example
    * const transactions = networkClient.getTransactionsInMempool();
    */
-  async getTransactionsInMempool(): Promise<Array<TransactionModel> | Error> {
+  async getTransactionsInMempool(): Promise<Array<TransactionJSON>> {
     try {
-      return await this.fetchData<Array<TransactionModel>>("/memoryPool/transactions");
+      return await this.fetchData<Array<TransactionJSON>>("/memoryPool/transactions");
     } catch (error) {
-      throw new Error("Error fetching transactions from mempool.");
+      throw new Error(`Error fetching transactions from mempool: ${error}`);
     }
   }
 
@@ -625,21 +859,21 @@ class AleoNetworkClient {
    * @example
    * const transitionId = networkClient.getTransitionId("2429232855236830926144356377868449890830704336664550203176918782554219952323field");
    */
-  async getTransitionId(inputOrOutputID: string): Promise<string | Error> {
+  async getTransitionId(inputOrOutputID: string): Promise<string> {
     try {
       return await this.fetchData<string>("/find/transitionID/" + inputOrOutputID);
     } catch (error) {
-      throw new Error("Error fetching transition ID.");
+      throw new Error(`Error fetching transition ID for input/output ${inputOrOutputID}: ${error}`);
     }
   }
 
   /**
-   * Submit an execute or deployment transaction to the Aleo network
+   * Submit an execute or deployment transaction to the Aleo network.
    *
    * @param {Transaction | string} transaction  - The transaction to submit to the network
-   * @returns {string | Error} - The transaction id of the submitted transaction or the resulting error
+   * @returns {string} - The transaction id of the submitted transaction or the resulting error
    */
-  async submitTransaction(transaction: Transaction | string): Promise<string | Error> {
+  async submitTransaction(transaction: Transaction | string): Promise<string> {
     const transaction_string = transaction instanceof Transaction ? transaction.toString() : transaction;
     try {
       const response = await post(this.host + "/transaction/broadcast", {
@@ -650,13 +884,40 @@ class AleoNetworkClient {
       });
 
       try {
-        return await response.json();
+        const text = await response.text();
+        return parseJSON(text);
 
-      } catch (error) {
-        throw new Error(`Error posting transaction. Aleo network response: ${(error as Error).message}`);
+      } catch (error: any) {
+        throw new Error(`Error posting transaction. Aleo network response: ${error.message}`);
       }
-    } catch (error) {
-      throw new Error(`Error posting transaction: No response received: ${(error as Error).message}`);
+    } catch (error: any) {
+      throw new Error(`Error posting transaction: No response received: ${error.message}`);
+    }
+  }
+
+  /**
+   * Submit a solution to the Aleo network.
+   *
+   * @param {string} solution The string representation of the solution desired to be submitted to the network.
+   */
+  async submitSolution(solution: string): Promise<string> {
+    try {
+      const response = await post(this.host + "/solution/broadcast", {
+        body: solution,
+        headers: Object.assign({}, this.headers, {
+          "Content-Type": "application/json",
+        }),
+      });
+
+      try {
+        const text = await response.text();
+        return parseJSON(text);
+
+      } catch (error: any) {
+        throw new Error(`Error posting transaction. Aleo network response: ${error.message}`);
+      }
+    } catch (error: any) {
+      throw new Error(`Error posting transaction: No response received: ${error.message}`);
     }
   }
 }

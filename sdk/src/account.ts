@@ -5,7 +5,7 @@ import {
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
-} from "./index";
+} from "./wasm";
 
 interface AccountParam {
   privateKey?: string;
@@ -61,7 +61,7 @@ export class Account {
    * Attempts to create an account from a private key ciphertext
    * @param {PrivateKeyCiphertext | string} ciphertext
    * @param {string} password
-   * @returns {PrivateKey | Error}
+   * @returns {PrivateKey}
    *
    * @example
    * const ciphertext = PrivateKey.newEncrypted("password");
@@ -149,7 +149,7 @@ export class Account {
    *
    * @example
    * // Create a connection to the Aleo network and an account
-   * const connection = new NodeConnection("vm.aleo.org/api");
+   * const connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
    * const account = Account.fromCiphertext("ciphertext", "password");
    *
    * // Get a record from the network

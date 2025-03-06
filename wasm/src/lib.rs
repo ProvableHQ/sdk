@@ -16,7 +16,7 @@
 
 //!
 //! [![Crates.io](https://img.shields.io/crates/v/aleo-wasm.svg?color=neon)](https://crates.io/crates/aleo-wasm)
-//! [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+//! [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://provable.com)
 //! [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 //!
 //! [![github]](https://github.com/ProvableHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)
@@ -41,7 +41,7 @@
 //! * Aleo primitives such as `Records`, `Programs`, and `Transactions` and their associated helper methods
 //! * A `ProgramManager` object that contains methods for authoring, deploying, and interacting with Aleo programs
 //!
-//! More information on these concepts can be found at the [Aleo Developer Hub](https://developer.aleo.org/concepts).
+//! More information on these concepts can be found at the [Aleo Developer Hub](https://docs.leo-lang.org/concepts).
 //!
 //! ## Usage
 //! The [wasm-pack](https://crates.io/crates/wasm-pack) tool is used to compile the Rust code in this crate into JavaScript
@@ -155,6 +155,9 @@
 pub mod account;
 pub use account::*;
 
+pub mod ledger;
+pub use ledger::*;
+
 pub mod programs;
 pub use programs::*;
 
@@ -162,7 +165,7 @@ pub mod record;
 pub use record::*;
 
 pub mod types;
-pub use types::Field;
+pub use types::{Field, Group, Scalar};
 
 #[cfg(not(test))]
 mod thread_pool;
@@ -195,6 +198,28 @@ extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     pub fn log(s: &str);
 }
+
+#[macro_export]
+macro_rules! array {
+        ($($value:expr),*$(,)?) => {{
+            let array = ::js_sys::Array::new();
+
+            $(array.push(&::wasm_bindgen::JsValue::from($value));)*
+
+            array
+        }};
+    }
+
+#[macro_export]
+macro_rules! object {
+        ($($key:literal: $value:expr,)*) => {{
+            let object = ::js_sys::Object::new();
+
+            $(Reflect::set(&object, &::wasm_bindgen::JsValue::from_str($key), &::wasm_bindgen::JsValue::from($value)).unwrap();)*
+
+            object
+        }};
+    }
 
 /// A trait providing convenient methods for accessing the amount of Aleo present in a record
 pub trait Credits {

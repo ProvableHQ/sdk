@@ -113,7 +113,7 @@ export class AleoNetworkClient {
    */
   async getLatestBlock(): Promise&lt;Block | Error> {
     try {
-      return await this.fetchData&lt;Block>("/latest/block") as Block;
+      return await this.fetchData&lt;Block>("/block/latest") as Block;
     } catch (error) {
       throw new Error("Error fetching latest block.");
     }
@@ -127,7 +127,7 @@ export class AleoNetworkClient {
    */
   async getLatestHash(): Promise&lt;string | Error> {
     try {
-      return await this.fetchData&lt;string>("/latest/hash");
+      return await this.fetchData&lt;string>("/block/hash/latest");
     } catch (error) {
       throw new Error("Error fetching latest hash.");
     }
@@ -141,7 +141,7 @@ export class AleoNetworkClient {
    */
   async getLatestHeight(): Promise&lt;number | Error> {
     try {
-      return await this.fetchData&lt;number>("/latest/height");
+      return await this.fetchData&lt;number>("/block/height/latest");
     } catch (error) {
       throw new Error("Error fetching latest height.");
     }
@@ -155,7 +155,7 @@ export class AleoNetworkClient {
    */
   async getStateRoot(): Promise&lt;string | Error> {
     try {
-      return await this.fetchData&lt;string>("/latest/stateRoot");
+      return await this.fetchData&lt;string>("/stateRoot/latest");
     } catch (error) {
       throw new Error("Error fetching Aleo state root");
     }

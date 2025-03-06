@@ -41,7 +41,7 @@ impl KeyPair {
 
     /// Get the proving key. This method will remove the proving key from the key pair
     ///
-    /// @returns {ProvingKey | Error}
+    /// @returns {ProvingKey}
     #[wasm_bindgen(js_name = "provingKey")]
     pub fn proving_key(&mut self) -> Result<ProvingKey, String> {
         self.proving_key.take().ok_or("Proving key has already been removed".to_string())
@@ -49,7 +49,7 @@ impl KeyPair {
 
     /// Get the verifying key. This method will remove the verifying key from the key pair
     ///
-    /// @returns {VerifyingKey | Error}
+    /// @returns {VerifyingKey}
     #[wasm_bindgen(js_name = "verifyingKey")]
     pub fn verifying_key(&mut self) -> Result<VerifyingKey, String> {
         self.verifying_key.take().ok_or("Proving key has already been removed".to_string())

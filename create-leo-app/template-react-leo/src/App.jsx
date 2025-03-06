@@ -34,7 +34,7 @@ function App() {
     try {
       const result = await aleoWorker.deployProgram(helloworld_program);
       console.log("Transaction:")
-      console.log("https://explorer.hamp.app/transaction?id=" + result)
+      console.log("https://explorer.provable.com/transaction/" + result)
       alert("Transaction ID: " + result);
     } catch (e) {
       console.log(e)
@@ -46,7 +46,7 @@ function App() {
   return (
     <>
       <div>
-        <a href="https://aleo.org" target="_blank">
+        <a href="https://provable.com" target="_blank">
           <img src={aleoLogo} className="logo" alt="Aleo logo" />
         </a>
         <a href="https://react.dev" target="_blank">

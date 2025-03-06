@@ -239,7 +239,7 @@ export const Execute = () => {
 
     return (
         <>
-       
+
         <NewAccount />
 
         <br/>
@@ -343,7 +343,7 @@ export const Execute = () => {
                                 <Form.Item
                                     label="Peer URL"
                                     name="peer_url"
-                                    initialValue="https://api.explorer.aleo.org/v1"
+                                    initialValue="https://api.explorer.provable.com/v1"
                                     hidden={!getFieldValue("execute_onchain")}
                                 >
                                     <Input />

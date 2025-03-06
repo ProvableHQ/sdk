@@ -8,7 +8,7 @@ const Homepage = () => {
         <div className="homepage">
             <Link to="https://provable.com/">
                 <img
-                    src="../public/primary-wordmark-dark.png"
+                    src="../public/provable-logo-light.svg"
                     className="logo"
                 ></img>
             </Link>
@@ -18,7 +18,7 @@ const Homepage = () => {
                     The tooling for building zero-knowledge applications at your
                     fingertips
                 </p>{" "}
-                <div className="buttonRow"> 
+                <div className="buttonRow">
                 <Link
                     target="_blank"
                     rel="noopener noreferrer"
@@ -32,14 +32,14 @@ const Homepage = () => {
                 <Link
                     target="_blank"
                     rel="noopener noreferrer"
-                    to="https://developer.aleo.org/sdk/"
+                    to="https://docs.explorer.provable.com/docs/sdk"
                 >
                     <button className="button">
                         {" "}
                         See Docs <span className="arrow">&rarr;</span>{" "}
                     </button>
                 </Link>{" "}
-                </div> 
+                </div>
                 <ul className="actionRow">
                     <Link to="/account" className="actionItem">
                         {" "}
@@ -82,7 +82,7 @@ const Homepage = () => {
                     <Link to="/privacy_policy" style={{ color: "white", textDecoration: "none"}}>
                         <span>Privacy Policy</span>
                     </Link>
-                    © 2024 Provable Inc.
+                    © 2025 Provable Inc.
                 </div>
             </div>
         </div>

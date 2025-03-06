@@ -17,14 +17,14 @@
 use super::*;
 
 use crate::{
-    execute_fee,
-    execute_program,
-    log,
-    process_inputs,
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
     Transaction,
+    execute_fee,
+    execute_program,
+    log,
+    process_inputs,
 };
 
 use crate::types::native::{
@@ -35,7 +35,7 @@ use crate::types::native::{
     RecordPlaintextNative,
     TransactionNative,
 };
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use std::{ops::Add, str::FromStr};
 use wasm_bindgen::JsValue;
 
@@ -55,7 +55,7 @@ impl ProgramManager {
     /// function
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
-    /// @returns {Transaction | Error}
+    /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildTransferTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn transfer(

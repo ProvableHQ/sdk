@@ -48,7 +48,7 @@ impl ProvingKey {
     /// Construct a new proving key from a byte array
     ///
     /// @param {Uint8Array} bytes Byte array representation of a proving key
-    /// @returns {ProvingKey | Error}
+    /// @returns {ProvingKey}
     #[wasm_bindgen(js_name = "fromBytes")]
     pub fn from_bytes(bytes: &[u8]) -> Result<ProvingKey, String> {
         Ok(Self(ProvingKeyNative::from_bytes_le(bytes).map_err(|e| e.to_string())?))
@@ -56,7 +56,7 @@ impl ProvingKey {
 
     /// Create a proving key from string
     ///
-    /// @param {string | Error} String representation of the proving key
+    /// @param {string} String representation of the proving key
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(string: &str) -> Result<ProvingKey, String> {
         Ok(Self(ProvingKeyNative::from_str(string).map_err(|e| e.to_string())?))
@@ -64,7 +64,7 @@ impl ProvingKey {
 
     /// Return the byte representation of a proving key
     ///
-    /// @returns {Uint8Array | Error} Byte array representation of a proving key
+    /// @returns {Uint8Array} Byte array representation of a proving key
     #[wasm_bindgen(js_name = "toBytes")]
     pub fn to_bytes(&self) -> Result<Vec<u8>, String> {
         self.0.to_bytes_le().map_err(|_| "Failed to serialize proving key".to_string())
@@ -76,7 +76,7 @@ impl ProvingKey {
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
-        format!("{:?}", self.0)
+        self.0.to_string()
     }
 }
 
@@ -127,10 +127,13 @@ mod tests {
             ProvingKey::from_string(&transfer_public_proving_key_string).unwrap();
         assert_eq!(key, transfer_public_proving_key_from_string);
 
+        #[cfg(feature = "testnet")]
+        let checksum = "846f86cabf9fa50e5abe347e559a8e9f3018459b5af9fdf52f1c44892b05f7e5";
+
+        #[cfg(feature = "mainnet")]
+        let checksum = "f8e5f6437b945174b62313ece8a1c9dcbeac5dfff5b0fef2e968c9b92f86da06";
+
         let transfer_public_proving_key_checksum = key.checksum();
-        assert_eq!(
-            transfer_public_proving_key_checksum,
-            "846f86cabf9fa50e5abe347e559a8e9f3018459b5af9fdf52f1c44892b05f7e5"
-        );
+        assert_eq!(transfer_public_proving_key_checksum, checksum);
     }
 }

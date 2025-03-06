@@ -6,6 +6,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
     ApiOutlined,
     CodeOutlined,
+    PlusOutlined,
     ProfileOutlined,
     SwapOutlined,
     ToolOutlined,
@@ -22,8 +23,8 @@ const menuItems = [
         icon: <UserOutlined />,
     },
     {
-        label: <Link to="/record">Record</Link>,
-        key: "/record",
+        label: <Link to="/protocol">Protocol</Link>,
+        key: "/protocol",
         icon: <ProfileOutlined />,
     },
     {
@@ -45,6 +46,11 @@ const menuItems = [
         label: <Link to="/transfer">Transfer</Link>,
         key: "transfer",
         icon: <SwapOutlined />,
+    },
+    {
+        label: <Link to="/algebra">Algebra</Link>,
+        key: "algebra",
+        icon: <PlusOutlined />,
     },
 ];
 function Main() {
@@ -116,7 +122,7 @@ function Main() {
                             <Link to="/terms_of_use" style={{color: "white"}}> <span>Terms of Use</span> </Link>
                             <Link to="/privacy_policy" style={{color:"white"}}><span>Privacy Policy</span></Link>
                          
-                            © 2024 Provable Inc.
+                            © 2025 Provable Inc.
                         </Footer>
                     </Layout>
                 </Layout>

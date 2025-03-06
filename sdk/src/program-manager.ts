@@ -1,27 +1,40 @@
+import { Account } from "./account";
+import { AleoNetworkClient, ProgramImports } from "./network-client";
+
 import {
-    Account,
-    AleoKeyProvider,
-    AleoNetworkClient,
-    ExecutionResponse,
-    FunctionKeyProvider,
-    FunctionKeyPair,
-    OfflineQuery,
-    KeySearchParams,
-    RecordPlaintext,
     RecordProvider,
     RecordSearchParams,
+} from "./record-provider";
+
+import {
+    AleoKeyProvider,
+    AleoKeyProviderParams,
+    FunctionKeyPair,
+    FunctionKeyProvider,
+    KeySearchParams,
+} from "./function-key-provider";
+
+import {
+    ExecutionResponse,
+    Execution as FunctionExecution,
+    OfflineQuery,
+    RecordPlaintext,
     PrivateKey,
     Program,
-    ProgramImports,
     ProvingKey,
     VerifyingKey,
     Transaction,
+    ProgramManager as WasmProgramManager,
+    verifyFunctionExecution,
+} from "./wasm";
+
+import {
+    CREDITS_PROGRAM_KEYS,
     PRIVATE_TRANSFER_TYPES,
     VALID_TRANSFER_TYPES,
-    logAndThrow,
-    ProgramManagerBase as WasmProgramManager, verifyFunctionExecution, AleoKeyProviderParams, CREDITS_PROGRAM_KEYS,
-} from "./index";
-import {Execution} from "@provablehq/wasm/dist/crates/aleo_wasm";
+} from "./constants";
+
+import { logAndThrow } from "./utils";
 
 /**
  * Represents the options for executing a transaction in the Aleo network.
@@ -76,9 +89,9 @@ class ProgramManager {
      * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
      */
     constructor(host?: string | undefined, keyProvider?: FunctionKeyProvider | undefined, recordProvider?: RecordProvider | undefined) {
-        this.host = host ? host : 'https://api.explorer.aleo.org/v1';
+        this.host = host ? host : 'https://api.explorer.provable.com/v1';
         this.networkClient = new AleoNetworkClient(this.host);
-        
+
         this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
         this.recordProvider = recordProvider;
     }
@@ -121,7 +134,7 @@ class ProgramManager {
     }
 
     /**
-     * Deploy an Aleo program to the Aleo network
+     * Builds a deployment transaction for submission to the Aleo network.
      *
      * @param {string} program Program source code
      * @param {number} fee Fee to pay for the transaction
@@ -130,35 +143,32 @@ class ProgramManager {
      * pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
-     * @returns {string | Error} The transaction id of the deployed program or a failure message from the network
+     * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Define a fee in credits
      * const fee = 1.2;
      *
-     * // Deploy the program
-     * const tx_id = await programManager.deploy(program, fee);
-     *
-     * // Verify the transaction was successful
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     * // Create the deployment transaction.
+     * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
      */
-    async deploy(
+    async buildDeploymentTransaction(
         program: string,
         fee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
-    ): Promise<string | Error> {
+    ): Promise<Transaction> {
         // Ensure the program is valid and does not exist on the network
         try {
             const programObject = Program.fromString(program);
@@ -172,8 +182,8 @@ class ProgramManager {
             if (typeof programSource == "string") {
                 throw (`Program ${programObject.id()} already exists on the network, please rename your program`);
             }
-        } catch (e) {
-            throw logAndThrow(`Error validating program: ${e}`);
+        } catch (e: any) {
+            logAndThrow(`Error validating program: ${e.message}`);
         }
 
         // Get the private key from the account if it is not provided in the parameters
@@ -189,16 +199,16 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters
         try {
             feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
-        } catch (e) {
-            throw logAndThrow(`Error finding fee record. Record finder response: '${e}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
         // Get the proving and verifying keys from the key provider
         let feeKeys;
         try {
             feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
-        } catch (e) {
-            throw logAndThrow(`Error finding fee keys. Key finder response: '${e}'. Please ensure your key provider is configured correctly.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
@@ -206,12 +216,54 @@ class ProgramManager {
         let imports;
         try {
             imports = await this.networkClient.getProgramImports(program);
-        } catch (e) {
-            throw logAndThrow(`Error finding program imports. Network response: '${e}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
         }
 
         // Build a deployment transaction and submit it to the network
-        const tx = await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
+        return await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
+    }
+
+    /**
+     * Deploy an Aleo program to the Aleo network
+     *
+     * @param {string} program Program source code
+     * @param {number} fee Fee to pay for the transaction
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
+     * pay the deployment fee
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @returns {string} The transaction id of the deployed program or a failure message from the network
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for deployments
+     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     *
+     * // Define a fee in credits
+     * const fee = 1.2;
+     *
+     * // Deploy the program
+     * const tx_id = await programManager.deploy(program, fee, false);
+     *
+     * // Verify the transaction was successful
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     */
+    async deploy(
+        program: string,
+        fee: number,
+        privateFee: boolean,
+        recordSearchParams?: RecordSearchParams,
+        feeRecord?: string | RecordPlaintext,
+        privateKey?: PrivateKey,
+    ): Promise<string> {
+        const tx = <Transaction>await this.buildDeploymentTransaction(program, fee, privateFee, recordSearchParams, feeRecord, privateKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -219,17 +271,17 @@ class ProgramManager {
      * Builds an execution transaction for submission to the Aleo network.
      *
      * @param {ExecuteOptions} options - The options for the execution transaction.
-     * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error.
+     * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error.
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
      * const transaction = await programManager.buildExecutionTransaction({
@@ -242,7 +294,7 @@ class ProgramManager {
      * });
      * const result = await programManager.networkClient.submitTransaction(transaction);
      */
-    async buildExecutionTransaction(options: ExecuteOptions): Promise<Transaction | Error> {
+    async buildExecutionTransaction(options: ExecuteOptions): Promise<Transaction> {
         // Destructure the options object to access the parameters
         const {
             programName,
@@ -266,8 +318,8 @@ class ProgramManager {
         if (program === undefined) {
             try {
                 program = <string>(await this.networkClient.getProgram(programName));
-            } catch (e) {
-                throw logAndThrow(`Error finding ${programName}. Network response: '${e}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`);
+            } catch (e: any) {
+                logAndThrow(`Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`);
             }
         } else if (program instanceof Program) {
             program = program.toString();
@@ -286,16 +338,16 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters
         try {
             feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
-        } catch (e) {
-            throw logAndThrow(`Error finding fee record. Record finder response: '${e}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
         // Get the fee proving and verifying keys from the key provider
         let feeKeys;
         try {
             feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
-        } catch (e) {
-            throw logAndThrow(`Error finding fee keys. Key finder response: '${e}'. Please ensure your key provider is configured correctly.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
@@ -313,8 +365,8 @@ class ProgramManager {
         if (numberOfImports > 0 && !imports) {
             try {
                 imports = <ProgramImports>await this.networkClient.getProgramImports(programName);
-            } catch (e) {
-                throw logAndThrow(`Error finding program imports. Network response: '${e}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
+            } catch (e: any) {
+                logAndThrow(`Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
             }
         }
 
@@ -326,17 +378,17 @@ class ProgramManager {
      * Builds an execution transaction for submission to the Aleo network.
      *
      * @param {ExecuteOptions} options - The options for the execution transaction.
-     * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error.
+     * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error.
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
      * const transaction = await programManager.execute({
@@ -349,7 +401,7 @@ class ProgramManager {
      * });
      * const result = await programManager.networkClient.submitTransaction(transaction);
      */
-    async execute(options: ExecuteOptions): Promise<string | Error> {
+    async execute(options: ExecuteOptions): Promise<string> {
         const tx = <Transaction>await this.buildExecutionTransaction(options);
         return await this.networkClient.submitTransaction(tx);
     }
@@ -369,7 +421,7 @@ class ProgramManager {
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string | Error>}
+     * @returns {Promise<string>}
      *
      * @example
      * import { Account, Program } from '@provablehq/sdk';
@@ -437,7 +489,7 @@ class ProgramManager {
      * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
      * @param {PrivateKey | undefined} privateKey Private key to use for the join transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string | Error>}
+     * @returns {Promise<string>}
      */
     async join(
         recordOne: RecordPlaintext | string,
@@ -448,7 +500,7 @@ class ProgramManager {
         feeRecord?: RecordPlaintext | string | undefined,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-    ): Promise<string | Error> {
+    ): Promise<string> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
@@ -465,8 +517,8 @@ class ProgramManager {
         try {
             feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
             joinKeys = <FunctionKeyPair>await this.keyProvider.joinKeys();
-        } catch (e) {
-            throw logAndThrow(`Error finding fee keys. Key finder response: '${e}'. Please ensure your key provider is configured correctly.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
         const [joinProvingKey, joinVerifyingKey] = joinKeys;
@@ -474,16 +526,16 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters
         try {
             feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
-        } catch (e) {
-            throw logAndThrow(`Error finding fee record. Record finder response: '${e}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
         // Validate the records provided are valid plaintext records
         try {
             recordOne = recordOne instanceof RecordPlaintext ? recordOne : RecordPlaintext.fromString(recordOne);
             recordTwo = recordTwo instanceof RecordPlaintext ? recordTwo : RecordPlaintext.fromString(recordTwo);
-        } catch (e) {
-            throw logAndThrow('Records provided are not valid. Please ensure they are valid plaintext records.')
+        } catch (e: any) {
+            logAndThrow('Records provided are not valid. Please ensure they are valid plaintext records.')
         }
 
         // Build an execution transaction and submit it to the network
@@ -498,22 +550,22 @@ class ProgramManager {
      * @param {RecordPlaintext | string} amountRecord Amount record to use for the split transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the split transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string | Error>}
+     * @returns {Promise<string>}
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      * const record = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
      * const tx_id = await programManager.split(25000000, record);
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
      */
-    async split(splitAmount: number, amountRecord: RecordPlaintext | string, privateKey?: PrivateKey, offlineQuery?: OfflineQuery): Promise<string | Error> {
+    async split(splitAmount: number, amountRecord: RecordPlaintext | string, privateKey?: PrivateKey, offlineQuery?: OfflineQuery): Promise<string> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (typeof executionPrivateKey === "undefined" && typeof this.account !== "undefined") {
@@ -528,16 +580,16 @@ class ProgramManager {
         let splitKeys;
         try {
             splitKeys = <FunctionKeyPair>await this.keyProvider.splitKeys();
-        } catch (e) {
-            throw logAndThrow(`Error finding fee keys. Key finder response: '${e}'. Please ensure your key provider is configured correctly.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [splitProvingKey, splitVerifyingKey] = splitKeys;
 
         // Validate the record to be split
         try {
             amountRecord = amountRecord instanceof RecordPlaintext ? amountRecord : RecordPlaintext.fromString(amountRecord);
-        } catch (e) {
-            throw logAndThrow("Record provided is not valid. Please ensure it is a valid plaintext record.");
+        } catch (e: any) {
+            logAndThrow("Record provided is not valid. Please ensure it is a valid plaintext record.");
         }
 
         // Build an execution transaction and submit it to the network
@@ -553,14 +605,14 @@ class ProgramManager {
      * @param inputs {Array<string>}  Sample inputs to the function
      * @param privateKey {PrivateKey | undefined} Optional private key to use for the key synthesis
      *
-     * @returns {Promise<FunctionKeyPair | Error>}
+     * @returns {Promise<FunctionKeyPair>}
      */
     async synthesizeKeys(
         program: string,
         function_id: string,
         inputs: Array<string>,
         privateKey?: PrivateKey,
-    ): Promise<FunctionKeyPair | Error> {
+    ): Promise<FunctionKeyPair> {
         // Resolve the program imports if they exist
         let imports;
 
@@ -584,8 +636,8 @@ class ProgramManager {
                 imports
             );
             return [<ProvingKey>keyPair.provingKey(), <VerifyingKey>keyPair.verifyingKey()];
-        } catch (e) {
-            throw logAndThrow(`Could not synthesize keys - error ${e}. Please ensure the program is valid and the inputs are correct.`);
+        } catch (e: any) {
+            logAndThrow(`Could not synthesize keys - error ${e.message}. Please ensure the program is valid and the inputs are correct.`);
         }
     }
 
@@ -603,17 +655,17 @@ class ProgramManager {
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string | Error>} The transaction id of the transfer transaction
+     * @returns {Promise<string>} The transaction id of the transfer transaction
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programName = "hello_hello.aleo";
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      * await programManager.initialize();
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -629,7 +681,7 @@ class ProgramManager {
         feeRecord?: RecordPlaintext | string,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
-    ): Promise<Transaction | Error> {
+    ): Promise<Transaction> {
         // Validate the transfer type
         transferType = <string>validateTransferType(transferType);
 
@@ -649,8 +701,8 @@ class ProgramManager {
         try {
             feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
             transferKeys = <FunctionKeyPair>await this.keyProvider.transferKeys(transferType);
-        } catch (e) {
-            throw logAndThrow(`Error finding fee keys. Key finder response: '${e}'. Please ensure your key provider is configured correctly.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
         const [transferProvingKey, transferVerifyingKey] = transferKeys;
@@ -667,8 +719,8 @@ class ProgramManager {
                 amountRecord = undefined;
             }
             feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, nonces, feeRecord, recordSearchParams) : undefined;
-        } catch (e) {
-            throw logAndThrow(`Error finding fee record. Record finder response: '${e}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+        } catch (e: any) {
+            logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
         // Build an execution transaction and submit it to the network
@@ -689,7 +741,7 @@ class ProgramManager {
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string | Error>} The transaction id of the transfer transaction
+     * @returns {Promise<string>} The transaction id of the transfer transaction
      */
     async buildTransferPublicTransaction(
         amount: number,
@@ -697,7 +749,7 @@ class ProgramManager {
         fee: number,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
-    ): Promise<Transaction | Error> {
+    ): Promise<Transaction> {
         return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
     }
 
@@ -715,7 +767,7 @@ class ProgramManager {
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string | Error>} The transaction id of the transfer transaction
+     * @returns {Promise<string>} The transaction id of the transfer transaction
      */
     async buildTransferPublicAsSignerTransaction(
         amount: number,
@@ -723,7 +775,7 @@ class ProgramManager {
         fee: number,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
-    ): Promise<Transaction | Error> {
+    ): Promise<Transaction> {
         return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
     }
 
@@ -741,16 +793,16 @@ class ProgramManager {
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string | Error>} The transaction id of the transfer transaction
+     * @returns {Promise<string>} The transaction id of the transfer transaction
      *
      * @example
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.aleo.org/v1");
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      * await programManager.initialize();
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
      * const transaction = await programManager.networkClient.getTransaction(tx_id);
@@ -766,7 +818,7 @@ class ProgramManager {
         feeRecord?: RecordPlaintext | string,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
-    ): Promise<string | Error> {
+    ): Promise<string> {
         const tx = <Transaction>await this.buildTransferTransaction(amount, recipient, transferType, fee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
@@ -780,7 +832,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction object for later submission
@@ -841,7 +893,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -872,7 +924,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bond validator transaction object for later use.
@@ -935,7 +987,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -963,7 +1015,7 @@ class ProgramManager {
      * @param {string} staker_address - The address of the staker who is unbonding the credits.
      * @param {number} amount - The amount of credits to unbond (scaled by 1,000,000).
      * @param {Partial<ExecuteOptions>} options - Override default execution options.
-     * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error message.
+     * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error message.
      *
      * @example
      * // Create a keyProvider to handle key management.
@@ -971,14 +1023,14 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to unbond credits.
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * const tx = await programManager.buildUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", 2000000);
      * console.log(tx);
      *
      * // The transaction can be submitted later to the network using the network client.
      * programManager.networkClient.submitTransaction(tx);
      */
-    async buildUnbondPublicTransaction(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<Transaction | Error> {
+    async buildUnbondPublicTransaction(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<Transaction> {
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const {
@@ -1018,7 +1070,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction and send it to the network
@@ -1034,7 +1086,7 @@ class ProgramManager {
      * after the unbond operation, the delegator will be removed from the validator's staking pool.
      * @param {ExecuteOptions} options Options for the execution
      */
-    async unbondPublic(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<string | Error> {
+    async unbondPublic(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<string> {
         const tx = <Transaction>await this.buildUnbondPublicTransaction(staker_address, amount, options);
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1044,7 +1096,7 @@ class ProgramManager {
      *
      * @param {string} staker_address - The address of the staker who is claiming the credits.
      * @param {Partial<ExecuteOptions>} options - Override default execution options.
-     * @returns {Promise<Transaction | Error>} - A promise that resolves to the transaction or an error message.
+     * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error message.
      *
      * @example
      * // Create a keyProvider to handle key management
@@ -1052,7 +1104,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to claim unbonded credits.
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      *
      * // Create the claim unbonded transaction object for later use.
      * const tx = await programManager.buildClaimUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j");
@@ -1061,7 +1113,7 @@ class ProgramManager {
      * // The transaction can be submitted later to the network using the network client.
      * programManager.networkClient.submitTransaction(tx);
      */
-    async buildClaimUnbondPublicTransaction(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<Transaction | Error> {
+    async buildClaimUnbondPublicTransaction(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<Transaction> {
         const {
             programName = "credits.aleo",
             functionName = "claim_unbond_public",
@@ -1100,7 +1152,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -1110,7 +1162,7 @@ class ProgramManager {
      * @param {ExecuteOptions} options
      * @returns string
      */
-    async claimUnbondPublic(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<string | Error> {
+    async claimUnbondPublic(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<string> {
         const tx = <Transaction>await this.buildClaimUnbondPublicTransaction(staker_address, options);
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1132,7 +1184,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("ValidatorPrivateKey"));
      *
      * // Create the bonding transaction
@@ -1190,7 +1242,7 @@ class ProgramManager {
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.aleo.org/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("ValidatorPrivateKey"));
      *
      * // Create the bonding transaction
@@ -1213,7 +1265,7 @@ class ProgramManager {
      */
     verifyExecution(executionResponse: ExecutionResponse): boolean {
         try {
-            const execution = <Execution>executionResponse.getExecution();
+            const execution = <FunctionExecution>executionResponse.getExecution();
             const function_id = executionResponse.getFunctionId();
             const program = executionResponse.getProgram();
             const verifyingKey = executionResponse.getVerifyingKey();
@@ -1228,9 +1280,9 @@ class ProgramManager {
      * Create a program object from a program's source code
      *
      * @param {string} program Program source code
-     * @returns {Program | Error} The program object
+     * @returns {Program} The program object
      */
-    createProgramFromSource(program: string): Program | Error {
+    createProgramFromSource(program: string): Program {
         return Program.fromString(program);
     }
 
@@ -1258,15 +1310,15 @@ class ProgramManager {
     }
 
     // Internal utility function for getting a credits.aleo record
-    async getCreditsRecord(amount: number, nonces: string[], record?: RecordPlaintext | string, params?: RecordSearchParams): Promise<RecordPlaintext | Error> {
+    async getCreditsRecord(amount: number, nonces: string[], record?: RecordPlaintext | string, params?: RecordSearchParams): Promise<RecordPlaintext> {
         try {
             return record instanceof RecordPlaintext ? record : RecordPlaintext.fromString(<string>record);
         } catch (e) {
             try {
                 const recordProvider = <RecordProvider>this.recordProvider;
                 return <RecordPlaintext>(await recordProvider.findCreditsRecord(amount, true, nonces, params))
-            } catch (e) {
-                throw logAndThrow(`Error finding fee record. Record finder response: '${e}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+            } catch (e: any) {
+                logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
             }
         }
     }
@@ -1278,7 +1330,7 @@ function requiresAmountRecord(transferType: string): boolean {
 }
 
 // Validate the transfer type
-function validateTransferType(transferType: string): string | Error {
+function validateTransferType(transferType: string): string {
     return VALID_TRANSFER_TYPES.has(transferType) ? transferType :
         logAndThrow(`Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`);
 }

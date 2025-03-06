@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub use snarkvm_circuit_network::AleoTestnetV0;
+pub use super::networks::*;
+
 pub use snarkvm_console::{
-    account::{Address, PrivateKey, Signature, ViewKey},
-    network::{Network, TestnetV0},
+    account::{Address, ComputeKey, GraphKey, PrivateKey, Signature, ViewKey},
+    network::Network,
     program::{
+        Argument,
         Ciphertext,
         Entry,
         EntryType,
+        Future,
         Identifier,
         Literal,
         Plaintext,
@@ -32,16 +35,16 @@ pub use snarkvm_console::{
         Response,
         ValueType,
     },
-    types::Field,
+    types::{Field, Group, Scalar, U64},
 };
-pub use snarkvm_ledger_block::{Execution, Transaction};
+use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
 pub use snarkvm_ledger_query::Query;
 pub use snarkvm_ledger_store::helpers::memory::BlockMemory;
 pub use snarkvm_synthesizer::{
-    process::{cost_in_microcredits, deployment_cost},
-    snark::{ProvingKey, VerifyingKey},
     Process,
     Program,
+    process::{cost_in_microcredits_v2, deployment_cost},
+    snark::{ProvingKey, VerifyingKey},
 };
 pub use snarkvm_wasm::{
     console::network::Environment,
@@ -51,28 +54,34 @@ pub use snarkvm_wasm::{
 
 // Account types
 pub type AddressNative = Address<CurrentNetwork>;
+pub type ComputeKeyNative = ComputeKey<CurrentNetwork>;
+pub type GraphKeyNative = GraphKey<CurrentNetwork>;
 pub type PrivateKeyNative = PrivateKey<CurrentNetwork>;
 pub type SignatureNative = Signature<CurrentNetwork>;
 pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 
 // Algebraic types
 pub type FieldNative = Field<CurrentNetwork>;
-
-// Network types
-pub type CurrentNetwork = TestnetV0;
-pub type CurrentAleo = AleoTestnetV0;
+pub type GroupNative = Group<CurrentNetwork>;
+pub type ScalarNative = Scalar<CurrentNetwork>;
+pub type U64Native = U64<CurrentNetwork>;
 
 // Record types
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;
-pub type PlaintextNative = Plaintext<CurrentNetwork>;
+pub type EntryNative = Entry<CurrentNetwork, PlaintextNative>;
 pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
 pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 
 // Program types
+pub type ArgumentNative = Argument<CurrentNetwork>;
 type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
 pub type ExecutionNative = Execution<CurrentNetwork>;
+pub type FutureNative = Future<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
+pub type InputNative = Input<CurrentNetwork>;
 pub type LiteralNative = Literal<CurrentNetwork>;
+pub type OutputNative = Output<CurrentNetwork>;
+pub type PlaintextNative = Plaintext<CurrentNetwork>;
 pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;
 pub type ProgramNative = Program<CurrentNetwork>;
@@ -81,4 +90,5 @@ pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
 pub type QueryNative = Query<CurrentNetwork, CurrentBlockMemory>;
 pub type ResponseNative = Response<CurrentNetwork>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
+pub type TransitionNative = Transition<CurrentNetwork>;
 pub type VerifyingKeyNative = VerifyingKey<CurrentNetwork>;

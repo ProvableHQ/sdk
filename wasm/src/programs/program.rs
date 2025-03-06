@@ -21,7 +21,7 @@ use crate::{
 
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Webassembly Representation of an Aleo program
 #[wasm_bindgen]
@@ -33,7 +33,7 @@ impl Program {
     /// Create a program from a program string
     ///
     /// @param {string} program Aleo program source code
-    /// @returns {Program | Error} Program object
+    /// @returns {Program} Program object
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(program: &str) -> Result<Program, String> {
         Ok(Self(ProgramNative::from_str(program).map_err(|err| err.to_string())?))
@@ -91,7 +91,7 @@ impl Program {
     /// to generate a web form to capture user inputs for an execution of a function.
     ///
     /// @param {string} function_name Name of the function to get inputs for
-    /// @returns {Array | Error} Array of function inputs
+    /// @returns {Array} Array of function inputs
     ///
     /// @example
     /// const expected_inputs = [
@@ -188,7 +188,7 @@ impl Program {
 
     /// Get a the list of a program's mappings and the names/types of their keys and values.
     ///
-    /// @returns {Array | Error} - An array of objects representing the mappings in the program
+    /// @returns {Array} - An array of objects representing the mappings in the program
     /// @example
     /// const expected_mappings = [
     ///    {
@@ -273,7 +273,7 @@ impl Program {
     /// Get a javascript object representation of a program record and its types
     ///
     /// @param {string} record_name Name of the record to get members for
-    /// @returns {Object | Error} Object containing the record name, type, and members
+    /// @returns {Object} Object containing the record name, type, and members
     ///
     /// @example
     ///
@@ -344,7 +344,7 @@ impl Program {
     /// Get a javascript object representation of a program struct and its types
     ///
     /// @param {string} struct_name Name of the struct to get members for
-    /// @returns {Array | Error} Array containing the struct members
+    /// @returns {Array} Array containing the struct members
     ///
     /// @example
     ///
@@ -501,28 +501,9 @@ impl FromStr for Program {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{array, object};
 
     use wasm_bindgen_test::*;
-
-    macro_rules! array {
-        ($($value:expr),*$(,)?) => {{
-            let array = Array::new();
-
-            $(array.push(&JsValue::from($value));)*
-
-            array
-        }};
-    }
-
-    macro_rules! object {
-        ($($key:literal: $value:expr,)*) => {{
-            let object = Object::new();
-
-            $(Reflect::set(&object, &JsValue::from_str($key), &JsValue::from($value)).unwrap();)*
-
-            object
-        }};
-    }
 
     const TOKEN_ISSUE: &str = r#"program token_issue.aleo;
 
