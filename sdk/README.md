@@ -1,6 +1,6 @@
-# Aleo SDK
+# Provable SDK
 <p align="center">
-    <img alt="Aleo SDK" width="1412" src="../.resources/banner.png">
+    <img alt="Provable SDK" width="1412" src="../.resources/banner.png">
 </p>
 
 <p align="center">
@@ -12,17 +12,17 @@
 
 ## Tools for Building Zero-Knowledge Web Apps
 
-The Aleo SDK is a JavaScript library for building zero-knowledge web applications in both web browsers and Node.js.
+The Provable SDK is a JavaScript library for building zero-knowledge web applications in both web browsers and Node.js.
 
 ## Overview
 
 Aleo provides the ability for users to create programs and execute them in zero knowledge through the usage of the 
 [Varuna ZKSnark](https://alphaswapdex.medium.com/part-ii-the-technical-architecture-of-the-aleo-blockchain-marlin-and-varuna-71c6d48eb355).
 
-The Aleo SDK provides the tools to use these programs both within Nodejs and web browsers allowing users to build
+The Provable SDK provides the tools to use these programs both within Nodejs and web browsers allowing users to build
  privacy-preserving applications throughout the web stack.
 
-The Aleo SDK provides the following functionality (Click to see examples):
+The Provable SDK provides the following functionality (Click to see examples):
 1. [Aleo account management](https://provable.tools/account)
 2. [Web-based program execution and deployment](https://provable.tools/develop)
 3. [Aleo credit transfers](https://provable.tools/transfer)
@@ -69,11 +69,11 @@ To clone the repository, run:
 
 ### NPM & YARN
 
-To install the Aleo SDK from NPM run:
+To install the Provable SDK from NPM run:
 
 `npm install @provablehq/sdk` in your own project's root,
 
-To install the Aleo SDK from Yarn run:
+To install the Provable SDK from Yarn run:
 
 `yarn add @provablehq/sdk`.
 
@@ -209,7 +209,7 @@ stores called `mappings` which store a program's public on-chain state.
 specific block and all changes the execution made to the program's state are recorded within the Aleo blockchain.
 
 
-#### Program Execution with the Aleo SDK
+#### Program Execution with the Provable SDK
 
 The SDK provides the ability to execute Aleo programs 100% client-side within the browser or Node.js.
 
@@ -351,7 +351,7 @@ Executing Aleo programs using zero-knowledge requires two additional pieces of i
    on records can be found in the [Records](#41-private-state-data--records) section below.
 
 For this reason, all programs will need proving and verifying keys to operate and many functions in Aleo programs will
-require records as inputs. To simplify the process of managing keys and records, the Aleo SDK provides two abstractions
+require records as inputs. To simplify the process of managing keys and records, the Provable SDK provides two abstractions
 for managing these concepts:
 
 1. **KeyProvider:** When program functions execute, they will by default synthesize the proving and verifying keys needed to
