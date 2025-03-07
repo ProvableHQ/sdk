@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:e2e": "concurrently \"next dev\" \"cypress run\"",
+    "test:e2e:visual": "concurrently \"next dev\" \"cypress open\""
   },
   "dependencies": {
     "@provablehq/sdk": "^0.8.0",
@@ -19,6 +21,8 @@
     "@types/node": "^22.12.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "concurrently": "^9.1.2",
+    "cypress": "^14.1.0",
     "typescript": "^5.7.3"
   }
 }
