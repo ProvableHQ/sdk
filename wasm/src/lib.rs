@@ -155,6 +155,9 @@
 pub mod account;
 pub use account::*;
 
+pub mod algorithms;
+pub use algorithms::*;
+
 pub mod ledger;
 pub use ledger::*;
 
