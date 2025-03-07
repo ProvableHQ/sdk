@@ -35,7 +35,7 @@ pub use snarkvm_console::{
         Sha3_224,
         Sha3_256,
         Sha3_384,
-        Sha3_512
+        Sha3_512,
     },
     network::Network,
     program::{
@@ -95,7 +95,6 @@ pub type Pedersen128Native = Pedersen128<CurrentNetwork>;
 pub type Poseidon2Native = Poseidon2<CurrentNetwork>;
 pub type Poseidon4Native = Poseidon4<CurrentNetwork>;
 pub type Poseidon8Native = Poseidon8<CurrentNetwork>;
-
 
 // Record types
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;

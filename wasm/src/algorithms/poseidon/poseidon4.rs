@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Field, types::native::{
-    Poseidon4Native, FieldNative,
-}, Scalar};
+use crate::{
+    Field,
+    Group,
+    Scalar,
+    types::native::{FieldNative, Poseidon4Native},
+};
 use snarkvm_console::algorithms::{Hash, HashToGroup, HashToScalar};
 
 use js_sys::Array;
-use wasm_bindgen::convert::TryFromJsValue;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{convert::TryFromJsValue, prelude::*};
 
 #[wasm_bindgen]
 pub struct Poseidon4(Poseidon4Native);
@@ -36,48 +38,42 @@ impl Poseidon4 {
     /// Hash an array of fields.
     pub fn hash(&self, input: Array) -> Result<Field, String> {
         // Convert an array of booleans to a vector of booleans, failing if any values aren't booleans.
-        let input = input.to_vec()
+        let input = input
+            .to_vec()
             .into_iter()
-            .map(|x| Field::try_from_js_value(x)
-                .map(|x| *x)
-                .map_err(|_| "Input must be an array of fields".to_string())
-            )
+            .map(|x| {
+                Field::try_from_js_value(x).map(|x| *x).map_err(|_| "Input must be an array of fields".to_string())
+            })
             .collect::<Result<Vec<FieldNative>, String>>()?;
 
-        self.0.hash(&input)
-            .map(|field| Field::from(field))
-            .map_err(|e| e.to_string())
+        self.0.hash(&input).map(|field| Field::from(field)).map_err(|e| e.to_string())
     }
 
     /// Hash to a scalar.
     pub fn hash_to_scalar(&self, input: Array) -> Result<Scalar, String> {
         // Convert an array of booleans to a vector of booleans, failing if any values aren't booleans.
-        let input = input.to_vec()
+        let input = input
+            .to_vec()
             .into_iter()
-            .map(|x| Field::try_from_js_value(x)
-                .map(|x| *x)
-                .map_err(|_| "Input must be an array of fields".to_string())
-            )
+            .map(|x| {
+                Field::try_from_js_value(x).map(|x| *x).map_err(|_| "Input must be an array of fields".to_string())
+            })
             .collect::<Result<Vec<FieldNative>, String>>()?;
 
-        self.0.hash_to_scalar(&input)
-            .map(|scalar| Scalar::from(scalar))
-            .map_err(|e| e.to_string())
+        self.0.hash_to_scalar(&input).map(|scalar| Scalar::from(scalar)).map_err(|e| e.to_string())
     }
 
     /// Hash to group.
-    pub fn hash_to_group(&self, input: Array) -> Result<Field, String> {
+    pub fn hash_to_group(&self, input: Array) -> Result<Group, String> {
         // Convert an array of booleans to a vector of booleans, failing if any values aren't booleans.
-        let input = input.to_vec()
+        let input = input
+            .to_vec()
             .into_iter()
-            .map(|x| Field::try_from_js_value(x)
-                .map(|x| *x)
-                .map_err(|_| "Input must be an array of fields".to_string())
-            )
+            .map(|x| {
+                Field::try_from_js_value(x).map(|x| *x).map_err(|_| "Input must be an array of fields".to_string())
+            })
             .collect::<Result<Vec<FieldNative>, String>>()?;
 
-        self.0.hash_to_group(&input)
-            .map(|field| Field::from(field))
-            .map_err(|e| e.to_string())
+        self.0.hash_to_group(&input).map(|group| Group::from(group)).map_err(|e| e.to_string())
     }
 }

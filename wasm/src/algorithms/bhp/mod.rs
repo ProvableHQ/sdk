@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod bhp1024;
 pub mod bhp256;
 pub mod bhp512;
 pub mod bhp768;
-pub mod bhp1024;
