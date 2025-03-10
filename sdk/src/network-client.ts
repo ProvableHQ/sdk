@@ -866,7 +866,7 @@ class AleoNetworkClient {
     try {
       const block = await this.fetchData<BlockJSON>(`/block/${blockHash}`);
       const height = block.header.metadata.height;
-      return await this.getTransactions(height);
+      return await this.getTransactions(Number(height));
     } catch (error) {
       throw new Error(`Error fetching transactions for block ${blockHash}: ${error}`);
     }

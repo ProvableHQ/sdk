@@ -210,17 +210,17 @@ describe('NodeConnection', () => {
     describe('findUnspentRecords', () => {
         it('should fail if block heights or private keys are incorrectly specified', async () => {
             await expectThrowsMessage(
-                () => connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, []),
+                () => connection.findUnspentRecords(5, 0, [], undefined, undefined, [], beaconPrivateKeyString),
                 "Start height must be less than or equal to end height.",
             );
 
             await expectThrowsMessage(
-                () => connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, []),
+                () => connection.findUnspentRecords(-5, 5, [], undefined, undefined, [], beaconPrivateKeyString),
                 "Start height must be greater than or equal to 0",
             );
 
             await expectThrowsMessage(
-                () => connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, []),
+                () => connection.findUnspentRecords(0, 5, [], undefined, undefined, [], "definitelynotaprivatekey"),
                 "Error parsing private key provided.",
             );
 
@@ -231,7 +231,7 @@ describe('NodeConnection', () => {
         });
 
         it.skip('should search a range correctly and not find records where none exist', async () => {
-            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
+            const records = await connection.findUnspentRecords(0, 204, [], undefined, undefined, [], beaconPrivateKeyString);
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).equal(0);
