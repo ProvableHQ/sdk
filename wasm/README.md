@@ -58,4 +58,4 @@ wasm-pack test --[firefox/chrome/safari]
 Further documentation and tutorials as to how to use the modules built from this crate to build web apps will be built
 in the future. However, in the meantime, the [provable.tools](https://provable.tools) website is a good
 example of how to use these modules to build a web app. Its source code can be found in the
-[Aleo SDK](https://github.com/ProvableHQ/sdk) repo in the `website` folder.
+[Provable SDK](https://github.com/ProvableHQ/sdk) repo in the `website` folder.

@@ -13,7 +13,7 @@ const Homepage = () => {
                 ></img>
             </Link>
             <div className="headerContainer">
-                <h1 className="header">Aleo SDK</h1>
+                <h1 className="header">Provable SDK</h1>
                 <p className="subheader">
                     The tooling for building zero-knowledge applications at your
                     fingertips
