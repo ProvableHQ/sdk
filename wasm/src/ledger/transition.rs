@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
+// Copyright (C) 2019-2025 Provable Inc.
 // This file is part of the Provable SDK library.
 
 // The Provable SDK library is free software: you can redistribute it and/or modify
@@ -30,9 +30,6 @@ use js_sys::{Array, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
-/// Webassembly Representation of an Aleo transition
-///
-/// Transitions represent an atomic unit of state change from a function execution
 #[wasm_bindgen]
 pub struct Transition(TransitionNative);
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
+// Copyright (C) 2019-2025 Provable Inc.
 // This file is part of the Provable SDK library.
 
 // The Provable SDK library is free software: you can redistribute it and/or modify
@@ -23,7 +23,6 @@ use crate::{
 use core::{convert::TryFrom, ops::Deref};
 use wasm_bindgen::prelude::*;
 
-/// Compute key of an Aleo account
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ComputeKey(ComputeKeyNative);

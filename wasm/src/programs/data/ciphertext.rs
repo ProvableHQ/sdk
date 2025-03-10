@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
+// Copyright (C) 2019-2025 Provable Inc.
 // This file is part of the Provable SDK library.
 
 // The Provable SDK library is free software: you can redistribute it and/or modify
@@ -29,6 +29,8 @@ use wasm_bindgen::prelude::wasm_bindgen;
 /// SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
 /// object provides decryption methods to recover the plaintext from the ciphertext (given the
 /// api consumer has the proper decryption materials).
+///
+/// @example
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Ciphertext(CiphertextNative);

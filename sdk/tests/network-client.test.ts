@@ -7,10 +7,17 @@ import {
     TransactionObject,
     InputObject,
     OutputObject,
-    ExecutionObject
-} from "../src/node";
+    ExecutionObject,
+    DeploymentObject,
+    ExecutionJSON,
+    InputJSON,
+    OutputJSON,
+    Plaintext,
+    PlaintextObject,
+    Transition,
+    TransitionObject,
+} from "@provablehq/sdk/%%NETWORK%%.js";
 import { beaconPrivateKeyString } from "./data/account-data";
-import { DeploymentObject, ExecutionJSON, InputJSON, OutputJSON, Plaintext, PlaintextObject, Transition, TransitionObject } from "../src/node";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {
@@ -203,28 +210,28 @@ describe('NodeConnection', () => {
     describe('findUnspentRecords', () => {
         it('should fail if block heights or private keys are incorrectly specified', async () => {
             await expectThrowsMessage(
-                () => connection.findUnspentRecords(5, 0, ["credits.aleo"], undefined, undefined, [], beaconPrivateKeyString),
+                () => connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, []),
                 "Start height must be less than or equal to end height.",
             );
 
             await expectThrowsMessage(
-                () => connection.findUnspentRecords(-5, 5, ["credits.aleo"], undefined, undefined, [], beaconPrivateKeyString),
+                () => connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, []),
                 "Start height must be greater than or equal to 0",
             );
 
             await expectThrowsMessage(
-                () => connection.findUnspentRecords(0, 5, ["credits.aleo"], undefined, undefined, [], "notakey"),
+                () => connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, []),
                 "Error parsing private key provided.",
             );
 
             await expectThrowsMessage(
-                () => connection.findUnspentRecords(0, 5, ["credits.aleo"], undefined, undefined, []),
+                () => connection.findUnspentRecords(0, 5, undefined, undefined, undefined, []),
                 "Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient",
             );
         });
 
         it.skip('should search a range correctly and not find records where none exist', async () => {
-            const records = await connection.findUnspentRecords(0, 204, undefined, undefined, undefined, [], beaconPrivateKeyString);
+            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).equal(0);

@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
+// Copyright (C) 2019-2025 Provable Inc.
 // This file is part of the Provable SDK library.
 
 // The Provable SDK library is free software: you can redistribute it and/or modify
