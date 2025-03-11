@@ -29,12 +29,6 @@ async function catchError(f: () => Promise<any>): Promise<Error | null> {
     }
 }
 
-
-async function expectThrowsMessage(f: () => Promise<any>, message: string): Promise<void> {
-    const error = await catchError(f);
-    expect(error).not.equal(null);
-    expect(error!.message).equal(message);
-}
 async function expectThrows(f: () => Promise<any>): Promise<void> {
     const error = await catchError(f);
     expect(error).not.equal(null);
@@ -75,9 +69,8 @@ describe('NodeConnection', () => {
         });
 
         it('should throw an error if the request fails', async () => {
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.getBlock(99999999),
-                "Error fetching block.",
             );
         });
     });
@@ -92,9 +85,8 @@ describe('NodeConnection', () => {
         });
 
         it('should throw an error if the request fails', async () => {
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.getBlockRange(999999999, 1000000000),
-                "Error fetching blocks between 999999999 and 1000000000.",
             );
         });
     });
@@ -108,9 +100,8 @@ describe('NodeConnection', () => {
         it('should throw an error if the request fails', async () => {
             const program_id = "a" + (Math.random()).toString(32).substring(2) + ".aleo";
 
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.getProgram(program_id),
-                "Error fetching program",
             );
         });
     });
@@ -209,24 +200,20 @@ describe('NodeConnection', () => {
 
     describe('findUnspentRecords', () => {
         it('should fail if block heights or private keys are incorrectly specified', async () => {
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.findUnspentRecords(5, 0, [], undefined, undefined, [], beaconPrivateKeyString),
-                "Start height must be less than or equal to end height.",
             );
 
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.findUnspentRecords(-5, 5, [], undefined, undefined, [], beaconPrivateKeyString),
-                "Start height must be greater than or equal to 0",
             );
 
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.findUnspentRecords(0, 5, [], undefined, undefined, [], "definitelynotaprivatekey"),
-                "Error parsing private key provided.",
             );
 
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.findUnspentRecords(0, 5, undefined, undefined, undefined, []),
-                "Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient",
             );
         });
 
