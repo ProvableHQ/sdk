@@ -75,14 +75,23 @@ export default function Home() {
 
             <div className={styles.card}>
                 <p>
-                    <button className="create-account-button" onClick={generateAccount}>
+                    <button
+                        className="create-account-button"
+                        onClick={generateAccount}
+                        data-test-id="create-account-button"
+                    >
                         {account
                             ? `Account private key is ${JSON.stringify(account)}`
                             : `Click to generate account`}
                     </button>
                 </p>
                 <p>
-                    <button className="execute-button" disabled={executing} onClick={execute}>
+                    <button
+                        className="execute-button"
+                        disabled={executing}
+                        onClick={execute}
+                        data-test-id="execute-button"
+                    >
                         {executing
                             ? `Executing...check console for details...`
                             : `Execute helloworld.aleo`}
