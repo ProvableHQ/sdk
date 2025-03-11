@@ -18,25 +18,7 @@ pub use super::networks::*;
 
 pub use snarkvm_console::{
     account::{Address, ComputeKey, GraphKey, PrivateKey, Signature, ViewKey},
-    algorithms::{
-        BHP256,
-        BHP512,
-        BHP768,
-        BHP1024,
-        Keccak224,
-        Keccak256,
-        Keccak384,
-        Keccak512,
-        Pedersen64,
-        Pedersen128,
-        Poseidon2,
-        Poseidon4,
-        Poseidon8,
-        Sha3_224,
-        Sha3_256,
-        Sha3_384,
-        Sha3_512,
-    },
+    algorithms::{BHP256, BHP512, BHP768, BHP1024, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8},
     network::Network,
     program::{
         Argument,

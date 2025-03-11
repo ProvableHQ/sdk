@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Field, Scalar, types::native::BHP256Native};
+use crate::{Field, Scalar, from_js_typed_array, types::native::BHP256Native};
 use snarkvm_console::algorithms::{Commit, Hash};
 
 use js_sys::Array;
@@ -32,25 +32,13 @@ impl BHP256 {
 
     /// Hash an array of booleans.
     pub fn hash(&self, input: Array) -> Result<Field, String> {
-        // Convert an array of booleans to a vector of booleans, failing if any values aren't booleans.
-        let input = input
-            .to_vec()
-            .iter()
-            .map(|x| x.as_bool().ok_or_else(|| "Input must be a boolean array".to_string()))
-            .collect::<Result<Vec<bool>, String>>()?;
-
+        let input = from_js_typed_array!(input, as_bool, "boolean")?;
         self.0.hash(&input).map(|field| Field::from(field)).map_err(|e| e.to_string())
     }
 
     /// Commit to an array of booleans.
     pub fn commit(&self, input: Array, randomizer: Scalar) -> Result<Field, String> {
-        // Convert an array of booleans to a vector of booleans, failing if any values aren't booleans.
-        let input = input
-            .to_vec()
-            .iter()
-            .map(|x| x.as_bool().ok_or_else(|| "Input must be a boolean array".to_string()))
-            .collect::<Result<Vec<bool>, String>>()?;
-
+        let input = from_js_typed_array!(input, as_bool, "boolean")?;
         self.0.commit(&input, &randomizer).map(|field| Field::from(field)).map_err(|e| e.to_string())
     }
 }

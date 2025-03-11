@@ -16,14 +16,15 @@
 
 use crate::{
     Plaintext,
+    to_bits_array_le,
     types::native::{FieldNative, LiteralNative, PlaintextNative, Uniform},
 };
-use snarkvm_console::prelude::{Double, One, Pow, Zero};
-use std::ops::Deref;
+use snarkvm_console::prelude::{Double, One, Pow, ToBits, Zero};
 
+use js_sys::Array;
 use once_cell::sync::OnceCell;
-use std::str::FromStr;
-use wasm_bindgen::prelude::wasm_bindgen;
+use std::{ops::Deref, str::FromStr};
+use wasm_bindgen::prelude::*;
 
 /// Field element.
 #[wasm_bindgen]
@@ -106,6 +107,12 @@ impl Field {
     /// Check if one field element equals another.
     pub fn equals(&self, other: &Field) -> bool {
         self.0 == FieldNative::from(other)
+    }
+
+    /// Get the left endian boolean array representation of the field element.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
     }
 }
 

@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::native::{PlaintextNative, ScalarNative, Uniform};
-use snarkvm_console::prelude::{Double, One, Pow, Zero};
-use std::ops::Deref;
+use crate::{
+    Plaintext,
+    to_bits_array_le,
+    types::native::{LiteralNative, PlaintextNative, ScalarNative, Uniform},
+};
+use snarkvm_console::prelude::{Double, One, Pow, ToBits, Zero};
 
-use crate::{Plaintext, types::native::LiteralNative};
+use js_sys::Array;
 use once_cell::sync::OnceCell;
-use std::str::FromStr;
-use wasm_bindgen::prelude::wasm_bindgen;
+use std::{ops::Deref, str::FromStr};
+use wasm_bindgen::prelude::*;
 
 /// Scalar field element.
 #[wasm_bindgen]
@@ -103,6 +106,12 @@ impl Scalar {
     /// Check if one scalar element equals another.
     pub fn equals(&self, other: &Scalar) -> bool {
         self.0 == ScalarNative::from(other)
+    }
+
+    /// Get the left endian boolean array representation of the scalar element.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
     }
 }
 

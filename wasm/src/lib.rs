@@ -173,6 +173,10 @@ pub use types::{Field, Group, Scalar};
 #[cfg(not(test))]
 mod thread_pool;
 
+mod utilities;
+#[cfg(test)]
+pub use utilities::*;
+
 #[cfg(test)]
 mod thread_pool {
     use std::future::Future;

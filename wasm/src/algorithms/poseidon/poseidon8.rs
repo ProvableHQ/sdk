@@ -18,6 +18,7 @@ use crate::{
     Field,
     Group,
     Scalar,
+    from_wasm_object_array,
     types::native::{FieldNative, Poseidon8Native},
 };
 use snarkvm_console::algorithms::{Hash, HashToGroup, HashToScalar};
@@ -37,43 +38,19 @@ impl Poseidon8 {
 
     /// Hash an array of fields.
     pub fn hash(&self, input: Array) -> Result<Field, String> {
-        // Convert an array of booleans to a vector of booleans, failing if any values aren't booleans.
-        let input = input
-            .to_vec()
-            .into_iter()
-            .map(|x| {
-                Field::try_from_js_value(x).map(|x| *x).map_err(|_| "Input must be an array of fields".to_string())
-            })
-            .collect::<Result<Vec<FieldNative>, String>>()?;
-
+        let input = from_wasm_object_array!(input, Field)?;
         self.0.hash(&input).map(|field| Field::from(field)).map_err(|e| e.to_string())
     }
 
     /// Hash to a scalar.
     pub fn hash_to_scalar(&self, input: Array) -> Result<Scalar, String> {
-        // Convert an array of booleans to a vector of booleans, failing if any values aren't booleans.
-        let input = input
-            .to_vec()
-            .into_iter()
-            .map(|x| {
-                Field::try_from_js_value(x).map(|x| *x).map_err(|_| "Input must be an array of fields".to_string())
-            })
-            .collect::<Result<Vec<FieldNative>, String>>()?;
-
+        let input = from_wasm_object_array!(input, Field)?;
         self.0.hash_to_scalar(&input).map(|scalar| Scalar::from(scalar)).map_err(|e| e.to_string())
     }
 
     /// Hash to group.
     pub fn hash_to_group(&self, input: Array) -> Result<Group, String> {
-        // Convert an array of booleans to a vector of booleans, failing if any values aren't booleans.
-        let input = input
-            .to_vec()
-            .into_iter()
-            .map(|x| {
-                Field::try_from_js_value(x).map(|x| *x).map_err(|_| "Input must be an array of fields".to_string())
-            })
-            .collect::<Result<Vec<FieldNative>, String>>()?;
-
+        let input = from_wasm_object_array!(input, Field)?;
         self.0.hash_to_group(&input).map(|group| Group::from(group)).map_err(|e| e.to_string())
     }
 }

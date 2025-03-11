@@ -14,11 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod bhp;
-pub use bhp::*;
-
-pub mod pedersen;
-pub use pedersen::*;
-
-pub mod poseidon;
-pub use poseidon::*;
+mod array;
+mod bits;
+#[cfg(test)]
+pub mod test;

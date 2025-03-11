@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod bhp;
-pub use bhp::*;
-
-pub mod pedersen;
-pub use pedersen::*;
-
-pub mod poseidon;
-pub use poseidon::*;
+#[macro_export]
+macro_rules! to_bits_array_le {
+    ($self:expr) => {{
+        let array = js_sys::Array::new();
+        $self.0.to_bits_le().iter().for_each(|bit| {
+            array.push(&JsValue::from_bool(*bit));
+        });
+        array
+    }};
+}
