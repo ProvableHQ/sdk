@@ -843,7 +843,6 @@ class ProgramManager {
      * const result = await programManager.networkClient.submitTransaction(tx);
      *
      * @returns string
-     * @param {string} staker_address Address of the staker who is bonding the credits
      * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
      * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
      * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
@@ -853,7 +852,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to bond
      * @param {Partial<ExecuteOptions>} options - Override default execution options.
      */
-    async buildBondPublicTransaction(staker_address: string, validator_address: string, withdrawal_address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
+    async buildBondPublicTransaction(validator_address: string, withdrawal_address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const {
@@ -861,7 +860,7 @@ class ProgramManager {
             functionName = "bond_public",
             fee = options.fee || 0.86,
             privateFee = false,
-            inputs = [staker_address, validator_address, withdrawal_address, `${scaledAmount.toString()}u64`],
+            inputs = [validator_address, withdrawal_address, `${scaledAmount.toString()}u64`],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.bond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.bond_public.verifier,
@@ -900,7 +899,6 @@ class ProgramManager {
      * const tx_id = await programManager.bondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
      *
      * @returns string
-     * @param {string} staker_address Address of the staker who is bonding the credits
      * @param {string} validator_address Address of the validator to bond to, if this address is the same as the signer (i.e. the
      * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
      * requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing
@@ -910,8 +908,8 @@ class ProgramManager {
      * @param {number} amount The amount of credits to bond
      * @param {Options} options Options for the execution
      */
-    async bondPublic(staker_address: string, validator_address: string, withdrawal_address:string, amount: number, options: Partial<ExecuteOptions> = {}) {
-        const tx = <Transaction>await this.buildBondPublicTransaction(staker_address, validator_address, withdrawal_address, amount, options);
+    async bondPublic(validator_address: string, withdrawal_address:string, amount: number, options: Partial<ExecuteOptions> = {}) {
+        const tx = <Transaction>await this.buildBondPublicTransaction(validator_address, withdrawal_address, amount, options);
         return await this.networkClient.submitTransaction(tx);
     }
 

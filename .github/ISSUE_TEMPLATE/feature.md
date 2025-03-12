@@ -8,7 +8,7 @@ labels: feature
 ## 🚀 Feature
 
 <!--
-    What is the feature you would like to see in the Aleo SDK?
+    What is the feature you would like to see in the Provable SDK?
 -->
 
 (Write your description here)
@@ -16,8 +16,8 @@ labels: feature
 ## Motivation
 
 <!--
-    Why should this feature be implemented in the Aleo SDK?
-    How would this feature be used in the Aleo SDK?
+    Why should this feature be implemented in the Provable SDK?
+    How would this feature be used in the Provable SDK?
     
     Is this feature request related to a problem? If so, please describe.
     Please link to any relevant issues or other PRs!
@@ -28,8 +28,8 @@ labels: feature
 ## Implementation
 
 <!--
-    What needs to be built for the feature to be supported in the Aleo SDK?
-    What components of the Aleo SDK will be affected by this design (if any)?
+    What needs to be built for the feature to be supported in the Provable SDK?
+    What components of the Provable SDK will be affected by this design (if any)?
     How should this feature be implemented?
 -->
 
