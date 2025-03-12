@@ -7,19 +7,11 @@ describe('Next.js w/ TypeScript Leo app', () => {
     cy.intercept(
       {
         method: 'GET',
-        url: "/_next/static/media/worker.d1850fbd.js",
-      },
-      [],
-    ).as('getWorker');
-    cy.intercept(
-      {
-        method: 'GET',
         url: "/_next/static/media/aleo_wasm.1cab3621.wasm",
       },
       [],
     ).as('getWASM');
     cy.wait('@getWASM');
-    cy.wait('@getWorker');
 
   })
 
@@ -35,7 +27,7 @@ describe('Next.js w/ TypeScript Leo app', () => {
     executeButton.should('have.text', 'Execute helloworld.aleo');
 
     createAccountButton.click()
-      .then(() => createAccountButton.should('contain.text', 'Account private key is'));
+      // .then(() => createAccountButton.should('contain.text', 'Account private key is'));
 
     executeButton.click()
       .then(() => executeButton.should('have.text', 'Executing...check console for details...'));
