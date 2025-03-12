@@ -67,9 +67,7 @@ mod tests {
             let fields = create_native_field_vector(Some(count));
 
             // Create both a boolean vector and boolean array.
-            let bit_vector = fields.iter()
-                .flat_map(|item| item.to_bits_le()) // Flatten all bit representations
-                .collect::<Vec<bool>>();
+            let bit_vector = fields.iter().flat_map(|item| item.to_bits_le()).collect::<Vec<bool>>();
             let bit_array = bit_vector.iter().map(|item| JsValue::from(*item)).collect::<Array>();
 
             // Hash and commit to the field element using all BHP hasher instances.

@@ -54,16 +54,17 @@ mod tests {
         let native_pedersen128 = Pedersen128Native::setup("AleoPedersen128");
 
         for count in [1, 2] {
+            // Create a vector of u32 elements.
             let mut numbers = Vec::with_capacity(count);
             (0..count).into_iter().for_each(|_| numbers.extend(U32::<CurrentNetwork>::new(1).to_bits_le()));
 
-            // Create both a boolean vector and boolean array.
+            // Create both a boolean vector and boolean array from a vector of u32 elements.
             let bit_vector = numbers.iter()
                 .flat_map(|item| item.to_bits_le()) // Flatten all bit representations
                 .collect::<Vec<bool>>();
             let bit_array = bit_vector.iter().map(|item| JsValue::from(*item)).collect::<Array>();
 
-            // Hash and commit to the field element using all Pedersen hasher instances.
+            // Hash and commit to the u32 elements using all Pedersen hasher instances.
             let hash_64 = pedersen64.hash(bit_array.clone()).unwrap();
             let hash_128 = pedersen128.hash(bit_array.clone()).unwrap();
             let commit_64 = pedersen64.commit(bit_array.clone(), scalar.clone()).unwrap();
@@ -71,7 +72,7 @@ mod tests {
             let commit_to_group_64 = pedersen64.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
             let commit_to_group_128 = pedersen128.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
 
-            // Hash and commit to the field element using all native Pedersen hasher instances.
+            // Hash and commit to the u32 elements using all native Pedersen hasher instances.
             let native_hash_64 = native_pedersen64.hash(&bit_vector).unwrap();
             let native_hash_128 = native_pedersen128.hash(&bit_vector).unwrap();
             let native_commit_64 = native_pedersen64.commit(&bit_vector, &scalar).unwrap();

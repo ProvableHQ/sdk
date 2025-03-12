@@ -24,7 +24,7 @@ use crate::{
 use snarkvm_console::algorithms::{Hash, HashMany, HashToGroup, HashToScalar};
 
 use js_sys::Array;
-use wasm_bindgen::{prelude::*, convert::TryFromJsValue};
+use wasm_bindgen::{convert::TryFromJsValue, prelude::*};
 
 #[wasm_bindgen]
 pub struct Poseidon2(Poseidon2Native);
@@ -51,6 +51,7 @@ impl Poseidon2 {
     }
 
     /// Returns the extended Poseidon hash with an input rate of 2.
+    #[wasm_bindgen(js_name = "hashMany")]
     pub fn hash_many(&self, input: Array, num_outputs: u16) -> Result<Array, String> {
         let array = Array::new();
         let input = from_wasm_object_array!(input, Field)?;
@@ -61,12 +62,14 @@ impl Poseidon2 {
     }
 
     /// Returns the Poseidon hash with an input rate of 2 on the scalar field.
+    #[wasm_bindgen(js_name = "hashToScalar")]
     pub fn hash_to_scalar(&self, input: Array) -> Result<Scalar, String> {
         let input = from_wasm_object_array!(input, Field)?;
         self.0.hash_to_scalar(&input).map(|scalar| Scalar::from(scalar)).map_err(|e| e.to_string())
     }
 
     /// Returns the Poseidon hash with an input rate of 2 on the affine curve.
+    #[wasm_bindgen(js_name = "hashToGroup")]
     pub fn hash_to_group(&self, input: Array) -> Result<Group, String> {
         let input = from_wasm_object_array!(input, Field)?;
         self.0.hash_to_group(&input).map(|group| Group::from(group)).map_err(|e| e.to_string())

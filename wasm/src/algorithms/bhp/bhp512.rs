@@ -46,6 +46,7 @@ impl BHP512 {
     }
 
     /// Returns a BHP hash with an input hasher of 512 bits.
+    #[wasm_bindgen(js_name = "hashToGroup")]
     pub fn hash_to_group(&self, input: Array) -> Result<Group, String> {
         let input = from_js_typed_array!(input, as_bool, "boolean")?;
         self.0.hash_uncompressed(&input).map(|group| Group::from(group)).map_err(|e| e.to_string())
@@ -58,6 +59,7 @@ impl BHP512 {
     }
 
     /// Returns a BHP commitment with an input hasher of 512 bits and randomizer.
+    #[wasm_bindgen(js_name = "commitToGroup")]
     pub fn commit_to_group(&self, input: Array, randomizer: Scalar) -> Result<Group, String> {
         let input = from_js_typed_array!(input, as_bool, "boolean")?;
         self.0.commit_uncompressed(&input, &randomizer).map(|group| Group::from(group)).map_err(|e| e.to_string())

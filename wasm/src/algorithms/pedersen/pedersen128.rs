@@ -25,18 +25,18 @@ pub struct Pedersen128(Pedersen128Native);
 
 #[wasm_bindgen]
 impl Pedersen128 {
-    /// Create a Pedersen64 hasher for a given (up to) 128-bit input.
+    /// Create a Pedersen hasher for a given (up to) 128-bit input.
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         Self(Pedersen128Native::setup("AleoPedersen128"))
     }
 
-    /// Create a Pedersen64 hasher for a given (up to) 128-bit input with a custom domain separator.
+    /// Create a Pedersen hasher for a given (up to) 128-bit input with a custom domain separator.
     pub fn setup(domain_separator: &str) -> Self {
         Self(Pedersen128Native::setup(domain_separator))
     }
 
-    /// Returns the Pedersen hash for a given (up to) 64-bit input.
+    /// Returns the Pedersen hash for a given (up to) 128-bit input.
     pub fn hash(&self, input: Array) -> Result<Field, String> {
         let input = from_js_typed_array!(input, as_bool, "boolean")?;
         self.0.hash(&input).map(|field| Field::from(field)).map_err(|e| e.to_string())
@@ -49,6 +49,7 @@ impl Pedersen128 {
     }
 
     /// Returns a Pedersen commitment for the given (up to) 128-bit input and randomizer.
+    #[wasm_bindgen(js_name = "commitToGroup")]
     pub fn commit_to_group(&self, input: Array, randomizer: Scalar) -> Result<Group, String> {
         let input = from_js_typed_array!(input, as_bool, "boolean")?;
         self.0.commit_uncompressed(&input, &randomizer).map(|field| Group::from(field)).map_err(|e| e.to_string())

@@ -53,6 +53,11 @@ impl Field {
         self.0.to_string()
     }
 
+    /// Clone the field element.
+    pub fn clone(&self) -> Field {
+        Field(self.0.clone())
+    }
+
     /// Generate a random field element.
     pub fn random() -> Field {
         let rng = &mut rand::thread_rng();

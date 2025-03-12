@@ -25,7 +25,7 @@ pub struct Pedersen64(Pedersen64Native);
 
 #[wasm_bindgen]
 impl Pedersen64 {
-    /// Create a Pedersen64 hasher for a given (up to) 64-bit input.
+    /// Create a Pedersen hasher for a given (up to) 64-bit input.
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         Self(Pedersen64Native::setup("AleoPedersen64"))
@@ -49,6 +49,7 @@ impl Pedersen64 {
     }
 
     /// Returns a Pedersen commitment for the given (up to) 64-bit input and randomizer.
+    #[wasm_bindgen(js_name = "commitToGroup")]
     pub fn commit_to_group(&self, input: Array, randomizer: Scalar) -> Result<Group, String> {
         let input = from_js_typed_array!(input, as_bool, "boolean")?;
         self.0.commit_uncompressed(&input, &randomizer).map(|field| Group::from(field)).map_err(|e| e.to_string())

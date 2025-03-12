@@ -62,6 +62,11 @@ impl Group {
         Plaintext::from(PlaintextNative::Literal(LiteralNative::Group(self.0), OnceCell::new()))
     }
 
+    /// Clone the group element.
+    pub fn clone(&self) -> Group {
+        Group(self.0.clone())
+    }
+
     /// Generate a random group element.
     pub fn random() -> Group {
         let rng = &mut rand::thread_rng();

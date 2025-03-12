@@ -52,6 +52,11 @@ impl Scalar {
         Ok(Self(ScalarNative::from_str(group).map_err(|e| e.to_string())?))
     }
 
+    /// Clone the scalar element.
+    pub fn clone(&self) -> Scalar {
+        Scalar(self.0.clone())
+    }
+
     /// Generate a random group element.
     pub fn random() -> Scalar {
         let rng = &mut rand::thread_rng();

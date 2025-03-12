@@ -30,11 +30,12 @@ mod tests {
         Field,
         Group,
         Scalar,
-        types::native::{Poseidon2Native, Poseidon4Native, Poseidon8Native},
+        types::native::{FieldNative, Poseidon2Native, Poseidon4Native, Poseidon8Native},
         utilities::test::{create_native_field_vector, js_array_from_fields},
     };
-    use snarkvm_console::algorithms::{Hash, HashToGroup, HashToScalar};
+    use snarkvm_console::algorithms::{Hash, HashMany, HashToGroup, HashToScalar};
 
+    use wasm_bindgen::convert::TryFromJsValue;
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
@@ -50,9 +51,9 @@ mod tests {
         let native_poseidon8 = Poseidon8Native::setup("AleoPoseidon8").unwrap();
 
         // Ensure the native hash results are equal to the results from the exported hasher structs.
-        for num_fields in [1, 2, 4, 8, 16].iter() {
+        for count in [1, 2, 4, 8, 16].iter() {
             // Create a vector of field elements.
-            let native_field_array = create_native_field_vector(Some(*num_fields));
+            let native_field_array = create_native_field_vector(Some(*count));
 
             // Hash the field array using all Poseidon hasher instances.
             let hash_2 = poseidon2.hash(js_array_from_fields(&native_field_array)).unwrap();
@@ -64,6 +65,27 @@ mod tests {
             let hash_2_group = poseidon2.hash_to_group(js_array_from_fields(&native_field_array)).unwrap();
             let hash_4_group = poseidon4.hash_to_group(js_array_from_fields(&native_field_array)).unwrap();
             let hash_8_group = poseidon8.hash_to_group(js_array_from_fields(&native_field_array)).unwrap();
+            let hash_2_many = poseidon2
+                .hash_many(js_array_from_fields(&native_field_array), 2)
+                .unwrap()
+                .to_vec()
+                .into_iter()
+                .map(|item| *Field::try_from_js_value(item).unwrap())
+                .collect::<Vec<FieldNative>>();
+            let hash_4_many = poseidon4
+                .hash_many(js_array_from_fields(&native_field_array), 2)
+                .unwrap()
+                .to_vec()
+                .into_iter()
+                .map(|item| *Field::try_from_js_value(item).unwrap())
+                .collect::<Vec<FieldNative>>();
+            let hash_8_many = poseidon8
+                .hash_many(js_array_from_fields(&native_field_array), 2)
+                .unwrap()
+                .to_vec()
+                .into_iter()
+                .map(|item| *Field::try_from_js_value(item).unwrap())
+                .collect::<Vec<FieldNative>>();
 
             // Hash the field array using all native Poseidon hasher instances.
             let native_hash_2 = native_poseidon2.hash(&native_field_array).unwrap();
@@ -75,6 +97,27 @@ mod tests {
             let native_hash_2_group = native_poseidon2.hash_to_group(&native_field_array).unwrap();
             let native_hash_4_group = native_poseidon4.hash_to_group(&native_field_array).unwrap();
             let native_hash_8_group = native_poseidon8.hash_to_group(&native_field_array).unwrap();
+            let native_hash_2_many = native_poseidon2.hash_many(&native_field_array, 2);
+            let native_hash_4_many = native_poseidon4.hash_many(&native_field_array, 2);
+            let native_hash_8_many = native_poseidon8.hash_many(&native_field_array, 2);
+
+            // 2-bit Poseidon hash functions
+            console_log!("Poseidon2_hash num_fields {}, output: {}", count, native_hash_2.to_string());
+            console_log!("Poseidon2_hash_to_scalar num_fields {}, output: {}", count, native_hash_2_scalar.to_string());
+            console_log!("Poseidon2_hash_to_group num_fields {}, output: {}", count, native_hash_2_group.to_string());
+            console_log!("Poseidon2_hash_many num_fields {}, output: {:?}", count, native_hash_2_many);
+
+            // 4-bit Poseidon hash functions
+            console_log!("Poseidon4_hash num_fields {}, output: {}", count, native_hash_4.to_string());
+            console_log!("Poseidon4_hash_to_scalar num_fields {}, output: {}", count, native_hash_4_scalar.to_string());
+            console_log!("Poseidon4_hash_to_group num_fields {}, output: {}", count, native_hash_4_group.to_string());
+            console_log!("Poseidon4_hash_many num_fields {}, output: {:?}", count, native_hash_4_many);
+
+            // 8-bit Poseidon hash functions
+            console_log!("Poseidon8_hash num_fields {}, output: {}", count, native_hash_8.to_string());
+            console_log!("Poseidon8_hash_to_scalar num_fields {}, output: {}", count, native_hash_8_scalar.to_string());
+            console_log!("Poseidon8_hash_to_group num_fields {}, output: {}", count, native_hash_8_group.to_string());
+            console_log!("Poseidon8_hash_many num_fields {}, output: {:?}", count, native_hash_8_many);
 
             // Assert native and exported results are equal.
             assert_eq!(hash_2, Field::from(native_hash_2));
@@ -86,6 +129,9 @@ mod tests {
             assert_eq!(hash_2_group, Group::from(native_hash_2_group));
             assert_eq!(hash_4_group, Group::from(native_hash_4_group));
             assert_eq!(hash_8_group, Group::from(native_hash_8_group));
+            assert_eq!(hash_2_many, native_hash_2_many);
+            assert_eq!(hash_4_many, native_hash_4_many);
+            assert_eq!(hash_8_many, native_hash_8_many);
         }
     }
 }
