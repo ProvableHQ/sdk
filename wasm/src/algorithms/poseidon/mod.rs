@@ -101,24 +101,6 @@ mod tests {
             let native_hash_4_many = native_poseidon4.hash_many(&native_field_array, 2);
             let native_hash_8_many = native_poseidon8.hash_many(&native_field_array, 2);
 
-            // 2-bit Poseidon hash functions
-            console_log!("Poseidon2_hash num_fields {}, output: {}", count, native_hash_2.to_string());
-            console_log!("Poseidon2_hash_to_scalar num_fields {}, output: {}", count, native_hash_2_scalar.to_string());
-            console_log!("Poseidon2_hash_to_group num_fields {}, output: {}", count, native_hash_2_group.to_string());
-            console_log!("Poseidon2_hash_many num_fields {}, output: {:?}", count, native_hash_2_many);
-
-            // 4-bit Poseidon hash functions
-            console_log!("Poseidon4_hash num_fields {}, output: {}", count, native_hash_4.to_string());
-            console_log!("Poseidon4_hash_to_scalar num_fields {}, output: {}", count, native_hash_4_scalar.to_string());
-            console_log!("Poseidon4_hash_to_group num_fields {}, output: {}", count, native_hash_4_group.to_string());
-            console_log!("Poseidon4_hash_many num_fields {}, output: {:?}", count, native_hash_4_many);
-
-            // 8-bit Poseidon hash functions
-            console_log!("Poseidon8_hash num_fields {}, output: {}", count, native_hash_8.to_string());
-            console_log!("Poseidon8_hash_to_scalar num_fields {}, output: {}", count, native_hash_8_scalar.to_string());
-            console_log!("Poseidon8_hash_to_group num_fields {}, output: {}", count, native_hash_8_group.to_string());
-            console_log!("Poseidon8_hash_many num_fields {}, output: {:?}", count, native_hash_8_many);
-
             // Assert native and exported results are equal.
             assert_eq!(hash_2, Field::from(native_hash_2));
             assert_eq!(hash_4, Field::from(native_hash_4));
