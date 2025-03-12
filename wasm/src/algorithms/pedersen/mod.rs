@@ -25,11 +25,11 @@ mod tests {
     use super::*;
     use crate::{
         Field,
+        Group,
         Scalar,
-        test::create_native_field_vector,
         types::native::{Pedersen64Native, Pedersen128Native},
     };
-    use snarkvm_console::algorithms::{Commit, Hash, ToBits};
+    use snarkvm_console::algorithms::{Commit, CommitUncompressed, Hash, ToBits};
 
     use crate::types::native::CurrentNetwork;
     use js_sys::Array;
@@ -68,18 +68,24 @@ mod tests {
             let hash_128 = pedersen128.hash(bit_array.clone()).unwrap();
             let commit_64 = pedersen64.commit(bit_array.clone(), scalar.clone()).unwrap();
             let commit_128 = pedersen128.commit(bit_array.clone(), scalar.clone()).unwrap();
+            let commit_to_group_64 = pedersen64.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
+            let commit_to_group_128 = pedersen128.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
 
             // Hash and commit to the field element using all native Pedersen hasher instances.
             let native_hash_64 = native_pedersen64.hash(&bit_vector).unwrap();
             let native_hash_128 = native_pedersen128.hash(&bit_vector).unwrap();
             let native_commit_64 = native_pedersen64.commit(&bit_vector, &scalar).unwrap();
             let native_commit_128 = native_pedersen128.commit(&bit_vector, &scalar).unwrap();
+            let native_commit_to_group_64 = native_pedersen64.commit_uncompressed(&bit_vector, &scalar).unwrap();
+            let native_commit_to_group_128 = native_pedersen128.commit_uncompressed(&bit_vector, &scalar).unwrap();
 
             // Assert native and exported results are equal.
             assert_eq!(hash_64, Field::from(native_hash_64));
             assert_eq!(hash_128, Field::from(native_hash_128));
             assert_eq!(commit_64, Field::from(native_commit_64));
             assert_eq!(commit_128, Field::from(native_commit_128));
+            assert_eq!(commit_to_group_64, Group::from(native_commit_to_group_64));
+            assert_eq!(commit_to_group_128, Group::from(native_commit_to_group_128));
         }
     }
 }

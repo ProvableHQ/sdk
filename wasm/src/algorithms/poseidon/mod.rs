@@ -28,10 +28,12 @@ mod tests {
     use super::*;
     use crate::{
         Field,
+        Group,
+        Scalar,
         types::native::{Poseidon2Native, Poseidon4Native, Poseidon8Native},
         utilities::test::{create_native_field_vector, js_array_from_fields},
     };
-    use snarkvm_console::algorithms::Hash;
+    use snarkvm_console::algorithms::{Hash, HashToGroup, HashToScalar};
 
     use wasm_bindgen_test::*;
 
@@ -56,15 +58,34 @@ mod tests {
             let hash_2 = poseidon2.hash(js_array_from_fields(&native_field_array)).unwrap();
             let hash_4 = poseidon4.hash(js_array_from_fields(&native_field_array)).unwrap();
             let hash_8 = poseidon8.hash(js_array_from_fields(&native_field_array)).unwrap();
+            let hash_2_scalar = poseidon2.hash_to_scalar(js_array_from_fields(&native_field_array)).unwrap();
+            let hash_4_scalar = poseidon4.hash_to_scalar(js_array_from_fields(&native_field_array)).unwrap();
+            let hash_8_scalar = poseidon8.hash_to_scalar(js_array_from_fields(&native_field_array)).unwrap();
+            let hash_2_group = poseidon2.hash_to_group(js_array_from_fields(&native_field_array)).unwrap();
+            let hash_4_group = poseidon4.hash_to_group(js_array_from_fields(&native_field_array)).unwrap();
+            let hash_8_group = poseidon8.hash_to_group(js_array_from_fields(&native_field_array)).unwrap();
 
             // Hash the field array using all native Poseidon hasher instances.
             let native_hash_2 = native_poseidon2.hash(&native_field_array).unwrap();
             let native_hash_4 = native_poseidon4.hash(&native_field_array).unwrap();
             let native_hash_8 = native_poseidon8.hash(&native_field_array).unwrap();
+            let native_hash_2_scalar = native_poseidon2.hash_to_scalar(&native_field_array).unwrap();
+            let native_hash_4_scalar = native_poseidon4.hash_to_scalar(&native_field_array).unwrap();
+            let native_hash_8_scalar = native_poseidon8.hash_to_scalar(&native_field_array).unwrap();
+            let native_hash_2_group = native_poseidon2.hash_to_group(&native_field_array).unwrap();
+            let native_hash_4_group = native_poseidon4.hash_to_group(&native_field_array).unwrap();
+            let native_hash_8_group = native_poseidon8.hash_to_group(&native_field_array).unwrap();
 
+            // Assert native and exported results are equal.
             assert_eq!(hash_2, Field::from(native_hash_2));
             assert_eq!(hash_4, Field::from(native_hash_4));
             assert_eq!(hash_8, Field::from(native_hash_8));
+            assert_eq!(hash_2_scalar, Scalar::from(native_hash_2_scalar));
+            assert_eq!(hash_4_scalar, Scalar::from(native_hash_4_scalar));
+            assert_eq!(hash_8_scalar, Scalar::from(native_hash_8_scalar));
+            assert_eq!(hash_2_group, Group::from(native_hash_2_group));
+            assert_eq!(hash_4_group, Group::from(native_hash_4_group));
+            assert_eq!(hash_8_group, Group::from(native_hash_8_group));
         }
     }
 }
