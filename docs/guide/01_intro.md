@@ -73,10 +73,10 @@ graph LR
 Aleo is composed of two main components which are used and operated by the `Aleo` community.
 
 ## SnarkVM - The Aleo zkVM
-A zkVM called `SnarkVM` which provides private Program execution via the Varuna zkSnark as well and several libraries 
+A zkVM called `snarkVM` which provides private Program execution via the Varuna zkSnark as well and several libraries 
 of cryptographic primitives such as hash functions, field & elliptic curve arithmetic, and symmetric encryption tools.
 
-`SnarkVM` supports running executable programs that can have private inputs or outputs, allowing programs to be run 
+`snarkVM` supports running executable programs that can have private inputs or outputs, allowing programs to be run 
 privately, producing a proof that the execution was run correctly without revealing the private inputs or outputs. 
 These proofs can be verified by any party, with the most common verifier being the Aleo Blockchain.
 
