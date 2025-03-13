@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Field, Scalar, Group} from "@provablehq/sdk/%%NETWORK%%.js";
+import { Field, Scalar, Group} from "../src/node";
 
 describe('Field and Group Arithmetic Tests', () => {
     afterEach(() => {
