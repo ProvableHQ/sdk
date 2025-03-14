@@ -1,0 +1,223 @@
+import { useState, useEffect } from "react";
+import { Card, Divider, Form, Input, Select, Radio, Button } from "antd";
+import { useAuctionState } from "../../components/AuctionState.jsx";
+import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { Transaction } from "@demox-labs/aleo-wallet-adapter-base";
+
+export const AuctionControls = () => {
+    const {auctionState, setAuctionState } = useAuctionState();
+    const [currentAuctionId, setCurrentAuctionId] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [operation, setOperation] = useState("resolve");
+    const [recordOne, setRecordOne] = useState("");
+    const [recordTwo, setRecordTwo] = useState("");
+    const { publicKey, requestTransaction, connected, disconnect, network, wallet } = useWallet();
+
+    const operations = [
+        { value: "resolve", label: "Compare Bids >>>" },
+        { value: "finish", label: "Finish Auction ✓" },
+    ];
+
+    function onAuctionIdChange(e) {
+        setCurrentAuctionId(e.target.value);
+    }
+
+    function onFirstRecordChange(e) {
+        setRecordOne(e.target.value);
+    }
+
+    function onSecondRecordChange(e) {
+        setRecordTwo(e.target.value);
+    }
+
+    async function resolveBids(
+        bidOne,
+        bidTwo,
+    ) {
+        // Builx the transaction request.
+        const transaction = Transaction.createTransaction(
+            publicKey,
+            network,
+            "private_auction.aleo",
+            "resolve",
+            [bidOne, bidTwo],
+            0.05,
+            false,
+        )
+
+        // Request the transaction from the wallet.
+        await requestTransaction(transaction);
+    }
+
+    async function finishAuction(
+        winningBid,
+    ) {
+        // Build the transaction request.
+        const transaction = Transaction.createTransaction(
+            publicKey,
+            network,
+            "private_auction.aleo",
+            "finish",
+            [winningBid],
+            0.05,
+            false,
+        )
+
+        // Request the transaction from the wallet.
+        await requestTransaction(transaction);
+    }
+
+    const onOperationChange = (value) => {
+        setOperation(value);
+    };
+
+    /// Handle resolving the bids.
+    const handleResolveBids = async (bidOne, bidTwo) => {
+        try {
+            setLoading(true);
+            const result = await resolveBids(bidOne, bidTwo);
+        } catch (error) {
+            console.error('Error resolving bids:', error);
+        } finally {
+            setRecordOne("");
+            setRecordTwo("");
+            setLoading(false);
+        }
+    };
+
+    /// Handle finishing the auction.
+    const handleFinishAuction = async (bidOne) => {
+        try {
+            setLoading(true);
+            const result = await finishAuction(bidOne);
+        } catch (error) {
+            console.error('Error finishing auction:', error);
+        } finally {
+            setRecordOne("");
+            setLoading(false);
+        }
+    };
+
+    const layout = {
+        labelCol: { span: 6 },
+        wrapperCol: { span: 18 },
+        style: { marginBottom: '24px' }
+    };
+
+    return (
+        <Card
+            title="Auctioneer Actions"
+            style={{ width: "100%" }}
+        >
+            <Form {...layout}>
+                {!currentAuctionId && (
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Auction ID</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Input.Group compact>
+                            <Input
+                                name="AuctionID"
+                                size="large"
+                                placeholder="Enter the Auction ID"
+                                value={currentAuctionId}
+                                allowClear={true}
+                                onChange={onAuctionIdChange}
+                                style={{ width: 'calc(100% - 110px)' }}
+                            />
+                        </Input.Group>
+                    </Form.Item>
+                )}
+
+                <Form.Item
+                    label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>}
+                    colon={false}
+                    style={{ marginBottom: '24px' }}
+                >
+                    <Radio.Group
+                        value={operation}
+                        onChange={(e) => onOperationChange(e.target.value)}
+                        size="large"
+                    >
+                        {operations.map(op => (
+                            <Radio.Button key={op.value} value={op.value}>
+                                {op.label}
+                            </Radio.Button>
+                        ))}
+                    </Radio.Group>
+                </Form.Item>
+
+                <Form.Item
+                    label={<span style={{ whiteSpace: 'nowrap' }}>Field Element 1</span>}
+                    colon={false}
+                    style={{ marginBottom: '24px' }}
+                >
+                    <Input.Group compact>
+                        <Input
+                            name="bid"
+                            size="large"
+                            placeholder="Enter first bid ID"
+                            allowClear
+                            value={recordOne}
+                            onChange={onFirstRecordChange}
+                            style={{ width: 'calc(100% - 110px)' }}
+                        />
+                    </Input.Group>
+                </Form.Item>
+
+                {operation === "resolve" && (
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Second Bid</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Input.Group compact>
+                            <Input
+                                name="bidTwo"
+                                size="large"
+                                placeholder="Enter second bid ID"
+                                value={recordTwo}
+                                allowClear={true}
+                                onChange={onSecondRecordChange}
+                                style={{ width: 'calc(100% - 110px)' }}
+                            />
+                        </Input.Group>
+                    </Form.Item>
+                )}
+
+                {operation === "resolve" && (
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Compare Bids</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Button
+                            size="large"
+                            onClick={() => handleResolveBids(recordOne, recordTwo)}
+                            style={{ width: '110px' }}
+                            >
+                            Compare Bids
+                        </Button>
+                    </Form.Item>
+                )}
+
+                {operation === "finish" && (
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Finish Auction</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Button
+                            size="large"
+                            onClick={() => handleFinishAuction(recordOne)}
+                            style={{ width: '110px' }}
+                            >
+                            Finish Auction
+                        </Button>
+                    </Form.Item>
+                )}
+            </Form>
+        </Card>
+    );
+};
