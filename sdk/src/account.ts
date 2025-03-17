@@ -1,5 +1,6 @@
 import {
   Address,
+  ComputeKey,
   PrivateKey,
   Signature,
   ViewKey,
@@ -44,6 +45,7 @@ interface AccountParam {
 export class Account {
   _privateKey: PrivateKey;
   _viewKey: ViewKey;
+  _computeKey: ComputeKey;
   _address: Address;
 
   constructor(params: AccountParam = {}) {
@@ -54,6 +56,7 @@ export class Account {
       throw new Error("Wrong Parameter");
     }
     this._viewKey = ViewKey.from_private_key(this._privateKey);
+    this._computeKey = ComputeKey.from_private_key(this._privateKey);
     this._address = Address.from_private_key(this._privateKey);
   }
 
@@ -95,8 +98,16 @@ export class Account {
     return this._viewKey;
   }
 
+  computeKey() {
+    return this._computeKey;
+  }
+
   address() {
     return this._address;
+  }
+
+  clone() {
+    return new Account({ privateKey: this._privateKey.to_string() });
   }
 
   toString() {

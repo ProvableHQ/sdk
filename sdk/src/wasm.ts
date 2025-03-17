@@ -5,6 +5,7 @@ export {
     BHP768,
     BHP1024,
     Ciphertext,
+    ComputeKey,
     Execution,
     ExecutionResponse,
     Field,
