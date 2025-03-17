@@ -58,6 +58,10 @@ export { logAndThrow } from "./utils";
 
 export {
     Address,
+    BHP256,
+    BHP512,
+    BHP768,
+    BHP1024,
     Ciphertext,
     ComputeKey,
     Execution as FunctionExecution,
@@ -65,7 +69,12 @@ export {
     Field,
     Group,
     OfflineQuery,
+    Pedersen64,
+    Pedersen128,
     Plaintext,
+    Poseidon2,
+    Poseidon4,
+    Poseidon8,
     PrivateKey,
     PrivateKeyCiphertext,
     Program,

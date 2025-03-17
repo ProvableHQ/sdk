@@ -155,6 +155,9 @@
 pub mod account;
 pub use account::*;
 
+pub mod algorithms;
+pub use algorithms::*;
+
 pub mod ledger;
 pub use ledger::*;
 
@@ -169,6 +172,10 @@ pub use types::{Field, Group, Scalar};
 
 #[cfg(not(test))]
 mod thread_pool;
+
+mod utilities;
+#[cfg(test)]
+pub use utilities::*;
 
 #[cfg(test)]
 mod thread_pool {

@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.8.0"
+version = "0.8.6"
 authors = [ "The Provable Team" ]
 description = "WebAssembly based toolkit for developing zero-knowledge applications with Aleo"
 homepage = "https://provable.com"
@@ -99,7 +99,7 @@ default-features = false
 version = "2"
 
 [dependencies.wasm-bindgen]
-version = "0.2"
+version = "0.2.100"
 features = [ "serde-serialize" ]
 
 [dependencies.wasm-bindgen-futures]
@@ -120,7 +120,7 @@ features = [
 ]
 
 [dev-dependencies.wasm-bindgen-test]
-version = "0.3.37"
+version = "0.3.50"
 
 [dev-dependencies.gloo-timers]
 version = "0.3.0"
