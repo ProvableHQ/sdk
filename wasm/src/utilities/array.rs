@@ -20,8 +20,7 @@
 macro_rules! from_wasm_object_array {
     ($input:expr, $wasm_type:ident) => {{
         $input
-            .to_vec()
-            .into_iter()
+            .iter()
             .map(|x| {
                 $wasm_type::try_from_js_value(x).map(|x| *x).map_err(|_| "Input must be an array of fields".to_string())
             })
@@ -34,7 +33,6 @@ macro_rules! from_wasm_object_array {
 macro_rules! from_js_typed_array {
     ($input:expr, $method:ident, $_type:expr) => {{
         $input
-            .to_vec()
             .iter()
             .map(|x| x.$method().ok_or_else(|| format!("Input must be a {} array", $_type)))
             .collect::<Result<Vec<bool>, String>>()
