@@ -1,8 +1,20 @@
 import { useMemo } from "react";
-import { WalletProvider, WalletModalProvider } from "@aleowallet/react";
-import { LeoWalletAdapter, PuzzleWalletAdapter } from "@aleowallet/adapters";
+import { WalletProvider } from "@demox-labs/aleo-wallet-adapter-react";
+import { WalletModalProvider } from "@demox-labs/aleo-wallet-adapter-reactui";
+import {
+    PuzzleWalletAdapter,
+    // LeoWalletAdapter,
+    FoxWalletAdapter,
+    SoterWalletAdapter,
+    // configureConnectionForPuzzle,
+} from "aleo-adapters";
+import {
+    DecryptPermission,
+    WalletAdapterNetwork,
+} from "@demox-labs/aleo-wallet-adapter-base";
+import { LeoWalletAdapter } from "@demox-labs/aleo-wallet-adapter-leo";
 
-const WalletWrapper = ({ children }) => {
+export const WalletWrapper = ({ children }) => {
     // Initialize wallets inside a functional component using useMemo.
     const wallets = useMemo(
         () => [
@@ -38,5 +50,3 @@ const WalletWrapper = ({ children }) => {
         </WalletProvider>
     );
 };
-
-export default WalletWrapper;

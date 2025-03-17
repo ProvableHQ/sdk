@@ -26,6 +26,8 @@
         "@uiw/codemirror-theme-noctis-lilac": "^4.23.7",
         "@uiw/codemirror-theme-okaidia": "^4.23.7",
         "@uiw/react-codemirror": "^4.23.7",
+        "aleo-adapters": "^1.2.1",
+        "aleo-hooks": "^1.0.3",
         "antd": "^5.23.2",
         "axios": "^1.8.2",
         "babel-loader": "^9.2.1",

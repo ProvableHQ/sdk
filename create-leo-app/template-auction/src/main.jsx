@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { App, ConfigProvider, Layout, Menu, Switch, theme } from "antd";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AuctionState } from "./components/AuctionState.jsx";
-import { WalletProvider } from "@demox-labs/aleo-wallet-adapter-react";
+import { WalletWrapper } from "./components/WalletWrapper.jsx";
 import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 
 import {
@@ -46,7 +46,7 @@ function Main() {
 
     return (
         <AuctionState>
-                <WalletProvider>
+                <WalletWrapper>
                     <ConfigProvider
                         theme={{
                             algorithm: darkMode
@@ -63,7 +63,7 @@ function Main() {
                             <Sider breakpoint="lg" collapsedWidth="0" theme="light">
                                 <h1 className={darkMode ? "headerDark": "headerLight"}>
                                     <Link to="/">
-                                    Provable SDK
+                                    ZkAuction
                                     </Link>
                                 </h1>
                                 <Menu
@@ -103,7 +103,7 @@ function Main() {
                     </App>
                     </ConfigProvider>
 
-                </WalletProvider>
+                </WalletWrapper>
         </AuctionState>
     );
 }
