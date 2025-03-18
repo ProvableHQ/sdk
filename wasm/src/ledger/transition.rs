@@ -182,7 +182,7 @@ impl Transition {
         let tvk = tpk.scalar_multiply(&view_key.to_scalar()).to_x_coordinate();
         tvk
     }
- 
+
     /// Get the transition commitment of the transition.
     pub fn tcm(&self) -> Field {
         Field::from(self.0.tcm())
