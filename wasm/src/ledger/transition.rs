@@ -177,9 +177,9 @@ impl Transition {
     }
 
     /// Get the transition view key of the transition.
-    pub fn tvk(&self, view_key: ViewKey) -> Field {
+    pub fn tvk(&self, view_key: &ViewKey) -> Field {
         let tpk = self.tpk();
-        let tvk = tpk.scalar_multiply(&view_key.to_scalar()).to_x_coordinate();
+        let tvk = tpk.scalar_multiply(view_key.to_scalar()).to_x_coordinate();
         tvk
     }
 
@@ -263,6 +263,10 @@ mod tests {
 
     #[test]
     fn test_transition_helpers() {
+        // Create a random private key and view key.
+        let private_key = PrivateKey::new();
+        let view_key = ViewKey::from_private_key(&private_key);
+
         let transition = Transition::from_string(TRANSITION).unwrap();
         assert_eq!(transition.program_id(), "token_registry.aleo");
         assert_eq!(transition.function_name(), "burn_private");
@@ -281,6 +285,11 @@ mod tests {
             Field::from_string("6845182532650964173356391969005331370591444046632036068754797772530920467754field")
                 .unwrap()
         );
+        assert_eq!(
+            transition.tvk(&view_key),
+            Field::from_string("_placeholder_") // Placeholder for the view key, will replace with manually computed value.
+                .unwrap()
+        )
     }
 
     #[wasm_bindgen_test]
