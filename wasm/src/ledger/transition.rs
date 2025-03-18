@@ -179,10 +179,10 @@ impl Transition {
     /// Get the transition view key of the transition.
     pub fn tvk(&self, view_key: &ViewKey) -> Field {
         let tpk = self.tpk();
-        let tvk = tpk.scalar_multiply(view_key.to_scalar()).to_x_coordinate();
+        let tvk = tpk.scalar_multiply(&view_key.to_scalar()).to_x_coordinate();
         tvk
     }
-
+ 
     /// Get the transition commitment of the transition.
     pub fn tcm(&self) -> Field {
         Field::from(self.0.tcm())
