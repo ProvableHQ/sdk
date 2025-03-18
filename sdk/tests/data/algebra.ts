@@ -55,12 +55,12 @@ const expectedPoseidon8HashMany = [
     "491310798299229303453029190751493384624125693265313448104421146921465784609field",
     "476244868544635089532724552855423418881253978175875838088194622836984800804field"
 ];
-
-
-
+/// Write the string representation of the group generator.
+const GroupGenerator = "1540945439182663264862696551825005342995406165131907382295858612069623286213group";
 /// Choose a scalar generator for unit tests.
 const ScalarGenerator = "1774157567936692047646837016039369013254365378639847034769080448564598011047scalar";
-export { FieldGenerator, ScalarGenerator, expectedBHP512Commit, expectedBHP512CommitToGroup, expectedBHP512Hash,
+
+export {expectedBHP512Commit, expectedBHP512CommitToGroup, expectedBHP512Hash,
     expectedBHP512HashToGroup, expectedBHP768Commit, expectedBHP768CommitToGroup, expectedBHP768Hash,
     expectedBHP768HashToGroup, expectedBHP1024Commit, expectedBHP1024CommitToGroup, expectedBHP1024Hash,
     expectedBHP1024HashToGroup, expectedBHP256Commit, expectedBHP256CommitToGroup, expectedBHP256Hash,
@@ -68,5 +68,6 @@ export { FieldGenerator, ScalarGenerator, expectedBHP512Commit, expectedBHP512Co
     expectedPedersen128CommitToGroup, expectedPedersen128Commit, expectedPedersen128Hash, expectedPoseidon2Hash,
     expectedPoseidon2HashToGroup, expectedPoseidon2HashToScalar, expectedPoseidon2HashMany, expectedPoseidon4Hash,
     expectedPoseidon4HashToGroup, expectedPoseidon4HashToScalar, expectedPoseidon4HashMany, expectedPoseidon8Hash,
-    expectedPoseidon8HashToGroup, expectedPoseidon8HashToScalar, expectedPoseidon8HashMany
+    expectedPoseidon8HashToGroup, expectedPoseidon8HashToScalar, expectedPoseidon8HashMany, FieldGenerator,
+    GroupGenerator, ScalarGenerator
 };
