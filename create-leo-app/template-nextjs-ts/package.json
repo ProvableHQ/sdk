@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "concurrently \"npm run dev\" \"playwright test && playwright show-report\"",
+    "test": "sh scripts/test.sh",
     "lint": "next lint"
   },
   "dependencies": {
