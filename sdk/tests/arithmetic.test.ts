@@ -1,6 +1,7 @@
 import sinon from "sinon";
 import { expect } from "chai";
 import { Field, Scalar, Group} from "../src/node";
+import { FieldGenerator, GroupGenerator, ScalarGenerator } from "./data/algebra";
 
 describe('Field and Group Arithmetic Tests', () => {
     afterEach(() => {
@@ -99,6 +100,41 @@ describe('Field and Group Arithmetic Tests', () => {
             expect(c.equals(d)).equals(true);
             // Ensure adding the inverse element leads to the point at infinity.
             expect((G.add(G_inv)).equals(Ginf)).equals(true);
+        });
+
+        it('Ensure bit and byte serialization is correctly implemented', () => {
+            // Create the chosen generators.
+            const G = Group.generator();
+            const a = Scalar.fromString(ScalarGenerator);
+            const f = Field.fromString(FieldGenerator);
+
+            // Serialize the algebraic objects to bytes.
+            const GBytesLe = G.toBytesLe();
+            const aBytesLe = a.toBytesLe();
+            const fBytesLe = f.toBytesLe();
+
+            // Serialize the algebraic objects to bits.
+            const GBits = G.toBitsLe();
+            const aBits = a.toBitsLe();
+            const fBits = f.toBitsLe();
+
+            // Deserialize the bytes to the original algebraic objects.
+            const GDeserializedBytes = Group.fromBytesLe(GBytesLe).toString();
+            const aDeserializedBytes = Scalar.fromBytesLe(aBytesLe).toString();
+            const fDeserializedBytes = Field.fromBytesLe(fBytesLe).toString();
+
+            // Deserialize the bits to the original algebraic objects.
+            const GDeserializedBits = Group.fromBitsLe(GBits).toString();
+            const aDeserializedBits = Scalar.fromBitsLe(aBits).toString();
+            const fDeserializedBits = Field.fromBitsLe(fBits).toString();
+
+            // Ensure the deserialized objects are the same as the original objects.
+            expect(GDeserializedBytes).equals(GroupGenerator);
+            expect(aDeserializedBytes).equals(ScalarGenerator);
+            expect(fDeserializedBytes).equals(FieldGenerator);
+            expect(GDeserializedBits).equals(GroupGenerator);
+            expect(aDeserializedBits).equals(ScalarGenerator);
+            expect(fDeserializedBits).equals(FieldGenerator);
         });
     });
 });

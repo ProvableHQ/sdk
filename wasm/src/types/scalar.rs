@@ -16,12 +16,13 @@
 
 use crate::{
     Plaintext,
+    from_js_typed_array,
     to_bits_array_le,
     types::native::{LiteralNative, PlaintextNative, ScalarNative, Uniform},
 };
-use snarkvm_console::prelude::{Double, One, Pow, ToBits, Zero};
+use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Zero};
 
-use js_sys::Array;
+use js_sys::{Array, Uint8Array};
 use once_cell::sync::OnceCell;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -33,23 +34,52 @@ pub struct Scalar(ScalarNative);
 
 #[wasm_bindgen]
 impl Scalar {
-    /// Returns the string representation of the group.
+    /// Creates a scalar object from a string representation of a scalar element.
+    #[wasm_bindgen(js_name = "fromString")]
+    pub fn from_string(group: &str) -> Result<Scalar, String> {
+        Ok(Self(ScalarNative::from_str(group).map_err(|e| e.to_string())?))
+    }
+
+    /// Returns the string representation of the scalar element.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
-    /// Create a plaintext element from a group element.
+    /// Create a scalar element from a Uint8Array of left endian bytes.
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: &Uint8Array) -> Result<Scalar, String> {
+        let bytes = bytes.to_vec();
+        let scalar = ScalarNative::from_bytes_le(&bytes).map_err(|e| e.to_string())?;
+        Ok(Scalar(scalar))
+    }
+
+    /// Encode the scalar element as a Uint8Array of left endian bytes.
+    #[wasm_bindgen(js_name = "toBytesLe")]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        Ok(Uint8Array::from(bytes.as_slice()))
+    }
+
+    /// Reconstruct a scalar element from a boolean array representation.
+    #[wasm_bindgen(js_name = "fromBitsLe")]
+    pub fn from_bits_le(bits: &Array) -> Result<Scalar, String> {
+        let bit_vec = from_js_typed_array!(bits, as_bool, "boolean")?;
+        let scalar = ScalarNative::from_bits_le(&bit_vec).map_err(|e| e.to_string())?;
+        Ok(Scalar(scalar))
+    }
+
+    /// Get the left endian boolean array representation of the scalar element.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
+
+    /// Create a plaintext element from a scalar element.
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {
         Plaintext::from(PlaintextNative::Literal(LiteralNative::Scalar(self.0), OnceCell::new()))
-    }
-
-    /// Creates a group object from a string representation of a group.
-    #[wasm_bindgen(js_name = "fromString")]
-    pub fn from_string(group: &str) -> Result<Scalar, String> {
-        Ok(Self(ScalarNative::from_str(group).map_err(|e| e.to_string())?))
     }
 
     /// Clone the scalar element.
@@ -57,7 +87,7 @@ impl Scalar {
         Scalar(self.0.clone())
     }
 
-    /// Generate a random group element.
+    /// Generate a random scalar element.
     pub fn random() -> Scalar {
         let rng = &mut rand::thread_rng();
         Scalar(ScalarNative::rand(rng))
@@ -98,12 +128,12 @@ impl Scalar {
         Scalar(-self.0)
     }
 
-    /// Creates a one valued element of the scalar field.
+    /// Get the multiplicative identity of the scalar field.
     pub fn one() -> Scalar {
         Scalar(ScalarNative::one())
     }
 
-    /// Creates a zero valued element of the scalar field
+    /// Get the additive identity of the scalar field.
     pub fn zero() -> Scalar {
         Scalar(ScalarNative::zero())
     }
@@ -111,12 +141,6 @@ impl Scalar {
     /// Check if one scalar element equals another.
     pub fn equals(&self, other: &Scalar) -> bool {
         self.0 == ScalarNative::from(other)
-    }
-
-    /// Get the left endian boolean array representation of the scalar element.
-    #[wasm_bindgen(js_name = "toBitsLe")]
-    pub fn to_bits_le(&self) -> Array {
-        to_bits_array_le!(self)
     }
 }
 
