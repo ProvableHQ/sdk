@@ -75,10 +75,12 @@ export default function Home() {
 
             <div className={styles.card}>
                 <p>
-                    <button onClick={generateAccount}>
-                        {account
-                            ? `Account private key is ${JSON.stringify(account)}`
-                            : `Click to generate account`}
+                    <button 
+                        data-generate-account-button
+                        onClick={generateAccount}>
+                            {account
+                                ? `Account private key is ${JSON.stringify(account)}`
+                                : `Click to generate account`}
                     </button>
                 </p>
                 <p>

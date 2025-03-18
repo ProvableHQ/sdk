@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "concurrently \"npm run dev\" \"playwright test && playwright show-report\"",
     "lint": "next lint"
   },
   "dependencies": {
@@ -16,9 +17,11 @@
     "terser-webpack-plugin": "^5.3.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
     "@types/node": "^22.12.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "concurrently": "^9.1.2",
     "typescript": "^5.7.3"
   }
 }
