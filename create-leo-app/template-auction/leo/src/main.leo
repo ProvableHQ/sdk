@@ -24,7 +24,7 @@ program auction.aleo {
         assert_eq(self.caller, bidder);
         // Return a new 'Bid' record for the auction bidder.
         return Bid {
-            owner: address,
+            owner: auctioneer,
             bidder: bidder,
             id: id,
             amount: amount,

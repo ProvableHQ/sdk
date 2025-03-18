@@ -22,10 +22,11 @@ use crate::{
         native::{GroupNative, LiteralNative, PlaintextNative, Uniform},
     },
 };
-use snarkvm_console::prelude::{Double, Zero};
+use snarkvm_console::prelude::{Double, FromBytes, ToBytes, Zero};
 
 use once_cell::sync::OnceCell;
 use std::{ops::Deref, str::FromStr};
+use js_sys::Uint8Array;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Elliptic curve element.
@@ -47,6 +48,27 @@ impl Group {
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
+
+    /// Encode the group element as a Uint8Array of left endian bytes.
+    ///
+    /// @returns {Uint8Array} Uint8Array representation of the group element
+    #[wasm_bindgen(js_name = toBytesLe)]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        Ok(Uint8Array::from(bytes.as_slice()))
+    }
+
+    /// Create a group element from a Uint8Array of left endian bytes.
+    ///
+    /// @param {Uint8Array} Uint8Array of left endian bytes encoding a group element.
+    /// @returns {Group}
+    #[wasm_bindgen(js_name = fromBytesLe)]
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Group, String> {
+        let bytes = bytes.to_vec();
+        let group = GroupNative::from_bytes_le(&bytes).map_err(|e| e.to_string())?;
+        Ok(Group(group))
+    }
+
 
     /// Get the x-coordinate of the group element.
     #[wasm_bindgen(js_name = "toXCoordinate")]

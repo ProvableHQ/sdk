@@ -15,12 +15,13 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::native::{PlaintextNative, ScalarNative, Uniform};
-use snarkvm_console::prelude::{Double, One, Pow, Zero};
+use snarkvm_console::prelude::{Double, FromBytes, One, Pow, ToBytes, Zero};
 use std::ops::Deref;
 
 use crate::{Plaintext, types::native::LiteralNative};
 use once_cell::sync::OnceCell;
 use std::str::FromStr;
+use js_sys::Uint8Array;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Scalar field element.
@@ -30,6 +31,12 @@ pub struct Scalar(ScalarNative);
 
 #[wasm_bindgen]
 impl Scalar {
+    /// Creates a group object from a string representation of a group.
+    #[wasm_bindgen(js_name = "fromString")]
+    pub fn from_string(group: &str) -> Result<Scalar, String> {
+        Ok(Self(ScalarNative::from_str(group).map_err(|e| e.to_string())?))
+    }
+
     /// Returns the string representation of the group.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
@@ -37,16 +44,30 @@ impl Scalar {
         self.0.to_string()
     }
 
+    /// Encode the scalar element as a Uint8Array of left endian bytes.
+    ///
+    /// @returns {Uint8Array} Uint8Array representation of the scalar element
+    #[wasm_bindgen(js_name = toBytesLe)]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        Ok(Uint8Array::from(bytes.as_slice()))
+    }
+
+    /// Create a scalar element from a Uint8Array of left endian bytes.
+    ///
+    /// @param {Uint8Array} Uint8Array of left endian bytes encoding a scalar element.
+    /// @returns {Scalar}
+    #[wasm_bindgen(js_name = fromBytesLe)]
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Scalar, String> {
+        let bytes = bytes.to_vec();
+        let scalar = ScalarNative::from_bytes_le(&bytes).map_err(|e| e.to_string())?;
+        Ok(Scalar(scalar))
+    }
+
     /// Create a plaintext element from a group element.
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {
         Plaintext::from(PlaintextNative::Literal(LiteralNative::Scalar(self.0), OnceCell::new()))
-    }
-
-    /// Creates a group object from a string representation of a group.
-    #[wasm_bindgen(js_name = "fromString")]
-    pub fn from_string(group: &str) -> Result<Scalar, String> {
-        Ok(Self(ScalarNative::from_str(group).map_err(|e| e.to_string())?))
     }
 
     /// Generate a random group element.

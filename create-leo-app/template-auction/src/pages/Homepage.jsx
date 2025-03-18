@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 import "./Homepage.css";
+import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 
 const Homepage = () => {
     return (
@@ -39,24 +40,6 @@ const Homepage = () => {
                     </button>
                 </Link>{" "}
                 </div>
-                <ul className="actionRow">
-                    <Link to="/develop" className="actionItem">
-                        {" "}
-                        <li>Connect Wallet</li>
-                    </Link>
-                </ul>
-                <p className="secondSubheader">
-                    Build your first zero-knowledge app with create-leo-app
-                </p>{" "}
-                <Link
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    to="https://docs.leo-lang.org/sdk/create-leo-app/tutorial/"
-                >
-                    <button className="button">
-                        Try now <span className="arrow">&rarr;</span>
-                    </button>
-                </Link>{" "}
                 <div className="footer">
                     <a href="https://github.com/ProvableHQ/sdk">
                         <img

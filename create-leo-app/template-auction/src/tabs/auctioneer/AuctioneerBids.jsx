@@ -7,28 +7,28 @@ import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 import { WalletWrapper } from "../../components/WalletWrapper.jsx";
 
-export const Bids = () => {
+export const AuctioneerBids = () => {
     const { auctionState } = useAuctionState();
-    const { publicKey, connected, disconnect, network, wallet } = useWallet();
+    const { publicKey, connected, requestRecordPlaintexts, disconnect, network, wallet } = useWallet();
     const [bidAmount, setBidAmount] = useState("");
 
-    const myBids = useMemo(() => {
-        if (!auctionState?.bidderState || !publicKey || !auctionState.bidderState[publicKey]) {
-            return [];
-        }
-        
-        return auctionState.bidderState[publicKey].bids || [];
-    }, [auctionState, publicKey]);
+    const myBids = [];
+
+    const getWinningBids = () => {
+        requestRecordPlaintexts("private_auction.aleo").then((records) => {
+
+        };
+    }
 
     return (
             <Card
-                title="My Bids"
+                title="Open Bids"
                 style={{ width: "100%" }}
             >
                 <WalletMultiButton />
                 {!connected ? (
                     <>
-                        <div>Please connect your wallet to view your bids</div>
+                        <div>Please connect your wallet to view bids from outside bidders</div>
                     </>
                 ) : (
                     <List

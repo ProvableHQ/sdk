@@ -7,16 +7,23 @@ import { Transaction } from "@demox-labs/aleo-wallet-adapter-base";
 export const AuctionControls = () => {
     const {auctionState, setAuctionState } = useAuctionState();
     const [currentAuctionId, setCurrentAuctionId] = useState("");
+    const [isAuctionSelected, setIsAuctionSelected] = useState(false);
     const [loading, setLoading] = useState(false);
     const [operation, setOperation] = useState("resolve");
     const [recordOne, setRecordOne] = useState("");
     const [recordTwo, setRecordTwo] = useState("");
-    const { publicKey, requestTransaction, connected, disconnect, network, wallet } = useWallet();
+    const [selectedAuction, setSelectedAuction] = useState("");
+    const { publicKey, requestTransaction, requestRecords, connected, disconnect, network, wallet } = useWallet();
 
     const operations = [
         { value: "resolve", label: "Compare Bids >>>" },
         { value: "finish", label: "Finish Auction ✓" },
     ];
+
+    function handleSetAuctionId(auctionId) {
+        setCurrentAuctionId(auctionId);
+        setIsAuctionSelected(isAuctionSelected => !isAuctionSelected);
+    }
 
     function onAuctionIdChange(e) {
         setCurrentAuctionId(e.target.value);
@@ -110,25 +117,31 @@ export const AuctionControls = () => {
             style={{ width: "100%" }}
         >
             <Form {...layout}>
-                {!currentAuctionId && (
-                    <Form.Item
-                        label={<span style={{ whiteSpace: 'nowrap' }}>Auction ID</span>}
-                        colon={false}
-                        style={{ marginBottom: '24px' }}
-                    >
-                        <Input.Group compact>
-                            <Input
-                                name="AuctionID"
-                                size="large"
-                                placeholder="Enter the Auction ID"
-                                value={currentAuctionId}
-                                allowClear={true}
-                                onChange={onAuctionIdChange}
-                                style={{ width: 'calc(100% - 110px)' }}
-                            />
-                        </Input.Group>
-                    </Form.Item>
-                )}
+                <Form.Item
+                    label={<span style={{ whiteSpace: 'nowrap' }}>Auction ID</span>}
+                    colon={false}
+                    style={{ marginBottom: '24px' }}
+                >
+                    <Input.Group compact>
+                        <Input
+                            name="AuctionID"
+                            size="large"
+                            placeholder="Enter the Auction ID"
+                            value={currentAuctionId}
+                            allowClear={true}
+                            disabled={isAuctionSelected}
+                            onChange={onAuctionIdChange}
+                            style={{ width: 'calc(100% - 110px)' }}
+                        />
+                        <Button
+                            size="large"
+                            onClick={() => handleSetAuctionId(currentAuctionId)}
+                            style={{ width: '110px' }}
+                        >
+                            {isAuctionSelected ? "Change" : "Select"}
+                        </Button>
+                    </Input.Group>
+                </Form.Item>
 
                 <Form.Item
                     label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>}
@@ -149,7 +162,7 @@ export const AuctionControls = () => {
                 </Form.Item>
 
                 <Form.Item
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Field Element 1</span>}
+                    label={<span style={{ whiteSpace: 'nowrap' }}>First Bid</span>}
                     colon={false}
                     style={{ marginBottom: '24px' }}
                 >
@@ -157,7 +170,7 @@ export const AuctionControls = () => {
                         <Input
                             name="bid"
                             size="large"
-                            placeholder="Enter first bid ID"
+                            placeholder="Enter bid ID"
                             allowClear
                             value={recordOne}
                             onChange={onFirstRecordChange}
@@ -176,7 +189,7 @@ export const AuctionControls = () => {
                             <Input
                                 name="bidTwo"
                                 size="large"
-                                placeholder="Enter second bid ID"
+                                placeholder="Enter bid ID"
                                 value={recordTwo}
                                 allowClear={true}
                                 onChange={onSecondRecordChange}
@@ -188,7 +201,7 @@ export const AuctionControls = () => {
 
                 {operation === "resolve" && (
                     <Form.Item
-                        label={<span style={{ whiteSpace: 'nowrap' }}>Compare Bids</span>}
+                        label={<span style={{ whiteSpace: 'nowrap' }}></span>}
                         colon={false}
                         style={{ marginBottom: '24px' }}
                     >

@@ -15,10 +15,10 @@ export const useAuctionState = () => {
 // Define the data structure.
 export const AuctionState = ({ children }) => {
     const [data, setData] = useState({
-        AuctioneerRecords: [],
-        Auctioneer: {},
-        BidderRecords: [],
-        Bidder: {},
+        auctioneerRecords: [],
+        auctioneerState: {},
+        bidderRecords: [],
+        bidderState: {},
     });
 
     return (
