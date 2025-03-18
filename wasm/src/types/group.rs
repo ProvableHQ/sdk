@@ -17,16 +17,18 @@
 use crate::{
     Field,
     Plaintext,
+    to_bits_array_le,
     types::{
         Scalar,
         native::{GroupNative, LiteralNative, PlaintextNative, Uniform},
     },
 };
-use snarkvm_console::prelude::{Double, Zero};
+use snarkvm_console::prelude::{Double, ToBits, Zero};
 
+use js_sys::Array;
 use once_cell::sync::OnceCell;
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::prelude::*;
 
 /// Elliptic curve element.
 #[wasm_bindgen]
@@ -58,6 +60,11 @@ impl Group {
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {
         Plaintext::from(PlaintextNative::Literal(LiteralNative::Group(self.0), OnceCell::new()))
+    }
+
+    /// Clone the group element.
+    pub fn clone(&self) -> Group {
+        Group(self.0.clone())
     }
 
     /// Generate a random group element.
@@ -106,6 +113,12 @@ impl Group {
     /// Get the generator of the group.
     pub fn generator() -> Group {
         Group::from(GroupNative::generator())
+    }
+
+    /// Get the left endian boolean array representation of the group element.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
     }
 }
 

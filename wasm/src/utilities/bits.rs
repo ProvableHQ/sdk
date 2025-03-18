@@ -13,8 +13,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
-pub mod transaction;
-pub use transaction::Transaction;
 
-pub mod transition;
-pub use transition::Transition;
+#[macro_export]
+macro_rules! to_bits_array_le {
+    ($self:expr) => {{ $self.0.to_bits_le().iter().map(|x| wasm_bindgen::JsValue::from_bool(*x)).collect::<js_sys::Array>() }};
+}

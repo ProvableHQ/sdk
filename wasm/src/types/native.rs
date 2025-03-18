@@ -18,6 +18,7 @@ pub use super::networks::*;
 
 pub use snarkvm_console::{
     account::{Address, ComputeKey, GraphKey, PrivateKey, Signature, ViewKey},
+    algorithms::{BHP256, BHP512, BHP768, BHP1024, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8},
     network::Network,
     program::{
         Argument,
@@ -65,6 +66,17 @@ pub type FieldNative = Field<CurrentNetwork>;
 pub type GroupNative = Group<CurrentNetwork>;
 pub type ScalarNative = Scalar<CurrentNetwork>;
 pub type U64Native = U64<CurrentNetwork>;
+
+// Algorithmic types
+pub type BHP256Native = BHP256<CurrentNetwork>;
+pub type BHP512Native = BHP512<CurrentNetwork>;
+pub type BHP768Native = BHP768<CurrentNetwork>;
+pub type BHP1024Native = BHP1024<CurrentNetwork>;
+pub type Pedersen64Native = Pedersen64<CurrentNetwork>;
+pub type Pedersen128Native = Pedersen128<CurrentNetwork>;
+pub type Poseidon2Native = Poseidon2<CurrentNetwork>;
+pub type Poseidon4Native = Poseidon4<CurrentNetwork>;
+pub type Poseidon8Native = Poseidon8<CurrentNetwork>;
 
 // Record types
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;
