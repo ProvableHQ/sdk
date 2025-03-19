@@ -4,7 +4,6 @@ import { App, ConfigProvider, Layout, Menu, Switch, theme } from "antd";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AuctionState } from "./components/AuctionState.jsx";
 import { WalletWrapper } from "./components/WalletWrapper.jsx";
-import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 
 import {
     CodeOutlined,
@@ -45,8 +44,8 @@ function Main() {
     const [darkMode, setDarkMode] = useState(true);
 
     return (
-        <AuctionState>
-            <WalletWrapper>
+        <WalletWrapper>
+            <AuctionState>
                 <ConfigProvider
                     theme={{
                         algorithm: darkMode
@@ -101,9 +100,8 @@ function Main() {
                     </Layout>
                 </App>
                 </ConfigProvider>
-
-            </WalletWrapper>
-        </AuctionState>
+            </AuctionState>
+        </WalletWrapper>
     );
 }
 

@@ -1,9 +1,9 @@
-program auction.aleo;
+program private_auction.aleo;
 
 record Bid:
     owner as address.private;
     bidder as address.private;
-    auction_id as field.private;
+    id as field.private;
     amount as u64.private;
     is_winner as boolean.private;
 
@@ -25,7 +25,7 @@ function resolve:
     not r2 into r3;
     ternary r2 r0.owner r1.owner into r4;
     ternary r2 r0.bidder r1.bidder into r5;
-    ternary r2 r0.auction_id r1.auction_id into r6;
+    ternary r2 r0.id r1.id into r6;
     ternary r2 r0.amount r1.amount into r7;
     ternary r2 r0.is_winner r1.is_winner into r8;
     cast r4 r5 r6 r7 r8 into r9 as Bid.record;
@@ -34,5 +34,5 @@ function resolve:
 function finish:
     input r0 as Bid.record;
     assert.eq self.caller r0.owner;
-    cast r0.bidder r0.bidder r0.auction_id r0.amount true into r1 as Bid.record;
+    cast r0.bidder r0.bidder r0.id r0.amount true into r1 as Bid.record;
     output r1 as Bid.record;

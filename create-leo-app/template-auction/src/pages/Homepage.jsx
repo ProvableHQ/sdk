@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 import "./Homepage.css";
-import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 
 const Homepage = () => {
     return (

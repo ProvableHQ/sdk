@@ -3,11 +3,13 @@ import { Card, Divider, Form, Input, Select, Radio, Button } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction } from "@demox-labs/aleo-wallet-adapter-base";
+import { encodeStringAsField } from "../../core/encoder.js";
 
 export const AuctionControls = () => {
-    const {auctionState, setAuctionState } = useAuctionState();
+    const { auctionState, setWinningBid, addAuctioneerRecord } = useAuctionState();
     const [currentAuctionId, setCurrentAuctionId] = useState("");
     const [isAuctionSelected, setIsAuctionSelected] = useState(false);
+    const [humanReadableAuctionId, setHumanReadableAuctionId] = useState("");
     const [loading, setLoading] = useState(false);
     const [operation, setOperation] = useState("resolve");
     const [recordOne, setRecordOne] = useState("");
@@ -20,13 +22,20 @@ export const AuctionControls = () => {
         { value: "finish", label: "Finish Auction ✓" },
     ];
 
+    // Set the current auction ID.
     function handleSetAuctionId(auctionId) {
-        setCurrentAuctionId(auctionId);
-        setIsAuctionSelected(isAuctionSelected => !isAuctionSelected);
+        try {
+            if (!isAuctionSelected) {
+                setCurrentAuctionId(encodeStringAsField(auctionId));
+            }
+            setIsAuctionSelected(isAuctionSelected => !isAuctionSelected);
+        } catch (error) {
+            console.error('Error converting auction ID:', error);
+        }
     }
 
     function onAuctionIdChange(e) {
-        setCurrentAuctionId(e.target.value);
+        setHumanReadableAuctionId(e.target.value);
     }
 
     function onFirstRecordChange(e) {
@@ -37,72 +46,69 @@ export const AuctionControls = () => {
         setRecordTwo(e.target.value);
     }
 
-    async function resolveBids(
-        bidOne,
-        bidTwo,
-    ) {
-        // Builx the transaction request.
-        const transaction = Transaction.createTransaction(
-            publicKey,
-            network,
-            "private_auction.aleo",
-            "resolve",
-            [bidOne, bidTwo],
-            0.05,
-            false,
-        )
+    async function handleResolveBids(bidOne, bidTwo) {
+        try {
+            setLoading(true);
+            
+            // Build the transaction request
+            const transaction = Transaction.createTransaction(
+                publicKey,
+                network,
+                "private_auction.aleo",
+                "resolve",
+                [bidOne, bidTwo],
+                0.05,
+                false,
+            );
 
-        // Request the transaction from the wallet.
-        await requestTransaction(transaction);
+            // Request the transaction from the wallet
+            const txId = await requestTransaction(transaction);
+
+            setRecordOne("");
+            setRecordTwo("");
+            
+        } catch (error) {
+            console.error('Error resolving bids:', error);
+        } finally {
+            setLoading(false);
+        }
     }
 
-    async function finishAuction(
-        winningBid,
-    ) {
-        // Build the transaction request.
-        const transaction = Transaction.createTransaction(
-            publicKey,
-            network,
-            "private_auction.aleo",
-            "finish",
-            [winningBid],
-            0.05,
-            false,
-        )
+    async function handleFinishAuction(winningBid) {
+        try {
+            setLoading(true);
+            
+            // Build the transaction request
+            const transaction = Transaction.createTransaction(
+                publicKey,
+                network,
+                "private_auction.aleo",
+                "finish",
+                [winningBid],
+                0.05,
+                false,
+            );
 
-        // Request the transaction from the wallet.
-        await requestTransaction(transaction);
+            // Request the transaction from the wallet
+            const txId = await requestTransaction(transaction);
+            
+            // Mark the bid as winning in our state
+            setWinningBid({
+                ...winningBid,
+                txId,
+            });
+
+            setRecordOne("");
+            
+        } catch (error) {
+            console.error('Error finishing auction:', error);
+        } finally {
+            setLoading(false);
+        }
     }
 
     const onOperationChange = (value) => {
         setOperation(value);
-    };
-
-    /// Handle resolving the bids.
-    const handleResolveBids = async (bidOne, bidTwo) => {
-        try {
-            setLoading(true);
-            const result = await resolveBids(bidOne, bidTwo);
-        } catch (error) {
-            console.error('Error resolving bids:', error);
-        } finally {
-            setRecordOne("");
-            setRecordTwo("");
-            setLoading(false);
-        }
-    };
-
-    /// Handle finishing the auction.
-    const handleFinishAuction = async (bidOne) => {
-        try {
-            setLoading(true);
-            const result = await finishAuction(bidOne);
-        } catch (error) {
-            console.error('Error finishing auction:', error);
-        } finally {
-            setRecordOne("");
-            setLoading(false);
-        }
     };
 
     const layout = {
@@ -127,7 +133,7 @@ export const AuctionControls = () => {
                             name="AuctionID"
                             size="large"
                             placeholder="Enter the Auction ID"
-                            value={currentAuctionId}
+                            value={humanReadableAuctionId}
                             allowClear={true}
                             disabled={isAuctionSelected}
                             onChange={onAuctionIdChange}
@@ -135,7 +141,7 @@ export const AuctionControls = () => {
                         />
                         <Button
                             size="large"
-                            onClick={() => handleSetAuctionId(currentAuctionId)}
+                            onClick={() => handleSetAuctionId(humanReadableAuctionId)}
                             style={{ width: '110px' }}
                         >
                             {isAuctionSelected ? "Change" : "Select"}

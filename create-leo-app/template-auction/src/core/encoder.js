@@ -19,6 +19,7 @@ function encodeStringAsField(auction_name) {
 
   // Convert the bytes to a field and return the string representation.
   const field = Field.fromBytesLe(paddedBytes).toString();
+  console.log(`Encoding of auction ID: ${field}`);
   return field;
 }
 

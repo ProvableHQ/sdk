@@ -13,6 +13,8 @@ import {
     WalletAdapterNetwork,
 } from "@demox-labs/aleo-wallet-adapter-base";
 import { LeoWalletAdapter } from "@demox-labs/aleo-wallet-adapter-leo";
+import "@demox-labs/aleo-wallet-adapter-reactui/styles.css";
+import { WalletNotConnectedError } from '@demox-labs/aleo-wallet-adapter-base';
 
 export const WalletWrapper = ({ children }) => {
     // Initialize wallets inside a functional component using useMemo.
@@ -24,10 +26,10 @@ export const WalletWrapper = ({ children }) => {
             new PuzzleWalletAdapter({
                 programIdPermissions: {
                     ["AleoMainnet"]: [
-                        "leo_auctioneer.aleo",
+                        "private_auction.aleo",
                     ],
                     ["AleoTestnet"]: [
-                        "leo_auctioneer.aleo",
+                        "private_auction.aleo",
                     ],
                 },
                 appName: "Leo Auction",

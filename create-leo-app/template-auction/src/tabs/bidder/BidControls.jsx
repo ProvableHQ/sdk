@@ -1,46 +1,26 @@
-import { useState, useEffect } from "react";
-import { Card, Divider, Form, Input, Select, Radio, Button } from "antd";
+import { useState } from "react";
+import { encodeStringAsField } from "../../core/encoder.js";
+import { Card, Form, Input, Button } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction } from "@demox-labs/aleo-wallet-adapter-base";
-import { encodeStringAsField } from "../../core/encoder.js";
+import { WalletAdapterNetwork } from '@demox-labs/aleo-wallet-adapter-base';
 
 export const BidControls = () => {
     const [bidAmount, setBidAmount] = useState("");
-    const {auctionState, setAuctionState } = useAuctionState();
+    const { addNewBid } = useAuctionState();
+    const { publicKey, requestTransaction, connected, disconnect, network, wallet } = useWallet()
     const [auctioneerAddress, setAuctioneerAddress] = useState("");
     const [humanReadableAuctionId, setHumanReadableAuctionId] = useState("");
     const [currentAuctionId, setCurrentAuctionId] = useState("");
     const [isAuctionSelected, setIsAuctionSelected] = useState(false);
-    const { publicKey, requestTransaction, connected, disconnect, network, wallet } = useWallet();
-
-    // Update the auction state with the new bid.
-    function addNewBid(amount, auctioneer, bidder, id, txId) {
-        setAuctionState({
-            ...auctionState,
-            bidderState: {
-                ...auctionState.bidderState,
-                [bidder]: {
-                    ...auctionState.bidderState[bidder],
-                    bids: [
-                        ...(auctionState.bidderState[bidder]?.bids || []),
-                        {
-                            amount,
-                            auctioneer,
-                            bidder,
-                            id,
-                            txId,
-                        },
-                    ],
-                },
-            },
-        });
-    }
 
     // Set the current auction ID.
     function handleSetAuctionId(auctionId) {
         try {
-            setCurrentAuctionId(encodeStringAsField(auctionId));
+            if (!isAuctionSelected) {
+                setCurrentAuctionId(encodeStringAsField(auctionId));
+            }
             setIsAuctionSelected(isAuctionSelected => !isAuctionSelected);
         } catch (error) {
             console.error('Error converting auction ID:', error);
@@ -68,20 +48,39 @@ export const BidControls = () => {
     ) {
         const amountInput = amount.toString() + "u64";
 
-        // Build the transaction request.
-        const transaction = Transaction.createTransaction(
-            publicKey,
-            network,
-            "private_auction.aleo",
-            "place_bid",
-            [bidder, auctioneer, id, amountInput],
-            0.05,
-            false,
-        )
+        try {
+            // Build the transaction request
+            const transaction = Transaction.createTransaction(
+                publicKey,
+                WalletAdapterNetwork.TestnetBeta,
+                "private_auction.aleo",
+                "place_bid",
+                [bidder, auctioneer, id, amountInput],
+                30000,
+                false,
+            );
 
-        // Request the transaction from the wallet.
-        const txId = await requestTransaction(transaction);
+            console.log(`Network ${network}, publicKey ${publicKey}`);
+            console.log(`Transaction {"address": ${transaction.address}, "chainID": ${transaction.chainId}, "fee": ${transaction.fee}, "transitions": ${transaction.transitions}}`);
 
+            // Request the transaction from the wallet
+            const txId = await requestTransaction(transaction);
+
+            // Add the bid to our state management
+            addNewBid(
+                amount,
+                auctioneer,
+                bidder,
+                id,
+                txId,
+            );
+            
+            // Clear form
+            setBidAmount("");
+            setAuctioneerAddress("");
+        } catch (error) {
+            console.error('Error making bid:', error);
+        }
     }
 
     const layout = {
@@ -114,7 +113,7 @@ export const BidControls = () => {
                         />
                         <Button
                             size="large"
-                            onClick={() => handleSetAuctionId(currentAuctionId)}
+                            onClick={() => handleSetAuctionId(humanReadableAuctionId)}
                             style={{ width: '110px' }}
                         >
                             {isAuctionSelected ? "Change" : "Select"}
