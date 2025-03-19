@@ -17,7 +17,7 @@ export const AuctioneerBids = () => {
     const getWinningBids = () => {
         requestRecordPlaintexts("private_auction.aleo").then((records) => {
 
-        };
+        });
     }
 
     return (
