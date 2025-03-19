@@ -1,5 +1,6 @@
 import React from "react";
 import "./index.css";
+import "@demox-labs/aleo-wallet-adapter-reactui/styles.css"; // original from adapter
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./routing.jsx";
