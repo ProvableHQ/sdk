@@ -16,8 +16,10 @@
 
 use crate::account::{PrivateKey, Signature, ViewKey};
 
-use crate::{account::compute_key::ComputeKey, types::native::AddressNative};
+use crate::{account::compute_key::ComputeKey, to_bits_array_le, types::native::AddressNative};
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
+use js_sys::Array;
+use snarkvm_wasm::utilities::ToBits;
 use wasm_bindgen::prelude::*;
 
 /// Public address of an Aleo account
@@ -65,6 +67,12 @@ impl Address {
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
+    }
+
+    /// Get the left endian boolean array representation of the address.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
     }
 
     /// Verify a signature for a message signed by the address

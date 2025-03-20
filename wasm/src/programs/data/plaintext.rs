@@ -15,7 +15,13 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    plaintext_to_js_value, to_bits_array_le, types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes}, Address, Ciphertext, Field, Scalar
+    Address,
+    Ciphertext,
+    Field,
+    Scalar,
+    plaintext_to_js_value,
+    to_bits_array_le,
+    types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes},
 };
 use snarkvm_console::prelude::ToBits;
 use std::ops::Deref;
