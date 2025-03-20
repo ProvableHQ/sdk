@@ -1,21 +1,29 @@
 import { useState, useEffect } from "react";
-import { Card, Divider, Form, Input, Select, Radio, Button } from "antd";
+import { Card, Dropdown, Form, Input, Select, Radio, Button } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction } from "@demox-labs/aleo-wallet-adapter-base";
 import { encodeStringAsField } from "../../core/encoder.js";
 
 export const AuctionControls = () => {
-    const { auctionState, setWinningBid, addAuctioneerRecord } = useAuctionState();
+    const { setWinningBid, findAuctioneerRecordById, findAuctioneerRecordsByAuctionId } = useAuctionState();
     const [currentAuctionId, setCurrentAuctionId] = useState("");
     const [isAuctionSelected, setIsAuctionSelected] = useState(false);
     const [humanReadableAuctionId, setHumanReadableAuctionId] = useState("");
     const [loading, setLoading] = useState(false);
+    const [matchingRecords, setMatchingRecords] = useState([]);
+    const [menuProps, setMenuProps] = useState({
+        items: [],
+        onClick: onFirstRecordChange,
+    });
+    const [secondMenuProps, setSecondMenuProps] = useState({
+        items: [],
+        onClick: onSecondRecordChange,
+    });
     const [operation, setOperation] = useState("resolve");
     const [recordOne, setRecordOne] = useState("");
     const [recordTwo, setRecordTwo] = useState("");
-    const [selectedAuction, setSelectedAuction] = useState("");
-    const { publicKey, requestTransaction, requestRecords, connected, disconnect, network, wallet } = useWallet();
+    const { publicKey, requestTransaction, network } = useWallet();
 
     const operations = [
         { value: "resolve", label: "Compare Bids >>>" },
@@ -24,9 +32,30 @@ export const AuctionControls = () => {
 
     // Set the current auction ID.
     function handleSetAuctionId(auctionId) {
+        let key = 0;
         try {
             if (!isAuctionSelected) {
-                setCurrentAuctionId(encodeStringAsField(auctionId));
+                const auctionID = encodeStringAsField(auctionId);
+                setCurrentAuctionId(auctionID);
+                const items = findAuctioneerRecordsByAuctionId(auctionID)
+                    .map(record => {
+                        key += 1;
+                        return {
+                            "label": record.id,
+                            "key": record.id
+                        }
+                    });
+                console.log("Record Ids", items);
+                const newProps = {
+                    ...menuProps,
+                    items: items,
+                }
+                const secondNewProps = {
+                    ...secondMenuProps,
+                    items: items,
+                }
+                setMenuProps(newProps);
+                setSecondMenuProps(secondNewProps);
             }
             setIsAuctionSelected(isAuctionSelected => !isAuctionSelected);
         } catch (error) {
@@ -39,16 +68,25 @@ export const AuctionControls = () => {
     }
 
     function onFirstRecordChange(e) {
-        setRecordOne(e.target.value);
+        setRecordOne(e.key);
     }
 
     function onSecondRecordChange(e) {
-        setRecordTwo(e.target.value);
+        setRecordTwo(e.key);
     }
 
-    async function handleResolveBids(bidOne, bidTwo) {
+    function firstMenuText() {
+        return recordOne ? recordOne : "Select Bid";
+    }
+
+    function secondMenuText() {
+        return recordTwo ? recordTwo : "Select Bid";
+    }
+
+    async function handleResolveBids(bidIdOne, bidIdTwo) {
         try {
-            setLoading(true);
+            const recordOne = findAuctioneerRecordById(bidIdOne);
+            const recordTwo = findAuctioneerRecordById(bidIdTwo);
             
             // Build the transaction request
             const transaction = Transaction.createTransaction(
@@ -56,7 +94,7 @@ export const AuctionControls = () => {
                 network,
                 "private_auction.aleo",
                 "resolve",
-                [bidOne, bidTwo],
+                [recordOne, recordTwo],
                 0.05,
                 false,
             );
@@ -74,9 +112,10 @@ export const AuctionControls = () => {
         }
     }
 
-    async function handleFinishAuction(winningBid) {
+    async function handleFinishAuction(winningBidId) {
         try {
             setLoading(true);
+            const recordOne = findAuctioneerRecordById(winningBidId);
             
             // Build the transaction request
             const transaction = Transaction.createTransaction(
@@ -84,7 +123,7 @@ export const AuctionControls = () => {
                 network,
                 "private_auction.aleo",
                 "finish",
-                [winningBid],
+                [recordOne],
                 0.05,
                 false,
             );
@@ -94,7 +133,7 @@ export const AuctionControls = () => {
             
             // Mark the bid as winning in our state
             setWinningBid({
-                ...winningBid,
+                ...winningBidId,
                 txId,
             });
 
@@ -172,17 +211,9 @@ export const AuctionControls = () => {
                     colon={false}
                     style={{ marginBottom: '24px' }}
                 >
-                    <Input.Group compact>
-                        <Input
-                            name="bid"
-                            size="large"
-                            placeholder="Enter bid ID"
-                            allowClear
-                            value={recordOne}
-                            onChange={onFirstRecordChange}
-                            style={{ width: 'calc(100% - 110px)' }}
-                        />
-                    </Input.Group>
+                    <Dropdown.Button menu={menuProps}>
+                        {firstMenuText()}
+                    </Dropdown.Button>
                 </Form.Item>
 
                 {operation === "resolve" && (
@@ -191,17 +222,9 @@ export const AuctionControls = () => {
                         colon={false}
                         style={{ marginBottom: '24px' }}
                     >
-                        <Input.Group compact>
-                            <Input
-                                name="bidTwo"
-                                size="large"
-                                placeholder="Enter bid ID"
-                                value={recordTwo}
-                                allowClear={true}
-                                onChange={onSecondRecordChange}
-                                style={{ width: 'calc(100% - 110px)' }}
-                            />
-                        </Input.Group>
+                        <Dropdown.Button menu={secondMenuProps}>
+                            {secondMenuText()}
+                        </Dropdown.Button>
                     </Form.Item>
                 )}
 

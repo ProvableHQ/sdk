@@ -126,6 +126,18 @@ export const AuctionState = ({ children }) => {
         }));
     }
 
+    const findAuctioneerRecordById = (recordId) => {
+        return auctionState.auctioneerRecords.find(record => record.id === recordId);
+    }
+
+    const findAuctioneerRecordsByAuctionId = (auctionId) => {
+        console.log("Finding records for auction", auctionId);
+        console.log("Existing Records", auctionState.auctioneerRecords);
+        const foundRecords = auctionState.auctioneerRecords.filter(record => record.data.id === `${auctionId}.private`);
+        console.log("Found Records", foundRecords);
+        return foundRecords;
+    }
+
     const setAuctioneerRecords = (records) => {
         console.log("Setting records", records);
         setAuctionState(prevState => ({
@@ -148,6 +160,8 @@ export const AuctionState = ({ children }) => {
                 addAuctioneerRecords,
                 addBidderRecord,
                 addBidderRecords,
+                findAuctioneerRecordById,
+                findAuctioneerRecordsByAuctionId,
                 setAuctioneerRecords,
             }}
         >

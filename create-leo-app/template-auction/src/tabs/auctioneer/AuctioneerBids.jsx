@@ -1,14 +1,13 @@
 import { React, useEffect, useMemo } from "react";
 import { Card, List } from "antd";
-import { useAuctionState, AuctionState } from "../../components/AuctionState.jsx";
+import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
-import { useAleoWASM } from "../../aleo-wasm-hook.js";
 import { convertFieldToString } from "../../core/encoder.js";
 
 export const AuctioneerBids = () => {
     const { auctionState, setAuctioneerRecords } = useAuctionState();
-    const { connected, decrypt, decryptPermission, requestRecords, requestRecordPlaintexts, publicKey } = useWallet();
+    const { connected, requestRecords, publicKey } = useWallet();
 
     // Parse and transform the bid records
     const parsedBids = useMemo(() => {
