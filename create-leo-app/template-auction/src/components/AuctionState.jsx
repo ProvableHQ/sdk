@@ -108,14 +108,14 @@ export const AuctionState = ({ children }) => {
     const addAuctioneerRecords = (records) => {
         setAuctionState(prevState => ({
             ...prevState,
-            auctioneerRecords: [...prevState.auctioneerRecords, ...records],
+            auctioneerRecords: records,
         }));
     }
 
-    const addBidderRecord = (record) => {
+    const setBidderRecords = (records) => {
         setAuctionState(prevState => ({
             ...prevState,
-            bidderRecords: [...prevState.bidderRecords, record],
+            bidderRecords: records,
         }));
     };
 
@@ -162,7 +162,7 @@ export const AuctionState = ({ children }) => {
                 setWinningBid,
                 addAuctioneerRecord,
                 addAuctioneerRecords,
-                addBidderRecord,
+                addBidderRecord: setBidderRecords,
                 addBidderRecords,
                 findAllUnspentAuctionRecords,
                 findAuctioneerRecordById,

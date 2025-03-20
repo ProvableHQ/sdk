@@ -1,33 +1,35 @@
-import { React, useMemo, useEffect } from "react";
-import { Card, List } from "antd";
+import { React, useMemo, useEffect, useState } from "react";
+import { Card, List, Button } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 import { convertFieldToString } from "../../core/encoder.js";
+import { ReloadOutlined } from "@ant-design/icons";
 
 export const Bids = () => {
-    const { auctionState, addBidderRecords } = useAuctionState();
+    const { auctionState, addBidderRecords: setBidderRecords } = useAuctionState();
     const { connected, requestRecords, publicKey } = useWallet();
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Fetch records from chain
     const getBids = async () => {
-        if (connected) {
-            try {
-                const records = await requestRecords("private_auction.aleo");
-                console.log('Fetched bidder records:', records);
-                if (records && records.length > 0) {
-                    addBidderRecords(records);
-                }
-            } catch (error) {
-                console.error("Error fetching records:", error);
-            }
+        if (!connected) return;
+        
+        setIsRefreshing(true);
+        try {
+            const records = await requestRecords("private_auction.aleo");
+            setBidderRecords(records);
+        } catch (error) {
+            console.error("Error fetching records:", error);
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
     // Scan for records periodically
     useEffect(() => {
         if (auctionState.bidderRecords.length === 0) {
-            getBids().then(() => { console.log("Fetched new winning records") };
+            getBids().then(() => { console.log("Fetched new winning records") });
         }
     }, [connected]);
 
@@ -49,7 +51,7 @@ export const Bids = () => {
                             auctionId,
                             bidder: record.data.bidder.replace('.private', ''),
                             amount: parseInt(record.data.amount.replace('u64.private', '')),
-                            bidId: convertFieldToString(record.data.id.replace('.private', '')),
+                            bidId: record.id,
                             isWinner: record.data.is_winner.replace('.private', '') === 'true',
                             isRecord: true,
                         };
@@ -58,9 +60,9 @@ export const Bids = () => {
                         return null;
                     }
                 })
-                .filter(bid => 
-                    bid !== null && 
-                    bid.bidder === publicKey && 
+                .filter(bid =>
+                    bid !== null &&
+                    bid.bidder === publicKey &&
                     bid.isWinner
                 );
         } catch (error) {
@@ -74,7 +76,7 @@ export const Bids = () => {
         if (!auctionState?.bidderState || !publicKey || !auctionState.bidderState[publicKey]) {
             return [];
         }
-        
+
         return (auctionState.bidderState[publicKey].bids || []).map(bid => ({
             auctionId: convertFieldToString(bid.id),
             amount: bid.amount,
@@ -103,8 +105,8 @@ export const Bids = () => {
             dataSource={Object.entries(bids)}
             renderItem={([auctionId, auctionBids]) => (
                 <List.Item key={auctionId}>
-                    <Card 
-                        type="inner" 
+                    <Card
+                        type="inner"
                         title={`Auction ID: ${auctionId}`}
                         extra={<span>Total Bids: {auctionBids.length}</span>}
                     >
@@ -129,6 +131,7 @@ export const Bids = () => {
                                                 )}
                                                 {bid.isRecord && (
                                                     <>
+                                                        <p><strong>Auction Id:</strong> {bid.auctionId}</p>
                                                         <p><strong>Bid Id:</strong> {bid.bidId}</p>
                                                         <p><strong>Bidder:</strong> {publicKey}</p>
                                                     </>
@@ -161,6 +164,16 @@ export const Bids = () => {
         <Card
             title="My Bids"
             style={{ width: "100%" }}
+            extra={
+                <Button 
+                    icon={<ReloadOutlined />}
+                    onClick={getBids}
+                    loading={isRefreshing}
+                    disabled={!connected}
+                >
+                    Refresh
+                </Button>
+            }
         >
             {!connected ? (
                 <>

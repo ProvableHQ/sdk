@@ -1,13 +1,15 @@
-import { React, useEffect, useMemo } from "react";
-import { Card, List } from "antd";
+import { React, useEffect, useMemo, useState } from "react";
+import { Card, List, Button, Space } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 import { convertFieldToString } from "../../core/encoder.js";
+import { ReloadOutlined } from "@ant-design/icons";
 
 export const AuctioneerBids = () => {
     const { auctionState, setAuctioneerRecords } = useAuctionState();
     const { connected, requestRecords, publicKey } = useWallet();
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Parse and transform the bid records
     const parsedBids = useMemo(() => {
@@ -62,22 +64,20 @@ export const AuctioneerBids = () => {
 
     // Fetch records from chain
     const getBids = async () => {
-        let records = [];
-        if (connected) {
-            try {
-                const records = await requestRecords("private_auction.aleo");
-                if (records && records.length > 0) {
-                    setAuctioneerRecords(records);
-                }
-            } catch (error) {
-                console.error("Error fetching records:", error);
+        setIsRefreshing(true);
+        try {
+            const records = await requestRecords("private_auction.aleo");
+            if (records && records.length > 0) {
+                setAuctioneerRecords(records);
             }
+        } catch (error) {
+            console.error("Error fetching records:", error);
+        } finally {
+            setIsRefreshing(false);
         }
-        return records;
     };
 
     useEffect(() => {
-        console.log("AuctionState", auctionState)
         if (auctionState.auctioneerRecords.length === 0) {
             getBids().then(r => console.log('Fetched bids:', r));
             console.log("Auction State", auctionState);
@@ -85,7 +85,20 @@ export const AuctioneerBids = () => {
     }, [connected]);
 
     return (
-        <Card title="Auction Bids" style={{ width: "100%" }}>
+        <Card 
+            title="Auction Bids" 
+            style={{ width: "100%" }}
+            extra={
+                <Button 
+                    icon={<ReloadOutlined />}
+                    onClick={getBids}
+                    loading={isRefreshing}
+                    disabled={!connected}
+                >
+                    Refresh
+                </Button>
+            }
+        >
             {!connected ? (
                 <>
                     <WalletMultiButton />
