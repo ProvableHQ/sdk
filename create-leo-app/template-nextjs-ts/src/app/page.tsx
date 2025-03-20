@@ -17,7 +17,7 @@ export default function Home() {
         workerRef.current?.postMessage("execute");
     }
 
-    const workerRef = useRef<Worker>();
+    const workerRef = useRef<Worker | null>(null);
 
     interface AleoWorkerMessageEvent {
         type: string;
