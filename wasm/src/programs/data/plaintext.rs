@@ -15,16 +15,12 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address,
-    Ciphertext,
-    Field,
-    Scalar,
-    plaintext_to_js_value,
-    types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes},
+    plaintext_to_js_value, to_bits_array_le, types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes}, Address, Ciphertext, Field, Scalar
 };
+use snarkvm_console::prelude::ToBits;
 use std::ops::Deref;
 
-use js_sys::Uint8Array;
+use js_sys::{Array, Uint8Array};
 use std::str::FromStr;
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
@@ -106,6 +102,12 @@ impl Plaintext {
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
         Ok(Uint8Array::from(rust_bytes.as_slice()))
+    }
+
+    /// Get the left endian boolean array representation of the plaintext.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
     }
 
     /// Returns the string representation of the plaintext.
