@@ -138,6 +138,10 @@ export const AuctionState = ({ children }) => {
         return foundRecords;
     }
 
+    const findAllUnspentAuctionRecords = () => {
+        return auctionState.auctioneerRecords.filter(record => record.spent === false);
+    }
+
     const setAuctioneerRecords = (records) => {
         console.log("Setting records", records);
         setAuctionState(prevState => ({
@@ -160,6 +164,7 @@ export const AuctionState = ({ children }) => {
                 addAuctioneerRecords,
                 addBidderRecord,
                 addBidderRecords,
+                findAllUnspentAuctionRecords,
                 findAuctioneerRecordById,
                 findAuctioneerRecordsByAuctionId,
                 setAuctioneerRecords,

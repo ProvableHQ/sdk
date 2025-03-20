@@ -2,16 +2,13 @@ import { useState, useEffect } from "react";
 import { Card, Dropdown, Form, Input, Select, Radio, Button } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
-import { Transaction } from "@demox-labs/aleo-wallet-adapter-base";
+import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 import { encodeStringAsField } from "../../core/encoder.js";
 
 export const AuctionControls = () => {
-    const { setWinningBid, findAuctioneerRecordById, findAuctioneerRecordsByAuctionId } = useAuctionState();
-    const [currentAuctionId, setCurrentAuctionId] = useState("");
+    // Declare local state.
     const [isAuctionSelected, setIsAuctionSelected] = useState(false);
     const [humanReadableAuctionId, setHumanReadableAuctionId] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [matchingRecords, setMatchingRecords] = useState([]);
     const [menuProps, setMenuProps] = useState({
         items: [],
         onClick: onFirstRecordChange,
@@ -23,8 +20,12 @@ export const AuctionControls = () => {
     const [operation, setOperation] = useState("resolve");
     const [recordOne, setRecordOne] = useState("");
     const [recordTwo, setRecordTwo] = useState("");
-    const { publicKey, requestTransaction, network } = useWallet();
 
+    // Get all necessary state hooks for outer component scope.
+    const { publicKey, requestTransaction } = useWallet();
+    const { auctionState, setWinningBid, findAuctioneerRecordById, findAuctioneerRecordsByAuctionId, findAllUnspentAuctionRecords } = useAuctionState();
+
+    // Define operations that represent the auction functions.
     const operations = [
         { value: "resolve", label: "Compare Bids >>>" },
         { value: "finish", label: "Finish Auction ✓" },
@@ -32,20 +33,16 @@ export const AuctionControls = () => {
 
     // Set the current auction ID.
     function handleSetAuctionId(auctionId) {
-        let key = 0;
         try {
             if (!isAuctionSelected) {
-                const auctionID = encodeStringAsField(auctionId);
-                setCurrentAuctionId(auctionID);
-                const items = findAuctioneerRecordsByAuctionId(auctionID)
-                    .map(record => {
-                        key += 1;
+                let records = [];
+                records = findAuctioneerRecordsByAuctionId(encodeStringAsField(auctionId));
+                const items = records.map(record => {
                         return {
                             "label": record.id,
                             "key": record.id
                         }
                     });
-                console.log("Record Ids", items);
                 const newProps = {
                     ...menuProps,
                     items: items,
@@ -78,10 +75,31 @@ export const AuctionControls = () => {
     function firstMenuText() {
         return recordOne ? recordOne : "Select Bid";
     }
-
     function secondMenuText() {
         return recordTwo ? recordTwo : "Select Bid";
     }
+
+    useEffect(() => {
+        if (!humanReadableAuctionId) {
+            const records = findAllUnspentAuctionRecords();
+            const items = records.map(record => {
+                return {
+                    "label": record.id,
+                    "key": record.id
+                }
+            });
+            const newProps = {
+                ...menuProps,
+                items: items,
+            }
+            const secondNewProps = {
+                ...secondMenuProps,
+                items: items,
+            }
+            setMenuProps(newProps);
+            setSecondMenuProps(secondNewProps);
+        }
+    }, [auctionState]);
 
     async function handleResolveBids(bidIdOne, bidIdTwo) {
         try {
@@ -91,58 +109,58 @@ export const AuctionControls = () => {
             // Build the transaction request
             const transaction = Transaction.createTransaction(
                 publicKey,
-                network,
+                WalletAdapterNetwork.TestnetBeta,
                 "private_auction.aleo",
                 "resolve",
                 [recordOne, recordTwo],
-                0.05,
+                30000,
                 false,
             );
 
             // Request the transaction from the wallet
-            const txId = await requestTransaction(transaction);
+            await requestTransaction(transaction);
 
             setRecordOne("");
             setRecordTwo("");
             
         } catch (error) {
             console.error('Error resolving bids:', error);
-        } finally {
-            setLoading(false);
         }
     }
 
     async function handleFinishAuction(winningBidId) {
         try {
-            setLoading(true);
+            // Find the winning bid record.
             const recordOne = findAuctioneerRecordById(winningBidId);
             
-            // Build the transaction request
+            // Build the transaction request.
             const transaction = Transaction.createTransaction(
                 publicKey,
-                network,
+                WalletAdapterNetwork.TestnetBeta,
                 "private_auction.aleo",
                 "finish",
                 [recordOne],
-                0.05,
+                30000,
                 false,
             );
 
-            // Request the transaction from the wallet
+            // Request the transaction from the wallet.
             const txId = await requestTransaction(transaction);
+
+            // Find the winning bid record.
+            console.log('Finished auction Tx:', txId);
             
-            // Mark the bid as winning in our state
+            // Mark the bid as winning in our state.
             setWinningBid({
                 ...winningBidId,
                 txId,
             });
 
+            // Clear the record field.
             setRecordOne("");
             
         } catch (error) {
             console.error('Error finishing auction:', error);
-        } finally {
-            setLoading(false);
         }
     }
 

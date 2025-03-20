@@ -1,4 +1,4 @@
-import { React, useMemo, useState } from "react";
+import { React, useMemo, useEffect } from "react";
 import { Card, List } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
@@ -6,43 +6,173 @@ import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 import { convertFieldToString } from "../../core/encoder.js";
 
 export const Bids = () => {
-    const { auctionState } = useAuctionState();
-    const { publicKey, connected } = useWallet();
+    const { auctionState, addBidderRecords } = useAuctionState();
+    const { connected, requestRecords, publicKey } = useWallet();
 
-    const myBids = useMemo(() => {
+    // Fetch records from chain
+    const getBids = async () => {
+        if (connected) {
+            try {
+                const records = await requestRecords("private_auction.aleo");
+                console.log('Fetched bidder records:', records);
+                if (records && records.length > 0) {
+                    addBidderRecords(records);
+                }
+            } catch (error) {
+                console.error("Error fetching records:", error);
+            }
+        }
+    };
+
+    // Scan for records periodically
+    useEffect(() => {
+        if (auctionState.bidderRecords.length === 0) {
+            getBids().then(() => { console.log("Fetched new winning records") };
+        }
+    }, [connected]);
+
+    // Get winning bids from records
+    const winningBids = useMemo(() => {
+        if (!auctionState?.bidderRecords || !publicKey) {
+            return [];
+        }
+
+        try {
+            return auctionState.bidderRecords
+                .map(record => {
+                    try {
+                        if (record.spent) {
+                            return null;
+                        }
+                        const auctionId = convertFieldToString(record.data.id.replace('.private', ''));
+                        return {
+                            auctionId,
+                            bidder: record.data.bidder.replace('.private', ''),
+                            amount: parseInt(record.data.amount.replace('u64.private', '')),
+                            bidId: convertFieldToString(record.data.id.replace('.private', '')),
+                            isWinner: record.data.is_winner.replace('.private', '') === 'true',
+                            isRecord: true,
+                        };
+                    } catch (error) {
+                        console.error('Error parsing record:', error);
+                        return null;
+                    }
+                })
+                .filter(bid => 
+                    bid !== null && 
+                    bid.bidder === publicKey && 
+                    bid.isWinner
+                );
+        } catch (error) {
+            console.error('Error parsing winning bids:', error);
+            return [];
+        }
+    }, [auctionState.bidderRecords, publicKey]);
+
+    // Get active bids from transaction history
+    const activeBids = useMemo(() => {
         if (!auctionState?.bidderState || !publicKey || !auctionState.bidderState[publicKey]) {
             return [];
         }
         
-        return auctionState.bidderState[publicKey].bids || [];
-    }, [auctionState, publicKey]);
+        return (auctionState.bidderState[publicKey].bids || []).map(bid => ({
+            auctionId: convertFieldToString(bid.id),
+            amount: bid.amount,
+            auctioneer: bid.auctioneer,
+            txId: bid.txId,
+            isWinner: false,
+            isRecord: false
+        }));
+    }, [auctionState.bidderState, publicKey]);
+
+    // Group all bids by auction ID
+    const groupedBids = useMemo(() => {
+        const groups = {};
+        [...activeBids, ...winningBids].forEach(bid => {
+            if (!groups[bid.auctionId]) {
+                groups[bid.auctionId] = [];
+            }
+            groups[bid.auctionId].push(bid);
+        });
+        return groups;
+    }, [activeBids, winningBids]);
+
+    const BidsList = ({ bids, emptyText }) => (
+        <List
+            itemLayout="vertical"
+            dataSource={Object.entries(bids)}
+            renderItem={([auctionId, auctionBids]) => (
+                <List.Item key={auctionId}>
+                    <Card 
+                        type="inner" 
+                        title={`Auction ID: ${auctionId}`}
+                        extra={<span>Total Bids: {auctionBids.length}</span>}
+                    >
+                        <List
+                            size="small"
+                            dataSource={auctionBids}
+                            renderItem={bid => (
+                                <List.Item>
+                                    <div style={{ width: '100%' }}>
+                                        <div style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center"
+                                        }}>
+                                            <div>
+                                                <p><strong>Amount:</strong> {bid.amount}</p>
+                                                {!bid.isRecord && (
+                                                    <>
+                                                        <p><strong>Auctioneer:</strong> {bid.auctioneer}</p>
+                                                        <p><strong>Transaction ID:</strong> {bid.txId}</p>
+                                                    </>
+                                                )}
+                                                {bid.isRecord && (
+                                                    <>
+                                                        <p><strong>Bid Id:</strong> {bid.bidId}</p>
+                                                        <p><strong>Bidder:</strong> {publicKey}</p>
+                                                    </>
+                                                )}
+                                        </div>
+                                        {bid.isWinner && (
+                                                <div style={{
+                                                    color: '#52c41a',
+                                                    fontWeight: 'bold',
+                                                    border: '1px solid #52c41a',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '4px'
+                                                }}>
+                                                    Winner
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </List.Item>
+                            )}
+                        />
+                    </Card>
+                </List.Item>
+            )}
+            locale={{ emptyText }}
+        />
+    );
 
     return (
-            <Card
-                title="My Bids"
-                style={{ width: "100%" }}
-            >
-                {!connected ? (
-                    <>
-                        <WalletMultiButton />
-                        <div>Please connect your wallet to view your bids</div>
-                    </>
-                ) : (
-                    <List
-                        itemLayout="vertical"
-                        dataSource={myBids}
-                        renderItem={bid => (
-                            <List.Item key={bid.txId}>
-                                <Card type="inner" title={`Auction ID: ${convertFieldToString(bid.id)}`}>
-                                    <p>Auctioneer: {bid.auctioneer}</p>
-                                    <p>Bid Amount: {bid.amount}</p>
-                                    <p>Transaction ID: {bid.txId}</p>
-                                </Card>
-                            </List.Item>
-                        )}
-                        locale={{ emptyText: "No bids found" }}
-                    />
-                )}
-            </Card>
+        <Card
+            title="My Bids"
+            style={{ width: "100%" }}
+        >
+            {!connected ? (
+                <>
+                    <WalletMultiButton />
+                    <div>Please connect your wallet to view your bids</div>
+                </>
+            ) : (
+                <BidsList 
+                    bids={groupedBids} 
+                    emptyText="No bids found" 
+                />
+            )}
+        </Card>
     );
 };

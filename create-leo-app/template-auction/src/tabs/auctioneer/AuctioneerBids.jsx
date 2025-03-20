@@ -19,19 +19,20 @@ export const AuctioneerBids = () => {
             return auctionState.auctioneerRecords
                 .map(record => {
                     try {
-                        console.log(record.data.id);
-                        console.log(record.data.amount);
-                        // Create the wrapper object with original record and transformed display data
-                        return {
-                            displayData: {
-                                owner: record.owner,
-                                bidder: record.data.bidder.replace('.private', ''),
-                                auctionName: convertFieldToString(record.data.id.replace('.private', '')),
-                                amount: parseInt(record.data.amount.replace('u64.private', '')),
-                                isWinner: record.data.is_winner.replace('.private', '') === 'true',
-                                bidId: record.id,
-                            }
-                        };
+                        if (record.spent) {
+                            return null
+                        } else {
+                            return {
+                                displayData: {
+                                    owner: record.owner,
+                                    bidder: record.data.bidder.replace('.private', ''),
+                                    auctionName: convertFieldToString(record.data.id.replace('.private', '')),
+                                    amount: parseInt(record.data.amount.replace('u64.private', '')),
+                                    isWinner: record.data.is_winner.replace('.private', '') === 'true',
+                                    bidId: record.id,
+                                }
+                            };
+                        }
                     } catch (error) {
                         console.error('Error parsing record:', error);
                         return null;
@@ -76,7 +77,11 @@ export const AuctioneerBids = () => {
     };
 
     useEffect(() => {
-        getBids().then(r => console.log('Fetched bids:', r));
+        console.log("AuctionState", auctionState)
+        if (auctionState.auctioneerRecords.length === 0) {
+            getBids().then(r => console.log('Fetched bids:', r));
+            console.log("Auction State", auctionState);
+        }
     }, [connected]);
 
     return (
