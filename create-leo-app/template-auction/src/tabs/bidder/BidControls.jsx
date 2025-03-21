@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { encodeStringAsField } from "../../core/encoder.js";
-import { Card, Form, Input, Button } from "antd";
+import { Card, Form, Input, Button, InputNumber, Modal, Typography } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction } from "@demox-labs/aleo-wallet-adapter-base";
 import { WalletAdapterNetwork } from '@demox-labs/aleo-wallet-adapter-base';
+import { QuestionCircleOutlined } from "@ant-design/icons";
 
 export const BidControls = () => {
     const [bidAmount, setBidAmount] = useState("");
@@ -14,6 +15,7 @@ export const BidControls = () => {
     const [humanReadableAuctionId, setHumanReadableAuctionId] = useState("");
     const [currentAuctionId, setCurrentAuctionId] = useState("");
     const [isAuctionSelected, setIsAuctionSelected] = useState(false);
+    const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
 
     // Set the current auction ID.
     function handleSetAuctionId(auctionId) {
@@ -89,94 +91,148 @@ export const BidControls = () => {
         style: { marginBottom: '24px' }
     };
 
-    return (
-        <Card
-            title="Bidder Actions"
-            style={{ width: "100%" }}
+    const InstructionsModal = () => (
+        <Modal
+            title="How to Place a Bid"
+            open={isInstructionsVisible}
+            onOk={() => setIsInstructionsVisible(false)}
+            onCancel={() => setIsInstructionsVisible(false)}
+            width={600}
         >
-            <Form {...layout}>
-                <Form.Item
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Auction ID</span>}
-                    colon={false}
-                    style={{ marginBottom: '24px' }}
-                >
-                    <Input.Group compact>
-                        <Input
-                            name="AuctionID"
-                            size="large"
-                            placeholder="Enter the Auction ID"
-                            value={humanReadableAuctionId}
-                            allowClear={true}
-                            disabled={isAuctionSelected}
-                            onChange={onAuctionIdChange}
-                            style={{ width: 'calc(100% - 110px)' }}
-                        />
+            <Typography.Title level={4}>Steps to Place a Bid:</Typography.Title>
+            <Typography.Paragraph>
+                1. Enter the Auction ID you want to bid on
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                2. Enter your bid amount (must be greater than 0)
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                3. Click "Place Bid" to submit your bid
+            </Typography.Paragraph>
+
+            <Typography.Title level={4} style={{ marginTop: '20px' }}>Important Notes:</Typography.Title>
+            <Typography.Paragraph>
+                • Make sure your wallet is connected
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                • Your bid will be private and encrypted
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                • You can place multiple bids on the same auction
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                • The auctioneer will compare bids and determine the winner
+            </Typography.Paragraph>
+        </Modal>
+    );
+
+    return (
+        <>
+            <Button
+                type="primary"
+                size="large"
+                icon={<QuestionCircleOutlined />}
+                onClick={() => setIsInstructionsVisible(true)}
+                style={{
+                    marginBottom: '20px',
+                    width: '100%',
+                    height: '50px',
+                    fontSize: '18px'
+                }}
+            >
+                How to Place a Bid
+            </Button>
+
+            <Card
+                title="Bidder Actions"
+                style={{ width: "100%" }}
+            >
+                <Form {...layout}>
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Auction ID</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Input.Group compact>
+                            <Input
+                                name="AuctionID"
+                                size="large"
+                                placeholder="Enter the Auction ID"
+                                value={humanReadableAuctionId}
+                                allowClear={true}
+                                disabled={isAuctionSelected}
+                                onChange={onAuctionIdChange}
+                                style={{ width: 'calc(100% - 110px)' }}
+                            />
+                            <Button
+                                size="large"
+                                onClick={() => handleSetAuctionId(humanReadableAuctionId)}
+                                style={{ width: '110px' }}
+                            >
+                                {isAuctionSelected ? "Change" : "Select"}
+                            </Button>
+                        </Input.Group>
+                    </Form.Item>
+
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Auctioneer Address</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Input.Group compact>
+                            <Input
+                                name="bid"
+                                size="large"
+                                placeholder="Enter auctioneer address"
+                                allowClear
+                                value={auctioneerAddress}
+                                onChange={onAuctioneerAddressChange}
+                                style={{ width: 'calc(100% - 110px)' }}
+                            />
+                        </Input.Group>
+                    </Form.Item>
+
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Bid Amount</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Input.Group compact>
+                            <Input
+                                name="amount"
+                                size="large"
+                                placeholder="Enter bid amount"
+                                allowClear
+                                value={bidAmount}
+                                onChange={onBidAmountChange}
+                                style={{ width: 'calc(100% - 110px)' }}
+                            />
+                        </Input.Group>
+                    </Form.Item>
+
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}></span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
                         <Button
                             size="large"
-                            onClick={() => handleSetAuctionId(humanReadableAuctionId)}
+                            onClick={() => handleMakeBid(
+                                publicKey,
+                                auctioneerAddress,
+                                currentAuctionId,
+                                bidAmount,
+                            )}
                             style={{ width: '110px' }}
                         >
-                            {isAuctionSelected ? "Change" : "Select"}
+                            Make Bid
                         </Button>
-                    </Input.Group>
-                </Form.Item>
+                    </Form.Item>
 
-                <Form.Item
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Auctioneer Address</span>}
-                    colon={false}
-                    style={{ marginBottom: '24px' }}
-                >
-                    <Input.Group compact>
-                        <Input
-                            name="bid"
-                            size="large"
-                            placeholder="Enter auctioneer address"
-                            allowClear
-                            value={auctioneerAddress}
-                            onChange={onAuctioneerAddressChange}
-                            style={{ width: 'calc(100% - 110px)' }}
-                        />
-                    </Input.Group>
-                </Form.Item>
+                </Form>
+            </Card>
 
-                <Form.Item
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Bid Amount</span>}
-                    colon={false}
-                    style={{ marginBottom: '24px' }}
-                >
-                    <Input.Group compact>
-                        <Input
-                            name="amount"
-                            size="large"
-                            placeholder="Enter bid amount"
-                            allowClear
-                            value={bidAmount}
-                            onChange={onBidAmountChange}
-                            style={{ width: 'calc(100% - 110px)' }}
-                        />
-                    </Input.Group>
-                </Form.Item>
-
-                <Form.Item
-                    label={<span style={{ whiteSpace: 'nowrap' }}></span>}
-                    colon={false}
-                    style={{ marginBottom: '24px' }}
-                >
-                    <Button
-                        size="large"
-                        onClick={() => handleMakeBid(
-                            publicKey,
-                            auctioneerAddress,
-                            currentAuctionId,
-                            bidAmount,
-                        )}
-                        style={{ width: '110px' }}
-                    >
-                        Make Bid
-                    </Button>
-                </Form.Item>
-
-            </Form>
-        </Card>
+            <InstructionsModal />
+        </>
     );
 };

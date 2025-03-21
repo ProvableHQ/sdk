@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Card, Dropdown, Form, Input, Select, Radio, Button } from "antd";
+import { Card, Dropdown, Form, Input, Select, Radio, Button, Modal, Typography } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 import { encodeStringAsField } from "../../core/encoder.js";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 
 export const AuctionControls = () => {
     // Declare local state.
@@ -20,6 +21,7 @@ export const AuctionControls = () => {
     const [operation, setOperation] = useState("resolve");
     const [recordOne, setRecordOne] = useState("");
     const [recordTwo, setRecordTwo] = useState("");
+    const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
 
     // Get all necessary state hooks for outer component scope.
     const { publicKey, requestTransaction } = useWallet();
@@ -174,110 +176,181 @@ export const AuctionControls = () => {
         style: { marginBottom: '24px' }
     };
 
-    return (
-        <Card
-            title="Auctioneer Actions"
-            style={{ width: "100%" }}
+    const InstructionsModal = () => (
+        <Modal
+            title="How to Manage Auctions"
+            open={isInstructionsVisible}
+            onOk={() => setIsInstructionsVisible(false)}
+            onCancel={() => setIsInstructionsVisible(false)}
+            width={600}
         >
-            <Form {...layout}>
-                <Form.Item
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Auction ID</span>}
-                    colon={false}
-                    style={{ marginBottom: '24px' }}
-                >
-                    <Input.Group compact>
-                        <Input
-                            name="AuctionID"
-                            size="large"
-                            placeholder="Enter the Auction ID"
-                            value={humanReadableAuctionId}
-                            allowClear={true}
-                            disabled={isAuctionSelected}
-                            onChange={onAuctionIdChange}
-                            style={{ width: 'calc(100% - 110px)' }}
-                        />
-                        <Button
-                            size="large"
-                            onClick={() => handleSetAuctionId(humanReadableAuctionId)}
-                            style={{ width: '110px' }}
-                        >
-                            {isAuctionSelected ? "Change" : "Select"}
-                        </Button>
-                    </Input.Group>
-                </Form.Item>
+            <Typography.Title level={4}>Compare Bids:</Typography.Title>
+            <Typography.Paragraph>
+                1. Select "Compare Bids" operation
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                2. Enter an Auction ID to filter bids (optional)
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                3. Select two bids from the dropdown menus
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                4. Click "Compare Bids" to determine the higher bid
+            </Typography.Paragraph>
 
-                <Form.Item
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>}
-                    colon={false}
-                    style={{ marginBottom: '24px' }}
-                >
-                    <Radio.Group
-                        value={operation}
-                        onChange={(e) => onOperationChange(e.target.value)}
-                        size="large"
-                    >
-                        {operations.map(op => (
-                            <Radio.Button key={op.value} value={op.value}>
-                                {op.label}
-                            </Radio.Button>
-                        ))}
-                    </Radio.Group>
-                </Form.Item>
+            <Typography.Title level={4} style={{ marginTop: '20px' }}>Finish Auction:</Typography.Title>
+            <Typography.Paragraph>
+                1. Select "Finish Auction" operation
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                2. Enter the Auction ID (optional)
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                3. Select the winning bid
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                4. Click "Finish Auction" to close the auction
+            </Typography.Paragraph>
 
-                <Form.Item
-                    label={<span style={{ whiteSpace: 'nowrap' }}>First Bid</span>}
-                    colon={false}
-                    style={{ marginBottom: '24px' }}
-                >
-                    <Dropdown.Button menu={menuProps}>
-                        {firstMenuText()}
-                    </Dropdown.Button>
-                </Form.Item>
+            <Typography.Title level={4} style={{ marginTop: '20px' }}>Important Notes:</Typography.Title>
+            <Typography.Paragraph>
+                • Make sure your wallet is connected
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                • You can only compare bids from the same auction
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                • Compare all bids before finishing an auction
+            </Typography.Paragraph>
+            <Typography.Paragraph>
+                • Once an auction is finished, it cannot be reopened
+            </Typography.Paragraph>
+        </Modal>
+    );
 
-                {operation === "resolve" && (
+    return (
+        <>
+            <Button
+                type="primary"
+                size="large"
+                icon={<QuestionCircleOutlined />}
+                onClick={() => setIsInstructionsVisible(true)}
+                style={{
+                    marginBottom: '20px',
+                    width: '100%',
+                    height: '50px',
+                    fontSize: '18px'
+                }}
+            >
+                How to Manage Auctions
+            </Button>
+
+            <Card
+                title="Auctioneer Actions"
+                style={{ width: "100%" }}
+            >
+                <Form {...layout}>
                     <Form.Item
-                        label={<span style={{ whiteSpace: 'nowrap' }}>Second Bid</span>}
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Auction ID</span>}
                         colon={false}
                         style={{ marginBottom: '24px' }}
                     >
-                        <Dropdown.Button menu={secondMenuProps}>
-                            {secondMenuText()}
+                        <Input.Group compact>
+                            <Input
+                                name="AuctionID"
+                                size="large"
+                                placeholder="Enter the Auction ID"
+                                value={humanReadableAuctionId}
+                                allowClear={true}
+                                disabled={isAuctionSelected}
+                                onChange={onAuctionIdChange}
+                                style={{ width: 'calc(100% - 110px)' }}
+                            />
+                            <Button
+                                size="large"
+                                onClick={() => handleSetAuctionId(humanReadableAuctionId)}
+                                style={{ width: '110px' }}
+                            >
+                                {isAuctionSelected ? "Change" : "Select"}
+                            </Button>
+                        </Input.Group>
+                    </Form.Item>
+
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Radio.Group
+                            value={operation}
+                            onChange={(e) => onOperationChange(e.target.value)}
+                            size="large"
+                        >
+                            {operations.map(op => (
+                                <Radio.Button key={op.value} value={op.value}>
+                                    {op.label}
+                                </Radio.Button>
+                            ))}
+                        </Radio.Group>
+                    </Form.Item>
+
+                    <Form.Item
+                        label={<span style={{ whiteSpace: 'nowrap' }}>First Bid</span>}
+                        colon={false}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <Dropdown.Button menu={menuProps}>
+                            {firstMenuText()}
                         </Dropdown.Button>
                     </Form.Item>
-                )}
 
-                {operation === "resolve" && (
-                    <Form.Item
-                        label={<span style={{ whiteSpace: 'nowrap' }}></span>}
-                        colon={false}
-                        style={{ marginBottom: '24px' }}
-                    >
-                        <Button
-                            size="large"
-                            onClick={() => handleResolveBids(recordOne, recordTwo)}
-                            style={{ width: '110px' }}
-                            >
-                            Compare Bids
-                        </Button>
-                    </Form.Item>
-                )}
+                    {operation === "resolve" && (
+                        <Form.Item
+                            label={<span style={{ whiteSpace: 'nowrap' }}>Second Bid</span>}
+                            colon={false}
+                            style={{ marginBottom: '24px' }}
+                        >
+                            <Dropdown.Button menu={secondMenuProps}>
+                                {secondMenuText()}
+                            </Dropdown.Button>
+                        </Form.Item>
+                    )}
 
-                {operation === "finish" && (
-                    <Form.Item
-                        label={<span style={{ whiteSpace: 'nowrap' }}>Finish Auction</span>}
-                        colon={false}
-                        style={{ marginBottom: '24px' }}
-                    >
-                        <Button
-                            size="large"
-                            onClick={() => handleFinishAuction(recordOne)}
-                            style={{ width: '110px' }}
-                            >
-                            Finish Auction
-                        </Button>
-                    </Form.Item>
-                )}
-            </Form>
-        </Card>
+                    {operation === "resolve" && (
+                        <Form.Item
+                            label={<span style={{ whiteSpace: 'nowrap' }}></span>}
+                            colon={false}
+                            style={{ marginBottom: '24px' }}
+                        >
+                            <Button
+                                size="large"
+                                onClick={() => handleResolveBids(recordOne, recordTwo)}
+                                style={{ width: '110px' }}
+                                >
+                                Compare Bids
+                            </Button>
+                        </Form.Item>
+                    )}
+
+                    {operation === "finish" && (
+                        <Form.Item
+                            label={<span style={{ whiteSpace: 'nowrap' }}>Finish Auction</span>}
+                            colon={false}
+                            style={{ marginBottom: '24px' }}
+                        >
+                            <Button
+                                size="large"
+                                onClick={() => handleFinishAuction(recordOne)}
+                                style={{ width: '110px' }}
+                                >
+                                Finish Auction
+                            </Button>
+                        </Form.Item>
+                    )}
+                </Form>
+            </Card>
+
+            <InstructionsModal />
+        </>
     );
 };
