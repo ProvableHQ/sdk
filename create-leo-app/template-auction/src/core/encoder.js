@@ -1,8 +1,16 @@
 import { Field } from "@provablehq/sdk";
 
+// The length of a field element in bytes.
 const FIELD_LENGTH_BYTES = 31;
 const BIGINT_LENGTH = 32;
 
+/**
+ * Encode a string of (31 or less) utf-8 bytes as a field element.
+ *
+ * @param {string} auction_name string to encode as a field element.
+ *
+ * @returns {string} string representation of a field element.
+ */
 function encodeStringAsField(auction_name) {
   // Create a new text encoder.
   const encoder = new TextEncoder();
@@ -23,13 +31,26 @@ function encodeStringAsField(auction_name) {
   return field;
 }
 
+/**
+ * Decode a field element into an utf-8 encoded string.
+ *
+ * @param {string | Field } field Field element (as a string or wasm object) to decode.
+ *
+ * @returns {string} the field element as a string.
+ */
 function convertFieldToString(field) {
-  let fieldBytes = field;
+  let fieldBytes;
   if (field instanceof Field) {
+    // If the field is a Field object, convert it to bytes.
     fieldBytes = field.toBytesLe();
   } else if (typeof field === "string") {
+    // If the field is a string, convert it to a field object first and then to bytes.
     fieldBytes = Field.fromString(field).toBytesLe();
+  } else {
+    throw new Error("Field must be a Field object or a string");
   }
+
+  // Decode the bytes to a string.
   return new TextDecoder("utf-8").decode(fieldBytes);
 }
 

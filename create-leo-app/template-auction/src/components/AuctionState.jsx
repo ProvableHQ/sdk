@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from "react";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 
 // Create the context with a default value
 const DataContext = createContext({});
@@ -98,50 +97,22 @@ export const AuctionState = ({ children }) => {
         }));
     };
 
-    const addAuctioneerRecord = (record) => {
-        setAuctionState(prevState => ({
-            ...prevState,
-            auctioneerRecords: [...prevState.auctioneerRecords, record],
-        }));
-    };
-
-    const addAuctioneerRecords = (records) => {
-        setAuctionState(prevState => ({
-            ...prevState,
-            auctioneerRecords: records,
-        }));
-    }
-
-    const setBidderRecords = (records) => {
-        setAuctionState(prevState => ({
-            ...prevState,
-            bidderRecords: records,
-        }));
-    };
-
-    const addBidderRecords = (records) => {
-        setAuctionState(prevState => ({
-            ...prevState,
-            bidderRecords: [...prevState.auctioneerRecords, ...records],
-        }));
-    }
-
+    // Find an auctioneer record by its ID.
     const findAuctioneerRecordById = (recordId) => {
         return auctionState.auctioneerRecords.find(record => record.id === recordId);
     }
 
+    // Find all auctioneer records for a given auction ID.
     const findAuctioneerRecordsByAuctionId = (auctionId) => {
-        console.log("Finding records for auction", auctionId);
-        console.log("Existing Records", auctionState.auctioneerRecords);
-        const foundRecords = auctionState.auctioneerRecords.filter(record => record.data.id === `${auctionId}.private`);
-        console.log("Found Records", foundRecords);
-        return foundRecords;
+        return  auctionState.auctioneerRecords.filter(record => record.data.id === `${auctionId}.private`);
     }
 
+    // Find all unspent auctioneer records.
     const findAllUnspentAuctionRecords = () => {
         return auctionState.auctioneerRecords.filter(record => record.spent === false);
     }
 
+    // Set the records for a given auctioneer.
     const setAuctioneerRecords = (records) => {
         console.log("Setting records", records);
         setAuctionState(prevState => ({
@@ -150,8 +121,12 @@ export const AuctionState = ({ children }) => {
         }));
     }
 
-    const findRecordById = (recordId) => {
-        return auctionState.auctioneerRecords.find(record => record.id === recordId);
+    // Set all records relevant to bidders.
+    const setBidderRecords = (records) => {
+        setAuctionState(prevState => ({
+            ...prevState,
+            bidderRecords: records,
+        }));
     };
 
     return (
@@ -160,10 +135,7 @@ export const AuctionState = ({ children }) => {
                 auctionState, 
                 addNewBid, 
                 setWinningBid,
-                addAuctioneerRecord,
-                addAuctioneerRecords,
-                addBidderRecord: setBidderRecords,
-                addBidderRecords,
+                setBidderRecords,
                 findAllUnspentAuctionRecords,
                 findAuctioneerRecordById,
                 findAuctioneerRecordsByAuctionId,

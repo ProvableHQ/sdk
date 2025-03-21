@@ -2,6 +2,7 @@ import { App } from "antd";
 import { useAleoWASM } from "../aleo-wasm-hook.js";
 import { useEffect } from "react";
 
+// This component will display a loading message while the Aleo SDK is loading.
 export function WasmLoadingMessage() {
     const { message, notification } = App.useApp();
     const [_, aleoLoading] = useAleoWASM();

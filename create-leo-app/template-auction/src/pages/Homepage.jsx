@@ -31,7 +31,7 @@ const Homepage = () => {
                 <Link
                     target="_blank"
                     rel="noopener noreferrer"
-                    to="https://docs.explorer.provable.com/docs/sdk"
+                    to="/auctioneer"
                 >
                     <button className="button">
                         {" "}
@@ -46,14 +46,6 @@ const Homepage = () => {
                             style={{ height: "24px", marginBottom: "1rem" }}
                         ></img>
                     </a>
-                    <Link to="https://sdk.betteruptime.com/" style={{color: "white"}}> <span>Status</span> </Link>
-                    <Link to="/terms_of_use" style={{ color: "white", textDecoration: "none" }}>
-                        {" "}
-                        <span>Terms of Use</span>{" "}
-                    </Link>
-                    <Link to="/privacy_policy" style={{ color: "white", textDecoration: "none"}}>
-                        <span>Privacy Policy</span>
-                    </Link>
                     © 2025 Provable Inc.
                 </div>
             </div>

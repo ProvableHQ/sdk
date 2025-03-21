@@ -7,7 +7,7 @@ import { convertFieldToString } from "../../core/encoder.js";
 import { ReloadOutlined } from "@ant-design/icons";
 
 export const Bids = () => {
-    const { auctionState, addBidderRecords: setBidderRecords } = useAuctionState();
+    const { auctionState, setAuctioneerRecords, setBidderRecords } = useAuctionState();
     const { connected, requestRecords, publicKey } = useWallet();
     const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -18,7 +18,8 @@ export const Bids = () => {
         setIsRefreshing(true);
         try {
             const records = await requestRecords("private_auction.aleo");
-            setBidderRecords(records);
+            setBidderRecords([...records].filter(record => record.data.is_winner === "true.private"));
+            setAuctioneerRecords(records);
         } catch (error) {
             console.error("Error fetching records:", error);
         } finally {

@@ -3,7 +3,6 @@ import { WalletProvider } from "@demox-labs/aleo-wallet-adapter-react";
 import { WalletModalProvider } from "@demox-labs/aleo-wallet-adapter-reactui";
 import {
     PuzzleWalletAdapter,
-    // LeoWalletAdapter,
     FoxWalletAdapter,
     SoterWalletAdapter,
     // configureConnectionForPuzzle,
@@ -14,8 +13,8 @@ import {
 } from "@demox-labs/aleo-wallet-adapter-base";
 import { LeoWalletAdapter } from "@demox-labs/aleo-wallet-adapter-leo";
 import "@demox-labs/aleo-wallet-adapter-reactui/styles.css";
-import { WalletNotConnectedError } from '@demox-labs/aleo-wallet-adapter-base';
 
+// Configure the wallet options to be used in the application.
 export const WalletWrapper = ({ children }) => {
     // Initialize wallets inside a functional component using useMemo.
     const wallets = useMemo(
