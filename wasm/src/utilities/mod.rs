@@ -13,8 +13,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
-pub mod transaction;
-pub use transaction::Transaction;
 
-pub mod transition;
-pub use transition::Transition;
+mod array;
+mod bits;
+#[cfg(test)]
+pub mod test;

@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Plaintext, types::native::{FieldNative, LiteralNative, PlaintextNative, Uniform}};
-use snarkvm_console::prelude::{Double, FromBytes, One, Pow, ToBytes, Zero};
-use std::ops::Deref;
+use crate::{
+    Plaintext,
+    from_js_typed_array,
+    to_bits_array_le,
+    types::native::{FieldNative, LiteralNative, PlaintextNative, Uniform},
+};
+use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Zero};
 
+use js_sys::{Array, Uint8Array};
 use once_cell::sync::OnceCell;
-use std::str::FromStr;
-use js_sys::Uint8Array;
-use wasm_bindgen::prelude::wasm_bindgen;
+use std::{ops::Deref, str::FromStr};
+use wasm_bindgen::prelude::*;
 
 /// Field element.
 #[wasm_bindgen]
@@ -30,14 +34,14 @@ pub struct Field(FieldNative);
 
 #[wasm_bindgen]
 impl Field {
-    /// Creates a field object from a string representation of a field.
+    /// Creates a field object from a string representation of a field element.
     #[wasm_bindgen(js_name = "fromString")]
     #[allow(clippy::should_implement_trait)]
     pub fn from_string(field: &str) -> Result<Field, String> {
         Ok(Self(FieldNative::from_str(field).map_err(|e| e.to_string())?))
     }
 
-    /// Returns the string representation of the field.
+    /// Returns the string representation of the field element.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
@@ -45,29 +49,43 @@ impl Field {
     }
 
     /// Create a field element from a Uint8Array of left endian bytes.
-    ///
-    /// @param {Uint8Array} Uint8Array of left endian bytes encoding a Field.
-    /// @returns {Field}
-    #[wasm_bindgen(js_name = fromBytesLe)]
-    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Field, String> {
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: &Uint8Array) -> Result<Field, String> {
         let bytes = bytes.to_vec();
         let transition = FieldNative::from_bytes_le(&bytes).map_err(|e| e.to_string())?;
         Ok(Field(transition))
     }
 
     /// Encode the field element as a Uint8Array of left endian bytes.
-    ///
-    /// @returns {Uint8Array} Uint8Array representation of the field element
-    #[wasm_bindgen(js_name = toBytesLe)]
+    #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
         Ok(Uint8Array::from(bytes.as_slice()))
     }
 
-    /// Create a plaintext element from a group element.
+    /// Reconstruct a field element from a boolean array representation.
+    #[wasm_bindgen(js_name = "fromBitsLe")]
+    pub fn from_bits_le(bits: &Array) -> Result<Field, String> {
+        let bit_vec = from_js_typed_array!(bits, as_bool, "boolean")?;
+        let group = FieldNative::from_bits_le(&bit_vec).map_err(|e| e.to_string())?;
+        Ok(Field(group))
+    }
+
+    /// Get the left endian boolean array representation of the field element.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
+
+    /// Create a plaintext from the field element.
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {
         Plaintext::from(PlaintextNative::Literal(LiteralNative::Field(self.0), OnceCell::new()))
+    }
+
+    /// Clone the field element.
+    pub fn clone(&self) -> Field {
+        Field(self.0.clone())
     }
 
     /// Generate a random field element.
@@ -106,12 +124,12 @@ impl Field {
         Field(-self.0)
     }
 
-    /// Get the zero element of the field.
+    /// Get the additive identity element of the field.
     pub fn zero() -> Field {
         Field(FieldNative::zero())
     }
 
-    /// Get the one element of the field.
+    /// Get the multiplicative identity of the field.
     pub fn one() -> Field {
         Field(FieldNative::one())
     }

@@ -17,17 +17,19 @@
 use crate::{
     Field,
     Plaintext,
+    from_js_typed_array,
+    to_bits_array_le,
     types::{
         Scalar,
         native::{GroupNative, LiteralNative, PlaintextNative, Uniform},
     },
 };
-use snarkvm_console::prelude::{Double, FromBytes, ToBytes, Zero};
+use snarkvm_console::prelude::{Double, FromBits, FromBytes, ToBits, ToBytes, Zero};
 
+use js_sys::{Array, Uint8Array};
 use once_cell::sync::OnceCell;
 use std::{ops::Deref, str::FromStr};
-use js_sys::Uint8Array;
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::prelude::*;
 
 /// Elliptic curve element.
 #[wasm_bindgen]
@@ -36,39 +38,47 @@ pub struct Group(GroupNative);
 
 #[wasm_bindgen]
 impl Group {
-    /// Creates a group object from a string representation of a group.
+    /// Creates a group object from a string representation of a group element.
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(group: &str) -> Result<Group, String> {
         Ok(Self(GroupNative::from_str(group).map_err(|e| e.to_string())?))
     }
 
-    /// Returns the string representation of the group.
+    /// Returns the string representation of the group element.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
-    /// Encode the group element as a Uint8Array of left endian bytes.
-    ///
-    /// @returns {Uint8Array} Uint8Array representation of the group element
-    #[wasm_bindgen(js_name = toBytesLe)]
-    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
-        let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
-        Ok(Uint8Array::from(bytes.as_slice()))
-    }
-
     /// Create a group element from a Uint8Array of left endian bytes.
-    ///
-    /// @param {Uint8Array} Uint8Array of left endian bytes encoding a group element.
-    /// @returns {Group}
-    #[wasm_bindgen(js_name = fromBytesLe)]
-    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Group, String> {
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: &Uint8Array) -> Result<Group, String> {
         let bytes = bytes.to_vec();
         let group = GroupNative::from_bytes_le(&bytes).map_err(|e| e.to_string())?;
         Ok(Group(group))
     }
 
+    /// Encode the group element as a Uint8Array of left endian bytes.
+    #[wasm_bindgen(js_name = "toBytesLe")]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        Ok(Uint8Array::from(bytes.as_slice()))
+    }
+
+    /// Reconstruct a group element from a boolean array representation.
+    #[wasm_bindgen(js_name = "fromBitsLe")]
+    pub fn from_bits_le(bits: &Array) -> Result<Group, String> {
+        let bit_vec = from_js_typed_array!(bits, as_bool, "boolean")?;
+        let group = GroupNative::from_bits_le(&bit_vec).map_err(|e| e.to_string())?;
+        Ok(Group(group))
+    }
+
+    /// Get the left endian boolean array representation of the group element.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
 
     /// Get the x-coordinate of the group element.
     #[wasm_bindgen(js_name = "toXCoordinate")]
@@ -80,6 +90,11 @@ impl Group {
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {
         Plaintext::from(PlaintextNative::Literal(LiteralNative::Group(self.0), OnceCell::new()))
+    }
+
+    /// Clone the group element.
+    pub fn clone(&self) -> Group {
+        Group(self.0.clone())
     }
 
     /// Generate a random group element.

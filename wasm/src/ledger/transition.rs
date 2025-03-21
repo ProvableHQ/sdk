@@ -176,6 +176,12 @@ impl Transition {
         Group::from(self.0.tpk())
     }
 
+    /// Get the transition view key of the transition.
+    pub fn tvk(&self, view_key: &ViewKey) -> Field {
+        let tpk = self.tpk();
+        tpk.scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
+    }
+
     /// Get the transition commitment of the transition.
     pub fn tcm(&self) -> Field {
         Field::from(self.0.tcm())
@@ -244,6 +250,7 @@ mod tests {
     pub const OUTPUT_RECORD_COMMITMENT: &str =
         "3771264214823666953346974490700157125043441681812666085949968314967709800215field";
     pub const TRANSITION: &str = r#"{"id":"au1naeu56spz0x0zct003sa8qgpzndy6nxj8rrcm7n0fehy9llcl5yscflt0k","program":"token_registry.aleo","function":"burn_private","inputs":[{"type":"record","id":"4569194627311410524427044648350523511369013276760031398859310110870190258038field","tag":"4584393733726099907383249165298083023636530416018938077800083356406243497342field"},{"type":"public","id":"4155661860779318196369465902681808025430867777096367712868886959018716227815field","value":"2853086u128"}],"outputs":[{"type":"record","id":"3771264214823666953346974490700157125043441681812666085949968314967709800215field","checksum":"17461704767783030875142836237730678349755524657182224909428747180538982740field","value":"record1qyqspwnlv6gfxx05yj7aw7z2dl44gyh06jrvgf42jux0dep33cy7jlsvqsrxzmt0w4h8ggcqqgqsqwdwr889h9fhnyclazs8yt26t6r5ua4qk7yksj7p40rz9846mzgrpp6x76m9de0kjezrqqpqyq9sj8x3qdmz6nal4j470a0wwcray54lffe3ya5u2zlpeq45lg4up3na8gul0vgrn3eced6dka4ax2ja85xzds4pmqf8csrn8ku5cv3qz8m90p6x2unwv9k97ct4w35x7unf0fshg6t0de0hyet3w45hyetyyvqqyqgq8djhghnte2w86qsdjaumy4zcux2fxszm3ej2956af8cpl2w95g9pqct4w35x7unf0fjkghm4de6xjmprqqpqzqxd6c782j0ny65ed2ckzp3vlx7cv8drslasq8kqpdzmjeyzal38qemw38x0axnz5t53fj6ttavh8l4jlfjdryc6mesd4w6uvpmzfsqqjvtu0xd"},{"type":"future","id":"2177527202823505610844479366424698260670813913152550670302738921219693374616field","value":"{\n  program_id: token_registry.aleo,\n  function_name: burn_private,\n  arguments: [\n    3443843282313283355522573239085696902919850365217539366784739393210722344986field,\n    2853086u128,\n    aleo1tjkv7vquk6yldxz53ecwsy5csnun43rfaknpkjc97v5223dlnyxsglv7nm,\n    5783861720504029593520331872442756678068735468923730684279741068753131773333field\n  ]\n}"}],"tpk":"8426225807947287980879824833030089440060785195861154519084544916641544071836group","tcm":"3226339871444496417979841037237975848011574524309845233165930705339306709897field","scm":"6845182532650964173356391969005331370591444046632036068754797772530920467754field"}"#;
+    pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkp6rE5FSWGD3jxrsAT64aZutFs3w6xvF8uQzGZKJEKsN8j";
 
     #[test]
     fn transition_to_and_from_serialization() {
@@ -254,8 +261,12 @@ mod tests {
         assert!(Transition::from_bytes_le(bytes).is_ok());
     }
 
-    #[test]
+    #[wasm_bindgen_test]
     fn test_transition_helpers() {
+        // Create a view key from the test private key.
+        let private_key = PrivateKey::from_str(TEST_PRIVATE_KEY).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+
         let transition = Transition::from_string(TRANSITION).unwrap();
         assert_eq!(transition.program_id(), "token_registry.aleo");
         assert_eq!(transition.function_name(), "burn_private");
@@ -274,6 +285,11 @@ mod tests {
             Field::from_string("6845182532650964173356391969005331370591444046632036068754797772530920467754field")
                 .unwrap()
         );
+        assert_eq!(
+            transition.tvk(&view_key),
+            Field::from_string("4386935145534748320784836619728244316439880324135120862336274251207085504468field")
+                .unwrap()
+        )
     }
 
     #[wasm_bindgen_test]
