@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{PrivateKey, Signature, ViewKey};
-
-use crate::{account::compute_key::ComputeKey, to_bits_array_le, types::native::AddressNative};
+use crate::{
+    Plaintext,
+    account::{PrivateKey, Signature, ViewKey, compute_key::ComputeKey},
+    types::native::AddressNative,
+};
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use js_sys::Array;
-use snarkvm_wasm::utilities::ToBits;
 use wasm_bindgen::prelude::*;
 
 /// Public address of an Aleo account
@@ -69,10 +70,11 @@ impl Address {
         self.0.to_string()
     }
 
-    /// Get the left endian boolean array representation of the address.
-    #[wasm_bindgen(js_name = "toBitsLe")]
-    pub fn to_bits_le(&self) -> Array {
-        to_bits_array_le!(self)
+    /// Get the left endian boolean array representation of the address plaintext.
+    #[wasm_bindgen(js_name = "plaintextBitsLe")]
+    pub fn plaintext_bits_le(&self) -> Result<Array, String> {
+        let plaintext = Plaintext::from_string(&self.to_string())?;
+        Ok(plaintext.to_bits_le())
     }
 
     /// Verify a signature for a message signed by the address

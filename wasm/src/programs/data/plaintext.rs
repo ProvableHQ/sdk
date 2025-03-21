@@ -24,10 +24,9 @@ use crate::{
     types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes},
 };
 use snarkvm_console::prelude::ToBits;
-use std::ops::Deref;
 
 use js_sys::{Array, Uint8Array};
-use std::str::FromStr;
+use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// SnarkVM Plaintext object. Plaintext is a fundamental monadic type used to represent Aleo
