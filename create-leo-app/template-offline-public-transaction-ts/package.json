@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "build": "rimraf dist/js && rollup --config",
-    "dev": "npm run build && node dist/index.js"
+    "dev": "npm run build && node dist/index.js",
+    "test:e2e": "npm run dev"
   },
   "dependencies": {
     "@provablehq/sdk": "^0.8.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "@types/node": "^22.13.13",
     "rimraf": "^6.0.1",
     "rollup": "^4.32.0",
     "rollup-plugin-typescript2": "^0.36.0",

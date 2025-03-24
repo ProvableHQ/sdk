@@ -21,3 +21,6 @@ rust/src/program/.DS_Store
 
 package-lock.json
 .yarn
+
+# Playwright test results
+**/test-results

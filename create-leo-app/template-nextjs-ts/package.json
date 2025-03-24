@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "sh scripts/test.sh",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:e2e": "sh scripts/test.sh"
   },
   "dependencies": {
     "@provablehq/sdk": "^0.8.0",

@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "rimraf static/js && rollup --config"
+    "build": "rimraf static/js && rollup --config",
+    "test:e2e": "npm run build"
   },
   "devDependencies": {
     "@provablehq/sdk": "^0.8.0",

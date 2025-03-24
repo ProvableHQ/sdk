@@ -8,7 +8,8 @@
     "build": "webpack --config webpack.config.js",
     "build:vite": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "sh scripts/test.sh"
   },
   "dependencies": {
     "@provablehq/sdk": "^0.8.0",
@@ -19,6 +20,8 @@
     "@babel/core": "^7.26.7",
     "@babel/preset-env": "^7.26.7",
     "@babel/preset-react": "^7.26.3",
+    "@playwright/test": "^1.51.1",
+    "@types/node": "^22.13.13",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",

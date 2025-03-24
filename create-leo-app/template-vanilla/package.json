@@ -1,16 +1,19 @@
 {
-    "name": "aleo-starter",
-    "private": true,
-    "version": "0.0.0",
-    "type": "module",
-    "scripts": {
-        "dev": "vite",
-        "build": "vite build",
-        "preview": "vite preview"
-    },
-    "devDependencies": {
-        "@provablehq/sdk": "^0.8.0",
-        "tslib": "^2.8.1",
-        "vite": "^6.0.11"
-    }
+  "name": "aleo-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:e2e": "sh scripts/test.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "@provablehq/sdk": "^0.8.0",
+    "@types/node": "^22.13.13",
+    "tslib": "^2.8.1",
+    "vite": "^6.0.11"
+  }
 }

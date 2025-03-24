@@ -9,7 +9,8 @@
     "build:vite": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "install-leo": "./install.sh"
+    "install-leo": "./install.sh",
+    "test:e2e": "sh scripts/test.sh"
   },
   "dependencies": {
     "@provablehq/sdk": "^0.8.0",
@@ -22,6 +23,7 @@
     "@babel/preset-env": "^7.26.7",
     "@babel/preset-react": "^7.26.3",
     "@babel/preset-typescript": "^7.26.0",
+    "@playwright/test": "^1.51.1",
     "@types/babel__generator": "^7.6.8",
     "@types/node": "^22.12.0",
     "@types/react": "^19.0.8",

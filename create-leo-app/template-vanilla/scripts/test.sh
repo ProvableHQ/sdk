@@ -1,6 +1,6 @@
 yarn
 yarn build
-npm run dev &
+npx vite &
 PID=$!
 npx playwright test
 kill -INT $PID
