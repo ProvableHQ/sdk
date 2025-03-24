@@ -16,7 +16,7 @@ describe('NodeConnection', () => {
 
         // Integration tests to be run with a local node (run with -s flag)
         it('should find records', async () => {
-            const records = await localApiClient.findUnspentRecords(0, undefined, beaconPrivateKeyString, undefined, undefined, []);
+            const records = await localApiClient.findUnspentRecords(0, undefined, undefined, undefined, undefined, []);
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
@@ -24,7 +24,7 @@ describe('NodeConnection', () => {
         });
 
         it('should find records when a private key is pre-configured', async () => {
-            const records = await remoteApiClientWithPrivateKey.findUnspentRecords(0, undefined, undefined, undefined, 100, []);
+            const records = await remoteApiClientWithPrivateKey.findUnspentRecords(0, undefined, ["credits.aleo"], undefined, 100, []);
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
@@ -32,7 +32,7 @@ describe('NodeConnection', () => {
         });
 
         it('should find records even when block height specified is higher than current block height', async () => {
-            const records = await localApiClient.findUnspentRecords(0, 50000000000000, beaconPrivateKeyString, undefined, 100, []);
+            const records = await localApiClient.findUnspentRecords(0, 50000000000000, ["credits.aleo"], undefined, 100, [], beaconPrivateKeyString);
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
@@ -40,13 +40,13 @@ describe('NodeConnection', () => {
         });
 
         it('should find records with specified amounts', async () => {
-            let records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, []);
+            let records = await localApiClient.findUnspentRecords(0, 3, ["credits.aleo"], [100, 200], undefined, [], beaconPrivateKeyString);
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).equal(2);
             }
 
-            records = await localApiClient.findUnspentRecords(0, undefined, beaconPrivateKeyString, undefined, 1000, []);
+            records = await localApiClient.findUnspentRecords(0, undefined, ["credits.aleo"], undefined, 1000, [], beaconPrivateKeyString);
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
@@ -55,7 +55,7 @@ describe('NodeConnection', () => {
 
         it('should not find records with existing nonces', async () => {
             const nonces: string[] = [];
-            const records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, []);
+            const records = await localApiClient.findUnspentRecords(0, 3, ["credits.aleo"], [100, 200], undefined, [], beaconPrivateKeyString);
             expect(Array.isArray(records)).equal(true);
 
             // Find two records and store their nonces
@@ -66,7 +66,7 @@ describe('NodeConnection', () => {
                     nonces.push(record.nonce());
                 });
                 // Check the next records found do not have the same nonces
-                const new_records = await localApiClient.findUnspentRecords(0, 3, beaconPrivateKeyString, [100, 200], undefined, nonces);
+                const new_records = await localApiClient.findUnspentRecords(0, 3, ["credits.aleo"], [100, 200], undefined, nonces, undefined);
                 expect(Array.isArray(records)).equal(true);
                 if (!(new_records instanceof Error)) {
                     expect(new_records.length).equal(2);

@@ -1,26 +1,27 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    native::{CiphertextNative, FromBytes, ToBytes},
     Field,
     Group,
     Plaintext,
     ViewKey,
+    native::{CiphertextNative, CurrentNetwork, FieldNative, FromBytes, IdentifierNative, ProgramIDNative, ToBytes},
 };
+use snarkvm_console::{network::Network, program::compute_function_id, types::U16};
 
 use js_sys::Uint8Array;
 use std::{ops::Deref, str::FromStr};
@@ -47,7 +48,54 @@ impl Ciphertext {
         Ok(Plaintext::from(self.0.decrypt(*view_key, *nonce).map_err(|e| e.to_string())?))
     }
 
-    /// Decrypts a ciphertext into plaintext using the given transition view key.
+    /// Decrypt a ciphertext using the view key of the transition signer, transition public key, and
+    /// (program, function, index) tuple.
+    pub fn decrypt_with_transition_info(
+        &self,
+        view_key: ViewKey,
+        transition_public_key: Group,
+        program: String,
+        function_name: String,
+        index: u16,
+    ) -> Result<Plaintext, String> {
+        // Gather all information needed to derive the input view key.
+        let program_id = ProgramIDNative::from_str(&program).map_err(|e| e.to_string())?;
+        let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
+        let function_id =
+            compute_function_id(&U16::<CurrentNetwork>::new(CurrentNetwork::ID), &program_id, &function_name)
+                .map_err(|e| e.to_string())?;
+        let tvk = transition_public_key.scalar_multiply(&view_key.to_scalar()).to_x_coordinate();
+        let index = FieldNative::from_u16(index);
+
+        // Compute the input view key and decrypt the ciphertext.
+        let input_view_key = CurrentNetwork::hash_psd4(&[function_id, *tvk, index])
+            .map_err(|_| "The provided ciphertext decryption parameters are incorrect")?;
+        Ok(Plaintext::from(self.0.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?))
+    }
+
+    /// Decrypt a ciphertext using the transition view key and a (program, function, index) tuple.
+    pub fn decrypt_with_transition_view_key(
+        &self,
+        transition_view_key: Field,
+        program: String,
+        function_name: String,
+        index: u16,
+    ) -> Result<Plaintext, String> {
+        // Gather all information needed to derive the input view key.
+        let program_id = ProgramIDNative::from_str(&program).map_err(|e| e.to_string())?;
+        let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
+        let function_id =
+            compute_function_id(&U16::<CurrentNetwork>::new(CurrentNetwork::ID), &program_id, &function_name)
+                .map_err(|e| e.to_string())?;
+        let index = FieldNative::from_u16(index);
+
+        // Compute the input view key and decrypt the ciphertext.
+        let input_view_key = CurrentNetwork::hash_psd4(&[function_id, *transition_view_key, index])
+            .map_err(|_| "The provided ciphertext decryption parameters are incorrect")?;
+        Ok(Plaintext::from(self.0.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?))
+    }
+
+    /// Decrypts a ciphertext into plaintext using the given ciphertext view key.
     ///
     /// @param {Field} transition_view_key The transition view key that was used to encrypt the ciphertext.
     ///
@@ -131,7 +179,7 @@ impl From<&Ciphertext> for CiphertextNative {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{plaintext_to_js_value, PrivateKey, Transition};
+    use crate::{PrivateKey, Transition, plaintext_to_js_value};
     use snarkvm_console::{collections::OrHalt, program::compute_function_id, types::U16};
 
     use crate::types::native::{CurrentNetwork, FieldNative, IdentifierNative, Network, ProgramID};
@@ -189,5 +237,34 @@ mod tests {
         // Ensure the decrypted plaintext matches the expected output.
         let js_value = plaintext_to_js_value(&*decrypted_plaintext).as_f64().unwrap();
         assert_eq!(js_value, 2.0);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_ciphertext_decryption_method() {
+        // Construct the private key and view key associated with the transition.
+        let private_key = PrivateKey::from_string(PRIVATE_KEY).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+
+        // Construct the ciphertext to be decrypted and the transition it is a part of.
+        let transition = Transition::from_string(TRANSITION).unwrap();
+        let ciphertext = Ciphertext::from_string(CIPHERTEXT.to_string()).unwrap();
+
+        // Compute the tpk and tvk.
+        let tpk = transition.tpk();
+        let tvk = tpk.scalar_multiply(&view_key.to_scalar()).to_x_coordinate();
+
+        // Decrypt the ciphertext using the transition view key.
+        if CurrentNetwork::ID == 1 {
+            let decrypted_plaintext_1 = ciphertext
+                .decrypt_with_transition_info(view_key, tpk, transition.program_id(), transition.function_name(), 1)
+                .unwrap();
+            let decrypted_plaintext_2 = ciphertext
+                .decrypt_with_transition_view_key(tvk, transition.program_id(), transition.function_name(), 1)
+                .unwrap();
+
+            // Ensure the decrypted plaintexts are correct.
+            assert_eq!(decrypted_plaintext_1.to_string(), "2u32");
+            assert_eq!(decrypted_plaintext_2.to_string(), "2u32");
+        }
     }
 }

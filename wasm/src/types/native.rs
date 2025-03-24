@@ -1,23 +1,24 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::networks::*;
 
 pub use snarkvm_console::{
     account::{Address, ComputeKey, GraphKey, PrivateKey, Signature, ViewKey},
+    algorithms::{BHP256, BHP512, BHP768, BHP1024, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8},
     network::Network,
     program::{
         Argument,
@@ -41,10 +42,10 @@ use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
 pub use snarkvm_ledger_query::Query;
 pub use snarkvm_ledger_store::helpers::memory::BlockMemory;
 pub use snarkvm_synthesizer::{
-    process::{cost_in_microcredits_v2, deployment_cost},
-    snark::{ProvingKey, VerifyingKey},
     Process,
     Program,
+    process::{cost_in_microcredits_v2, deployment_cost},
+    snark::{ProvingKey, VerifyingKey},
 };
 pub use snarkvm_wasm::{
     console::network::Environment,
@@ -65,6 +66,17 @@ pub type FieldNative = Field<CurrentNetwork>;
 pub type GroupNative = Group<CurrentNetwork>;
 pub type ScalarNative = Scalar<CurrentNetwork>;
 pub type U64Native = U64<CurrentNetwork>;
+
+// Algorithmic types
+pub type BHP256Native = BHP256<CurrentNetwork>;
+pub type BHP512Native = BHP512<CurrentNetwork>;
+pub type BHP768Native = BHP768<CurrentNetwork>;
+pub type BHP1024Native = BHP1024<CurrentNetwork>;
+pub type Pedersen64Native = Pedersen64<CurrentNetwork>;
+pub type Pedersen128Native = Pedersen128<CurrentNetwork>;
+pub type Poseidon2Native = Poseidon2<CurrentNetwork>;
+pub type Poseidon4Native = Poseidon4<CurrentNetwork>;
+pub type Poseidon8Native = Poseidon8<CurrentNetwork>;
 
 // Record types
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;

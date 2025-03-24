@@ -19,6 +19,8 @@ import { PlaintextArray} from "./models/plaintext/array";
 import { PlaintextLiteral} from "./models/plaintext/literal";
 import { PlaintextObject } from "./models/plaintext/plaintext";
 import { PlaintextStruct} from "./models/plaintext/struct";
+import { RatificationJSON } from "./models/ratification";
+import { SolutionsJSON, SolutionJSON, PartialSolutionJSON } from "./models/solution";
 import { TransactionJSON } from "./models/transaction/transactionJSON";
 import { TransactionObject } from "./models/transaction/transactionObject";
 import { TransitionJSON } from "./models/transition/transitionJSON";
@@ -56,13 +58,23 @@ export { logAndThrow } from "./utils";
 
 export {
     Address,
+    BHP256,
+    BHP512,
+    BHP768,
+    BHP1024,
     Ciphertext,
+    ComputeKey,
     Execution as FunctionExecution,
     ExecutionResponse,
     Field,
     Group,
     OfflineQuery,
+    Pedersen64,
+    Pedersen128,
     Plaintext,
+    Poseidon2,
+    Poseidon4,
+    Poseidon8,
     PrivateKey,
     PrivateKeyCiphertext,
     Program,
@@ -121,18 +133,22 @@ export {
     KeySearchParams,
     Metadata,
     NetworkRecordProvider,
-    ProgramImports,
     OfflineKeyProvider,
     OfflineSearchParams,
+    OutputJSON,
+    OutputObject,
     OwnerJSON,
+    PartialSolutionJSON,
     PlaintextArray,
     PlaintextLiteral,
     PlaintextObject,
     PlaintextStruct,
-    OutputJSON,
-    OutputObject,
+    ProgramImports,
+    RatificationJSON,
     RecordProvider,
     RecordSearchParams,
+    SolutionJSON,
+    SolutionsJSON,
     TransactionJSON,
     TransactionObject,
     TransitionJSON,

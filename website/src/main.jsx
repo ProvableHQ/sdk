@@ -88,7 +88,7 @@ function Main() {
                     <Sider breakpoint="lg" collapsedWidth="0" theme="light">
                         <h1 className={darkMode ? "headerDark": "headerLight"}>
                             <Link to="/">
-                            Aleo SDK
+                            Provable SDK
                             </Link>
                         </h1>
                         <Menu

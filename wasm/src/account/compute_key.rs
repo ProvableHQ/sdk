@@ -1,23 +1,23 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::PrivateKey;
 use crate::{
-    types::{native::ComputeKeyNative, Group, Scalar},
     Address,
+    types::{Group, Scalar, native::ComputeKeyNative},
 };
 
 use core::{convert::TryFrom, ops::Deref};
@@ -103,8 +103,8 @@ impl From<&ComputeKeyNative> for ComputeKey {
 mod tests {
     use super::*;
     use crate::{
-        types::native::{AddressNative, CurrentNetwork},
         PrivateKey,
+        types::native::{AddressNative, CurrentNetwork},
     };
 
     use snarkvm_console::network::Network;

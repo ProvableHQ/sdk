@@ -1,31 +1,31 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
 
 use crate::{
-    execute_fee,
-    execute_program,
-    log,
-    process_inputs,
     ExecutionResponse,
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
     Transaction,
+    execute_fee,
+    execute_program,
+    log,
+    process_inputs,
 };
 
 use crate::types::native::{
@@ -39,7 +39,7 @@ use crate::types::native::{
 };
 use core::ops::Add;
 use js_sys::{Array, Object};
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use snarkvm_console::prelude::Network;
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::cost_in_microcredits_v1;

@@ -47,8 +47,8 @@ export const FieldArithmetic = () => {
     };
 
     const calculateResult = (num1, num2, op) => {
-        if ((op === "inv" && num1 === "") || 
-            (op !== "inv" && (num1 === "" || num2 === ""))) {
+        if (((op === "inv" || op === "mulinv") && num1 === "") ||
+            ((op !== "inv" && op !== "mulinv") && (num1 === "" || num2 === ""))) {
             setResult("");
             return;
         }

@@ -7,10 +7,17 @@ import {
     TransactionObject,
     InputObject,
     OutputObject,
-    ExecutionObject
-} from "../src/node";
+    ExecutionObject,
+    DeploymentObject,
+    ExecutionJSON,
+    InputJSON,
+    OutputJSON,
+    Plaintext,
+    PlaintextObject,
+    Transition,
+    TransitionObject,
+} from "@provablehq/sdk/%%NETWORK%%.js";
 import { beaconPrivateKeyString } from "./data/account-data";
-import { DeploymentObject, ExecutionJSON, InputJSON, OutputJSON, Plaintext, PlaintextObject, Transition, TransitionObject } from "../src/node";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {
@@ -22,12 +29,6 @@ async function catchError(f: () => Promise<any>): Promise<Error | null> {
     }
 }
 
-
-async function expectThrowsMessage(f: () => Promise<any>, message: string): Promise<void> {
-    const error = await catchError(f);
-    expect(error).not.equal(null);
-    expect(error!.message).equal(message);
-}
 async function expectThrows(f: () => Promise<any>): Promise<void> {
     const error = await catchError(f);
     expect(error).not.equal(null);
@@ -68,9 +69,8 @@ describe('NodeConnection', () => {
         });
 
         it('should throw an error if the request fails', async () => {
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.getBlock(99999999),
-                "Error fetching block.",
             );
         });
     });
@@ -85,9 +85,8 @@ describe('NodeConnection', () => {
         });
 
         it('should throw an error if the request fails', async () => {
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.getBlockRange(999999999, 1000000000),
-                "Error fetching blocks between 999999999 and 1000000000.",
             );
         });
     });
@@ -101,9 +100,8 @@ describe('NodeConnection', () => {
         it('should throw an error if the request fails', async () => {
             const program_id = "a" + (Math.random()).toString(32).substring(2) + ".aleo";
 
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.getProgram(program_id),
-                "Error fetching program",
             );
         });
     });
@@ -202,29 +200,25 @@ describe('NodeConnection', () => {
 
     describe('findUnspentRecords', () => {
         it('should fail if block heights or private keys are incorrectly specified', async () => {
-            await expectThrowsMessage(
-                () => connection.findUnspentRecords(5, 0, beaconPrivateKeyString, undefined, undefined, []),
-                "Start height must be less than or equal to end height.",
+            await expectThrows(
+                () => connection.findUnspentRecords(5, 0, [], undefined, undefined, [], beaconPrivateKeyString),
             );
 
-            await expectThrowsMessage(
-                () => connection.findUnspentRecords(-5, 5, beaconPrivateKeyString, undefined, undefined, []),
-                "Start height must be greater than or equal to 0",
+            await expectThrows(
+                () => connection.findUnspentRecords(-5, 5, [], undefined, undefined, [], beaconPrivateKeyString),
             );
 
-            await expectThrowsMessage(
-                () => connection.findUnspentRecords(0, 5, "definitelynotaprivatekey", undefined, undefined, []),
-                "Error parsing private key provided.",
+            await expectThrows(
+                () => connection.findUnspentRecords(0, 5, [], undefined, undefined, [], "definitelynotaprivatekey"),
             );
 
-            await expectThrowsMessage(
+            await expectThrows(
                 () => connection.findUnspentRecords(0, 5, undefined, undefined, undefined, []),
-                "Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient",
             );
         });
 
         it.skip('should search a range correctly and not find records where none exist', async () => {
-            const records = await connection.findUnspentRecords(0, 204, beaconPrivateKeyString, undefined, undefined, []);
+            const records = await connection.findUnspentRecords(0, 204, [], undefined, undefined, [], beaconPrivateKeyString);
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).equal(0);

@@ -134,7 +134,7 @@ class ProgramManager {
     }
 
     /**
-     * Deploy an Aleo program to the Aleo network
+     * Builds a deployment transaction for submission to the Aleo network.
      *
      * @param {string} program Program source code
      * @param {number} fee Fee to pay for the transaction
@@ -158,20 +158,17 @@ class ProgramManager {
      * // Define a fee in credits
      * const fee = 1.2;
      *
-     * // Deploy the program
-     * const tx_id = await programManager.deploy(program, fee);
-     *
-     * // Verify the transaction was successful
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     * // Create the deployment transaction.
+     * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
      */
-    async deploy(
+    async buildDeploymentTransaction(
         program: string,
         fee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
-    ): Promise<string> {
+    ): Promise<Transaction> {
         // Ensure the program is valid and does not exist on the network
         try {
             const programObject = Program.fromString(program);
@@ -224,7 +221,49 @@ class ProgramManager {
         }
 
         // Build a deployment transaction and submit it to the network
-        const tx = await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
+        return await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
+    }
+
+    /**
+     * Deploy an Aleo program to the Aleo network
+     *
+     * @param {string} program Program source code
+     * @param {number} fee Fee to pay for the transaction
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
+     * pay the deployment fee
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @returns {string} The transaction id of the deployed program or a failure message from the network
+     *
+     * @example
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for deployments
+     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     *
+     * // Define a fee in credits
+     * const fee = 1.2;
+     *
+     * // Deploy the program
+     * const tx_id = await programManager.deploy(program, fee, false);
+     *
+     * // Verify the transaction was successful
+     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     */
+    async deploy(
+        program: string,
+        fee: number,
+        privateFee: boolean,
+        recordSearchParams?: RecordSearchParams,
+        feeRecord?: string | RecordPlaintext,
+        privateKey?: PrivateKey,
+    ): Promise<string> {
+        const tx = <Transaction>await this.buildDeploymentTransaction(program, fee, privateFee, recordSearchParams, feeRecord, privateKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -804,7 +843,6 @@ class ProgramManager {
      * const result = await programManager.networkClient.submitTransaction(tx);
      *
      * @returns string
-     * @param {string} staker_address Address of the staker who is bonding the credits
      * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
      * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
      * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
@@ -814,7 +852,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to bond
      * @param {Partial<ExecuteOptions>} options - Override default execution options.
      */
-    async buildBondPublicTransaction(staker_address: string, validator_address: string, withdrawal_address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
+    async buildBondPublicTransaction(validator_address: string, withdrawal_address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const {
@@ -822,7 +860,7 @@ class ProgramManager {
             functionName = "bond_public",
             fee = options.fee || 0.86,
             privateFee = false,
-            inputs = [staker_address, validator_address, withdrawal_address, `${scaledAmount.toString()}u64`],
+            inputs = [validator_address, withdrawal_address, `${scaledAmount.toString()}u64`],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.bond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.bond_public.verifier,
@@ -861,7 +899,6 @@ class ProgramManager {
      * const tx_id = await programManager.bondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
      *
      * @returns string
-     * @param {string} staker_address Address of the staker who is bonding the credits
      * @param {string} validator_address Address of the validator to bond to, if this address is the same as the signer (i.e. the
      * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
      * requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing
@@ -871,8 +908,8 @@ class ProgramManager {
      * @param {number} amount The amount of credits to bond
      * @param {Options} options Options for the execution
      */
-    async bondPublic(staker_address: string, validator_address: string, withdrawal_address:string, amount: number, options: Partial<ExecuteOptions> = {}) {
-        const tx = <Transaction>await this.buildBondPublicTransaction(staker_address, validator_address, withdrawal_address, amount, options);
+    async bondPublic(validator_address: string, withdrawal_address:string, amount: number, options: Partial<ExecuteOptions> = {}) {
+        const tx = <Transaction>await this.buildBondPublicTransaction(validator_address, withdrawal_address, amount, options);
         return await this.networkClient.submitTransaction(tx);
     }
 
