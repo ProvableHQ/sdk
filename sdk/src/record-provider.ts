@@ -193,7 +193,7 @@ class NetworkRecordProvider implements RecordProvider {
         let maxAmount = undefined;
 
         if (searchParameters) {
-            if ("startHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+            if ("startHeight" in searchParameters && typeof searchParameters["startHeight"] == "number") {
                 startHeight = searchParameters["startHeight"];
             }
 
@@ -290,7 +290,7 @@ class NetworkRecordProvider implements RecordProvider {
         let programs = undefined;
 
         if (searchParameters) {
-            if ("startHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+            if ("startHeight" in searchParameters && typeof searchParameters["startHeight"] == "number") {
                 startHeight = searchParameters["startHeight"];
             }
 
