@@ -98,7 +98,7 @@ macro_rules! execute_program {
 
 #[macro_export]
 macro_rules! execute_fee {
-    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr, $offline_query:expr) => {{
+    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution:expr, $rng:expr, $offline_query:expr) => {{
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
@@ -129,6 +129,18 @@ macro_rules! execute_fee {
             }
         };
 
+        // Calculate the minimum execution fee.
+
+        let query = $offline_query.clone().unwrap_or(QueryNative::from($submission_url.clone()));
+        let consensus_version = N::CONSENSUS_VERSION(query.current_block_height()?)?;
+        let (minimum_execution_cost, (_, _)) = if consensus_version == ConsensusVersion::V1 {
+            execution_cost_v1($process.read(), $execution)?
+        } else {
+            execution_cost_v2($process.read(), $execution)?
+        };
+
+        let execution_id = $execution.to_execution_id().map_err(|e| e.to_string())?;
+
         log("Authorizing Fee");
         let fee_authorization = match $fee_record {
             Some(fee_record) => {
@@ -136,25 +148,25 @@ macro_rules! execute_fee {
                 $process.authorize_fee_private::<CurrentAleo, _>(
                     $private_key,
                     fee_record_native,
-                    0u64,
+                    minimum_execution_cost,
                     $fee_microcredits,
-                    $execution_id,
+                    execution_id.clone(),
                     $rng,
                 ).map_err(|e| e.to_string())?
             }
             None => {
                 $process.authorize_fee_public::<CurrentAleo, _>(
                     $private_key,
-                    0u64,
+                    minimum_execution_cost,
                     $fee_microcredits,
-                    $execution_id,
+                    $execution_id.clone(),
                     $rng,
                 ).map_err(|e| e.to_string())?
             }
         };
 
         log("Executing Fee");
-        let (_, mut trace) = $fprocess
+        let (_, mut trace) = $process
             .execute::<CurrentAleo, _>(fee_authorization, $rng)
             .map_err(|e| e.to_string())?;
 
@@ -167,7 +179,7 @@ macro_rules! execute_fee {
         let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");
-        $process.verify_fee(&fee, $execution_id).map_err(|e| e.to_string())?;
+        $process.verify_fee(&fee, execution_id).map_err(|e| e.to_string())?;
 
         fee
     }}
