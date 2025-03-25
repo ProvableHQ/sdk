@@ -132,9 +132,10 @@ macro_rules! execute_fee {
         log("Authorizing Fee");
         let fee_authorization = match $fee_record {
             Some(fee_record) => {
+                let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string()).unwrap();
                 $process.authorize_fee_private::<CurrentAleo, _>(
                     $private_key,
-                    $fee_record,
+                    fee_record_native,
                     0u64,
                     $fee_microcredits,
                     $execution_id,
