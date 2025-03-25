@@ -159,4 +159,3 @@ macro_rules! execute_fee {
         fee
     }}
 }
-}
