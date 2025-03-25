@@ -205,7 +205,6 @@ impl ProgramManager {
         let execution = trace
             .prove_execution::<CurrentAleo, _>(&locator, &mut StdRng::from_entropy())
             .map_err(|e| e.to_string())?;
-        let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Executing fee");
         let fee = execute_fee!(
@@ -216,7 +215,7 @@ impl ProgramManager {
             node_url,
             fee_proving_key,
             fee_verifying_key,
-            execution_id,
+            execution.clone(),
             rng,
             offline_query
         );

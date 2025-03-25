@@ -108,7 +108,7 @@ impl ProgramManager {
             node_url,
             fee_proving_key,
             fee_verifying_key,
-            deployment_id,
+            deployment.clone(),
             rng,
             offline_query
         );

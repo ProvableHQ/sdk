@@ -130,7 +130,6 @@ macro_rules! execute_fee {
         };
 
         // Calculate the minimum execution fee.
-
         let query = $offline_query.clone().unwrap_or(QueryNative::from($submission_url.clone()));
         let consensus_version = N::CONSENSUS_VERSION(query.current_block_height()?)?;
         let (minimum_execution_cost, (_, _)) = if consensus_version == ConsensusVersion::V1 {

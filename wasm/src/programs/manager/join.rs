@@ -126,7 +126,6 @@ impl ProgramManager {
 
         log("Proving the join execution");
         let execution = trace.prove_execution::<CurrentAleo, _>("credits.aleo/join", rng).map_err(|e| e.to_string())?;
-        let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the join execution");
         process.verify_execution(&execution).map_err(|err| err.to_string())?;
@@ -140,7 +139,7 @@ impl ProgramManager {
             node_url,
             fee_proving_key,
             fee_verifying_key,
-            execution_id,
+            execution.clone(),
             rng,
             offline_query
         );
