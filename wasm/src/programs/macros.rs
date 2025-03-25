@@ -153,9 +153,21 @@ macro_rules! execute_fee {
             }
         };
 
-        log("Caclulating fee");
-        let query = QueryNative::from($submission_url); // what about offline query?
-        let fee = $process.execute_fee_authorization_raw(fee_authorization, Some(query), $rng).map_err(|e| e.to_string())?;
+        log("Executing Fee");
+        let (_, mut trace) = $fprocess
+            .execute::<CurrentAleo, _>(fee_authorization, $rng)
+            .map_err(|e| e.to_string())?;
+
+        if let Some(offline_query) = $offline_query {
+            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+        } else {
+            let query = QueryNative::from($submission_url);
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        };
+        let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
+
+        log("Verifying fee execution");
+        $process.verify_fee(&fee, $execution_id).map_err(|e| e.to_string())?;
 
         fee
     }}
