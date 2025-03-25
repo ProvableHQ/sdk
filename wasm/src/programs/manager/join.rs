@@ -126,9 +126,19 @@ impl ProgramManager {
 
         log("Proving the join execution");
         let execution = trace.prove_execution::<CurrentAleo, _>("credits.aleo/join", rng).map_err(|e| e.to_string())?;
+        let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the join execution");
         process.verify_execution(&execution).map_err(|err| err.to_string())?;
+
+        // Calculate the minimum execution fee.
+        let fee_query = offline_query.clone().unwrap_or(QueryNative::from(node_url.clone()));
+        let consensus_version = N::CONSENSUS_VERSION(fee_query.current_block_height()?)?;
+        let (minimum_execution_cost, (_, _)) = if consensus_version == ConsensusVersion::V1 {
+            execution_cost_v1(process.read(), execution)?
+        } else {
+            execution_cost_v2(process.read(), execution)?
+        };
 
         log("Executing the fee");
         let fee = execute_fee!(
@@ -139,9 +149,10 @@ impl ProgramManager {
             node_url,
             fee_proving_key,
             fee_verifying_key,
-            execution.clone(),
+            execution_id,
             rng,
-            offline_query
+            offline_query,
+            minimum_execution_cost
         );
 
         log("Creating execution transaction for join");

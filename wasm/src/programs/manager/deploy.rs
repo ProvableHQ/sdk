@@ -108,9 +108,10 @@ impl ProgramManager {
             node_url,
             fee_proving_key,
             fee_verifying_key,
-            deployment.clone(),
+            deployment_id,
             rng,
-            offline_query
+            offline_query,
+            minimum_deployment_cost
         );
 
         // Create the program owner
