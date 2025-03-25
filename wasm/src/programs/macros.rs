@@ -136,7 +136,7 @@ macro_rules! execute_fee {
                     $private_key,
                     $fee_record,
                     0u64,
-                    $priority_fee_in_microcredits,
+                    $fee_in_microcredits,
                     $execution_id,
                     $rng,
                 ).map_err(|e| e.to_string())?
@@ -145,12 +145,12 @@ macro_rules! execute_fee {
                 $process.authorize_fee_public::<CurrentAleo, _>(
                     $private_key,
                     0u64,
-                    $priority_fee_in_microcredits,
+                    $fee_in_microcredits,
                     $execution_id,
                     $rng,
                 )
             }
-        }
+        };
 
         log("Caclulating fee");
         let query = QueryNative::from($submission_url); // what about offline query?
