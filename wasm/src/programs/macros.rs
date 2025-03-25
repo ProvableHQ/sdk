@@ -130,7 +130,7 @@ macro_rules! execute_fee {
         };
 
         log("Authorizing Fee");
-        let fee_authorization = match fee_record {
+        let fee_authorization = match $fee_record {
             Some(fee_record) => {
                 $process.authorize_fee_private::<CurrentAleo, _>(
                     $private_key,
@@ -148,7 +148,7 @@ macro_rules! execute_fee {
                     $fee_microcredits,
                     $execution_id,
                     $rng,
-                )
+                ).map_err(|e| e.to_string())?
             }
         };
 
