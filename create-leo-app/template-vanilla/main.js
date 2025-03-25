@@ -37,9 +37,9 @@ document.querySelector("#app").innerHTML = `
     </a>
     <h1>Hello Aleo!</h1>
     <div class="card">
-      <button onclick="window.execute()">Call Execute Function</button>
-      <button onclick="window.key()">Get Private Key</button>
-      <button onclick="window.deploy()">Deploy Hello World Program</button>
+      <button onclick="window.execute()" data-testid="execute-button">Call Execute Function</button>
+      <button onclick="window.key()" data-testid="key-button">Get Private Key</button>
+      <button onclick="window.deploy()" data-testid="deploy-button">Deploy Hello World Program</button>
     </div>
     <p class="read-the-docs">
       Click on the Aleo logo to learn more

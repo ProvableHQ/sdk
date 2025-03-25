@@ -76,7 +76,7 @@ export default function Home() {
             <div className={styles.card}>
                 <p>
                     <button 
-                        data-generate-account-button
+                        data-testid="generate-account-button"
                         onClick={generateAccount}>
                             {account
                                 ? `Account private key is ${JSON.stringify(account)}`
@@ -84,7 +84,10 @@ export default function Home() {
                     </button>
                 </p>
                 <p>
-                    <button disabled={executing} onClick={execute}>
+                    <button
+                        data-testid="execute-button"
+                        disabled={executing}
+                        onClick={execute}>
                         {executing
                             ? `Executing...check console for details...`
                             : `Execute helloworld.aleo`}

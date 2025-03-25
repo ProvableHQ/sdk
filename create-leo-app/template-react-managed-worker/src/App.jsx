@@ -49,7 +49,9 @@ function App() {
             count is {count}
           </button>
           <p>
-            <button onClick={generateAccount}>
+            <button
+              data-testid="generate-account-button"
+              onClick={generateAccount}>
               {
                   (account
                       ? `Account private key is ${JSON.stringify(account)}`
@@ -58,7 +60,10 @@ function App() {
             </button>
           </p>
           <p>
-            <button disabled={!account || loading} onClick={execute}>
+            <button
+              data-testid="execute-button"
+              disabled={!account || loading}
+              onClick={execute}>
               {loading
                   ? `Executing...check console for details...`
                   : `Execute hello_hello.aleo`}
