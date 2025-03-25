@@ -98,7 +98,7 @@ macro_rules! execute_program {
 
 #[macro_export]
 macro_rules! execute_fee {
-    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr, $offline_query:expr) => {{
+    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr, $offline_query:expr) => {{
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
@@ -130,39 +130,33 @@ macro_rules! execute_fee {
         };
 
         log("Authorizing Fee");
-        let fee_authorization = match $fee_record {
+        let fee_authorization = match fee_record {
             Some(fee_record) => {
-                let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string()).unwrap();
                 $process.authorize_fee_private::<CurrentAleo, _>(
                     $private_key,
-                    fee_record_native,
-                    $fee_microcredits,
+                    $fee_record,
                     0u64,
+                    $priority_fee_in_microcredits,
                     $execution_id,
                     $rng,
                 ).map_err(|e| e.to_string())?
             }
             None => {
-                $process.authorize_fee_public::<CurrentAleo, _>($private_key, $fee_microcredits, 0u64, $execution_id, $rng).map_err(|e| e.to_string())?
+                $process.authorize_fee_public::<CurrentAleo, _>(
+                    $private_key,
+                    0u64,
+                    $priority_fee_in_microcredits,
+                    $execution_id,
+                    $rng,
+                )
             }
-        };
+        }
 
-        log("Executing fee");
-        let (_, mut trace) = $process
-            .execute::<CurrentAleo, _>(fee_authorization, $rng)
-            .map_err(|err| err.to_string())?;
-
-        if let Some(offline_query) = $offline_query {
-            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
-        } else {
-            let query = QueryNative::from($submission_url);
-            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-        };
-        let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
-
-        log("Verifying fee execution");
-        $process.verify_fee(&fee, $execution_id).map_err(|e| e.to_string())?;
+        log("Caclulating fee");
+        let query = QueryNative::from($submission_url); // what about offline query?
+        let fee = $process.execute_fee_authorization_raw(fee_authorization, Some(query), $rng).map_err(|e| e.to_string())?;
 
         fee
-    }};
+    }}
+}
 }
