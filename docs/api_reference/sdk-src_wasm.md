@@ -3308,7 +3308,7 @@ __*return*__ | `boolean` | **
 
 ---
 
-### `buildDeploymentTransaction(private_key, program, imports, fee_credits, fee_record, url, imports, fee_proving_key, fee_verifying_key) ► Transaction`
+### `buildDeploymentTransaction(private_key, program, imports, priority_fee_credits, fee_record, url, imports, fee_proving_key, fee_verifying_key) ► Transaction`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
@@ -3322,7 +3322,7 @@ __imports__ | `undefined` | *A javascript object holding the source code of any 
 form \{&quot;program_name1&quot;: &quot;program_source_code&quot;, &quot;program_name2&quot;: &quot;program_source_code&quot;, ..\}.
 Note that all imported programs must be deployed on chain before the main program in order
 for the deployment to succeed*
-__fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
+__priority_fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
 __fee_record__ | `undefined` | *The record to spend the fee from*
 __url__ | `undefined` | *The url of the Aleo network node to send the transaction to*
 __imports__ | `undefined` | *(optional) Provide a list of imports to use for the program deployment in the
@@ -3397,7 +3397,7 @@ __*return*__ | `Promise.<ExecutionResponse>` | **
 
 ---
 
-### `buildExecutionTransaction(private_key, program, function, inputs, fee_credits, fee_record, url, imports, proving_key, verifying_key, fee_proving_key, fee_verifying_key) ► Transaction`
+### `buildExecutionTransaction(private_key, program, function, inputs, priority_fee_credits, fee_record, url, imports, proving_key, verifying_key, fee_proving_key, fee_verifying_key) ► Transaction`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
@@ -3409,7 +3409,7 @@ __private_key__ | `undefined` | *The private key of the sender*
 __program__ | `undefined` | *The source code of the program being executed*
 __function__ | `undefined` | *The name of the function to execute*
 __inputs__ | `undefined` | *A javascript array of inputs to the function*
-__fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
+__priority_fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
 __fee_record__ | `undefined` | *The record to spend the fee from*
 __url__ | `undefined` | *The url of the Aleo network node to send the transaction to
 If this is set to &#x27;true&#x27; the keys synthesized (or passed in as optional parameters via the
@@ -3471,7 +3471,7 @@ __*return*__ | `u64` | *Fee in microcredits*
 
 ---
 
-### `buildJoinTransaction(private_key, record_1, record_2, fee_credits, fee_record, url, join_proving_key, join_verifying_key, fee_proving_key, fee_verifying_key) ► Transaction`
+### `buildJoinTransaction(private_key, record_1, record_2, priority_fee_credits, fee_record, url, join_proving_key, join_verifying_key, fee_proving_key, fee_verifying_key) ► Transaction`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
@@ -3483,7 +3483,7 @@ Parameters | Type | Description
 __private_key__ | `undefined` | *The private key of the sender*
 __record_1__ | `undefined` | *The first record to combine*
 __record_2__ | `undefined` | *The second record to combine*
-__fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
+__priority_fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
 __fee_record__ | `undefined` | *The record to spend the fee from*
 __url__ | `undefined` | *The url of the Aleo network node to send the transaction to*
 __join_proving_key__ | `undefined` | *(optional) Provide a proving key to use for the join function*
@@ -3513,7 +3513,7 @@ __*return*__ | [Transaction](sdk-src_wasm.md) | *Transaction object*
 
 ---
 
-### `buildTransferTransaction(private_key, amount_credits, recipient, transfer_type, amount_record, fee_credits, fee_record, url, transfer_verifying_key, fee_proving_key, fee_verifying_key) ► Transaction`
+### `buildTransferTransaction(private_key, amount_credits, recipient, transfer_type, amount_record, priority_fee_credits, fee_record, url, transfer_verifying_key, fee_proving_key, fee_verifying_key) ► Transaction`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
@@ -3526,7 +3526,7 @@ __amount_credits__ | `undefined` | *The amount of credits to send*
 __recipient__ | `undefined` | *The recipient of the transaction*
 __transfer_type__ | `undefined` | *The type of the transfer (options: &quot;private&quot;, &quot;public&quot;, &quot;private_to_public&quot;, &quot;public_to_private&quot;)*
 __amount_record__ | `undefined` | *The record to fund the amount from*
-__fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
+__priority_fee_credits__ | `undefined` | *The amount of credits to pay as a fee*
 __fee_record__ | `undefined` | *The record to spend the fee from*
 __url__ | `undefined` | *The url of the Aleo network node to send the transaction to*
 __transfer_verifying_key__ | `undefined` | *(optional) Provide a verifying key to use for the transfer
