@@ -37,6 +37,8 @@ use crate::types::native::{
 };
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
+use snarkvm_console::prelude::{ConsensusVersion, Network};
+use snarkvm_ledger_query::{Query, QueryTrait};
 use std::str::FromStr;
 
 #[wasm_bindgen]
@@ -133,7 +135,7 @@ impl ProgramManager {
 
         // Calculate the minimum execution fee.
         let fee_query = offline_query.clone().unwrap_or(QueryNative::from(node_url.clone()));
-        let consensus_version = N::CONSENSUS_VERSION(fee_query.current_block_height()?)?;
+        let consensus_version =CurrentNetwork::CONSENSUS_VERSION(fee_query.current_block_height()?)?;
         let (minimum_execution_cost, (_, _)) = if consensus_version == ConsensusVersion::V1 {
             execution_cost_v1(process.read(), execution)?
         } else {
