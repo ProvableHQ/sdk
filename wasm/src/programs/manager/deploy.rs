@@ -42,7 +42,7 @@ impl ProgramManager {
     /// form \{"program_name1": "program_source_code", "program_name2": "program_source_code", ..\}.
     /// Note that all imported programs must be deployed on chain before the main program in order
     /// for the deployment to succeed
-    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param priority_fee_credits The amount of credits to pay as a fee
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param imports (optional) Provide a list of imports to use for the program deployment in the
@@ -56,7 +56,7 @@ impl ProgramManager {
     pub async fn deploy(
         private_key: &PrivateKey,
         program: &str,
-        fee_credits: f64,
+        priority_fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         imports: Option<Object>,
@@ -67,8 +67,8 @@ impl ProgramManager {
         log("Creating deployment transaction");
         // Convert fee to microcredits and check that the fee record has enough credits to pay it
         let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
-            None => (fee_credits * 1_000_000.0) as u64,
+            Some(fee_record) => Self::validate_amount(priority_fee_credits, fee_record, true)?,
+            None => (priority_fee_credits * 1_000_000.0) as u64,
         };
 
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;

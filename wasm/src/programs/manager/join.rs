@@ -51,7 +51,7 @@ impl ProgramManager {
     /// @param private_key The private key of the sender
     /// @param record_1 The first record to combine
     /// @param record_2 The second record to combine
-    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param priority_fee_credits The amount of credits to pay as a fee
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param join_proving_key (optional) Provide a proving key to use for the join function
@@ -65,7 +65,7 @@ impl ProgramManager {
         private_key: &PrivateKey,
         record_1: RecordPlaintext,
         record_2: RecordPlaintext,
-        fee_credits: f64,
+        priority_fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         join_proving_key: Option<ProvingKey>,
@@ -76,8 +76,8 @@ impl ProgramManager {
     ) -> Result<Transaction, String> {
         log("Executing join program");
         let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
-            None => (fee_credits * 1_000_000.0) as u64,
+            Some(fee_record) => Self::validate_amount(priority_fee_credits, fee_record, true)?,
+            None => (priority_fee_credits * 1_000_000.0) as u64,
         };
         let rng = &mut StdRng::from_entropy();
 
