@@ -40,8 +40,7 @@ use crate::types::native::{
 use core::ops::Add;
 use js_sys::{Array, Object};
 use rand::{SeedableRng, rngs::StdRng};
-use snarkvm_console::prelude::Network;
-use snarkvm_console::network::ConsensusVersion;
+use snarkvm_console::{network::ConsensusVersion, prelude::Network};
 use snarkvm_ledger_query::{Query, QueryTrait};
 use snarkvm_synthesizer::prelude::{cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
 use std::str::FromStr;
