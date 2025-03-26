@@ -40,7 +40,8 @@ use crate::types::native::{
 use core::ops::Add;
 use js_sys::{Array, Object};
 use rand::{SeedableRng, rngs::StdRng};
-use snarkvm_console::{network::ConsensusVersion, prelude::Network};
+use snarkvm_console::prelude::Network;
+use snarkvm_console_network::ConsensusVersion;
 use snarkvm_ledger_query::{Query, QueryTrait};
 use snarkvm_synthesizer::prelude::{cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
 use std::str::FromStr;
@@ -211,9 +212,9 @@ impl ProgramManager {
         let fee_query = offline_query.clone().unwrap_or(QueryNative::from(node_url.clone()));
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(fee_query.current_block_height()?)?;
         let (minimum_execution_cost, (_, _)) = if consensus_version == ConsensusVersion::V1 {
-            execution_cost_v1(process.read(), execution)?
+            execution_cost_v1(process, execution)?
         } else {
-            execution_cost_v2(process.read(), execution)?
+            execution_cost_v2(process, execution)?
         };
 
         log("Executing fee");

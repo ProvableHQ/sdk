@@ -28,6 +28,10 @@ version = "1.2.1"
 version = "1.2.1"
 features = [ "wasm" ]
 
+[dependencies.snarkvm-console-network]
+version = "1.2.1"
+features = [ "wasm" ]
+
 [dependencies.snarkvm-ledger-block]
 version = "1.2.1"
 features = [ "wasm" ]
