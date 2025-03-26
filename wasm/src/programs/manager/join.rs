@@ -140,9 +140,9 @@ impl ProgramManager {
         let fee_query = offline_query.clone().unwrap_or(QueryNative::from(node_url.clone()));
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(fee_query.current_block_height()?)?;
         let (minimum_execution_cost, (_, _)) = if consensus_version == ConsensusVersion::V1 {
-            execution_cost_v1(process, execution)?
+            execution_cost_v1(process, &execution)?
         } else {
-            execution_cost_v2(process, execution)?
+            execution_cost_v2(process, &execution)?
         };
 
         log("Executing the fee");
