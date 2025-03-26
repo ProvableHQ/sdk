@@ -114,6 +114,7 @@ dependencies = [
  "sha2",
  "snarkvm-circuit-network",
  "snarkvm-console",
+ "snarkvm-console-network",
  "snarkvm-ledger-block",
  "snarkvm-ledger-query",
  "snarkvm-ledger-store",
