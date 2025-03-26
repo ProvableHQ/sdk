@@ -138,7 +138,7 @@ macro_rules! execute_fee {
                     fee_record_native,
                     $minimum_execution_cost,
                     $fee_microcredits,
-                    execution_id,
+                    $execution_id,
                     $rng,
                 ).map_err(|e| e.to_string())?
             }

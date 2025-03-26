@@ -29,6 +29,7 @@ use crate::{
 
 use crate::types::native::{
     CurrentAleo,
+    CurrentNetwork,
     IdentifierNative,
     ProcessNative,
     ProgramNative,
@@ -37,8 +38,10 @@ use crate::types::native::{
 };
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
-use snarkvm_console::prelude::{ConsensusVersion, Network};
+use snarkvm_console::prelude::Network;
+use snarkvm_console::network::ConsensusVersion;
 use snarkvm_ledger_query::{Query, QueryTrait};
+use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
 use std::str::FromStr;
 
 #[wasm_bindgen]
