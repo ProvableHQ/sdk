@@ -511,14 +511,14 @@ export const ExecuteLegacy = () => {
                 )}
                 {executeOnline === true && (
                     <Form.Item
-                        label="Fee"
+                        label="Priority Fee"
                         colon={false}
                         validateStatus={status}
                     >
                         <Input.TextArea
-                            name="Fee"
+                            name="Priority Fee"
                             size="small"
-                            placeholder="Fee"
+                            placeholder="Priority Fee"
                             allowClear
                             onChange={onExecutionFeeChange}
                             value={feeString()}

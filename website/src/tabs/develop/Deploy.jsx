@@ -278,11 +278,11 @@ export const Deploy = () => {
                         value={peerUrl()}
                     />
                 </Form.Item>
-                <Form.Item label="Fee" colon={false} validateStatus={status}>
+                <Form.Item label="Priority Fee" colon={false} validateStatus={status}>
                     <Input.TextArea
-                        name="Fee"
+                        name="Priority Fee"
                         size="small"
-                        placeholder="Fee"
+                        placeholder="Priority Fee"
                         allowClear
                         onChange={onDeploymentFeeChange}
                         value={feeString()}
