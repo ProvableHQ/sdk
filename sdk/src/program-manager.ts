@@ -139,8 +139,7 @@ class ProgramManager {
      * @param {string} program Program source code
      * @param {number} fee Fee to pay for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
-     * pay the deployment fee
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {string} The transaction id of the deployed program or a failure message from the network
@@ -166,7 +165,7 @@ class ProgramManager {
      * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
      * await programManager.networkClient.submitTransaction(tx);
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());
@@ -241,8 +240,7 @@ class ProgramManager {
      * @param {string} program Program source code
      * @param {number} fee Fee to pay for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
-     * pay the deployment fee
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to used pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {string} The transaction id of the deployed program or a failure message from the network
@@ -266,7 +264,7 @@ class ProgramManager {
      * // Deploy the program
      * const tx_id = await programManager.deploy(program, fee, false);
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx_id);
      *  assert(transaction.id() === tx_id);
@@ -303,7 +301,7 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
-     * const transaction = await programManager.buildExecutionTransaction({
+     * const tx = await programManager.buildExecutionTransaction({
      *   programName: "hello_hello.aleo",
      *   functionName: "hello_hello",
      *   fee: 0.020,
@@ -311,7 +309,15 @@ class ProgramManager {
      *   inputs: ["5u32", "5u32"],
      *   keySearchParams: { "cacheKey": "hello_hello:hello" }
      * });
-     * const result = await programManager.networkClient.submitTransaction(transaction);
+     * 
+     * // Submit the transaction to the network
+     * await programManager.networkClient.submitTransaction(tx.toString());
+     * 
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
      */
     async buildExecutionTransaction(options: ExecuteOptions): Promise<Transaction> {
         // Destructure the options object to access the parameters
@@ -438,11 +444,9 @@ class ProgramManager {
      * @param {string} program Program source code containing the function to be executed
      * @param {string} function_name Function name to execute
      * @param {string[]} inputs Inputs to the function
-     * @param {number} proveExecution Whether to prove the execution of the function and return an execution transcript
-     * that contains the proof.
+     * @param {number} proveExecution Whether to prove the execution of the function and return an execution transcript that contains the proof.
      * @param {string[] | undefined} imports Optional imports to the program
-     * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving &
-     * verifying keys for the function
+     * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving & verifying keys for the function
      * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
@@ -511,8 +515,7 @@ class ProgramManager {
      * @param {RecordPlaintext | string} recordTwo Second credits record to join
      * @param {number} fee Fee in credits pay for the join transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record to use
-     * to pay the fee for the join transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record to use to pay the fee for the join transaction
      * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
      * @param {PrivateKey | undefined} privateKey Private key to use for the join transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
@@ -704,8 +707,7 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
-     * records for the transfer transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
@@ -726,7 +728,7 @@ class ProgramManager {
      * const tx = await programManager.buildTransferTransaction(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "public", 0.2, false);
      * await programManager.networkClient.submitTransaction(tx.toString());
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());
@@ -794,8 +796,7 @@ class ProgramManager {
      *
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
-     * @param {number} fee The fee to pay for the transfer
-     * records for the transfer transaction
+     * @param {number} fee The fee to pay for the transfer records for the transfer transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<Transaction>} The transaction object
@@ -814,7 +815,7 @@ class ProgramManager {
      * const tx = await programManager.buildTransferPublicTransaction(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 0.2);
      * await programManager.networkClient.submitTransaction(tx.toString());
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());
@@ -838,8 +839,7 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
-     * records for the transfer transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
@@ -860,7 +860,7 @@ class ProgramManager {
      * const tx = await programManager.buildTransferPublicAsSignerTransaction(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 0.2);
      * await programManager.networkClient.submitTransaction(tx.toString());
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());
@@ -884,8 +884,7 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} fee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
-     * records for the transfer transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
@@ -905,7 +904,7 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "public", 0.2, false);
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx_id);
      *  assert(transaction.id() === tx_id);
@@ -930,11 +929,7 @@ class ProgramManager {
     /**
      * Build transaction to bond credits to a validator for later submission to the Aleo Network
      *
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
-     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
-     * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
-     * validator and is different from the address of the executor of this function, it will bond the credits to that
-     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
      * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
      * @param {number} amount The amount of credits to bond
      * @param {Partial<ExecuteOptions>} options - Override default execution options.
@@ -958,7 +953,7 @@ class ProgramManager {
      * // The transaction can be later submitted to the network using the network client.
      * await programManager.networkClient.submitTransaction(tx.toString());
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());
@@ -998,11 +993,7 @@ class ProgramManager {
     /**
      * Bond credits to validator.
      *
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the signer (i.e. the
-     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
-     * requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing
-     * validator and is different from the address of the executor of this function, it will bond the credits to that
-     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the signer (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
      * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
      * @param {number} amount The amount of credits to bond
      * @param {Options} options Options for the execution
@@ -1022,7 +1013,7 @@ class ProgramManager {
      * // Create the bonding transaction
      * tx_id = await programManager.bondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx_id);
      *  assert(transaction.id() === tx_id);
@@ -1036,13 +1027,9 @@ class ProgramManager {
     /**
      * Build a bond_validator transaction for later submission to the Aleo Network.
      *
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
-     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
-     * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
-     * validator and is different from the address of the executor of this function, it will bond the credits to that
-     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator.
      * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
-     * @param {number} amount The amount of credits to bond
+     * @param {number} amount The amount of credits to bond. A minimum of 10000 credits is required to bond as a delegator.
      * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
      * @param {Partial<ExecuteOptions>} options - Override default execution options.
      * @returns {Promise<Transaction>} The transaction object
@@ -1065,7 +1052,7 @@ class ProgramManager {
      * // The transaction can later be submitted to the network using the network client.
      * const tx_id = await programManager.networkClient.submitTransaction(tx.toString());
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx_id);
      *  assert(transaction.id() === tx_id);
@@ -1107,11 +1094,7 @@ class ProgramManager {
     /**
      * Build transaction to bond a validator.
      *
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
-     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
-     * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
-     * validator and is different from the address of the executor of this function, it will bond the credits to that
-     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
      * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
      * @param {number} amount The amount of credits to bond
      * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
@@ -1133,7 +1116,7 @@ class ProgramManager {
      * // Create the bonding transaction
      * const tx_id = await programManager.bondValidator("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx_id);
      *  assert(transaction.id() === tx_id);
@@ -1167,7 +1150,7 @@ class ProgramManager {
      * // The transaction can be submitted later to the network using the network client.
      * programManager.networkClient.submitTransaction(tx.toString());
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());
@@ -1205,15 +1188,15 @@ class ProgramManager {
     }
 
     /**
-     * Unbond a specified amount of staked credits.
-     *
-     * @param {string} staker_address Address of the staker who is unbonding the credits
-     * @param {number} amount Amount of credits to unbond. If the address of the executor of this function is an
-     * existing validator, it will subtract this amount of credits from the validator's staked credits. If there are
-     * less than 1,000,000 credits staked pool after the unbond, the validator will be removed from the validator set.
-     * If the address of the executor of this function is not a validator and has credits bonded as a delegator, it will
+     * Unbond a specified amount of staked credits. If the address of the executor of this function is an existing
+     * validator, it will subtract this amount of credits from the validator's staked credits. If there are less than
+     * 1,000,000 credits staked pool after the unbond, the validator will be removed from the validator set. If the
+     * address of the executor of this function is not a validator and has credits bonded as a delegator, it will
      * subtract this amount of credits from the delegator's staked credits. If there are less than 10 credits bonded
      * after the unbond operation, the delegator will be removed from the validator's staking pool.
+     *
+     * @param {string} staker_address Address of the staker who is unbonding the credits
+     * @param {number} amount Amount of credits to unbond.
      * @param {ExecuteOptions} options Options for the execution
      * @returns {Promise<string>} The transaction id
      *
@@ -1232,7 +1215,7 @@ class ProgramManager {
      * // Create the unbond_public transaction and send it to the network
      * const tx_id = await programManager.unbondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", 10);
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx_id);
      *  assert(transaction.id() === tx_id);
@@ -1267,7 +1250,7 @@ class ProgramManager {
      * // The transaction can be submitted later to the network using the network client.
      * programManager.networkClient.submitTransaction(tx.toString());
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());
@@ -1325,7 +1308,7 @@ class ProgramManager {
      * // Create the claim_unbond_public transaction
      * const tx_id = await programManager.claimUnbondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j");
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx_id);
      *  assert(transaction.id() === tx_id);
@@ -1368,7 +1351,7 @@ class ProgramManager {
      * // The transaction can be submitted later to the network using the network client.
      * programManager.networkClient.submitTransaction(tx.toString());
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());
@@ -1431,7 +1414,7 @@ class ProgramManager {
      * // Create the set_validator_state transaction
      * const tx_id = await programManager.setValidatorState(true);
      *
-     * // Verify the transaction was successful.
+     * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx_id);
      *  assert(transaction.id() === tx_id);
