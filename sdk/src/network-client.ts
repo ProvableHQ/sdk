@@ -26,7 +26,7 @@ interface AleoNetworkClientOptions {
  * @param {string} host
  * @example
  * // Connection to a local node
- * const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
+ * const localNetworkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined, account);
  *
  * // Connection to a public beacon node
  * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
