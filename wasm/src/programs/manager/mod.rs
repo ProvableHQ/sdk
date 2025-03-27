@@ -22,19 +22,26 @@ pub mod transfer;
 
 const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
 
-use crate::{KeyPair, PrivateKey, ProvingKey, RecordPlaintext, VerifyingKey};
-
-use crate::types::native::{
-    IdentifierNative,
-    ProcessNative,
-    ProgramIDNative,
-    ProgramNative,
-    ProvingKeyNative,
-    QueryNative,
-    VerifyingKeyNative,
-    cost_in_microcredits_v2,
-    deployment_cost,
+use crate::{
+    KeyPair,
+    PrivateKey,
+    ProvingKey,
+    RecordPlaintext,
+    VerifyingKey,
+    types::native::{
+        IdentifierNative,
+        ProcessNative,
+        ProgramIDNative,
+        ProgramNative,
+        ProvingKeyNative,
+        QueryNative,
+        VerifyingKeyNative,
+        cost_in_microcredits_v2,
+        deployment_cost,
+    },
 };
+use snarkvm_synthesizer_program::StackKeys;
+
 use js_sys::{Object, Reflect};
 use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
