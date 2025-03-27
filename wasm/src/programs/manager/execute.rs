@@ -133,7 +133,7 @@ impl ProgramManager {
     /// @param program The source code of the program being executed
     /// @param function The name of the function to execute
     /// @param inputs A javascript array of inputs to the function
-    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param priority_fee_credits The amount of credits to pay as a fee
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
