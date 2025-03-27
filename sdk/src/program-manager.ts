@@ -268,8 +268,8 @@ class ProgramManager {
      *
      * // Verify the transaction was successful.
      * setTimeout(async () => {
-     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
-     *  assert(transaction.id() === tx.id());
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
      * }, 20000);
      */
     async deploy(
@@ -1309,6 +1309,7 @@ class ProgramManager {
      * @param {string} staker_address Address of the staker who is claiming the credits
      * @param {ExecuteOptions} options
      * @returns {Promise<string>} The transaction id
+     *
      * @example
      * // Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
