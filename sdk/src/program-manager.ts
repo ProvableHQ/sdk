@@ -220,6 +220,14 @@ class ProgramManager {
             logAndThrow(`Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
         }
 
+        // If fee is public, check that the balandce is sufficient to execute the transaction
+        if (!privateFee) {
+            // if the fee is public, check that the balance is sufficient to execute the transaction
+            if (feeRecord.amount < priorityFee) {
+                throw("Public balance is insufficient to execute the transaction");
+            }
+        }
+
         // Build a deployment transaction and submit it to the network
         return await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, priorityFee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
     }
@@ -367,6 +375,14 @@ class ProgramManager {
                 imports = <ProgramImports>await this.networkClient.getProgramImports(programName);
             } catch (e: any) {
                 logAndThrow(`Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
+            }
+        }
+
+        // If fee is public, check that the balandce is sufficient to execute the transaction
+        if (!privateFee) {
+            // if the fee is public, check that the balance is sufficient to execute the transaction
+            if (feeRecord.amount < priorityFee) {
+                throw("Public balance is insufficient to execute the transaction");
             }
         }
 
@@ -536,6 +552,14 @@ class ProgramManager {
             recordTwo = recordTwo instanceof RecordPlaintext ? recordTwo : RecordPlaintext.fromString(recordTwo);
         } catch (e: any) {
             logAndThrow('Records provided are not valid. Please ensure they are valid plaintext records.')
+        }
+
+        // If fee is public, check that the balandce is sufficient to execute the transaction
+        if (!privateFee) {
+            // if the fee is public, check that the balance is sufficient to execute the transaction
+            if (feeRecord.amount < priorityFee) {
+                throw("Public balance is insufficient to execute the transaction");
+            }
         }
 
         // Build an execution transaction and submit it to the network
@@ -723,6 +747,14 @@ class ProgramManager {
             logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
+        // If fee is public, check that the balandce is sufficient to execute the transaction
+        if (!privateFee) {
+            // if the fee is public, check that the balance is sufficient to execute the transaction
+            if (feeRecord.amount < priorityFee) {
+                throw("Public balance is insufficient to execute the transaction");
+            }
+        }
+        
         // Build an execution transaction and submit it to the network
         return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, priorityFee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
     }
