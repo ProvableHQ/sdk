@@ -223,7 +223,7 @@ class ProgramManager {
         // If fee is public, check that the balandce is sufficient to execute the transaction
         if (!privateFee) {
             // if the fee is public, check that the balance is sufficient to execute the transaction
-            if (feeRecord.amount < priorityFee) {
+            if (feeRecord.microcredits < priorityFee) {
                 throw("Public balance is insufficient to execute the transaction");
             }
         }
@@ -381,7 +381,7 @@ class ProgramManager {
         // If fee is public, check that the balandce is sufficient to execute the transaction
         if (!privateFee) {
             // if the fee is public, check that the balance is sufficient to execute the transaction
-            if (feeRecord.amount < priorityFee) {
+            if (feeRecord.microcredits < priorityFee) {
                 throw("Public balance is insufficient to execute the transaction");
             }
         }
@@ -557,7 +557,7 @@ class ProgramManager {
         // If fee is public, check that the balandce is sufficient to execute the transaction
         if (!privateFee) {
             // if the fee is public, check that the balance is sufficient to execute the transaction
-            if (feeRecord.amount < priorityFee) {
+            if (feeRecord.microcredits < priorityFee) {
                 throw("Public balance is insufficient to execute the transaction");
             }
         }
@@ -750,11 +750,11 @@ class ProgramManager {
         // If fee is public, check that the balandce is sufficient to execute the transaction
         if (!privateFee) {
             // if the fee is public, check that the balance is sufficient to execute the transaction
-            if (feeRecord.amount < priorityFee) {
+            if (feeRecord.microcredits < priorityFee) {
                 throw("Public balance is insufficient to execute the transaction");
             }
         }
-        
+
         // Build an execution transaction and submit it to the network
         return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, priorityFee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
     }
