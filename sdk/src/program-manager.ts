@@ -221,9 +221,8 @@ class ProgramManager {
         }
 
         // If fee is public, check that the balandce is sufficient to execute the transaction
-        if (!privateFee) {
-            // if the fee is public, check that the balance is sufficient to execute the transaction
-            if (feeRecord?.microcredits() < priorityFee) {
+        if (!privateFee  &&  typeof feeRecord !== "undefined") {
+            if (feeRecord.microcredits() < priorityFee) {
                 throw("Public balance is insufficient to execute the transaction");
             }
         }
@@ -379,9 +378,8 @@ class ProgramManager {
         }
 
         // If fee is public, check that the balandce is sufficient to execute the transaction
-        if (!privateFee) {
-            // if the fee is public, check that the balance is sufficient to execute the transaction
-            if (feeRecord?.microcredits() < priorityFee) {
+        if (!privateFee  &&  typeof feeRecord !== "undefined") {
+            if (feeRecord.microcredits() < priorityFee) {
                 throw("Public balance is insufficient to execute the transaction");
             }
         }
@@ -555,8 +553,7 @@ class ProgramManager {
         }
 
         // If fee is public, check that the balandce is sufficient to execute the transaction
-        if (!privateFee) {
-            // if the fee is public, check that the balance is sufficient to execute the transaction
+        if (!privateFee  &&  typeof feeRecord !== "undefined"){
             if (feeRecord?.microcredits() < priorityFee) {
                 throw("Public balance is insufficient to execute the transaction");
             }
@@ -748,8 +745,7 @@ class ProgramManager {
         }
 
         // If fee is public, check that the balandce is sufficient to execute the transaction
-        if (!privateFee) {
-            // if the fee is public, check that the balance is sufficient to execute the transaction
+        if (!privateFee  &&  typeof feeRecord !== "undefined") {
             if (feeRecord?.microcredits() < priorityFee) {
                 throw("Public balance is insufficient to execute the transaction");
             }
