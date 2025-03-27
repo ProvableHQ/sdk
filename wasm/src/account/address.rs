@@ -17,10 +17,11 @@
 use crate::{
     Plaintext,
     account::{PrivateKey, Signature, ViewKey, compute_key::ComputeKey},
+    native::LiteralNative,
     types::native::AddressNative,
 };
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
-use js_sys::Array;
+use js_sys::{Array, Uint8Array};
 use wasm_bindgen::prelude::*;
 
 /// Public address of an Aleo account
@@ -70,11 +71,18 @@ impl Address {
         self.0.to_string()
     }
 
-    /// Get the left endian boolean array representation of the address plaintext.
-    #[wasm_bindgen(js_name = "plaintextBitsLe")]
-    pub fn plaintext_bits_le(&self) -> Result<Array, String> {
-        let plaintext = Plaintext::from_string(&self.to_string())?;
-        Ok(plaintext.to_bits_le())
+    /// Get the left endian byte array representation of the address plaintext.
+    #[wasm_bindgen(js_name = "toPlaintextBytesLe")]
+    pub fn to_plaintext_bytes_le(&self) -> Result<Uint8Array, String> {
+        let plaintext = Plaintext::from(LiteralNative::Address(self.0));
+        plaintext.to_bytes_le()
+    }
+
+    /// Get the left endian boolean array representation of the address plaintext bits.
+    #[wasm_bindgen(js_name = "toPlaintextBitsLe")]
+    pub fn to_plaintext_bits_le(&self) -> Array {
+        let plaintext = Plaintext::from(LiteralNative::Address(self.0));
+        plaintext.to_bits_le()
     }
 
     /// Verify a signature for a message signed by the address

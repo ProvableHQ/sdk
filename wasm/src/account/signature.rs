@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Address, PrivateKey, Scalar, types::native::SignatureNative};
+use crate::{Address, Plaintext, PrivateKey, Scalar, native::LiteralNative, types::native::SignatureNative};
 
 use core::{fmt, ops::Deref, str::FromStr};
+use js_sys::{Array, Uint8Array};
 use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 
@@ -75,6 +76,20 @@ impl Signature {
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
+    }
+
+    /// Get the left endian byte array representation of the signature plaintext.
+    #[wasm_bindgen(js_name = "toPlaintextBytesLe")]
+    pub fn to_plaintext_bytes_le(&self) -> Result<Uint8Array, String> {
+        let plaintext = Plaintext::from(LiteralNative::Signature(Box::new(self.0)));
+        plaintext.to_bytes_le()
+    }
+
+    /// Get the left endian boolean array representation of the signature plaintext bits.
+    #[wasm_bindgen(js_name = "toPlaintextBitsLe")]
+    pub fn to_plaintext_bits_le(&self) -> Array {
+        let plaintext = Plaintext::from(LiteralNative::Signature(Box::new(self.0)));
+        plaintext.to_bits_le()
     }
 }
 

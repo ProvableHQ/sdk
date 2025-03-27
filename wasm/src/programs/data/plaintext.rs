@@ -19,11 +19,14 @@ use crate::{
     Ciphertext,
     Field,
     Scalar,
+    from_js_typed_array,
+    native::LiteralNative,
     plaintext_to_js_value,
     to_bits_array_le,
     types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes},
 };
-use snarkvm_console::prelude::ToBits;
+use once_cell::sync::OnceCell;
+use snarkvm_console::prelude::{FromBits, ToBits};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -100,16 +103,26 @@ impl Plaintext {
         Ok(Self(native))
     }
 
-    /// Generate a random plaintext element from a series of bytes.
-    ///
-    /// @param {Uint8Array} bytes A left endian byte array representing the plaintext.
+    /// Get the left endian byte array representation of the plaintext.
     #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
         Ok(Uint8Array::from(rust_bytes.as_slice()))
     }
 
-    /// Get the left endian boolean array representation of the plaintext.
+    /// Get a plaintext object from a series of bits represented as a boolean array.
+    ///
+    /// @param {Array} bits A left endian boolean array representing the bits plaintext.
+    ///
+    /// @returns {Plaintext} The plaintext object.
+    #[wasm_bindgen(js_name = "fromBitsLe")]
+    pub fn from_bits_le(bits: Array) -> Result<Plaintext, String> {
+        let rust_bits = from_js_typed_array!(bits, as_bool, "boolean")?;
+        let native = PlaintextNative::from_bits_le(&rust_bits).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the left endian boolean array representation of the bits plaintext.
     #[wasm_bindgen(js_name = "toBitsLe")]
     pub fn to_bits_le(&self) -> Array {
         to_bits_array_le!(self)
@@ -174,6 +187,19 @@ impl From<&PlaintextNative> for Plaintext {
 impl From<&Plaintext> for PlaintextNative {
     fn from(plaintext: &Plaintext) -> Self {
         plaintext.0.clone()
+    }
+}
+
+impl From<LiteralNative> for Plaintext {
+    fn from(value: LiteralNative) -> Self {
+        let native = PlaintextNative::Literal(value, OnceCell::new());
+        Self(native)
+    }
+}
+
+impl From<&LiteralNative> for Plaintext {
+    fn from(value: &LiteralNative) -> Self {
+        Self::from(value.clone())
     }
 }
 
