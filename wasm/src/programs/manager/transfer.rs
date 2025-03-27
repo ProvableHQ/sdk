@@ -25,16 +25,17 @@ use crate::{
     execute_program,
     log,
     process_inputs,
+    types::native::{
+        CurrentAleo,
+        IdentifierNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        TransactionNative,
+    },
 };
+use snarkvm_synthesizer_program::StackKeys;
 
-use crate::types::native::{
-    CurrentAleo,
-    IdentifierNative,
-    ProcessNative,
-    ProgramNative,
-    RecordPlaintextNative,
-    TransactionNative,
-};
 use rand::{SeedableRng, rngs::StdRng};
 use std::{ops::Add, str::FromStr};
 use wasm_bindgen::JsValue;

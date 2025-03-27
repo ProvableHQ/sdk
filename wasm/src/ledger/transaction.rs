@@ -282,8 +282,8 @@ impl Transaction {
 
         // Extract the fee execution.
         let fee = match &self.0 {
-            TransactionNative::Deploy(_, _, _, fee) => Some(fee),
-            TransactionNative::Execute(_, _, fee) => fee.as_ref(),
+            TransactionNative::Deploy(_, _, _, _, fee) => Some(fee),
+            TransactionNative::Execute(_, _, _, fee) => fee.as_ref(),
             TransactionNative::Fee(_, fee) => Some(fee),
         };
 
