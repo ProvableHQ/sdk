@@ -42,7 +42,7 @@ import { logAndThrow } from "./utils";
  *
  * @property {string} programName - The name of the program containing the function to be executed.
  * @property {string} functionName - The name of the function to execute within the program.
- * @property {number} fee - The fee to be paid for the transaction.
+ * @property {number} priorityFee - The fee to be paid for the transaction.
  * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
  * @property {string[]} inputs - The inputs to the function being executed.
  * @property {RecordSearchParams} [recordSearchParams] - Optional parameters for searching for a record to pay the execution transaction fee.
@@ -58,7 +58,7 @@ import { logAndThrow } from "./utils";
 interface ExecuteOptions {
     programName: string;
     functionName: string;
-    fee: number;
+    priorityFee: number;
     privateFee: boolean;
     inputs: string[];
     recordSearchParams?: RecordSearchParams;
@@ -137,7 +137,7 @@ class ProgramManager {
      * Builds a deployment transaction for submission to the Aleo network.
      *
      * @param {string} program Program source code
-     * @param {number} fee Fee to pay for the transaction
+     * @param {number} priorityFee Fee to pay for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
      * pay the deployment fee
@@ -163,7 +163,7 @@ class ProgramManager {
      */
     async buildDeploymentTransaction(
         program: string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
@@ -193,12 +193,12 @@ class ProgramManager {
         }
 
         if (typeof deploymentPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw ("No private key provided and no private key set in the ProgramManager");
         }
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
+            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(priorityFee, [], feeRecord, recordSearchParams) : undefined;
         } catch (e: any) {
             logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
@@ -221,14 +221,14 @@ class ProgramManager {
         }
 
         // Build a deployment transaction and submit it to the network
-        return await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
+        return await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, priorityFee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
     }
 
     /**
      * Deploy an Aleo program to the Aleo network
      *
      * @param {string} program Program source code
-     * @param {number} fee Fee to pay for the transaction
+     * @param {number} priorityFee Fee to pay for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
      * pay the deployment fee
@@ -257,13 +257,13 @@ class ProgramManager {
      */
     async deploy(
         program: string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
     ): Promise<string> {
-        const tx = <Transaction>await this.buildDeploymentTransaction(program, fee, privateFee, recordSearchParams, feeRecord, privateKey);
+        const tx = <Transaction>await this.buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -299,7 +299,7 @@ class ProgramManager {
         const {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             recordSearchParams,
@@ -332,12 +332,12 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw ("No private key provided and no private key set in the ProgramManager");
         }
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
+            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(priorityFee, [], feeRecord, recordSearchParams) : undefined;
         } catch (e: any) {
             logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
@@ -371,7 +371,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        return await WasmProgramManager.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        return await WasmProgramManager.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, priorityFee, feeRecord, this.host, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
     }
 
     /**
@@ -458,7 +458,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw ("No private key provided and no private key set in the ProgramManager");
         }
 
         // If the function proving and verifying keys are not provided, attempt to find them using the key provider
@@ -482,7 +482,7 @@ class ProgramManager {
      *
      * @param {RecordPlaintext | string} recordOne First credits record to join
      * @param {RecordPlaintext | string} recordTwo Second credits record to join
-     * @param {number} fee Fee in credits pay for the join transaction
+     * @param {number} priorityFee Fee in credits pay for the join transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record to use
      * to pay the fee for the join transaction
@@ -494,7 +494,7 @@ class ProgramManager {
     async join(
         recordOne: RecordPlaintext | string,
         recordTwo: RecordPlaintext | string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams | undefined,
         feeRecord?: RecordPlaintext | string | undefined,
@@ -508,7 +508,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw ("No private key provided and no private key set in the ProgramManager");
         }
 
         // Get the proving and verifying keys from the key provider
@@ -525,7 +525,7 @@ class ProgramManager {
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
+            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(priorityFee, [], feeRecord, recordSearchParams) : undefined;
         } catch (e: any) {
             logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
@@ -539,7 +539,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        const tx = await WasmProgramManager.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, priorityFee, feeRecord, this.host, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -573,7 +573,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw ("No private key provided and no private key set in the ProgramManager");
         }
 
         // Get the split keys from the key provider
@@ -647,7 +647,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} fee The fee to pay for the transfer
+     * @param {number} priorityFee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
      * records for the transfer transaction
@@ -674,7 +674,7 @@ class ProgramManager {
         amount: number,
         recipient: string,
         transferType: string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         amountRecord?: RecordPlaintext | string,
@@ -692,7 +692,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw ("No private key provided and no private key set in the ProgramManager");
         }
 
         // Get the proving and verifying keys from the key provider
@@ -713,18 +713,18 @@ class ProgramManager {
             const nonces: string[] = [];
             if (requiresAmountRecord(transferType)) {
                 // If the transfer type is private and requires an amount record, get it from the record provider
-                amountRecord = <RecordPlaintext>await this.getCreditsRecord(fee, [], amountRecord, recordSearchParams);
+                amountRecord = <RecordPlaintext>await this.getCreditsRecord(priorityFee, [], amountRecord, recordSearchParams);
                 nonces.push(amountRecord.nonce());
             } else {
                 amountRecord = undefined;
             }
-            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, nonces, feeRecord, recordSearchParams) : undefined;
+            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(priorityFee, nonces, feeRecord, recordSearchParams) : undefined;
         } catch (e: any) {
             logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
         }
 
         // Build an execution transaction and submit it to the network
-        return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, priorityFee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
     }
 
     /**
@@ -733,7 +733,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} fee The fee to pay for the transfer
+     * @param {number} priorityFee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
      * records for the transfer transaction
@@ -746,11 +746,11 @@ class ProgramManager {
     async buildTransferPublicTransaction(
         amount: number,
         recipient: string,
-        fee: number,
+        priorityFee: number,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
     ): Promise<Transaction> {
-        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
+        return this.buildTransferTransaction(amount, recipient, "public", priorityFee, false, undefined, undefined, undefined, privateKey, offlineQuery);
     }
 
     /**
@@ -759,7 +759,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} fee The fee to pay for the transfer
+     * @param {number} priorityFee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
      * records for the transfer transaction
@@ -772,11 +772,11 @@ class ProgramManager {
     async buildTransferPublicAsSignerTransaction(
         amount: number,
         recipient: string,
-        fee: number,
+        priorityFee: number,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
     ): Promise<Transaction> {
-        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
+        return this.buildTransferTransaction(amount, recipient, "public", priorityFee, false, undefined, undefined, undefined, privateKey, offlineQuery);
     }
 
     /**
@@ -785,7 +785,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} fee The fee to pay for the transfer
+     * @param {number} priorityFee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
      * records for the transfer transaction
@@ -811,7 +811,7 @@ class ProgramManager {
         amount: number,
         recipient: string,
         transferType: string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         amountRecord?: RecordPlaintext | string,
@@ -819,7 +819,7 @@ class ProgramManager {
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery
     ): Promise<string> {
-        const tx = <Transaction>await this.buildTransferTransaction(amount, recipient, transferType, fee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery);
+        const tx = <Transaction>await this.buildTransferTransaction(amount, recipient, transferType, priorityFee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery);
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -858,7 +858,7 @@ class ProgramManager {
         const {
             programName = "credits.aleo",
             functionName = "bond_public",
-            fee = options.fee || 0.86,
+            priorityFee = options.priorityFee || 0.86,
             privateFee = false,
             inputs = [validator_address, withdrawal_address, `${scaledAmount.toString()}u64`],
             keySearchParams = new AleoKeyProviderParams({
@@ -873,7 +873,7 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
@@ -908,7 +908,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to bond
      * @param {Options} options Options for the execution
      */
-    async bondPublic(validator_address: string, withdrawal_address:string, amount: number, options: Partial<ExecuteOptions> = {}) {
+    async bondPublic(validator_address: string, withdrawal_address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
         const tx = <Transaction>await this.buildBondPublicTransaction(validator_address, withdrawal_address, amount, options);
         return await this.networkClient.submitTransaction(tx);
     }
@@ -951,7 +951,7 @@ class ProgramManager {
         const {
             programName = "credits.aleo",
             functionName = "bond_validator",
-            fee = options.fee || 0.86,
+            priorityFee = options.priorityFee || 0.86,
             privateFee = false,
             inputs = [validator_address, withdrawal_address, `${scaledAmount.toString()}u64`, `${adjustedCommission.toString()}u8`],
             keySearchParams = new AleoKeyProviderParams({
@@ -966,7 +966,7 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
@@ -1034,7 +1034,7 @@ class ProgramManager {
         const {
             programName = "credits.aleo",
             functionName = "unbond_public",
-            fee = options.fee || 1.3,
+            priorityFee = options.priorityFee || 1.3,
             privateFee = false,
             inputs = [staker_address, `${scaledAmount.toString()}u64`],
             keySearchParams = new AleoKeyProviderParams({
@@ -1049,7 +1049,7 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
@@ -1115,7 +1115,7 @@ class ProgramManager {
         const {
             programName = "credits.aleo",
             functionName = "claim_unbond_public",
-            fee = options.fee || 2,
+            priorityFee = options.priorityFee || 2,
             privateFee = false,
             inputs = [staker_address],
             keySearchParams = new AleoKeyProviderParams({
@@ -1130,7 +1130,7 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
@@ -1199,7 +1199,7 @@ class ProgramManager {
         const {
             programName = "credits.aleo",
             functionName = "set_validator_state",
-            fee = 1,
+            priorityFee = 1,
             privateFee = false,
             inputs = [validator_state.toString()],
             keySearchParams = new AleoKeyProviderParams({
@@ -1213,7 +1213,7 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
@@ -1268,7 +1268,7 @@ class ProgramManager {
             const program = executionResponse.getProgram();
             const verifyingKey = executionResponse.getVerifyingKey();
             return verifyFunctionExecution(execution, verifyingKey, program, function_id);
-        } catch(e) {
+        } catch (e) {
             console.warn("The execution was not found in the response, cannot verify the execution");
             return false;
         }
