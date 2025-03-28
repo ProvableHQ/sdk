@@ -2067,7 +2067,6 @@ __program__ | `string` | *The program source code*
 __*return*__ | `boolean` | **
 
 ---
-<<<<<<< HEAD
 
 ### `buildDeploymentTransaction(private_key, program, imports, priority_fee_credits, fee_record, url, imports, fee_proving_key, fee_verifying_key) ► Transaction`
 
