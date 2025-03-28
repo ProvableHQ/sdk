@@ -208,13 +208,8 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
-       log("Calculating the minimum execution fee");
-        let minimum_execution_cost = calculate_minimum_fee!(
-            offline_query,
-            node_url,
-            process,
-            &execution
-        );    
+        log("Calculating the minimum execution fee");
+        let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
 
         log("Executing fee");
         let fee = execute_fee!(

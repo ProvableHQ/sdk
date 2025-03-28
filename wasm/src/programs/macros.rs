@@ -185,6 +185,6 @@ macro_rules! calculate_minimum_fee {
                 execution_cost_v1($process, $execution_ref).map_err(|err| err.to_string())?
             };
 
-            minimum_execution_cost
-    }}
+        minimum_execution_cost
+    }};
 }

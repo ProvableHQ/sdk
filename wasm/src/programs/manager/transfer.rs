@@ -195,12 +195,7 @@ impl ProgramManager {
 
         // Calculate the minimum execution fee.
         log("Calculating the minimum execution fee");
-        let minimum_execution_cost = calculate_minimum_fee!(
-            offline_query,
-            node_url,
-            process,
-            &execution
-        );   
+        let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
 
         log("Executing the fee");
         let fee = execute_fee!(
