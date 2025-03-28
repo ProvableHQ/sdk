@@ -1395,7 +1395,7 @@ class ProgramManager {
         const {
             programName = "credits.aleo",
             functionName = "set_validator_state",
-            priorityFee = 1,
+            priorityFee = 0,
             privateFee = false,
             inputs = [validator_state.toString()],
             keySearchParams = new AleoKeyProviderParams({
