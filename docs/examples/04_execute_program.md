@@ -27,7 +27,7 @@ const input2 = 28;
 const transaction = await programManager.buildExecutionTransaction({
     programName: "addition_demo.aleo",
     functionName: "addition",
-    fee: 0.020,
+    fee: 0.0,
     privateFee: false,
     inputs: [`${input1}u32`, `${input2}u32`],
     keySearchParams: { "cacheKey": "addition_demo:addition" },
