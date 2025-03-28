@@ -26,16 +26,15 @@ use crate::{
     execute_program,
     log,
     process_inputs,
-};
-
-use crate::types::native::{
-    CurrentAleo,
-    CurrentNetwork,
-    IdentifierNative,
-    ProcessNative,
-    ProgramNative,
-    RecordPlaintextNative,
-    TransactionNative,
+    types::native::{
+        CurrentAleo,
+        CurrentNetwork,
+        IdentifierNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        TransactionNative,
+    },
 };
 use snarkvm_synthesizer_program::StackKeys;
 
