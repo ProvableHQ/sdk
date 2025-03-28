@@ -315,3 +315,73 @@ async fn test_import_resolution() {
     assert_eq!(outputs.len(), 1);
     assert_eq!(outputs[0], "30u32");
 }
+
+#[wasm_bindgen_test]
+async fn test_fee_calculation_v1() {
+    // from transaction id:  at19mj25mcva2nq54cln0lyccqvz4822xxvgzhqdnjzgdfdgjkshszqq4hw6y
+    // block number 756,467 on testnet
+    let private_key = PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
+    let expected_microcredits = 200_000_u64; // value from the block explorer
+    let input_1 = "6393458784928152890753831473531216042773373840069504781946713920338912225797field";
+    let input_2 = "4632442886898964763863317137616978207691484883916671476430273090933021799024field";
+    let input_3 = "100000000u128";
+    let input_4 = "1316187195u128";
+    let input_5 = "aleo1qvsr8hyjgdf4qztyh7v5vjlx2myja45dgz92v2ma977ww7q2wc9suzeerc";
+    let inputs = Array::new();
+    inputs.set(0u32, JsValue::from_str(input_1));
+    inputs.set(1u32, JsValue::from_str(input_2));
+    inputs.set(2u32, JsValue::from_str(input_3));
+    inputs.set(3u32, JsValue::from_str(input_4));
+    inputs.set(4u32, JsValue::from_str(input_5));
+
+    let transaction = ProgramManager::execute(
+        &private_key,
+        "alphaswap_v1x5.aleo",
+        "swap_exact_tokens_for_tokens",
+        inputs,
+        0.0,  // no priority fee
+        None, // no Fee record
+        None, // ("https://testnet.explorer.provable.com/transaction/at19mj25mcva2nq54cln0lyccqvz4822xxvgzhqdnjzgdfdgjkshszqq4hw6y".to_string()), // link to the transaction on block explorer.
+        None, // What imports are needed if any?
+        None, // Proving Key?
+        None, // Verifying Key?
+        None, // Fee proving key -- Mike mentioned I can pull this from the SDK for any credits.aleo program  tpk:  2962200583676994986582946921980128270014798002987146054112816991552505256655group
+        None, // Fee verifying key -- Mike mentioned I can pull this from the SDK for any credits.aleo program
+        None, // Offline query -- how can I format this
+    )
+    .await;
+
+    let transaction_fee = transaction.unwrap().fee();
+    assert_eq!(transaction_fee, expected_microcredits);
+}
+
+#[wasm_bindgen_test]
+async fn test_fee_calculation_v2() {
+    let private_key = PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
+    let expected_microcredits = 3_000_u64; // value from the block explorer
+    let input_1 = "aleo18clqv2ycpdmz07mzsuevp6yqwcz6ym303pra9hly523rpjuw0y9q5anej2";
+    let input_2 = "1000000u64";
+    let inputs = Array::new();
+    inputs.set(0u32, JsValue::from_str(input_1));
+    inputs.set(1u32, JsValue::from_str(input_2));
+
+    let transaction = ProgramManager::execute(
+        &private_key,
+        "puzzle_arcade_coin_v0001.aleo",
+        "mint",
+        inputs,
+        0.0,                                                      // no priority fee
+        None,                                                     // no Fee record
+        Some("https://api.explorer.provable.com/v1".to_string()), // need link to block explorer?
+        None,                                                     // What imports are needed if any?
+        None,                                                     // Proving Key?
+        None,                                                     // Verifying Key?
+        None, // Fee proving key -- Mike mentioned I can pull this from the SDK for any credits.aleo program
+        None, // Fee verifying key -- Mike mentioned I can pull this from the SDK for any credits.aleo program
+        None, // Offline query -- how can I format this
+    )
+    .await;
+
+    let transaction_fee = transaction.unwrap().fee();
+    assert_eq!(transaction_fee, expected_microcredits);
+}
