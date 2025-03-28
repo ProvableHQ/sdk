@@ -201,22 +201,6 @@ impl ProgramManager {
             process,
             &execution
         );   
-        // let block_height = if let Some(offline_query) = offline_query {
-        //     let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
-        //     trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
-        //     block_height
-        // } else {
-        //     let query = QueryNative::from(node_url);
-        //     let block_height = query.current_block_height_async().await.map_err(|e| e.to_string())?;
-        //     trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-        //     block_height
-        // };
-        // let (minimum_execution_cost, (_, _)) =
-        //     if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
-        //         execution_cost_v2(process, &execution).map_err(|err| err.to_string())?
-        //     } else {
-        //         execution_cost_v1(process, &execution).map_err(|err| err.to_string())?
-        //     };
 
         log("Executing the fee");
         let fee = execute_fee!(
