@@ -193,7 +193,6 @@ impl ProgramManager {
         process.verify_execution(&execution).map_err(|err| err.to_string())?;
 
         // Calculate the minimum execution fee.
-        // Calculate the minimum execution fee.
         let block_height = if let Some(offline_query) = offline_query {
             let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
             trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
