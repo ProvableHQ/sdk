@@ -351,7 +351,7 @@ async fn test_fee_calculation_v1() {
     )
     .await;
 
-    let transaction_fee = transaction.unwrap().fee();
+    let transaction_fee = transaction.unwrap().fee_amount();
     assert_eq!(transaction_fee, expected_microcredits);
 }
 
@@ -382,6 +382,6 @@ async fn test_fee_calculation_v2() {
     )
     .await;
 
-    let transaction_fee = transaction.unwrap().fee();
+    let transaction_fee = transaction.unwrap().fee_amount();
     assert_eq!(transaction_fee, expected_microcredits);
 }
