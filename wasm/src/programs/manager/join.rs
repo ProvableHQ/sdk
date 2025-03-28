@@ -36,9 +36,11 @@ use crate::types::native::{
     RecordPlaintextNative,
     TransactionNative,
 };
+use snarkvm_synthesizer_program::StackKeys;
+
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
-use snarkvm_console::prelude::Network;
+use snarkvm_console::prelude::{ConsensusVersion, Network};
 use snarkvm_ledger_query::{Query, QueryTrait};
 use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
 use std::str::FromStr;
@@ -136,7 +138,6 @@ impl ProgramManager {
         process.verify_execution(&execution).map_err(|err| err.to_string())?;
 
         // Calculate the minimum execution fee.
-        // Calculate the minimum execution fee.
         let block_height = if let Some(offline_query) = offline_query {
             let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
             trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
@@ -147,7 +148,7 @@ impl ProgramManager {
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
             block_height
         };
-        let (minimum_execution_cost, (_, _)) = if block_height >= CurrentNetwork::CONSENSUS_V2_HEIGHT {
+        let (minimum_execution_cost, (_, _)) = if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
             execution_cost_v2(process, &execution).map_err(|err| err.to_string())?
         } else {
             execution_cost_v1(process, &execution).map_err(|err| err.to_string())?

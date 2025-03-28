@@ -139,27 +139,37 @@ class ProgramManager {
      * @param {string} program Program source code
      * @param {number} priorityFee Fee to pay for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
-     * pay the deployment fee
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     * 
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * programManager.setAccount(Account);
      *
      * // Define a fee in credits
      * const fee = 1.2;
      *
      * // Create the deployment transaction.
      * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
+     * await programManager.networkClient.submitTransaction(tx);
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 20000);
      */
     async buildDeploymentTransaction(
         program: string,
@@ -237,17 +247,19 @@ class ProgramManager {
      * @param {string} program Program source code
      * @param {number} priorityFee Fee to pay for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use
-     * pay the deployment fee
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to used pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     * 
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -260,7 +272,10 @@ class ProgramManager {
      * const tx_id = await programManager.deploy(program, fee, false);
      *
      * // Verify the transaction was successful
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 20000);
      */
     async deploy(
         program: string,
@@ -281,17 +296,19 @@ class ProgramManager {
      * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error.
      *
      * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
-     * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
-     * const transaction = await programManager.buildExecutionTransaction({
+     * const tx = await programManager.buildExecutionTransaction({
      *   programName: "hello_hello.aleo",
      *   functionName: "hello_hello",
      *   fee: 0.020,
@@ -299,7 +316,15 @@ class ProgramManager {
      *   inputs: ["5u32", "5u32"],
      *   keySearchParams: { "cacheKey": "hello_hello:hello" }
      * });
-     * const result = await programManager.networkClient.submitTransaction(transaction);
+     * 
+     * // Submit the transaction to the network
+     * await programManager.networkClient.submitTransaction(tx.toString());
+     * 
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
      */
     async buildExecutionTransaction(options: ExecuteOptions): Promise<Transaction> {
         // Destructure the options object to access the parameters
@@ -392,20 +417,22 @@ class ProgramManager {
      * Builds an execution transaction for submission to the Aleo network.
      *
      * @param {ExecuteOptions} options - The options for the execution transaction.
-     * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error.
+     * @returns {Promise<string>} - The transaction id
      *
      * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
-     * keyProvider.useCache = true;
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build and execute the transaction
-     * const transaction = await programManager.execute({
+     * const tx_id = await programManager.execute({
      *   programName: "hello_hello.aleo",
      *   functionName: "hello_hello",
      *   fee: 0.020,
@@ -413,7 +440,12 @@ class ProgramManager {
      *   inputs: ["5u32", "5u32"],
      *   keySearchParams: { "cacheKey": "hello_hello:hello" }
      * });
-     * const result = await programManager.networkClient.submitTransaction(transaction);
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async execute(options: ExecuteOptions): Promise<string> {
         const tx = <Transaction>await this.buildExecutionTransaction(options);
@@ -426,23 +458,22 @@ class ProgramManager {
      * @param {string} program Program source code containing the function to be executed
      * @param {string} function_name Function name to execute
      * @param {string[]} inputs Inputs to the function
-     * @param {number} proveExecution Whether to prove the execution of the function and return an execution transcript
-     * that contains the proof.
+     * @param {number} proveExecution Whether to prove the execution of the function and return an execution transcript that contains the proof.
      * @param {string[] | undefined} imports Optional imports to the program
-     * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving &
-     * verifying keys for the function
+     * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving & verifying keys for the function
      * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string>}
+     * @returns {Promise<ExecutionResponse>} The execution response containing the outputs of the function and the proof if the program is proved.
      *
      * @example
-     * import { Account, Program } from '@provablehq/sdk';
+     * /// Import the mainnet version of the sdk used to build executions.
+     * import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
      *
      * /// Create the source for the "helloworld" program
      * const program = "program helloworld.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager();
+     * const programManager = new ProgramManager(undefined, undefined, undefined);
      *
      * /// Create a temporary account for the execution of the program
      * const account = new Account();
@@ -498,12 +529,32 @@ class ProgramManager {
      * @param {RecordPlaintext | string} recordTwo Second credits record to join
      * @param {number} priorityFee Fee in credits pay for the join transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record to use
-     * to pay the fee for the join transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record to use to pay the fee for the join transaction
      * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
      * @param {PrivateKey | undefined} privateKey Private key to use for the join transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string>}
+     * @returns {Promise<string>} The transaction id
+     *
+     * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const record_1 = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
+     * const record_2 = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 1540945439182663264862696551825005342995406165131907382295858612069623286213group.public}"
+     * const tx_id = await programManager.join(record_1, record_2, 0.05, false);
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async join(
         recordOne: RecordPlaintext | string,
@@ -571,20 +622,27 @@ class ProgramManager {
      * @param {RecordPlaintext | string} amountRecord Amount record to use for the split transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the split transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string>}
+     * @returns {Promise<string>} The transaction id
      *
      * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programName = "hello_hello.aleo";
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      * const record = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
      * const tx_id = await programManager.split(25000000, record);
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async split(splitAmount: number, amountRecord: RecordPlaintext | string, privateKey?: PrivateKey, offlineQuery?: OfflineQuery): Promise<string> {
         // Get the private key from the account if it is not provided in the parameters
@@ -670,26 +728,32 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} priorityFee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
-     * records for the transfer transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string>} The transaction id of the transfer transaction
+     * @returns {Promise<Transaction>} The transaction object
      *
      * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programName = "hello_hello.aleo";
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * await programManager.initialize();
-     * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     * const tx = await programManager.buildTransferTransaction(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "public", 0.2, false);
+     * await programManager.networkClient.submitTransaction(tx.toString());
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
      */
     async buildTransferTransaction(
         amount: number,
@@ -769,7 +833,27 @@ class ProgramManager {
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string>} The transaction id of the transfer transaction
+     * @returns {Promise<Transaction>} The transaction object
+     *
+     * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const tx = await programManager.buildTransferPublicTransaction(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 0.2);
+     * await programManager.networkClient.submitTransaction(tx.toString());
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
      */
     async buildTransferPublicTransaction(
         amount: number,
@@ -789,13 +873,32 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} priorityFee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
-     * records for the transfer transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string>} The transaction id of the transfer transaction
+     * @returns {Promise<Transaction>} The transaction object
+     *
+     * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const tx = await programManager.buildTransferPublicAsSignerTransaction(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 0.2);
+     * await programManager.networkClient.submitTransaction(tx.toString());
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
      */
     async buildTransferPublicAsSignerTransaction(
         amount: number,
@@ -815,25 +918,31 @@ class ProgramManager {
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} priorityFee The fee to pay for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
-     * records for the transfer transaction
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
      * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
-     * @returns {Promise<string>} The transaction id of the transfer transaction
+     * @returns {Promise<string>} The transaction id
      *
      * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     * 
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * await programManager.initialize();
-     * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "private", 0.2)
-     * const transaction = await programManager.networkClient.getTransaction(tx_id);
+     * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "public", 0.2, false);
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async transfer(
         amount: number,
@@ -854,7 +963,16 @@ class ProgramManager {
     /**
      * Build transaction to bond credits to a validator for later submission to the Aleo Network
      *
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} amount The amount of credits to bond
+     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * @returns {Promise<Transaction>} The transaction object
+     *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     * 
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
@@ -865,20 +983,15 @@ class ProgramManager {
      *
      * // Create the bonding transaction object for later submission
      * const tx = await programManager.buildBondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
-     * console.log(tx);
      *
      * // The transaction can be later submitted to the network using the network client.
-     * const result = await programManager.networkClient.submitTransaction(tx);
+     * await programManager.networkClient.submitTransaction(tx.toString());
      *
-     * @returns string
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
-     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
-     * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
-     * validator and is different from the address of the executor of this function, it will bond the credits to that
-     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
-     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
-     * @param {number} amount The amount of credits to bond
-     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
      */
     async buildBondPublicTransaction(validator_address: string, withdrawal_address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
         const scaledAmount = Math.trunc(amount * 1000000);
@@ -914,27 +1027,31 @@ class ProgramManager {
     /**
      * Bond credits to validator.
      *
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the signer (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} amount The amount of credits to bond
+     * @param {Options} options Options for the execution
+     * @returns {Promise<string>} The transaction id
+     *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
-     * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
-     * const tx_id = await programManager.bondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
+     * tx_id = await programManager.bondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
      *
-     * @returns string
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the signer (i.e. the
-     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
-     * requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing
-     * validator and is different from the address of the executor of this function, it will bond the credits to that
-     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
-     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
-     * @param {number} amount The amount of credits to bond
-     * @param {Options} options Options for the execution
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async bondPublic(validator_address: string, withdrawal_address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
         const tx = <Transaction>await this.buildBondPublicTransaction(validator_address, withdrawal_address, amount, options);
@@ -944,7 +1061,17 @@ class ProgramManager {
     /**
      * Build a bond_validator transaction for later submission to the Aleo Network.
      *
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator.
+     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} amount The amount of credits to bond. A minimum of 10000 credits is required to bond as a delegator.
+     * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
+     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * @returns {Promise<Transaction>} The transaction object
+     *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
@@ -955,21 +1082,15 @@ class ProgramManager {
      *
      * // Create the bond validator transaction object for later use.
      * const tx = await programManager.buildBondValidatorTransaction("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
-     * console.log(tx);
      *
      * // The transaction can later be submitted to the network using the network client.
-     * const tx_id = await programManager.networkClient.submitTransaction(tx);
+     * const tx_id = await programManager.networkClient.submitTransaction(tx.toString());
      *
-     * @returns string
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
-     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
-     * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
-     * validator and is different from the address of the executor of this function, it will bond the credits to that
-     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
-     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
-     * @param {number} amount The amount of credits to bond
-     * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
-     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async buildBondValidatorTransaction(validator_address: string, withdrawal_address: string, amount: number, commission: number, options: Partial<ExecuteOptions> = {}) {
         const scaledAmount = Math.trunc(amount * 1000000);
@@ -1007,7 +1128,17 @@ class ProgramManager {
     /**
      * Build transaction to bond a validator.
      *
+     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} amount The amount of credits to bond
+     * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
+     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * @returns {Promise<string>} The transaction id
+     *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
@@ -1019,16 +1150,11 @@ class ProgramManager {
      * // Create the bonding transaction
      * const tx_id = await programManager.bondValidator("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
      *
-     * @returns string
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the
-     * executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently
-     * requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing
-     * validator and is different from the address of the executor of this function, it will bond the credits to that
-     * validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
-     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
-     * @param {number} amount The amount of credits to bond
-     * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
-     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async bondValidator(validator_address: string, withdrawal_address: string, amount: number, commission: number, options: Partial<ExecuteOptions> = {}) {
         const tx = <Transaction>await this.buildBondValidatorTransaction(validator_address, withdrawal_address, amount, commission, options);
@@ -1036,7 +1162,7 @@ class ProgramManager {
     }
 
     /**
-     * Build a transaction to unbond public credits from a validator in the Aleo network.
+     * Build an unbond_public execution transaction to unbond credits from a validator in the Aleo network.
      *
      * @param {string} staker_address - The address of the staker who is unbonding the credits.
      * @param {number} amount - The amount of credits to unbond (scaled by 1,000,000).
@@ -1044,6 +1170,9 @@ class ProgramManager {
      * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error message.
      *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a keyProvider to handle key management.
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
@@ -1051,10 +1180,15 @@ class ProgramManager {
      * // Create a new ProgramManager with the key that will be used to unbond credits.
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * const tx = await programManager.buildUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", 2000000);
-     * console.log(tx);
      *
      * // The transaction can be submitted later to the network using the network client.
-     * programManager.networkClient.submitTransaction(tx);
+     * programManager.networkClient.submitTransaction(tx.toString());
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
      */
     async buildUnbondPublicTransaction(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<Transaction> {
         const scaledAmount = Math.trunc(amount * 1000000);
@@ -1088,9 +1222,22 @@ class ProgramManager {
     }
 
     /**
-     * Unbond a specified amount of staked credits.
+     * Unbond a specified amount of staked credits. If the address of the executor of this function is an existing
+     * validator, it will subtract this amount of credits from the validator's staked credits. If there are less than
+     * 1,000,000 credits staked pool after the unbond, the validator will be removed from the validator set. If the
+     * address of the executor of this function is not a validator and has credits bonded as a delegator, it will
+     * subtract this amount of credits from the delegator's staked credits. If there are less than 10 credits bonded
+     * after the unbond operation, the delegator will be removed from the validator's staking pool.
+     *
+     * @param {string} staker_address Address of the staker who is unbonding the credits
+     * @param {number} amount Amount of credits to unbond.
+     * @param {ExecuteOptions} options Options for the execution
+     * @returns {Promise<string>} The transaction id
      *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
@@ -1099,18 +1246,14 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
-     * // Create the bonding transaction and send it to the network
+     * // Create the unbond_public transaction and send it to the network
      * const tx_id = await programManager.unbondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", 10);
      *
-     * @returns string
-     * @param {string} staker_address Address of the staker who is unbonding the credits
-     * @param {number} amount Amount of credits to unbond. If the address of the executor of this function is an
-     * existing validator, it will subtract this amount of credits from the validator's staked credits. If there are
-     * less than 1,000,000 credits staked pool after the unbond, the validator will be removed from the validator set.
-     * If the address of the executor of this function is not a validator and has credits bonded as a delegator, it will
-     * subtract this amount of credits from the delegator's staked credits. If there are less than 10 credits bonded
-     * after the unbond operation, the delegator will be removed from the validator's staking pool.
-     * @param {ExecuteOptions} options Options for the execution
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async unbondPublic(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<string> {
         const tx = <Transaction>await this.buildUnbondPublicTransaction(staker_address, amount, options);
@@ -1125,6 +1268,9 @@ class ProgramManager {
      * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error message.
      *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
@@ -1132,12 +1278,17 @@ class ProgramManager {
      * // Create a new ProgramManager with the key that will be used to claim unbonded credits.
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      *
-     * // Create the claim unbonded transaction object for later use.
+     * // Create the claim_unbond_public transaction object for later use.
      * const tx = await programManager.buildClaimUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j");
-     * console.log(tx);
      *
      * // The transaction can be submitted later to the network using the network client.
-     * programManager.networkClient.submitTransaction(tx);
+     * programManager.networkClient.submitTransaction(tx.toString());
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
      */
     async buildClaimUnbondPublicTransaction(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<Transaction> {
         const {
@@ -1172,7 +1323,14 @@ class ProgramManager {
      * Claim unbonded credits. If credits have been unbonded by the account executing this function, this method will
      * claim them and add them to the public balance of the account.
      *
+     * @param {string} staker_address Address of the staker who is claiming the credits
+     * @param {ExecuteOptions} options
+     * @returns {Promise<string>} The transaction id
+     *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
@@ -1181,12 +1339,14 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
-     * // Create the bonding transaction
+     * // Create the claim_unbond_public transaction
      * const tx_id = await programManager.claimUnbondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j");
      *
-     * @param {string} staker_address Address of the staker who is claiming the credits
-     * @param {ExecuteOptions} options
-     * @returns string
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async claimUnbondPublic(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<string> {
         const tx = <Transaction>await this.buildClaimUnbondPublicTransaction(staker_address, options);
@@ -1204,24 +1364,32 @@ class ProgramManager {
      * 1. Allow a validator to leave the committee, by closing themselves to stakers and then unbonding all of their stakers.
      * 2. Allow a validator to maintain their % of stake, by closing themselves to allowing more stakers to bond to them.
      *
+     * @param {boolean} validator_state
+     * @param {Partial<ExecuteOptions>} options - Override default execution options
+     * @returns {Promise<Transaction>} The transaction object
+     *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
-     * programManager.setAccount(new Account("ValidatorPrivateKey"));
      *
-     * // Create the bonding transaction
+     * // Create the set_validator_state transaction
      * const tx = await programManager.buildSetValidatorStateTransaction(true);
      *
      * // The transaction can be submitted later to the network using the network client.
-     * programManager.networkClient.submitTransaction(tx);
+     * programManager.networkClient.submitTransaction(tx.toString());
      *
-     * @returns string
-     * @param {boolean} validator_state
-     * @param {Partial<ExecuteOptions>} options - Override default execution options
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
      */
     async buildSetValidatorStateTransaction(validator_state: boolean, options: Partial<ExecuteOptions> = {}) {
         const {
@@ -1262,21 +1430,29 @@ class ProgramManager {
      * 1. Allow a validator to leave the committee, by closing themselves to stakers and then unbonding all of their stakers.
      * 2. Allow a validator to maintain their % of stake, by closing themselves to allowing more stakers to bond to them.
      *
+     * @param {boolean} validator_state
+     * @param {Partial<ExecuteOptions>} options - Override default execution options
+     * @returns {Promise<string>} The transaction id
+     *
      * @example
+     * // Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
-     * programManager.setAccount(new Account("ValidatorPrivateKey"));
      *
-     * // Create the bonding transaction
+     * // Create the set_validator_state transaction
      * const tx_id = await programManager.setValidatorState(true);
      *
-     * @returns string
-     * @param {boolean} validator_state
-     * @param {Partial<ExecuteOptions>} options - Override default execution options
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx_id);
+     *  assert(transaction.id() === tx_id);
+     * }, 10000);
      */
     async setValidatorState(validator_state: boolean, options: Partial<ExecuteOptions> = {}) {
         const tx = <string>await this.buildSetValidatorStateTransaction(validator_state, options);

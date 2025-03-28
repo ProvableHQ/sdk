@@ -40,8 +40,8 @@ pub struct Ciphertext(CiphertextNative);
 impl Ciphertext {
     /// Decrypt the ciphertext using the given view key.
     ///
-    /// @param {ViewKey} The view key of the account that encrypted the ciphertext.
-    /// @param {Group} The nonce used to encrypt the ciphertext.
+    /// @param {ViewKey} viewKey The view key of the account that encrypted the ciphertext.
+    /// @param {Group} nonce The nonce used to encrypt the ciphertext.
     ///
     /// @returns {Plaintext} The decrypted plaintext.
     pub fn decrypt(&self, view_key: ViewKey, nonce: Group) -> Result<Plaintext, String> {
@@ -50,6 +50,7 @@ impl Ciphertext {
 
     /// Decrypt a ciphertext using the view key of the transition signer, transition public key, and
     /// (program, function, index) tuple.
+    #[wasm_bindgen(js_name = decryptWithTransitionInfo)]
     pub fn decrypt_with_transition_info(
         &self,
         view_key: ViewKey,
@@ -74,6 +75,7 @@ impl Ciphertext {
     }
 
     /// Decrypt a ciphertext using the transition view key and a (program, function, index) tuple.
+    #[wasm_bindgen(js_name = decryptWithTransitionViewKey)]
     pub fn decrypt_with_transition_view_key(
         &self,
         transition_view_key: Field,

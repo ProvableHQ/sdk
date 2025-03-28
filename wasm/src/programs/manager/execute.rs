@@ -26,23 +26,23 @@ use crate::{
     execute_program,
     log,
     process_inputs,
+    types::native::{
+        CurrentAleo,
+        CurrentNetwork,
+        IdentifierNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        TransactionNative,
+    },
 };
+use snarkvm_console::network::{ConsensusVersion, Network};
+use snarkvm_ledger_query::QueryTrait;
+use snarkvm_synthesizer::prelude::{cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
 
-use crate::types::native::{
-    CurrentAleo,
-    CurrentNetwork,
-    IdentifierNative,
-    ProcessNative,
-    ProgramNative,
-    RecordPlaintextNative,
-    TransactionNative,
-};
 use core::ops::Add;
 use js_sys::{Array, Object};
 use rand::{SeedableRng, rngs::StdRng};
-use snarkvm_console::prelude::Network;
-use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::prelude::{cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
 use std::str::FromStr;
 
 #[wasm_bindgen]
@@ -218,7 +218,7 @@ impl ProgramManager {
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
             block_height
         };
-        let (minimum_execution_cost, (_, _)) = if block_height >= CurrentNetwork::CONSENSUS_V2_HEIGHT {
+        let (minimum_execution_cost, (_, _)) = if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
             execution_cost_v2(process, &execution).map_err(|err| err.to_string())?
         } else {
             execution_cost_v1(process, &execution).map_err(|err| err.to_string())?
@@ -333,7 +333,7 @@ impl ProgramManager {
             let stack = process.get_stack(program_id).map_err(|e| e.to_string())?;
 
             // Calculate the finalize cost for the function identified in the transition
-            let cost = if block_height >= CurrentNetwork::CONSENSUS_V2_HEIGHT {
+            let cost = if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
                 cost_in_microcredits_v2(stack, function_name).map_err(|e| e.to_string())?
             } else {
                 cost_in_microcredits_v1(stack, function_name).map_err(|e| e.to_string())?

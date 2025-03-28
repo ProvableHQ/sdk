@@ -36,8 +36,10 @@ use crate::types::native::{
     RecordPlaintextNative,
     TransactionNative,
 };
+use snarkvm_synthesizer_program::StackKeys;
+
 use rand::{SeedableRng, rngs::StdRng};
-use snarkvm_console::prelude::Network;
+use snarkvm_console::prelude::{ConsensusVersion, Network};
 use snarkvm_ledger_query::{Query, QueryTrait};
 use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
 use std::{ops::Add, str::FromStr};
@@ -202,7 +204,7 @@ impl ProgramManager {
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
             block_height
         };
-        let (minimum_execution_cost, (_, _)) = if block_height >= CurrentNetwork::CONSENSUS_V2_HEIGHT {
+        let (minimum_execution_cost, (_, _)) = if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
             execution_cost_v2(process, &execution).map_err(|err| err.to_string())?
         } else {
             execution_cost_v1(process, &execution).map_err(|err| err.to_string())?
