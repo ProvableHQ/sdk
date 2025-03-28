@@ -204,11 +204,12 @@ impl ProgramManager {
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
             block_height
         };
-        let (minimum_execution_cost, (_, _)) = if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
-            execution_cost_v2(process, &execution).map_err(|err| err.to_string())?
-        } else {
-            execution_cost_v1(process, &execution).map_err(|err| err.to_string())?
-        };
+        let (minimum_execution_cost, (_, _)) =
+            if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
+                execution_cost_v2(process, &execution).map_err(|err| err.to_string())?
+            } else {
+                execution_cost_v1(process, &execution).map_err(|err| err.to_string())?
+            };
 
         log("Executing the fee");
         let fee = execute_fee!(
