@@ -42,7 +42,7 @@ impl ProgramManager {
     /// form \{"program_name1": "program_source_code", "program_name2": "program_source_code", ..\}.
     /// Note that all imported programs must be deployed on chain before the main program in order
     /// for the deployment to succeed
-    /// @param priority_fee_credits The amount of credits to pay as a fee
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param imports (optional) Provide a list of imports to use for the program deployment in the

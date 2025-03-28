@@ -42,7 +42,7 @@ import { logAndThrow } from "./utils";
  *
  * @property {string} programName - The name of the program containing the function to be executed.
  * @property {string} functionName - The name of the function to execute within the program.
- * @property {number} priorityFee - The fee to be paid for the transaction.
+ * @property {number} priorityFee - The optional priority fee to be paid for the transaction.
  * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
  * @property {string[]} inputs - The inputs to the function being executed.
  * @property {RecordSearchParams} [recordSearchParams] - Optional parameters for searching for a record to pay the execution transaction fee.
@@ -137,7 +137,7 @@ class ProgramManager {
      * Builds a deployment transaction for submission to the Aleo network.
      *
      * @param {string} program Program source code
-     * @param {number} priorityFee Fee to pay for the transaction
+     * @param {number} priorityFee The optional priority fee to be paid for that transaction.
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
@@ -245,7 +245,7 @@ class ProgramManager {
      * Deploy an Aleo program to the Aleo network
      *
      * @param {string} program Program source code
-     * @param {number} priorityFee Fee to pay for the transaction
+     * @param {number} priorityFee The optional fee to be paid for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to used pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
@@ -527,7 +527,7 @@ class ProgramManager {
      *
      * @param {RecordPlaintext | string} recordOne First credits record to join
      * @param {RecordPlaintext | string} recordTwo Second credits record to join
-     * @param {number} priorityFee Fee in credits pay for the join transaction
+     * @param {number} priorityFee The optional priority fee to be paid for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record to use to pay the fee for the join transaction
      * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
@@ -726,7 +726,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} priorityFee The fee to pay for the transfer
+     * @param {number} priorityFee The optional priority fee to be paid for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
@@ -825,7 +825,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} priorityFee The fee to pay for the transfer
+     * @param {number} priorityFee The optional priority fee to be paid for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
      * records for the transfer transaction
@@ -871,7 +871,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} priorityFee The fee to pay for the transfer
+     * @param {number} priorityFee The optional priority fee to be paid for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
@@ -916,7 +916,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} priorityFee The fee to pay for the transfer
+     * @param {number} priorityFee The optional priority fee to be paid for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer

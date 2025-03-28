@@ -55,7 +55,7 @@ impl ProgramManager {
     /// @param recipient The recipient of the transaction
     /// @param transfer_type The type of the transfer (options: "private", "public", "private_to_public", "public_to_private")
     /// @param amount_record The record to fund the amount from
-    /// @param priority_fee_credits The amount of credits to pay as a fee
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param transfer_verifying_key (optional) Provide a verifying key to use for the transfer

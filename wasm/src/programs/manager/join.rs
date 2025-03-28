@@ -54,7 +54,7 @@ impl ProgramManager {
     /// @param private_key The private key of the sender
     /// @param record_1 The first record to combine
     /// @param record_2 The second record to combine
-    /// @param priority_fee_credits The amount of credits to pay as a fee
+    /// @param priority_fee_credits The opptional priority fee to be paid for the transaction
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param join_proving_key (optional) Provide a proving key to use for the join function
