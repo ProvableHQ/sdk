@@ -57,7 +57,7 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | **
 
 ```javascript
 const ciphertext = PrivateKey.newEncrypted("password");
-const account = Account.fromCiphertext(ciphertext, "password");
+const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
 ```
 
 ---
@@ -216,7 +216,7 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | **
 
 ```javascript
 const ciphertext = PrivateKey.newEncrypted("password");
-const account = Account.fromCiphertext(ciphertext, "password");
+const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
 ```
 
 ---
