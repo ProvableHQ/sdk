@@ -1100,7 +1100,7 @@ class ProgramManager {
         const {
             programName = "credits.aleo",
             functionName = "bond_validator",
-            priorityFee = options.priorityFee || 0.86,
+            priorityFee = options.priorityFee || 0,
             privateFee = false,
             inputs = [validator_address, withdrawal_address, `${scaledAmount.toString()}u64`, `${adjustedCommission.toString()}u8`],
             keySearchParams = new AleoKeyProviderParams({
