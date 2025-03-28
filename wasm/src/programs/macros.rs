@@ -166,3 +166,25 @@ macro_rules! execute_fee {
         fee
     }}
 }
+
+#[macro_export]
+macro_rules! calculate_minimum_fee {
+    ($offline_query:expr, $node_url: expr, $process:expr, $execution_ref:expr) => {{
+        let block_height = if let Some(offline_query) = $offline_query {
+            let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
+            block_height
+        } else {
+            let query = QueryNative::from($node_url);
+            let block_height = query.current_block_height_async().await.map_err(|e| e.to_string())?;
+            block_height
+        };
+        let (minimum_execution_cost, (_, _)) =
+            if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
+                execution_cost_v2($process, $execution_ref).map_err(|err| err.to_string())?
+            } else {
+                execution_cost_v1($process, $execution_ref).map_err(|err| err.to_string())?
+            };
+
+            minimum_execution_cost
+    }}
+}
