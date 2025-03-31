@@ -370,12 +370,12 @@ async fn test_fee_calculation_v2() {
         "puzzle_arcade_coin_v0001.aleo",
         "mint",
         inputs,
-        0.0,                                                      // no priority fee
-        None,                                                     // no Fee record
-        Some("https://api.explorer.provable.com/v1".to_string()), // need link to block explorer?
-        None,                                                     // What imports are needed if any?
-        None,                                                     // Proving Key?
-        None,                                                     // Verifying Key?
+        0.0,  // no priority fee
+        None, // no Fee record
+        None, //Some("https://api.explorer.provable.com/v1".to_string()), need link to block explorer?
+        None, // What imports are needed if any?
+        None, // Proving Key?
+        None, // Verifying Key?
         None, // Fee proving key -- Mike mentioned I can pull this from the SDK for any credits.aleo program
         None, // Fee verifying key -- Mike mentioned I can pull this from the SDK for any credits.aleo program
         None, // Offline query -- how can I format this
