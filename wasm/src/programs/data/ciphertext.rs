@@ -20,18 +20,21 @@ use crate::{
     Plaintext,
     ViewKey,
     from_js_typed_array,
+    from_wasm_object_array,
+    js_array_from_fields,
     native::{CiphertextNative, CurrentNetwork, FieldNative, FromBytes, IdentifierNative, ProgramIDNative, ToBytes},
     to_bits_array_le,
 };
+
 use snarkvm_console::{
     network::Network,
-    program::{FromBits, ToBits, compute_function_id},
+    program::{FromBits, FromFields, ToBits, ToFields, compute_function_id},
     types::U16,
 };
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{convert::TryFromJsValue, prelude::wasm_bindgen};
 
 /// SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
 /// object provides decryption methods to recover the plaintext from the ciphertext (given the
@@ -146,6 +149,26 @@ impl Ciphertext {
     #[wasm_bindgen(js_name = "toBitsLe")]
     pub fn to_bits_le(&self) -> Array {
         to_bits_array_le!(self)
+    }
+
+    /// Get a ciphertext object from an array of fields.
+    ///
+    /// @param {Array} fields An array of fields.
+    ///
+    /// @returns {Ciphertext} The ciphertext object.
+    #[wasm_bindgen(js_name = "fromFields")]
+    pub fn from_fields(fields: Array) -> Result<Ciphertext, String> {
+        let native_fields = from_wasm_object_array!(fields, Field)?;
+        let native = CiphertextNative::from_fields(&native_fields).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the field array representation of the ciphertext.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
     }
 
     /// Deserialize a Ciphertext string into a Ciphertext object.

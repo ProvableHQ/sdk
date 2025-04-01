@@ -14,9 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Field, GraphKey, RecordPlaintext, ViewKey, to_bits_array_le, types::native::RecordCiphertextNative};
-use snarkvm_console::prelude::ToBits;
-use snarkvm_wasm::utilities::ToBytes;
+use crate::{
+    Field,
+    GraphKey,
+    RecordPlaintext,
+    ViewKey,
+    js_array_from_fields,
+    to_bits_array_le,
+    types::native::RecordCiphertextNative,
+};
+
+use snarkvm_console::prelude::{FromBytes, ToBits, ToBytes, ToFields};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -77,6 +85,18 @@ impl RecordCiphertext {
         RecordCiphertextNative::tag(*graph_key.sk_tag(), *commitment).map_err(|e| e.to_string()).map(Field::from)
     }
 
+    /// Get a record ciphertext object from a series of bytes.
+    ///
+    /// @param {Uint8Array} bytes A left endian byte array representing the record ciphertext.
+    ///
+    /// @returns {RecordCiphertext}
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Self, String> {
+        let rust_bytes = bytes.to_vec();
+        let native = RecordCiphertextNative::from_bytes_le(&rust_bytes).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
     /// Get the left endian byte array representation of the record ciphertext.
     #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
@@ -89,6 +109,14 @@ impl RecordCiphertext {
     #[wasm_bindgen(js_name = "toBitsLe")]
     pub fn to_bits_le(&self) -> Array {
         to_bits_array_le!(self)
+    }
+
+    /// Get the field array representation of the record ciphertext.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
     }
 }
 

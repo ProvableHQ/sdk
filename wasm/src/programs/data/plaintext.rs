@@ -20,17 +20,20 @@ use crate::{
     Field,
     Scalar,
     from_js_typed_array,
-    native::LiteralNative,
+    from_wasm_object_array,
+    js_array_from_fields,
+    native::{FieldNative, LiteralNative},
     plaintext_to_js_value,
     to_bits_array_le,
-    types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes},
+    types::native::{IdentifierNative, PlaintextNative},
 };
-use once_cell::sync::OnceCell;
-use snarkvm_console::prelude::{FromBits, ToBits};
+
+use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields};
 
 use js_sys::{Array, Uint8Array};
+use once_cell::sync::OnceCell;
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+use wasm_bindgen::{JsValue, convert::TryFromJsValue, prelude::wasm_bindgen};
 
 /// SnarkVM Plaintext object. Plaintext is a fundamental monadic type used to represent Aleo
 /// primitive types (boolean, field, group, i8, i16, i32, i64, i128, u8, u16, u32, u64, u128,
@@ -122,10 +125,30 @@ impl Plaintext {
         Ok(Self(native))
     }
 
-    /// Get the left endian boolean array representation of the bits plaintext.
+    /// Get the left endian boolean array representation of the bits of the plaintext.
     #[wasm_bindgen(js_name = "toBitsLe")]
     pub fn to_bits_le(&self) -> Array {
         to_bits_array_le!(self)
+    }
+
+    /// Get a plaintext object from an array of fields.
+    ///
+    /// @param {Array} fields An array of fields.
+    ///
+    /// @returns {Plaintext} The plaintext object.
+    #[wasm_bindgen(js_name = "fromFields")]
+    pub fn from_fields(fields: Array) -> Result<Plaintext, String> {
+        let native_fields = from_wasm_object_array!(fields, Field)?;
+        let native = PlaintextNative::from_fields(&native_fields).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the field array representation of the plaintext.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
     }
 
     /// Returns the string representation of the plaintext.

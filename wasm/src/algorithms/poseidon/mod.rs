@@ -30,8 +30,9 @@ mod tests {
         Field,
         Group,
         Scalar,
+        js_array_from_fields,
         types::native::{FieldNative, Poseidon2Native, Poseidon4Native, Poseidon8Native},
-        utilities::test::{create_native_field_vector, js_array_from_fields},
+        utilities::test::create_native_field_vector,
     };
     use snarkvm_console::algorithms::{Hash, HashMany, HashToGroup, HashToScalar};
 
@@ -56,31 +57,31 @@ mod tests {
             let native_field_array = create_native_field_vector(Some(*count));
 
             // Hash the field array using all Poseidon hasher instances.
-            let hash_2 = poseidon2.hash(js_array_from_fields(&native_field_array)).unwrap();
-            let hash_4 = poseidon4.hash(js_array_from_fields(&native_field_array)).unwrap();
-            let hash_8 = poseidon8.hash(js_array_from_fields(&native_field_array)).unwrap();
-            let hash_2_scalar = poseidon2.hash_to_scalar(js_array_from_fields(&native_field_array)).unwrap();
-            let hash_4_scalar = poseidon4.hash_to_scalar(js_array_from_fields(&native_field_array)).unwrap();
-            let hash_8_scalar = poseidon8.hash_to_scalar(js_array_from_fields(&native_field_array)).unwrap();
-            let hash_2_group = poseidon2.hash_to_group(js_array_from_fields(&native_field_array)).unwrap();
-            let hash_4_group = poseidon4.hash_to_group(js_array_from_fields(&native_field_array)).unwrap();
-            let hash_8_group = poseidon8.hash_to_group(js_array_from_fields(&native_field_array)).unwrap();
+            let hash_2 = poseidon2.hash(js_array_from_fields!(&native_field_array)).unwrap();
+            let hash_4 = poseidon4.hash(js_array_from_fields!(&native_field_array)).unwrap();
+            let hash_8 = poseidon8.hash(js_array_from_fields!(&native_field_array)).unwrap();
+            let hash_2_scalar = poseidon2.hash_to_scalar(js_array_from_fields!(&native_field_array)).unwrap();
+            let hash_4_scalar = poseidon4.hash_to_scalar(js_array_from_fields!(&native_field_array)).unwrap();
+            let hash_8_scalar = poseidon8.hash_to_scalar(js_array_from_fields!(&native_field_array)).unwrap();
+            let hash_2_group = poseidon2.hash_to_group(js_array_from_fields!(&native_field_array)).unwrap();
+            let hash_4_group = poseidon4.hash_to_group(js_array_from_fields!(&native_field_array)).unwrap();
+            let hash_8_group = poseidon8.hash_to_group(js_array_from_fields!(&native_field_array)).unwrap();
             let hash_2_many = poseidon2
-                .hash_many(js_array_from_fields(&native_field_array), 2)
+                .hash_many(js_array_from_fields!(&native_field_array), 2)
                 .unwrap()
                 .to_vec()
                 .into_iter()
                 .map(|item| *Field::try_from_js_value(item).unwrap())
                 .collect::<Vec<FieldNative>>();
             let hash_4_many = poseidon4
-                .hash_many(js_array_from_fields(&native_field_array), 2)
+                .hash_many(js_array_from_fields!(&native_field_array), 2)
                 .unwrap()
                 .to_vec()
                 .into_iter()
                 .map(|item| *Field::try_from_js_value(item).unwrap())
                 .collect::<Vec<FieldNative>>();
             let hash_8_many = poseidon8
-                .hash_many(js_array_from_fields(&native_field_array), 2)
+                .hash_many(js_array_from_fields!(&native_field_array), 2)
                 .unwrap()
                 .to_vec()
                 .into_iter()

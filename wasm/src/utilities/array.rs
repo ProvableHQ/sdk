@@ -38,3 +38,14 @@ macro_rules! from_js_typed_array {
             .collect::<Result<Vec<bool>, String>>()
     }};
 }
+
+#[macro_export]
+macro_rules! js_array_from_fields {
+    ($input:expr) => {{
+        let js_array = js_sys::Array::new();
+        $input.iter().for_each(|field| {
+            js_array.push(&wasm_bindgen::JsValue::from(Field::from(*field)));
+        });
+        js_array
+    }};
+}

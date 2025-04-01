@@ -14,7 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Address, Plaintext, PrivateKey, Scalar, native::LiteralNative, types::native::SignatureNative};
+use crate::{
+    Address,
+    Field,
+    Plaintext,
+    PrivateKey,
+    Scalar,
+    from_js_typed_array,
+    js_array_from_fields,
+    native::LiteralNative,
+    to_bits_array_le,
+    types::native::SignatureNative,
+};
+
+use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, ToFields};
 
 use core::{fmt, ops::Deref, str::FromStr};
 use js_sys::{Array, Uint8Array};
@@ -62,6 +75,51 @@ impl Signature {
         self.0.verify_bytes(address, message)
     }
 
+    /// Get a signature from a series of bytes.
+    ///
+    /// @param {Uint8Array} bytes A left endian byte array representing the signature.
+    ///
+    /// @returns {Signature} The signature object.
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Self, String> {
+        let rust_bytes = bytes.to_vec();
+        let native = SignatureNative::from_bytes_le(rust_bytes.as_slice()).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the left endian byte array representation of the signature.
+    #[wasm_bindgen(js_name = "toBytesLe")]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        Ok(Uint8Array::from(rust_bytes.as_slice()))
+    }
+
+    /// Get a signature from a series of bits represented as a boolean array.
+    ///
+    /// @param {Array} bits A left endian boolean array representing the bits of the signature.
+    ///
+    /// @returns {Signature} The signature object.
+    #[wasm_bindgen(js_name = "fromBitsLe")]
+    pub fn from_bits_le(bits: Array) -> Result<Self, String> {
+        let rust_bits = from_js_typed_array!(bits, as_bool, "boolean")?;
+        let native = SignatureNative::from_bits_le(&rust_bits).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the left endian boolean array representation of the bits of the signature.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
+
+    /// Get the field array representation of the signature.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
+    }
+
     /// Get a signature from a string representation of a signature
     ///
     /// @param {string} signature String representation of a signature
@@ -78,18 +136,28 @@ impl Signature {
         self.0.to_string()
     }
 
+    /// Get the plaintext representation of the signature.
+    #[wasm_bindgen(js_name = "toPlaintext")]
+    pub fn to_plaintext(&self) -> Plaintext {
+        Plaintext::from(LiteralNative::Signature(Box::new(self.0)))
+    }
+
     /// Get the left endian byte array representation of the signature plaintext.
     #[wasm_bindgen(js_name = "toPlaintextBytesLe")]
     pub fn to_plaintext_bytes_le(&self) -> Result<Uint8Array, String> {
-        let plaintext = Plaintext::from(LiteralNative::Signature(Box::new(self.0)));
-        plaintext.to_bytes_le()
+        self.to_plaintext().to_bytes_le()
     }
 
     /// Get the left endian boolean array representation of the signature plaintext bits.
     #[wasm_bindgen(js_name = "toPlaintextBitsLe")]
     pub fn to_plaintext_bits_le(&self) -> Array {
-        let plaintext = Plaintext::from(LiteralNative::Signature(Box::new(self.0)));
-        plaintext.to_bits_le()
+        self.to_plaintext().to_bits_le()
+    }
+
+    /// Get the field array representation of the signature plaintext.
+    #[wasm_bindgen(js_name = "toPlaintextFields")]
+    pub fn to_plaintext_fields(&self) -> Result<Array, String> {
+        self.to_plaintext().to_fields()
     }
 }
 
