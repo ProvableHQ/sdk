@@ -346,7 +346,7 @@ async fn test_fee_calculation_v1() {
     inputs.set(3u32, JsValue::from_str(input_4));
     inputs.set(4u32, JsValue::from_str(input_5));
 
-    let offline_query = OfflienQuery::from_string(OFFLINE_QUERY_V1);
+    let offline_query = OfflineQuery::from_string(OFFLINE_QUERY_V1);
 
     let transaction = ProgramManager::execute(
         &private_key,
@@ -382,7 +382,7 @@ async fn test_fee_calculation_v2() {
     inputs.set(0u32, JsValue::from_str(input_1));
     inputs.set(1u32, JsValue::from_str(input_2));
 
-    let offline_query = OfflienQuery::from_string(OFFLINE_QUERY_V2);
+    let offline_query = OfflineQuery::from_string(OFFLINE_QUERY_V2);
 
     let transaction = ProgramManager::execute(
         &private_key,
