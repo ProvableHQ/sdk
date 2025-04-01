@@ -142,24 +142,6 @@ impl Address {
         Plaintext::from(LiteralNative::Address(self.0))
     }
 
-    /// Get the left endian byte array representation of the address plaintext.
-    #[wasm_bindgen(js_name = "toPlaintextBytesLe")]
-    pub fn to_plaintext_bytes_le(&self) -> Result<Uint8Array, String> {
-        self.to_plaintext().to_bytes_le()
-    }
-
-    /// Get the left endian boolean array representation of the address plaintext bits.
-    #[wasm_bindgen(js_name = "toPlaintextBitsLe")]
-    pub fn to_plaintext_bits_le(&self) -> Array {
-        self.to_plaintext().to_bits_le()
-    }
-
-    /// Get the field array representation of the address plaintext.
-    #[wasm_bindgen(js_name = "toPlaintextFields")]
-    pub fn to_plaintext_fields(&self) -> Result<Array, String> {
-        self.to_plaintext().to_fields()
-    }
-
     /// Verify a signature for a message signed by the address
     ///
     /// @param {Uint8Array} Byte array representing a message signed by the address

@@ -141,24 +141,6 @@ impl Signature {
     pub fn to_plaintext(&self) -> Plaintext {
         Plaintext::from(LiteralNative::Signature(Box::new(self.0)))
     }
-
-    /// Get the left endian byte array representation of the signature plaintext.
-    #[wasm_bindgen(js_name = "toPlaintextBytesLe")]
-    pub fn to_plaintext_bytes_le(&self) -> Result<Uint8Array, String> {
-        self.to_plaintext().to_bytes_le()
-    }
-
-    /// Get the left endian boolean array representation of the signature plaintext bits.
-    #[wasm_bindgen(js_name = "toPlaintextBitsLe")]
-    pub fn to_plaintext_bits_le(&self) -> Array {
-        self.to_plaintext().to_bits_le()
-    }
-
-    /// Get the field array representation of the signature plaintext.
-    #[wasm_bindgen(js_name = "toPlaintextFields")]
-    pub fn to_plaintext_fields(&self) -> Result<Array, String> {
-        self.to_plaintext().to_fields()
-    }
 }
 
 impl Deref for Signature {
