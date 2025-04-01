@@ -14,7 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_wasm::{PrivateKey, Program, ProgramManager, RecordPlaintext};
+use aleo_wasm::{
+    Metadata,
+    OfflineQuery,
+    PrivateKey,
+    Program,
+    ProgramManager,
+    ProvingKey,
+    RecordPlaintext,
+    VerifyingKey,
+};
 use js_sys::{Array, Object, Reflect};
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
@@ -101,6 +110,9 @@ function add_and_double:
 "#;
 
 const RECORD: &str = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 2000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}";
+
+const OFFLINE_QUERY_V1: &str = r#"{"block_height": 756467, "state_paths": {}, "state_root": "sr1hgvd8g9ns46unsww58zlyd92ujg00cxenv9cte844sejfsjrzqqq54m5tj"}"#;
+const OFFLINE_QUERY_V2: &str = r#"{"block_height": 6398077, "state_paths": {}, "state_root": "sr1lzvsx4jshyz9h42erfs0w6a4c8xy6s6hjs4lgfmyzzlju837lvxqcz7fft"}"#;
 
 #[wasm_bindgen_test]
 async fn test_key_synthesis() {
@@ -318,8 +330,8 @@ async fn test_import_resolution() {
 
 #[wasm_bindgen_test]
 async fn test_fee_calculation_v1() {
-    // from transaction id:  at19mj25mcva2nq54cln0lyccqvz4822xxvgzhqdnjzgdfdgjkshszqq4hw6y
-    // block number 756,467 on testnet
+    // Transaction id: at19mj25mcva2nq54cln0lyccqvz4822xxvgzhqdnjzgdfdgjkshszqq4hw6y
+    // Block number: 756,467 on testnet
     let private_key = PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
     let expected_microcredits = 200_000_u64; // value from the block explorer
     let input_1 = "6393458784928152890753831473531216042773373840069504781946713920338912225797field";
@@ -334,20 +346,22 @@ async fn test_fee_calculation_v1() {
     inputs.set(3u32, JsValue::from_str(input_4));
     inputs.set(4u32, JsValue::from_str(input_5));
 
+    let offline_query = OfflienQuery::from_string(OFFLINE_QUERY_V1);
+
     let transaction = ProgramManager::execute(
         &private_key,
         "alphaswap_v1x5.aleo",
         "swap_exact_tokens_for_tokens",
         inputs,
-        0.0,  // no priority fee
-        None, // no Fee record
-        None, // ("https://testnet.explorer.provable.com/transaction/at19mj25mcva2nq54cln0lyccqvz4822xxvgzhqdnjzgdfdgjkshszqq4hw6y".to_string()), // link to the transaction on block explorer.
-        None, // What imports are needed if any?
-        None, // Proving Key?
-        None, // Verifying Key?
-        None, // Fee proving key -- Mike mentioned I can pull this from the SDK for any credits.aleo program  tpk:  2962200583676994986582946921980128270014798002987146054112816991552505256655group
-        None, // Fee verifying key -- Mike mentioned I can pull this from the SDK for any credits.aleo program
-        None, // Offline query -- how can I format this
+        0.0,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        offline_query,
     )
     .await;
 
@@ -357,28 +371,33 @@ async fn test_fee_calculation_v1() {
 
 #[wasm_bindgen_test]
 async fn test_fee_calculation_v2() {
+    // Trasaction ID:  at1av6d606xj04w4fmqlp088z0m0jnwqxr00mz2qkcap2xyxeu6ngxs7f3gx7
+    // Block number: 6,398,077
+    // Fee:  26,439 microcredits
     let private_key = PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
-    let expected_microcredits = 3_000_u64; // value from the block explorer
-    let input_1 = "aleo18clqv2ycpdmz07mzsuevp6yqwcz6ym303pra9hly523rpjuw0y9q5anej2";
-    let input_2 = "1000000u64";
+    let expected_microcredits = 26_439_u64;
+    let input_1 = "ciphertext1qgqzgxl9fwc7rgnzzwk40laya7ncvlqg29j5gy4xk8qf8ekzu7zsypx4rwy8mdp3rs2qkg54vqfwgekn5yu9k2fs63xd408z8f7rxm3nqvh5hdjd";
+    let input_2 = "14973561u64";
     let inputs = Array::new();
     inputs.set(0u32, JsValue::from_str(input_1));
     inputs.set(1u32, JsValue::from_str(input_2));
 
+    let offline_query = OfflienQuery::from_string(OFFLINE_QUERY_V2);
+
     let transaction = ProgramManager::execute(
         &private_key,
-        "puzzle_arcade_coin_v0001.aleo",
-        "mint",
+        "credits.aleo",
+        "transfer_public_to_private",
         inputs,
-        0.0,  // no priority fee
-        None, // no Fee record
-        None, //Some("https://api.explorer.provable.com/v1".to_string()), need link to block explorer?
-        None, // What imports are needed if any?
-        None, // Proving Key?
-        None, // Verifying Key?
-        None, // Fee proving key -- Mike mentioned I can pull this from the SDK for any credits.aleo program
-        None, // Fee verifying key -- Mike mentioned I can pull this from the SDK for any credits.aleo program
-        None, // Offline query -- how can I format this
+        0.0,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        offline_query,
     )
     .await;
 
