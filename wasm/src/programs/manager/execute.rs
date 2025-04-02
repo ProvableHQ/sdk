@@ -222,6 +222,7 @@ impl ProgramManager {
             fee_verifying_key,
             execution_id,
             rng,
+            offline_query,
             minimum_execution_cost
         );
 

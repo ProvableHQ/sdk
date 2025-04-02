@@ -98,7 +98,7 @@ macro_rules! execute_program {
 
 #[macro_export]
 macro_rules! execute_fee {
-    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr, $minimum_execution_cost:expr) => {{
+    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr, $offline_query:expr, $minimum_execution_cost:expr) => {{
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
@@ -107,7 +107,7 @@ macro_rules! execute_fee {
                     .to_string(),
             );
         }
-
+        
         if let Some(fee_proving_key) = $fee_proving_key {
             let credits = ProgramIDNative::from_str("credits.aleo").unwrap();
             let fee = if $fee_record.is_some() {
@@ -157,6 +157,14 @@ macro_rules! execute_fee {
         let (_, mut trace) = $process
             .execute::<CurrentAleo, _>(fee_authorization, $rng)
             .map_err(|e| e.to_string())?;
+
+        log("Preparing inclusion proofs for fee execution");
+        if let Some(offline_query) = offline_query.as_ref() {
+            trace.prepare_async(offline_query.clone()).await.map_err(|err| err.to_string())?;
+        } else {
+            let query = QueryNative::from(node_url);
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+        }
 
         let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 

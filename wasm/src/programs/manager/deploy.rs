@@ -110,6 +110,7 @@ impl ProgramManager {
             fee_verifying_key,
             deployment_id,
             rng,
+            offline_query,
             minimum_deployment_cost
         );
 
