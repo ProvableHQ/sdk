@@ -30,10 +30,17 @@ pub use bhp1024::BHP1024;
 mod tests {
     use super::*;
     use crate::{
-        native::{FieldNative, GroupNative, LiteralNative, PlaintextNative, ScalarNative}, test::{create_native_field_vector, TEST_STRUCT}, types::native::{BHP1024Native, BHP256Native, BHP512Native, BHP768Native, CurrentNetwork}, Field, Group, Scalar
+        Address,
+        Field,
+        Group,
+        Plaintext,
+        Scalar,
+        native::{FieldNative, GroupNative, LiteralNative, PlaintextNative, ScalarNative},
+        test::{TEST_STRUCT, create_native_field_vector},
+        types::native::{BHP256Native, BHP512Native, BHP768Native, BHP1024Native},
     };
-    use snarkvm_console::{algorithms::{Commit, CommitUncompressed, Hash, HashUncompressed, ToBits}, program::{Literal, Plaintext}, types::{Address, Boolean}};
-    
+    use snarkvm_console::algorithms::{Commit, CommitUncompressed, Hash, HashUncompressed, ToBits};
+
     use js_sys::Array;
     use once_cell::sync::OnceCell;
     use std::str::FromStr;
@@ -141,26 +148,21 @@ mod tests {
         let native_bhp768 = BHP768Native::setup("AleoBHP768").unwrap();
         let native_bhp1024 = BHP1024Native::setup("AleoBHP1024").unwrap();
 
-        let address = Address::zero();
+        let address = Address::from_string("aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc");
 
         let literals = vec![
-            Literal::Address(address),
-            Literal::Boolean(Boolean::new(false)),
-            Literal::Field(snarkvm_console::types::Field::from_u8(2)),
-            Literal::Group(
-                snarkvm_console::types::Group::from_str(
-                    "7243206743250892049702172909169115544952822465955921992746259936160368017976group",
-                )
-                .unwrap(),
-            ),
-            Literal::Scalar(snarkvm_console::types::Scalar::from_field_lossy(&snarkvm_console::types::Field::from_u8(
-                2,
-            ))),
+            address.to_plaintext(),
+            Field::from_string("2field").unwrap().to_plaintext(),
+            Group::from_string("7243206743250892049702172909169115544952822465955921992746259936160368017976group")
+                .unwrap()
+                .to_plaintext(),
+            Scalar::from_string("836504693989570607341914239820012911582004515616146791081874852343183183566scalar")
+                .unwrap()
+                .to_plaintext(),
         ];
 
         let native_literals = vec![
-            LiteralNative::Address(address),
-            LiteralNative::Boolean(Boolean::new(false)),
+            LiteralNative::Address(address.into()),
             LiteralNative::Field(FieldNative::from_u8(2)),
             LiteralNative::Group(
                 GroupNative::from_str(
@@ -168,29 +170,33 @@ mod tests {
                 )
                 .unwrap(),
             ),
-            LiteralNative::Scalar(ScalarNative::from_field_lossy(&snarkvm_console::types::Field::from_u8(2))),
+            LiteralNative::Scalar(
+                ScalarNative::from_str(
+                    "836504693989570607341914239820012911582004515616146791081874852343183183566scalar",
+                )
+                .unwrap(),
+            ),
         ];
 
         for i in 0..literals.len() {
-            let literal_bits = Plaintext::Literal(literals[i].clone(), OnceCell::new()).to_bits_le();
-            let bit_array = literal_bits.iter().map(|item| JsValue::from(*item)).collect::<Array>();
+            let literal_bits = literals[i].to_bits_le();
 
-            let hash_256 = bhp256.hash(bit_array.clone()).unwrap();
-            let hash_512 = bhp512.hash(bit_array.clone()).unwrap();
-            let hash_768 = bhp768.hash(bit_array.clone()).unwrap();
-            let hash_1024 = bhp1024.hash(bit_array.clone()).unwrap();
-            let hash_to_group_256 = bhp256.hash_to_group(bit_array.clone()).unwrap();
-            let hash_to_group_512 = bhp512.hash_to_group(bit_array.clone()).unwrap();
-            let hash_to_group_768 = bhp768.hash_to_group(bit_array.clone()).unwrap();
-            let hash_to_group_1024 = bhp1024.hash_to_group(bit_array.clone()).unwrap();
-            let commit_256 = bhp256.commit(bit_array.clone(), scalar.clone()).unwrap();
-            let commit_512 = bhp512.commit(bit_array.clone(), scalar.clone()).unwrap();
-            let commit_768 = bhp768.commit(bit_array.clone(), scalar.clone()).unwrap();
-            let commit_1024 = bhp1024.commit(bit_array.clone(), scalar.clone()).unwrap();
-            let commit_to_group_256 = bhp256.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
-            let commit_to_group_512 = bhp512.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
-            let commit_to_group_768 = bhp768.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
-            let commit_to_group_1024 = bhp1024.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
+            let hash_256 = bhp256.hash(literal_bits.clone()).unwrap();
+            let hash_512 = bhp512.hash(literal_bits.clone()).unwrap();
+            let hash_768 = bhp768.hash(literal_bits.clone()).unwrap();
+            let hash_1024 = bhp1024.hash(literal_bits.clone()).unwrap();
+            let hash_to_group_256 = bhp256.hash_to_group(literal_bits.clone()).unwrap();
+            let hash_to_group_512 = bhp512.hash_to_group(literal_bits.clone()).unwrap();
+            let hash_to_group_768 = bhp768.hash_to_group(literal_bits.clone()).unwrap();
+            let hash_to_group_1024 = bhp1024.hash_to_group(literal_bits.clone()).unwrap();
+            let commit_256 = bhp256.commit(literal_bits.clone(), scalar.clone()).unwrap();
+            let commit_512 = bhp512.commit(literal_bits.clone(), scalar.clone()).unwrap();
+            let commit_768 = bhp768.commit(literal_bits.clone(), scalar.clone()).unwrap();
+            let commit_1024 = bhp1024.commit(literal_bits.clone(), scalar.clone()).unwrap();
+            let commit_to_group_256 = bhp256.commit_to_group(literal_bits.clone(), scalar.clone()).unwrap();
+            let commit_to_group_512 = bhp512.commit_to_group(literal_bits.clone(), scalar.clone()).unwrap();
+            let commit_to_group_768 = bhp768.commit_to_group(literal_bits.clone(), scalar.clone()).unwrap();
+            let commit_to_group_1024 = bhp1024.commit_to_group(literal_bits.clone(), scalar.clone()).unwrap();
 
             let native_bits = PlaintextNative::Literal(native_literals[i].clone(), OnceCell::new()).to_bits_le();
 
@@ -229,26 +235,25 @@ mod tests {
             assert_eq!(commit_to_group_1024, Group::from(native_commit_to_group_1024));
         }
 
-        let struct_pt: Plaintext<CurrentNetwork> = Plaintext::from_str(TEST_STRUCT).unwrap();
+        let struct_pt: Plaintext = Plaintext::from_string(TEST_STRUCT).unwrap();
         let struct_bits = struct_pt.to_bits_le();
-        let bit_array = struct_bits.iter().map(|item| JsValue::from(*item)).collect::<Array>();
 
-        let hash_256 = bhp256.hash(bit_array.clone()).unwrap();
-        let hash_512 = bhp512.hash(bit_array.clone()).unwrap();
-        let hash_768 = bhp768.hash(bit_array.clone()).unwrap();
-        let hash_1024 = bhp1024.hash(bit_array.clone()).unwrap();
-        let hash_to_group_256 = bhp256.hash_to_group(bit_array.clone()).unwrap();
-        let hash_to_group_512 = bhp512.hash_to_group(bit_array.clone()).unwrap();
-        let hash_to_group_768 = bhp768.hash_to_group(bit_array.clone()).unwrap();
-        let hash_to_group_1024 = bhp1024.hash_to_group(bit_array.clone()).unwrap();
-        let commit_256 = bhp256.commit(bit_array.clone(), scalar.clone()).unwrap();
-        let commit_512 = bhp512.commit(bit_array.clone(), scalar.clone()).unwrap();
-        let commit_768 = bhp768.commit(bit_array.clone(), scalar.clone()).unwrap();
-        let commit_1024 = bhp1024.commit(bit_array.clone(), scalar.clone()).unwrap();
-        let commit_to_group_256 = bhp256.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
-        let commit_to_group_512 = bhp512.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
-        let commit_to_group_768 = bhp768.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
-        let commit_to_group_1024 = bhp1024.commit_to_group(bit_array.clone(), scalar.clone()).unwrap();
+        let hash_256 = bhp256.hash(struct_bits.clone()).unwrap();
+        let hash_512 = bhp512.hash(struct_bits.clone()).unwrap();
+        let hash_768 = bhp768.hash(struct_bits.clone()).unwrap();
+        let hash_1024 = bhp1024.hash(struct_bits.clone()).unwrap();
+        let hash_to_group_256 = bhp256.hash_to_group(struct_bits.clone()).unwrap();
+        let hash_to_group_512 = bhp512.hash_to_group(struct_bits.clone()).unwrap();
+        let hash_to_group_768 = bhp768.hash_to_group(struct_bits.clone()).unwrap();
+        let hash_to_group_1024 = bhp1024.hash_to_group(struct_bits.clone()).unwrap();
+        let commit_256 = bhp256.commit(struct_bits.clone(), scalar.clone()).unwrap();
+        let commit_512 = bhp512.commit(struct_bits.clone(), scalar.clone()).unwrap();
+        let commit_768 = bhp768.commit(struct_bits.clone(), scalar.clone()).unwrap();
+        let commit_1024 = bhp1024.commit(struct_bits.clone(), scalar.clone()).unwrap();
+        let commit_to_group_256 = bhp256.commit_to_group(struct_bits.clone(), scalar.clone()).unwrap();
+        let commit_to_group_512 = bhp512.commit_to_group(struct_bits.clone(), scalar.clone()).unwrap();
+        let commit_to_group_768 = bhp768.commit_to_group(struct_bits.clone(), scalar.clone()).unwrap();
+        let commit_to_group_1024 = bhp1024.commit_to_group(struct_bits.clone(), scalar.clone()).unwrap();
 
         let native_struct_pt = PlaintextNative::from_str(TEST_STRUCT).unwrap();
         let native_struct_bits = native_struct_pt.to_bits_le();
