@@ -16,6 +16,7 @@
 
 use crate::{
     Field,
+    Group,
     Plaintext,
     account::{PrivateKey, Signature, ViewKey, compute_key::ComputeKey},
     from_js_typed_array,
@@ -25,7 +26,6 @@ use crate::{
     to_bits_array_le,
     types::native::AddressNative,
 };
-
 use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
@@ -119,6 +119,22 @@ impl Address {
         Ok(js_array_from_fields!(&native_fields))
     }
 
+    /// Get an address object from a group.
+    ///
+    /// @param {Group} group The group object.
+    ///
+    /// @returns {Address} The address object.
+    #[wasm_bindgen(js_name = "fromGroup")]
+    pub fn from_group(group: Group) -> Self {
+        Self::from(group)
+    }
+
+    /// Get the group representation of the address object.
+    #[wasm_bindgen(js_name = "toGroup")]
+    pub fn to_group(&self) -> Group {
+        Group::from(self)
+    }
+
     /// Create an aleo address object from a string representation of an address
     ///
     /// @param {string} address String representation of an addressm
@@ -186,6 +202,31 @@ impl From<&AddressNative> for Address {
 impl From<&Address> for AddressNative {
     fn from(value: &Address) -> Self {
         value.0
+    }
+}
+
+impl From<AddressNative> for Group {
+    fn from(value: AddressNative) -> Self {
+        let vm_group = value.to_group();
+        Self::from(vm_group)
+    }
+}
+
+impl From<Address> for Group {
+    fn from(value: Address) -> Self {
+        Self::from(value.0)
+    }
+}
+
+impl From<&AddressNative> for Group {
+    fn from(value: &AddressNative) -> Self {
+        Self::from(value.clone())
+    }
+}
+
+impl From<&Address> for Group {
+    fn from(value: &Address) -> Self {
+        Self::from(value.0)
     }
 }
 

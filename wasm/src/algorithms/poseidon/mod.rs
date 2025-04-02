@@ -27,15 +27,17 @@ pub use poseidon8::Poseidon8;
 mod tests {
     use super::*;
     use crate::{
-        Field,
-        Group,
-        Scalar,
-        js_array_from_fields,
-        types::native::{FieldNative, Poseidon2Native, Poseidon4Native, Poseidon8Native},
-        utilities::test::create_native_field_vector,
+        js_array_from_fields, native::{GroupNative, LiteralNative, PlaintextNative, ScalarNative}, test::TEST_STRUCT, types::native::{FieldNative, Poseidon2Native, Poseidon4Native, Poseidon8Native}, utilities::test::create_native_field_vector, Field, Group, Scalar
     };
-    use snarkvm_console::algorithms::{Hash, HashMany, HashToGroup, HashToScalar};
+    use snarkvm_console::{
+        algorithms::{Hash, HashMany, HashToGroup, HashToScalar},
+        prelude::ToFields,
+        program::{Literal, Plaintext},
+        types::{Address, Boolean},
+    };
 
+    use once_cell::sync::OnceCell;
+    use std::str::FromStr;
     use wasm_bindgen::convert::TryFromJsValue;
     use wasm_bindgen_test::*;
 
@@ -116,5 +118,83 @@ mod tests {
             assert_eq!(hash_4_many, native_hash_4_many);
             assert_eq!(hash_8_many, native_hash_8_many);
         }
+    }
+
+    #[wasm_bindgen_test]
+    fn test_wasm_literal_psd_hashes_equal_native_hashes() {
+        // Create all instances of exported hasher structs.
+        let poseidon2 = Poseidon2::new();
+        let poseidon4 = Poseidon4::new();
+        let poseidon8 = Poseidon8::new();
+
+        // Create native instances of hasher structs.
+        let native_poseidon2 = Poseidon2Native::setup("AleoPoseidon2").unwrap();
+        let native_poseidon4 = Poseidon4Native::setup("AleoPoseidon4").unwrap();
+        let native_poseidon8 = Poseidon8Native::setup("AleoPoseidon8").unwrap();
+
+        let address = Address::zero();
+
+        let literals = vec![
+            Literal::Address(address),
+            Literal::Boolean(Boolean::new(false)),
+            Literal::Field(snarkvm_console::types::Field::from_u8(2)),
+            Literal::Group(
+                snarkvm_console::types::Group::from_str(
+                    "7243206743250892049702172909169115544952822465955921992746259936160368017976group",
+                )
+                .unwrap(),
+            ),
+            Literal::Scalar(snarkvm_console::types::Scalar::from_field_lossy(&snarkvm_console::types::Field::from_u8(
+                2,
+            ))),
+        ];
+
+        let native_literals = vec![
+            LiteralNative::Address(address),
+            LiteralNative::Boolean(Boolean::new(false)),
+            LiteralNative::Field(FieldNative::from_u8(2)),
+            LiteralNative::Group(
+                GroupNative::from_str(
+                    "7243206743250892049702172909169115544952822465955921992746259936160368017976group",
+                )
+                .unwrap(),
+            ),
+            LiteralNative::Scalar(ScalarNative::from_field_lossy(&snarkvm_console::types::Field::from_u8(2))),
+        ];
+
+        for i in 0..literals.len() {
+            let literal_fields = Plaintext::Literal(literals[i].clone(), OnceCell::new()).to_fields().unwrap();
+            let hash2 = poseidon2.hash(js_array_from_fields!(&literal_fields)).unwrap();
+            let hash4 = poseidon4.hash(js_array_from_fields!(&literal_fields)).unwrap();
+            let hash8 = poseidon8.hash(js_array_from_fields!(&literal_fields)).unwrap();
+
+            let native_fields =
+                PlaintextNative::Literal(native_literals[i].clone(), OnceCell::new()).to_fields().unwrap();
+            let native_hash2 = native_poseidon2.hash(&native_fields).unwrap();
+            let native_hash4 = native_poseidon4.hash(&native_fields).unwrap();
+            let native_hash8 = native_poseidon8.hash(&native_fields).unwrap();
+
+            assert_eq!(hash2, Field::from(native_hash2));
+            assert_eq!(hash4, Field::from(native_hash4));
+            assert_eq!(hash8, Field::from(native_hash8));
+        }
+
+        let struct_pt = Plaintext::from_str(TEST_STRUCT).unwrap();
+        let struct_fields = struct_pt.to_fields().unwrap();
+
+        let hash2 = poseidon2.hash(js_array_from_fields!(&struct_fields)).unwrap();
+        let hash4 = poseidon4.hash(js_array_from_fields!(&struct_fields)).unwrap();
+        let hash8 = poseidon8.hash(js_array_from_fields!(&struct_fields)).unwrap();
+
+        let native_struct_pt = PlaintextNative::from_str(TEST_STRUCT).unwrap();
+        let native_struct_fields = native_struct_pt.to_fields().unwrap();
+
+        let native_hash2 = native_poseidon2.hash(&native_struct_fields).unwrap();
+        let native_hash4 = native_poseidon4.hash(&native_struct_fields).unwrap();
+        let native_hash8 = native_poseidon8.hash(&native_struct_fields).unwrap();
+
+        assert_eq!(hash2, Field::from(native_hash2));
+        assert_eq!(hash4, Field::from(native_hash4));
+        assert_eq!(hash8, Field::from(native_hash8));
     }
 }

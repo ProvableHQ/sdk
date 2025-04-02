@@ -23,7 +23,6 @@ use crate::{
     to_bits_array_le,
     types::native::RecordCiphertextNative,
 };
-
 use snarkvm_console::prelude::{FromBytes, ToBits, ToBytes, ToFields};
 
 use js_sys::{Array, Uint8Array};

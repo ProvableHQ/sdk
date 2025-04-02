@@ -35,7 +35,6 @@ use crate::{
         },
     },
 };
-
 use snarkvm_console::{
     prelude::{FromBytes, ToBits, ToBytes, ToFields},
     program::Owner,

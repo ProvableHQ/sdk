@@ -15,9 +15,11 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Address,
     Field,
     Plaintext,
     from_js_typed_array,
+    native::AddressNative,
     to_bits_array_le,
     types::{
         Scalar,
@@ -175,5 +177,30 @@ impl From<&GroupNative> for Group {
 impl From<&Group> for GroupNative {
     fn from(group: &Group) -> Self {
         group.0
+    }
+}
+
+impl From<GroupNative> for Address {
+    fn from(value: GroupNative) -> Self {
+        let native = AddressNative::new(value);
+        Address::from(native)
+    }
+}
+
+impl From<Group> for Address {
+    fn from(value: Group) -> Self {
+        Address::from(value.0)
+    }
+}
+
+impl From<&GroupNative> for Address {
+    fn from(value: &GroupNative) -> Self {
+        Address::from(value.clone())
+    }
+}
+
+impl From<&Group> for Address {
+    fn from(value: &Group) -> Self {
+        Address::from(value.0)
     }
 }

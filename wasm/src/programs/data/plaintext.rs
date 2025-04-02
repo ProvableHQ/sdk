@@ -27,7 +27,6 @@ use crate::{
     to_bits_array_le,
     types::native::{IdentifierNative, PlaintextNative},
 };
-
 use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields};
 
 use js_sys::{Array, Uint8Array};

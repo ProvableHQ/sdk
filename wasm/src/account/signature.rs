@@ -26,7 +26,6 @@ use crate::{
     to_bits_array_le,
     types::native::SignatureNative,
 };
-
 use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, ToFields};
 
 use core::{fmt, ops::Deref, str::FromStr};

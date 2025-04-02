@@ -25,7 +25,6 @@ use crate::{
     native::{CiphertextNative, CurrentNetwork, FieldNative, FromBytes, IdentifierNative, ProgramIDNative, ToBytes},
     to_bits_array_le,
 };
-
 use snarkvm_console::{
     network::Network,
     program::{FromBits, FromFields, ToBits, ToFields, compute_function_id},

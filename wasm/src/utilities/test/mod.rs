@@ -21,6 +21,15 @@ use std::str::FromStr;
 /// Create a field element to act as a generator.
 pub const FIELD_ELEMENT: &str = "6901184695964460143517399399785179769303979738604374595034454667750561389951field";
 
+/// Create a test struct containing all currently supported literal types for hash testing.
+pub const TEST_STRUCT: &str = "{
+    user: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc,
+    is_active: false,
+    some_field: 2field,
+    some_group: 7243206743250892049702172909169115544952822465955921992746259936160368017976group,
+    some_scalar: 836504693989570607341914239820012911582004515616146791081874852343183183566scalar
+}";
+
 /// Create a field element and a scalar element.
 pub fn create_native_field_vector(num_fields: Option<u16>) -> Vec<FieldNative> {
     // Create a field element generator.
