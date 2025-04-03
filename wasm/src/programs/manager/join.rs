@@ -127,7 +127,9 @@ impl ProgramManager {
         }
 
         log("Proving the join execution");
-        let execution = trace.prove_execution::<CurrentAleo, _>("credits.aleo/join", VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>("credits.aleo/join", VarunaVersion::V2, rng)
+            .map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the join execution");

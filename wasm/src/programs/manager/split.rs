@@ -26,9 +26,9 @@ use crate::{
     process_inputs,
     types::native::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
 };
-use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use std::{ops::Add, str::FromStr};
 
 #[wasm_bindgen]
@@ -89,8 +89,9 @@ impl ProgramManager {
         }
 
         log("Proving the split execution");
-        let execution =
-            trace.prove_execution::<CurrentAleo, _>("credits.aleo/split", VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>("credits.aleo/split", VarunaVersion::V2, rng)
+            .map_err(|e| e.to_string())?;
 
         log("Verifying the split execution");
         process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
