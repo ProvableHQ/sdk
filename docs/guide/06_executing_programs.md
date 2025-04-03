@@ -132,7 +132,7 @@ try {
     const tx = await programManager.buildExecutionTransaction({
         programName: "betastaking.aleo",
         functionName: "stake_public",
-        fee: 0.10,
+        priorityFee: 0.10,
         privateFee: false, // Assuming a value for privateFee
         inputs: ["aleo17x23al8k9scqe0qqdppzcehlu8vm0ap0j5mukskdq56lsa25lv8qz5cz3g", "50000000u64"], // Example inputs matching the function definition
         keySearchParams: keySearchParams,

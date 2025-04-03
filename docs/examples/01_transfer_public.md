@@ -29,7 +29,7 @@ const transaction = await programManager
     recipient       // The address of the recipient.
       .address()
       .to_string(),
-    0.0             // The priority fee amount.
+    0.0             // The optional priority fee amount.
   );
 
 // Broadcast the transaction to the Aleo network.
