@@ -37,6 +37,7 @@ use crate::{
         TransactionNative,
     },
 };
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::network::{ConsensusVersion, Network};
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::{cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
@@ -115,7 +116,8 @@ impl ProgramManager {
 
             log("Proving execution");
             let locator = program_native.id().to_string().add("/").add(function);
-            let execution = trace.prove_execution::<CurrentAleo, _>(&locator, rng).map_err(|e| e.to_string())?;
+            let execution =
+                trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
             ExecutionResponse::new(Some(execution), function, response, process, program)?
         } else {
             ExecutionResponse::new(None, function, response, process, program)?
@@ -204,7 +206,7 @@ impl ProgramManager {
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
         let locator = program.id().to_string().add("/").add(function);
         let execution = trace
-            .prove_execution::<CurrentAleo, _>(&locator, &mut StdRng::from_entropy())
+            .prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, &mut StdRng::from_entropy())
             .map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
@@ -227,7 +229,7 @@ impl ProgramManager {
         );
 
         // Verify the execution
-        process.verify_execution(&execution).map_err(|err| err.to_string())?;
+        process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
 
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
@@ -304,7 +306,8 @@ impl ProgramManager {
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
             block_height
         };
-        let execution = trace.prove_execution::<CurrentAleo, _>(&locator, rng).map_err(|e| e.to_string())?;
+        let execution =
+            trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
 
         // Get the storage cost in bytes for the program execution
         log("Estimating cost");

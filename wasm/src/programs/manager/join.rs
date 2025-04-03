@@ -36,6 +36,12 @@ use crate::{
         TransactionNative,
     },
 };
+<<<<<<< HEAD
+=======
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
+use snarkvm_synthesizer_program::StackKeys;
+
+>>>>>>> 6ec7b6ca4f36d72b719e6f921809e3bfcee3b7e8
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
 use snarkvm_console::prelude::{ConsensusVersion, Network};
@@ -130,11 +136,13 @@ impl ProgramManager {
         }
 
         log("Proving the join execution");
-        let execution = trace.prove_execution::<CurrentAleo, _>("credits.aleo/join", rng).map_err(|e| e.to_string())?;
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>("credits.aleo/join", VarunaVersion::V2, rng)
+            .map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the join execution");
-        process.verify_execution(&execution).map_err(|err| err.to_string())?;
+        process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
 
         // Calculate the minimum execution fee.
         log("Calculating the minimum execution fee");

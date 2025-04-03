@@ -36,6 +36,7 @@ use crate::{
         TransactionNative,
     },
 };
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_synthesizer_program::StackKeys;
 
 use rand::{SeedableRng, rngs::StdRng};
@@ -185,12 +186,13 @@ impl ProgramManager {
         }
 
         log("Proving the transfer execution");
+        let locator = format!("credits.aleo/{}", transfer_type);
         let execution =
-            trace.prove_execution::<CurrentAleo, _>("credits.aleo/transfer", rng).map_err(|e| e.to_string())?;
+            trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the transfer execution");
-        process.verify_execution(&execution).map_err(|err| err.to_string())?;
+        process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
 
         // Calculate the minimum execution fee.
         log("Calculating the minimum execution fee");
