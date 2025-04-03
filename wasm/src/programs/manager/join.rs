@@ -36,18 +36,14 @@ use crate::{
         TransactionNative,
     },
 };
-<<<<<<< HEAD
-=======
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_synthesizer_program::StackKeys;
 
->>>>>>> 6ec7b6ca4f36d72b719e6f921809e3bfcee3b7e8
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
 use snarkvm_console::prelude::{ConsensusVersion, Network};
 use snarkvm_ledger_query::{Query, QueryTrait};
 use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
-use snarkvm_synthesizer_program::StackKeys;
 use std::str::FromStr;
 
 #[wasm_bindgen]
