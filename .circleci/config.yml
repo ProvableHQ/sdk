@@ -93,6 +93,16 @@ jobs:
           command: |
             yarn start
 
+  create-leo-app-cli:
+    executor: rust-node
+    steps:
+      - setup
+      - run:
+          working_directory: create-leo-app
+          command: |
+            yarn build
+            yarn add -D ts-node typescript
+            npx ts-node src/index.ts test-app --template react-leo
 
   template-node:
     executor: rust-node
@@ -170,6 +180,9 @@ workflows:
           requires:
             - sdk
       - e2e-mainnet:
+          requires:
+            - sdk
+      - create-leo-app-cli:
           requires:
             - sdk
       - template-node:
