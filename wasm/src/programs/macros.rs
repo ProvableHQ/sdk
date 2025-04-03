@@ -107,7 +107,7 @@ macro_rules! execute_fee {
                     .to_string(),
             );
         }
-        
+
         if let Some(fee_proving_key) = $fee_proving_key {
             let credits = ProgramIDNative::from_str("credits.aleo").unwrap();
             let fee = if $fee_record.is_some() {
@@ -159,10 +159,10 @@ macro_rules! execute_fee {
             .map_err(|e| e.to_string())?;
 
         log("Preparing inclusion proofs for fee execution");
-        if let Some(offline_query) = offline_query.as_ref() {
+        if let Some(offline_query) = $offline_query.as_ref() {
             trace.prepare_async(offline_query.clone()).await.map_err(|err| err.to_string())?;
         } else {
-            let query = QueryNative::from(node_url);
+            let query = QueryNative::from($submission_url);
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
         }
 
@@ -178,7 +178,7 @@ macro_rules! execute_fee {
 #[macro_export]
 macro_rules! calculate_minimum_fee {
     ($offline_query:expr, $node_url: expr, $process:expr, $execution_ref:expr) => {{
-        let block_height = if let Some(offline_query) = $offline_query {
+        let block_height = if let Some(ref offline_query) = $offline_query {
             let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
             block_height
         } else {
