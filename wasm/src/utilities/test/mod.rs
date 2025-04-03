@@ -27,7 +27,8 @@ pub const TEST_STRUCT: &str = "{
     is_active: false,
     some_field: 2field,
     some_group: 7243206743250892049702172909169115544952822465955921992746259936160368017976group,
-    some_scalar: 836504693989570607341914239820012911582004515616146791081874852343183183566scalar
+    some_scalar: 836504693989570607341914239820012911582004515616146791081874852343183183566scalar,
+    some_signature: sign1lcpxtgqkp238x45fk79lkx5xz7sx37f56wl0hyemhv78dgzxyspykg6u26lx2a02tvat6zaflx530qtnme34gh702wclwr20rdxrsqcl7shvwsyhygt2yvkgzeq7zz2rdat4rrsr0cd9kwm6jddjcs9lps8s80v35rwvtkgg2gxprf4dge0tcet3pe7nfxupkvfuvh3sw2gpyv0km46
 }";
 
 /// Create a field element and a scalar element.

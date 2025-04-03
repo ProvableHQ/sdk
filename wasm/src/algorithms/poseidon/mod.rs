@@ -32,8 +32,9 @@ mod tests {
         Group,
         Plaintext,
         Scalar,
+        Signature,
         js_array_from_fields,
-        native::{GroupNative, LiteralNative, PlaintextNative, ScalarNative},
+        native::{GroupNative, LiteralNative, PlaintextNative, ScalarNative, SignatureNative},
         test::TEST_STRUCT,
         types::native::{FieldNative, Poseidon2Native, Poseidon4Native, Poseidon8Native},
         utilities::test::create_native_field_vector,
@@ -150,6 +151,7 @@ mod tests {
             Scalar::from_string("836504693989570607341914239820012911582004515616146791081874852343183183566scalar")
                 .unwrap()
                 .to_plaintext(),
+            Signature::from_string("sign1lcpxtgqkp238x45fk79lkx5xz7sx37f56wl0hyemhv78dgzxyspykg6u26lx2a02tvat6zaflx530qtnme34gh702wclwr20rdxrsqcl7shvwsyhygt2yvkgzeq7zz2rdat4rrsr0cd9kwm6jddjcs9lps8s80v35rwvtkgg2gxprf4dge0tcet3pe7nfxupkvfuvh3sw2gpyv0km46").to_plaintext(),
         ];
 
         let native_literals = vec![
@@ -167,6 +169,7 @@ mod tests {
                 )
                 .unwrap(),
             ),
+            LiteralNative::Signature(Box::new(SignatureNative::from_str("sign1lcpxtgqkp238x45fk79lkx5xz7sx37f56wl0hyemhv78dgzxyspykg6u26lx2a02tvat6zaflx530qtnme34gh702wclwr20rdxrsqcl7shvwsyhygt2yvkgzeq7zz2rdat4rrsr0cd9kwm6jddjcs9lps8s80v35rwvtkgg2gxprf4dge0tcet3pe7nfxupkvfuvh3sw2gpyv0km46").unwrap()))
         ];
 
         for i in 0..literals.len() {
