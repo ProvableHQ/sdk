@@ -17,7 +17,6 @@
 use super::*;
 
 use crate::{OfflineQuery, PrivateKey, RecordPlaintext, Transaction, execute_fee, log};
-
 use crate::types::native::{
     CurrentAleo,
     CurrentNetwork,
@@ -28,6 +27,8 @@ use crate::types::native::{
     RecordPlaintextNative,
     TransactionNative,
 };
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
+
 use js_sys::Object;
 use rand::{SeedableRng, rngs::StdRng};
 use std::str::FromStr;
