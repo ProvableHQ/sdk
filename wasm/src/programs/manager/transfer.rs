@@ -37,12 +37,12 @@ use crate::{
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_synthesizer_program::StackKeys;
-
-use rand::{SeedableRng, rngs::StdRng};
 use snarkvm_console::prelude::{ConsensusVersion, Network};
 use snarkvm_ledger_query::{Query, QueryTrait};
 use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
+use snarkvm_synthesizer_program::StackKeys;
+
+use rand::{SeedableRng, rngs::StdRng};
 use std::{ops::Add, str::FromStr};
 use wasm_bindgen::JsValue;
 
