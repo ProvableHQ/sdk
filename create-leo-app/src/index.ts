@@ -92,6 +92,20 @@ async function init() {
   const getProjectName = () =>
     targetDir === "." ? path.basename(path.resolve()) : targetDir;
 
+  let selectedFramework: Framework | undefined;
+  let selectedVariant: string | undefined;
+
+  if (argTemplate && TEMPLATES.includes(argTemplate)) {
+    for (const framework of FRAMEWORKS) {
+      const match = framework.variants.find((v) => v.name === argTemplate);
+      if (match) {
+        selectedFramework = framework;
+        selectedVariant = match.name;
+        break;
+      }
+    }
+  }
+
   let result: prompts.Answers<
     "projectName" | "overwrite" | "packageName" | "framework" | "variant"
   >;
@@ -136,8 +150,7 @@ async function init() {
             isValidPackageName(dir) || "Invalid package.json name",
         },
         {
-          type:
-            argTemplate && TEMPLATES.includes(argTemplate) ? null : "select",
+          type: selectedFramework ? null : "select",
           name: "framework",
           message:
             typeof argTemplate === "string" && !TEMPLATES.includes(argTemplate)
@@ -155,8 +168,7 @@ async function init() {
           }),
         },
         {
-          type: (framework: Framework) =>
-            framework && framework.variants ? "select" : null,
+          type: selectedVariant ? null : "select",
           name: "variant",
           message: reset("Select a variant:"),
           choices: (framework: Framework) =>

@@ -13,14 +13,14 @@ npm create leo-app@latest
 
 Then follow the prompts!
 
-You can also directly specify the project name you want to use via additional command line options. For example, to scaffold a Leo project, run:
+You can also directly specify the project name and template you want to use via additional command line options. For example, to scaffold a Leo project using the Vanilla JavaScript template, run:
 
 ```bash
 # npm 6.x
-npm create leo-app@latest my-leo-app
+npm create leo-app@latest my-leo-app --template vanilla
 
 # npm 7+, extra double-dash is needed:
-npm create leo-app@latest my-leo-app
+npm create leo-app@latest my-leo-app -- --template vanilla
 ```
 
 Currently supported template presets include:
