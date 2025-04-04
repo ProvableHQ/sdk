@@ -174,6 +174,7 @@ macro_rules! execute_fee {
     }}
 }
 
+// random change
 #[macro_export]
 macro_rules! calculate_minimum_fee {
     ($offline_query:expr, $node_url: expr, $process:expr, $execution_ref:expr) => {{
