@@ -15,21 +15,26 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Address,
     Field,
     Plaintext,
     from_js_typed_array,
+    js_array_from_fields,
+    native::AddressNative,
     to_bits_array_le,
     types::{
         Scalar,
         native::{GroupNative, LiteralNative, PlaintextNative, Uniform},
     },
 };
-use snarkvm_console::prelude::{Double, FromBits, FromBytes, ToBits, ToBytes, Zero};
+use snarkvm_console::prelude::{Double, FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields, Zero};
 
 use js_sys::{Array, Uint8Array};
 use once_cell::sync::OnceCell;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
+
+use super::native::FieldNative;
 
 /// Elliptic curve element.
 #[wasm_bindgen]
@@ -78,6 +83,13 @@ impl Group {
     #[wasm_bindgen(js_name = "toBitsLe")]
     pub fn to_bits_le(&self) -> Array {
         to_bits_array_le!(self)
+    }
+
+    /// Get the field array representation of the group.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native_fields = self.0.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(native_fields))
     }
 
     /// Get the x-coordinate of the group element.
@@ -175,5 +187,47 @@ impl From<&GroupNative> for Group {
 impl From<&Group> for GroupNative {
     fn from(group: &Group) -> Self {
         group.0
+    }
+}
+
+impl From<GroupNative> for Address {
+    fn from(value: GroupNative) -> Self {
+        let native = AddressNative::new(value);
+        Address::from(native)
+    }
+}
+
+impl From<Group> for Address {
+    fn from(value: Group) -> Self {
+        Address::from(value.0)
+    }
+}
+
+impl From<&GroupNative> for Address {
+    fn from(value: &GroupNative) -> Self {
+        Address::from(value.clone())
+    }
+}
+
+impl From<&Group> for Address {
+    fn from(value: &Group) -> Self {
+        Address::from(value.0)
+    }
+}
+
+impl TryFrom<Field> for Group {
+    type Error = String;
+
+    fn try_from(value: Field) -> Result<Self, Self::Error> {
+        let native = GroupNative::from_fields(&[FieldNative::from(value)]).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+}
+
+impl TryFrom<&Field> for Group {
+    type Error = String;
+
+    fn try_from(value: &Field) -> Result<Self, Self::Error> {
+        Self::try_from(value.clone())
     }
 }

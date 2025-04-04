@@ -19,13 +19,21 @@ use crate::{
     Group,
     Plaintext,
     ViewKey,
+    from_js_typed_array,
+    from_wasm_object_array,
+    js_array_from_fields,
     native::{CiphertextNative, CurrentNetwork, FieldNative, FromBytes, IdentifierNative, ProgramIDNative, ToBytes},
+    to_bits_array_le,
 };
-use snarkvm_console::{network::Network, program::compute_function_id, types::U16};
+use snarkvm_console::{
+    network::Network,
+    program::{FromBits, FromFields, ToBits, ToFields, compute_function_id},
+    types::U16,
+};
 
-use js_sys::Uint8Array;
+use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{convert::TryFromJsValue, prelude::wasm_bindgen};
 
 /// SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
 /// object provides decryption methods to recover the plaintext from the ciphertext (given the
@@ -115,6 +123,51 @@ impl Ciphertext {
     #[wasm_bindgen(js_name = fromBytesLe)]
     pub fn from_bytes_le(bytes: Uint8Array) -> Result<Ciphertext, String> {
         Ok(Ciphertext(CiphertextNative::from_bytes_le(&bytes.to_vec()).map_err(|e| e.to_string())?))
+    }
+
+    /// Get the left endian byte array representation of the ciphertext.
+    #[wasm_bindgen(js_name = toBytesLe)]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        Ok(Uint8Array::from(rust_bytes.as_slice()))
+    }
+
+    /// Get a ciphertext object from a series of bits represented as a boolean array.
+    ///
+    /// @param {Array} bits A left endian boolean array representing the bits of the ciphertext.
+    ///
+    /// @returns {Ciphertext} The ciphertext object.
+    #[wasm_bindgen(js_name = "fromBitsLe")]
+    pub fn from_bits_le(bits: Array) -> Result<Ciphertext, String> {
+        let rust_bits = from_js_typed_array!(bits, as_bool, "boolean")?;
+        let native = CiphertextNative::from_bits_le(&rust_bits).map_err(|e| e.to_string())?;
+        Ok(Ciphertext(native))
+    }
+
+    /// Get the left endian boolean array representation of the bits of the ciphertext.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
+
+    /// Get a ciphertext object from an array of fields.
+    ///
+    /// @param {Array} fields An array of fields.
+    ///
+    /// @returns {Ciphertext} The ciphertext object.
+    #[wasm_bindgen(js_name = "fromFields")]
+    pub fn from_fields(fields: Array) -> Result<Ciphertext, String> {
+        let native_fields = from_wasm_object_array!(fields, Field)?;
+        let native = CiphertextNative::from_fields(&native_fields).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the field array representation of the ciphertext.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
     }
 
     /// Deserialize a Ciphertext string into a Ciphertext object.
