@@ -159,7 +159,7 @@ class ProgramManager {
      * programManager.setAccount(Account);
      *
      * // Define a fee in credits
-     * const fee = 1.2;
+     * const priorityFee = 0.0;
      *
      * // Create the deployment transaction.
      * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
@@ -266,7 +266,7 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Define a fee in credits
-     * const fee = 1.2;
+     * const priorityFee = 0.0;
      *
      * // Deploy the program
      * const tx_id = await programManager.deploy(program, fee, false);
@@ -311,7 +311,7 @@ class ProgramManager {
      * const tx = await programManager.buildExecutionTransaction({
      *   programName: "hello_hello.aleo",
      *   functionName: "hello_hello",
-     *   fee: 0.020,
+     *   priorityFee: 0.0,
      *   privateFee: false,
      *   inputs: ["5u32", "5u32"],
      *   keySearchParams: { "cacheKey": "hello_hello:hello" }
@@ -435,7 +435,7 @@ class ProgramManager {
      * const tx_id = await programManager.execute({
      *   programName: "hello_hello.aleo",
      *   functionName: "hello_hello",
-     *   fee: 0.020,
+     *   priorityFee: 0.0,
      *   privateFee: false,
      *   inputs: ["5u32", "5u32"],
      *   keySearchParams: { "cacheKey": "hello_hello:hello" }
