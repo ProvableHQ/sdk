@@ -12,6 +12,7 @@ import {
 } from "./function-key-provider";
 
 import {
+    Address,
     ExecutionResponse,
     Execution as FunctionExecution,
     OfflineQuery,
@@ -326,20 +327,20 @@ class ProgramManager {
         let feeAddress;
 
         if (typeof privateKey !== "undefined") {
-            feeAddress = privateKey.address();
+            feeAddress = Address.fromPrivateKey(privateKey);
         } else {
             feeAddress = this.account?.address();
         }
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            (await this.networkClient?.getProgramMappingValue(
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
                 feeAddress,
-            ))
-        ) {
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
             throw "Public balance is insufficient to execute the transacation.";
         }
 
@@ -545,6 +546,19 @@ class ProgramManager {
      */
     async execute(options: ExecuteOptions): Promise<string> {
         const tx = <Transaction>await this.buildExecutionTransaction(options);
+
+        let feeAddress = this.account?.address();
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
+                "credits.aleo",
+                "account",
+                feeAddress,
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
+            throw "Public balance is insufficient to execute the transacation.";
+        }
 
         // Check to make sure the public balance is sufficient to cover the execution fee.
         if (
@@ -775,20 +789,20 @@ class ProgramManager {
         let feeAddress;
 
         if (typeof privateKey !== "undefined") {
-            feeAddress = privateKey.address();
+            feeAddress = Address.fromPrivateKey(privateKey);
         } else {
             feeAddress = this.account?.address();
         }
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            (await this.networkClient?.getProgramMappingValue(
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
                 feeAddress,
-            ))
-        ) {
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
             throw "Public balance is insufficient to execute the transacation.";
         }
 
@@ -880,20 +894,20 @@ class ProgramManager {
         let feeAddress;
 
         if (typeof privateKey !== "undefined") {
-            feeAddress = privateKey.address();
+            feeAddress = Address.fromPrivateKey(privateKey);
         } else {
             feeAddress = this.account?.address();
         }
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            (await this.networkClient?.getProgramMappingValue(
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
                 feeAddress,
-            ))
-        ) {
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
             throw "Public balance is insufficient to execute the transacation.";
         }
 
@@ -1259,20 +1273,20 @@ class ProgramManager {
         let feeAddress;
 
         if (typeof privateKey !== "undefined") {
-            feeAddress = privateKey.address();
+            feeAddress = Address.fromPrivateKey(privateKey);
         } else {
             feeAddress = this.account?.address();
         }
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            (await this.networkClient?.getProgramMappingValue(
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
                 feeAddress,
-            ))
-        ) {
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
             throw "Public balance is insufficient to execute the transacation.";
         }
 
@@ -1396,15 +1410,16 @@ class ProgramManager {
             )
         );
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            this.networkClient?.getProgramMappingValue(
+        let feeAddress = this.account?.address();
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
-                this.account?.address(),
-            )
-        ) {
+                feeAddress,
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
             throw "Public balance is insufficient to execute the transacation.";
         }
 
@@ -1537,15 +1552,16 @@ class ProgramManager {
             )
         );
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            this.networkClient?.getProgramMappingValue(
+        let feeAddress = this.account?.address();
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
-                this.account?.address(),
-            )
-        ) {
+                feeAddress,
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
             throw "Public balance is insufficient to execute the transacation.";
         }
 
@@ -1663,15 +1679,16 @@ class ProgramManager {
             )
         );
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            this.networkClient?.getProgramMappingValue(
+        let feeAddress = this.account?.address();
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
-                this.account?.address(),
-            )
-        ) {
+                feeAddress,
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
             throw "Public balance is insufficient to execute the transacation.";
         }
 
@@ -1780,15 +1797,16 @@ class ProgramManager {
             )
         );
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            this.networkClient?.getProgramMappingValue(
+        let feeAddress = this.account?.address();
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
-                this.account?.address(),
-            )
-        ) {
+                feeAddress,
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
             throw "Public balance is insufficient to execute the transacation.";
         }
 
@@ -1910,15 +1928,16 @@ class ProgramManager {
             )
         );
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            (await this.networkClient?.getProgramMappingValue(
+        let feeAddress = this.account?.address();
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
-                this.account?.address(),
-            ))
-        ) {
+                feeAddress,
+            );
+
+        // Check to make sure the public balance is sufficient to cover the execution fee.
+        if (tx.feeAmount() > account_balance) {
             throw "Public balance is insufficient to execute the transacation.";
         }
 
