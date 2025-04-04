@@ -39,7 +39,8 @@ program private_auction.aleo {
     // Bid count for an auction.
     mapping bid_count field => u64;
 
-    //
+    // Create a set of auction public keys.
+    mapping auction_public_keys field => group;
 
     // Auction mapping of of whether an auction has been concluded, with the winning bids.
     mapping winning_bid field => field;
@@ -113,6 +114,7 @@ program private_auction.aleo {
     // 2. Put seller address
     inline function create_auction(
         name: field,
+        bid_types_accepted: field,
         minimum_bid: u64,
         offchain_data: [field; 4],
         seller: address,
@@ -123,12 +125,14 @@ program private_auction.aleo {
         assert(bid_types_accepted < 3field);
 
         // Create the public key for the auction.
-        let apk: group = nonce*group::GEN;
-        let avk: field = nonce*(self.signer as group);
+        let auction_public_key: group = nonce*group::GEN;
+
+        // Create the auction commit key.
+        let auction_commit_key: scalar = nonce*(self.signer as group); // Cannot reconstruct in band.
 
         // Create the auction settings.
         let settings = auction_settings {
-            auction_type: is_private,
+            is_private,
             bid_types_accepted,
         };
 
@@ -140,10 +144,10 @@ program private_auction.aleo {
         };
 
         // Create an id.
-        let auction_hash: field = BHP256::commit(new_auction, );
+        let auction_id: field = BHP256::commit(new_auction, auction_commit_key);
 
         // Return receipt.
-        (new_auction, auction_id, auction_settings)
+        (new_auction, auction_id, auction_settings, group, field)
     }
 
     // Create a signed bid to auction.
@@ -160,6 +164,8 @@ program private_auction.aleo {
         (bid, bid_id)
     }
 
+
+
     ///////////////////////////////////
     ///// ----- TRANSITIONS ----- /////
     ///////////////////////////////////
@@ -167,12 +173,13 @@ program private_auction.aleo {
     // Create a private auction.
     async transition create_private_auction(
         name: field,
+        bid_types_accepted: field,
         minimum_bid: u64,
         offchain_data: [field; 4],
-        bid_types_accepted: field
+        nonce: scalar,
     ) -> (AuctionToken, Future) {
         // Create a signed auction.
-        let (auction_item: auction, auction_id: field, settings: auction_settings) = create_auction(name, minimum_bid, offchain_data, self.caller, 0field);
+        let (auction_item: auction, auction_id: field, settings: auction_settings, apk: group) = create_auction(name, minimum_bid, offchain_data, self.caller, nonce);
 
         // Create an auction token for the auctioneer to use.
         let token = AuctionToken {
@@ -184,22 +191,19 @@ program private_auction.aleo {
         };
 
         // Create a future that finalizes the auction.
-        let create_auction_private_future: Future = finalize_create_private_auction(auction_item, auction_id);
+        let create_auction_private_future: Future = finalize_create_private_auction(auction_item, auction_id, apk);
 
         (token, create_auction_private_future)
     }
-    async function finalize_create_private_auction(auction_item: auction, auction_id: field) {
-        // Set the bid count.
-        bid_count.set(auction_id, 0u64);
-
-        // Set the highest_bid to 0.
-        highest_bid.set(auction_id, 0u64);
+    async function finalize_create_private_auction(auction_item: auction, auction_id: field, apk: group) {
+        // Set the auction public key.
+        auction_public_keys.set(auction_id, apk);
     }
 
     // Create a new auction publicly.
     async transition create_public_auction(minimum_bid: u64, name: field, offchain_data: [field; 4], bid_types_accepted: field) -> (AuctionToken, Future) {
         // Create a signed auction.
-        let (auction_item: auction, auction_id: field, settings: auction_settings) = create_auction(name, minimum_bid, offchain_data, self.caller, 1field);
+        let (auction_item: auction, auction_id: field, settings: auction_settings, apk> group) = create_auction(name, minimum_bid, offchain_data, self.caller, 1field);
 
         // Create an auction token for the auctioneer to use.
         let token = AuctionToken {
@@ -223,14 +227,12 @@ program private_auction.aleo {
     async function finalize_create_public_auction(auction_item: item, auction_id: field, settings: auction_settings) {
         // Set the auction owner.
         auction_owners.set(auction_id, self.caller);
-        // Set the auction as open.
-        bid_count.set(auction_id, 0u64);
-        // Set the highest_bid to 0.
-        highest_bid.set(auction_id, 0u64);
         // Set the open auction data.
         public_auctions.set(auction_id, auction);
         // Set the auction settings.
         public_auction_settings.set(auction_id, settings);
+        // Set the auction public key.
+        auction_public_keys.set(auction_id, auction_public_key);
     }
 
     // Send a private invite to an auction. This function takes an auction receipt to ensure a the auctioneer is sending

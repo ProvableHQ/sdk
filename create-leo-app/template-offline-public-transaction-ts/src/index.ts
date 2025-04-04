@@ -29,12 +29,12 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     console.log("Inserting proving keys into key provider");
     offlineKeyProvider.insertFeePublicKeys(feePublicProvingKey);
 
-try {
-    offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
-    console.log("Successfully inserted proving key");
-} catch (err) {
-    console.error("Failed to insert proving key:", err);
-}
+    try {
+        offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
+        console.log("Successfully inserted proving key");
+    } catch (err) {
+        console.error("Failed to insert proving key:", err);
+    }
 
 
     // Create an offline query to complete the inclusion proof
