@@ -99,6 +99,23 @@ class ProgramManager {
     }
 
     /**
+     * Check if the fee is sufficient to pay for the transaction
+     */
+    async checkFee(address: string, feeAmount: bigint) {
+        const account_balance =
+            await this.networkClient?.getProgramMappingValue(
+                "credits.aleo",
+                "account",
+                address,
+            );
+        if (feeAmount > BigInt(account_balance)) {
+            throw Error(
+                "Public balance is insufficient to execute the transacation.",
+            );
+        }
+    }
+
+    /**
      * Set the account to use for transaction submission to the Aleo network
      *
      * @param {Account} account Account to use for transaction submission
@@ -327,22 +344,16 @@ class ProgramManager {
         let feeAddress;
 
         if (typeof privateKey !== "undefined") {
-            feeAddress = Address.fromPrivateKey(privateKey);
-        } else {
+            feeAddress = Address.from_private_key(privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
-        }
-
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
             );
-
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
         }
+
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -547,30 +558,16 @@ class ProgramManager {
     async execute(options: ExecuteOptions): Promise<string> {
         const tx = <Transaction>await this.buildExecutionTransaction(options);
 
-        let feeAddress = this.account?.address();
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
+        let feeAddress;
+        if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No account set in the ProgramManager. Please set an account before executing a transaction.",
             );
-
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
         }
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (
-            tx.feeAmount() >
-            this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                this.account?.address(),
-            )
-        ) {
-            throw "Public balance is insufficient to execute the transacation.";
-        }
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -789,22 +786,16 @@ class ProgramManager {
         let feeAddress;
 
         if (typeof privateKey !== "undefined") {
-            feeAddress = Address.fromPrivateKey(privateKey);
-        } else {
+            feeAddress = Address.from_private_key(privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
-        }
-
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
             );
-
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
         }
+
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -894,22 +885,16 @@ class ProgramManager {
         let feeAddress;
 
         if (typeof privateKey !== "undefined") {
-            feeAddress = Address.fromPrivateKey(privateKey);
-        } else {
+            feeAddress = Address.from_private_key(privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
-        }
-
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
             );
-
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
         }
+
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1273,22 +1258,16 @@ class ProgramManager {
         let feeAddress;
 
         if (typeof privateKey !== "undefined") {
-            feeAddress = Address.fromPrivateKey(privateKey);
-        } else {
+            feeAddress = Address.from_private_key(privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
-        }
-
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
             );
-
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
         }
+
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1410,18 +1389,16 @@ class ProgramManager {
             )
         );
 
-        let feeAddress = this.account?.address();
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
+        let feeAddress;
+        if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
             );
-
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
         }
+
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1552,18 +1529,17 @@ class ProgramManager {
             )
         );
 
-        let feeAddress = this.account?.address();
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
-            );
+        let feeAddress;
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
+        if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
         }
+
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1679,18 +1655,17 @@ class ProgramManager {
             )
         );
 
-        let feeAddress = this.account?.address();
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
-            );
+        let feeAddress;
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
+        if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
         }
+
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1797,18 +1772,17 @@ class ProgramManager {
             )
         );
 
-        let feeAddress = this.account?.address();
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
-            );
+        let feeAddress;
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
+        if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
         }
+
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1879,7 +1853,7 @@ class ProgramManager {
             ...additionalOptions,
         };
 
-        return await this.execute(executeOptions);
+        return await this.buildExecutionTransaction(executeOptions);
     }
 
     /**
@@ -1928,18 +1902,17 @@ class ProgramManager {
             )
         );
 
-        let feeAddress = this.account?.address();
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                feeAddress,
-            );
+        let feeAddress;
 
-        // Check to make sure the public balance is sufficient to cover the execution fee.
-        if (tx.feeAmount() > account_balance) {
-            throw "Public balance is insufficient to execute the transacation.";
+        if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
         }
+
+        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return this.networkClient.submitTransaction(tx);
     }
