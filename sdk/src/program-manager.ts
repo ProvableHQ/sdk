@@ -327,19 +327,18 @@ class ProgramManager {
 
         if (typeof privateKey !== "undefined") {
             feeAddress = privateKey.address();
-        }
-        else {
+        } else {
             feeAddress = this.account?.address();
         }
 
         // Check to make sure the public balance is sufficient to cover the execution fee.
         if (
             tx.feeAmount() >
-            await this.networkClient?.getProgramMappingValue(
+            (await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
                 feeAddress,
-            )
+            ))
         ) {
             throw "Public balance is insufficient to execute the transacation.";
         }
@@ -777,19 +776,18 @@ class ProgramManager {
 
         if (typeof privateKey !== "undefined") {
             feeAddress = privateKey.address();
-        }
-        else {
+        } else {
             feeAddress = this.account?.address();
         }
 
         // Check to make sure the public balance is sufficient to cover the execution fee.
         if (
             tx.feeAmount() >
-            await this.networkClient?.getProgramMappingValue(
+            (await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
                 feeAddress,
-            )
+            ))
         ) {
             throw "Public balance is insufficient to execute the transacation.";
         }
@@ -883,19 +881,18 @@ class ProgramManager {
 
         if (typeof privateKey !== "undefined") {
             feeAddress = privateKey.address();
-        }
-        else {
+        } else {
             feeAddress = this.account?.address();
         }
 
         // Check to make sure the public balance is sufficient to cover the execution fee.
         if (
             tx.feeAmount() >
-            await this.networkClient?.getProgramMappingValue(
+            (await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
                 feeAddress,
-            )
+            ))
         ) {
             throw "Public balance is insufficient to execute the transacation.";
         }
@@ -1263,19 +1260,18 @@ class ProgramManager {
 
         if (typeof privateKey !== "undefined") {
             feeAddress = privateKey.address();
-        }
-        else {
+        } else {
             feeAddress = this.account?.address();
         }
 
         // Check to make sure the public balance is sufficient to cover the execution fee.
         if (
             tx.feeAmount() >
-            await this.networkClient?.getProgramMappingValue(
+            (await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
                 feeAddress,
-            )
+            ))
         ) {
             throw "Public balance is insufficient to execute the transacation.";
         }
@@ -1917,11 +1913,11 @@ class ProgramManager {
         // Check to make sure the public balance is sufficient to cover the execution fee.
         if (
             tx.feeAmount() >
-            await this.networkClient?.getProgramMappingValue(
+            (await this.networkClient?.getProgramMappingValue(
                 "credits.aleo",
                 "account",
                 this.account?.address(),
-            )
+            ))
         ) {
             throw "Public balance is insufficient to execute the transacation.";
         }
