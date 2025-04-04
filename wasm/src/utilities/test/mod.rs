@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Field, types::native::FieldNative};
+use crate::types::native::FieldNative;
 
-use js_sys::Array;
 use std::str::FromStr;
-use wasm_bindgen::JsValue;
 
 /// Create a field element to act as a generator.
 pub const FIELD_ELEMENT: &str = "6901184695964460143517399399785179769303979738604374595034454667750561389951field";
+
+/// Create a test struct containing all currently supported literal types for hash testing.
+pub const TEST_STRUCT: &str = "{
+    user: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc,
+    is_active: false,
+    some_field: 2field,
+    some_group: 7243206743250892049702172909169115544952822465955921992746259936160368017976group,
+    some_scalar: 836504693989570607341914239820012911582004515616146791081874852343183183566scalar,
+    some_signature: sign1lcpxtgqkp238x45fk79lkx5xz7sx37f56wl0hyemhv78dgzxyspykg6u26lx2a02tvat6zaflx530qtnme34gh702wclwr20rdxrsqcl7shvwsyhygt2yvkgzeq7zz2rdat4rrsr0cd9kwm6jddjcs9lps8s80v35rwvtkgg2gxprf4dge0tcet3pe7nfxupkvfuvh3sw2gpyv0km46
+}";
 
 /// Create a field element and a scalar element.
 pub fn create_native_field_vector(num_fields: Option<u16>) -> Vec<FieldNative> {
@@ -39,13 +47,4 @@ pub fn create_native_field_vector(num_fields: Option<u16>) -> Vec<FieldNative> {
         });
     }
     native_fields
-}
-
-/// Get a js_array of fields from a vector of field elements.
-pub fn js_array_from_fields(native_fields: &Vec<FieldNative>) -> Array {
-    let js_array = Array::new();
-    native_fields.iter().for_each(|field| {
-        js_array.push(&JsValue::from(Field::from(*field)));
-    });
-    js_array
 }

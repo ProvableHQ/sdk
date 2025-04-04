@@ -20,7 +20,9 @@ use crate::{
     GraphKey,
     Plaintext,
     PrivateKey,
+    js_array_from_fields,
     record_to_js_object,
+    to_bits_array_le,
     types::{
         Field,
         native::{
@@ -33,10 +35,13 @@ use crate::{
         },
     },
 };
-use snarkvm_console::program::Owner;
+use snarkvm_console::{
+    prelude::{FromBytes, ToBits, ToBytes, ToFields},
+    program::Owner,
+};
 
 use anyhow::Context;
-use js_sys::Object;
+use js_sys::{Array, Object, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -153,6 +158,44 @@ impl RecordPlaintext {
     #[wasm_bindgen(js_name = toString)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
+    }
+
+    /// Get a record plaintext object from a series of bytes.
+    ///
+    /// @param {Uint8Array} bytes A left endian byte array representing the record plaintext.
+    ///
+    /// @returns {RecordPlaintext} The record plaintext.
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Self, String> {
+        let rust_bytes = bytes.to_vec();
+        let native = RecordPlaintextNative::from_bytes_le(rust_bytes.as_slice()).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Returns the left endian byte array representation of the record plaintext.
+    ///
+    /// @returns {Uint8Array} Byte array representation of the record plaintext.
+    #[wasm_bindgen(js_name = "toBytesLe")]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let bytes_vec = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        let bytes = bytes_vec.as_slice();
+        Uint8Array::try_from(bytes).map_err(|e| e.to_string())
+    }
+
+    /// Returns the left endian boolean array representation of the record plaintext bits.
+    ///
+    /// @returns {Array} Boolean array representation of the record plaintext bits.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
+
+    /// Get the field array representation of the record plaintext.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
     }
 
     /// Returns the amount of microcredits in the record

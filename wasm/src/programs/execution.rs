@@ -19,6 +19,8 @@ use crate::{
     Transition,
     types::native::{CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramID, VerifyingKeyNative},
 };
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
+
 use js_sys::Array;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
@@ -115,7 +117,7 @@ pub fn verify_function_execution(
     process
         .insert_verifying_key(&program_id, &function, VerifyingKeyNative::from(verifying_key))
         .map_err(|e| e.to_string())?;
-    process.verify_execution(execution).map_or(Ok(false), |_| Ok(true))
+    process.verify_execution(VarunaVersion::V2, execution).map_or(Ok(false), |_| Ok(true))
 }
 
 /*#[cfg(test)]
