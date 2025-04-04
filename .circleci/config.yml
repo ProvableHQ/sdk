@@ -101,7 +101,7 @@ jobs:
           working_directory: create-leo-app
           command: |
             yarn add -D ts-node typescript
-            npx ts-node-esm src/index.ts test-app --template react-leo
+            node --loader ts-node/esm src/index.ts test-app --template react-leo
 
   template-node:
     executor: rust-node
