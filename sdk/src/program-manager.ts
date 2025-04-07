@@ -353,6 +353,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
@@ -570,6 +571,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
@@ -798,6 +800,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
@@ -897,6 +900,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
@@ -1270,6 +1274,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
@@ -1404,6 +1409,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
@@ -1547,6 +1553,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
@@ -1675,6 +1682,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
@@ -1739,6 +1747,7 @@ class ProgramManager {
             ...additionalOptions,
         };
 
+        // Check if the account has sufficient credits to pay for the transaction
         return await this.buildExecutionTransaction(executeOptions);
     }
 
@@ -1794,6 +1803,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
@@ -1926,6 +1936,7 @@ class ProgramManager {
             );
         }
 
+        // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return this.networkClient.submitTransaction(tx);
