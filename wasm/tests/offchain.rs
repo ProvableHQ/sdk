@@ -404,7 +404,7 @@ async fn test_fee_calculation_v2() {
 
     let transaction = ProgramManager::execute(
         &private_key,
-        CREDITS_ALEO_PROGRAM,
+        Program::credits().to_string(),
         "transfer_public_to_private",
         inputs,
         0.0,
