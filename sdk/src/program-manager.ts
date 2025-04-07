@@ -720,12 +720,11 @@ class ProgramManager {
             executionPrivateKey = this.account.privateKey();
             feeAddress = this.account?.address();
         }
-        else {
-            feeAddress = Address.from_private_key(privateKey);
-        }
-
-        if (typeof executionPrivateKey === "undefined") {
+        else if (typeof executionPrivateKey === "undefined") {
             throw "No private key provided and no private key set in the ProgramManager";
+        }
+        else {
+            feeAddress = Address.from_private_key(executionPrivateKey);
         }
 
         // Get the proving and verifying keys from the key provider
