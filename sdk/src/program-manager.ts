@@ -710,13 +710,18 @@ class ProgramManager {
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
     ): Promise<string> {
-        // Get the private key from the account if it is not provided in the parameters
+        // Get the private key from the account if it is not provided in the parameters and assign the fee address
         let executionPrivateKey = privateKey;
+        let feeAddress;
         if (
             typeof privateKey === "undefined" &&
             typeof this.account !== "undefined"
         ) {
             executionPrivateKey = this.account.privateKey();
+            feeAddress = this.account?.address();
+        }
+        else {
+            feeAddress = Address.from_private_key(privateKey);
         }
 
         if (typeof executionPrivateKey === "undefined") {
@@ -788,18 +793,6 @@ class ProgramManager {
             offlineQuery,
         );
 
-        let feeAddress;
-
-        if (typeof privateKey !== "undefined") {
-            feeAddress = Address.from_private_key(privateKey);
-        } else if (this.account !== undefined) {
-            feeAddress = this.account?.address();
-        } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
-        }
-
         // Check if the account has sufficient credits to pay for the transaction
         this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
@@ -841,14 +834,14 @@ class ProgramManager {
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
     ): Promise<string> {
-        // Get the private key from the account if it is not provided in the parameters
-        let executionPrivateKey = privateKey;
-        if (
-            typeof executionPrivateKey === "undefined" &&
-            typeof this.account !== "undefined"
-        ) {
-            executionPrivateKey = this.account.privateKey();
-        }
+         // Get the private key from the account if it is not provided in the parameters
+         let executionPrivateKey = privateKey;
+         if (
+             typeof privateKey === "undefined" &&
+             typeof this.account !== "undefined"
+         ) {
+             executionPrivateKey = this.account.privateKey();
+         }
 
         if (typeof executionPrivateKey === "undefined") {
             throw "No private key provided and no private key set in the ProgramManager";
@@ -887,21 +880,6 @@ class ProgramManager {
             splitVerifyingKey,
             offlineQuery,
         );
-
-        let feeAddress;
-
-        if (typeof privateKey !== "undefined") {
-            feeAddress = Address.from_private_key(privateKey);
-        } else if (this.account !== undefined) {
-            feeAddress = this.account?.address();
-        } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
-        }
-
-        // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
