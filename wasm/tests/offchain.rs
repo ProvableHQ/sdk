@@ -398,12 +398,13 @@ async fn test_fee_calculation_v2() {
     let inputs = Array::new();
     inputs.set(0u32, JsValue::from_str(input_1));
     inputs.set(1u32, JsValue::from_str(input_2));
+    let program = Progra::get_credits_program().to_string();
 
     let offline_query = OfflineQuery::from_string(OFFLINE_QUERY_V2).unwrap();
 
     let transaction = ProgramManager::execute(
         &private_key,
-        Program::credits().to_string(),
+        Program::get_credits_program().to_string(),
         "transfer_public_to_private",
         inputs,
         0.0,
