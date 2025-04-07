@@ -559,11 +559,14 @@ class ProgramManager {
         const tx = <Transaction>await this.buildExecutionTransaction(options);
 
         let feeAddress;
-        if (this.account !== undefined) {
+
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
             throw Error(
-                "No account set in the ProgramManager. Please set an account before executing a transaction.",
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
             );
         }
 
@@ -1390,7 +1393,10 @@ class ProgramManager {
         );
 
         let feeAddress;
-        if (this.account !== undefined) {
+
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
             throw Error(
@@ -1531,7 +1537,9 @@ class ProgramManager {
 
         let feeAddress;
 
-        if (this.account !== undefined) {
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
             throw Error(
@@ -1657,7 +1665,9 @@ class ProgramManager {
 
         let feeAddress;
 
-        if (this.account !== undefined) {
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
             throw Error(
@@ -1774,7 +1784,9 @@ class ProgramManager {
 
         let feeAddress;
 
-        if (this.account !== undefined) {
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
             throw Error(
@@ -1904,7 +1916,9 @@ class ProgramManager {
 
         let feeAddress;
 
-        if (this.account !== undefined) {
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
             throw Error(
