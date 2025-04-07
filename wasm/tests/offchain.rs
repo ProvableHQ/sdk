@@ -134,7 +134,6 @@ function spend:
     output r4 as PuzzleArcadeCoin.record;
 "#;
 
-
 const RECORD: &str = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 2000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}";
 const OFFLINE_QUERY_V1: &str = r#"{"block_height": 456789, "state_paths": {}, "state_root": "sr1flkr8ppfujdrfx7zlcz8v8p8u67ehf4q9m2jum09pkq4rkepluxquyfvcu"}"#;
 const OFFLINE_QUERY_V2: &str = r#"{"block_height": 6398077, "state_paths": {}, "state_root": "sr1lzvsx4jshyz9h42erfs0w6a4c8xy6s6hjs4lgfmyzzlju837lvxqcz7fft"}"#;
