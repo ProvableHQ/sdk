@@ -1702,7 +1702,7 @@ class ProgramManager {
         const {
             programName = "credits.aleo",
             functionName = "claim_unbond_public",
-            priorityFee = options.priorityFee || 2,
+            priorityFee = options.priorityFee || 0,
             privateFee = false,
             inputs = [staker_address],
             keySearchParams = new AleoKeyProviderParams({
