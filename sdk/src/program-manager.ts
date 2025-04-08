@@ -1359,6 +1359,7 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
+    
     async bondPublic(
         validator_address: string,
         withdrawal_address: string,
