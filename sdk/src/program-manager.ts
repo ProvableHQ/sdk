@@ -1,10 +1,7 @@
 import { Account } from "./account";
 import { AleoNetworkClient, ProgramImports } from "./network-client";
 
-import {
-    RecordProvider,
-    RecordSearchParams,
-} from "./record-provider";
+import { RecordProvider, RecordSearchParams } from "./record-provider";
 
 import {
     AleoKeyProvider,
@@ -15,6 +12,7 @@ import {
 } from "./function-key-provider";
 
 import {
+    Address,
     ExecutionResponse,
     Execution as FunctionExecution,
     OfflineQuery,
@@ -42,7 +40,7 @@ import { logAndThrow } from "./utils";
  *
  * @property {string} programName - The name of the program containing the function to be executed.
  * @property {string} functionName - The name of the function to execute within the program.
- * @property {number} fee - The fee to be paid for the transaction.
+ * @property {number} priorityFee - The optional priority fee to be paid for the transaction.
  * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
  * @property {string[]} inputs - The inputs to the function being executed.
  * @property {RecordSearchParams} [recordSearchParams] - Optional parameters for searching for a record to pay the execution transaction fee.
@@ -58,7 +56,7 @@ import { logAndThrow } from "./utils";
 interface ExecuteOptions {
     programName: string;
     functionName: string;
-    fee: number;
+    priorityFee: number;
     privateFee: boolean;
     inputs: string[];
     recordSearchParams?: RecordSearchParams;
@@ -88,12 +86,29 @@ class ProgramManager {
      * @param { FunctionKeyProvider | undefined } keyProvider A key provider that implements {@link FunctionKeyProvider} interface
      * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
      */
-    constructor(host?: string | undefined, keyProvider?: FunctionKeyProvider | undefined, recordProvider?: RecordProvider | undefined) {
-        this.host = host ? host : 'https://api.explorer.provable.com/v1';
+    constructor(
+        host?: string | undefined,
+        keyProvider?: FunctionKeyProvider | undefined,
+        recordProvider?: RecordProvider | undefined,
+    ) {
+        this.host = host ? host : "https://api.explorer.provable.com/v1";
         this.networkClient = new AleoNetworkClient(this.host);
 
         this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
         this.recordProvider = recordProvider;
+    }
+
+    /**
+     * Check if the fee is sufficient to pay for the transaction
+     */
+    async checkFee(address: string, feeAmount: bigint) {
+        const balance =
+            BigInt(await this.networkClient.getPublicBalance(address));
+        if (feeAmount > balance) {
+            throw Error(
+                `The desired execution requires a fee of ${feeAmount} microcredits, but the account paying the fee has ${balance} microcredits available.`,
+            );
+        }
     }
 
     /**
@@ -137,7 +152,7 @@ class ProgramManager {
      * Builds a deployment transaction for submission to the Aleo network.
      *
      * @param {string} program Program source code
-     * @param {number} fee Fee to pay for the transaction
+     * @param {number} priorityFee The optional priority fee to be paid for that transaction.
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
@@ -147,7 +162,7 @@ class ProgramManager {
      * @example
      * /// Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -159,7 +174,7 @@ class ProgramManager {
      * programManager.setAccount(Account);
      *
      * // Define a fee in credits
-     * const fee = 1.2;
+     * const priorityFee = 0.0;
      *
      * // Create the deployment transaction.
      * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
@@ -173,24 +188,37 @@ class ProgramManager {
      */
     async buildDeploymentTransaction(
         program: string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
     ): Promise<Transaction> {
+        // Ensure the program is valid.
+        let programObject;
+        try {
+            programObject = Program.fromString(program);
+        } catch (e: any) {
+            logAndThrow(
+                `Error parsing program: '${e.message}'. Please ensure the program is valid.`,
+            );
+        }
+
         // Ensure the program is valid and does not exist on the network
         try {
-            const programObject = Program.fromString(program);
             let programSource;
             try {
-                programSource = await this.networkClient.getProgram(programObject.id());
+                programSource = await this.networkClient.getProgram(
+                    programObject.id(),
+                );
             } catch (e) {
                 // Program does not exist on the network, deployment can proceed
-                console.log(`Program ${programObject.id()} does not exist on the network, deploying...`);
+                console.log(
+                    `Program ${programObject.id()} does not exist on the network, deploying...`,
+                );
             }
-            if (typeof programSource == "string") {
-                throw (`Program ${programObject.id()} already exists on the network, please rename your program`);
+            if (typeof programSource === "string") {
+                throw Error(`Program ${programObject.id()} already exists on the network, please rename your program`);
             }
         } catch (e: any) {
             logAndThrow(`Error validating program: ${e.message}`);
@@ -198,27 +226,45 @@ class ProgramManager {
 
         // Get the private key from the account if it is not provided in the parameters
         let deploymentPrivateKey = privateKey;
-        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
             deploymentPrivateKey = this.account.privateKey();
         }
 
         if (typeof deploymentPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw "No private key provided and no private key set in the ProgramManager";
         }
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
+            feeRecord = privateFee
+                ? <RecordPlaintext>(
+                      await this.getCreditsRecord(
+                          priorityFee,
+                          [],
+                          feeRecord,
+                          recordSearchParams,
+                      )
+                  )
+                : undefined;
         } catch (e: any) {
-            logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+            );
         }
 
         // Get the proving and verifying keys from the key provider
         let feeKeys;
         try {
-            feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
+            feeKeys = privateFee
+                ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys()
+                : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
         } catch (e: any) {
-            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
+            logAndThrow(
+                `Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`,
+            );
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
@@ -227,18 +273,29 @@ class ProgramManager {
         try {
             imports = await this.networkClient.getProgramImports(program);
         } catch (e: any) {
-            logAndThrow(`Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
+            logAndThrow(
+                `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+            );
         }
 
-        // Build a deployment transaction and submit it to the network
-        return await WasmProgramManager.buildDeploymentTransaction(deploymentPrivateKey, program, fee, feeRecord, this.host, imports, feeProvingKey, feeVerifyingKey);
+        // Build a deployment transaction
+        return await WasmProgramManager.buildDeploymentTransaction(
+            deploymentPrivateKey,
+            program,
+            priorityFee,
+            feeRecord,
+            this.host,
+            imports,
+            feeProvingKey,
+            feeVerifyingKey,
+        );
     }
 
     /**
      * Deploy an Aleo program to the Aleo network
      *
      * @param {string} program Program source code
-     * @param {number} fee Fee to pay for the transaction
+     * @param {number} priorityFee The optional fee to be paid for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to used pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
@@ -248,7 +305,7 @@ class ProgramManager {
      * @example
      * /// Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -259,7 +316,7 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Define a fee in credits
-     * const fee = 1.2;
+     * const priorityFee = 0.0;
      *
      * // Deploy the program
      * const tx_id = await programManager.deploy(program, fee, false);
@@ -272,13 +329,38 @@ class ProgramManager {
      */
     async deploy(
         program: string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
     ): Promise<string> {
-        const tx = <Transaction>await this.buildDeploymentTransaction(program, fee, privateFee, recordSearchParams, feeRecord, privateKey);
+        const tx = <Transaction>(
+            await this.buildDeploymentTransaction(
+                program,
+                priorityFee,
+                privateFee,
+                recordSearchParams,
+                feeRecord,
+                privateKey,
+            )
+        );
+
+        let feeAddress;
+
+        if (typeof privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(privateKey);
+        } else if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
+        }
+
+        // Check if the account has sufficient credits to pay for the transaction
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -304,33 +386,35 @@ class ProgramManager {
      * const tx = await programManager.buildExecutionTransaction({
      *   programName: "hello_hello.aleo",
      *   functionName: "hello_hello",
-     *   fee: 0.020,
+     *   priorityFee: 0.0,
      *   privateFee: false,
      *   inputs: ["5u32", "5u32"],
      *   keySearchParams: { "cacheKey": "hello_hello:hello" }
      * });
-     * 
+     *
      * // Submit the transaction to the network
      * await programManager.networkClient.submitTransaction(tx.toString());
-     * 
+     *
      * // Verify the transaction was successful
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildExecutionTransaction(options: ExecuteOptions): Promise<Transaction> {
+    async buildExecutionTransaction(
+        options: ExecuteOptions,
+    ): Promise<Transaction> {
         // Destructure the options object to access the parameters
         const {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             recordSearchParams,
             keySearchParams,
             privateKey,
-            offlineQuery
+            offlineQuery,
         } = options;
 
         let feeRecord = options.feeRecord;
@@ -342,9 +426,13 @@ class ProgramManager {
         // Ensure the function exists on the network
         if (program === undefined) {
             try {
-                program = <string>(await this.networkClient.getProgram(programName));
+                program = <string>(
+                    await this.networkClient.getProgram(programName)
+                );
             } catch (e: any) {
-                logAndThrow(`Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`);
+                logAndThrow(
+                    `Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`,
+                );
             }
         } else if (program instanceof Program) {
             program = program.toString();
@@ -352,36 +440,58 @@ class ProgramManager {
 
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
-        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
             executionPrivateKey = this.account.privateKey();
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw "No private key provided and no private key set in the ProgramManager";
         }
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
+            feeRecord = privateFee
+                ? <RecordPlaintext>(
+                      await this.getCreditsRecord(
+                          priorityFee,
+                          [],
+                          feeRecord,
+                          recordSearchParams,
+                      )
+                  )
+                : undefined;
         } catch (e: any) {
-            logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+            );
         }
 
         // Get the fee proving and verifying keys from the key provider
         let feeKeys;
         try {
-            feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
+            feeKeys = privateFee
+                ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys()
+                : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
         } catch (e: any) {
-            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
+            logAndThrow(
+                `Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`,
+            );
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
         // If the function proving and verifying keys are not provided, attempt to find them using the key provider
         if (!provingKey || !verifyingKey) {
             try {
-                [provingKey, verifyingKey] = <FunctionKeyPair>await this.keyProvider.functionKeys(keySearchParams);
+                [provingKey, verifyingKey] = <FunctionKeyPair>(
+                    await this.keyProvider.functionKeys(keySearchParams)
+                );
             } catch (e) {
-                console.log(`Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`)
+                console.log(
+                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
+                );
             }
         }
 
@@ -389,14 +499,32 @@ class ProgramManager {
         const numberOfImports = Program.fromString(program).getImports().length;
         if (numberOfImports > 0 && !imports) {
             try {
-                imports = <ProgramImports>await this.networkClient.getProgramImports(programName);
+                imports = <ProgramImports>(
+                    await this.networkClient.getProgramImports(programName)
+                );
             } catch (e: any) {
-                logAndThrow(`Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`);
+                logAndThrow(
+                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+                );
             }
         }
 
-        // Build an execution transaction and submit it to the network
-        return await WasmProgramManager.buildExecutionTransaction(executionPrivateKey, program, functionName, inputs, fee, feeRecord, this.host, imports, provingKey, verifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        // Build an execution transaction
+        return await WasmProgramManager.buildExecutionTransaction(
+            executionPrivateKey,
+            program,
+            functionName,
+            inputs,
+            priorityFee,
+            feeRecord,
+            this.host,
+            imports,
+            provingKey,
+            verifyingKey,
+            feeProvingKey,
+            feeVerifyingKey,
+            offlineQuery,
+        );
     }
 
     /**
@@ -421,7 +549,7 @@ class ProgramManager {
      * const tx_id = await programManager.execute({
      *   programName: "hello_hello.aleo",
      *   functionName: "hello_hello",
-     *   fee: 0.020,
+     *   priorityFee: 0.0,
      *   privateFee: false,
      *   inputs: ["5u32", "5u32"],
      *   keySearchParams: { "cacheKey": "hello_hello:hello" }
@@ -435,6 +563,22 @@ class ProgramManager {
      */
     async execute(options: ExecuteOptions): Promise<string> {
         const tx = <Transaction>await this.buildExecutionTransaction(options);
+
+        let feeAddress;
+
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
+        }
+
+        // Check if the account has sufficient credits to pay for the transaction
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -484,28 +628,47 @@ class ProgramManager {
     ): Promise<ExecutionResponse> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
-        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
             executionPrivateKey = this.account.privateKey();
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw "No private key provided and no private key set in the ProgramManager";
         }
 
         // If the function proving and verifying keys are not provided, attempt to find them using the key provider
         if (!provingKey || !verifyingKey) {
             try {
-                [provingKey, verifyingKey] = <FunctionKeyPair>await this.keyProvider.functionKeys(keySearchParams);
+                [provingKey, verifyingKey] = <FunctionKeyPair>(
+                    await this.keyProvider.functionKeys(keySearchParams)
+                );
             } catch (e) {
-                console.log(`Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`)
+                console.log(
+                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
+                );
             }
         }
 
         // Run the program offline and return the result
-        console.log("Running program offline")
+        console.log("Running program offline");
         console.log("Proving key: ", provingKey);
         console.log("Verifying key: ", verifyingKey);
-        return WasmProgramManager.executeFunctionOffline(executionPrivateKey, program, function_name, inputs, proveExecution, false, imports, provingKey, verifyingKey, this.host, offlineQuery);
+        return WasmProgramManager.executeFunctionOffline(
+            executionPrivateKey,
+            program,
+            function_name,
+            inputs,
+            proveExecution,
+            false,
+            imports,
+            provingKey,
+            verifyingKey,
+            this.host,
+            offlineQuery,
+        );
     }
 
     /**
@@ -513,7 +676,7 @@ class ProgramManager {
      *
      * @param {RecordPlaintext | string} recordOne First credits record to join
      * @param {RecordPlaintext | string} recordTwo Second credits record to join
-     * @param {number} fee Fee in credits pay for the join transaction
+     * @param {number} priorityFee The optional priority fee to be paid for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record to use to pay the fee for the join transaction
      * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
@@ -545,52 +708,98 @@ class ProgramManager {
     async join(
         recordOne: RecordPlaintext | string,
         recordTwo: RecordPlaintext | string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams | undefined,
         feeRecord?: RecordPlaintext | string | undefined,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
     ): Promise<string> {
-        // Get the private key from the account if it is not provided in the parameters
+        // Get the private key from the account if it is not provided in the parameters and assign the fee address
         let executionPrivateKey = privateKey;
-        if (typeof privateKey === "undefined" && typeof this.account !== "undefined") {
+        let feeAddress;
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
             executionPrivateKey = this.account.privateKey();
+            feeAddress = this.account?.address();
         }
-
-        if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+        else if (typeof executionPrivateKey === "undefined") {
+            throw "No private key provided and no private key set in the ProgramManager";
+        }
+        else {
+            feeAddress = Address.from_private_key(executionPrivateKey);
         }
 
         // Get the proving and verifying keys from the key provider
         let feeKeys;
-        let joinKeys
+        let joinKeys;
         try {
-            feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
+            feeKeys = privateFee
+                ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys()
+                : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
             joinKeys = <FunctionKeyPair>await this.keyProvider.joinKeys();
         } catch (e: any) {
-            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
+            logAndThrow(
+                `Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`,
+            );
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
         const [joinProvingKey, joinVerifyingKey] = joinKeys;
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, [], feeRecord, recordSearchParams) : undefined;
+            feeRecord = privateFee
+                ? <RecordPlaintext>(
+                      await this.getCreditsRecord(
+                          priorityFee,
+                          [],
+                          feeRecord,
+                          recordSearchParams,
+                      )
+                  )
+                : undefined;
         } catch (e: any) {
-            logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+            );
         }
 
         // Validate the records provided are valid plaintext records
         try {
-            recordOne = recordOne instanceof RecordPlaintext ? recordOne : RecordPlaintext.fromString(recordOne);
-            recordTwo = recordTwo instanceof RecordPlaintext ? recordTwo : RecordPlaintext.fromString(recordTwo);
+            recordOne =
+                recordOne instanceof RecordPlaintext
+                    ? recordOne
+                    : RecordPlaintext.fromString(recordOne);
+            recordTwo =
+                recordTwo instanceof RecordPlaintext
+                    ? recordTwo
+                    : RecordPlaintext.fromString(recordTwo);
         } catch (e: any) {
-            logAndThrow('Records provided are not valid. Please ensure they are valid plaintext records.')
+            logAndThrow(
+                "Records provided are not valid. Please ensure they are valid plaintext records.",
+            );
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildJoinTransaction(executionPrivateKey, recordOne, recordTwo, fee, feeRecord, this.host, joinProvingKey, joinVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        const tx = await WasmProgramManager.buildJoinTransaction(
+            executionPrivateKey,
+            recordOne,
+            recordTwo,
+            priorityFee,
+            feeRecord,
+            this.host,
+            joinProvingKey,
+            joinVerifyingKey,
+            feeProvingKey,
+            feeVerifyingKey,
+            offlineQuery,
+        );
+
+        // Check if the account has sufficient credits to pay for the transaction
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -623,15 +832,23 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async split(splitAmount: number, amountRecord: RecordPlaintext | string, privateKey?: PrivateKey, offlineQuery?: OfflineQuery): Promise<string> {
-        // Get the private key from the account if it is not provided in the parameters
-        let executionPrivateKey = privateKey;
-        if (typeof executionPrivateKey === "undefined" && typeof this.account !== "undefined") {
-            executionPrivateKey = this.account.privateKey();
-        }
+    async split(
+        splitAmount: number,
+        amountRecord: RecordPlaintext | string,
+        privateKey?: PrivateKey,
+        offlineQuery?: OfflineQuery,
+    ): Promise<string> {
+         // Get the private key from the account if it is not provided in the parameters
+         let executionPrivateKey = privateKey;
+         if (
+             typeof privateKey === "undefined" &&
+             typeof this.account !== "undefined"
+         ) {
+             executionPrivateKey = this.account.privateKey();
+         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw "No private key provided and no private key set in the ProgramManager";
         }
 
         // Get the split keys from the key provider
@@ -639,19 +856,35 @@ class ProgramManager {
         try {
             splitKeys = <FunctionKeyPair>await this.keyProvider.splitKeys();
         } catch (e: any) {
-            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
+            logAndThrow(
+                `Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`,
+            );
         }
         const [splitProvingKey, splitVerifyingKey] = splitKeys;
 
         // Validate the record to be split
         try {
-            amountRecord = amountRecord instanceof RecordPlaintext ? amountRecord : RecordPlaintext.fromString(amountRecord);
+            amountRecord =
+                amountRecord instanceof RecordPlaintext
+                    ? amountRecord
+                    : RecordPlaintext.fromString(amountRecord);
         } catch (e: any) {
-            logAndThrow("Record provided is not valid. Please ensure it is a valid plaintext record.");
+            logAndThrow(
+                "Record provided is not valid. Please ensure it is a valid plaintext record.",
+            );
         }
 
         // Build an execution transaction and submit it to the network
-        const tx = await WasmProgramManager.buildSplitTransaction(executionPrivateKey, splitAmount, amountRecord, this.host, splitProvingKey, splitVerifyingKey, offlineQuery);
+        const tx = await WasmProgramManager.buildSplitTransaction(
+            executionPrivateKey,
+            splitAmount,
+            amountRecord,
+            this.host,
+            splitProvingKey,
+            splitVerifyingKey,
+            offlineQuery,
+        );
+
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -691,11 +924,16 @@ class ProgramManager {
                 program,
                 function_id,
                 inputs,
-                imports
+                imports,
             );
-            return [<ProvingKey>keyPair.provingKey(), <VerifyingKey>keyPair.verifyingKey()];
+            return [
+                <ProvingKey>keyPair.provingKey(),
+                <VerifyingKey>keyPair.verifyingKey(),
+            ];
         } catch (e: any) {
-            logAndThrow(`Could not synthesize keys - error ${e.message}. Please ensure the program is valid and the inputs are correct.`);
+            logAndThrow(
+                `Could not synthesize keys - error ${e.message}. Please ensure the program is valid and the inputs are correct.`,
+            );
         }
     }
 
@@ -705,7 +943,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} fee The fee to pay for the transfer
+     * @param {number} priorityFee The optional priority fee to be paid for the transaction
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
@@ -738,35 +976,44 @@ class ProgramManager {
         amount: number,
         recipient: string,
         transferType: string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         amountRecord?: RecordPlaintext | string,
         feeRecord?: RecordPlaintext | string,
         privateKey?: PrivateKey,
-        offlineQuery?: OfflineQuery
+        offlineQuery?: OfflineQuery,
     ): Promise<Transaction> {
         // Validate the transfer type
         transferType = <string>validateTransferType(transferType);
 
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
-        if (typeof executionPrivateKey === "undefined" && typeof this.account !== "undefined") {
+        if (
+            typeof executionPrivateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
             executionPrivateKey = this.account.privateKey();
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw("No private key provided and no private key set in the ProgramManager");
+            throw "No private key provided and no private key set in the ProgramManager";
         }
 
         // Get the proving and verifying keys from the key provider
         let feeKeys;
-        let transferKeys
+        let transferKeys;
         try {
-            feeKeys = privateFee ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys() : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
-            transferKeys = <FunctionKeyPair>await this.keyProvider.transferKeys(transferType);
+            feeKeys = privateFee
+                ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys()
+                : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
+            transferKeys = <FunctionKeyPair>(
+                await this.keyProvider.transferKeys(transferType)
+            );
         } catch (e: any) {
-            logAndThrow(`Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`);
+            logAndThrow(
+                `Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`,
+            );
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
         const [transferProvingKey, transferVerifyingKey] = transferKeys;
@@ -777,18 +1024,50 @@ class ProgramManager {
             const nonces: string[] = [];
             if (requiresAmountRecord(transferType)) {
                 // If the transfer type is private and requires an amount record, get it from the record provider
-                amountRecord = <RecordPlaintext>await this.getCreditsRecord(fee, [], amountRecord, recordSearchParams);
+                amountRecord = <RecordPlaintext>(
+                    await this.getCreditsRecord(
+                        priorityFee,
+                        [],
+                        amountRecord,
+                        recordSearchParams,
+                    )
+                );
                 nonces.push(amountRecord.nonce());
             } else {
                 amountRecord = undefined;
             }
-            feeRecord = privateFee ? <RecordPlaintext>await this.getCreditsRecord(fee, nonces, feeRecord, recordSearchParams) : undefined;
+            feeRecord = privateFee
+                ? <RecordPlaintext>(
+                      await this.getCreditsRecord(
+                          priorityFee,
+                          nonces,
+                          feeRecord,
+                          recordSearchParams,
+                      )
+                  )
+                : undefined;
         } catch (e: any) {
-            logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+            );
         }
 
-        // Build an execution transaction and submit it to the network
-        return await WasmProgramManager.buildTransferTransaction(executionPrivateKey, amount, recipient, transferType, amountRecord, fee, feeRecord, this.host, transferProvingKey, transferVerifyingKey, feeProvingKey, feeVerifyingKey, offlineQuery);
+        // Build an execution transaction
+        return await WasmProgramManager.buildTransferTransaction(
+            executionPrivateKey,
+            amount,
+            recipient,
+            transferType,
+            amountRecord,
+            priorityFee,
+            feeRecord,
+            this.host,
+            transferProvingKey,
+            transferVerifyingKey,
+            feeProvingKey,
+            feeVerifyingKey,
+            offlineQuery,
+        );
     }
 
     /**
@@ -796,7 +1075,7 @@ class ProgramManager {
      *
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
-     * @param {number} fee The fee to pay for the transfer records for the transfer transaction
+     * @param {number} priorityFee The optional priority fee to be paid for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<Transaction>} The transaction object
@@ -824,11 +1103,22 @@ class ProgramManager {
     async buildTransferPublicTransaction(
         amount: number,
         recipient: string,
-        fee: number,
+        priorityFee: number,
         privateKey?: PrivateKey,
-        offlineQuery?: OfflineQuery
+        offlineQuery?: OfflineQuery,
     ): Promise<Transaction> {
-        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
+        return this.buildTransferTransaction(
+            amount,
+            recipient,
+            "public",
+            priorityFee,
+            false,
+            undefined,
+            undefined,
+            undefined,
+            privateKey,
+            offlineQuery,
+        );
     }
 
     /**
@@ -836,12 +1126,7 @@ class ProgramManager {
      *
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
-     * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} fee The fee to pay for the transfer
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
-     * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
-     * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
+     * @param {number} priorityFee The optional priority fee to be paid for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<Transaction>} The transaction object
@@ -869,11 +1154,22 @@ class ProgramManager {
     async buildTransferPublicAsSignerTransaction(
         amount: number,
         recipient: string,
-        fee: number,
+        priorityFee: number,
         privateKey?: PrivateKey,
-        offlineQuery?: OfflineQuery
+        offlineQuery?: OfflineQuery,
     ): Promise<Transaction> {
-        return this.buildTransferTransaction(amount, recipient, "public", fee, false, undefined, undefined, undefined, privateKey, offlineQuery);
+        return this.buildTransferTransaction(
+            amount,
+            recipient,
+            "public",
+            priorityFee,
+            false,
+            undefined,
+            undefined,
+            undefined,
+            privateKey,
+            offlineQuery,
+        );
     }
 
     /**
@@ -882,7 +1178,7 @@ class ProgramManager {
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
      * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} fee The fee to pay for the transfer
+     * @param {number} priorityFee The optional priority fee to be paid for the transfer
      * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
      * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
@@ -894,7 +1190,7 @@ class ProgramManager {
      * @example
      * /// Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -914,15 +1210,44 @@ class ProgramManager {
         amount: number,
         recipient: string,
         transferType: string,
-        fee: number,
+        priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         amountRecord?: RecordPlaintext | string,
         feeRecord?: RecordPlaintext | string,
         privateKey?: PrivateKey,
-        offlineQuery?: OfflineQuery
+        offlineQuery?: OfflineQuery,
     ): Promise<string> {
-        const tx = <Transaction>await this.buildTransferTransaction(amount, recipient, transferType, fee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery);
+        const tx = <Transaction>(
+            await this.buildTransferTransaction(
+                amount,
+                recipient,
+                transferType,
+                priorityFee,
+                privateFee,
+                recordSearchParams,
+                amountRecord,
+                feeRecord,
+                privateKey,
+                offlineQuery,
+            )
+        );
+
+        let feeAddress;
+
+        if (typeof privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(privateKey);
+        } else if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
+        }
+
+        // Check if the account has sufficient credits to pay for the transaction
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -938,7 +1263,7 @@ class ProgramManager {
      * @example
      * // Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Create a keyProvider to handle key management
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache = true;
@@ -959,19 +1284,28 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildBondPublicTransaction(validator_address: string, withdrawal_address: string, amount: number, options: Partial<ExecuteOptions> = {}) {
+    async buildBondPublicTransaction(
+        validator_address: string,
+        withdrawal_address: string,
+        amount: number,
+        options: Partial<ExecuteOptions> = {},
+    ) {
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const {
             programName = "credits.aleo",
             functionName = "bond_public",
-            fee = options.fee || 0.86,
+            priorityFee = options.priorityFee || 0,
             privateFee = false,
-            inputs = [validator_address, withdrawal_address, `${scaledAmount.toString()}u64`],
+            inputs = [
+                validator_address,
+                withdrawal_address,
+                `${scaledAmount.toString()}u64`,
+            ],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.bond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.bond_public.verifier,
-                cacheKey: "credits.aleo/bond_public"
+                cacheKey: "credits.aleo/bond_public",
             }),
             program = this.creditsProgram(),
             ...additionalOptions
@@ -980,11 +1314,11 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
-            ...additionalOptions
+            ...additionalOptions,
         };
 
         return await this.buildExecutionTransaction(executeOptions);
@@ -1019,8 +1353,36 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async bondPublic(validator_address: string, withdrawal_address:string, amount: number, options: Partial<ExecuteOptions> = {}) {
-        const tx = <Transaction>await this.buildBondPublicTransaction(validator_address, withdrawal_address, amount, options);
+    async bondPublic(
+        validator_address: string,
+        withdrawal_address: string,
+        amount: number,
+        options: Partial<ExecuteOptions> = {},
+    ) {
+        const tx = <Transaction>(
+            await this.buildBondPublicTransaction(
+                validator_address,
+                withdrawal_address,
+                amount,
+                options,
+            )
+        );
+
+        let feeAddress;
+
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
+        }
+
+        // Check if the account has sufficient credits to pay for the transaction
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -1058,21 +1420,32 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async buildBondValidatorTransaction(validator_address: string, withdrawal_address: string, amount: number, commission: number, options: Partial<ExecuteOptions> = {}) {
+    async buildBondValidatorTransaction(
+        validator_address: string,
+        withdrawal_address: string,
+        amount: number,
+        commission: number,
+        options: Partial<ExecuteOptions> = {},
+    ) {
         const scaledAmount = Math.trunc(amount * 1000000);
 
-        const adjustedCommission = Math.trunc(commission)
+        const adjustedCommission = Math.trunc(commission);
 
         const {
             programName = "credits.aleo",
             functionName = "bond_validator",
-            fee = options.fee || 0.86,
+            priorityFee = options.priorityFee || 0,
             privateFee = false,
-            inputs = [validator_address, withdrawal_address, `${scaledAmount.toString()}u64`, `${adjustedCommission.toString()}u8`],
+            inputs = [
+                validator_address,
+                withdrawal_address,
+                `${scaledAmount.toString()}u64`,
+                `${adjustedCommission.toString()}u8`,
+            ],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.bond_validator.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.bond_validator.verifier,
-                cacheKey: "credits.aleo/bond_validator"
+                cacheKey: "credits.aleo/bond_validator",
             }),
             program = this.creditsProgram(),
             ...additionalOptions
@@ -1081,11 +1454,11 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
-            ...additionalOptions
+            ...additionalOptions,
         };
 
         return await this.buildExecutionTransaction(executeOptions);
@@ -1122,8 +1495,38 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async bondValidator(validator_address: string, withdrawal_address: string, amount: number, commission: number, options: Partial<ExecuteOptions> = {}) {
-        const tx = <Transaction>await this.buildBondValidatorTransaction(validator_address, withdrawal_address, amount, commission, options);
+    async bondValidator(
+        validator_address: string,
+        withdrawal_address: string,
+        amount: number,
+        commission: number,
+        options: Partial<ExecuteOptions> = {},
+    ) {
+        const tx = <Transaction>(
+            await this.buildBondValidatorTransaction(
+                validator_address,
+                withdrawal_address,
+                amount,
+                commission,
+                options,
+            )
+        );
+
+        let feeAddress;
+
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
+        }
+
+        // Check if the account has sufficient credits to pay for the transaction
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -1156,19 +1559,23 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildUnbondPublicTransaction(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<Transaction> {
+    async buildUnbondPublicTransaction(
+        staker_address: string,
+        amount: number,
+        options: Partial<ExecuteOptions> = {},
+    ): Promise<Transaction> {
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const {
             programName = "credits.aleo",
             functionName = "unbond_public",
-            fee = options.fee || 1.3,
+            priorityFee = options.priorityFee || 0,
             privateFee = false,
             inputs = [staker_address, `${scaledAmount.toString()}u64`],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.unbond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.unbond_public.verifier,
-                cacheKey: "credits.aleo/unbond_public"
+                cacheKey: "credits.aleo/unbond_public",
             }),
             program = this.creditsProgram(),
             ...additionalOptions
@@ -1177,11 +1584,11 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
-            ...additionalOptions
+            ...additionalOptions,
         };
 
         return this.buildExecutionTransaction(executeOptions);
@@ -1221,8 +1628,34 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async unbondPublic(staker_address: string, amount: number, options: Partial<ExecuteOptions> = {}): Promise<string> {
-        const tx = <Transaction>await this.buildUnbondPublicTransaction(staker_address, amount, options);
+    async unbondPublic(
+        staker_address: string,
+        amount: number,
+        options: Partial<ExecuteOptions> = {},
+    ): Promise<string> {
+        const tx = <Transaction>(
+            await this.buildUnbondPublicTransaction(
+                staker_address,
+                amount,
+                options,
+            )
+        );
+
+        let feeAddress;
+
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
+        }
+
+        // Check if the account has sufficient credits to pay for the transaction
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -1256,17 +1689,20 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildClaimUnbondPublicTransaction(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<Transaction> {
+    async buildClaimUnbondPublicTransaction(
+        staker_address: string,
+        options: Partial<ExecuteOptions> = {},
+    ): Promise<Transaction> {
         const {
             programName = "credits.aleo",
             functionName = "claim_unbond_public",
-            fee = options.fee || 2,
+            priorityFee = options.priorityFee || 0,
             privateFee = false,
             inputs = [staker_address],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier,
-                cacheKey: "credits.aleo/claim_unbond_public"
+                cacheKey: "credits.aleo/claim_unbond_public",
             }),
             program = this.creditsProgram(),
             ...additionalOptions
@@ -1275,13 +1711,14 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
-            ...additionalOptions
+            ...additionalOptions,
         };
 
+        // Check if the account has sufficient credits to pay for the transaction
         return await this.buildExecutionTransaction(executeOptions);
     }
 
@@ -1314,8 +1751,32 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async claimUnbondPublic(staker_address: string, options: Partial<ExecuteOptions> = {}): Promise<string> {
-        const tx = <Transaction>await this.buildClaimUnbondPublicTransaction(staker_address, options);
+    async claimUnbondPublic(
+        staker_address: string,
+        options: Partial<ExecuteOptions> = {},
+    ): Promise<string> {
+        const tx = <Transaction>(
+            await this.buildClaimUnbondPublicTransaction(
+                staker_address,
+                options,
+            )
+        );
+
+        let feeAddress;
+
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
+        }
+
+        // Check if the account has sufficient credits to pay for the transaction
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+
         return await this.networkClient.submitTransaction(tx);
     }
 
@@ -1357,17 +1818,20 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildSetValidatorStateTransaction(validator_state: boolean, options: Partial<ExecuteOptions> = {}) {
+    async buildSetValidatorStateTransaction(
+        validator_state: boolean,
+        options: Partial<ExecuteOptions> = {},
+    ): Promise<Transaction> {
         const {
             programName = "credits.aleo",
             functionName = "set_validator_state",
-            fee = 1,
+            priorityFee = 0,
             privateFee = false,
             inputs = [validator_state.toString()],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.set_validator_state.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.set_validator_state.verifier,
-                cacheKey: "credits.aleo/set_validator_state"
+                cacheKey: "credits.aleo/set_validator_state",
             }),
             ...additionalOptions
         } = options;
@@ -1375,14 +1839,14 @@ class ProgramManager {
         const executeOptions: ExecuteOptions = {
             programName,
             functionName,
-            fee,
+            priorityFee,
             privateFee,
             inputs,
             keySearchParams,
-            ...additionalOptions
+            ...additionalOptions,
         };
 
-        return await this.execute(executeOptions);
+        return await this.buildExecutionTransaction(executeOptions);
     }
 
     /**
@@ -1420,8 +1884,32 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async setValidatorState(validator_state: boolean, options: Partial<ExecuteOptions> = {}) {
-        const tx = <string>await this.buildSetValidatorStateTransaction(validator_state, options);
+    async setValidatorState(
+        validator_state: boolean,
+        options: Partial<ExecuteOptions> = {},
+    ) {
+        const tx = <Transaction>(
+            await this.buildSetValidatorStateTransaction(
+                validator_state,
+                options,
+            )
+        );
+
+        let feeAddress;
+
+        if (typeof options.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(options.privateKey);
+        } else if (this.account !== undefined) {
+            feeAddress = this.account?.address();
+        } else {
+            throw Error(
+                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
+            );
+        }
+
+        // Check if the account has sufficient credits to pay for the transaction
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+
         return this.networkClient.submitTransaction(tx);
     }
 
@@ -1433,13 +1921,22 @@ class ProgramManager {
      */
     verifyExecution(executionResponse: ExecutionResponse): boolean {
         try {
-            const execution = <FunctionExecution>executionResponse.getExecution();
+            const execution = <FunctionExecution>(
+                executionResponse.getExecution()
+            );
             const function_id = executionResponse.getFunctionId();
             const program = executionResponse.getProgram();
             const verifyingKey = executionResponse.getVerifyingKey();
-            return verifyFunctionExecution(execution, verifyingKey, program, function_id);
-        } catch(e) {
-            console.warn("The execution was not found in the response, cannot verify the execution");
+            return verifyFunctionExecution(
+                execution,
+                verifyingKey,
+                program,
+                function_id,
+            );
+        } catch (e) {
+            console.warn(
+                "The execution was not found in the response, cannot verify the execution",
+            );
             return false;
         }
     }
@@ -1478,15 +1975,31 @@ class ProgramManager {
     }
 
     // Internal utility function for getting a credits.aleo record
-    async getCreditsRecord(amount: number, nonces: string[], record?: RecordPlaintext | string, params?: RecordSearchParams): Promise<RecordPlaintext> {
+    async getCreditsRecord(
+        amount: number,
+        nonces: string[],
+        record?: RecordPlaintext | string,
+        params?: RecordSearchParams,
+    ): Promise<RecordPlaintext> {
         try {
-            return record instanceof RecordPlaintext ? record : RecordPlaintext.fromString(<string>record);
+            return record instanceof RecordPlaintext
+                ? record
+                : RecordPlaintext.fromString(<string>record);
         } catch (e) {
             try {
                 const recordProvider = <RecordProvider>this.recordProvider;
-                return <RecordPlaintext>(await recordProvider.findCreditsRecord(amount, true, nonces, params))
+                return <RecordPlaintext>(
+                    await recordProvider.findCreditsRecord(
+                        amount,
+                        true,
+                        nonces,
+                        params,
+                    )
+                );
             } catch (e: any) {
-                logAndThrow(`Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`);
+                logAndThrow(
+                    `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+                );
             }
         }
     }
@@ -1499,8 +2012,11 @@ function requiresAmountRecord(transferType: string): boolean {
 
 // Validate the transfer type
 function validateTransferType(transferType: string): string {
-    return VALID_TRANSFER_TYPES.has(transferType) ? transferType :
-        logAndThrow(`Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`);
+    return VALID_TRANSFER_TYPES.has(transferType)
+        ? transferType
+        : logAndThrow(
+              `Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`,
+          );
 }
 
-export { ProgramManager }
+export { ProgramManager };
