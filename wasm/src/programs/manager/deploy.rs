@@ -115,13 +115,7 @@ impl ProgramManager {
         );
 
         // Create the program owner
-        let owner = ProgramOwnerNative::new(private_key, deployment_id, &mut StdRng::from_entropy())
-            .map_err(|err| err.to_string())?;
-
-        log("Verifying the deployment and fees");
-        process
-            .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
-            .map_err(|err| err.to_string())?;
+        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
 
         log("Creating deployment transaction");
         Ok(Transaction::from(
