@@ -11,7 +11,7 @@ and a public account address are derived. The private key lies at the root of an
 sensitive secret and should be protected as it allows for creation of Aleo Program executions and arbitrary value
 transfers. The View Key allows for decryption of a user&#x27;s activity on the blockchain. The Address is the public
 address to which other users of Aleo can send Aleo credits and other records to. This class should only be used
-environments where the safety of the underlying key material can be assured._
+in environments where the safety of the underlying key material can be assured._
   * [src/function-key-provider](sdk-src_function-key-provider.md) - _AleoKeyProvider class. Implements the KeyProvider interface. Enables the retrieval of Aleo program proving and
 verifying keys for the credits.aleo program over http from official Aleo sources and storing and retrieving function
 keys from a local memory cache._

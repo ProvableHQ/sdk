@@ -51,6 +51,106 @@ __*return*__ | [Address](sdk-src_wasm.md) | **
 
 ---
 
+### `fromBytesLe(bytes) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get an address from a series of bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *A left endian byte array representing the address.*
+__*return*__ | [Address](sdk-src_wasm.md) | *The address object.*
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian byte array representation of the address.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBitsLe(bits) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get an address from a series of bits represented as a boolean array.
+
+Parameters | Type | Description
+--- | --- | ---
+__bits__ | `Array` | *A left endian boolean array representing the bits of the address.*
+__*return*__ | [Address](sdk-src_wasm.md) | *The address object.*
+
+---
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the bits of the address.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `fromFields(fields) ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get an address object from an array of fields.
+
+Parameters | Type | Description
+--- | --- | ---
+__fields__ | `Array` | *An array of fields.*
+__*return*__ | [Plaintext](sdk-src_wasm.md) | *The address object.*
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the address.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `fromGroup(group) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get an address object from a group.
+
+Parameters | Type | Description
+--- | --- | ---
+__group__ | [Group](sdk-src_wasm.md) | *The group object.*
+__*return*__ | [Address](sdk-src_wasm.md) | *The address object.*
+
+---
+
+### `toGroup() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the group representation of the address object.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
 ### `from_string(address) ► Address`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -74,6 +174,18 @@ Parameters | Type | Description
 --- | --- | ---
 __Address__ | [Address](sdk-src_wasm.md) | **
 __*return*__ | `string` | *String representation of the address*
+
+---
+
+### `toPlaintext() ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the plaintext representation of the address.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
@@ -169,6 +281,68 @@ Parameters | Type | Description
 --- | --- | ---
 __bytes__ | `Uint8Array` | *The byte array representing the Ciphertext.*
 __*return*__ | [Ciphertext](sdk-src_wasm.md) | *The Ciphertext object.*
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian byte array representation of the ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBitsLe(bits) ► Ciphertext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a ciphertext object from a series of bits represented as a boolean array.
+
+Parameters | Type | Description
+--- | --- | ---
+__bits__ | `Array` | *A left endian boolean array representing the bits of the ciphertext.*
+__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The ciphertext object.*
+
+---
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the bits of the ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `fromFields(fields) ► Ciphertext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a ciphertext object from an array of fields.
+
+Parameters | Type | Description
+--- | --- | ---
+__fields__ | `Array` | *An array of fields.*
+__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The ciphertext object.*
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
 
 ---
 
@@ -695,6 +869,18 @@ __*return*__ | `Array.<any>` | **
 
 ---
 
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the group.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
 ### `toXCoordinate() ► Field`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1055,16 +1241,65 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
 
 ---
 
-### `toBytesLe(bytes) ► Uint8Array`
+### `toBytesLe() ► Uint8Array`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Generate a random plaintext element from a series of bytes.
+Get the left endian byte array representation of the plaintext.
 
 Parameters | Type | Description
 --- | --- | ---
-__bytes__ | `Uint8Array` | *A left endian byte array representing the plaintext.*
 __*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBitsLe(bits) ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a plaintext object from a series of bits represented as a boolean array.
+
+Parameters | Type | Description
+--- | --- | ---
+__bits__ | `Array` | *A left endian boolean array representing the bits plaintext.*
+__*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
+
+---
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the bits of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `fromFields(fields) ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a plaintext object from an array of fields.
+
+Parameters | Type | Description
+--- | --- | ---
+__fields__ | `Array` | *An array of fields.*
+__*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
 
 ---
 
@@ -2068,6 +2303,55 @@ __*return*__ | [Field](sdk-src_wasm.md) | *tag of the record.*
 
 ---
 
+### `fromBytesLe(bytes) ► RecordCiphertext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a record ciphertext object from a series of bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *A left endian byte array representing the record ciphertext.*
+__*return*__ | [RecordCiphertext](sdk-src_wasm.md) | **
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian byte array representation of the record ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the record ciphertext bits.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the record ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
 # Class `RecordPlaintext`
 
 Plaintext representation of an Aleo record
@@ -2169,6 +2453,55 @@ Returns the record plaintext string
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `string` | *String representation of the record plaintext*
+
+---
+
+### `fromBytesLe(bytes) ► RecordPlaintext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a record plaintext object from a series of bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *A left endian byte array representing the record plaintext.*
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The record plaintext.*
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the left endian byte array representation of the record plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *Byte array representation of the record plaintext.*
+
+---
+
+### `toBitsLe() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the left endian boolean array representation of the record plaintext bits.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *Boolean array representation of the record plaintext bits.*
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the record plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
 
 ---
 
@@ -2538,6 +2871,68 @@ __*return*__ | `boolean` | *True if the signature is valid, false otherwise*
 
 ---
 
+### `fromBytesLe(bytes) ► Signature`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a signature from a series of bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *A left endian byte array representing the signature.*
+__*return*__ | [Signature](sdk-src_wasm.md) | *The signature object.*
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian byte array representation of the signature.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBitsLe(bits) ► Signature`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a signature from a series of bits represented as a boolean array.
+
+Parameters | Type | Description
+--- | --- | ---
+__bits__ | `Array` | *A left endian boolean array representing the bits of the signature.*
+__*return*__ | [Signature](sdk-src_wasm.md) | *The signature object.*
+
+---
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the bits of the signature.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the signature.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
 ### `from_string(signature) ► Signature`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -2560,6 +2955,18 @@ Get a string representation of a signature
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `string` | *String representation of a signature*
+
+---
+
+### `toPlaintext() ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the plaintext representation of the signature.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
