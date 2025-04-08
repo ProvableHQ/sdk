@@ -7,8 +7,7 @@ export const Join = () => {
     const [recordOne, setRecordOne] = useState(null);
     const [recordTwo, setRecordTwo] = useState(null);
     const [joinUrl, setJoinUrl] = useState("https://api.explorer.provable.com/v1");
-    const [joinFee, setJoinFee] = useState("1.0");
-    const [privateFee, setPrivateFee] = useState(true);
+    const [privateFee, setPrivateFee] = useState(false);
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
     const [joinError, setJoinError] = useState(null);
@@ -51,22 +50,11 @@ export const Join = () => {
         setTransactionID(null);
         setJoinError(null);
 
-        const feeAmount = parseFloat(feeString());
-        if (isNaN(feeAmount)) {
-            setJoinError("Fee is not a valid number");
-            setLoading(false);
-            return;
-        } else if (feeAmount <= 0) {
-            setJoinError("Fee must be greater than 0");
-            setLoading(false);
-            return;
-        }
-
         await postMessagePromise(worker, {
             type: "ALEO_JOIN",
             recordOne: recordOneString(),
             recordTwo: recordTwoString(),
-            fee: feeAmount,
+            fee: 0,
             privateFee: privateFee,
             feeRecord: feeRecordString(),
             privateKey: privateKeyString(),
@@ -94,15 +82,6 @@ export const Join = () => {
             setJoinUrl(event.target.value);
         }
         return joinUrl;
-    };
-
-    const onJoinFeeChange = (event) => {
-        if (event.target.value !== null) {
-            setJoinFee(event.target.value);
-        }
-        setTransactionID(null);
-        setJoinError(null);
-        return joinFee;
     };
 
     const onRecordOneChange = (event) => {
@@ -149,7 +128,6 @@ export const Join = () => {
     const transactionIDString = () =>
         transactionID !== null ? transactionID : "";
     const joinErrorString = () => (joinError !== null ? joinError : "");
-    const feeString = () => (joinFee !== null ? joinFee : "");
     const peerUrl = () => (joinUrl !== null ? joinUrl : "");
 
     return (
@@ -186,21 +164,11 @@ export const Join = () => {
                         value={recordTwoString()}
                     />
                 </Form.Item>
-                <Form.Item label="Priority Fee" colon={false} validateStatus={status}>
-                    <Input.TextArea
-                        name="Priority Fee"
-                        size="small"
-                        placeholder="Priority Fee"
-                        allowClear
-                        onChange={onJoinFeeChange}
-                        value={feeString()}
-                    />
-                </Form.Item>
                 <Form.Item
                     label="Private Fee"
                     name="private_fee"
                     valuePropName="checked"
-                    initialValue={true}
+                    initialValue={false}
                 >
                     <Switch onChange={setPrivateFee} />
                 </Form.Item>

@@ -564,16 +564,7 @@ export const ExecuteLegacy = () => {
                                 Execute
                             </Button>
                             {contextHolder}
-                            {executeOnline && (
-                                <Button
-                                    type="primary"
-
-                                    size="middle"
-                                    onClick={estimate}
-                                >
-                                    Estimate Fee
-                                </Button>
-                            )}
+                            {executeOnline}
                         </Space>
                     </Col>
                 </Row>

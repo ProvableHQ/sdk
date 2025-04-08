@@ -21,8 +21,7 @@ export const Transfer = () => {
     const [amountRecord, setAmountRecord] = useState(null);
     const [transferUrl, setTransferUrl] = useState("https://api.explorer.provable.com/v1");
     const [transferAmount, setTransferAmount] = useState("1.0");
-    const [transferFee, setTransferFee] = useState("1.0");
-    const [privateFee, setPrivateFee] = useState(true);
+    const [privateFee, setPrivateFee] = useState(false);
     const [recipient, setRecipient] = useState(null);
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
@@ -38,12 +37,12 @@ export const Transfer = () => {
             { type: "module" },
         );
         worker.addEventListener("message", (ev) => {
-            if (ev.data.type == "TRANSFER_TRANSACTION_COMPLETED") {
+            if (ev.data.type === "TRANSFER_TRANSACTION_COMPLETED") {
                 const transactionId = ev.data.transferTransaction;
                 setLoading(false);
                 setTransferError(null);
                 setTransactionID(transactionId);
-            } else if (ev.data.type == "ERROR") {
+            } else if (ev.data.type === "ERROR") {
                 setTransferError(ev.data.errorMessage);
                 setLoading(false);
                 setTransactionID(null);
@@ -66,17 +65,6 @@ export const Transfer = () => {
         setLoading(true);
         setTransactionID(null);
         setTransferError(null);
-
-        const feeAmount = parseFloat(feeString());
-        if (isNaN(feeAmount)) {
-            setTransferError("Fee is not a valid number");
-            setLoading(false);
-            return;
-        } else if (feeAmount <= 0) {
-            setTransferError("Fee must be greater than 0");
-            setLoading(false);
-            return;
-        }
 
         const amount = parseFloat(amountString());
         if (isNaN(amount)) {
@@ -104,7 +92,7 @@ export const Transfer = () => {
             transfer_type: visibilityString(),
             recipient: recipientString(),
             amountRecord: amountRecord,
-            fee: feeAmount,
+            fee: 0,
             privateFee: privateFee,
             feeRecord: feeRecordString(),
             url: peerUrl(),
@@ -140,15 +128,6 @@ export const Transfer = () => {
         setTransactionID(null);
         setTransferError(null);
         return transferAmount;
-    };
-
-    const onTransferFeeChange = (event) => {
-        if (event.target.value !== null) {
-            setTransferFee(event.target.value);
-        }
-        setTransactionID(null);
-        setTransferError(null);
-        return transferFee;
     };
 
     const onAmountRecordChange = (event) => {
@@ -217,7 +196,6 @@ export const Transfer = () => {
     ];
 
     const layout = { labelCol: { span: 5 }, wrapperCol: { span: 21 } };
-    const feeString = () => (transferFee !== null ? transferFee : "");
     const amountString = () => (transferAmount !== null ? transferAmount : "");
     const recipientString = () => (recipient !== null ? recipient : "");
     const privateKeyString = () => (privateKey !== null ? privateKey : "");
@@ -293,21 +271,11 @@ export const Transfer = () => {
                         />
                     </Form.Item>
                 )}
-                <Form.Item label="Priority Fee" colon={false} validateStatus={status}>
-                    <Input.TextArea
-                        name="Priority Fee"
-                        size="small"
-                        placeholder="Priority Fee"
-                        allowClear
-                        onChange={onTransferFeeChange}
-                        value={feeString()}
-                    />
-                </Form.Item>
                 <Form.Item
                     label="Private Fee"
                     name="private_fee"
                     valuePropName="checked"
-                    initialValue={true}
+                    initialValue={false}
                 >
                     <Switch onChange={setPrivateFee} />
                 </Form.Item>

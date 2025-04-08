@@ -169,10 +169,6 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log(&format!("Executing function: {function} on-chain"));
-        let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(priority_fee_credits, fee_record, true)?,
-            None => (priority_fee_credits * 1_000_000.0) as u64,
-        };
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
@@ -213,12 +209,16 @@ impl ProgramManager {
         log("Calculating the minimum execution fee");
         let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
 
+        // Check to see if the fee record has enough microcredits to pay for the deployment.
+        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+        Self::validate_fee_record(&fee_record, minimum_execution_cost, priority_fee_microcredits)?;
+
         log("Executing fee");
         let fee = execute_fee!(
             process,
             private_key,
             fee_record,
-            fee_microcredits,
+            priority_fee_microcredits,
             node_url,
             fee_proving_key,
             fee_verifying_key,

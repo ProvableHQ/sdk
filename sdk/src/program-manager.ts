@@ -102,15 +102,11 @@ class ProgramManager {
      * Check if the fee is sufficient to pay for the transaction
      */
     async checkFee(address: string, feeAmount: bigint) {
-        const account_balance =
-            await this.networkClient?.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                address,
-            );
-        if (feeAmount > BigInt(account_balance)) {
+        const balance =
+            BigInt(await this.networkClient.getPublicBalance(address));
+        if (feeAmount > balance) {
             throw Error(
-                "Public balance is insufficient to execute the transacation.",
+                `The desired execution requires a fee of ${feeAmount} microcredits, but the account paying the fee has ${balance} microcredits available.`,
             );
         }
     }
@@ -198,9 +194,18 @@ class ProgramManager {
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
     ): Promise<Transaction> {
+        // Ensure the program is valid.
+        let programObject;
+        try {
+            programObject = Program.fromString(program);
+        } catch (e: any) {
+            logAndThrow(
+                `Error parsing program: '${e.message}'. Please ensure the program is valid.`,
+            );
+        }
+
         // Ensure the program is valid and does not exist on the network
         try {
-            const programObject = Program.fromString(program);
             let programSource;
             try {
                 programSource = await this.networkClient.getProgram(
@@ -212,8 +217,8 @@ class ProgramManager {
                     `Program ${programObject.id()} does not exist on the network, deploying...`,
                 );
             }
-            if (typeof programSource == "string") {
-                throw `Program ${programObject.id()} already exists on the network, please rename your program`;
+            if (typeof programSource === "string") {
+                throw Error(`Program ${programObject.id()} already exists on the network, please rename your program`);
             }
         } catch (e: any) {
             logAndThrow(`Error validating program: ${e.message}`);
@@ -354,7 +359,7 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -572,7 +577,7 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -793,7 +798,7 @@ class ProgramManager {
         );
 
         // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1241,7 +1246,7 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1376,7 +1381,7 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1520,7 +1525,7 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1649,7 +1654,7 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1770,7 +1775,7 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1903,7 +1908,7 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
 
         return this.networkClient.submitTransaction(tx);
     }

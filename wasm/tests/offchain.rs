@@ -15,15 +15,13 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use aleo_wasm::{
-    Metadata,
     OfflineQuery,
     PrivateKey,
     Program,
     ProgramManager,
-    ProvingKey,
     RecordPlaintext,
-    VerifyingKey,
 };
+
 use js_sys::{Array, Object, Reflect};
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;

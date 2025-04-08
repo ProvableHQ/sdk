@@ -55,7 +55,10 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Executing split program");
-        let amount_microcredits = Self::validate_amount(split_amount, &amount_record, false)?;
+        let amount_microcredits = (split_amount * 1_000_000.0) as u64;
+        if amount_microcredits > amount_record.microcredits() {
+            return Err("Amount record does not have enough credits".to_string());
+        }
 
         log("Setup the program and inputs");
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);

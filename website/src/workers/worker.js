@@ -298,7 +298,11 @@ self.addEventListener("message", (ev) => {
                 if (typeof url === "string") { programManager.setHost(url); }
 
                 // Check if the program is valid
-                const programObject = programManager.createProgramFromSource(program);
+                try {
+                    const programObject = programManager.createProgramFromSource(program);
+                } catch (error) {
+                    throw new Error(`Invalid program, ensure the program is valid and try again.`);
+                }
 
                 // Check if the program already exists on the network. If so, throw an error
                 let programExists = false;
@@ -315,7 +319,6 @@ self.addEventListener("message", (ev) => {
                     throw new Error(`Program ${programObject.id()} already exists on the network`);
                 }
 
-                console.log("fee is: ", fee);
                 // Create the deployment transaction and submit it to the network
                 let transaction = await programManager.deploy(
                     program,

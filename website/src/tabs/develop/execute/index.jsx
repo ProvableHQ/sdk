@@ -349,28 +349,6 @@ export const Execute = () => {
                                     <Input />
                                 </Form.Item>
                                 <Form.Item
-                                    label="Priority Fee"
-                                    name="fee"
-                                    hidden={!getFieldValue("execute_onchain")}
-                                    tooltip="Fee estimation is experimental and may not represent a correct estimate on any current or future network"
-                                    rules={[
-                                        {
-                                            required:
-                                                getFieldValue(
-                                                    "execute_onchain"
-                                                ),
-                                            message:
-                                                "Fee needed for on-chain execution",
-                                        },
-                                    ]}
-                                >
-                                    <Input.Search
-                                        enterButton="Estimate Fee"
-                                        onSearch={estimateFee}
-                                        loading={feeLoading}
-                                    />
-                                </Form.Item>
-                                <Form.Item
                                     label="Private Fee"
                                     name="private_fee"
                                     valuePropName="checked"

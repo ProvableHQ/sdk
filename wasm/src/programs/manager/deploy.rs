@@ -73,12 +73,6 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
-        // Convert fee to microcredits and check that the fee record has enough credits to pay it
-        let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(priority_fee_credits, fee_record, true)?,
-            None => (priority_fee_credits * 1_000_000.0) as u64,
-        };
-
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
 
@@ -99,12 +93,10 @@ impl ProgramManager {
         log("Ensuring the fee is sufficient to pay for the deployment");
         let (minimum_deployment_cost, (_, _, _)) =
             deployment_cost::<CurrentNetwork>(&deployment).map_err(|err| err.to_string())?;
-        if fee_microcredits < minimum_deployment_cost {
-            return Err(format!(
-                "Fee is too low to pay for the deployment. The minimum fee is {} credits",
-                minimum_deployment_cost as f64 / 1_000_000.0
-            ));
-        }
+
+        // Check to see if the fee record has enough microcredits to pay for the deployment.
+        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+        Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits)?;
 
         let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
 
@@ -112,7 +104,7 @@ impl ProgramManager {
             process,
             private_key,
             fee_record,
-            fee_microcredits,
+            priority_fee_microcredits,
             node_url,
             fee_proving_key,
             fee_verifying_key,

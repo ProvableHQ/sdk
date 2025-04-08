@@ -752,9 +752,10 @@ class AleoNetworkClient {
    * const account = new Account();
    * const publicBalance = networkClient.getPublicBalance(account.address());
    */
-  async getPublicBalance(address: Address): Promise<number> {
+  async getPublicBalance(address: Address | string): Promise<number> {
     try {
-      const balanceStr = await this.getProgramMappingValue('credits.aleo', 'account', address.to_string());
+      const addressString = address instanceof Address ? address.to_string() : address;
+      const balanceStr = await this.getProgramMappingValue('credits.aleo', 'account', addressString);
       return balanceStr ? parseInt(balanceStr) : 0;
     } catch (error) {
       throw new Error(`Error fetching public balance for ${address}: ${error}`);
