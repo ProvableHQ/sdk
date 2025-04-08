@@ -30,7 +30,7 @@ function addition:
 `;
 
 // Create a deployment transaction using the declared source code.
-const transaction = await programManager.buildDeploymentTransaction(program, 3, false);
+const transaction = await programManager.buildDeploymentTransaction(program, 0.0, false);
 // Broadcast the transaction to the Aleo network.
 const result = await programManager.networkClient.submitTransaction(transaction);
 ```

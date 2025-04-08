@@ -27,7 +27,7 @@ const transaction = await programManager
             .address()
             .to_string(),
         "publicToPrivate", // The transfer type.
-        0.1,               // The optional priority fee amount.
+        0.0,               // The optional priority fee amount.
         false,             // Indicates whether or not the fee will be private. 
     );
 // Broadcast the transaction to the Aleo network.
