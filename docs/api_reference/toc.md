@@ -23,5 +23,5 @@ verifying keys from local storage prior to usage._
   * [src/program-manager](sdk-src_program-manager.md) - _The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers._
   * [src/record-provider](sdk-src_record-provider.md) - _BlockHeightSearch is a RecordSearchParams implementation that allows for searching for records within a given
 block height range._
-  * [src/wasm](sdk-src_wasm.md) - _View key of an Aleo account_
+  * [src/wasm](sdk-src_wasm.md) - _Verifying key for a function within an Aleo program_
 

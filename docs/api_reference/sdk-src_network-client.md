@@ -15,11 +15,11 @@ allow users to query public information from the Aleo blockchain and submit tran
 
 ```javascript
 // Connection to a local node
-const localNetworkClient = new AleoNetworkClient("http://localhost:3030");
+const localNetworkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined, account);
 
 // Connection to a public beacon node
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
-const publicnetworkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined, account);
+const publicnetworkClient = new AleoNetworkClient("http://localhost:3030", undefined, account);
 ```
 
 ## Methods
@@ -161,7 +161,7 @@ const records = networkClient.findUnspentRecords(startHeight, undefined, ["credi
 
 ---
 
-### `getBlock(height)`
+### `getBlock(blockHeight)`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -169,12 +169,30 @@ Returns the contents of the block at the specified block height.
 
 Parameters | Type | Description
 --- | --- | ---
-__height__ | `number` | **
+__blockHeight__ | `number` | **
 
 #### Examples
 
 ```javascript
 const block = networkClient.getBlock(1234);
+```
+
+---
+
+### `getBlockByHash(blockHash)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the contents of the block with the specified hash.
+
+Parameters | Type | Description
+--- | --- | ---
+__blockHash__ | `string` | **
+
+#### Examples
+
+```javascript
+const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
 ```
 
 ---
@@ -263,6 +281,25 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the latest c
 
 ---
 
+### `getCommitteeByBlockHeight(blockHeight) ► Promise.<object>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the committe at the specified block height.
+
+Parameters | Type | Description
+--- | --- | ---
+__blockHeight__ | `number` | **
+__*return*__ | `Promise.<object>` | *A javascript object containing the committee*
+
+#### Examples
+
+```javascript
+const committee = await networkClient.getCommitteByBlockHeight(1234);
+```
+
+---
+
 ### `getLatestHeight()`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -273,6 +310,20 @@ Returns the latest block height.
 
 ```javascript
 const latestHeight = networkClient.getLatestHeight();
+```
+
+---
+
+### `getLatestBlockHash()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the latest block hash.
+
+#### Examples
+
+```javascript
+const latestHash - newtworkClient.getLatestBlockHash();
 ```
 
 ---
@@ -474,6 +525,25 @@ assert.equal(unbondedState, expectedState);
 
 ---
 
+### `getPublicBalance(address)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the public balance of an address from the account mapping in credits.aleo
+
+Parameters | Type | Description
+--- | --- | ---
+__address__ | `string` | **
+
+#### Examples
+
+```javascript
+const account = new Account();
+const publicBalance = networkClient.getPublicBalance(account.address());
+```
+
+---
+
 ### `getStateRoot()`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -488,7 +558,7 @@ const stateRoot = networkClient.getStateRoot();
 
 ---
 
-### `getTransaction(id)`
+### `getTransaction(transactionId)`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -496,12 +566,30 @@ Returns a transaction by its unique identifier.
 
 Parameters | Type | Description
 --- | --- | ---
-__id__ | `string` | **
+__transactionId__ | `string` | **
 
 #### Examples
 
 ```javascript
 const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+```
+
+---
+
+### `getConfirmedTransaction(transactionId)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns a confirmed transaction by its unique identifier.
+
+Parameters | Type | Description
+--- | --- | ---
+__transactionId__ | `string` | **
+
+#### Examples
+
+```javascript
+const transaction = networkClient.getConfirmedTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
 ```
 
 ---
@@ -543,7 +631,7 @@ const transaction = networkClient.getTransactionObject("at1handz9xjrqeynjrr0xay4
 
 ---
 
-### `getTransactions(height)`
+### `getTransactions(blockHeight)`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -551,12 +639,30 @@ Returns the transactions present at the specified block height.
 
 Parameters | Type | Description
 --- | --- | ---
-__height__ | `number` | **
+__blockHeight__ | `number` | **
 
 #### Examples
 
 ```javascript
 const transactions = networkClient.getTransactions(654);
+```
+
+---
+
+### `getTransactionsByBlockHash(blockHash)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the confirmed transactions present in the block with the specified block hash.
+
+Parameters | Type | Description
+--- | --- | ---
+__blockHash__ | `string` | **
+
+#### Examples
+
+```javascript
+const transactions = networkClient.getTransactionsByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
 ```
 
 ---
@@ -611,6 +717,18 @@ __*return*__ | `string` | *- The transaction id of the submitted transaction or 
 ![modifier: public](images/badges/modifier-public.svg)
 
 Submit a solution to the Aleo network.
+
+Parameters | Type | Description
+--- | --- | ---
+__solution__ | `string` | *The string representation of the solution desired to be submitted to the network.*
+
+---
+
+### `waitForTransactionConfirmation(solution)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Await a transaction to be confirmed on the Aleo network.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -763,7 +881,7 @@ const records = networkClient.findUnspentRecords(startHeight, undefined, ["credi
 
 ---
 
-### `getBlock(height) ► Promise.<BlockJSON>`
+### `getBlock(blockHeight) ► Promise.<BlockJSON>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -771,13 +889,32 @@ Returns the contents of the block at the specified block height.
 
 Parameters | Type | Description
 --- | --- | ---
-__height__ | `number` | **
+__blockHeight__ | `number` | **
 __*return*__ | `Promise.<BlockJSON>` | **
 
 #### Examples
 
 ```javascript
 const block = networkClient.getBlock(1234);
+```
+
+---
+
+### `getBlockByHash(blockHash) ► Promise.<BlockJSON>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the contents of the block with the specified hash.
+
+Parameters | Type | Description
+--- | --- | ---
+__blockHash__ | `string` | **
+__*return*__ | `Promise.<BlockJSON>` | **
+
+#### Examples
+
+```javascript
+const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
 ```
 
 ---
@@ -871,6 +1008,25 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the latest c
 
 ---
 
+### `getCommitteeByBlockHeight(blockHeight) ► Promise.<object>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the committe at the specified block height.
+
+Parameters | Type | Description
+--- | --- | ---
+__blockHeight__ | `number` | **
+__*return*__ | `Promise.<object>` | *A javascript object containing the committee*
+
+#### Examples
+
+```javascript
+const committee = await networkClient.getCommitteByBlockHeight(1234);
+```
+
+---
+
 ### `getLatestHeight() ► Promise.<number>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -885,6 +1041,24 @@ __*return*__ | `Promise.<number>` | **
 
 ```javascript
 const latestHeight = networkClient.getLatestHeight();
+```
+
+---
+
+### `getLatestBlockHash() ► Promise.<string>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the latest block hash.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Promise.<string>` | **
+
+#### Examples
+
+```javascript
+const latestHash - newtworkClient.getLatestBlockHash();
 ```
 
 ---
@@ -1087,6 +1261,26 @@ assert.equal(unbondedState, expectedState);
 
 ---
 
+### `getPublicBalance(address) ► Promise.<number>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the public balance of an address from the account mapping in credits.aleo
+
+Parameters | Type | Description
+--- | --- | ---
+__address__ | `string` | **
+__*return*__ | `Promise.<number>` | **
+
+#### Examples
+
+```javascript
+const account = new Account();
+const publicBalance = networkClient.getPublicBalance(account.address());
+```
+
+---
+
 ### `getStateRoot() ► Promise.<string>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1105,7 +1299,7 @@ const stateRoot = networkClient.getStateRoot();
 
 ---
 
-### `getTransaction(id) ► Promise.<TransactionJSON>`
+### `getTransaction(transactionId) ► Promise.<TransactionJSON>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1113,13 +1307,32 @@ Returns a transaction by its unique identifier.
 
 Parameters | Type | Description
 --- | --- | ---
-__id__ | `string` | **
+__transactionId__ | `string` | **
 __*return*__ | `Promise.<TransactionJSON>` | **
 
 #### Examples
 
 ```javascript
 const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
+```
+
+---
+
+### `getConfirmedTransaction(transactionId) ► Promise.<ConfirmedTransactionJSON>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns a confirmed transaction by its unique identifier.
+
+Parameters | Type | Description
+--- | --- | ---
+__transactionId__ | `string` | **
+__*return*__ | `Promise.<ConfirmedTransactionJSON>` | **
+
+#### Examples
+
+```javascript
+const transaction = networkClient.getConfirmedTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
 ```
 
 ---
@@ -1162,7 +1375,7 @@ const transaction = networkClient.getTransactionObject("at1handz9xjrqeynjrr0xay4
 
 ---
 
-### `getTransactions(height) ► Promise.<Array.<ConfirmedTransactionJSON>>`
+### `getTransactions(blockHeight) ► Promise.<Array.<ConfirmedTransactionJSON>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1170,13 +1383,32 @@ Returns the transactions present at the specified block height.
 
 Parameters | Type | Description
 --- | --- | ---
-__height__ | `number` | **
+__blockHeight__ | `number` | **
 __*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | **
 
 #### Examples
 
 ```javascript
 const transactions = networkClient.getTransactions(654);
+```
+
+---
+
+### `getTransactionsByBlockHash(blockHash) ► Promise.<Array.<ConfirmedTransactionJSON>>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the confirmed transactions present in the block with the specified block hash.
+
+Parameters | Type | Description
+--- | --- | ---
+__blockHash__ | `string` | **
+__*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | **
+
+#### Examples
+
+```javascript
+const transactions = networkClient.getTransactionsByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
 ```
 
 ---
@@ -1241,5 +1473,18 @@ Parameters | Type | Description
 --- | --- | ---
 __solution__ | `string` | *The string representation of the solution desired to be submitted to the network.*
 __*return*__ | `Promise.<string>` | **
+
+---
+
+### `waitForTransactionConfirmation(solution) ► Promise.<Transaction>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Await a transaction to be confirmed on the Aleo network.
+
+Parameters | Type | Description
+--- | --- | ---
+__solution__ | `string` | *The string representation of the solution desired to be submitted to the network.*
+__*return*__ | `Promise.<Transaction>` | **
 
 ---
