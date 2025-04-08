@@ -1,8 +1,7 @@
-[![Crates.io](https://img.shields.io/crates/v/aleo-wasm.svg?color=neon)](https://crates.io/crates/aleo-wasm)
-[![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+[![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://provable.com)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 
-[![github]](https://github.com/AleoHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)
+[![github]](https://github.com/ProvableHQ/sdk)
 
 [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -12,19 +11,18 @@
 
 Aleo JavaScript and WebAssembly bindings for building zero-knowledge web applications.
 
-`Rust` compiles easily to `WebAssembly` but creating the glue code necessary to use compiled WebAssembly binaries 
-from other languages such as JavaScript is a challenging task. `wasm-bindgen` is a tool that simplifies this process by 
-auto-generating JavaScript bindings to Rust code that has been compiled into WebAssembly. 
+`Rust` compiles easily to `WebAssembly`, but creating the glue code necessary to use compiled WebAssembly binaries
+from other languages such as JavaScript is a challenging task. `wasm-bindgen` is a tool that simplifies this process by
+auto-generating JavaScript bindings to Rust code that has been compiled into WebAssembly.
 
-This crate uses `wasm-bindgen` to create JavaScript bindings to Aleo source code so that it can be used to create zero 
-knowledge proofs directly within `web browsers` and `NodeJS`.
+This crate uses `wasm-bindgen` to create JavaScript bindings to Aleo source code so that it can be used to create zero-knowledge proofs directly within web browsers and `Node.js`.
 
 Functionality exposed by this crate includes:
 * Aleo account management objects
 * Aleo primitives such as `Records`, `Programs`, and `Transactions` and their associated helper methods
 * A `ProgramManager` object that contains methods for authoring, deploying, and interacting with Aleo programs
 
-More information on these concepts can be found at the [Aleo Developer Hub](https://developer.aleo.org/concepts).
+More information on these concepts can be found at the [Aleo Developer Hub](https://docs.leo-lang.org/concepts).
 
 ## Usage
 
@@ -45,7 +43,7 @@ This will produce `.js` and `.wasm` files inside of the `dist` folder.
 
 ## Testing
 
-Run tests in NodeJS
+Run tests in Node.js
 ```bash
 wasm-pack test --node
 ```
@@ -57,7 +55,7 @@ wasm-pack test --[firefox/chrome/safari]
 
 ## Building Web Apps
 
-Further documentation and tutorials as to how to use the modules built from this crate to build web apps  will be built 
-in the future. However - in the meantime, the [aleo.tools](https://aleo.tools) website is a good
-example of how to use these modules to build a web app. Its source code can be found in the 
-[Aleo SDK](https://github.com/AleoHQ/sdk) repo in the `website` folder.
+Further documentation and tutorials as to how to use the modules built from this crate to build web apps will be built
+in the future. However, in the meantime, the [provable.tools](https://provable.tools) website is a good
+example of how to use these modules to build a web app. Its source code can be found in the
+[Provable SDK](https://github.com/ProvableHQ/sdk) repo in the `website` folder.

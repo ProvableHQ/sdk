@@ -31,7 +31,7 @@ export const GetProgram = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://api.explorer.aleo.org/v1/testnet3/program/${id}`)
+                    .get(`https://api.explorer.provable.com/v1/testnet/program/${id}`)
                     .then((response) => {
                         setStatus("success");
                         setProgram(response.data);
@@ -53,7 +53,7 @@ export const GetProgram = () => {
         }
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const programString = useMemo(() => {
         return program !== null ? program : ""

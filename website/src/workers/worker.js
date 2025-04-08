@@ -1,11 +1,10 @@
-import * as aleo from "@aleohq/sdk";
+import * as aleo from "@provablehq/sdk";
 
 await aleo.initThreadPool();
 
-const defaultHost = "https://api.explorer.aleo.org/v1";
+const defaultHost = "https://api.explorer.provable.com/v1";
 const keyProvider = new aleo.AleoKeyProvider();
 const programManager = new aleo.ProgramManager(defaultHost, keyProvider, undefined);
-
 keyProvider.useCache(true);
 
 self.postMessage({
@@ -27,7 +26,7 @@ self.addEventListener("message", (ev) => {
                 const program = programManager.createProgramFromSource(localProgram);
                 const program_id = program.id();
                 if (!program.hasFunction(aleoFunction)) {
-                    throw `Program ${program_id} does not contain function ${aleoFunction}`;
+                    throw new Error(`Program ${program_id} does not contain function ${aleoFunction}`);
                 }
                 const cacheKey = `${program_id}:${aleoFunction}`;
 
@@ -105,7 +104,7 @@ self.addEventListener("message", (ev) => {
                 const program = await programManager.networkClient.getProgramObject(remoteProgram);
                 const program_id = program.id();
                 if (!program.hasFunction(aleoFunction)) {
-                    throw `Program ${program_id} does not contain function ${aleoFunction}`;
+                    throw new Error(`Program ${program_id} does not contain function ${aleoFunction}`);
                 }
 
                 // Get the proving and verifying keys for the function
@@ -162,7 +161,7 @@ self.addEventListener("message", (ev) => {
                 const program = await programManager.networkClient.getProgramObject(remoteProgram);
                 const program_id = program.id();
                 if (!program.getFunctions().includes(aleoFunction)) {
-                    throw `Program ${program_id} does not contain function ${aleoFunction}`;
+                    throw new Error(`Program ${program_id} does not contain function ${aleoFunction}`);
                 }
                 const cacheKey = `${program_id}:${aleoFunction}`;
                 const imports = await programManager.networkClient.getProgramImports(remoteProgram);
@@ -299,7 +298,11 @@ self.addEventListener("message", (ev) => {
                 if (typeof url === "string") { programManager.setHost(url); }
 
                 // Check if the program is valid
-                const programObject = programManager.createProgramFromSource(program);
+                try {
+                    const programObject = programManager.createProgramFromSource(program);
+                } catch (error) {
+                    throw new Error(`Invalid program, ensure the program is valid and try again.`);
+                }
 
                 // Check if the program already exists on the network. If so, throw an error
                 let programExists = false;
@@ -313,10 +316,9 @@ self.addEventListener("message", (ev) => {
                 }
 
                 if (programExists) {
-                    throw `Program ${programObject.id()} already exists on the network`;
+                    throw new Error(`Program ${programObject.id()} already exists on the network`);
                 }
 
-                console.log("fee is: ", fee);
                 // Create the deployment transaction and submit it to the network
                 let transaction = await programManager.deploy(
                     program,

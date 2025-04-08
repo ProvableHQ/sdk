@@ -19,7 +19,7 @@ import { useAleoWASM } from "../../aleo-wasm-hook";
 
 export const ExecuteLegacy = () => {
     const [executionFeeRecord, setExecutionFeeRecord] = useState(null);
-    const [executeUrl, setExecuteUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [executeUrl, setExecuteUrl] = useState("https://api.explorer.provable.com/v1");
     const [functionID, setFunctionID] = useState(null);
     const [executionFee, setExecutionFee] = useState("1");
     const [inputs, setInputs] = useState(null);
@@ -346,7 +346,7 @@ export const ExecuteLegacy = () => {
         try {
             if (id) {
                 axios
-                    .get(`${peerUrl()}/testnet3/program/${id}`)
+                    .get(`${peerUrl()}/testnet/program/${id}`)
                     .then((response) => {
                         setStatus("success");
                         setProgram(response.data);
@@ -392,7 +392,7 @@ export const ExecuteLegacy = () => {
             extra={
                 <Button
                     type="primary"
-                    
+
                     size="middle"
                     onClick={demo}
                 >
@@ -511,14 +511,14 @@ export const ExecuteLegacy = () => {
                 )}
                 {executeOnline === true && (
                     <Form.Item
-                        label="Fee"
+                        label="Priority Fee"
                         colon={false}
                         validateStatus={status}
                     >
                         <Input.TextArea
-                            name="Fee"
+                            name="Priority Fee"
                             size="small"
-                            placeholder="Fee"
+                            placeholder="Priority Fee"
                             allowClear
                             onChange={onExecutionFeeChange}
                             value={feeString()}
@@ -557,23 +557,14 @@ export const ExecuteLegacy = () => {
                         <Space>
                             <Button
                                 type="primary"
-                                
+
                                 size="middle"
                                 onClick={execute}
                             >
                                 Execute
                             </Button>
                             {contextHolder}
-                            {executeOnline && (
-                                <Button
-                                    type="primary"
-                                    
-                                    size="middle"
-                                    onClick={estimate}
-                                >
-                                    Estimate Fee
-                                </Button>
-                            )}
+                            {executeOnline}
                         </Space>
                     </Col>
                 </Row>

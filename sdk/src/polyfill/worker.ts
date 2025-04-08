@@ -1,13 +1,16 @@
-function patch($worker: typeof import("node:worker_threads"), $os: typeof import("node:os")) {
-    // This is technically not a part of the Worker polyfill,
-    // but Workers are used for multi-threading, so this is often
-    // needed when writing Worker code.
-    if (globalThis.navigator == null) {
-        globalThis.navigator = {
-            hardwareConcurrency: $os.cpus().length,
-        } as Navigator;
-    }
+import * as $worker from "node:worker_threads";
+import * as $os from "node:os";
 
+// This is technically not a part of the Worker polyfill,
+// but Workers are used for multi-threading, so this is often
+// needed when writing Worker code.
+if (globalThis.navigator == null) {
+    globalThis.navigator = {
+        hardwareConcurrency: $os.cpus().length,
+    } as Navigator;
+}
+
+if (globalThis.Worker == null) {
     globalThis.Worker = class Worker extends EventTarget {
         private _worker: import("node:worker_threads").Worker;
 
@@ -29,25 +32,12 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
                 throw new Error("Workers must use \`type: \"module\"\`");
             }
 
-            // This uses some funky stuff like `patch.toString()`.
-            //
-            // This is needed so that it can synchronously run the polyfill code
-            // inside of the worker.
-            //
-            // It can't use `require` because the file doesn't have a `.cjs` file extension.
-            //
-            // It can't use `import` because that's asynchronous, and the file path
-            // might be different if using a bundler.
             const code = `
-                ${patch.toString()}
-
-                // Inject the polyfill into the worker
-                patch(require("node:worker_threads"), require("node:os"));
-
-                const { workerData } = require("node:worker_threads");
-
-                // This actually loads and runs the worker file
-                import(workerData.url)
+                import("node:worker_threads")
+                    .then(({ workerData }) => {
+                        return import(workerData.polyfill)
+                            .then(() => import(workerData.url))
+                    })
                     .catch((e) => {
                         // TODO maybe it should send a message to the parent?
                         console.error(e.stack);
@@ -58,6 +48,7 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
                 eval: true,
                 workerData: {
                     url,
+                    polyfill: new URL("node-polyfill.js", import.meta.url).href,
                 },
             });
 
@@ -104,113 +95,97 @@ function patch($worker: typeof import("node:worker_threads"), $os: typeof import
             this._worker.unref();
         }
     };
+}
 
 
-    if (!$worker.isMainThread) {
-        const globals = globalThis as unknown as DedicatedWorkerGlobalScope;
+if (!$worker.isMainThread) {
+    const globals = globalThis as unknown as DedicatedWorkerGlobalScope;
 
-        // This is used to create the onmessage, onmessageerror, and onerror setters
-        const makeSetter = (prop: string, event: string) => {
-            let oldvalue: () => void;
+    // This is used to create the onmessage, onmessageerror, and onerror setters
+    const makeSetter = (prop: string, event: string) => {
+        let oldvalue: () => void;
 
-            Object.defineProperty(globals, prop, {
-                get() {
-                    return oldvalue;
-                },
-                set(value) {
-                    if (oldvalue) {
-                        globals.removeEventListener(event, oldvalue);
-                    }
-
-                    oldvalue = value;
-
-                    if (oldvalue) {
-                        globals.addEventListener(event, oldvalue);
-                    }
-                },
-            });
-        };
-
-        // This makes sure that `f` is only run once
-        const memoize = (f: () => void) => {
-            let run = false;
-
-            return () => {
-                if (!run) {
-                    run = true;
-                    f();
+        Object.defineProperty(globals, prop, {
+            get() {
+                return oldvalue;
+            },
+            set(value) {
+                if (oldvalue) {
+                    globals.removeEventListener(event, oldvalue);
                 }
-            };
-        };
 
+                oldvalue = value;
 
-        // We only start listening for messages / errors when the worker calls addEventListener
-        const startOnMessage = memoize(() => {
-            $worker.parentPort!.on("message", (data) => {
-                workerEvents.dispatchEvent(new MessageEvent("message", { data }));
-            });
+                if (oldvalue) {
+                    globals.addEventListener(event, oldvalue);
+                }
+            },
         });
+    };
 
-        const startOnMessageError = memoize(() => {
-            throw new Error("UNIMPLEMENTED");
-        });
+    // This makes sure that `f` is only run once
+    const memoize = (f: () => void) => {
+        let run = false;
 
-        const startOnError = memoize(() => {
-            $worker.parentPort!.on("error", (data) => {
-                workerEvents.dispatchEvent(new Event("error"));
-            });
-        });
-
-
-        // Node workers don't have top-level events, so we have to make our own
-        const workerEvents = new EventTarget();
-
-        globals.close = () => {
-            process.exit();
-        };
-
-        globals.addEventListener = (type: string, callback: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions | undefined) => {
-            workerEvents.addEventListener(type, callback, options);
-
-            if (type === "message") {
-                startOnMessage();
-            } else if (type === "messageerror") {
-                startOnMessageError();
-            } else if (type === "error") {
-                startOnError();
+        return () => {
+            if (!run) {
+                run = true;
+                f();
             }
         };
+    };
 
-        globals.removeEventListener = (type: string, callback: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions | undefined) => {
-            workerEvents.removeEventListener(type, callback, options);
-        };
 
-        function postMessage(message: any, transfer: Transferable[]): void;
-        function postMessage(message: any, options?: StructuredSerializeOptions | undefined): void;
-        function postMessage(value: any, transfer: any) {
-            $worker.parentPort!.postMessage(value, transfer);
+    // We only start listening for messages / errors when the worker calls addEventListener
+    const startOnMessage = memoize(() => {
+        $worker.parentPort!.on("message", (data) => {
+            workerEvents.dispatchEvent(new MessageEvent("message", { data }));
+        });
+    });
+
+    const startOnMessageError = memoize(() => {
+        throw new Error("UNIMPLEMENTED");
+    });
+
+    const startOnError = memoize(() => {
+        $worker.parentPort!.on("error", (data) => {
+            workerEvents.dispatchEvent(new Event("error"));
+        });
+    });
+
+
+    // Node workers don't have top-level events, so we have to make our own
+    const workerEvents = new EventTarget();
+
+    globals.close = () => {
+        process.exit();
+    };
+
+    globals.addEventListener = (type: string, callback: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions | undefined) => {
+        workerEvents.addEventListener(type, callback, options);
+
+        if (type === "message") {
+            startOnMessage();
+        } else if (type === "messageerror") {
+            startOnMessageError();
+        } else if (type === "error") {
+            startOnError();
         }
+    };
 
-        globals.postMessage = postMessage;
+    globals.removeEventListener = (type: string, callback: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions | undefined) => {
+        workerEvents.removeEventListener(type, callback, options);
+    };
 
-        makeSetter("onmessage", "message");
-        makeSetter("onmessageerror", "messageerror");
-        makeSetter("onerror", "error");
+    function postMessage(message: any, transfer: Transferable[]): void;
+    function postMessage(message: any, options?: StructuredSerializeOptions | undefined): void;
+    function postMessage(value: any, transfer: any) {
+        $worker.parentPort!.postMessage(value, transfer);
     }
+
+    globals.postMessage = postMessage;
+
+    makeSetter("onmessage", "message");
+    makeSetter("onmessageerror", "messageerror");
+    makeSetter("onerror", "error");
 }
-
-
-async function polyfill() {
-    const [$worker, $os] = await Promise.all([
-        import("node:worker_threads"),
-        import("node:os"),
-    ]);
-
-    patch($worker, $os);
-}
-
-if (globalThis.Worker == null) {
-    await polyfill();
-}
-
-export {};

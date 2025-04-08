@@ -21,7 +21,7 @@ export const GetBlockByHeight = () => {
         try {
             if (height) {
                 axios
-                    .get(`https://api.explorer.aleo.org/v1/testnet3/block/${height}`)
+                    .get(`https://api.explorer.provable.com/v1/testnet/block/${height}`)
                     .then((response) => {
                         setBlockByHeight(
                             JSON.stringify(response.data, null, 2),
@@ -41,7 +41,7 @@ export const GetBlockByHeight = () => {
         }
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const blockString = useMemo(() => {
         return blockByHeight !== null ? blockByHeight.toString() : ""

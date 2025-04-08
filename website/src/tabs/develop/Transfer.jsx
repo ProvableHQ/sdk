@@ -1,22 +1,34 @@
 import { useState, useEffect } from "react";
-import {Button, Card, Col, Dropdown, Form, Input, Row, Result, Space, Spin, Switch} from "antd";
+import {
+    Button,
+    Card,
+    Col,
+    Select,
+    Dropdown,
+    Form,
+    Input,
+    Row,
+    Result,
+    Space,
+    Spin,
+    Switch,
+} from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 export const Transfer = () => {
     const [transferFeeRecord, setTransferFeeRecord] = useState(null);
     const [amountRecord, setAmountRecord] = useState(null);
-    const [transferUrl, setTransferUrl] = useState("https://api.explorer.aleo.org/v1");
+    const [transferUrl, setTransferUrl] = useState("https://api.explorer.provable.com/v1");
     const [transferAmount, setTransferAmount] = useState("1.0");
-    const [transferFee, setTransferFee] = useState("1.0");
-    const [privateFee, setPrivateFee] = useState(true);
+    const [privateFee, setPrivateFee] = useState(false);
     const [recipient, setRecipient] = useState(null);
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
     const [transferError, setTransferError] = useState(null);
     const [status, setStatus] = useState("");
     const [transactionID, setTransactionID] = useState(null);
-    const [visibility, setVisibility] = useState("private");
+    const [visibility, setVisibility] = useState("public");
     const [worker, setWorker] = useState(null);
 
     function spawnWorker() {
@@ -25,12 +37,12 @@ export const Transfer = () => {
             { type: "module" },
         );
         worker.addEventListener("message", (ev) => {
-            if (ev.data.type == "TRANSFER_TRANSACTION_COMPLETED") {
+            if (ev.data.type === "TRANSFER_TRANSACTION_COMPLETED") {
                 const transactionId = ev.data.transferTransaction;
                 setLoading(false);
                 setTransferError(null);
                 setTransactionID(transactionId);
-            } else if (ev.data.type == "ERROR") {
+            } else if (ev.data.type === "ERROR") {
                 setTransferError(ev.data.errorMessage);
                 setLoading(false);
                 setTransactionID(null);
@@ -54,17 +66,6 @@ export const Transfer = () => {
         setTransactionID(null);
         setTransferError(null);
 
-        const feeAmount = parseFloat(feeString());
-        if (isNaN(feeAmount)) {
-            setTransferError("Fee is not a valid number");
-            setLoading(false);
-            return;
-        } else if (feeAmount <= 0) {
-            setTransferError("Fee must be greater than 0");
-            setLoading(false);
-            return;
-        }
-
         const amount = parseFloat(amountString());
         if (isNaN(amount)) {
             setTransferError("Amount is not a valid number");
@@ -77,7 +78,10 @@ export const Transfer = () => {
         }
 
         let amountRecord = amountRecordString();
-        if (visibilityString() === "public" || visibilityString() === "publicToPrivate") {
+        if (
+            visibilityString() === "public" ||
+            visibilityString() === "publicToPrivate"
+        ) {
             amountRecord = undefined;
         }
 
@@ -88,7 +92,7 @@ export const Transfer = () => {
             transfer_type: visibilityString(),
             recipient: recipientString(),
             amountRecord: amountRecord,
-            fee: feeAmount,
+            fee: 0,
             privateFee: privateFee,
             feeRecord: feeRecordString(),
             url: peerUrl(),
@@ -124,15 +128,6 @@ export const Transfer = () => {
         setTransactionID(null);
         setTransferError(null);
         return transferAmount;
-    };
-
-    const onTransferFeeChange = (event) => {
-        if (event.target.value !== null) {
-            setTransferFee(event.target.value);
-        }
-        setTransactionID(null);
-        setTransferError(null);
-        return transferFee;
     };
 
     const onAmountRecordChange = (event) => {
@@ -171,37 +166,36 @@ export const Transfer = () => {
         return privateKey;
     };
 
-    const onClick = ({ key }) => {
+    const onClick = ({ value }) => {
         setTransactionID(null);
         setTransferError(null);
-        console.log("Visibility changed to: ", key);
-        setVisibility(key);
-        if (key === "public" || key === "publicToPrivate") {
+        setVisibility(value);
+        console.log("Visibility changed to: ", value);
+        if (value === "public" || value === "publicToPrivate") {
             setAmountRecord(null);
         }
     };
 
     const items = [
         {
-            label: 'private',
-            key: 'private',
+            label: "private",
+            value: "private",
         },
         {
-            label: 'privateToPublic',
-            key: 'privateToPublic',
+            label: "privateToPublic",
+            value: "privateToPublic",
         },
         {
-            label: 'public',
-            key: 'public',
+            label: "public",
+            value: "public",
         },
         {
-            label: 'publicToPrivate',
-            key: 'publicToPrivate',
+            label: "publicToPrivate",
+            value: "publicToPrivate",
         },
     ];
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
-    const feeString = () => (transferFee !== null ? transferFee : "");
+    const layout = { labelCol: { span: 5 }, wrapperCol: { span: 21 } };
     const amountString = () => (transferAmount !== null ? transferAmount : "");
     const recipientString = () => (recipient !== null ? recipient : "");
     const privateKeyString = () => (privateKey !== null ? privateKey : "");
@@ -214,20 +208,28 @@ export const Transfer = () => {
     const transferErrorString = () =>
         transferError !== null ? transferError : "";
     const peerUrl = () => (transferUrl !== null ? transferUrl : "");
-    const visibilityString = () => (visibility !== null ? visibility : "private");
+    const visibilityString = () =>
+        visibility !== null ? visibility : "private";
 
     return (
-        <Card
-            title="Transfer"
-            style={{ width: "100%"}}
-            extra={
-            <Dropdown menu={{ items, onClick }}>
-                <a onClick={(e) => e.preventDefault()}>
-                    <Button>{visibilityString()}</Button>
-                </a>
-            </Dropdown>}
-        >
+        <Card title="Transfer" style={{ width: "100%" }} extra={<></>}>
             <Form {...layout}>
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "13px",
+                        alignItems: "center",
+                        marginBottom: "10px",
+                    }}
+                >
+                    <p> Transaction Visibility </p>
+                    <Select
+                        style={{ width: "9rem" }}
+                        placeholder={visibilityString()}
+                        options={items}
+                        onChange={(item) => {setVisibility(item)}}
+                    ></Select>
+                </div>
                 <Form.Item
                     label="Recipient Address"
                     colon={false}
@@ -252,8 +254,8 @@ export const Transfer = () => {
                         value={amountString()}
                     />
                 </Form.Item>
-                {
-                    (visibilityString() === "privateToPublic" || visibilityString() === "private") &&
+                {(visibilityString() === "privateToPublic" ||
+                    visibilityString() === "private") && (
                     <Form.Item
                         label="Amount Record"
                         colon={false}
@@ -268,22 +270,12 @@ export const Transfer = () => {
                             value={amountRecordString()}
                         />
                     </Form.Item>
-                }
-                <Form.Item label="Fee" colon={false} validateStatus={status}>
-                    <Input.TextArea
-                        name="Fee"
-                        size="small"
-                        placeholder="Fee"
-                        allowClear
-                        onChange={onTransferFeeChange}
-                        value={feeString()}
-                    />
-                </Form.Item>
+                )}
                 <Form.Item
                     label="Private Fee"
                     name="private_fee"
                     valuePropName="checked"
-                    initialValue={true}
+                    initialValue={false}
                 >
                     <Switch onChange={setPrivateFee} />
                 </Form.Item>
@@ -332,12 +324,7 @@ export const Transfer = () => {
                 </Form.Item>
                 <Row justify="center">
                     <Col justify="center">
-                        <Button
-                            type="primary"
-                            
-                            size="middle"
-                            onClick={transfer}
-                        >
+                        <Button type="primary" size="middle" onClick={transfer}>
                             Transfer
                         </Button>
                     </Col>

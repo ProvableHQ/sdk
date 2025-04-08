@@ -55,7 +55,7 @@ export const GetMappingValue = () => {
             if (programID && mappingName && mappingKey) {
                 axios
                     .get(
-                        `https://api.explorer.aleo.org/v1/testnet3/program/${programID}/mapping/${mappingName}/${mappingKey}`,
+                        `https://api.explorer.provable.com/v1/testnet/program/${programID}/mapping/${mappingName}/${mappingKey}`,
                     )
                     .then((response) => {
                         if (response.data === null) {
@@ -79,7 +79,7 @@ export const GetMappingValue = () => {
         }
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
     const programIDString = () => (programID !== null ? programID : "");
     const mappingNameString = () => (mappingName !== null ? mappingName : "");
     const mappingKeyString = () => (mappingKey !== null ? mappingKey : "");
@@ -122,7 +122,7 @@ export const GetMappingValue = () => {
                     <Input
                         name="mappingName"
                         size="large"
-                        placeholder="Mapping Name"
+                        placeholder="Name"
                         value={mappingNameString()}
                         allowClear={true}
                         onChange={onMappingNameChange}
@@ -132,7 +132,7 @@ export const GetMappingValue = () => {
                     <Input
                         name="mappingKey"
                         size="large"
-                        placeholder="Mapping Key"
+                        placeholder="Key"
                         value={mappingKeyString()}
                         allowClear={true}
                         onChange={onMappingKeyChange}

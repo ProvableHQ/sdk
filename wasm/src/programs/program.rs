@@ -1,18 +1,18 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
     account::Address,
@@ -21,7 +21,7 @@ use crate::{
 
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Webassembly Representation of an Aleo program
 #[wasm_bindgen]
@@ -33,7 +33,7 @@ impl Program {
     /// Create a program from a program string
     ///
     /// @param {string} program Aleo program source code
-    /// @returns {Program | Error} Program object
+    /// @returns {Program} Program object
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(program: &str) -> Result<Program, String> {
         Ok(Self(ProgramNative::from_str(program).map_err(|err| err.to_string())?))
@@ -91,7 +91,7 @@ impl Program {
     /// to generate a web form to capture user inputs for an execution of a function.
     ///
     /// @param {string} function_name Name of the function to get inputs for
-    /// @returns {Array | Error} Array of function inputs
+    /// @returns {Array} Array of function inputs
     ///
     /// @example
     /// const expected_inputs = [
@@ -188,7 +188,7 @@ impl Program {
 
     /// Get a the list of a program's mappings and the names/types of their keys and values.
     ///
-    /// @returns {Array | Error} - An array of objects representing the mappings in the program
+    /// @returns {Array} - An array of objects representing the mappings in the program
     /// @example
     /// const expected_mappings = [
     ///    {
@@ -273,7 +273,7 @@ impl Program {
     /// Get a javascript object representation of a program record and its types
     ///
     /// @param {string} record_name Name of the record to get members for
-    /// @returns {Object | Error} Object containing the record name, type, and members
+    /// @returns {Object} Object containing the record name, type, and members
     ///
     /// @example
     ///
@@ -344,7 +344,7 @@ impl Program {
     /// Get a javascript object representation of a program struct and its types
     ///
     /// @param {string} struct_name Name of the struct to get members for
-    /// @returns {Array | Error} Array containing the struct members
+    /// @returns {Array} Array containing the struct members
     ///
     /// @example
     ///
@@ -501,6 +501,7 @@ impl FromStr for Program {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{array, object};
 
     use wasm_bindgen_test::*;
 
@@ -553,33 +554,46 @@ function add_and_double:
         let program = Program::get_credits_program();
         let mappings = program.get_mappings().unwrap();
 
-        // Create the expected mappings
-        let account = Object::new();
-        let array = Array::new();
-        let bonded = Object::new();
-        let committee = Object::new();
-        let unbonding = Object::new();
-
-        Reflect::set(&account, &JsValue::from_str("name"), &JsValue::from_str("account")).unwrap();
-        Reflect::set(&account, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
-        Reflect::set(&account, &JsValue::from_str("value_type"), &JsValue::from_str("u64")).unwrap();
-        Reflect::set(&bonded, &JsValue::from_str("name"), &JsValue::from_str("bonded")).unwrap();
-        Reflect::set(&bonded, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
-        Reflect::set(&bonded, &JsValue::from_str("value_type"), &JsValue::from_str("bond_state")).unwrap();
-        Reflect::set(&committee, &JsValue::from_str("name"), &JsValue::from_str("committee")).unwrap();
-        Reflect::set(&committee, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
-        Reflect::set(&committee, &JsValue::from_str("value_type"), &JsValue::from_str("committee_state")).unwrap();
-        Reflect::set(&unbonding, &JsValue::from_str("name"), &JsValue::from_str("unbonding")).unwrap();
-        Reflect::set(&unbonding, &JsValue::from_str("key_type"), &JsValue::from_str("address")).unwrap();
-        Reflect::set(&unbonding, &JsValue::from_str("value_type"), &JsValue::from_str("unbond_state")).unwrap();
-
-        array.push(&committee);
-        array.push(&bonded);
-        array.push(&unbonding);
-        array.push(&account);
+        let expected = array![
+            object! {
+                "name": "committee",
+                "key_type": "address",
+                "value_type": "committee_state",
+            },
+            object! {
+                "name": "delegated",
+                "key_type": "address",
+                "value_type": "u64",
+            },
+            object! {
+                "name": "metadata",
+                "key_type": "address",
+                "value_type": "u32",
+            },
+            object! {
+                "name": "bonded",
+                "key_type": "address",
+                "value_type": "bond_state",
+            },
+            object! {
+                "name": "unbonding",
+                "key_type": "address",
+                "value_type": "unbond_state",
+            },
+            object! {
+                "name": "account",
+                "key_type": "address",
+                "value_type": "u64",
+            },
+            object! {
+                "name": "withdraw",
+                "key_type": "address",
+                "value_type": "address",
+            },
+        ];
 
         // Assert that the mappings are equal
-        assert_eq!(format!("{:?}", mappings.to_vec()), format!("{:?}", array.to_vec()));
+        assert_eq!(format!("{:?}", mappings.to_vec()), format!("{:?}", expected.to_vec()));
 
         // Assert a program with no mappings providers an empty array
         let program = Program::from_string(TOKEN_ISSUE).unwrap();
@@ -600,34 +614,192 @@ function add_and_double:
     fn test_get_inputs() {
         let credits = Program::from(ProgramNative::credits().unwrap());
         let inputs = credits.get_function_inputs("transfer_private".to_string()).unwrap();
-        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"record","record":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"_nonce","type":"group","visibility":"public"}],"register":"r0"}), Object({"type":"address","visibility":"private","register":"r1"}), Object({"type":"u64","visibility":"private","register":"r2"})]) } }"#.to_string();
-        assert_eq!(format!("{:?}", inputs), expected);
+
+        let expected = array![
+            object! {
+                "type": "record",
+                "record": "credits",
+                "members": array![
+                    object! {
+                        "name": "microcredits",
+                        "type": "u64",
+                        "visibility": "private",
+                    },
+                    object! {
+                        "name": "_nonce",
+                        "type": "group",
+                        "visibility": "public",
+                    },
+                ],
+                "register": "r0",
+            },
+            object! {
+                "type": "address",
+                "visibility": "private",
+                "register": "r1",
+            },
+            object! {
+                "type": "u64",
+                "visibility": "private",
+                "register": "r2",
+            },
+        ];
+
+        assert_eq!(format!("{:?}", inputs), format!("{:?}", expected));
 
         let token_issue = Program::from_string(TOKEN_ISSUE).unwrap();
         let inputs = token_issue.get_function_inputs("bump_token_version".to_string()).unwrap();
-        let expected = r#"Array { obj: Object { obj: JsValue([Object({"type":"address","visibility":"private","register":"r0"}), Object({"type":"record","record":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"name":"token_data","type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"},{"name":"_nonce","type":"group","visibility":"public"}],"register":"r1"}), Object({"type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private","register":"r2"})]) } }"#;
-        assert_eq!(format!("{:?}", inputs), expected);
+
+        let expected = array![
+            object! {
+                "type": "address",
+                "visibility": "private",
+                "register": "r0",
+            },
+            object! {
+                "type": "record",
+                "record": "Token",
+                "members": array![
+                    object! {
+                        "name": "microcredits",
+                        "type": "u64",
+                        "visibility": "private",
+                    },
+                    object! {
+                        "name": "amount",
+                        "type": "u64",
+                        "visibility": "private",
+                    },
+                    object! {
+                        "name": "token_data",
+                        "type": "struct",
+                        "struct_id": "token_metadata",
+                        "members": array![
+                            object!{
+                                "name": "token_id",
+                                "type": "u32",
+                            },
+                            object! {
+                                "name": "version",
+                                "type": "u32",
+                            },
+                        ],
+                        "visibility": "private",
+                    },
+                    object! {
+                        "name": "_nonce",
+                        "type": "group",
+                        "visibility": "public",
+                    },
+                ],
+                "register": "r1",
+            },
+            object! {
+                "type": "struct",
+                "struct_id": "token_metadata",
+                "members": array![
+                    object! {
+                        "name": "token_id",
+                        "type": "u32",
+                    },
+                    object! {
+                        "name": "version",
+                        "type": "u32",
+                    },
+                ],
+                "visibility": "private",
+                "register": "r2",
+            },
+        ];
+
+        assert_eq!(format!("{:?}", inputs), format!("{:?}", expected));
     }
 
     #[wasm_bindgen_test]
     fn test_get_record() {
         let credits = Program::from(ProgramNative::credits().unwrap());
         let members = credits.get_record_members("credits".to_string()).unwrap();
-        let expected = r#"Object { obj: JsValue(Object({"type":"record","record":"credits","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"_nonce","type":"group","visibility":"public"}]})) }"#.to_string();
-        assert_eq!(format!("{:?}", members), expected);
+
+        let expected = object! {
+            "type": "record",
+            "record": "credits",
+            "members": array![
+                object! {
+                    "name": "microcredits",
+                    "type": "u64",
+                    "visibility": "private",
+                },
+                object! {
+                    "name": "_nonce",
+                    "type": "group",
+                    "visibility": "public",
+                },
+            ],
+        };
+
+        assert_eq!(format!("{:?}", members), format!("{:?}", expected));
 
         let token_issue = Program::from_string(TOKEN_ISSUE).unwrap();
         let members = token_issue.get_record_members("Token".to_string()).unwrap();
-        let expected = r#"Object { obj: JsValue(Object({"type":"record","record":"Token","members":[{"name":"microcredits","type":"u64","visibility":"private"},{"name":"amount","type":"u64","visibility":"private"},{"name":"token_data","type":"struct","struct_id":"token_metadata","members":[{"name":"token_id","type":"u32"},{"name":"version","type":"u32"}],"visibility":"private"},{"name":"_nonce","type":"group","visibility":"public"}]})) }"#;
-        assert_eq!(format!("{:?}", members), expected);
+
+        let expected = object! {
+            "type": "record",
+            "record": "Token",
+            "members": array![
+                object! {
+                    "name": "microcredits",
+                    "type": "u64",
+                    "visibility": "private",
+                },
+                object! {
+                    "name": "amount",
+                    "type": "u64",
+                    "visibility": "private",
+                },
+                object! {
+                    "name": "token_data",
+                    "type": "struct",
+                    "struct_id": "token_metadata",
+                    "members": array![
+                        object! {
+                            "name": "token_id",
+                            "type": "u32",
+                        },
+                        object! {
+                            "name": "version",
+                            "type": "u32",
+                        },
+                    ],
+                    "visibility": "private",
+                },
+                object! {
+                    "name": "_nonce",
+                    "type": "group",
+                    "visibility": "public",
+                },
+            ],
+        };
+
+        assert_eq!(format!("{:?}", members), format!("{:?}", expected));
     }
 
     #[wasm_bindgen_test]
     fn test_get_struct() {
         let program = Program::from_string(TOKEN_ISSUE).unwrap();
         let members = program.get_struct_members("token_metadata".to_string()).unwrap();
-        let expected = r#"Array { obj: Object { obj: JsValue([Object({"name":"token_id","type":"u32"}), Object({"name":"version","type":"u32"})]) } }"#;
-        assert_eq!(format!("{:?}", members), expected);
+
+        let expected = array![
+            object! {
+                "name": "token_id",
+                "type": "u32",
+            },
+            object! {
+                "name": "version",
+                "type": "u32",
+            },
+        ];
+
+        assert_eq!(format!("{:?}", members), format!("{:?}", expected));
     }
 
     #[wasm_bindgen_test]

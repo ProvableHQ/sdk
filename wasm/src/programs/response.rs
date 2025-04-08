@@ -1,18 +1,18 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::native::{
     ExecutionNative,
@@ -27,7 +27,7 @@ use crate::types::native::{
 
 use crate::{Execution, KeyPair, Program, ProvingKey, VerifyingKey};
 use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Webassembly Representation of an Aleo function execution response
 ///
@@ -55,7 +55,7 @@ impl ExecutionResponse {
         let program = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let verifying_key = process
             .get_verifying_key(program.id(), function_id)
-            .map_err(|_| format!("Could not find verifying key for {:?}/{:?}", program.id(), function_id))?;
+            .map_err(|_| format!("Could not find verifying key for {}/{}", program.id(), function_id))?;
 
         Ok(Self {
             execution,
@@ -75,7 +75,7 @@ impl ExecutionResponse {
     ) -> Result<(), String> {
         let proving_key = process
             .get_proving_key(program_id, function_id)
-            .map_err(|_| format!("Could not find proving key for {:?}/{:?}", program_id, function_id))?;
+            .map_err(|_| format!("Could not find proving key for {}/{}", program_id, function_id))?;
         self.proving_key = Some(proving_key);
         Ok(())
     }
@@ -131,7 +131,7 @@ impl ExecutionResponse {
     /// Returns the function identifier
     #[wasm_bindgen(js_name = "getFunctionId")]
     pub fn get_function_id(&self) -> String {
-        format!("{:?}", self.function_id)
+        self.function_id.to_string()
     }
 
     /// Returns the program

@@ -1,11 +1,13 @@
 import {
   Address,
+  ComputeKey,
   PrivateKey,
   Signature,
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
-} from "./index";
+  RecordPlaintext,
+} from "./wasm";
 
 interface AccountParam {
   privateKey?: string;
@@ -14,16 +16,17 @@ interface AccountParam {
 
 /**
  * Key Management class. Enables the creation of a new Aleo Account, importation of an existing account from
- * an existing private key or seed, and message signing and verification functionality.
- *
- * An Aleo Account is generated from a randomly generated seed (number) from which an account private key, view key,
- * and a public account address are derived. The private key lies at the root of an Aleo account. It is a highly
- * sensitive secret and should be protected as it allows for creation of Aleo Program executions and arbitrary value
- * transfers. The View Key allows for decryption of a user's activity on the blockchain. The Address is the public
- * address to which other users of Aleo can send Aleo credits and other records to. This class should only be used
- * environments where the safety of the underlying key material can be assured.
+ * an existing private key or seed, and message signing and verification functionality. An Aleo Account is generated
+ * from a randomly generated seed (number) from which an account private key, view key, and a public account address are
+ * derived. The private key lies at the root of an Aleo account. It is a highly sensitive secret and should be protected
+ * as it allows for creation of Aleo Program executions and arbitrary value transfers. The View Key allows for decryption
+ * of a user's activity on the blockchain. The Address is the public address to which other users of Aleo can send Aleo
+ * credits and other records to. This class should only be used in environments where the safety of the underlying key
+ * material can be assured.
  *
  * @example
+ * import { Account } from "@provablehq/sdk/testnet.js";
+ *
  * // Create a new account
  * const myRandomAccount = new Account();
  *
@@ -32,18 +35,19 @@ interface AccountParam {
  * const mySeededAccount = new Account({seed: seed});
  *
  * // Create an account from an existing private key
- * const myExistingAccount = new Account({privateKey: 'myExistingPrivateKey'})
+ * const myExistingAccount = new Account({privateKey: process.env.privateKey});
  *
  * // Sign a message
- * const hello_world = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
- * const signature = myRandomAccount.sign(hello_world)
+ * const hello_world = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100]);
+ * const signature = myRandomAccount.sign(hello_world);
  *
  * // Verify a signature
- * myRandomAccount.verify(hello_world, signature)
+ * assert(myRandomAccount.verify(hello_world, signature));
  */
 export class Account {
   _privateKey: PrivateKey;
   _viewKey: ViewKey;
+  _computeKey: ComputeKey;
   _address: Address;
 
   constructor(params: AccountParam = {}) {
@@ -54,20 +58,23 @@ export class Account {
       throw new Error("Wrong Parameter");
     }
     this._viewKey = ViewKey.from_private_key(this._privateKey);
+    this._computeKey = ComputeKey.from_private_key(this._privateKey);
     this._address = Address.from_private_key(this._privateKey);
   }
 
   /**
    * Attempts to create an account from a private key ciphertext
-   * @param {PrivateKeyCiphertext | string} ciphertext
-   * @param {string} password
-   * @returns {PrivateKey | Error}
+   * @param {PrivateKeyCiphertext | string} ciphertext The encrypted private key ciphertext or its string representation
+   * @param {string} password The password used to decrypt the private key ciphertext
+   * @returns {Account} A new Account instance created from the decrypted private key
    *
    * @example
-   * const ciphertext = PrivateKey.newEncrypted("password");
-   * const account = Account.fromCiphertext(ciphertext, "password");
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
+   * // Create an account object from a previously encrypted ciphertext and password.
+   * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
    */
-  public static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string) {
+  public static fromCiphertext(ciphertext: PrivateKeyCiphertext | string, password: string): Account {
     try {
       ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
       const _privateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
@@ -77,7 +84,12 @@ export class Account {
     }
   }
 
-  private privateKeyFromParams(params: AccountParam) {
+  /**
+   * Creates a PrivateKey from the provided parameters.
+   * @param {AccountParam} params The parameters containing either a private key string or a seed
+   * @returns {PrivateKey} A PrivateKey instance derived from the provided parameters
+   */
+  private privateKeyFromParams(params: AccountParam): PrivateKey {
     if (params.seed) {
       return PrivateKey.from_seed_unchecked(params.seed);
     }
@@ -87,84 +99,183 @@ export class Account {
     return new PrivateKey();
   }
 
-  privateKey() {
+  /**
+   * Returns the PrivateKey associated with the account.
+   * @returns {PrivateKey} The private key of the account
+   *
+   * @example
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
+   * const account = new Account();
+   * const privateKey = account.privateKey();
+   */
+  privateKey(): PrivateKey {
     return this._privateKey;
   }
 
-  viewKey() {
+  /**
+   * Returns the ViewKey associated with the account.
+   * @returns {ViewKey} The view key of the account
+   *
+   * @example
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
+   * const account = new Account();
+   * const viewKey = account.viewKey();
+   */
+  viewKey(): ViewKey {
     return this._viewKey;
   }
 
-  address() {
+  /**
+   * Returns the ComputeKey associated with the account.
+   * @returns {ComputeKey} The compute key of the account
+   *
+   * @example
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
+   * const account = new Account();
+   * const computeKey = account.computeKey();
+   */
+  computeKey(): ComputeKey {
+    return this._computeKey;
+  }
+
+  /**
+   * Returns the Aleo address associated with the account.
+   * @returns {Address} The public address of the account
+   *
+   * @example
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
+   * const account = new Account();
+   * const address = account.address();
+   */
+  address(): Address {
     return this._address;
   }
 
-  toString() {
+  /**
+   * Deep clones the Account.
+   * @returns {Account} A new Account instance with the same private key
+   *
+   * @example
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
+   * const account = new Account();
+   * const clonedAccount = account.clone();
+   */
+  clone(): Account {
+    return new Account({ privateKey: this._privateKey.to_string() });
+  }
+
+  /**
+   * Returns the address of the account in a string representation.
+   *
+   * @returns {string} The string representation of the account address
+   */
+  toString(): string {
     return this.address().to_string()
   }
 
   /**
-   * Encrypt the account's private key with a password
-   * @param {string} ciphertext
-   * @returns {PrivateKeyCiphertext}
+   * Encrypts the account's private key with a password.
+   *
+   * @param {string} password Password to encrypt the private key.
+   * @returns {PrivateKeyCiphertext} The encrypted private key ciphertext
    *
    * @example
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
    * const account = new Account();
    * const ciphertext = account.encryptAccount("password");
+   * process.env.ciphertext = ciphertext.toString();
    */
-  encryptAccount(password: string) {
+  encryptAccount(password: string): PrivateKeyCiphertext {
     return this._privateKey.toCiphertext(password);
   }
 
   /**
-   * Decrypts a Record in ciphertext form into plaintext
-   * @param {string} ciphertext
-   * @returns {Record}
+   * Decrypts an encrypted record string into a plaintext record object.
+   *
+   * @param {string} ciphertext A string representing the ciphertext of a record.
+   * @returns {RecordPlaintext} The decrypted record plaintext
    *
    * @example
-   * const account = new Account();
-   * const record = account.decryptRecord("record1ciphertext");
+   * // Import the AleoNetworkClient and Account classes
+   * import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
+   *
+   * // Create a connection to the Aleo network and an account
+   * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+   * const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+   *
+   * // Get the record ciphertexts from a transaction.
+   * const transaction = await networkClient.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
+   * const records = transaction.records();
+   *
+   * // Decrypt any records the account owns.
+   * const decryptedRecords = [];
+   * for (const record of records) {
+   *    if (account.decryptRecord(record)) {
+   *      decryptedRecords.push(record);
+   *    }
+   * }
    */
-  decryptRecord(ciphertext: string) {
+  decryptRecord(ciphertext: string): RecordPlaintext {
     return this._viewKey.decrypt(ciphertext);
   }
 
   /**
-   * Decrypts an array of Records in ciphertext form into plaintext
-   * @param {string[]} ciphertexts
-   * @returns {Record[]}
+   * Decrypts an array of Record ciphertext strings into an array of record plaintext objects.
+   *
+   * @param {string[]} ciphertexts An array of strings representing the ciphertexts of records.
+   * @returns {RecordPlaintext[]} An array of decrypted record plaintexts
    *
    * @example
-   * const account = new Account();
-   * const record = account.decryptRecords(["record1ciphertext", "record2ciphertext"]);
+   * // Import the AleoNetworkClient and Account classes
+   * import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
+   *
+   * // Create a connection to the Aleo network and an account
+   * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+   * const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+   *
+   * // Get the record ciphertexts from a transaction.
+   * const transaction = await networkClient.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
+   * const records = transaction.records();
+   *
+   * // Decrypt any records the account owns. If the account owns no records, the array will be empty.
+   * const decryptedRecords = account.decryptRecords(records);
    */
-  decryptRecords(ciphertexts: string[]) {
+  decryptRecords(ciphertexts: string[]): RecordPlaintext[] {
     return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext));
   }
 
   /**
-   * Determines whether the account owns a ciphertext record
-   * @param {RecordCipherText | string} ciphertext
-   * @returns {boolean}
+   * Determines whether the account owns a ciphertext record.
+   * @param {RecordCiphertext | string} ciphertext The record ciphertext to check ownership of
+   * @returns {boolean} True if the account owns the record, false otherwise
    *
    * @example
+   * // Import the AleoNetworkClient and Account classes
+   * import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
+   *
    * // Create a connection to the Aleo network and an account
-   * const connection = new NodeConnection("vm.aleo.org/api");
-   * const account = Account.fromCiphertext("ciphertext", "password");
+   * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+   * const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
    *
-   * // Get a record from the network
-   * const record = connection.getBlock(1234);
-   * const recordCipherText = record.transactions[0].execution.transitions[0].id;
+   * // Get the record ciphertexts from a transaction and check ownership of them.
+   * const transaction = await networkClient.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
+   * const records = transaction.records();
    *
-   * // Check if the account owns the record
-   * if account.ownsRecord(recordCipherText) {
-   *     // Then one can do something like:
-   *     // Decrypt the record and check if it's spent
-   *     // Store the record in a local database
-   *     // Etc.
+   * // Check if the account owns any of the record ciphertexts present in the transaction.
+   * const ownedRecords = [];
+   * for (const record of records) {
+   *    if (account.ownsRecordCiphertext(record)) {
+   *      ownedRecords.push(record);
+   *    }
    * }
    */
-  ownsRecordCiphertext(ciphertext: RecordCiphertext | string) {
+  ownsRecordCiphertext(ciphertext: RecordCiphertext | string): boolean {
     if (typeof ciphertext === 'string') {
       try {
         const ciphertextObject = RecordCiphertext.fromString(ciphertext);
@@ -183,33 +294,50 @@ export class Account {
    * Signs a message with the account's private key.
    * Returns a Signature.
    *
-   * @param {Uint8Array} message
-   * @returns {Signature}
+   * @param {Uint8Array} message Message to be signed.
+   * @returns {Signature} Signature over the message in bytes.
    *
    * @example
+   * // Import the Account class
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
+   * // Create a connection to the Aleo network and an account
+   * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+   *
+   * // Create an account and a message to sign.
    * const account = new Account();
    * const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
-   * account.sign(message);
+   * const signature = account.sign(message);
+   *
+   * // Verify the signature.
+   * assert(account.verify(message, signature));
    */
-  sign(message: Uint8Array) {
+  sign(message: Uint8Array): Signature {
     return this._privateKey.sign(message);
   }
 
   /**
    * Verifies the Signature on a message.
    *
-   * @param {Uint8Array} message
-   * @param {Signature} signature
-   * @returns {boolean}
+   * @param {Uint8Array} message Message in bytes to be signed.
+   * @param {Signature} signature Signature to be verified.
+   * @returns {boolean} True if the signature is valid, false otherwise.
    *
    * @example
-   * const account = new Account();
+   * // Import the Account class
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
+   * // Create a connection to the Aleo network and an account
+   * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+   *
+   * // Sign a message.
    * const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
    * const signature = account.sign(message);
-   * account.verify(message, signature);
+   *
+   * // Verify the signature.
+   * assert(account.verify(message, signature));
    */
-  verify(message: Uint8Array, signature: Signature) {
+  verify(message: Uint8Array, signature: Signature): boolean {
     return this._address.verify(message, signature);
   }
-
 }

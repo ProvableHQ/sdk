@@ -17,8 +17,9 @@ import { LoadProgram } from "./LoadProgram.jsx";
 import { CodeEditor } from "./CodeEditor.jsx";
 import { useAleoWASM } from "../../../aleo-wasm-hook";
 import { useEffect, useState } from "react";
+import { NewAccount } from "../../account/NewAccount.jsx";
 
-const layout = { labelCol: { span: 4 }, wrapperCol: { span: 18 } };
+const layout = { labelCol: { span: 5 }, wrapperCol: { span: 18 } };
 
 export const Execute = () => {
     const [form] = Form.useForm();
@@ -62,7 +63,7 @@ export const Execute = () => {
                 functionName,
                 inputs,
                 private_key,
-                fee,
+                priorityFee,
                 private_fee,
                 fee_record,
                 peer_url,
@@ -76,7 +77,7 @@ export const Execute = () => {
                     aleoFunction: functionName,
                     inputs: JSON.parse(inputs),
                     privateKey: private_key,
-                    fee: fee,
+                    fee: priorityFee,
                     privateFee: private_fee,
                     feeRecord: fee_record,
                     url: peer_url,
@@ -237,6 +238,12 @@ export const Execute = () => {
     };
 
     return (
+        <>
+
+        <NewAccount />
+
+        <br/>
+
         <Card
             title="Execute Program"
             extra={
@@ -336,32 +343,10 @@ export const Execute = () => {
                                 <Form.Item
                                     label="Peer URL"
                                     name="peer_url"
-                                    initialValue="https://api.explorer.aleo.org/v1"
+                                    initialValue="https://api.explorer.provable.com/v1"
                                     hidden={!getFieldValue("execute_onchain")}
                                 >
                                     <Input />
-                                </Form.Item>
-                                <Form.Item
-                                    label="Fee"
-                                    name="fee"
-                                    hidden={!getFieldValue("execute_onchain")}
-                                    tooltip="Fee estimation is experimental and may not represent a correct estimate on any current or future network"
-                                    rules={[
-                                        {
-                                            required:
-                                                getFieldValue(
-                                                    "execute_onchain"
-                                                ),
-                                            message:
-                                                "Fee needed for on-chain execution",
-                                        },
-                                    ]}
-                                >
-                                    <Input.Search
-                                        enterButton="Estimate Fee"
-                                        onSearch={estimateFee}
-                                        loading={feeLoading}
-                                    />
                                 </Form.Item>
                                 <Form.Item
                                     label="Private Fee"
@@ -473,6 +458,7 @@ export const Execute = () => {
                 )}
             </Form.Provider>
         </Card>
+        </>
     );
 };
 

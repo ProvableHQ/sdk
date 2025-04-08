@@ -1,3 +1,4 @@
+import { expect } from "chai";
 import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "../src/node";
 import {
     seed,
@@ -19,9 +20,9 @@ describe('WASM Objects', () => {
             const address = Address.from_private_key(privateKey);
 
             // Ensure the address is an instance of Address
-            expect(address).toBeInstanceOf(Address);
+            expect(address).instanceof(Address);
             // Ensure the address string matches the expected value
-            expect(address.to_string()).toMatch(addressString);
+            expect(address.to_string()).string(addressString);
         });
 
         it('can be constructed from view key', () => {
@@ -29,18 +30,18 @@ describe('WASM Objects', () => {
             const address = Address.from_view_key(viewKey);
 
             // Ensure the address is an instance of Address
-            expect(address).toBeInstanceOf(Address);
+            expect(address).instanceof(Address);
             // Ensure the address string matches the expected value
-            expect(address.to_string()).toMatch(addressString);
+            expect(address.to_string()).string(addressString);
         });
 
         it('can be constructed from an address string', () => {
             const address = Address.from_string(addressString);
 
             // Ensure the address is an instance of Address
-            expect(address).toBeInstanceOf(Address);
+            expect(address).instanceof(Address);
             // Ensure the address string matches the expected value
-            expect(address.to_string()).toMatch(addressString);
+            expect(address.to_string()).string(addressString);
         });
 
         it('can verify a message signed by the correct private key', () => {
@@ -50,9 +51,9 @@ describe('WASM Objects', () => {
             const result = address.verify(message, signature);
 
             // Ensure the result is a boolean
-            expect(typeof result).toBe('boolean');
+            expect(typeof result).equal('boolean');
             // Ensure the signature verified
-            expect(result).toBe(true);
+            expect(result).equal(true);
         });
 
         it('cannot verify a message signed by the wrong private key', () => {
@@ -63,9 +64,9 @@ describe('WASM Objects', () => {
             const result = address.verify(message, signature);
 
             // Ensure the result is a boolean
-            expect(typeof result).toBe('boolean');
+            expect(typeof result).equal('boolean');
             // Ensure the signature failed to verify
-            expect(result).toBe(false);
+            expect(result).equal(false);
         });
     });
 
@@ -75,29 +76,29 @@ describe('WASM Objects', () => {
             const privateKey2 = new PrivateKey();
 
             // Ensure the private key is a PrivateKey instance
-            expect(privateKey).toBeInstanceOf(PrivateKey);
+            expect(privateKey).instanceof(PrivateKey);
             // Ensure the private key is a PrivateKey instance
-            expect(privateKey2).toBeInstanceOf(PrivateKey);
+            expect(privateKey2).instanceof(PrivateKey);
             // Ensure the private keys are different
-            expect(privateKey.to_string()).not.toBe(privateKey2.to_string());
+            expect(privateKey.to_string()).not.equal(privateKey2.to_string());
         });
 
         it('constructs properly from a seed', () => {
             const privateKey = PrivateKey.from_seed_unchecked(seed);
 
             // Ensure the private key is a PrivateKey instance
-            expect(privateKey).toBeInstanceOf(PrivateKey);
+            expect(privateKey).instanceof(PrivateKey);
             // Ensure the private key is the correct value
-            expect(privateKey.to_string()).toMatch(beaconPrivateKeyString);
+            expect(privateKey.to_string()).string(beaconPrivateKeyString);
         });
 
         it('constructs properly from a private key string', () => {
             const privateKey = PrivateKey.from_string(privateKeyString);
 
             // Ensure the private key is a PrivateKey instance
-            expect(privateKey).toBeInstanceOf(PrivateKey);
+            expect(privateKey).instanceof(PrivateKey);
             // Ensure the private key is the correct value
-            expect(privateKey.to_string()).toMatch(privateKeyString);
+            expect(privateKey.to_string()).string(privateKeyString);
         });
 
         it('derives the correct view key and address', () => {
@@ -106,11 +107,11 @@ describe('WASM Objects', () => {
             const address = privateKey.to_address();
 
             // Ensure the view key and address are the correct types
-            expect(viewKey).toBeInstanceOf(ViewKey);
-            expect(address).toBeInstanceOf(Address);
+            expect(viewKey).instanceof(ViewKey);
+            expect(address).instanceof(Address);
             // Ensure the view key and address are the correct values
-            expect(viewKey.to_string()).toMatch(viewKeyString);
-            expect(address.to_string()).toMatch(addressString);
+            expect(viewKey.to_string()).string(viewKeyString);
+            expect(address.to_string()).string(addressString);
         });
 
         it('can construct directly to ciphertext and then decrypt to a private key', () => {
@@ -119,9 +120,9 @@ describe('WASM Objects', () => {
             const privateKeyFromCiphertext = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
 
             // Ensure the ciphertext is a PrivateKeyCiphertext instance
-            expect(ciphertext).toBeInstanceOf(PrivateKeyCiphertext);
+            expect(ciphertext).instanceof(PrivateKeyCiphertext);
             // Ensure the decrypted private key is a PrivateKey instance
-            expect(privateKeyFromCiphertext).toBeInstanceOf(PrivateKey);
+            expect(privateKeyFromCiphertext).instanceof(PrivateKey);
         });
 
         it('encrypts and decrypts to and from ciphertext', () => {
@@ -130,12 +131,12 @@ describe('WASM Objects', () => {
             const ciphertext = privateKey.toCiphertext(secret);
 
             // Ensure the ciphertext is a PrivateKeyCiphertext instance
-            expect(ciphertext).toBeInstanceOf(PrivateKeyCiphertext);
+            expect(ciphertext).instanceof(PrivateKeyCiphertext);
             const privateKeyFromCiphertext = PrivateKey.fromPrivateKeyCiphertext(ciphertext, secret);
             // Ensure the decrypted private key is a PrivateKey instance
-            expect(privateKeyFromCiphertext).toBeInstanceOf(PrivateKey);
+            expect(privateKeyFromCiphertext).instanceof(PrivateKey);
             // Ensure the decrypted private key is the same as the original
-            expect(privateKeyFromCiphertext.to_string()).toBe(privateKey.to_string());
+            expect(privateKeyFromCiphertext.to_string()).equal(privateKey.to_string());
         });
 
         it('properly assesses equality and inequality', () => {
@@ -144,10 +145,10 @@ describe('WASM Objects', () => {
             const privateKey3 = PrivateKey.from_string(privateKeyString);
 
             // Ensure the different private keys are not equal
-            expect((privateKey1 === privateKey2)).toBeFalsy();
+            expect(privateKey1).not.equal(privateKey2);
             // Ensure the same private keys are equal
-            expect((privateKey2 === privateKey2)).toBeTruthy();
-            expect(privateKey2.to_string()).toBe(privateKey3.to_string());
+            expect(privateKey2).equal(privateKey2);
+            expect(privateKey2.to_string()).equal(privateKey3.to_string());
         });
 
         it('has different ciphertexts for the same password, but decrypts to the same key', () => {
@@ -159,14 +160,14 @@ describe('WASM Objects', () => {
             const decryptedPrivateKey2 = PrivateKey.fromPrivateKeyCiphertext(ciphertext2, secret);
 
             // Ensure the ciphertexts are different
-            expect(ciphertext).not.toBe(ciphertext2);
+            expect(ciphertext).not.equal(ciphertext2);
             // Ensure the decrypted private keys are both PrivateKey instances
-            expect(decryptedPrivateKey).toBeInstanceOf(PrivateKey);
-            expect(decryptedPrivateKey2).toBeInstanceOf(PrivateKey);
+            expect(decryptedPrivateKey).instanceof(PrivateKey);
+            expect(decryptedPrivateKey2).instanceof(PrivateKey);
             // Ensure the decrypted private keys are the same as the original
-            expect(decryptedPrivateKey.to_string()).toBe(privateKeyString);
-            expect(decryptedPrivateKey2.to_string()).toBe(privateKeyString);
-            expect(decryptedPrivateKey.to_string()).toBe(decryptedPrivateKey2.to_string());
+            expect(decryptedPrivateKey.to_string()).equal(privateKeyString);
+            expect(decryptedPrivateKey2.to_string()).equal(privateKeyString);
+            expect(decryptedPrivateKey.to_string()).equal(decryptedPrivateKey2.to_string());
         });
     });
 
@@ -175,18 +176,18 @@ describe('WASM Objects', () => {
 
         it('constructs properly from a string', () => {
             // Ensure the view key is a ViewKey instance
-            expect(viewKey).toBeInstanceOf(ViewKey);
+            expect(viewKey).instanceof(ViewKey);
             // Ensure the view key is the correct value
-            expect(viewKey.to_string()).toMatch(viewKeyString);
+            expect(viewKey.to_string()).string(viewKeyString);
         });
 
         it('derives the correct address', () => {
             const address = viewKey.to_address();
 
             // Ensure the address is an Address instance
-            expect(address).toBeInstanceOf(Address);
+            expect(address).instanceof(Address);
             // Ensure the address is the correct value
-            expect(address.to_string()).toMatch(addressString);
+            expect(address.to_string()).string(addressString);
         });
 
         it('properly assesses equality and inequality', () => {
@@ -195,17 +196,17 @@ describe('WASM Objects', () => {
             const viewKey3 = ViewKey.from_string(viewKeyString);
 
             // Ensure the different view keys are not equal
-            expect((viewKey1 === viewKey2)).toBeFalsy();
+            expect(viewKey1).not.equal(viewKey2);
             // Ensure the same view keys are equal
-            expect((viewKey2 === viewKey2)).toBeTruthy();
-            expect(viewKey2.to_string()).toBe(viewKey3.to_string());
+            expect(viewKey2).equal(viewKey2);
+            expect(viewKey2.to_string()).equal(viewKey3.to_string());
         });
 
         it('can decrypt a record generated by the account', () => {
             const decryptedRecord = viewKey.decrypt(recordCiphertextString);
 
             // Ensure it decrypts to the correct data
-            expect(decryptedRecord).toBe(recordPlaintextString);
+            expect(decryptedRecord).equal(recordPlaintextString);
         });
     });
 
@@ -218,9 +219,9 @@ describe('WASM Objects', () => {
             const result = signature.verify(address, message);
 
             // Ensure the result is a boolean
-            expect(typeof result).toBe('boolean');
+            expect(typeof result).equal('boolean');
             // Ensure the signature verified
-            expect(result).toBe(true);
+            expect(result).equal(true);
         });
 
         it('cannot verify a message signed by the wrong private key', () => {
@@ -230,9 +231,9 @@ describe('WASM Objects', () => {
             const result = signature.verify(address, message);
 
             // Ensure the result is a boolean
-            expect(typeof result).toBe('boolean');
+            expect(typeof result).equal('boolean');
             // Ensure the signature failed to verify
-            expect(result).toBe(false);
+            expect(result).equal(false);
         });
 
         it('can go to and from string', () => {
@@ -241,12 +242,12 @@ describe('WASM Objects', () => {
             const signatureFromString = Signature.from_string(signatureString);
 
             // Ensure the signature is a Signature instance
-            expect(signature).toBeInstanceOf(Signature);
+            expect(signature).instanceof(Signature);
             // Ensure from_string returns a Signature instance
-            expect(signatureFromString).toBeInstanceOf(Signature);
+            expect(signatureFromString).instanceof(Signature);
             // Ensure the signature to_string matches the expected values
-            expect(signature.to_string()).toBe(signatureString);
-            expect(signatureFromString.to_string()).toBe(signatureString);
+            expect(signature.to_string()).equal(signatureString);
+            expect(signatureFromString.to_string()).equal(signatureString);
         });
     });
 
@@ -259,8 +260,8 @@ describe('WASM Objects', () => {
             const decryptedKey = ciphertext.decryptToPrivateKey(secret);
 
             // Ensure the decrypted key is a PrivateKey instance and is the same as the original
-            expect(decryptedKey).toBeInstanceOf(PrivateKey);
-            expect(decryptedKey.to_string()).toBe(privateKeyString);
+            expect(decryptedKey).instanceof(PrivateKey);
+            expect(decryptedKey.to_string()).equal(privateKeyString);
         });
 
         it('should fail to decrypt with a bad secret', () => {
@@ -269,10 +270,10 @@ describe('WASM Objects', () => {
             try {
                 ciphertext.decryptToPrivateKey(badSecret);
                 // Should not get here
-                expect(true).toBe(false);
+                expect(true).equal(false);
             } catch (e) {
                 // Should error out
-                expect(true).toBe(true);
+                expect(true).equal(true);
             }
         });
 
@@ -282,12 +283,12 @@ describe('WASM Objects', () => {
             const decryptedKey2 = ciphertext2.decryptToPrivateKey(secret);
 
             // Ensure the ciphertexts are different
-            expect(ciphertext).not.toBe(ciphertext2);
+            expect(ciphertext).not.equal(ciphertext2);
             // Ensure the decrypted are both private key instances and have the same key
-            expect(decryptedKey).toBeInstanceOf(PrivateKey);
-            expect(decryptedKey2).toBeInstanceOf(PrivateKey);
-            expect(decryptedKey.to_string()).toBe(privateKeyString);
-            expect(decryptedKey2.to_string()).toBe(privateKeyString);
+            expect(decryptedKey).instanceof(PrivateKey);
+            expect(decryptedKey2).instanceof(PrivateKey);
+            expect(decryptedKey.to_string()).equal(privateKeyString);
+            expect(decryptedKey2.to_string()).equal(privateKeyString);
         });
 
         it('round trip to and from string for PrivateKeyCiphertext', () => {
@@ -297,7 +298,7 @@ describe('WASM Objects', () => {
             const privateKeyCipherText2 = PrivateKeyCiphertext.fromString(privateKeyCiphertext.toString());
 
             // Assert the round trip to and from string journey results in the same key
-            expect(privateKeyCiphertext.toString()).toEqual(privateKeyCipherText2.toString());
+            expect(privateKeyCiphertext.toString()).equal(privateKeyCipherText2.toString());
         });
 
         it('decryption of PrivateKeyCiphertext with edge cases', () => {
@@ -309,15 +310,15 @@ describe('WASM Objects', () => {
             const decryptedPrivateKey = privateKeyCiphertext.decryptToPrivateKey("mypassword");
 
             // Assert that the private key is the same as the original for a valid ciphertext and secret
-            expect(privateKey.to_string()).toEqual(decryptedPrivateKey.to_string());
+            expect(privateKey.to_string()).equal(decryptedPrivateKey.to_string());
             // Assert the incorrect secret fails
             expect(() => {
                 privateKeyCiphertext.decryptToPrivateKey("badpassword");
-            }).toThrow();
+            }).throw();
             // Ensure invalid ciphertexts fail
             expect(() => {
                 PrivateKeyCiphertext.fromString(bad_ciphertext);
-            }).toThrow();
+            }).throw();
         });
     });
 
@@ -329,7 +330,7 @@ describe('WASM Objects', () => {
             const ciphertext = RecordCiphertext.fromString(recordCiphertextString);
 
             // Ensure the string matches the string the record was created from
-            expect(ciphertext.toString()).toEqual(recordCiphertextString);
+            expect(ciphertext.toString()).equal(recordCiphertextString);
         });
 
         it('can be decrypted and identified as owner with a valid view key', () => {
@@ -337,18 +338,18 @@ describe('WASM Objects', () => {
             const isOwner = ciphertext.isOwner(viewKey);
 
             // Ensure the record ciphertext is decrypted correctly
-            expect(plaintext.toString()).toEqual(recordPlaintextString);
+            expect(plaintext.toString()).equal(recordPlaintextString);
             // Ensure the view key is identified as the owner of the record
-            expect(isOwner).toBe(true);
+            expect(isOwner).equal(true);
         });
 
         it('cant be decrypted nor identified as owner with a foreign view key', () => {
             const foreignViewKey = ViewKey.from_string(foreignViewKeyString);
 
             // Ensure the record ciphertext cannot be decrypted with a foreign view key
-            expect(ciphertext.isOwner(foreignViewKey)).toBe(false);
+            expect(ciphertext.isOwner(foreignViewKey)).equal(false);
             // Ensure the record ciphertext cannot be decrypted with a foreign view key
-            expect(() => ciphertext.decrypt(foreignViewKey)).toThrow();
+            expect(() => ciphertext.decrypt(foreignViewKey)).throw();
         });
     });
 
@@ -357,9 +358,9 @@ describe('WASM Objects', () => {
             const plaintext = RecordPlaintext.fromString(recordPlaintextString);
 
             // Ensure the string matches the string the record was created from
-            expect(plaintext.toString()).toEqual(recordPlaintextString);
+            expect(plaintext.toString()).equal(recordPlaintextString);
             // Ensure the record has the correct number of microcredits
-            expect(plaintext.microcredits()).toEqual(BigInt(1500000000000000));
+            expect(plaintext.microcredits()).equal(BigInt(1500000000000000));
         });
     });
 

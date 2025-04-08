@@ -1,24 +1,30 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{Address, Encryptor, PrivateKeyCiphertext, Signature, ViewKey};
+use crate::{
+    Address,
+    Encryptor,
+    PrivateKeyCiphertext,
+    Signature,
+    ViewKey,
+    types::native::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
+};
 
-use crate::types::native::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes};
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 
 /// Private key of an Aleo account
@@ -93,7 +99,7 @@ impl PrivateKey {
     /// and will be needed to decrypt the private key later, so it should be stored securely
     ///
     /// @param {string} secret Secret used to encrypt the private key
-    /// @returns {PrivateKeyCiphertext | Error} Ciphertext representation of the private key
+    /// @returns {PrivateKeyCiphertext} Ciphertext representation of the private key
     #[wasm_bindgen(js_name = newEncrypted)]
     pub fn new_encrypted(secret: &str) -> Result<PrivateKeyCiphertext, String> {
         let key = Self::new();
@@ -106,7 +112,7 @@ impl PrivateKey {
     /// decrypt the private key later, so it should be stored securely
     ///
     /// @param {string} secret Secret used to encrypt the private key
-    /// @returns {PrivateKeyCiphertext | Error} Ciphertext representation of the private key
+    /// @returns {PrivateKeyCiphertext} Ciphertext representation of the private key
     #[wasm_bindgen(js_name = toCiphertext)]
     pub fn to_ciphertext(&self, secret: &str) -> Result<PrivateKeyCiphertext, String> {
         let ciphertext =
@@ -118,12 +124,26 @@ impl PrivateKey {
     ///
     /// @param {PrivateKeyCiphertext} ciphertext Ciphertext representation of the private key
     /// @param {string} secret Secret originally used to encrypt the private key
-    /// @returns {PrivateKey | Error} Private key
+    /// @returns {PrivateKey} Private key
     #[wasm_bindgen(js_name = fromPrivateKeyCiphertext)]
     pub fn from_private_key_ciphertext(ciphertext: &PrivateKeyCiphertext, secret: &str) -> Result<PrivateKey, String> {
         let private_key = Encryptor::decrypt_private_key_with_secret(ciphertext, secret)
             .map_err(|_| "Decryption failed".to_string())?;
         Ok(Self::from(private_key))
+    }
+}
+
+impl Deref for PrivateKey {
+    type Target = PrivateKeyNative;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl fmt::Display for PrivateKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -139,6 +159,12 @@ impl From<PrivateKey> for PrivateKeyNative {
     }
 }
 
+impl From<&PrivateKeyNative> for PrivateKey {
+    fn from(private_key: &PrivateKeyNative) -> Self {
+        Self(*private_key)
+    }
+}
+
 impl From<&PrivateKey> for PrivateKeyNative {
     fn from(private_key: &PrivateKey) -> Self {
         private_key.0
@@ -149,20 +175,6 @@ impl FromStr for PrivateKey {
 
     fn from_str(private_key: &str) -> Result<Self, Self::Err> {
         Ok(Self(PrivateKeyNative::from_str(private_key)?))
-    }
-}
-
-impl fmt::Display for PrivateKey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Deref for PrivateKey {
-    type Target = PrivateKeyNative;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 

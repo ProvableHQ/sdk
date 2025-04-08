@@ -1,18 +1,18 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::account::{Encryptor, PrivateKey};
 
@@ -32,7 +32,7 @@ impl PrivateKeyCiphertext {
     ///
     /// @param {PrivateKey} private_key Private key to encrypt
     /// @param {string} secret Secret to encrypt the private key with
-    /// @returns {PrivateKeyCiphertext | Error} Private key ciphertext
+    /// @returns {PrivateKeyCiphertext} Private key ciphertext
     #[wasm_bindgen(js_name = encryptPrivateKey)]
     pub fn encrypt_private_key(private_key: &PrivateKey, secret: &str) -> Result<PrivateKeyCiphertext, String> {
         let ciphertext = Encryptor::encrypt_private_key_with_secret(private_key, secret)
@@ -44,7 +44,7 @@ impl PrivateKeyCiphertext {
     /// encrypt the private key
     ///
     /// @param {string} secret Secret used to encrypt the private key
-    /// @returns {PrivateKey | Error} Private key
+    /// @returns {PrivateKey} Private key
     #[wasm_bindgen(js_name = decryptToPrivateKey)]
     pub fn decrypt_to_private_key(&self, secret: &str) -> Result<PrivateKey, String> {
         let private_key = Encryptor::decrypt_private_key_with_secret(&self.0, secret)
@@ -64,7 +64,7 @@ impl PrivateKeyCiphertext {
     /// Creates a PrivateKeyCiphertext from a string
     ///
     /// @param {string} ciphertext Ciphertext string
-    /// @returns {PrivateKeyCiphertext | Error} Private key ciphertext
+    /// @returns {PrivateKeyCiphertext} Private key ciphertext
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(ciphertext: String) -> Result<PrivateKeyCiphertext, String> {
         Self::try_from(ciphertext).map_err(|_| "Invalid ciphertext".to_string())

@@ -1,22 +1,22 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use futures::future::try_join_all;
+use futures::{channel::oneshot, future::try_join_all};
 use rayon::ThreadBuilder;
-use spmc::{channel, Receiver, Sender};
+use spmc::{Receiver, Sender, channel};
 use std::future::Future;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
@@ -29,13 +29,17 @@ use wasm_bindgen_futures::JsFuture;
             });
 
             worker.addEventListener("message", (event) => {
-                // When running in Node, this allows the process to exit
-                // even though the Worker is still running.
-                if (worker.unref) {
-                    worker.unref();
-                }
+                // This is needed in Node to wait one extra tick, so that way
+                // the Worker can fully initialize before we return.
+                setTimeout(() => {
+                    resolve(worker);
 
-                resolve(worker);
+                    // When running in Node, this allows the process to exit
+                    // even though the Worker is still running.
+                    if (worker.unref) {
+                        worker.unref();
+                    }
+                }, 0);
             }, {
                 capture: true,
                 once: true,
@@ -48,6 +52,16 @@ use wasm_bindgen_futures::JsFuture;
             });
         });
     }
+
+    export function startTimer() {
+        // Starts a super-long timer in order to keep the Node
+        // process alive until we manually cancel it.
+        return setTimeout(() => {}, Math.pow(2, 31) - 1);
+    }
+
+    export function stopTimer(timer) {
+        clearTimeout(timer);
+    }
 "###)]
 extern "C" {
     #[wasm_bindgen(js_name = spawnWorker)]
@@ -57,6 +71,52 @@ extern "C" {
         memory: &JsValue,
         address: *const Receiver<ThreadBuilder>,
     ) -> js_sys::Promise;
+
+    #[wasm_bindgen(js_name = startTimer)]
+    fn start_timer() -> f64;
+
+    #[wasm_bindgen(js_name = stopTimer)]
+    fn stop_timer(timer: f64);
+}
+
+/// Runs a function on the Rayon thread-pool.
+///
+/// When the function returns, the Future will resolve
+/// with the return value of the function.
+///
+/// # NodeJS
+///
+/// This will keep the NodeJS process alive until the
+/// Future is resolved.
+#[allow(dead_code)]
+pub fn spawn<A, F>(f: F) -> impl Future<Output = A>
+where
+    A: Send + 'static,
+    F: FnOnce() -> A + Send + 'static,
+{
+    // This is necessary in order to stop the Node process
+    // from exiting while the spawned task is running.
+    struct Timer(f64);
+
+    impl Drop for Timer {
+        fn drop(&mut self) {
+            stop_timer(self.0);
+        }
+    }
+
+    let timer = Timer(start_timer());
+
+    let (sender, receiver) = oneshot::channel();
+
+    rayon::spawn(move || {
+        let _ = sender.send(f());
+    });
+
+    async move {
+        let output = receiver.await.unwrap_throw();
+        drop(timer);
+        output
+    }
 }
 
 async fn spawn_workers(url: web_sys::Url, num_threads: usize) -> Result<Sender<ThreadBuilder>, JsValue> {

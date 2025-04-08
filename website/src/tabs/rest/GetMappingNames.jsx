@@ -32,7 +32,7 @@ export const GetMappingNames = () => {
             if (id) {
                 axios
                     .get(
-                        `https://api.explorer.aleo.org/v1/testnet3/program/${id}/mappings`,
+                        `https://api.explorer.provable.com/v1/testnet/program/${id}/mappings`,
                     )
                     .then((response) => {
                         setStatus("success");
@@ -55,7 +55,7 @@ export const GetMappingNames = () => {
         }
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const mappingString = useMemo(() => {
         return mapping !== null ? mapping : ""

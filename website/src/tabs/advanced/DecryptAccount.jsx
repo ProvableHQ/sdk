@@ -43,7 +43,7 @@ export const DecryptAccount = () => {
             : "";
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 6 }, wrapperCol: { span: 21 } };
     useEffect(() => {}, [inputCiphertext, inputPassword]);
     if (aleo !== null) {
         const privateKey = () =>

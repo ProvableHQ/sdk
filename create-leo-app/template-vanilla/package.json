@@ -1,0 +1,16 @@
+{
+    "name": "aleo-starter",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "devDependencies": {
+        "@provablehq/sdk": "^0.8.8",
+        "tslib": "^2.8.1",
+        "vite": "^6.1.2"
+    }
+}

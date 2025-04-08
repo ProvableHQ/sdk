@@ -13,17 +13,19 @@ import {
     Space, Switch,
 } from "antd";
 import { CodeEditor } from "./execute/CodeEditor.jsx";
-import axios from "axios";
+import { useAleoWASM } from "../../aleo-wasm-hook.js";
+
 
 export const Deploy = () => {
-    
+
     const [form] = Form.useForm();
+    const [aleoWASM] = useAleoWASM();
     const [deploymentFeeRecord, setDeploymentFeeRecord] = useState(null);
-    const [deployUrl, setDeployUrl] = useState("https://api.explorer.aleo.org/v1");
-    const [deploymentFee, setDeploymentFee] = useState("1");
+    const [deployUrl, setDeployUrl] = useState("https://api.explorer.provable.com/v1");
+    const [deploymentFeeEstimate, setDeploymentFeeEstimate] = useState("");
     const [loading, setLoading] = useState(false);
     const [feeLoading, setFeeLoading] = useState(false);
-    const [privateFee, setPrivateFee] = useState(true);
+    const [privateFee, setPrivateFee] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
     const [program, setProgram] = useState(null);
     const [deploymentError, setDeploymentError] = useState(null);
@@ -31,6 +33,7 @@ export const Deploy = () => {
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
     const [messageApi, contextHolder] = message.useMessage();
+    
     function spawnWorker() {
         let worker = new Worker(
             new URL("../../workers/worker.js", import.meta.url),
@@ -43,19 +46,21 @@ export const Deploy = () => {
                 setLoading(false);
                 setDeploymentError(null);
                 setTransactionID(transactionId);
+                setDeploymentFeeEstimate("");
             } else if (ev.data.type == "DEPLOYMENT_FEE_ESTIMATION_COMPLETED") {
                 let fee = ev.data.deploymentFee;
                 setFeeLoading(false);
                 setLoading(false);
                 setDeploymentError(null);
                 setTransactionID(null);
-                setDeploymentFee(fee.toString());
+                setDeploymentFeeEstimate(fee.toString());
             } else if (ev.data.type == "ERROR") {
                 setDeploymentError(ev.data.errorMessage);
                 setFeeLoading(false);
                 setLoading(false);
                 setFeeLoading(false);
                 setTransactionID(null);
+                setDeploymentFeeEstimate("");
             }
         });
         return worker;
@@ -81,6 +86,7 @@ export const Deploy = () => {
                 setFeeLoading(false);
                 setLoading(false);
                 setTransactionID(null);
+                setDeploymentFeeEstimate("");
                 reject(error);
             };
             worker.postMessage(message);
@@ -92,19 +98,9 @@ export const Deploy = () => {
         setLoading(true);
         setTransactionID(null);
         setDeploymentError(null);
+        setDeploymentFeeEstimate("");
 
         const feeAmount = parseFloat(feeString());
-        if (isNaN(feeAmount)) {
-            setDeploymentError("Fee is not a valid number");
-            setFeeLoading(false);
-            setLoading(false);
-            return;
-        } else if (feeAmount <= 0) {
-            setDeploymentError("Fee must be greater than 0");
-            setFeeLoading(false);
-            setLoading(false);
-            return;
-        }
 
         await postMessagePromise(worker, {
             type: "ALEO_DEPLOY",
@@ -122,6 +118,7 @@ export const Deploy = () => {
         setLoading(false);
         setTransactionID(null);
         setDeploymentError(null);
+        setDeploymentFeeEstimate("");
         messageApi.info(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
         );
@@ -137,6 +134,7 @@ export const Deploy = () => {
         setLoading(false);
         setTransactionID(null);
         setDeploymentError(null);
+        setDeploymentFeeEstimate("");
         await onLoadProgram(
             "program hello_hello.aleo;\n" +
                 "\n" +
@@ -170,16 +168,8 @@ export const Deploy = () => {
         setProgram(value);
         setTransactionID(null);
         setDeploymentError(null);
+        setDeploymentFeeEstimate("");
         return program;
-    };
-
-    const onDeploymentFeeChange = (event) => {
-        if (event.target.value !== null) {
-            setDeploymentFee(event.target.value);
-        }
-        setTransactionID(null);
-        setDeploymentError(null);
-        return deploymentFee;
     };
 
     const onDeploymentFeeRecordChange = (event) => {
@@ -188,6 +178,7 @@ export const Deploy = () => {
         }
         setTransactionID(null);
         setDeploymentError(null);
+        setDeploymentFeeEstimate("");
         return deploymentFeeRecord;
     };
 
@@ -197,10 +188,11 @@ export const Deploy = () => {
         }
         setTransactionID(null);
         setDeploymentError(null);
+        setDeploymentFeeEstimate("");
         return privateKey;
     };
 
-    const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
+    const layout = { labelCol: { span: 5 }, wrapperCol: { span: 21 } };
     const privateKeyString = () => (privateKey !== null ? privateKey : "");
     const programString = () => (program !== null ? program : "");
     const feeRecordString = () =>
@@ -209,9 +201,18 @@ export const Deploy = () => {
         transactionID !== null ? transactionID : "";
     const deploymentErrorString = () =>
         deploymentError !== null ? deploymentError : "";
-    const feeString = () => (deploymentFee !== null ? deploymentFee : "");
+    const feeString = () => deploymentFeeEstimate ? deploymentFeeEstimate : "";
     const peerUrl = () => (deployUrl !== null ? deployUrl : "");
+    const generateKey = () => {
+        const newKey = new aleoWASM.PrivateKey().to_string()
+        form.setFieldValue(
+            "private_key",
+            newKey
+        );
 
+        setPrivateKey(newKey);
+        form.validateFields(["private_key"]);
+    };
     return (
         <Card
             title="Deploy Program"
@@ -227,7 +228,7 @@ export const Deploy = () => {
             }
         >
             <Form
-                form={form} 
+                form={form}
                 {...layout}>
                 <Divider />
                     <Form.Item
@@ -246,17 +247,15 @@ export const Deploy = () => {
                 <Divider />
                 <Form.Item
                     label="Private Key"
+                    name="private_key"
                     colon={false}
                     validateStatus={status}
                 >
-                    <Input.TextArea
-                        name="private_key"
-                        size="small"
-                        placeholder="Private Key"
-                        allowClear
-                        onChange={onPrivateKeyChange}
-                        value={privateKeyString()}
-                    />
+                    <Input.Search
+                            enterButton="Generate Random Key"
+                            onSearch={generateKey}
+                            onChange={onPrivateKeyChange}
+                        />
                 </Form.Item>
                 <Form.Item
                     label="Peer Url"
@@ -272,21 +271,11 @@ export const Deploy = () => {
                         value={peerUrl()}
                     />
                 </Form.Item>
-                <Form.Item label="Fee" colon={false} validateStatus={status}>
-                    <Input.TextArea
-                        name="Fee"
-                        size="small"
-                        placeholder="Fee"
-                        allowClear
-                        onChange={onDeploymentFeeChange}
-                        value={feeString()}
-                    />
-                </Form.Item>
                 <Form.Item
                     label="Private Fee"
                     name="private_fee"
                     valuePropName="checked"
-                    initialValue={true}
+                    initialValue={false}
                 >
                     <Switch onChange={setPrivateFee} />
                 </Form.Item>
@@ -313,7 +302,7 @@ export const Deploy = () => {
                         <Space>
                             <Button
                                 type="primary"
-                                
+
                                 size="middle"
                                 onClick={deploy}
                             >
@@ -322,7 +311,7 @@ export const Deploy = () => {
                             {contextHolder}
                             <Button
                                 type="primary"
-                                
+
                                 size="middle"
                                 onClick={estimate}
                             >
@@ -355,6 +344,15 @@ export const Deploy = () => {
                         status="error"
                         title="Error"
                         subTitle={"Error: " + deploymentErrorString()}
+                    />
+                )}
+                {deploymentFeeEstimate && (
+                    <Result
+                        status="success"
+                        title="Estimated Deployment Fee"
+                        subTitle={
+                            "Estimated Deployment Fee: " + feeString() + " credits"
+                        }
                     />
                 )}
             </Row>

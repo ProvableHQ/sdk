@@ -1,49 +1,48 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod deploy;
-pub use deploy::*;
-
 pub mod execute;
-pub use execute::*;
-
 pub mod join;
-pub use join::*;
-
 pub mod split;
-pub use split::*;
-
 pub mod transfer;
-pub use transfer::*;
 
-const DEFAULT_URL: &str = "https://api.explorer.aleo.org/v1";
+const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
 
-use crate::{KeyPair, PrivateKey, ProvingKey, RecordPlaintext, VerifyingKey};
-
-use crate::types::native::{
-    cost_in_microcredits,
-    deployment_cost,
-    IdentifierNative,
-    ProcessNative,
-    ProgramIDNative,
-    ProgramNative,
-    ProvingKeyNative,
-    QueryNative,
-    VerifyingKeyNative,
+use crate::{
+    KeyPair,
+    PrivateKey,
+    ProvingKey,
+    RecordPlaintext,
+    VerifyingKey,
+    log,
+    types::native::{
+        IdentifierNative,
+        ProcessNative,
+        ProgramIDNative,
+        ProgramNative,
+        ProvingKeyNative,
+        QueryNative,
+        VerifyingKeyNative,
+        cost_in_microcredits_v2,
+        deployment_cost,
+    },
 };
+use snarkvm_synthesizer_program::StackKeys;
+
 use js_sys::{Object, Reflect};
 use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -54,22 +53,6 @@ pub struct ProgramManager;
 
 #[wasm_bindgen]
 impl ProgramManager {
-    /// Validate that an amount being paid from a record is greater than zero and that the record
-    /// has enough credits to pay the amount
-    pub(crate) fn validate_amount(credits: f64, amount: &RecordPlaintext, fee: bool) -> Result<u64, String> {
-        let name = if fee { "Fee" } else { "Amount" };
-
-        if credits <= 0.0 {
-            return Err(format!("{name} must be greater than zero to deploy or execute a program"));
-        }
-        let microcredits = (credits * 1_000_000.0f64) as u64;
-        if amount.microcredits() < microcredits {
-            return Err(format!("{name} record does not have enough credits to pay the specified fee"));
-        }
-
-        Ok(microcredits)
-    }
-
     /// Synthesize proving and verifying keys for a program
     ///
     /// @param program {string} The program source code of the program to synthesize keys for
@@ -143,6 +126,26 @@ impl ProgramManager {
         } else {
             Ok(())
         }
+    }
+
+    pub(crate) fn validate_fee_record(
+        fee_record: &Option<RecordPlaintext>,
+        minimum_execution_cost: u64,
+        priority_fee_microcredits: u64,
+    ) -> Result<(), String> {
+        let total_fee = priority_fee_microcredits.saturating_add(minimum_execution_cost);
+        if let Some(fee_record) = fee_record {
+            log("Validating the fee record");
+            if fee_record.microcredits() < total_fee {
+                return Err(format!(
+                    "Fee record does not have enough credits to pay for a fee of {} credits. (base fee: {} credits - priority fee: {} credits)",
+                    total_fee as f64 / 1_000_000.0,
+                    minimum_execution_cost as f64 / 1_000_000.0,
+                    priority_fee_microcredits as f64 / 1_000_000.0,
+                ));
+            }
+        }
+        Ok(())
     }
 }
 

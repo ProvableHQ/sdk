@@ -1,24 +1,36 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{Address, PrivateKey};
+use crate::{
+    Address,
+    Field,
+    Plaintext,
+    PrivateKey,
+    Scalar,
+    from_js_typed_array,
+    js_array_from_fields,
+    native::LiteralNative,
+    to_bits_array_le,
+    types::native::SignatureNative,
+};
+use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, ToFields};
 
-use crate::types::native::SignatureNative;
 use core::{fmt, ops::Deref, str::FromStr};
-use rand::{rngs::StdRng, SeedableRng};
+use js_sys::{Array, Uint8Array};
+use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 
 /// Cryptographic signature of a message signed by an Aleo account
@@ -36,6 +48,23 @@ impl Signature {
         Self(SignatureNative::sign_bytes(private_key, message, &mut StdRng::from_entropy()).unwrap())
     }
 
+    /// Get an address from a signature.
+    ///
+    /// @returns {Address} Address object
+    pub fn to_address(&self) -> Address {
+        Address::from(self.0.to_address())
+    }
+
+    /// Get the challenge of a signature.
+    pub fn challenge(&self) -> Scalar {
+        Scalar::from(self.0.challenge())
+    }
+
+    /// Get the response of a signature.
+    pub fn response(&self) -> Scalar {
+        Scalar::from(self.0.response())
+    }
+
     /// Verify a signature of a message with an address
     ///
     /// @param {Address} address The address to verify the signature with
@@ -43,6 +72,51 @@ impl Signature {
     /// @returns {boolean} True if the signature is valid, false otherwise
     pub fn verify(&self, address: &Address, message: &[u8]) -> bool {
         self.0.verify_bytes(address, message)
+    }
+
+    /// Get a signature from a series of bytes.
+    ///
+    /// @param {Uint8Array} bytes A left endian byte array representing the signature.
+    ///
+    /// @returns {Signature} The signature object.
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Self, String> {
+        let rust_bytes = bytes.to_vec();
+        let native = SignatureNative::from_bytes_le(rust_bytes.as_slice()).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the left endian byte array representation of the signature.
+    #[wasm_bindgen(js_name = "toBytesLe")]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        Ok(Uint8Array::from(rust_bytes.as_slice()))
+    }
+
+    /// Get a signature from a series of bits represented as a boolean array.
+    ///
+    /// @param {Array} bits A left endian boolean array representing the bits of the signature.
+    ///
+    /// @returns {Signature} The signature object.
+    #[wasm_bindgen(js_name = "fromBitsLe")]
+    pub fn from_bits_le(bits: Array) -> Result<Self, String> {
+        let rust_bits = from_js_typed_array!(bits, as_bool, "boolean")?;
+        let native = SignatureNative::from_bits_le(&rust_bits).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the left endian boolean array representation of the bits of the signature.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
+
+    /// Get the field array representation of the signature.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
     }
 
     /// Get a signature from a string representation of a signature
@@ -60,19 +134,11 @@ impl Signature {
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
-}
 
-impl FromStr for Signature {
-    type Err = anyhow::Error;
-
-    fn from_str(signature: &str) -> Result<Self, Self::Err> {
-        Ok(Self(SignatureNative::from_str(signature).unwrap()))
-    }
-}
-
-impl fmt::Display for Signature {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+    /// Get the plaintext representation of the signature.
+    #[wasm_bindgen(js_name = "toPlaintext")]
+    pub fn to_plaintext(&self) -> Plaintext {
+        Plaintext::from(LiteralNative::Signature(Box::new(self.0)))
     }
 }
 
@@ -84,11 +150,49 @@ impl Deref for Signature {
     }
 }
 
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<SignatureNative> for Signature {
+    fn from(signature: SignatureNative) -> Self {
+        Self(signature)
+    }
+}
+
+impl From<Signature> for SignatureNative {
+    fn from(signature: Signature) -> Self {
+        signature.0
+    }
+}
+
+impl From<&SignatureNative> for Signature {
+    fn from(signature: &SignatureNative) -> Self {
+        Self(*signature)
+    }
+}
+
+impl From<&Signature> for SignatureNative {
+    fn from(signature: &Signature) -> Self {
+        signature.0
+    }
+}
+
+impl FromStr for Signature {
+    type Err = anyhow::Error;
+
+    fn from_str(signature: &str) -> Result<Self, Self::Err> {
+        Ok(Self(SignatureNative::from_str(signature).unwrap()))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;
 
     const ITERATIONS: u64 = 1_000;

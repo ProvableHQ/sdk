@@ -1,42 +1,49 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
 
 use crate::{
-    execute_fee,
-    execute_program,
-    log,
-    process_inputs,
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
     Transaction,
+    calculate_minimum_fee,
+    execute_fee,
+    execute_program,
+    log,
+    process_inputs,
+    types::native::{
+        CurrentAleo,
+        CurrentNetwork,
+        IdentifierNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        TransactionNative,
+    },
 };
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
+use snarkvm_console::prelude::{ConsensusVersion, Network};
+use snarkvm_ledger_query::QueryTrait;
+use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
+use snarkvm_synthesizer_program::StackKeys;
 
-use crate::types::native::{
-    CurrentAleo,
-    IdentifierNative,
-    ProcessNative,
-    ProgramNative,
-    RecordPlaintextNative,
-    TransactionNative,
-};
 use js_sys::Array;
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{SeedableRng, rngs::StdRng};
 use std::str::FromStr;
 
 #[wasm_bindgen]
@@ -47,21 +54,21 @@ impl ProgramManager {
     /// @param private_key The private key of the sender
     /// @param record_1 The first record to combine
     /// @param record_2 The second record to combine
-    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param priority_fee_credits The opptional priority fee to be paid for the transaction
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param join_proving_key (optional) Provide a proving key to use for the join function
     /// @param join_verifying_key (optional) Provide a verifying key to use for the join function
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
-    /// @returns {Transaction | Error} Transaction object
+    /// @returns {Transaction} Transaction object
     #[wasm_bindgen(js_name = buildJoinTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn join(
         private_key: &PrivateKey,
         record_1: RecordPlaintext,
         record_2: RecordPlaintext,
-        fee_credits: f64,
+        priority_fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         join_proving_key: Option<ProvingKey>,
@@ -71,10 +78,6 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Executing join program");
-        let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
-            None => (fee_credits * 1_000_000.0) as u64,
-        };
         let rng = &mut StdRng::from_entropy();
 
         log("Setup program and inputs");
@@ -125,24 +128,35 @@ impl ProgramManager {
         }
 
         log("Proving the join execution");
-        let execution = trace.prove_execution::<CurrentAleo, _>("credits.aleo/join", rng).map_err(|e| e.to_string())?;
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>("credits.aleo/join", VarunaVersion::V2, rng)
+            .map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the join execution");
-        process.verify_execution(&execution).map_err(|err| err.to_string())?;
+        process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
+
+        // Calculate the minimum execution fee.
+        log("Calculating the minimum execution fee");
+        let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
+
+        // Check to see if the fee record has enough microcredits to pay for the deployment.
+        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+        Self::validate_fee_record(&fee_record, minimum_execution_cost, priority_fee_microcredits)?;
 
         log("Executing the fee");
         let fee = execute_fee!(
             process,
             private_key,
             fee_record,
-            fee_microcredits,
+            priority_fee_microcredits,
             node_url,
             fee_proving_key,
             fee_verifying_key,
             execution_id,
             rng,
-            offline_query
+            offline_query,
+            minimum_execution_cost
         );
 
         log("Creating execution transaction for join");

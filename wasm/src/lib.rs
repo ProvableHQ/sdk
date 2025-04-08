@@ -1,25 +1,25 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 //!
 //! [![Crates.io](https://img.shields.io/crates/v/aleo-wasm.svg?color=neon)](https://crates.io/crates/aleo-wasm)
-//! [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+//! [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://provable.com)
 //! [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
 //!
-//! [![github]](https://github.com/AleoHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)
+//! [![github]](https://github.com/ProvableHQ/sdk)&ensp;[![crates-io]](https://crates.io/crates/aleo-wasm)&ensp;[![docs-rs]](https://docs.rs/aleo-wasm/latest/aleo-wasm/)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -41,7 +41,7 @@
 //! * Aleo primitives such as `Records`, `Programs`, and `Transactions` and their associated helper methods
 //! * A `ProgramManager` object that contains methods for authoring, deploying, and interacting with Aleo programs
 //!
-//! More information on these concepts can be found at the [Aleo Developer Hub](https://developer.aleo.org/concepts).
+//! More information on these concepts can be found at the [Aleo Developer Hub](https://docs.leo-lang.org/concepts).
 //!
 //! ## Usage
 //! The [wasm-pack](https://crates.io/crates/wasm-pack) tool is used to compile the Rust code in this crate into JavaScript
@@ -148,12 +148,18 @@
 //! ## Building Web Apps
 //!
 //! Further documentation and tutorials as to how to use the modules built from this crate to build web apps  will be built
-//! in the future. However - in the meantime, the [aleo.tools](https://aleo.tools) website is a good
+//! in the future. However - in the meantime, the [provable.tools](https://provable.tools) website is a good
 //! example of how to use these modules to build a web app. Its source code can be found in the
 //!
 
 pub mod account;
 pub use account::*;
+
+pub mod algorithms;
+pub use algorithms::*;
+
+pub mod ledger;
+pub use ledger::*;
 
 pub mod programs;
 pub use programs::*;
@@ -162,15 +168,31 @@ pub mod record;
 pub use record::*;
 
 pub mod types;
-pub use types::Field;
+pub use types::{Field, Group, Scalar};
 
 #[cfg(not(test))]
 mod thread_pool;
 
-use wasm_bindgen::prelude::*;
+mod utilities;
+#[cfg(test)]
+pub use utilities::*;
 
-#[cfg(not(test))]
-use thread_pool::ThreadPool;
+#[cfg(test)]
+mod thread_pool {
+    use std::future::Future;
+
+    #[allow(dead_code)]
+    #[allow(clippy::manual_async_fn)]
+    pub fn spawn<A, F>(f: F) -> impl Future<Output = A>
+    where
+        A: Send + 'static,
+        F: FnOnce() -> A + Send + 'static,
+    {
+        async move { f() }
+    }
+}
+
+use wasm_bindgen::prelude::*;
 
 use std::str::FromStr;
 
@@ -183,6 +205,28 @@ extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     pub fn log(s: &str);
 }
+
+#[macro_export]
+macro_rules! array {
+        ($($value:expr),*$(,)?) => {{
+            let array = ::js_sys::Array::new();
+
+            $(array.push(&::wasm_bindgen::JsValue::from($value));)*
+
+            array
+        }};
+    }
+
+#[macro_export]
+macro_rules! object {
+        ($($key:literal: $value:expr,)*) => {{
+            let object = ::js_sys::Object::new();
+
+            $(Reflect::set(&object, &::wasm_bindgen::JsValue::from_str($key), &::wasm_bindgen::JsValue::from($value)).unwrap();)*
+
+            object
+        }};
+    }
 
 /// A trait providing convenient methods for accessing the amount of Aleo present in a record
 pub trait Credits {
@@ -219,7 +263,7 @@ use types::native;
 pub async fn init_thread_pool(url: web_sys::Url, num_threads: usize) -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
-    ThreadPool::builder().url(url).num_threads(num_threads).build_global().await?;
+    thread_pool::ThreadPool::builder().url(url).num_threads(num_threads).build_global().await?;
 
     Ok(())
 }

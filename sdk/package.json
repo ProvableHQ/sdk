@@ -1,18 +1,26 @@
 {
-  "name": "@aleohq/sdk",
-  "version": "0.6.9",
+  "name": "@provablehq/sdk",
+  "version": "0.8.8",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
-    "The Aleo Team <hello@aleo.org>"
+    "The Provable Team"
   ],
   "license": "GPL-3.0",
   "type": "module",
-  "main": "./dist/node.js",
-  "browser": "./dist/index.js",
+  "main": "./dist/testnet/node.js",
+  "browser": "./dist/testnet/browser.js",
   "exports": {
     ".": {
-      "node": "./dist/node.js",
-      "default": "./dist/index.js"
+      "node": "./dist/testnet/node.js",
+      "default": "./dist/testnet/browser.js"
+    },
+    "./testnet.js": {
+      "node": "./dist/testnet/node.js",
+      "default": "./dist/testnet/browser.js"
+    },
+    "./mainnet.js": {
+      "node": "./dist/mainnet/node.js",
+      "default": "./dist/mainnet/browser.js"
     }
   },
   "files": [
@@ -22,49 +30,53 @@
   ],
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js",
-    "prepublish": "yarn build",
-    "test": "node --no-warnings --experimental-vm-modules ../node_modules/jest/bin/jest.js --config jest-config.json --detectOpenHandles",
-    "integration": "node --no-warnings --experimental-vm-modules ../node_modules/jest/bin/jest.js --silent=false --runInBand --detectOpenHandles",
-    "clear_jest": "jest --clearCache"
+    "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --timeout 60000"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AleoHQ/sdk.git"
+    "url": "git+https://github.com/ProvableHQ/sdk.git"
   },
   "keywords": [
     "Aleo",
     "Blockchain",
-    "Zero Knowledge",
+    "Zero-Knowledge",
     "ZK"
   ],
   "bugs": {
-    "url": "https://github.com/AleoHQ/sdk/issues"
+    "url": "https://github.com/ProvableHQ/sdk/issues"
   },
-  "homepage": "https://github.com/AleoHQ/sdk#readme",
+  "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@aleohq/wasm": "^0.6.0",
-    "comlink": "^4.4.1",
-    "mime": "^3.0.0",
-    "sync-request": "^6.1.0"
+    "@provablehq/wasm": "^0.8.8",
+    "comlink": "^4.4.2",
+    "core-js": "^3.40.0",
+    "mime": "^4.0.6",
+    "sync-request": "^6.1.0",
+    "xmlhttprequest-ssl": "^3.1.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.5",
-    "@types/mime": "^3.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.41.0",
-    "@typescript-eslint/parser": "^5.41.0",
-    "better-docs": "^2.7.2",
-    "clean-jsdoc-theme": "^4.1.8",
+    "@rollup/plugin-replace": "^6.0.2",
+    "@types/chai": "^5.0.1",
+    "@types/mocha": "^10.0.10",
+    "@types/sinon": "^17.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.22.0",
+    "@typescript-eslint/parser": "^8.22.0",
+    "better-docs": "^2.7.3",
+    "chai": "^5.1.2",
+    "clean-jsdoc-theme": "^4.3.0",
     "cpr": "^3.0.1",
-    "eslint": "^8.26.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-import": "^2.26.0",
-    "jest": "^29.7.0",
-    "jsdoc": "^3.6.11",
-    "prettier": "2.7.1",
-    "rimraf": "^5.0.1",
-    "rollup": "^3.27.2",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-import": "^2.31.0",
+    "glob": "^11.0.1",
+    "jsdoc": "^4.0.4",
+    "kis-jsdoc-plugin": "^2.2.1",
+    "mocha": "^11.1.0",
+    "prettier": "3.4.2",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.32.0",
     "rollup-plugin-typescript2": "^0.36.0",
-    "ts-jest": "^29.1.1",
-    "typescript": "^5.2.2"
+    "sinon": "^19.0.2",
+    "typescript": "^5.7.3"
   }
 }

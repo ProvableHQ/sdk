@@ -6,6 +6,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
     ApiOutlined,
     CodeOutlined,
+    PlusOutlined,
     ProfileOutlined,
     SwapOutlined,
     ToolOutlined,
@@ -22,8 +23,8 @@ const menuItems = [
         icon: <UserOutlined />,
     },
     {
-        label: <Link to="/record">Record</Link>,
-        key: "/record",
+        label: <Link to="/protocol">Protocol</Link>,
+        key: "/protocol",
         icon: <ProfileOutlined />,
     },
     {
@@ -46,6 +47,11 @@ const menuItems = [
         key: "transfer",
         icon: <SwapOutlined />,
     },
+    {
+        label: <Link to="/algebra">Algebra</Link>,
+        key: "algebra",
+        icon: <PlusOutlined />,
+    },
 ];
 function Main() {
     const [menuIndex, setMenuIndex] = useState("account");
@@ -58,9 +64,9 @@ function Main() {
 
     useEffect(() => {
         setMenuIndex(location.pathname);
-        if (location.pathname === "/") {
-            navigate("/account");
-        }
+        // if (location.pathname === "/") {
+        //     navigate("/account");
+        // }
     }, [location, navigate]);
 
     const [darkMode, setDarkMode] = useState(true);
@@ -80,20 +86,11 @@ function Main() {
                 <WasmLoadingMessage />
                 <Layout style={{ minHeight: "100vh" }}>
                     <Sider breakpoint="lg" collapsedWidth="0" theme="light">
-                        <img
-                            src={
-                                darkMode
-                                    ? "../public/aleosdklight.svg"
-                                    : "../public/aleosdkdark.svg"
-                            }
-                            alt="Aleo SDK Logo"
-                            style={{
-                                height: "32px",
-                                margin: "16px",
-                                fontWeight: "bold",
-                                whiteSpace: "nowrap",
-                            }}
-                        />
+                        <h1 className={darkMode ? "headerDark": "headerLight"}>
+                            <Link to="/">
+                            Provable SDK
+                            </Link>
+                        </h1>
                         <Menu
                             theme="light"
                             mode="inline"
@@ -113,15 +110,19 @@ function Main() {
                         />
                     </Sider>
                     <Layout>
-                        <Content style={{ padding: "50px 50px" }}>
+                        <Content style={{ padding: "50px 50px", margin: "0 auto", minWidth: "850px" }}>
                             <Outlet />
                         </Content>
-                        <Footer style={{ textAlign: "center" }}>
-                            Visit the{" "}
-                            <a href="https://github.com/AleoHQ/sdk">
-                                Aleo SDK Github repo
+                        <Footer style={{ textAlign: "center", display:"flex", flexDirection: "column" }}>
+                        
+                            <a href="https://github.com/ProvableHQ/sdk">
+                            <img src="../public/github-mark-white.png" style={{height:"24px"}}></img>
                             </a>
-                            .
+                            <Link to="https://sdk.betteruptime.com/" style={{color: "white"}}> <span>Status</span> </Link>
+                            <Link to="/terms_of_use" style={{color: "white"}}> <span>Terms of Use</span> </Link>
+                            <Link to="/privacy_policy" style={{color:"white"}}><span>Privacy Policy</span></Link>
+                         
+                            © 2025 Provable Inc.
                         </Footer>
                     </Layout>
                 </Layout>

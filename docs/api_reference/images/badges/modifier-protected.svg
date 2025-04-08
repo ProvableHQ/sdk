@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink" width="63" height="20">
+  <g shape-rendering="crispEdges">
+    <path fill="#009664" d="M0 0h0v20H0z"/>
+    <path fill="#009664" d="M0 0h63v20H0z"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110">
+    <text x="315" y="140" transform="scale(.1)" textLength="530">protected</text>
+  </g>
+</svg>

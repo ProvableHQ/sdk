@@ -1,23 +1,31 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use super::RecordPlaintext;
-use crate::account::ViewKey;
+use crate::{
+    Field,
+    GraphKey,
+    RecordPlaintext,
+    ViewKey,
+    js_array_from_fields,
+    to_bits_array_le,
+    types::native::RecordCiphertextNative,
+};
+use snarkvm_console::prelude::{FromBytes, ToBits, ToBytes, ToFields};
 
-use crate::types::native::RecordCiphertextNative;
+use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -31,7 +39,7 @@ impl RecordCiphertext {
     /// Create a record ciphertext from a string
     ///
     /// @param {string} record String representation of a record ciphertext
-    /// @returns {RecordCiphertext | Error} Record ciphertext
+    /// @returns {RecordCiphertext} Record ciphertext
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordCiphertext, String> {
         Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
@@ -50,7 +58,7 @@ impl RecordCiphertext {
     /// decrypt if the record was encrypted by the account corresponding to the view key
     ///
     /// @param {ViewKey} view_key View key used to decrypt the ciphertext
-    /// @returns {RecordPlaintext | Error} Record plaintext object
+    /// @returns {RecordPlaintext} Record plaintext object
     pub fn decrypt(&self, view_key: &ViewKey) -> Result<RecordPlaintext, String> {
         Ok(RecordPlaintext::from(
             self.0.decrypt(view_key).map_err(|_| "Decryption failed - view key did not match record".to_string())?,
@@ -65,13 +73,49 @@ impl RecordCiphertext {
     pub fn is_owner(&self, view_key: &ViewKey) -> bool {
         self.0.is_owner(view_key)
     }
-}
 
-impl FromStr for RecordCiphertext {
-    type Err = anyhow::Error;
+    /// Get the tag of the record using the graph key.
+    ///
+    /// @param {GraphKey} graph key of the account associatd with the record.
+    /// @param {Field} commitment of the record.
+    ///
+    /// @returns {Field} tag of the record.
+    pub fn tag(graph_key: &GraphKey, commitment: Field) -> Result<Field, String> {
+        RecordCiphertextNative::tag(*graph_key.sk_tag(), *commitment).map_err(|e| e.to_string()).map(Field::from)
+    }
 
-    fn from_str(ciphertext: &str) -> Result<Self, Self::Err> {
-        Ok(Self(RecordCiphertextNative::from_str(ciphertext)?))
+    /// Get a record ciphertext object from a series of bytes.
+    ///
+    /// @param {Uint8Array} bytes A left endian byte array representing the record ciphertext.
+    ///
+    /// @returns {RecordCiphertext}
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Self, String> {
+        let rust_bytes = bytes.to_vec();
+        let native = RecordCiphertextNative::from_bytes_le(&rust_bytes).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the left endian byte array representation of the record ciphertext.
+    #[wasm_bindgen(js_name = "toBytesLe")]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let bytes_vec = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        let bytes = bytes_vec.as_slice();
+        Uint8Array::try_from(bytes).map_err(|e| e.to_string())
+    }
+
+    /// Get the left endian boolean array representation of the record ciphertext bits.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
+
+    /// Get the field array representation of the record ciphertext.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
     }
 }
 
@@ -80,6 +124,38 @@ impl Deref for RecordCiphertext {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<RecordCiphertextNative> for RecordCiphertext {
+    fn from(record: RecordCiphertextNative) -> Self {
+        Self(record)
+    }
+}
+
+impl From<RecordCiphertext> for RecordCiphertextNative {
+    fn from(record: RecordCiphertext) -> Self {
+        record.0
+    }
+}
+
+impl From<&RecordCiphertext> for RecordCiphertextNative {
+    fn from(record: &RecordCiphertext) -> Self {
+        record.0.clone()
+    }
+}
+
+impl From<&RecordCiphertextNative> for RecordCiphertext {
+    fn from(record: &RecordCiphertextNative) -> Self {
+        Self(record.clone())
+    }
+}
+
+impl FromStr for RecordCiphertext {
+    type Err = anyhow::Error;
+
+    fn from_str(ciphertext: &str) -> Result<Self, Self::Err> {
+        Ok(Self(RecordCiphertextNative::from_str(ciphertext)?))
     }
 }
 
@@ -97,6 +173,7 @@ mod tests {
     const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
     const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
+    const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
 
     // Related material for use in future tests
     const _OWNER_PRIVATE_KEY: &str = "APrivateKey1zkpJkyYRGYtkeHDaFfwsKtUJzia7csiWhfBWPXWhXJzy9Ls";
@@ -119,13 +196,19 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    fn test_decrypt() {
+    fn test_decrypt_and_tag_computation() {
         let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
+        let graph_key = GraphKey::from_view_key(&view_key);
         let plaintext = record.decrypt(&view_key).unwrap();
         assert_eq!(plaintext.to_string(), OWNER_PLAINTEXT);
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         assert!(record.decrypt(&incorrect_view_key).is_err());
+
+        let commitment = plaintext.commitment("credits.aleo", "credits").unwrap();
+        let tag = RecordCiphertext::tag(&graph_key, commitment).unwrap();
+        let expected_tag = Field::from_str(RECORD_TAG).unwrap();
+        assert_eq!(tag, expected_tag);
     }
 
     #[wasm_bindgen_test]

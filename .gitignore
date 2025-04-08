@@ -5,8 +5,10 @@
 **/node_modules
 **/target
 **/dist
+**/tmp
 storage*/
 **/.next
+*.zip
 
 ## OS Files
 **.DS_Store
@@ -19,3 +21,4 @@ rust/src/program/.DS_Store
 .netlify
 
 package-lock.json
+.yarn

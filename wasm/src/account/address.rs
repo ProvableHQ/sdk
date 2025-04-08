@@ -1,24 +1,36 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::account::{PrivateKey, Signature, ViewKey};
+use crate::{
+    Field,
+    Group,
+    Plaintext,
+    account::{PrivateKey, Signature, ViewKey, compute_key::ComputeKey},
+    from_js_typed_array,
+    from_wasm_object_array,
+    js_array_from_fields,
+    native::{FieldNative, LiteralNative},
+    to_bits_array_le,
+    types::native::AddressNative,
+};
+use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields};
 
-use crate::types::native::AddressNative;
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
-use wasm_bindgen::prelude::*;
+use js_sys::{Array, Uint8Array};
+use wasm_bindgen::{convert::TryFromJsValue, prelude::*};
 
 /// Public address of an Aleo account
 #[wasm_bindgen]
@@ -43,6 +55,86 @@ impl Address {
         Self(AddressNative::try_from(**view_key).unwrap())
     }
 
+    /// Derive an Aleo address from a compute key.
+    ///
+    /// @param {ComputeKey} compute_key The compute key to derive the address from
+    pub fn from_compute_key(compute_key: &ComputeKey) -> Self {
+        compute_key.address()
+    }
+
+    /// Get an address from a series of bytes.
+    ///
+    /// @param {Uint8Array} bytes A left endian byte array representing the address.
+    ///
+    /// @returns {Address} The address object.
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Self, String> {
+        let rust_bytes = bytes.to_vec();
+        let native = AddressNative::from_bytes_le(rust_bytes.as_slice()).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the left endian byte array representation of the address.
+    #[wasm_bindgen(js_name = "toBytesLe")]
+    pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
+        let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
+        Ok(Uint8Array::from(rust_bytes.as_slice()))
+    }
+
+    /// Get an address from a series of bits represented as a boolean array.
+    ///
+    /// @param {Array} bits A left endian boolean array representing the bits of the address.
+    ///
+    /// @returns {Address} The address object.
+    #[wasm_bindgen(js_name = "fromBitsLe")]
+    pub fn from_bits_le(bits: Array) -> Result<Self, String> {
+        let rust_bits = from_js_typed_array!(bits, as_bool, "boolean")?;
+        let native = AddressNative::from_bits_le(&rust_bits).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the left endian boolean array representation of the bits of the address.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
+
+    /// Get an address object from an array of fields.
+    ///
+    /// @param {Array} fields An array of fields.
+    ///
+    /// @returns {Plaintext} The address object.
+    #[wasm_bindgen(js_name = "fromFields")]
+    pub fn from_fields(fields: Array) -> Result<Self, String> {
+        let native_fields = from_wasm_object_array!(fields, Field)?;
+        let native = AddressNative::from_fields(&native_fields).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the field array representation of the address.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
+    }
+
+    /// Get an address object from a group.
+    ///
+    /// @param {Group} group The group object.
+    ///
+    /// @returns {Address} The address object.
+    #[wasm_bindgen(js_name = "fromGroup")]
+    pub fn from_group(group: Group) -> Self {
+        Self::from(group)
+    }
+
+    /// Get the group representation of the address object.
+    #[wasm_bindgen(js_name = "toGroup")]
+    pub fn to_group(&self) -> Group {
+        Group::from(self)
+    }
+
     /// Create an aleo address object from a string representation of an address
     ///
     /// @param {string} address String representation of an addressm
@@ -60,6 +152,12 @@ impl Address {
         self.0.to_string()
     }
 
+    /// Get the plaintext representation of the address.
+    #[wasm_bindgen(js_name = "toPlaintext")]
+    pub fn to_plaintext(&self) -> Plaintext {
+        Plaintext::from(LiteralNative::Address(self.0))
+    }
+
     /// Verify a signature for a message signed by the address
     ///
     /// @param {Uint8Array} Byte array representing a message signed by the address
@@ -69,17 +167,11 @@ impl Address {
     }
 }
 
-impl FromStr for Address {
-    type Err = anyhow::Error;
+impl Deref for Address {
+    type Target = AddressNative;
 
-    fn from_str(address: &str) -> Result<Self, Self::Err> {
-        Ok(Self(AddressNative::from_str(address)?))
-    }
-}
-
-impl From<AddressNative> for Address {
-    fn from(value: AddressNative) -> Self {
-        Self(value)
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -89,11 +181,60 @@ impl fmt::Display for Address {
     }
 }
 
-impl Deref for Address {
-    type Target = AddressNative;
+impl From<AddressNative> for Address {
+    fn from(value: AddressNative) -> Self {
+        Self(value)
+    }
+}
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl From<Address> for AddressNative {
+    fn from(value: Address) -> Self {
+        value.0
+    }
+}
+
+impl From<&AddressNative> for Address {
+    fn from(value: &AddressNative) -> Self {
+        Self(value.clone())
+    }
+}
+
+impl From<&Address> for AddressNative {
+    fn from(value: &Address) -> Self {
+        value.0
+    }
+}
+
+impl From<AddressNative> for Group {
+    fn from(value: AddressNative) -> Self {
+        let vm_group = value.to_group();
+        Self::from(vm_group)
+    }
+}
+
+impl From<Address> for Group {
+    fn from(value: Address) -> Self {
+        Self::from(value.0)
+    }
+}
+
+impl From<&AddressNative> for Group {
+    fn from(value: &AddressNative) -> Self {
+        Self::from(value.clone())
+    }
+}
+
+impl From<&Address> for Group {
+    fn from(value: &Address) -> Self {
+        Self::from(value.0)
+    }
+}
+
+impl FromStr for Address {
+    type Err = anyhow::Error;
+
+    fn from_str(address: &str) -> Result<Self, Self::Err> {
+        Ok(Self(AddressNative::from_str(address)?))
     }
 }
 

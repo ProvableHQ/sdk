@@ -1,18 +1,18 @@
-// Copyright (C) 2019-2023 Aleo Systems Inc.
-// This file is part of the Aleo SDK library.
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
 
-// The Aleo SDK library is free software: you can redistribute it and/or modify
+// The Provable SDK library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// The Aleo SDK library is distributed in the hope that it will be useful,
+// The Provable SDK library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with the Aleo SDK library. If not, see <https://www.gnu.org/licenses/>.
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 #[macro_export]
 macro_rules! process_inputs {
@@ -98,7 +98,7 @@ macro_rules! execute_program {
 
 #[macro_export]
 macro_rules! execute_fee {
-    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr, $offline_query:expr) => {{
+    ($process:expr, $private_key:expr, $fee_record:expr, $priority_fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr, $offline_query:expr, $minimum_execution_cost:expr) => {{
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
@@ -136,33 +136,62 @@ macro_rules! execute_fee {
                 $process.authorize_fee_private::<CurrentAleo, _>(
                     $private_key,
                     fee_record_native,
-                    $fee_microcredits,
-                    0u64,
+                    $minimum_execution_cost,
+                    $priority_fee_microcredits,
                     $execution_id,
                     $rng,
                 ).map_err(|e| e.to_string())?
             }
             None => {
-                $process.authorize_fee_public::<CurrentAleo, _>($private_key, $fee_microcredits, 0u64, $execution_id, $rng).map_err(|e| e.to_string())?
+                $process.authorize_fee_public::<CurrentAleo, _>(
+                    $private_key,
+                    $minimum_execution_cost,
+                    $priority_fee_microcredits,
+                    $execution_id,
+                    $rng,
+                ).map_err(|e| e.to_string())?
             }
         };
 
-        log("Executing fee");
+        log("Executing Fee");
         let (_, mut trace) = $process
             .execute::<CurrentAleo, _>(fee_authorization, $rng)
-            .map_err(|err| err.to_string())?;
+            .map_err(|e| e.to_string())?;
 
-        if let Some(offline_query) = $offline_query {
-            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+        log("Preparing inclusion proofs for fee execution");
+        if let Some(offline_query) = $offline_query.as_ref() {
+            trace.prepare_async(offline_query.clone()).await.map_err(|err| err.to_string())?;
         } else {
             let query = QueryNative::from($submission_url);
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
         };
-        let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
+        let fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V2, &mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");
-        $process.verify_fee(&fee, $execution_id).map_err(|e| e.to_string())?;
+        $process.verify_fee(VarunaVersion::V2,&fee, $execution_id).map_err(|e| e.to_string())?;
 
         fee
+    }}
+}
+
+#[macro_export]
+macro_rules! calculate_minimum_fee {
+    ($offline_query:expr, $node_url: expr, $process:expr, $execution_ref:expr) => {{
+        let block_height = if let Some(ref offline_query) = $offline_query {
+            let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
+            block_height
+        } else {
+            let query = QueryNative::from($node_url);
+            let block_height = query.current_block_height_async().await.map_err(|e| e.to_string())?;
+            block_height
+        };
+        let (minimum_execution_cost, (_, _)) =
+            if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
+                execution_cost_v2($process, $execution_ref).map_err(|err| err.to_string())?
+            } else {
+                execution_cost_v1($process, $execution_ref).map_err(|err| err.to_string())?
+            };
+
+        minimum_execution_cost
     }};
 }
