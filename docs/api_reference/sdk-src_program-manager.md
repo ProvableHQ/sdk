@@ -27,6 +27,14 @@ __recordProvider__ | `RecordProvider` | *A record provider that implements {@lin
 
 ## Methods
 
+### `checkFee()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check if the fee is sufficient to pay for the transaction
+
+---
+
 ### `setAccount(account)`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -108,7 +116,7 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 programManager.setAccount(Account);
 
 // Define a fee in credits
-const fee = 1.2;
+const priorityFee = 0.0;
 
 // Create the deployment transaction.
 const tx = await programManager.buildDeploymentTransaction(program, fee, false);
@@ -155,7 +163,7 @@ const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
 
 // Define a fee in credits
-const fee = 1.2;
+const priorityFee = 0.0;
 
 // Deploy the program
 const tx_id = await programManager.deploy(program, fee, false);
@@ -198,7 +206,7 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 const tx = await programManager.buildExecutionTransaction({
   programName: "hello_hello.aleo",
   functionName: "hello_hello",
-  fee: 0.020,
+  priorityFee: 0.0,
   privateFee: false,
   inputs: ["5u32", "5u32"],
   keySearchParams: { "cacheKey": "hello_hello:hello" }
@@ -245,7 +253,7 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 const tx_id = await programManager.execute({
   programName: "hello_hello.aleo",
   functionName: "hello_hello",
-  fee: 0.020,
+  priorityFee: 0.0,
   privateFee: false,
   inputs: ["5u32", "5u32"],
   keySearchParams: { "cacheKey": "hello_hello:hello" }
@@ -446,7 +454,7 @@ setTimeout(async () => {
 
 ---
 
-### `buildTransferPublicTransaction(amount, recipient, transferType, priorityFee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery) ► Promise.<Transaction>`
+### `buildTransferPublicTransaction(amount, recipient, priorityFee, privateKey, offlineQuery) ► Promise.<Transaction>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -456,13 +464,7 @@ Parameters | Type | Description
 --- | --- | ---
 __amount__ | `number` | *The amount of credits to transfer*
 __recipient__ | `string` | *The recipient of the transfer*
-__transferType__ | `string` | *The type of transfer to perform - options: &#x27;private&#x27;, &#x27;privateToPublic&#x27;, &#x27;public&#x27;, &#x27;publicToPrivate&#x27;*
 __priorityFee__ | `number` | *The optional priority fee to be paid for the transfer*
-__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
-__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for finding the amount and fee
-records for the transfer transaction*
-__amountRecord__ | [RecordPlaintext](sdk-src_wasm.md) | *Optional amount record to use for the transfer*
-__feeRecord__ | [RecordPlaintext](sdk-src_wasm.md) | *Optional fee record to use for the transfer*
 __privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transfer transaction*
 __offlineQuery__ | [OfflineQuery](sdk-src_wasm.md) | *Optional offline query if creating transactions in an offline environment*
 __*return*__ | `Promise.<Transaction>` | *The transaction object*
@@ -492,7 +494,7 @@ setTimeout(async () => {
 
 ---
 
-### `buildTransferPublicAsSignerTransaction(amount, recipient, transferType, priorityFee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery) ► Promise.<Transaction>`
+### `buildTransferPublicAsSignerTransaction(amount, recipient, priorityFee, privateKey, offlineQuery) ► Promise.<Transaction>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -502,12 +504,7 @@ Parameters | Type | Description
 --- | --- | ---
 __amount__ | `number` | *The amount of credits to transfer*
 __recipient__ | `string` | *The recipient of the transfer*
-__transferType__ | `string` | *The type of transfer to perform - options: &#x27;private&#x27;, &#x27;privateToPublic&#x27;, &#x27;public&#x27;, &#x27;publicToPrivate&#x27;*
 __priorityFee__ | `number` | *The optional priority fee to be paid for the transfer*
-__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
-__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for finding the amount and fee records for the transfer transaction*
-__amountRecord__ | [RecordPlaintext](sdk-src_wasm.md) | *Optional amount record to use for the transfer*
-__feeRecord__ | [RecordPlaintext](sdk-src_wasm.md) | *Optional fee record to use for the transfer*
 __privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transfer transaction*
 __offlineQuery__ | [OfflineQuery](sdk-src_wasm.md) | *Optional offline query if creating transactions in an offline environment*
 __*return*__ | `Promise.<Transaction>` | *The transaction object*
@@ -1053,6 +1050,19 @@ __program__ | `string` | *The program source code*
 
 ---
 
+### `checkFee(address, feeAmount)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check if the fee is sufficient to pay for the transaction
+
+Parameters | Type | Description
+--- | --- | ---
+__address__ | `string` | **
+__feeAmount__ | `bigint` | **
+
+---
+
 ### `setAccount(account)`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1134,7 +1144,7 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 programManager.setAccount(Account);
 
 // Define a fee in credits
-const fee = 1.2;
+const priorityFee = 0.0;
 
 // Create the deployment transaction.
 const tx = await programManager.buildDeploymentTransaction(program, fee, false);
@@ -1181,7 +1191,7 @@ const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
 
 // Define a fee in credits
-const fee = 1.2;
+const priorityFee = 0.0;
 
 // Deploy the program
 const tx_id = await programManager.deploy(program, fee, false);
@@ -1224,7 +1234,7 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 const tx = await programManager.buildExecutionTransaction({
   programName: "hello_hello.aleo",
   functionName: "hello_hello",
-  fee: 0.020,
+  priorityFee: 0.0,
   privateFee: false,
   inputs: ["5u32", "5u32"],
   keySearchParams: { "cacheKey": "hello_hello:hello" }
@@ -1271,7 +1281,7 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 const tx_id = await programManager.execute({
   programName: "hello_hello.aleo",
   functionName: "hello_hello",
-  fee: 0.020,
+  priorityFee: 0.0,
   privateFee: false,
   inputs: ["5u32", "5u32"],
   keySearchParams: { "cacheKey": "hello_hello:hello" }
@@ -1472,7 +1482,7 @@ setTimeout(async () => {
 
 ---
 
-### `buildTransferPublicTransaction(amount, recipient, transferType, priorityFee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery) ► Promise.<Transaction>`
+### `buildTransferPublicTransaction(amount, recipient, priorityFee, privateKey, offlineQuery) ► Promise.<Transaction>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1482,13 +1492,7 @@ Parameters | Type | Description
 --- | --- | ---
 __amount__ | `number` | *The amount of credits to transfer*
 __recipient__ | `string` | *The recipient of the transfer*
-__transferType__ | `string` | *The type of transfer to perform - options: &#x27;private&#x27;, &#x27;privateToPublic&#x27;, &#x27;public&#x27;, &#x27;publicToPrivate&#x27;*
 __priorityFee__ | `number` | *The optional priority fee to be paid for the transfer*
-__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
-__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for finding the amount and fee
-records for the transfer transaction*
-__amountRecord__ | [RecordPlaintext](sdk-src_wasm.md) | *Optional amount record to use for the transfer*
-__feeRecord__ | [RecordPlaintext](sdk-src_wasm.md) | *Optional fee record to use for the transfer*
 __privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transfer transaction*
 __offlineQuery__ | [OfflineQuery](sdk-src_wasm.md) | *Optional offline query if creating transactions in an offline environment*
 __*return*__ | `Promise.<Transaction>` | *The transaction object*
@@ -1518,7 +1522,7 @@ setTimeout(async () => {
 
 ---
 
-### `buildTransferPublicAsSignerTransaction(amount, recipient, transferType, priorityFee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery) ► Promise.<Transaction>`
+### `buildTransferPublicAsSignerTransaction(amount, recipient, priorityFee, privateKey, offlineQuery) ► Promise.<Transaction>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1528,12 +1532,7 @@ Parameters | Type | Description
 --- | --- | ---
 __amount__ | `number` | *The amount of credits to transfer*
 __recipient__ | `string` | *The recipient of the transfer*
-__transferType__ | `string` | *The type of transfer to perform - options: &#x27;private&#x27;, &#x27;privateToPublic&#x27;, &#x27;public&#x27;, &#x27;publicToPrivate&#x27;*
 __priorityFee__ | `number` | *The optional priority fee to be paid for the transfer*
-__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
-__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for finding the amount and fee records for the transfer transaction*
-__amountRecord__ | [RecordPlaintext](sdk-src_wasm.md) | *Optional amount record to use for the transfer*
-__feeRecord__ | [RecordPlaintext](sdk-src_wasm.md) | *Optional fee record to use for the transfer*
 __privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transfer transaction*
 __offlineQuery__ | [OfflineQuery](sdk-src_wasm.md) | *Optional offline query if creating transactions in an offline environment*
 __*return*__ | `Promise.<Transaction>` | *The transaction object*

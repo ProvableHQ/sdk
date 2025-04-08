@@ -1070,13 +1070,7 @@ class ProgramManager {
      *
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
-     * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} priorityFee The optional priority fee to be paid for the transfer
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee
-     * records for the transfer transaction
-     * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
-     * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<Transaction>} The transaction object
@@ -1127,12 +1121,7 @@ class ProgramManager {
      *
      * @param {number} amount The amount of credits to transfer
      * @param {string} recipient The recipient of the transfer
-     * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
      * @param {number} priorityFee The optional priority fee to be paid for the transfer
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
-     * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
-     * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
      * @returns {Promise<Transaction>} The transaction object
