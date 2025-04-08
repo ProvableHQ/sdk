@@ -22,6 +22,7 @@ use crate::{
     PrivateKey,
     RecordPlaintext,
     Transaction,
+    calculate_minimum_fee,
     execute_fee,
     execute_program,
     log,
@@ -39,7 +40,7 @@ use crate::{
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::network::{ConsensusVersion, Network};
 use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::prelude::cost_in_microcredits_v1;
+use snarkvm_synthesizer::prelude::{cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
 
 use core::ops::Add;
 use js_sys::{Array, Object};
@@ -135,7 +136,7 @@ impl ProgramManager {
     /// @param program The source code of the program being executed
     /// @param function The name of the function to execute
     /// @param inputs A javascript array of inputs to the function
-    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
@@ -157,7 +158,7 @@ impl ProgramManager {
         program: &str,
         function: &str,
         inputs: Array,
-        fee_credits: f64,
+        priority_fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         imports: Option<Object>,
@@ -168,10 +169,6 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log(&format!("Executing function: {function} on-chain"));
-        let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
-            None => (fee_credits * 1_000_000.0) as u64,
-        };
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
@@ -209,18 +206,26 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
+        log("Calculating the minimum execution fee");
+        let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
+
+        // Check to see if the fee record has enough microcredits to pay for the deployment.
+        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+        Self::validate_fee_record(&fee_record, minimum_execution_cost, priority_fee_microcredits)?;
+
         log("Executing fee");
         let fee = execute_fee!(
             process,
             private_key,
             fee_record,
-            fee_microcredits,
+            priority_fee_microcredits,
             node_url,
             fee_proving_key,
             fee_verifying_key,
             execution_id,
             rng,
-            offline_query
+            offline_query,
+            minimum_execution_cost
         );
 
         // Verify the execution

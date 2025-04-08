@@ -19,14 +19,20 @@ use crate::{
     Ciphertext,
     Field,
     Scalar,
+    from_js_typed_array,
+    from_wasm_object_array,
+    js_array_from_fields,
+    native::{FieldNative, LiteralNative},
     plaintext_to_js_value,
-    types::native::{FromBytes, IdentifierNative, PlaintextNative, ToBytes},
+    to_bits_array_le,
+    types::native::{IdentifierNative, PlaintextNative},
 };
-use std::ops::Deref;
+use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields};
 
-use js_sys::Uint8Array;
-use std::str::FromStr;
-use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+use js_sys::{Array, Uint8Array};
+use once_cell::sync::OnceCell;
+use std::{ops::Deref, str::FromStr};
+use wasm_bindgen::{JsValue, convert::TryFromJsValue, prelude::wasm_bindgen};
 
 /// SnarkVM Plaintext object. Plaintext is a fundamental monadic type used to represent Aleo
 /// primitive types (boolean, field, group, i8, i16, i32, i64, i128, u8, u16, u32, u64, u128,
@@ -99,13 +105,49 @@ impl Plaintext {
         Ok(Self(native))
     }
 
-    /// Generate a random plaintext element from a series of bytes.
-    ///
-    /// @param {Uint8Array} bytes A left endian byte array representing the plaintext.
+    /// Get the left endian byte array representation of the plaintext.
     #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
         Ok(Uint8Array::from(rust_bytes.as_slice()))
+    }
+
+    /// Get a plaintext object from a series of bits represented as a boolean array.
+    ///
+    /// @param {Array} bits A left endian boolean array representing the bits plaintext.
+    ///
+    /// @returns {Plaintext} The plaintext object.
+    #[wasm_bindgen(js_name = "fromBitsLe")]
+    pub fn from_bits_le(bits: Array) -> Result<Plaintext, String> {
+        let rust_bits = from_js_typed_array!(bits, as_bool, "boolean")?;
+        let native = PlaintextNative::from_bits_le(&rust_bits).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the left endian boolean array representation of the bits of the plaintext.
+    #[wasm_bindgen(js_name = "toBitsLe")]
+    pub fn to_bits_le(&self) -> Array {
+        to_bits_array_le!(self)
+    }
+
+    /// Get a plaintext object from an array of fields.
+    ///
+    /// @param {Array} fields An array of fields.
+    ///
+    /// @returns {Plaintext} The plaintext object.
+    #[wasm_bindgen(js_name = "fromFields")]
+    pub fn from_fields(fields: Array) -> Result<Plaintext, String> {
+        let native_fields = from_wasm_object_array!(fields, Field)?;
+        let native = PlaintextNative::from_fields(&native_fields).map_err(|e| e.to_string())?;
+        Ok(Self(native))
+    }
+
+    /// Get the field array representation of the plaintext.
+    #[wasm_bindgen(js_name = "toFields")]
+    pub fn to_fields(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields = native.to_fields().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields))
     }
 
     /// Returns the string representation of the plaintext.
@@ -167,6 +209,19 @@ impl From<&PlaintextNative> for Plaintext {
 impl From<&Plaintext> for PlaintextNative {
     fn from(plaintext: &Plaintext) -> Self {
         plaintext.0.clone()
+    }
+}
+
+impl From<LiteralNative> for Plaintext {
+    fn from(value: LiteralNative) -> Self {
+        let native = PlaintextNative::Literal(value, OnceCell::new());
+        Self(native)
+    }
+}
+
+impl From<&LiteralNative> for Plaintext {
+    fn from(value: &LiteralNative) -> Self {
+        Self::from(value.clone())
     }
 }
 

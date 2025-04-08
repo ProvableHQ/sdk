@@ -511,14 +511,14 @@ export const ExecuteLegacy = () => {
                 )}
                 {executeOnline === true && (
                     <Form.Item
-                        label="Fee"
+                        label="Priority Fee"
                         colon={false}
                         validateStatus={status}
                     >
                         <Input.TextArea
-                            name="Fee"
+                            name="Priority Fee"
                             size="small"
-                            placeholder="Fee"
+                            placeholder="Priority Fee"
                             allowClear
                             onChange={onExecutionFeeChange}
                             value={feeString()}
@@ -564,16 +564,7 @@ export const ExecuteLegacy = () => {
                                 Execute
                             </Button>
                             {contextHolder}
-                            {executeOnline && (
-                                <Button
-                                    type="primary"
-
-                                    size="middle"
-                                    onClick={estimate}
-                                >
-                                    Estimate Fee
-                                </Button>
-                            )}
+                            {executeOnline}
                         </Space>
                     </Col>
                 </Row>

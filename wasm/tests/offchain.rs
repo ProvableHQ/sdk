@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_wasm::{PrivateKey, Program, ProgramManager, RecordPlaintext};
+use aleo_wasm::{OfflineQuery, PrivateKey, Program, ProgramManager, RecordPlaintext};
+
 use js_sys::{Array, Object, Reflect};
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
@@ -100,7 +101,34 @@ function add_and_double:
     output r3 as u32.private;
 "#;
 
+pub const PUZZLE_ARCADE_COIN_V001_PROGRAM: &str = r#"
+program puzzle_arcade_coin_v001.aleo;
+
+record PuzzleArcadeCoin:
+    owner as address.private;
+    amount as u64.private;
+
+function mint:
+    input r0 as address.public;
+    input r1 as u64.public;
+    assert.eq self.caller self.signer ;
+    assert.eq self.caller aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4;
+    cast r0 r1 into r2 as PuzzleArcadeCoin.record;
+    output r2 as PuzzleArcadeCoin.record;
+
+function spend:
+    input r0 as PuzzleArcadeCoin.record;
+    input r1 as u64.public;
+    gte r0.amount r1 into r2;
+    assert.eq r2 true ;
+    sub r0.amount r1 into r3;
+    cast r0.owner r3 into r4 as PuzzleArcadeCoin.record;
+    output r4 as PuzzleArcadeCoin.record;
+"#;
+
 const RECORD: &str = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 2000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}";
+const OFFLINE_QUERY_V1: &str = r#"{"block_height": 456789, "state_paths": {}, "state_root": "sr1flkr8ppfujdrfx7zlcz8v8p8u67ehf4q9m2jum09pkq4rkepluxquyfvcu"}"#;
+const OFFLINE_QUERY_V2: &str = r#"{"block_height": 6398077, "state_paths": {}, "state_root": "sr1lzvsx4jshyz9h42erfs0w6a4c8xy6s6hjs4lgfmyzzlju837lvxqcz7fft"}"#;
 
 #[wasm_bindgen_test]
 async fn test_key_synthesis() {
@@ -314,4 +342,74 @@ async fn test_import_resolution() {
     console_log!("outputs: {:?}", outputs);
     assert_eq!(outputs.len(), 1);
     assert_eq!(outputs[0], "30u32");
+}
+
+#[wasm_bindgen_test]
+async fn test_fee_calculation_v1() {
+    // Transaction id: at1fy95sxgr267e6vghzzg6effs83cm07lkgufzentkvx9f0pqldsxs67zhrk
+    // Block number: 456,789 on testnet
+    let private_key = PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
+    let expected_microcredits = 1_449_u64; // value from the block explorer
+    let input_1 = "aleo18clqv2ycpdmz07mzsuevp6yqwcz6ym303pra9hly523rpjuw0y9q5anej2";
+    let input_2 = "1000000u64";
+    let inputs = Array::new();
+    inputs.set(0u32, JsValue::from_str(input_1));
+    inputs.set(1u32, JsValue::from_str(input_2));
+
+    let offline_query = OfflineQuery::from_string(OFFLINE_QUERY_V1).unwrap();
+
+    let transaction = ProgramManager::execute(
+        &private_key,
+        PUZZLE_ARCADE_COIN_V001_PROGRAM,
+        "mint",
+        inputs,
+        0.0,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(offline_query),
+    )
+    .await;
+
+    let transaction_fee = transaction.unwrap().fee_amount();
+    assert_eq!(transaction_fee, expected_microcredits);
+}
+
+#[wasm_bindgen_test]
+async fn test_fee_calculation_v2() {
+    // Trasaction ID:  at1av6d606xj04w4fmqlp088z0m0jnwqxr00mz2qkcap2xyxeu6ngxs7f3gx7
+    // Block number: 6,398,077 on testnet
+    let private_key = PrivateKey::from_string("APrivateKey1zkp3dQx4WASWYQVWKkq14v3RoQDfY2kbLssUj7iifi1VUQ6").unwrap();
+    let expected_microcredits = 17_939_u64;
+    let input_1 = "aleo1lly6xyqmg9y2xgug9wd8s5suvgpp0wp27zjtyfgk9p0w996v3yxsg90zk5";
+    let input_2 = "14973561u64";
+    let inputs = Array::new();
+    inputs.set(0u32, JsValue::from_str(input_1));
+    inputs.set(1u32, JsValue::from_str(input_2));
+
+    let offline_query = OfflineQuery::from_string(OFFLINE_QUERY_V2).unwrap();
+
+    let transaction = ProgramManager::execute(
+        &private_key,
+        &Program::get_credits_program().to_string(),
+        "transfer_public_to_private",
+        inputs,
+        0.0,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(offline_query),
+    )
+    .await;
+
+    let transaction_fee = transaction.unwrap().fee_amount();
+    assert_eq!(transaction_fee, expected_microcredits);
 }

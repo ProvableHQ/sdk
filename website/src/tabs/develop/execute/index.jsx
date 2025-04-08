@@ -63,7 +63,7 @@ export const Execute = () => {
                 functionName,
                 inputs,
                 private_key,
-                fee,
+                priorityFee,
                 private_fee,
                 fee_record,
                 peer_url,
@@ -77,7 +77,7 @@ export const Execute = () => {
                     aleoFunction: functionName,
                     inputs: JSON.parse(inputs),
                     privateKey: private_key,
-                    fee: fee,
+                    fee: priorityFee,
                     privateFee: private_fee,
                     feeRecord: fee_record,
                     url: peer_url,
@@ -347,28 +347,6 @@ export const Execute = () => {
                                     hidden={!getFieldValue("execute_onchain")}
                                 >
                                     <Input />
-                                </Form.Item>
-                                <Form.Item
-                                    label="Fee"
-                                    name="fee"
-                                    hidden={!getFieldValue("execute_onchain")}
-                                    tooltip="Fee estimation is experimental and may not represent a correct estimate on any current or future network"
-                                    rules={[
-                                        {
-                                            required:
-                                                getFieldValue(
-                                                    "execute_onchain"
-                                                ),
-                                            message:
-                                                "Fee needed for on-chain execution",
-                                        },
-                                    ]}
-                                >
-                                    <Input.Search
-                                        enterButton="Estimate Fee"
-                                        onSearch={estimateFee}
-                                        loading={feeLoading}
-                                    />
                                 </Form.Item>
                                 <Form.Item
                                     label="Private Fee"

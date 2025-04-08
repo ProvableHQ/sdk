@@ -28,6 +28,7 @@ use crate::{
     ProvingKey,
     RecordPlaintext,
     VerifyingKey,
+    log,
     types::native::{
         IdentifierNative,
         ProcessNative,
@@ -52,22 +53,6 @@ pub struct ProgramManager;
 
 #[wasm_bindgen]
 impl ProgramManager {
-    /// Validate that an amount being paid from a record is greater than zero and that the record
-    /// has enough credits to pay the amount
-    pub(crate) fn validate_amount(credits: f64, amount: &RecordPlaintext, fee: bool) -> Result<u64, String> {
-        let name = if fee { "Fee" } else { "Amount" };
-
-        if credits <= 0.0 {
-            return Err(format!("{name} must be greater than zero to deploy or execute a program"));
-        }
-        let microcredits = (credits * 1_000_000.0f64) as u64;
-        if amount.microcredits() < microcredits {
-            return Err(format!("{name} record does not have enough credits to pay the specified fee"));
-        }
-
-        Ok(microcredits)
-    }
-
     /// Synthesize proving and verifying keys for a program
     ///
     /// @param program {string} The program source code of the program to synthesize keys for
@@ -141,6 +126,26 @@ impl ProgramManager {
         } else {
             Ok(())
         }
+    }
+
+    pub(crate) fn validate_fee_record(
+        fee_record: &Option<RecordPlaintext>,
+        minimum_execution_cost: u64,
+        priority_fee_microcredits: u64,
+    ) -> Result<(), String> {
+        let total_fee = priority_fee_microcredits.saturating_add(minimum_execution_cost);
+        if let Some(fee_record) = fee_record {
+            log("Validating the fee record");
+            if fee_record.microcredits() < total_fee {
+                return Err(format!(
+                    "Fee record does not have enough credits to pay for a fee of {} credits. (base fee: {} credits - priority fee: {} credits)",
+                    total_fee as f64 / 1_000_000.0,
+                    minimum_execution_cost as f64 / 1_000_000.0,
+                    priority_fee_microcredits as f64 / 1_000_000.0,
+                ));
+            }
+        }
+        Ok(())
     }
 }
 
