@@ -9,14 +9,13 @@
 # Class `Account`
 
 Key Management class. Enables the creation of a new Aleo Account, importation of an existing account from
-an existing private key or seed, and message signing and verification functionality.
-
-An Aleo Account is generated from a randomly generated seed (number) from which an account private key, view key,
-and a public account address are derived. The private key lies at the root of an Aleo account. It is a highly
-sensitive secret and should be protected as it allows for creation of Aleo Program executions and arbitrary value
-transfers. The View Key allows for decryption of a user&#x27;s activity on the blockchain. The Address is the public
-address to which other users of Aleo can send Aleo credits and other records to. This class should only be used
-in environments where the safety of the underlying key material can be assured.
+an existing private key or seed, and message signing and verification functionality. An Aleo Account is generated
+from a randomly generated seed (number) from which an account private key, view key, and a public account address are
+derived. The private key lies at the root of an Aleo account. It is a highly sensitive secret and should be protected
+as it allows for creation of Aleo Program executions and arbitrary value transfers. The View Key allows for decryption
+of a user&#x27;s activity on the blockchain. The Address is the public address to which other users of Aleo can send Aleo
+credits and other records to. This class should only be used in environments where the safety of the underlying key
+material can be assured.
 
 ## Examples
 
