@@ -66,7 +66,8 @@ describe('Program Manager', () => {
                 if (!execution) {
                     throw new Error("Execution is undefined");
                 } else {
-                    const verify = verifyFunctionExecution(execution, verifyingKey, program, "spin", imports, importedVerifyingKeys);
+                    const verified = verifyFunctionExecution(execution, verifyingKey, program, "spin", imports, importedVerifyingKeys);
+                    expect(verified).equal(true);
                 }
             }
         });
