@@ -18,7 +18,14 @@ pub use super::*;
 use crate::{
     Transition,
     log,
-    types::native::{ExecutionNative, IdentifierNative, ProcessNative, ProgramNative, VerifyingKeyNative},
+    types::native::{
+        ExecutionNative,
+        IdentifierNative,
+        ProcessNative,
+        ProgramIDNative,
+        ProgramNative,
+        VerifyingKeyNative,
+    },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 
@@ -111,7 +118,7 @@ pub fn verify_function_execution(
     program: &Program,
     function_id: &str,
     imports: Option<Object>,
-    import_verifying_keys: Option<Object>,
+    imported_verifying_keys: Option<Object>,
 ) -> Result<bool, String> {
     // Get the function
     let function = IdentifierNative::from_str(function_id).map_err(|e| e.to_string())?;
@@ -122,12 +129,22 @@ pub fn verify_function_execution(
     ProgramManager::resolve_imports(&mut process, program, imports)?;
 
     // Secondly, get the verifying keys and insert them into the process object.
-    if let Some(import_verifying_keys) = import_verifying_keys {
+    if let Some(imported_verifying_keys) = imported_verifying_keys {
+        // Go through the imports and get the program IDs.
+        let program_ids = Object::entries(&imported_verifying_keys)
+            .iter()
+            .filter_map(|entries| Array::try_from(entries).unwrap().get(0).as_string()) // Safe unwraps because `entries` returns arrays with string keys.
+            .map(|entry| {
+                ProgramIDNative::from_str(&entry)
+                    .map_err(|_| format!("Program ID not found in imports provided: {entry}"))
+            })
+            .collect::<Result<Vec<_>,_>>()?;
+
         // Go through the imports and insert the verifying keys for each function.
-        for imported_program_id in program.imports().keys() {
+        for imported_program_id in &program_ids {
             // Get the list of functions.
             let vk_list = Array::try_from(
-                Reflect::get(&import_verifying_keys, &imported_program_id.to_string().into())
+                Reflect::get(&imported_verifying_keys, &imported_program_id.to_string().into())
                     .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?,
             )
             .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?;
