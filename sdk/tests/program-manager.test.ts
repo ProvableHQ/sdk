@@ -1,7 +1,7 @@
 import { Account, AleoNetworkClient, Program, ExecutionResponse, ImportedPrograms, ImportedVerifyingKeys, OfflineQuery,
     ProgramManager, RecordPlaintext, Transaction, VerifyingKey, verifyFunctionExecution } from "@provablehq/sdk/%%NETWORK%%.js";
 import {
-    beaconAddressString, beaconPrivateKeyString,
+    beaconAddressString,
     helloProgram,
     recordStatePath,
     statePathRecord,
