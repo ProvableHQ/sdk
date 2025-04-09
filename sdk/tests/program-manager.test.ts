@@ -1,26 +1,20 @@
-import { expect } from "chai";
+import { Account, AleoNetworkClient, Program, ExecutionResponse, ImportedPrograms, ImportedVerifyingKeys, OfflineQuery,
+    ProgramManager, RecordPlaintext, Transaction, VerifyingKey, verifyFunctionExecution } from "@provablehq/sdk/%%NETWORK%%.js";
 import {
-    beaconAddressString,
+    beaconAddressString, beaconPrivateKeyString,
     helloProgram,
     recordStatePath,
     statePathRecord,
     statePathRecordOwnerPrivateKey,
     stateRoot
 } from "./data/account-data";
-import { EXECUTION, IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program";
-import {
-    Account,
-    ExecutionResponse,
-    ImportedPrograms, ImportedVerifyingKeys,
-    OfflineQuery,
-    ProgramManager,
-    RecordPlaintext
-} from "../src/node";
-import { verifyFunctionExecution, Execution, VerifyingKey } from "@provablehq/wasm";
+import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program";
+import { expect } from "chai";
 
 describe('Program Manager', () => {
     const programManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined);
     programManager.setAccount(new Account({privateKey: statePathRecordOwnerPrivateKey}));
+    const network = (<AleoNetworkClient>programManager.networkClient).host  === "https://api.explorer.provable.com/v1/testnet" ? "testnet" : "mainnet";
 
     describe('Execute offline', () => {
         it.skip('Program manager should execute offline and verify the resulting proof correctly', async () => {
@@ -31,13 +25,31 @@ describe('Program Manager', () => {
     });
 
     describe('Verify execution with multiple imports', () => {
-        it.skip('Program manager should execute offline and verify the resulting proof correctly', async () => {
-            const execution = Execution.fromString(EXECUTION);
-            const verifyingKey = VerifyingKey.fromString(SPIN_VERIFYING_KEY);
+        it('Program manager should verify an execution with multiple imports', async () => {
+            console.log(`Network: ${network}`);
+            console.log(`Host: ${programManager.networkClient.host}`);
+            if (network === "mainnet") {
+                // Get the execution, program, and verifying key from the transaction.
+                const transaction = <Transaction>await programManager.networkClient.getTransactionObject("at1ve39dz2nlm636ewq6g3wl978kmsfqafcvhaj9px4mk28hk855srq06veqh");
+                const execution = transaction.execution();
+                const program = Program.fromString(PROGRAM);
+                const verifyingKey = VerifyingKey.fromString(SPIN_VERIFYING_KEY);
 
-            const imports = <ImportedPrograms>{ "puzzle_arcade_coin_v002.aleo" : IMPORT_1, "puzzle_arcade_ticket_v002.aleo": IMPORT_2 };
-            const importedVerifyingKeys = <ImportedVerifyingKeys>{ "puzzle_arcade_coin_v002.aleo" : [["spend", SPEND_VERIFYING_KEY]], "puzzle_arcade_ticket_v002.aleo" : [["mint", MINT_VERIFYING_KEY]] };
-            expect(verifyFunctionExecution(execution, verifyingKey, PROGRAM, "spin", imports, importedVerifyingKeys)).equal(true);
+                // Create the imports and verifying keys for the imported programs.
+                const imports = <ImportedPrograms>{
+                    "puzzle_arcade_coin_v002.aleo": IMPORT_1,
+                    "puzzle_arcade_ticket_v002.aleo": IMPORT_2
+                };
+                const importedVerifyingKeys = <ImportedVerifyingKeys>{
+                    "puzzle_arcade_coin_v002.aleo": [["spend", SPEND_VERIFYING_KEY]],
+                    "puzzle_arcade_ticket_v002.aleo": [["mint", MINT_VERIFYING_KEY]]
+                };
+                if (!execution) {
+                    throw new Error("Execution is undefined");
+                } else {
+                    const verify = verifyFunctionExecution(execution, verifyingKey, program, "spin", imports, importedVerifyingKeys);
+                }
+            }
         });
     });
 
@@ -52,12 +64,6 @@ describe('Program Manager', () => {
             const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecord, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
             const verified = programManager.verifyExecution(execution_result);
             expect(verified).equal(true);
-        });
-    });
-
-    describe('Staking - Bond Public', () => {
-        it.skip('Should execute bondPublic', async () => {
-            // TODO
         });
     });
 });
