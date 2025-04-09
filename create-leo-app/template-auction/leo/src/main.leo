@@ -6,12 +6,20 @@ program private_auction.aleo {
     ////////////////////////////////////////
 
     // Description of an item's data.
-    //
-    //
+    // - `minimum_bid` : The minimum bid for the auction.
+    // - `name`        : The name of the item.
+    // - `offchain_data`: The offchain data for the item.
     struct auction {
         minimum_bid: u64,
         name: field,
         offchain_data: [field; 4],
+        item: item,
+    }
+
+    struct item {
+        id: field, // A unique identifier for the item.
+        name: u64, // The name of the item.
+        offchain_data: [field; 4], // Link to offchain data.
     }
 
     // Description of the auction_type.
@@ -163,8 +171,6 @@ program private_auction.aleo {
         let bid_id: field = Poseidon2::hash(bid);
         (bid, bid_id)
     }
-
-
 
     ///////////////////////////////////
     ///// ----- TRANSITIONS ----- /////
