@@ -47,8 +47,6 @@ describe('Program Manager', () => {
 
     describe('Verify execution with multiple imports', () => {
         it('Program manager should verify an execution with multiple imports', async () => {
-            console.log(`Network: ${network}`);
-            console.log(`Host: ${programManager.networkClient.host}`);
             if (network === "mainnet") {
                 // Get the execution, program, and verifying key from the transaction.
                 const transaction = <Transaction>await programManager.networkClient.getTransactionObject("at1ve39dz2nlm636ewq6g3wl978kmsfqafcvhaj9px4mk28hk855srq06veqh");
