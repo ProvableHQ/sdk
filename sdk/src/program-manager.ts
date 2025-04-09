@@ -1926,8 +1926,8 @@ class ProgramManager {
      * import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
      *
      * /// Create the source for two programs.
-     * const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add r1 r2 into r3;  output r3 as u32.private;\n";
-     * const program_import = "program add_it_up.aleo;\n\nfunction add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add_it r1 r2 into r3;  output r3 as u32.private;\n";
+     * const program_import = "program add_it_up.aleo;\n\nfunction add_it:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
      * const programManager = new ProgramManager(undefined, undefined, undefined);
      *
      * /// Create a temporary account for the execution of the program
@@ -1935,10 +1935,14 @@ class ProgramManager {
      * programManager.setAccount(account);
      *
      * /// Get the response and ensure that the program executed correctly
-     * const executionResponse = await programManager.run(program, "hello", ["5u32", "5u32"]);
+     * const executionResponse = await programManager.run(program, "mul_and_add", ["5u32", "5u32"], true);
+     *
+     * /// Construct the imports and verifying keys
+     * const imports = { "add_it_up.aleo": program_import };
+     * const importedVerifyingKeys = { "add_it_up.aleo": [["add_it", "verifyingKey1..."]] };
      *
      * /// Verify the execution.
-     * const isValid = programManager.verifyExecution(executionResponse);
+     * const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
      * assert(isValid);
      */
     verifyExecution(executionResponse: ExecutionResponse, imports?: ImportedPrograms, importedVerifyingKeys?: ImportedVerifyingKeys): boolean {
