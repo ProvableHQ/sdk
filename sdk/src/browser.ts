@@ -10,6 +10,7 @@ import { ExecutionJSON, FeeExecutionJSON } from "./models/execution/executionJSO
 import { ExecutionObject, FeeExecutionObject } from "./models/execution/executionObject";
 import { FinalizeJSON } from "./models/finalizeJSON";
 import { FunctionObject } from "./models/functionObject";
+import { ImportedVerifyingKeys, ImportedPrograms } from "./models/imports";
 import { InputJSON } from "./models/input/inputJSON";
 import { InputObject } from "./models/input/inputObject";
 import { OutputJSON } from "./models/output/outputJSON";
@@ -128,6 +129,8 @@ export {
     FunctionKeyPair,
     FunctionKeyProvider,
     Header,
+    ImportedPrograms,
+    ImportedVerifyingKeys,
     InputJSON,
     InputObject,
     KeySearchParams,

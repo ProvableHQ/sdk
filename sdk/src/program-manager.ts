@@ -1,6 +1,6 @@
 import { Account } from "./account";
 import { AleoNetworkClient, ProgramImports } from "./network-client";
-
+import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports";
 import { RecordProvider, RecordSearchParams } from "./record-provider";
 
 import {
@@ -1914,12 +1914,34 @@ class ProgramManager {
     }
 
     /**
-     * Verify a proof of execution from an offline execution
+     * Verify a proof from an offline execution. This is useful when it is desired to do offchain proving and verification.
      *
-     * @param {executionResponse} executionResponse
+     * @param {executionResponse} executionResponse The response from an offline function execution (via the `programManager.run` method)
+     * @param {ImportedPrograms} imports The imported programs used in the execution. Specified as { "programName": "programSourceCode", ... }
+     * @param {ImportedVerifyingKeys} importedVerifyingKeys The verifying keys in the execution. Specified as { "programName": [["functionName", "verifyingKey"], ...], ... }
      * @returns {boolean} True if the proof is valid, false otherwise
+     *
+     * @example
+     * /// Import the mainnet version of the sdk used to build executions.
+     * import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
+     *
+     * /// Create the source for two programs.
+     * const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add r1 r2 into r3;  output r3 as u32.private;\n";
+     * const program_import = "program add_it_up.aleo;\n\nfunction add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager(undefined, undefined, undefined);
+     *
+     * /// Create a temporary account for the execution of the program
+     * const account = Account.fromCipherText(process.env.ciphertext, process.env.password);
+     * programManager.setAccount(account);
+     *
+     * /// Get the response and ensure that the program executed correctly
+     * const executionResponse = await programManager.run(program, "hello", ["5u32", "5u32"]);
+     *
+     * /// Verify the execution.
+     * const isValid = programManager.verifyExecution(executionResponse);
+     * assert(isValid);
      */
-    verifyExecution(executionResponse: ExecutionResponse): boolean {
+    verifyExecution(executionResponse: ExecutionResponse, imports?: ImportedPrograms, importedVerifyingKeys?: ImportedVerifyingKeys): boolean {
         try {
             const execution = <FunctionExecution>(
                 executionResponse.getExecution()
@@ -1932,6 +1954,8 @@ class ProgramManager {
                 verifyingKey,
                 program,
                 function_id,
+                imports,
+                importedVerifyingKeys,
             );
         } catch (e) {
             console.warn(
