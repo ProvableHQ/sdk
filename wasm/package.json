@@ -6,7 +6,7 @@
     "The Provable Team"
   ],
   "license": "GPL-3.0",
-
+  "type": "module",
   "main": "./dist/testnet/index.js",
   "browser": "./dist/testnet/index.js",
   "types": "./dist/testnet/index.d.ts",
