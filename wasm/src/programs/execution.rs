@@ -125,16 +125,26 @@ pub fn verify_function_execution(
         // Go through the imports and insert the verifying keys for each function.
         for imported_program_id in program.imports().keys() {
             // Get the list of functions.
-            let vk_list = Array::try_from(Reflect::get(&import_verifying_keys, &imported_program_id.to_string().into()).map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?)
-                .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?;
+            let vk_list = Array::try_from(
+                Reflect::get(&import_verifying_keys, &imported_program_id.to_string().into())
+                    .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?,
+            )
+            .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?;
             // Get the verifying key for each function.
             for i in 0..vk_list.length() {
                 let vk = Array::try_from(vk_list.get(i)).map_err(|_| format!("Verifying key and function not found for {}, for each function provide an array of the form ['function_name', 'vk']", imported_program_id))?;
                 {
                     // Insert the verifying key into the temporary process.
-                    let imported_function= IdentifierNative::from_str(&vk.get(0).as_string().ok_or("Function not found in imports provided")?).map_err(|e| e.to_string())?;
-                    let verifying_key = VerifyingKeyNative::from_str(&vk.get(1).as_string().ok_or("Verifying key not found in imports provided")?).map_err(|e| e.to_string())?;
-                    process.insert_verifying_key(imported_program_id, &imported_function, verifying_key)
+                    let imported_function = IdentifierNative::from_str(
+                        &vk.get(0).as_string().ok_or("Function not found in imports provided")?,
+                    )
+                    .map_err(|e| e.to_string())?;
+                    let verifying_key = VerifyingKeyNative::from_str(
+                        &vk.get(1).as_string().ok_or("Verifying key not found in imports provided")?,
+                    )
+                    .map_err(|e| e.to_string())?;
+                    process
+                        .insert_verifying_key(imported_program_id, &imported_function, verifying_key)
                         .map_err(|e| e.to_string())?;
                 }
             }
@@ -144,7 +154,8 @@ pub fn verify_function_execution(
     // If the program is not credits.aleo, add the program and its verifying key to the process.
     if &program.id() != "credits.aleo" {
         process.add_program(&program_native).map_err(|e| e.to_string())?;
-        process.insert_verifying_key(program_native.id(), &function, VerifyingKeyNative::from(verifying_key))
+        process
+            .insert_verifying_key(program_native.id(), &function, VerifyingKeyNative::from(verifying_key))
             .map_err(|e| e.to_string())?;
     }
 
@@ -200,7 +211,7 @@ mod tests {
                     Some(imports),
                     Some(import_vks),
                 )
-                    .unwrap()
+                .unwrap()
             );
         }
     }
