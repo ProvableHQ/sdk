@@ -21,12 +21,14 @@ use crate::{
     PrivateKey,
     RecordPlaintext,
     Transaction,
+    calculate_minimum_fee,
     execute_fee,
     execute_program,
     log,
     process_inputs,
     types::native::{
         CurrentAleo,
+        CurrentNetwork,
         IdentifierNative,
         ProcessNative,
         ProgramNative,
@@ -34,6 +36,10 @@ use crate::{
         TransactionNative,
     },
 };
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
+use snarkvm_console::prelude::{ConsensusVersion, Network};
+use snarkvm_ledger_query::QueryTrait;
+use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
 use snarkvm_synthesizer_program::StackKeys;
 
 use rand::{SeedableRng, rngs::StdRng};
@@ -49,7 +55,7 @@ impl ProgramManager {
     /// @param recipient The recipient of the transaction
     /// @param transfer_type The type of the transfer (options: "private", "public", "private_to_public", "public_to_private")
     /// @param amount_record The record to fund the amount from
-    /// @param fee_credits The amount of credits to pay as a fee
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param transfer_verifying_key (optional) Provide a verifying key to use for the transfer
@@ -65,7 +71,7 @@ impl ProgramManager {
         recipient: &str,
         transfer_type: &str,
         amount_record: Option<RecordPlaintext>,
-        fee_credits: f64,
+        priority_fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         transfer_proving_key: Option<ProvingKey>,
@@ -75,13 +81,12 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Executing transfer program");
-        let fee_microcredits = match &fee_record {
-            Some(fee_record) => Self::validate_amount(fee_credits, fee_record, true)?,
-            None => (fee_credits * 1_000_000.0) as u64,
-        };
-        let amount_microcredits = match &amount_record {
-            Some(amount_record) => Self::validate_amount(amount_credits, amount_record, true)?,
-            None => (amount_credits * 1_000_000.0) as u64,
+        let amount_microcredits = (amount_credits * 1_000_000.0) as u64;
+        if let Some(amount_record) = amount_record.as_ref() {
+            log("Validating amount record");
+            if amount_microcredits > amount_record.microcredits() {
+                return Err("Amount record does not have enough credits".to_string());
+            }
         };
 
         log("Setup the program and inputs");
@@ -180,25 +185,35 @@ impl ProgramManager {
         }
 
         log("Proving the transfer execution");
+        let locator = format!("credits.aleo/{}", transfer_type);
         let execution =
-            trace.prove_execution::<CurrentAleo, _>("credits.aleo/transfer", rng).map_err(|e| e.to_string())?;
+            trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the transfer execution");
-        process.verify_execution(&execution).map_err(|err| err.to_string())?;
+        process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
+
+        // Calculate the minimum execution fee.
+        log("Calculating the minimum execution fee");
+        let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
+
+        // Check to see if the fee record has enough microcredits to pay for the deployment.
+        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+        Self::validate_fee_record(&fee_record, minimum_execution_cost, priority_fee_microcredits)?;
 
         log("Executing the fee");
         let fee = execute_fee!(
             process,
             private_key,
             fee_record,
-            fee_microcredits,
+            priority_fee_microcredits,
             node_url,
             fee_proving_key,
             fee_verifying_key,
             execution_id,
             rng,
-            offline_query
+            offline_query,
+            minimum_execution_cost
         );
 
         log("Creating execution transaction for transfer");

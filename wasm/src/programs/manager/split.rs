@@ -28,6 +28,7 @@ use crate::{
 };
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use std::{ops::Add, str::FromStr};
 
 #[wasm_bindgen]
@@ -54,7 +55,10 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Executing split program");
-        let amount_microcredits = Self::validate_amount(split_amount, &amount_record, false)?;
+        let amount_microcredits = (split_amount * 1_000_000.0) as u64;
+        if amount_microcredits > amount_record.microcredits() {
+            return Err("Amount record does not have enough credits".to_string());
+        }
 
         log("Setup the program and inputs");
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
@@ -88,11 +92,12 @@ impl ProgramManager {
         }
 
         log("Proving the split execution");
-        let execution =
-            trace.prove_execution::<CurrentAleo, _>("credits.aleo/split", rng).map_err(|e| e.to_string())?;
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>("credits.aleo/split", VarunaVersion::V2, rng)
+            .map_err(|e| e.to_string())?;
 
         log("Verifying the split execution");
-        process.verify_execution(&execution).map_err(|err| err.to_string())?;
+        process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
 
         log("Creating execution transaction for split");
         let transaction = TransactionNative::from_execution(execution, None).map_err(|err| err.to_string())?;

@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.8.6"
+version = "0.8.8"
 authors = [ "The Provable Team" ]
 description = "WebAssembly based toolkit for developing zero-knowledge applications with Aleo"
 homepage = "https://provable.com"
@@ -21,38 +21,41 @@ edition = "2021"
 crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
+[dependencies.snarkvm-algorithms]
+version = "1.5.0"
+
 [dependencies.snarkvm-circuit-network]
-version = "1.4.0"
+version = "1.5.0"
 
 [dependencies.snarkvm-console]
-version = "1.4.0"
+version = "1.5.0"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-ledger-block]
-version = "1.4.0"
+version = "1.5.0"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-ledger-query]
-version = "1.4.0"
+version = "1.5.0"
 features = [ "async", "wasm" ]
 
 [dependencies.snarkvm-ledger-store]
-version = "1.4.0"
+version = "1.5.0"
 
 [dependencies.snarkvm-parameters]
-version = "1.4.0"
+version = "1.5.0"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-synthesizer-program]
-version = "1.4.0"
+version = "1.5.0"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-synthesizer]
-version = "1.4.0"
+version = "1.5.0"
 features = [ "async", "wasm" ]
 
 [dependencies.snarkvm-wasm]
-version = "1.4.0"
+version = "1.5.0"
 features = [ "console", "fields", "utilities" ]
 
 [dependencies.anyhow]
