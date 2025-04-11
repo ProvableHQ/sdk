@@ -961,24 +961,46 @@ class AleoNetworkClient {
    * @param {string} solution The string representation of the solution desired to be submitted to the network.
    */
   async waitForTransactionConfirmation(
-      transactionId: string,
-      checkInterval: number = 2000,  // Poll every 2 seconds
-      timeout: number = 45000        // Timeout after 45 seconds
-  ): Promise<Transaction> {
+    transactionId: string,
+    checkInterval: number = 2000,
+    timeout: number = 45000
+  ): Promise<"accepted" | "rejected"> {
     const startTime = Date.now();
-
-    return new Promise<Transaction>((resolve, reject) => {
+  
+    return new Promise((resolve, reject) => {
       const interval = setInterval(async () => {
+        const elapsed = Date.now() - startTime;
+  
+        if (elapsed > timeout) {
+          clearInterval(interval);
+          return reject(new Error("Transaction confirmation timed out"));
+        }
+  
         try {
-          // Replace with actual Aleo transaction lookup API
-          const transaction = <Transaction>await this.getTransactionObject(transactionId);
-          resolve(transaction);
-          if (Date.now() - startTime > timeout) {
+          const res = await fetch(`https://api.explorer.provable.com/v1/mainnet/transaction/confirmed/${transactionId}`);
+        
+          if (!res.ok) {
+            const text = await res.text();
+            console.error("Non-OK response:", res.status, text);
             clearInterval(interval);
-            reject(new Error("Transaction confirmation timed out"));
+            return reject(new Error(`HTTP ${res.status}: ${text}`));
           }
-        } catch (error) {
-          console.error("Error checking transaction:", error);
+          
+          const data = await res.json();
+        
+          if (data?.status === "accepted") {
+            clearInterval(interval);
+            return resolve("accepted");
+          }
+        
+          if (data?.status === "rejected") {
+            clearInterval(interval);
+            return resolve("rejected");
+          }
+        
+          // no status? keep polling
+        } catch (err) {
+          console.error("Polling error:", err);
         }
       }, checkInterval);
     });

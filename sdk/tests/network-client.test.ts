@@ -198,6 +198,27 @@ describe('NodeConnection', () => {
         });
     });
 
+    describe('waitForTransactionConfirmation', () => {
+        it('should return accepted for a valid tx ID', async () => {
+          const connection = new AleoNetworkClient("https://api.explorer.provable.com/");
+          const status = await connection.waitForTransactionConfirmation("at1dl9lze8wscct0dee8x9tjnfmpjvj33hh23jcnp5f0ywjn5552yrsperzl9");
+          expect(status).to.equal("accepted");
+        });
+
+        it('should return rejected for a rejected tx ID', async () => {
+          const connection = new AleoNetworkClient("https://api.explorer.provable.com/");
+          const status = await connection.waitForTransactionConfirmation("at1x5ed0pyjpt3770e0m60psvdvqeww5z5f32t7velrmrjfhvzgysxqll4g6a");
+          expect(status).to.equal("rejected");
+        });
+      
+        it('should throw for an invalid tx ID', async () => {
+          const connection = new AleoNetworkClient("https://api.explorer.provable.com/");
+          await expectThrows(() =>
+            connection.waitForTransactionConfirmation("at1dl9lze8wscct0dee8x9tjnfmpj12345678jcnp5f0ywjn5552yrsperzl9")
+          );
+        });
+      });
+      
     describe('findUnspentRecords', () => {
         it('should fail if block heights or private keys are incorrectly specified', async () => {
             await expectThrows(
@@ -395,3 +416,4 @@ describe('NodeConnection', () => {
         });
     })
 });
+
