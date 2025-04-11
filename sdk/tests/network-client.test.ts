@@ -211,12 +211,16 @@ describe('NodeConnection', () => {
           expect(status).to.equal("rejected");
         });
       
-        it('should throw for an invalid tx ID', async () => {
-          const connection = new AleoNetworkClient("https://api.explorer.provable.com/");
-          await expectThrows(() =>
-            connection.waitForTransactionConfirmation("at1dl9lze8wscct0dee8x9tjnfmpj12345678jcnp5f0ywjn5552yrsperzl9")
-          );
-        });
+        it('should throw for a malformed tx ID', async () => {
+            const connection = new AleoNetworkClient("https://api.explorer.provable.com/");
+            try {
+              await connection.waitForTransactionConfirmation("at1dl9lze8wscct0dee8x9tjnfmpj12345678jcnp5f0ywjn5552yrsperzl9");
+              throw new Error("Expected waitForTransactionConfirmation to throw");
+            } catch (err: any) {
+              expect(err.message).to.include("Malformed transaction ID");
+              expect(err.message).to.include("Invalid URL");
+            }
+          });
       });
       
     describe('findUnspentRecords', () => {

@@ -1218,9 +1218,16 @@ class AleoNetworkClient {
         
           if (!res.ok) {
             const text = await res.text();
-            console.error("Non-OK response:", res.status, text);
-            clearInterval(interval);
-            return reject(new Error(`HTTP ${res.status}: ${text}`));
+          
+            // Break early if the response indicates an invalid format
+            if (res.status >= 400 && res.status < 500 && text.includes("Invalid URL")) {
+              clearInterval(interval);
+              return reject(new Error(`Malformed transaction ID: ${text}`));
+            }
+          
+            // Log and continue polling for 404s or 5XX errors in case a tx doesn't exist yet
+            console.warn("Non-OK response (retrying):", res.status, text);
+            return;
           }
           
           const data = await res.json();
