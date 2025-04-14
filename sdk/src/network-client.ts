@@ -1214,12 +1214,18 @@ class AleoNetworkClient {
         }
   
         try {
-          const res = await fetch(`https://api.explorer.provable.com/v1/mainnet/transaction/confirmed/${transactionId}`);
-        
+          const res = await fetch(`${this.host}/transaction/confirmed/${transactionId}`, {
+            headers: this.headers
+          });
           if (!res.ok) {
-            const text = await res.text();
+            let text = "";
+            try {
+              text = await res.text();
+              console.warn("Response text from server:", text);
+            } catch (err) {
+              console.warn("Failed to read response text:", err);
+            }
           
-            // Break early if the response indicates an invalid format
             if (res.status >= 400 && res.status < 500 && text.includes("Invalid URL")) {
               clearInterval(interval);
               return reject(new Error(`Malformed transaction ID: ${text}`));

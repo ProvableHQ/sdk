@@ -199,28 +199,45 @@ describe('NodeConnection', () => {
     });
 
     describe('waitForTransactionConfirmation', () => {
+        const mainnetAcceptedTx = "at1dl9lze8wscct0dee8x9tjnfmpjvj33hh23jcnp5f0ywjn5552yrsperzl9";
+        const mainnetRejectedTx = "at1x5ed0pyjpt3770e0m60psvdvqeww5z5f32t7velrmrjfhvzgysxqll4g6a";
+        const testnetAcceptedTx = "at1aknmzq2k2ktuy8l55hthlzkues98fuye0s05nnxfp86ruukz5grsrrujgv";
+        const testnetRejectedTx = "at1xmjjt0sr2nv2ah38t7j9hmema28w7xfdckz9slyfjqjqywpudvxqdlxvd3";
+        const invalidTx = "at1dl9lze8wscct0dee8x9tjnfmpj12345678jcnp5f0ywjn5552yrsperzl9";
+      
+        const host = "https://api.explorer.provable.com/v1";
+      
+        function getTxId(connection: AleoNetworkClient, type: "accepted" | "rejected") {
+          const isTestnet = connection.host.includes("/testnet");
+          return type === "accepted"
+            ? (isTestnet ? testnetAcceptedTx : mainnetAcceptedTx)
+            : (isTestnet ? testnetRejectedTx : mainnetRejectedTx);
+        }
+      
         it('should return accepted for a valid tx ID', async () => {
-          const connection = new AleoNetworkClient("https://api.explorer.provable.com/");
-          const status = await connection.waitForTransactionConfirmation("at1dl9lze8wscct0dee8x9tjnfmpjvj33hh23jcnp5f0ywjn5552yrsperzl9");
+          const connection = new AleoNetworkClient(host);
+          const txId = getTxId(connection, "accepted");
+          const status = await connection.waitForTransactionConfirmation(txId);
           expect(status).to.equal("accepted");
         });
-
+      
         it('should return rejected for a rejected tx ID', async () => {
-          const connection = new AleoNetworkClient("https://api.explorer.provable.com/");
-          const status = await connection.waitForTransactionConfirmation("at1x5ed0pyjpt3770e0m60psvdvqeww5z5f32t7velrmrjfhvzgysxqll4g6a");
+          const connection = new AleoNetworkClient(host);
+          const txId = getTxId(connection, "rejected");
+          const status = await connection.waitForTransactionConfirmation(txId);
           expect(status).to.equal("rejected");
         });
       
         it('should throw for a malformed tx ID', async () => {
-            const connection = new AleoNetworkClient("https://api.explorer.provable.com/");
-            try {
-              await connection.waitForTransactionConfirmation("at1dl9lze8wscct0dee8x9tjnfmpj12345678jcnp5f0ywjn5552yrsperzl9");
-              throw new Error("Expected waitForTransactionConfirmation to throw");
-            } catch (err: any) {
-              expect(err.message).to.include("Malformed transaction ID");
-              expect(err.message).to.include("Invalid URL");
-            }
-          });
+          const connection = new AleoNetworkClient(host);
+          try {
+            await connection.waitForTransactionConfirmation(invalidTx);
+            throw new Error("Expected waitForTransactionConfirmation to throw");
+          } catch (err: any) {
+            expect(err.message).to.include("Malformed transaction ID");
+            expect(err.message).to.include("Invalid URL");
+          }
+        });
       });
       
     describe('findUnspentRecords', () => {
