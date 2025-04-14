@@ -1237,8 +1237,7 @@ class AleoNetworkClient {
             return;
           }
           
-          const text = await res.text();
-          const data = parseJSON(text);          
+          const data = parseJSON(await res.text());          
           if (data?.status === "accepted") {
             clearInterval(interval);
             return resolve(data);
@@ -1249,7 +1248,6 @@ class AleoNetworkClient {
             return reject(new Error(
               `Transaction ${transactionId} was rejected by the network. Ensure that the account paying the fee has enough credits and that the inputs to the on-chain function are valid.`));
             }
-          // No status? keep polling
         } catch (err) {
           console.error("Polling error:", err);
         }
