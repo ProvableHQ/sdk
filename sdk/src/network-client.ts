@@ -1210,8 +1210,7 @@ class AleoNetworkClient {
   
         if (elapsed > timeout) {
           clearInterval(interval);
-          return reject(new Error("Transaction confirmation timed out"));
-        }
+          return reject(new Error(`Transaction ${transactionId} did not appear after the timeout period of ${interval}ms - consider resubmitting the transaction`));        }
   
         try {
           const res = await fetch(`${this.host}/transaction/confirmed/${transactionId}`, {
@@ -1226,6 +1225,8 @@ class AleoNetworkClient {
               console.warn("Failed to read response text:", err);
             }
           
+            // If the transaction ID is malformed (e.g. invalid checksum, wrong length), 
+            // the API returns a 4XX with "Invalid URL" — we treat this as a fatal error and stop polling.
             if (res.status >= 400 && res.status < 500 && text.includes("Invalid URL")) {
               clearInterval(interval);
               return reject(new Error(`Malformed transaction ID: ${text}`));
@@ -1245,10 +1246,10 @@ class AleoNetworkClient {
         
           if (data?.status === "rejected") {
             clearInterval(interval);
-            return reject(new Error(`Transaction ${transactionId} was rejected by the network`));
-          }
-        
-          // no status? keep polling
+            return reject(new Error(
+              `Transaction ${transactionId} was rejected by the network. Ensure that the account paying the fee has enough credits and that the inputs to the on-chain function are valid.`));
+            }
+          // No status? keep polling
         } catch (err) {
           console.error("Polling error:", err);
         }
