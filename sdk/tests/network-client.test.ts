@@ -214,18 +214,23 @@ describe('NodeConnection', () => {
             : (isTestnet ? testnetRejectedTx : mainnetRejectedTx);
         }
       
-        it('should return accepted for a valid tx ID', async () => {
+        it('should return confirmed transaction data for an accepted tx ID', async () => {
           const connection = new AleoNetworkClient(host);
           const txId = getTxId(connection, "accepted");
-          const status = await connection.waitForTransactionConfirmation(txId);
-          expect(status).to.equal("accepted");
+          const data = await connection.waitForTransactionConfirmation(txId);
+          expect(data.status).to.equal("accepted");
+          expect(data.type).to.be.a("string");
         });
       
-        it('should return rejected for a rejected tx ID', async () => {
+        it('should throw for a rejected tx ID', async () => {
           const connection = new AleoNetworkClient(host);
           const txId = getTxId(connection, "rejected");
-          const status = await connection.waitForTransactionConfirmation(txId);
-          expect(status).to.equal("rejected");
+          try {
+            await connection.waitForTransactionConfirmation(txId);
+            throw new Error("Expected waitForTransactionConfirmation to throw for rejected tx");
+          } catch (err: any) {
+            expect(err.message).to.include("was rejected by the network");
+          }
         });
       
         it('should throw for a malformed tx ID', async () => {

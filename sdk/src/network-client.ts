@@ -1201,7 +1201,7 @@ class AleoNetworkClient {
     transactionId: string,
     checkInterval: number = 2000,
     timeout: number = 45000
-  ): Promise<"accepted" | "rejected"> {
+  ): Promise<ConfirmedTransactionJSON> {
     const startTime = Date.now();
   
     return new Promise((resolve, reject) => {
@@ -1236,16 +1236,16 @@ class AleoNetworkClient {
             return;
           }
           
-          const data = await res.json();
-        
+          const text = await res.text();
+          const data = parseJSON(text);          
           if (data?.status === "accepted") {
             clearInterval(interval);
-            return resolve("accepted");
+            return resolve(data);
           }
         
           if (data?.status === "rejected") {
             clearInterval(interval);
-            return resolve("rejected");
+            return reject(new Error(`Transaction ${transactionId} was rejected by the network`));
           }
         
           // no status? keep polling
