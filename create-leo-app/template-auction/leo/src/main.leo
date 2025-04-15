@@ -8,27 +8,35 @@ program private_auction.aleo {
     ////////////////////////////////////////
 
     // Description of an item's data.
-    // - `starting_bid` : The minimum bid for the auction.
+    // - `starting_bid`: The starting bid amount for the auction.
+    // - `name`        : A unique name for the auction.
     // - `item`        : The item being auctioned.
     struct auction {
-        starting_bid: u64, // The starting bid for the auction.
-        name: u64, // A unique name for the auction.
-        item: item, // The item being auctioned.
+        starting_bid: u64,
+        name: field,
+        item: item,
     }
 
-    // Description of an item.
+    // Description of an item being auctioned.
+    // - `id`           : The unique id of the item.
+    // - `offchain_data`: A link to offchain data for the item.
     struct item {
         id: field, // Unique id for the item.
         offchain_data: [field; 4], // Link to offchain data for the item.
     }
 
-    // Description of the auction_type.
-    struct auction_settings {
-        auction_type: field, // 0 = private, 1 = public
-        bid_types_accepted: field, // 0 = private, 1 = public, 2 = mixed
+    // Description of the settings for the auction.
+    // - `auction_privacy`   : The privacy of the auction (0 = private (auction data hidden), 1 = public (auction data public).
+    // - `bid_types_accepted`: The types of bids accepted (0 = private (only private bids can be submitted), 1 = public (only private bids can be submitted), 2 = mix (public & private bids can be submitted)).
+    struct privacy_settings {
+        auction_privacy: field,
+        bid_types_accepted: field,
     }
 
     // Description of a bid.
+    // - `amount`        : The amount of the bid.
+    // - `auction_id`    : The id of the auction.
+    // - `bid_public_key`: The public key of the bid.
     struct bid {
         amount: u64,
         auction_id: field,
@@ -51,22 +59,22 @@ program private_auction.aleo {
     mapping auction_public_keys: field => group;
 
     // Auction mapping of of whether an auction has been concluded, with the winning bids.
-    mapping winning_bid: field => field;
+    mapping winning_bids: field => field;
 
     // Auction mapping for public auctions.
     mapping public_auctions: field => auction;
     
     // Auction mapping identifying the owner of an auction for public auctions.
-    mapping public_auction_owners: field => address;
+    mapping auction_owners: field => address;
 
     // Determine what kind of bids are accepted.
-    mapping public_auction_settings: field => auction_settings;
+    mapping auction_privacy_settings: field => privacy_settings;
 
     // Highest bid for public or mixed auction.
-    mapping highest_bid: field => u64;
+    mapping highest_bids: field => u64;
 
     // Record of auctions in which the bidder has redeemed their bid.
-    mapping redemptions: field => field;
+    mapping redemptions: field => bool;
 
     ///// ----- BID MAPPINGS ----- /////
 
@@ -80,466 +88,567 @@ program private_auction.aleo {
     ///// ----- PRIVATE DATA ----- /////
     ////////////////////////////////////
 
-    // Auction ticket representing a private auction. This ticket ensures the auctioneer honestly closes the bid.
+    // Auction ticket representing an open auction. This ticket ensures the auctioneer honestly closes the bid.
+    // - `owner`     : The auctioneer's address.
+    // - `auction`   : The auction data.
+    // - `auction_id`: The auction id.
+    // - `settings`  : The auction settings.
+    // - `is_open`   : Whether the auction is open or closed.
     record AuctionTicket {
-        owner: address, // The auctioneer's address.
-        auction: auction, // The auction data.
-        auction_id: field, // The auction id.
-        settings: auction_settings, // The auction settings.
-        is_open: bool, // Whether the auction is open or closed.
-    }
-
-    // Record authorizing redemption of an item.
-    record RedemptionTicket {
-        auction_id: field, // The auction id.
-        payout_address: address, // The payout address desired by the auctioneer.
-        bid: bid, // The bid data.
+        owner: address,
+        auction: auction,
+        auction_id: field,
+        settings: privacy_settings,
     }
 
     // Create an invite representing an auction.
+    // - `owner`     : The address of the account invited to bid.
+    // - `auction`   : The auction data.
+    // - `auctioneer`: The address of the auctioneer.
+    // - `auction_id`: The auction id.
     record AuctionInvite {
-        owner: address, // The address of the account invited to bid.
-        auction: auction, // The auction data.
-        auctioneer: address, // The address of the auctioneer.
-        auction_id: field, // The auction id.
+        owner: address,
+        auction: auction,
+        auctioneer: address,
+        auction_id: field,
     }
 
     // A bid receipt to ensure the bidder knows their own bids so it can discover them later.
+    // - `owner`        : The address of the account that made the bid.
+    // - `auction_id`   : The auction id.
+    // - `bid`          : The bid data.
+    // - `bid_id`      : The bid id.
     record BidReceipt {
-        owner: address, // The address of the account that made the bid.
-        auction_id: field, // The auction id.
-        bid: bid, // The bid data.
-        bid_id: field, // The bid id.
+        owner: address,
+        auction_id: field,
+        bid: bid,
+        bid_id: field,
     }
 
     // A bid in an auction.
     // - `owner`     : The address of the auctioneer.
-    // - `bid`    : The bid data.
+    // - `bid`       : The bid data.
+    // - `bidder`    : The address of the bidder.
     // - `amount`    : The amount of the bid.
     record PrivateBid {
         owner: address,
         bid: bid,
-        bid_id: u64,
-    }
-
-    ////////////////////////////////////////
-    ///// ----- HELPER FUNCTIONS ----- /////
-    ////////////////////////////////////////
-
-    // Create a signed auction of an item.
-    //
-    // Ways to ensure one item description is unique.
-    // 1. Ensure that the first person to create an auction with the same item description is the owner.
-    // Downsides: Anyone who discovers the could get it first.
-    // Upsides: No duplication other than first owner.
-    //
-    // 2. Put seller address
-    inline create_auction(
-        name: field, // Name of the auction.
-        bid_types_accepted: field, // The bid privacy levels accepted (0 = private, 1 = public, 2 = mix).
-        starting_bid: u64, // The starting bid for the auction.
-        offchain_data: [field; 4], // Link to offchain data for the item.
-        seller: address, // The address of the auctioneer.
-        is_private: field, // Whether the auction is private or public.
-        nonce: scalar, // A nonce derived from externally generated randomness.
-    ) -> (item, field, auction_settings) {
-        // Assert that the bid types accepted are less than 3 (0 = private, 1 = public, 2 = mix).
-        let bid_types_valid: bool = bid_types_accepted < 3field;
-        assert(bid_types_valid);
-
-        // Create the public key for the auction.
-        let auction_public_key: group = nonce*group::GEN;
-
-        // Create the auction commit key.
-        let auction_commit_key: scalar = nonce*(self.signer as group); // Cannot reconstruct in band.
-
-        // Create the auction settings.
-        let settings: auction_settings = auction_settings {
-            is_private,
-            bid_types_accepted,
-        };
-
-        // Create auction.
-        let new_auction: auction = auction {
-            starting_bid,
-            name,
-            offchain_data,
-        };
-
-        // Create an id.
-        let auction_id: field = BHP256::commit(new_auction, auction_commit_key);
-
-        // Return receipt.
-        return (new_auction, auction_id, auction_settings, group, field);
-    }
-
-    // Create a signed bid to auction.
-    inline create_bid(
-        amount: u64, // The amount of the bid.
-        auction_id: field, // The auction id the bid corresponds to.
-        nonce: scalar // Externally generated nonce to generate a bid public key that a bidder can prove ownership of later.
-    ) -> (bid, bid_id, group) {
-        // Create the bid public key.
-        let bid_public_key: group = nonce*group::GEN;
-
-        // Create the bid committer key.
-        let bid_committer_key: scalar = nonce*(self.signer as group);
-
-        // Create the bid data.
-        let bid: bid = bid {
-            amount,
-            auction_id,
-            bid_public_key,
-        };
-
-        // Create the bid id.
-        let bid_id: field = BHP256::commit(bid, bid_committer_key);
-        return (bid, bid_id);
+        bid_id: field,
     }
 
     ///////////////////////////////////
     ///// ----- TRANSITIONS ----- /////
     ///////////////////////////////////
 
-    // Create a private auction.
+    // Create a new auction privately. This function will create an open auction that hides both the auction data and
+    // the auctioneer. The auctioneer will be able to publish their address and the auction data later if they would
+    // like to solicit public bids.
+    //
+    // - `bid_types_accepted`: The privacy levels of the bids (0 = private, 1 = public, 2 = mix).
+    // - `item_id`           : The id of the item being auctioned.
+    // - `auction_name`      : The name of the item being auctioned.
+    // - `item_offchain_data`: Link to offchain data for the item.
+    // - `starting_bid`      : The starting bid for the auction.
+    // - `nonce`             : A nonce derived from externally generated randomness.
     async transition create_private_auction(
         bid_types_accepted: field, // The privacy levels of the bids (0 = private, 1 = public, 2 = mix).
         item_id: field, // The id of the item being auctioned.
-        item_name: field, // The name of the item being auctioned.
+        auction_name: field, // The name of the item being auctioned.
         item_offchain_data: [field; 4], // Link to offchain data for the item.
         starting_bid: u64, // The starting bid for the auction.
         nonce: scalar, // A nonce derived from externally generated randomness.
     ) -> (AuctionTicket, Future) {
-        // Create create an auction with an id derived from outside randomness.
-        (auction_item: auction, let auction_id: field, settings: auction_settings, apk: group) = create_auction(name, starting_bid, offchain_data, self.signer, nonce);
+        // Assert that the bid types accepted are less than 3 (0 = private, 1 = public, 2 = mix).
+        assert(bid_types_accepted < 3field);
+
+        // Create the public key for the auction.
+        let auction_public_key: group = nonce*group::GEN;
+
+        // Create the auction commit key.
+        let auction_commit_key: scalar = (nonce*(self.signer as group)) as scalar;
+
+        // Create the auction settings.
+        let settings: privacy_settings = privacy_settings {
+            auction_privacy: 0field,
+            bid_types_accepted,
+        };
+
+        // Create the item.
+        let auction_item: item = item {
+            id: item_id,
+            offchain_data: item_offchain_data,
+        };
+
+        // Create auction.
+        let new_auction: auction = auction {
+            starting_bid,
+            name: auction_name,
+            item: auction_item,
+        };
+
+        // Create an id.
+        let auction_id: field = BHP256::commit_to_field(new_auction, auction_commit_key);
 
         // Create an auction token for the auctioneer to use.
-        let ticket = AuctionTicket {
+        let ticket: AuctionTicket = AuctionTicket {
             owner: self.signer,
-            auction: auction_item,
+            auction: new_auction,
             auction_id,
             settings,
-            is_open: true,
         };
 
         // Create a future that finalizes the auction.
-        let create_auction_private_future: Future = finalize_create_private_auction(auction_item, auction_id, apk);
+        let create_auction_private_future: Future = finalize_create_private_auction(auction_id, auction_public_key);
 
         // Return the auction ticket and future.
-        (ticket, create_auction_private_future)
+        return (ticket, create_auction_private_future);
     }
-    async function finalize_create_private_auction(auction_item: auction, auction_id: field, apk: group) {
+    async function finalize_create_private_auction(auction_id: field, apk: group) {
+        // Ensure the auction doesn't already exist.
+        assert(!auction_public_keys.contains(auction_id));
+
         // Set the auction public key to indicate it's start.
         auction_public_keys.set(auction_id, apk);
     }
 
-    // Create a new auction publicly.
+    // Create a new auction publicly. This function will create an open auction that publicly exposes the auction data
+    // and the auctioneer. The auctioneer will be able to solicit both private and public bids.
+    //
+    // - `bid_types_accepted`: The privacy levels of the bids (0 = private, 1 = public, 2 = mix).
+    // - `item_id`           : The id of the item being auctioned.
+    // - `auction_name`      : The name of the item being auctioned.
+    // - `item_offchain_data`: Link to offchain data for the item.
+    // - `starting_bid`      : The starting bid for the auction.
+    // - `nonce`             : A nonce derived from externally generated randomness.
     async transition create_public_auction(
+        auction_name: field, // The name of the auction.
         bid_types_accepted: field, // The privacy levels of the bids (0 = private, 1 = public, 2 = mix).
         item_id: field, // The id of the item being auctioned.
-        item_name: field, // The name of the item being auctioned.
         item_offchain_data: [field; 4], // Link to offchain data for the item.
         starting_bid: u64, // The starting bid for the auction.
         nonce: scalar, // A nonce derived from externally generated randomness.
     ) -> (AuctionTicket, Future) {
-        // Create a signed auction.
-        let (auction_item: auction, auction_id: field, settings: auction_settings, apk: group) = create_auction(name, starting_bid, offchain_data, self.signer, 1field);
+        // Assert that the bid types accepted are less than 3 (0 = private, 1 = public, 2 = mix).
+        assert(bid_types_accepted < 3field);
+
+        // Create the public key for the auction.
+        let auction_public_key: group = nonce*group::GEN;
+
+        // Create the auction commit key.
+        let auction_commit_key: scalar = (nonce*(self.signer as group)) as scalar;
+
+        // Create the auction settings.
+        let settings: privacy_settings = privacy_settings {
+            auction_privacy: 1field,
+            bid_types_accepted,
+        };
+
+        // Create the item.
+        let auction_item: item = item {
+            id: item_id,
+            offchain_data: item_offchain_data,
+        };
+
+        // Create auction.
+        let new_auction: auction = auction {
+            starting_bid,
+            name: auction_name,
+            item: auction_item,
+        };
+
+        // Create an id.
+        let auction_id: field = BHP256::commit_to_field(new_auction, auction_commit_key);
 
         // Create an auction token for the auctioneer to use.
-        let token = AuctionTicket {
+        let auction_ticket: AuctionTicket = AuctionTicket {
             owner: self.signer,
-            auction: auction_item,
+            auction: new_auction,
             auction_id,
             settings,
-            is_open: true,
         };
 
         // Create a future that finalizes the auction.
-        let create_auction_public_future: Future = finalize_create_public_auction(auction_item, auction_id, settings);
-        let receipt = AuctionTicket {
-            owner: self.signer,
-            auction,
-            auction_id,
-        };
-        (receipt, create_auction_public_future)
+        let create_auction_public_future: Future = finalize_create_public_auction(new_auction, auction_id, auction_public_key, self.signer, settings);
+
+        return (auction_ticket, create_auction_public_future);
     }
     // Finalize the creation of the auction.
-    async function finalize_create_public_auction(auction_item: item, auction_id: field, settings: auction_settings) {
+    async function finalize_create_public_auction(new_auction: auction, auction_id: field, auction_public_key: group, auctioneer: address, settings: privacy_settings) {
+        // Ensure the auction doesn't already exist.
+        assert(!auction_public_keys.contains(auction_id));
         // Set the auction owner.
-        auction_owners.set(auction_id, self.signer);
+        auction_owners.set(auction_id, auctioneer);
         // Set the open auction data.
-        public_auctions.set(auction_id, auction);
+        public_auctions.set(auction_id, new_auction);
         // Set the auction settings.
-        public_auction_settings.set(auction_id, settings);
+        auction_privacy_settings.set(auction_id, settings);
         // Set the auction public key.
         auction_public_keys.set(auction_id, auction_public_key);
     }
 
-    // Send a private invite to an auction. This function takes an auction receipt to ensure a the auctioneer is sending
-    // an honest invite.
-    transition invite_to_auction(receipt: AuctionTicket, invitee: address) -> (AuctionInvite, AuctionTicket) {
-        // Ensure the bid data commitment matches the claimed data and that the auction is open.
-        let auction_id = Poseidon2::hash(receipt.auction);
-        assert_eq(receipt.auction_id, auction_id);
+    // Publish the auctioneer address to chain for a private auction.
+    async transition publish_address(auction_ticket: AuctionTicket) -> (AuctionTicket, Future) {
+        // Ensure the auction is private, otherwise this is redundant.
+        assert_eq(auction_ticket.settings.auction_privacy, 0field);
 
-        // Ensure the auction is open.
-        assert(receipt.is_open);
+        // Ensure the auction exists.
+        return (auction_ticket, finalize_publish_address(auction_ticket.auction_id, self.signer));
+    }
+    async function finalize_publish_address(auction_id: field, auctioneer: address) {
+        // Ensure the auction exists.
+        assert(auction_public_keys.contains(auction_id));
 
-        // Ensure this function returns a receipt that can be used to invite another.
-        let auction_token: AuctionTicket = {
-            owner: receipt.owner,
-            auction: receipt.auction,
-            auction_id: receipt.auction_id,
-            is_open: true,
-        }
-
-        // Create an auction invite.
-        let auction_invite: AuctionInvite = {
-            owner: invitee,
-            auction: receipt.auction,
-            auction_id,
-        }
-        (auction_invite, auction_token)
+        // Set the auction address.
+        auction_owners.set(auction_id, auctioneer);
     }
 
-    // Select winner.
-    async transition select_winner_private(bid: PrivateBid, auction_token: AuctionTicket, redemption_address: address) -> (AuctionTicket, RedemptionTicket, Future) {
-        // Ensure the token owner is the caller.
-        assert_eq(auction_token.owner, self.signer);
-        assert(auction_token.is_open);
+    // Publish the bid information to chain for a private auction.
+    async transition publish_auction_data(auction_ticket: AuctionTicket) -> (AuctionTicket, Future) {
+        // Ensure the auction is private, otherwise this is redundant.
+        assert_eq(auction_ticket.settings.auction_privacy, 0field);
+
+        // Ensure the auction exists.
+        return (auction_ticket, finalize_publish_auction_data(auction_ticket.auction_id, auction_ticket.auction));
+    }
+    async function finalize_publish_auction_data(auction_id: field, auction_info: auction) {
+        // Ensure the auction exists.
+        assert(!public_auctions.contains(auction_id));
+
+        // Set the auction address.
+        public_auctions.set(auction_id, auction_info);
+    }
 
 
+    // Send a private invite to an auction. This function takes an auction receipt to ensure a the auctioneer is sending
+    // an honest invite to an open auction. After receiving the record, the invitee will be able to bid on the auction
+    // privately.
+    //
+    // - `auction_ticket`: The auction ticket for the auction.
+    // - `invitee`       : The address of the invitee.
+    transition invite_to_auction(
+        auction_ticket: AuctionTicket,
+        invitee: address
+    ) -> (AuctionInvite, AuctionTicket) {
+        // Create an auction invite.
+        let auction_invite: AuctionInvite = AuctionInvite {
+            owner: invitee,
+            auctioneer: auction_ticket.owner,
+            auction: auction_ticket.auction,
+            auction_id: auction_ticket.auction_id,
+        };
+
+        return (auction_invite, auction_ticket);
+    }
+
+    // Select winner a set of private bids. This function will select the highest bid from a set of private bids and
+    // finalize the auction. The auctioneer will be able to redeem the bid privately.
+    //
+    // - `auction_ticket`  : The auction ticket for the auction.
+    // - `private_bid`     : The private bid to select as the winner.
+    async transition select_winner_private(
+        auction_ticket: AuctionTicket,
+        private_bid: PrivateBid,
+    ) -> Future {
         // Ensure the bid settings aren't restricted to public bids.
-        assert_neq(auction_token.settings.bid_types_accepted, 1field);
-
-        // Ensure the token and bid are for the same auction.
-        let claimed_auction_id = Poseidon2::hash(receipt.auction);
-        assert_eq(auction_token.auction_id, claimed_auction_id);
-        assert_eq(bid.auction.auction_id, claimed_auction_id);
-
-        // Ensure the bid id is valid.
-        let claimed_bid_id = Poseidon2::hash(bid);
-        assert_eq(bid.bid_id, claimed_bid_id);
-
-        // Ensure the bid is valid.
-        let invalidated_token: AuctionTicket = {
-            owner: auction_token.owner,
-            auction: auction_token.auction,
-            auction_id: auction_token.auction_id,
-            settings: auction_token.settings,
-            is_open: false,
-        };
-
-        // Create a redemption ticket.
-        let redemption_ticket: RedemptionTicket = {
-            auction_id: auction_token.auction_id,
-            auctioneer: redemption_address,
-            bid_id: bid.bid_id,
-        };
+        assert_neq(auction_ticket.settings.bid_types_accepted, 1field);
 
         // Finalize the selection of the winner.
-        let finalize_auction_future: Future = finalize_select_winner_private(claimed_auction_id, bid.bid_id, bid.amount);
-        (invalidated_token, finalize_auction_future)
+        return finalize_select_winner_private(private_bid.bid.amount, private_bid.bid.auction_id, private_bid.bid_id);
     }
-    async function finalize_select_winner_private(auction_id: field, bid_id: field, amount: u64) {
+    async function finalize_select_winner_private(
+        amount: u64,
+        auction_id: field,
+        bid_id: field
+    ) {
         // Get the bid to be selected to win.
-        let bid = public_bids.get(bid_id);
-
-        // Get the highest_bid for the auction and assert it's equal to the accepted bid.
-        let highest_bid_amount = highest_bids.get(auction_id);
+        let highest_bid_amount: u64 = Mapping::get_or_use(highest_bids, auction_id, 0u64);
 
         // Ensure the bid is higher than the highest bid.
         assert_eq(amount, highest_bid_amount);
 
         // Set the bid as the winner. Thus closing the auction.
-        winning_bids.set(auction_id, bid.bid_id);
+        winning_bids.set(auction_id, bid_id);
     }
 
-    // Select winner.
-    async transition select_winner_public(winning_bid: bid, auction_token: AuctionTicket) -> (AuctionTicket, RedemptionTicket, Future) {
-        // Ensure the token owner is the caller.
-        assert_eq(auction_token.owner, self.signer);
-        assert_eq(auction_token.is_open);
-
+    // Select winner from a set of public bids. This function will select the highest bid from a set of public bids and
+    // finalize the auction. The auctioneer will be able to redeem the bid publicly or privately later.
+    //
+    // - `auction_ticket`  : The auction ticket for the auction.
+    // - `winning_bid_id`  : The id of the winning bid.
+    async transition select_winner_public(
+        auction_ticket: AuctionTicket,
+        winning_bid_id: field,
+    ) -> Future {
         // Ensure the bid settings aren't restricted to private bids.
-        assert_neq(auction_token.settings.bid_types_accepted, 0field);
-
-        let redemption_ticket: RedemptionTicket = {
-            auction_id: auction_token.auction_id,
-            auctioneer: self.signer,
-            bid_id: bid.bid_id,
-        };
-
-        // Ensure the token and bid are for the same auction.
-        let claimed_auction_id = Poseidon2::hash(receipt.auction);
-        assert_eq(auction_token.auction_id, claimed_auction_id);
-        assert_eq(bid.auction.auction_id, claimed_auction_id);
-
-        // Ensure the bid id is valid.
-        let invalidated_token: AuctionTicket = {
-            owner: auction_token.owner,
-            auction: auction_token.auction,
-            auction_id: auction_token.auction_id,
-            is_open: false,
-        }
-
+        assert_neq(auction_ticket.settings.bid_types_accepted, 0field);
 
         // Finalize the selection of the winner.
-        finalize_select_winner_public(claimed_auction_id, bid.bid_id);
+        let redemption_future: Future = finalize_select_winner_public(auction_ticket.auction_id, winning_bid_id);
+
+        // Return the auction ticket and future.
+        return redemption_future;
     }
     async function finalize_select_winner_public(auction_id: field, bid_id: field) {
         // Get the bid to be selected to win.
-        let bid = public_bids.get(bid_id);
+        let winning_bid: bid = public_bids.get(bid_id);
 
         // Get the highest_bid for the auction and assert it's equal to the accepted bid.
-        let highest_bid_amount = highest_bids.get(auction_id);
+        let highest_bid_amount: u64 = highest_bids.get(auction_id);
 
         // Ensure the bid is higher than the highest bid.
-        assert_eq(bid.amount, highest_bid_amount);
+        assert_eq(winning_bid.amount, highest_bid_amount);
 
         // Set the bid as the winner. Thus closing the auction.
-        winning_bids.set(auction_id, bid.bid_id);
+        winning_bids.set(auction_id, bid_id);
     }
     
     ///// ----- BIDDER TRANSITIONS ----- /////
 
-    // Create a public bid.
-    async transition create_public_bid(amount: u64, auction_id: field) -> (BidReceipt, Future) {
-        // Create all bids.
-        let (bid: Bid, bid_id: field) = create_bid(amount, auction_id);
+    // Create a public bid. The bid info will be publicly visible, but the bidder will be able to remain anonymous if
+    // they choose to.
+    //
+    // - `amount`                : The amount of the bid.
+    // - `auction_id`            : The id of the auction.
+    // - `nonce`                 : A nonce derived from externally generated randomness.
+    // - `publish_bidder_address`: Whether to publish the address of the bidder, if the bidder wants to be anonymous, leave this as false.
+    async transition create_public_bid(
+        amount: u64,
+        auction_id: field,
+        nonce: scalar,
+        publish_bidder_address: bool,
+    ) -> (BidReceipt, Future) {
+        // Create the bid public key.
+        let bid_public_key: group = nonce*group::GEN;
+
+        // Create the bid committer key.
+        let bid_committer_key: scalar = (nonce*(self.signer as group)) as scalar;
+
+        // Create the bid data.
+        let new_bid: bid = bid {
+            amount,
+            auction_id,
+            bid_public_key,
+        };
+
+        // Create the bid id.
+        let bid_id: field = BHP256::commit_to_field(new_bid, bid_committer_key);
+
+        let bid_address: address = self.address;
+
+        if publish_bidder_address {
+            // Publish the address of the bidder.
+            bid_address = self.signer;
+        }
 
         // Create a bid receipt.
-        let receipt = BidReceipt {
+        let receipt: BidReceipt = BidReceipt {
             owner: self.signer,
             auction_id,
-            bid,
+            bid: new_bid,
             bid_id,
         };
 
-        let finalize_bid_future: Future = finalize_create_public_bid(bid, bid_id);
-        (receipt, finalize_bid_future)
+        let finalize_bid_future: Future = finalize_create_public_bid(new_bid, bid_id, bid_address);
+        return (receipt, finalize_bid_future);
     }
-    // Store public bid.
-    async function finalize_create_public_bid(bid: Bid, bid_id: field) {
-        // Check if the auction is open.
-        let exists: bool = bid_count.contains(bid.auction_id);
-        let is_open: bool = winning_bids.contains(bid.auction_id);
-        let highest_bid_amount: u64 = highest_bid.get(bid.auction_id);
+    async function finalize_create_public_bid(new_bid: bid, bid_id: field, bid_address: address) {
+        // Ensure auction has been created.
+        assert(auction_public_keys.contains(new_bid.auction_id));
+
+        // Ensure the auction is open.
+        assert(!winning_bids.contains(new_bid.auction_id));
+
+        // Ensure the bid hasn't yet been created.
+        assert(!public_bids.contains(bid_id));
+
+        // Ensure the bid amount is greater than the starting bid.
+
 
         // Set the bid.
-        public_bids.set(bid_id, bid);
+        public_bids.set(bid_id, new_bid);
 
         // Increment the bid count.
-        bid_count.set(bid.auction_id, bid_count.get(bid.auction_id) + 1);
+        bid_count.set(new_bid.auction_id, bid_count.get(new_bid.auction_id) + 1u64);
+
+        // Get the highest bid amount and if it's greater than the current highest bid, set it.
+        let highest_bid_amount: u64 = Mapping::get_or_use(highest_bids, new_bid.auction_id, 0u64);
+        if new_bid.amount > highest_bid_amount {
+            highest_bids.set(new_bid.auction_id, new_bid.amount);
+        }
+
+        if bid_address != self.address {
+            // Publish the address of the bidder.
+            public_bid_owners.set(bid_id, bid_address);
+        }
+    }
+
+    // Create a private bid. This requires an invite from the auctioneer. The resulting bid will send an anonymous bid
+    // to the auctioneer. If the bidder wins the auction, they will be able to redeem the bid privately and anonymously.
+    //
+    // - `amount`   : The amount of the bid.
+    // - `invite`   : The auction invite.
+    // - `nonce`    : A nonce derived from externally generated randomness.
+    async transition create_private_bid(
+        amount: u64,
+        invite: AuctionInvite,
+        nonce: scalar
+    ) -> (AuctionInvite, BidReceipt, PrivateBid, Future) {
+        // Ensure the bid amount is greater than the starting bid.
+        assert(amount > invite.auction.starting_bid);
+
+        // Create the bid public key.
+        let bid_public_key: group = nonce*group::GEN;
+
+        // Create the bid committer key.
+        let bid_committer_key: scalar = (nonce*(self.signer as group)) as scalar;
+
+        // Create the bid data.
+        let new_bid: bid = bid {
+            amount,
+            auction_id: invite.auction_id,
+            bid_public_key,
+        };
+
+        // Create the bid id.
+        let bid_id: field = BHP256::commit_to_field(new_bid, bid_committer_key);
+
+        // A private bid.
+        let private_bid: PrivateBid = PrivateBid {
+            owner: invite.auctioneer,
+            bid: new_bid,
+            bid_id,
+        };
+
+        // Create a bid receipt.
+        let receipt: BidReceipt = BidReceipt {
+            owner: self.signer,
+            auction_id: invite.auction_id,
+            bid: new_bid,
+            bid_id,
+        };
+
+        return (invite, receipt, private_bid, finalize_create_private_bid(amount, invite.auction_id));
+    }
+    async function finalize_create_private_bid(amount: u64, auction_id: field) {
+        // Ensure the auction has been created.
+        assert(auction_public_keys.contains(auction_id));
+
+        // Check if the auction is open.
+        assert(!winning_bids.contains(auction_id));
+
+        // Increment the bid count.
+        bid_count.set(auction_id, bid_count.get(auction_id) + 1u64);
+
+        // Set the bid amount.
+        let highest_amount: u64 = Mapping::get_or_use(highest_bids, auction_id, 0u64);
 
         // If the bid is higher than the highest bid, set the bid as the highest bid.
-        if bid.amount > highest_bid_amount {
-            highest_bid.set(bid.auction_id, bid.amount);
+        if amount > highest_amount {
+            highest_bids.set(auction_id, amount);
         }
     }
-    
-        // Create a private bid.
-        async transition create_private_bid(amount: u64, auction_id: field, invite: AuctionInvite, nonce: scalar) -> (AuctionInvite, BidReceipt, PrivateBid, Future) {
-            // Create all bids.
-            let (bid: Bid, bid_id: field, bid_public_key: group) = create_bid(amount, auction_id, nonce);
-    
-            // Create a bid receipt.
-            let private_bid = PrivateBid {
-                owner: invite.auctioneer,
-                bid,
-                bid_id,
-            };
-    
-            // Create a bid receipt.
-            let receipt = BidReceipt {
-                owner: self.signer,
-                auction_id,
-                bid,
-                bid_id,
-            };
-    
-            // Create a renewed auction invite.
-            let renewed_invite: AuctionInvite = {
-                owner: invite.owner,
-                auction: invite.auction,
-                auctioneer: invite.auctioneer,
-                auction_id: invite.auction_id,
-            };
-    
-            let finalize_bid_future: Future = finalize_create_private_bid(bid, bid_id);
-            (receipt, finalize_bid_future)
-        }
-        // Store private bid.
-        async function finalize_create_private_bid(bid: Bid) {
-            // Increment the bid count.
-            bid_count.set(bid.auction_id, bid_count.get(bid.auction_id) + 1);
-            
-            // Set the bid amount.
-            highest_bid.set(bid.auction_id, bid.amount);
-        }
 
-    // Redeem a winning bid publicly.
+    // Redeem a winning bid publicly. This function will transfer the credits to the auctioneer publicly and set the bid
+    // as redeemed, thus closing the auction.
+    //
+    // - `auctioneer`  : The address of the auctioneer.
+    // - `bid_receipt` : The bid receipt matching the bid.
     async transition redeem_bid_public(
-        bid_id: field,
-        bid: Bid,
-        commit_key: group,
-        redemption_ticket: RedemptionTicket,
-    ) -> (BidReceipt, Future) {
-        // Prove the caller is owner of the bid.
-        let expected_bid_id: field = BHP256::commit(bid, commit_key);
-        assert_eq(expected_bid_id, bid_id);
+        auctioneer: address,
+        bid_receipt: BidReceipt, // The bid receipt matching the bid.,
+    ) -> Future {
+        // Ensure the auctioneer is the owner of the auction.
+        let transfer_public: Future = credits.aleo/transfer_public_as_signer(auctioneer, bid_receipt.bid.amount);
 
-        // Transfer the the item to the auctioneer.
-        credits.aleo/transfer_public(redemption_ticket.payout_address, redemption_ticket.amount);
-
-        // Attempt to redeem the bid.
-        finalize_redeem_bid_public(bid.auction_id, bid.bid_id, bid.amount);
+        // Attempt to redeem the bid and transfer the credits.
+        return finalize_redeem_bid_public(auctioneer, bid_receipt.bid.auction_id, bid_receipt.bid_id, transfer_public);
     }
-    async function finalize_redeem_bid_public(auction_id: field, bid_id: field) {
-        // Ensure the bid is the winning bid.
-        let winning_bid = winning_bids.get(auction_id);
-        assert_eq(winning_bid, bid_id);
+    async function finalize_redeem_bid_public(auctioneer: address, auction_id: field, bid_id: field, transfer: Future) {
+        // Ensure the auctioneer is the owner of the auction.
+        assert_eq(auction_owners.get(auction_id), auctioneer);
+
+        // Ensure the bid is the winner.
+        let winning_bid_id: field = winning_bids.get(auction_id);
+        assert_eq(winning_bid_id, bid_id);
 
         // Ensure the bid hasn't been redeemed.
-        let redeemed = redemptions.get(bid.auction_id);
-        assert(redeemed == false);
+        assert(!redemptions.get(auction_id));
+
+        // Allow the transfer to complete.
+        transfer.await();
 
        // Set the bid as redeemed.
-        redeemed.set(auction_id, true);
+        redemptions.set(auction_id, true);
     }
 
-    // Redeem bid privately by transferring credits to the auctioneer and setting the bid as won.
-    async transition redeem_bid_private(
-        bid_id: field,
-        bid: Bid,
-        commit_key: group,
-        redemption_ticket: RedemptionTicket,
-        transfer_record: credits.aleo/Credits,
-    ) -> (BidReceipt, Future) {
-        // Prove the caller is owner of the bid.
-        let expected_bid_id: field = BHP256::commit(bid, commit_key);
-        assert_eq(expected_bid_id, bid_id);
-
+    // Redeem a winning bid anonymously, but transfer the credits to an auctioneer's public address. This function will
+    // transfer the credits to the auctioneer and set the bid as redeemed, thus closing the auction.
+    //
+    // - `auctioneer`     : The address of the auctioneer.
+    // - `bid_receipt`    : The bid receipt matching the bid.
+    // - `transfer_record`: The transfer record to use for the transfer.
+    async transition redeem_bid_private_to_public(
+        auctioneer: address, // The auctioneer's address.
+        bid_receipt: BidReceipt, // The bid receipt matching the bid.
+        transfer_record: credits.aleo/credits,
+    ) -> Future {
         // Ensure the transfer record has enough credits to pay the balance.
-        assert(transfer_record.balance >= bid.amount);
+        assert(transfer_record.microcredits >= bid_receipt.bid.amount);
 
         // Transfer the the item to the auctioneer.
-        credits.aleo/transfer_private(transfer_private, redemption_ticket.payout_address, redemption_ticket.amount);
+        let transfer_private_to_public: (credits.aleo/credits, Future)= credits.aleo/transfer_private_to_public(transfer_record, auctioneer, bid_receipt.bid.amount);
+
+        // Attempt to redeem the bid and transfer the credits to the auctioneer.
+        return finalize_redeem_bid_p2p(auctioneer, bid_receipt.bid.auction_id, bid_receipt.bid_id, transfer_private_to_public.1);
+    }
+    async function finalize_redeem_bid_p2p(auctioneer: address, auction_id: field, bid_id: field, transfer: Future) {
+        // Ensure the auctioneer is the owner of the auction.
+        assert_eq(auction_owners.get(auction_id), auctioneer);
+
+        // Ensure the bid is the winner.
+        let winning_bid_id: field = winning_bids.get(auction_id);
+        assert_eq(winning_bid_id, bid_id);
+
+        // Ensure the bid hasn't been redeemed.
+        assert(!redemptions.get(auction_id));
+
+        // Allow the transfer to complete.
+        transfer.await();
+
+       // Set the bid as redeemed.
+        redemptions.set(auction_id, true);
+    }
+
+    // Redeem bid anonymously and transfer credits privately to the auctioneer. This function will transfer the credits
+    // to the auctioneer and set the bid as redeemed, thus closing the auction.
+    //
+    // - `invite`         : The auction invite.
+    // - `bid_receipt`    : The bid receipt matching the bid.
+    // - `transfer_record`: The transfer record to use for the transfer.
+    async transition redeem_bid_private(
+        invite: AuctionInvite,
+        bid_receipt: BidReceipt,
+        transfer_record: credits.aleo/credits,
+    ) -> Future {
+        // Ensure the transfer record has enough credits to pay the balance.
+        assert(transfer_record.microcredits >= bid_receipt.bid.amount);
+
+        // Transfer the the item to the auctioneer.
+        credits.aleo/transfer_private(transfer_record, invite.auctioneer, bid_receipt.bid.amount);
 
         // Attempt to redeem the bid.
-        finalize_redeem_bid_public(bid.auction_id, bid.bid_id, bid.amount);
+        return finalize_redeem_bid_private(bid_receipt.bid.auction_id, bid_receipt.bid_id);
     }
     async function finalize_redeem_bid_private(auction_id: field, bid_id: field) {
-        // Ensure the bid is the winning bid.
-        let winning_bid = winning_bids.get(auction_id);
-        assert_eq(winning_bid, bid_id);
+        // Ensure the bid is the winner.
+        let winning_bid_id: field = winning_bids.get(auction_id);
+        assert_eq(winning_bid_id, bid_id);
 
         // Ensure the bid hasn't been redeemed.
-        let redeemed = redemptions.get(bid.auction_id);
-        assert(redeemed == false);
+        assert(!redemptions.get(auction_id));
 
        // Set the bid as redeemed.
-        redeemed.set(auction_id, true);
+        redemptions.set(auction_id, true);
     }
 }
 
