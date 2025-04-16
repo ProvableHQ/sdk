@@ -15,7 +15,7 @@ const { Content, Footer, Sider } = Layout;
 
 const menuItems = [
     {
-        label: <Link to="/auctioneer">Auctioneer</Link>,
+        label: <Link to="/auctioneer">Create Auction</Link>,
         key: "auctioneer",
         icon: <CodeOutlined />,
     },
