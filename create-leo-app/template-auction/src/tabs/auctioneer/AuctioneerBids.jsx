@@ -1,6 +1,7 @@
 import { React, useEffect, useMemo, useState } from "react";
 import { Card, List, Button, Space } from "antd";
 import { useAuctionState } from "../../components/AuctionState.jsx";
+import { PROGRAM_ID } from "../../core/constants.js";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 import { convertFieldToString } from "../../core/encoder.js";
@@ -66,7 +67,7 @@ export const AuctioneerBids = () => {
     const getBids = async () => {
         setIsRefreshing(true);
         try {
-            const records = await requestRecords("private_auction.aleo");
+            const records = await requestRecords(PROGRAM_ID);
             if (records && records.length > 0) {
                 const bidder_records = [...records].filter(record => (record.data.is_winner === "true.private"));
                 setAuctioneerRecords(records);

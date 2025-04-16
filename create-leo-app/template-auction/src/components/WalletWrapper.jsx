@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { WalletProvider } from "@demox-labs/aleo-wallet-adapter-react";
 import { WalletModalProvider } from "@demox-labs/aleo-wallet-adapter-reactui";
+import { PROGRAM_ID } from "../core/constants.js";
 import {
     PuzzleWalletAdapter,
     FoxWalletAdapter,
@@ -25,10 +26,10 @@ export const WalletWrapper = ({ children }) => {
             new PuzzleWalletAdapter({
                 programIdPermissions: {
                     ["AleoMainnet"]: [
-                        "private_auction.aleo",
+                        PROGRAM_ID,
                     ],
                     ["AleoTestnet"]: [
-                        "private_auction.aleo",
+                        PROGRAM_ID,
                     ],
                 },
                 appName: "Leo Auction",

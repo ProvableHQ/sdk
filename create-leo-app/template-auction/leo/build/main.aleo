@@ -1,5 +1,5 @@
 import credits.aleo;
-program private_auction.aleo;
+program private_auction_test.aleo;
 
 struct item:
     id as field;
@@ -98,15 +98,16 @@ function create_private_auction:
     mul r5 1540945439182663264862696551825005342995406165131907382295858612069623286213group into r7;
     cast self.signer into r8 as group;
     mul r5 r8 into r9;
-    cast r9 into r10 as scalar;
-    cast 0field r0 into r11 as privacy_settings;
-    cast r1 r3 into r12 as item;
-    cast r4 r2 r12 into r13 as auction;
-    commit.bhp256 r13 r10 into r14 as field;
-    cast self.signer r13 r14 r11 into r15 as AuctionTicket.record;
-    async create_private_auction r14 r7 into r16;
-    output r15 as AuctionTicket.record;
-    output r16 as private_auction.aleo/create_private_auction.future;
+    cast 0field r0 into r10 as privacy_settings;
+    cast r1 r3 into r11 as item;
+    cast r4 r2 r11 into r12 as auction;
+    hash.psd2 r12 into r13 as scalar;
+    mul r13 r9 into r14;
+    cast r14 into r15 as field;
+    cast self.signer r12 r15 r10 into r16 as AuctionTicket.record;
+    async create_private_auction r15 r7 into r17;
+    output r16 as AuctionTicket.record;
+    output r17 as private_auction_test.aleo/create_private_auction.future;
 
 finalize create_private_auction:
     input r0 as field.public;
@@ -129,15 +130,16 @@ function create_public_auction:
     mul r5 1540945439182663264862696551825005342995406165131907382295858612069623286213group into r8;
     cast self.signer into r9 as group;
     mul r5 r9 into r10;
-    cast r10 into r11 as scalar;
-    cast 1field r1 into r12 as privacy_settings;
-    cast r2 r3 into r13 as item;
-    cast r4 r0 r13 into r14 as auction;
-    commit.bhp256 r14 r11 into r15 as field;
-    cast self.signer r14 r15 r12 into r16 as AuctionTicket.record;
-    async create_public_auction r14 r15 r8 self.signer r12 into r17;
-    output r16 as AuctionTicket.record;
-    output r17 as private_auction.aleo/create_public_auction.future;
+    cast 1field r1 into r11 as privacy_settings;
+    cast r2 r3 into r12 as item;
+    cast r4 r0 r12 into r13 as auction;
+    hash.psd2 r13 into r14 as scalar;
+    mul r14 r10 into r15;
+    cast r15 into r16 as field;
+    cast self.signer r13 r16 r11 into r17 as AuctionTicket.record;
+    async create_public_auction r13 r16 r8 self.signer r11 into r18;
+    output r17 as AuctionTicket.record;
+    output r18 as private_auction_test.aleo/create_public_auction.future;
 
 finalize create_public_auction:
     input r0 as auction.public;
@@ -148,7 +150,7 @@ finalize create_public_auction:
     contains auction_public_keys[r1] into r5;
     not r5 into r6;
     assert.eq r6 true;
-    is.neq r3 private_auction.aleo into r7;
+    is.neq r3 private_auction_test.aleo into r7;
     branch.eq r7 false to end_then_0_0;
     set r3 into auction_owners[r1];
     branch.eq true true to end_otherwise_0_1;
@@ -163,7 +165,7 @@ function publish_address:
     assert.eq r0.settings.auction_privacy 0field;
     async publish_address r0.auction_id self.signer into r1;
     output r0 as AuctionTicket.record;
-    output r1 as private_auction.aleo/publish_address.future;
+    output r1 as private_auction_test.aleo/publish_address.future;
 
 finalize publish_address:
     input r0 as field.public;
@@ -177,7 +179,7 @@ function publish_auction_data:
     assert.eq r0.settings.auction_privacy 0field;
     async publish_auction_data r0.auction_id r0.auction into r1;
     output r0 as AuctionTicket.record;
-    output r1 as private_auction.aleo/publish_auction_data.future;
+    output r1 as private_auction_test.aleo/publish_auction_data.future;
 
 finalize publish_auction_data:
     input r0 as field.public;
@@ -200,7 +202,7 @@ function select_winner_private:
     assert.neq r0.settings.bid_types_accepted 1field;
     assert.eq r0.auction_id r1.bid.auction_id;
     async select_winner_private r1.bid.amount r1.bid.auction_id r1.bid_id into r2;
-    output r2 as private_auction.aleo/select_winner_private.future;
+    output r2 as private_auction_test.aleo/select_winner_private.future;
 
 finalize select_winner_private:
     input r0 as u64.public;
@@ -215,7 +217,7 @@ function select_winner_public:
     input r1 as field.private;
     assert.neq r0.settings.bid_types_accepted 0field;
     async select_winner_public r0.auction_id r1 into r2;
-    output r2 as private_auction.aleo/select_winner_public.future;
+    output r2 as private_auction_test.aleo/select_winner_public.future;
 
 finalize select_winner_public:
     input r0 as field.public;
@@ -234,13 +236,14 @@ function bid_public:
     cast r0 r1 r4 into r5 as bid;
     cast self.signer into r6 as group;
     mul r2 r6 into r7;
-    cast r7 into r8 as scalar;
-    commit.bhp256 r5 r8 into r9 as field;
-    cast self.signer r1 r5 r9 into r10 as BidReceipt.record;
-    ternary r3 self.signer private_auction.aleo into r11;
-    async bid_public r5 r9 r11 into r12;
-    output r10 as BidReceipt.record;
-    output r12 as private_auction.aleo/bid_public.future;
+    hash.psd2 r5 into r8 as scalar;
+    mul r8 r7 into r9;
+    cast r9 into r10 as field;
+    cast self.signer r1 r5 r10 into r11 as BidReceipt.record;
+    ternary r3 self.signer private_auction_test.aleo into r12;
+    async bid_public r5 r10 r12 into r13;
+    output r11 as BidReceipt.record;
+    output r13 as private_auction_test.aleo/bid_public.future;
 
 finalize bid_public:
     input r0 as bid.public;
@@ -265,14 +268,14 @@ finalize bid_public:
     branch.eq true true to end_otherwise_0_3;
     position end_then_0_2;
     position end_otherwise_0_3;
-    is.neq r2 private_auction.aleo into r12;
+    is.neq r2 private_auction_test.aleo into r12;
     branch.eq r12 false to end_then_0_4;
     set r2 into public_bid_owners[r1];
     branch.eq true true to end_otherwise_0_5;
     position end_then_0_4;
     position end_otherwise_0_5;
 
-function bid_private_on_public_auction:
+function bid_private:
     input r0 as u64.private;
     input r1 as field.private;
     input r2 as address.private;
@@ -282,64 +285,15 @@ function bid_private_on_public_auction:
     cast r0 r1 r5 into r6 as bid;
     cast self.signer into r7 as group;
     mul r4 r7 into r8;
-    cast r8 into r9 as scalar;
-    commit.bhp256 r6 r9 into r10 as field;
-    cast self.signer r1 r6 r10 into r11 as BidReceipt.record;
-    hash.psd2 r11 into r12 as scalar;
-    cast r2 into r13 as group;
-    mul r12 r13 into r14;
-    add r14 r3 into r15;
-    cast r2 r6 r10 into r16 as PrivateBid.record;
-    async bid_private_on_public_auction r0 r1 r15 r12 into r17;
-    output r11 as BidReceipt.record;
-    output r16 as PrivateBid.record;
-    output r17 as private_auction.aleo/bid_private_on_public_auction.future;
-
-finalize bid_private_on_public_auction:
-    input r0 as u64.public;
-    input r1 as field.public;
-    input r2 as group.public;
-    input r3 as scalar.public;
-    get auction_public_keys[r1] into r4;
-    get auction_owners[r1] into r5;
-    cast r5 into r6 as group;
-    mul r3 r6 into r7;
-    add r7 r4 into r8;
-    is.eq r2 r8 into r9;
-    assert.eq r9 true;
-    contains winning_bids[r1] into r10;
-    not r10 into r11;
-    assert.eq r11 true;
-    get bid_count[r1] into r12;
-    add r12 1u64 into r13;
-    set r13 into bid_count[r1];
-    get.or_use highest_bids[r1] 0u64 into r14;
-    gt r0 r14 into r15;
-    branch.eq r15 false to end_then_0_6;
-    set r0 into highest_bids[r1];
-    branch.eq true true to end_otherwise_0_7;
-    position end_then_0_6;
-    position end_otherwise_0_7;
-
-function bid_private:
-    input r0 as u64.private;
-    input r1 as AuctionInvite.record;
-    input r2 as scalar.private;
-    gt r0 r1.auction.starting_bid into r3;
-    assert.eq r3 true;
-    mul r2 1540945439182663264862696551825005342995406165131907382295858612069623286213group into r4;
-    cast r0 r1.auction_id r4 into r5 as bid;
-    cast self.signer into r6 as group;
-    mul r2 r6 into r7;
-    cast r7 into r8 as scalar;
-    commit.bhp256 r5 r8 into r9 as field;
-    cast self.signer r1.auction_id r5 r9 into r10 as BidReceipt.record;
-    cast r1.auctioneer r5 r9 into r11 as PrivateBid.record;
-    async bid_private r0 r1.auction_id into r12;
-    output r1 as AuctionInvite.record;
-    output r10 as BidReceipt.record;
-    output r11 as PrivateBid.record;
-    output r12 as private_auction.aleo/bid_private.future;
+    hash.psd2 r6 into r9 as scalar;
+    mul r9 r8 into r10;
+    cast r10 into r11 as field;
+    cast self.signer r1 r6 r11 into r12 as BidReceipt.record;
+    cast r2 r6 r11 into r13 as PrivateBid.record;
+    async bid_private r0 r1 into r14;
+    output r12 as BidReceipt.record;
+    output r13 as PrivateBid.record;
+    output r14 as private_auction_test.aleo/bid_private.future;
 
 finalize bid_private:
     input r0 as u64.public;
@@ -354,18 +308,18 @@ finalize bid_private:
     set r6 into bid_count[r1];
     get.or_use highest_bids[r1] 0u64 into r7;
     gt r0 r7 into r8;
-    branch.eq r8 false to end_then_0_8;
+    branch.eq r8 false to end_then_0_6;
     set r0 into highest_bids[r1];
-    branch.eq true true to end_otherwise_0_9;
-    position end_then_0_8;
-    position end_otherwise_0_9;
+    branch.eq true true to end_otherwise_0_7;
+    position end_then_0_6;
+    position end_otherwise_0_7;
 
 function redeem_bid_public:
     input r0 as address.private;
     input r1 as BidReceipt.record;
     call credits.aleo/transfer_public_as_signer r0 r1.bid.amount into r2;
     async redeem_bid_public r0 r1.bid.auction_id r1.bid_id r2 into r3;
-    output r3 as private_auction.aleo/redeem_bid_public.future;
+    output r3 as private_auction_test.aleo/redeem_bid_public.future;
 
 finalize redeem_bid_public:
     input r0 as address.public;
@@ -390,7 +344,7 @@ function redeem_bid_private_to_public:
     assert.eq r3 true;
     call credits.aleo/transfer_private_to_public r2 r0 r1.bid.amount into r4 r5;
     async redeem_bid_private_to_public r0 r1.bid.auction_id r1.bid_id r5 into r6;
-    output r6 as private_auction.aleo/redeem_bid_private_to_public.future;
+    output r6 as private_auction_test.aleo/redeem_bid_private_to_public.future;
 
 finalize redeem_bid_private_to_public:
     input r0 as address.public;
@@ -415,7 +369,7 @@ function redeem_bid_private:
     assert.eq r3 true;
     call credits.aleo/transfer_private r2 r0.auctioneer r1.bid.amount into r4 r5;
     async redeem_bid_private r1.bid.auction_id r1.bid_id into r6;
-    output r6 as private_auction.aleo/redeem_bid_private.future;
+    output r6 as private_auction_test.aleo/redeem_bid_private.future;
 
 finalize redeem_bid_private:
     input r0 as field.public;

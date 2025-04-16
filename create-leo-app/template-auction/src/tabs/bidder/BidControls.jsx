@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { encodeStringAsField } from "../../core/encoder.js";
 import { Card, Form, Input, Button, InputNumber, Modal, Typography } from "antd";
+import { PROGRAM_ID } from "../../core/constants.js";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction } from "@demox-labs/aleo-wallet-adapter-base";
@@ -55,7 +56,7 @@ export const BidControls = () => {
             const transaction = Transaction.createTransaction(
                 publicKey,
                 WalletAdapterNetwork.TestnetBeta,
-                "private_auction.aleo",
+                PROGRAM_ID,
                 "place_bid",
                 [bidder, auctioneer, id, amountInput],
                 30000,

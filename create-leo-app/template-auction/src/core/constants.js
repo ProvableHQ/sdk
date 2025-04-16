@@ -1,0 +1,1 @@
+export const PROGRAM_ID = "private_auction_test.aleo";
