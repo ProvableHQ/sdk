@@ -1,4 +1,4 @@
-import { get, post, parseJSON, logAndThrow } from "./utils";
+import { get, post, parseJSON, logAndThrow, retryWithBackoff } from "./utils";
 import { Account } from "./account";
 import { BlockJSON } from "./models/blockJSON";
 import { TransactionJSON } from "./models/transaction/transactionJSON";
@@ -101,7 +101,7 @@ class AleoNetworkClient {
      */
     async fetchData<Type>(url = "/"): Promise<Type> {
         try {
-            return parseJSON(await this.fetchRaw(url));
+            return retryWithBackoff(() => this.fetchRaw(url).then(parseJSON));
         } catch (error) {
             throw new Error(`Error fetching data: ${error}`);
         }

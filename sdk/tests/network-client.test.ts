@@ -214,6 +214,29 @@ describe("NodeConnection", () => {
         });
     });
 
+    describe("retryWithBackoff", () => {
+        it("should retry failed network requests and eventually give up", async () => {
+          const client = new AleoNetworkClient("http://localhost:1234");
+      
+          let attemptCount = 0;
+      
+          client.fetchRaw = async () => {
+            attemptCount++;
+            console.warn(`fake fetchRaw attempt ${attemptCount}`);
+            throw new Error("503 Service Unavailable");
+          };
+      
+          try {
+            await client.fetchData("/block/latest");
+            throw new Error("Expected fetchData to fail");
+          } catch (err: any) {
+            expect(err.message).to.include("503");
+            expect(attemptCount).to.be.greaterThan(1);
+          }
+        });
+      });
+      
+
     describe("waitForTransactionConfirmation", () => {
         const mainnetAcceptedTx =
             "at1dl9lze8wscct0dee8x9tjnfmpjvj33hh23jcnp5f0ywjn5552yrsperzl9";

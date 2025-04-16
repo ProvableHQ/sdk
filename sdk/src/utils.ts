@@ -39,3 +39,36 @@ export async function post(url: URL | string, options: RequestInit) {
 
     return response;
 }
+
+export async function retryWithBackoff<T>(
+    fn: () => Promise<T>,
+    maxAttempts = 5,
+    baseDelay = 100
+  ): Promise<T> {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn();
+      } catch (err: any) {
+        const error = err as Error & { code?: string };
+        const isLast = attempt === maxAttempts;
+  
+        // retry only for certain errors
+        const retryable =
+        //   err?. 404s but that will probably not be 404 soon ? 
+          error?.message?.includes('404') ||
+        //   retry for timeouts as well
+          error?.message?.includes('5');
+  
+        if (!retryable || isLast) throw error;
+  
+        const jitter = Math.floor(Math.random() * baseDelay);
+        const delay = baseDelay * 2 ** (attempt - 1) + jitter;
+        console.warn(`Retry ${attempt}/${maxAttempts} failed. Retrying in ${delay}ms...`);
+  
+        await new Promise(res => setTimeout(res, delay));
+      }
+    }
+  
+    throw new Error("retryWithBackoff: unreachable");
+  }
+  
