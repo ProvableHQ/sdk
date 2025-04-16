@@ -19,7 +19,6 @@ export const AuctionState = ({ children }) => {
         auctioneerState: {}, // Organized by auction ID
         bidderRecords: [], // Raw records from the chain
         bidderState: {}, // Organized by bidder address
-        winningBids: {}, // Track winning bids by auction ID
     });
 
     const addNewBid = (amount, auctioneer, bidder, id, txId) => {

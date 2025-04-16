@@ -136,6 +136,31 @@ program private_auction.aleo {
         bid_id: field,
     }
 
+    ////////////////////////////////////////
+    ///// ----- INLINE FUNCTIONS ----- /////
+    ////////////////////////////////////////
+
+    inline create_bid(amount: u64, auction_id: field, nonce: scalar) -> bid {
+        // Create the bid public key.
+        let bid_public_key: group = nonce*group::GEN;
+
+        // Create the bid data.
+        return bid {
+            amount,
+            auction_id,
+            bid_public_key,
+        };
+    }
+
+    inline create_bid_id(new_bid: bid, nonce: scalar) -> field {
+        // Create the bid committer key.
+        let bid_committer_key: scalar = (nonce*(self.signer as group)) as scalar;
+
+        // Create the bid id.
+        return BHP256::commit_to_field(new_bid, bid_committer_key);
+    }
+
+
     ///////////////////////////////////
     ///// ----- TRANSITIONS ----- /////
     ///////////////////////////////////
@@ -220,6 +245,7 @@ program private_auction.aleo {
     // - `item_offchain_data`: Link to offchain data for the item.
     // - `starting_bid`      : The starting bid for the auction.
     // - `nonce`             : A nonce derived from externally generated randomness.
+    // - `reveal_address`    : Whether to reveal the address of the auctioneer.
     async transition create_public_auction(
         auction_name: field, // The name of the auction.
         bid_types_accepted: field, // The privacy levels of the bids (0 = private, 1 = public, 2 = mix).
@@ -227,6 +253,7 @@ program private_auction.aleo {
         item_offchain_data: [field; 4], // Link to offchain data for the item.
         starting_bid: u64, // The starting bid for the auction.
         nonce: scalar, // A nonce derived from externally generated randomness.
+        reveal_address: bool, // Whether to reveal the address of the auctioneer.
     ) -> (AuctionTicket, Future) {
         // Assert that the bid types accepted are less than 3 (0 = private, 1 = public, 2 = mix).
         assert(bid_types_accepted < 3field);
@@ -267,6 +294,13 @@ program private_auction.aleo {
             settings,
         };
 
+        // Select address to reveal.
+        let auctioneer: address = self.address;
+        if reveal_address {
+            // Publish the address of the auctioneer.
+            auctioneer = self.signer;
+        }
+
         // Create a future that finalizes the auction.
         let create_auction_public_future: Future = finalize_create_public_auction(new_auction, auction_id, auction_public_key, self.signer, settings);
 
@@ -276,8 +310,11 @@ program private_auction.aleo {
     async function finalize_create_public_auction(new_auction: auction, auction_id: field, auction_public_key: group, auctioneer: address, settings: privacy_settings) {
         // Ensure the auction doesn't already exist.
         assert(!auction_public_keys.contains(auction_id));
-        // Set the auction owner.
-        auction_owners.set(auction_id, auctioneer);
+        // Set the auction owner if the auctioneer is not the contract address.
+        if auctioneer != self.address {
+            // Publish the address of the auctioneer.
+            auction_owners.set(auction_id, auctioneer);
+        }
         // Set the open auction data.
         public_auctions.set(auction_id, new_auction);
         // Set the auction settings.
@@ -352,6 +389,9 @@ program private_auction.aleo {
         // Ensure the bid settings aren't restricted to public bids.
         assert_neq(auction_ticket.settings.bid_types_accepted, 1field);
 
+        // Ensure the bid is for the correct auction.
+        assert_eq(auction_ticket.auction_id, private_bid.bid.auction_id);
+
         // Finalize the selection of the winner.
         return finalize_select_winner_private(private_bid.bid.amount, private_bid.bid.auction_id, private_bid.bid_id);
     }
@@ -411,7 +451,7 @@ program private_auction.aleo {
     // - `auction_id`            : The id of the auction.
     // - `nonce`                 : A nonce derived from externally generated randomness.
     // - `publish_bidder_address`: Whether to publish the address of the bidder, if the bidder wants to be anonymous, leave this as false.
-    async transition create_public_bid(
+    async transition bid_public(
         amount: u64,
         auction_id: field,
         nonce: scalar,
@@ -420,65 +460,123 @@ program private_auction.aleo {
         // Create the bid public key.
         let bid_public_key: group = nonce*group::GEN;
 
-        // Create the bid committer key.
-        let bid_committer_key: scalar = (nonce*(self.signer as group)) as scalar;
-
-        // Create the bid data.
-        let new_bid: bid = bid {
-            amount,
-            auction_id,
-            bid_public_key,
-        };
+        // Create the bid.
+        let public_bid: bid = create_bid(amount, auction_id, nonce);
 
         // Create the bid id.
-        let bid_id: field = BHP256::commit_to_field(new_bid, bid_committer_key);
-
-        let bid_address: address = self.address;
-
-        if publish_bidder_address {
-            // Publish the address of the bidder.
-            bid_address = self.signer;
-        }
+        let bid_id: field = create_bid_id(public_bid, nonce);
 
         // Create a bid receipt.
         let receipt: BidReceipt = BidReceipt {
             owner: self.signer,
             auction_id,
-            bid: new_bid,
+            bid: public_bid,
             bid_id,
         };
 
-        let finalize_bid_future: Future = finalize_create_public_bid(new_bid, bid_id, bid_address);
+        // Optionally hide the bidder's address.
+        let bid_address: address = self.address;
+        if publish_bidder_address {
+            // Publish the address of the bidder.
+            bid_address = self.signer;
+        }
+
+        let finalize_bid_future: Future = finalize_bid_public(public_bid, bid_id, bid_address);
         return (receipt, finalize_bid_future);
     }
-    async function finalize_create_public_bid(new_bid: bid, bid_id: field, bid_address: address) {
+    async function finalize_bid_public(public_bid: bid, bid_id: field, bid_address: address) {
         // Ensure auction has been created.
-        assert(auction_public_keys.contains(new_bid.auction_id));
+        assert(auction_public_keys.contains(public_bid.auction_id));
 
         // Ensure the auction is open.
-        assert(!winning_bids.contains(new_bid.auction_id));
+        assert(!winning_bids.contains(public_bid.auction_id));
 
         // Ensure the bid hasn't yet been created.
         assert(!public_bids.contains(bid_id));
 
-        // Ensure the bid amount is greater than the starting bid.
-
-
         // Set the bid.
-        public_bids.set(bid_id, new_bid);
+        public_bids.set(bid_id, public_bid);
 
         // Increment the bid count.
-        bid_count.set(new_bid.auction_id, bid_count.get(new_bid.auction_id) + 1u64);
+        bid_count.set(public_bid.auction_id, bid_count.get(public_bid.auction_id) + 1u64);
 
         // Get the highest bid amount and if it's greater than the current highest bid, set it.
-        let highest_bid_amount: u64 = Mapping::get_or_use(highest_bids, new_bid.auction_id, 0u64);
-        if new_bid.amount > highest_bid_amount {
-            highest_bids.set(new_bid.auction_id, new_bid.amount);
+        let highest_bid_amount: u64 = Mapping::get_or_use(highest_bids, public_bid.auction_id, 0u64);
+        if public_bid.amount > highest_bid_amount {
+            highest_bids.set(public_bid.auction_id, public_bid.amount);
         }
 
         if bid_address != self.address {
             // Publish the address of the bidder.
             public_bid_owners.set(bid_id, bid_address);
+        }
+    }
+
+    // Bid on a public auction anonymously. This function will create a private bid that is sent to the auctioneer
+    // anonymously. This function prevents leakage of an auctioneer's address in the async statement through a
+    // commitment.
+    //
+    // - `amount`            : The amount of the bid.
+    // - `auction_id`        : The id of the auction.
+    // - `auctioneer`        : The address of the auctioneer.
+    // - `auction_public_key`: The public key of the auction.
+    // - `nonce`             : A nonce derived from externally generated randomness.
+    async transition bid_private_on_public_auction(
+        amount: u64,
+        auction_id: field,
+        auctioneer: address,
+        auction_public_key: group,
+        nonce: scalar,
+    ) -> (BidReceipt, PrivateBid, Future) {
+        // Create the bid.
+        let private_bid: bid = create_bid(amount, auction_id, nonce);
+
+        // Create the bid id.
+        let bid_id: field = create_bid_id(private_bid, nonce);
+
+        // Create a bid receipt.
+        let receipt: BidReceipt = BidReceipt {
+            owner: self.signer,
+            auction_id,
+            bid: private_bid,
+            bid_id,
+        };
+
+        // Create pedersen commitment to the address to avoid revealing a non-public auctioneer's address in the async statement.
+        let randomizer: scalar = Poseidon2::hash_to_scalar(receipt);
+        let commitment: group = randomizer*(auctioneer as group) + auction_public_key;
+
+        // A private bid.
+        let private_bid_record: PrivateBid = PrivateBid {
+            owner: auctioneer,
+            bid: private_bid,
+            bid_id,
+        };
+
+        return (receipt, private_bid_record, bid_private_on_public_address(amount, auction_id, commitment, randomizer));
+    }
+    async function bid_private_on_public_address(amount: u64, auction_id: field, commitment: group, randomizer: scalar) {
+        // Get the auction public key.
+        let auction_public_key: group = auction_public_keys.get(auction_id);
+
+        // Get the public address.
+        let auctioneer: address = auction_owners.get(auction_id);
+
+        // Verify the commitment.
+        assert(commitment == randomizer*(auctioneer as group) + auction_public_key);
+
+        // Check if the auction is open.
+        assert(!winning_bids.contains(auction_id));
+
+        // Increment the bid count.
+        bid_count.set(auction_id, bid_count.get(auction_id) + 1u64);
+
+        // Set the bid amount.
+        let highest_amount: u64 = Mapping::get_or_use(highest_bids, auction_id, 0u64);
+
+        // If the bid is higher than the highest bid, set the bid as the highest bid.
+        if amount > highest_amount {
+            highest_bids.set(auction_id, amount);
         }
     }
 
@@ -488,7 +586,7 @@ program private_auction.aleo {
     // - `amount`   : The amount of the bid.
     // - `invite`   : The auction invite.
     // - `nonce`    : A nonce derived from externally generated randomness.
-    async transition create_private_bid(
+    async transition bid_private(
         amount: u64,
         invite: AuctionInvite,
         nonce: scalar
@@ -496,40 +594,30 @@ program private_auction.aleo {
         // Ensure the bid amount is greater than the starting bid.
         assert(amount > invite.auction.starting_bid);
 
-        // Create the bid public key.
-        let bid_public_key: group = nonce*group::GEN;
-
-        // Create the bid committer key.
-        let bid_committer_key: scalar = (nonce*(self.signer as group)) as scalar;
-
-        // Create the bid data.
-        let new_bid: bid = bid {
-            amount,
-            auction_id: invite.auction_id,
-            bid_public_key,
-        };
+        // Create the bid.
+        let private_bid: bid = create_bid(amount, invite.auction_id, nonce);
 
         // Create the bid id.
-        let bid_id: field = BHP256::commit_to_field(new_bid, bid_committer_key);
-
-        // A private bid.
-        let private_bid: PrivateBid = PrivateBid {
-            owner: invite.auctioneer,
-            bid: new_bid,
-            bid_id,
-        };
+        let bid_id: field = create_bid_id(private_bid, nonce);
 
         // Create a bid receipt.
         let receipt: BidReceipt = BidReceipt {
             owner: self.signer,
             auction_id: invite.auction_id,
-            bid: new_bid,
+            bid: private_bid,
             bid_id,
         };
 
-        return (invite, receipt, private_bid, finalize_create_private_bid(amount, invite.auction_id));
+        // A private bid.
+        let private_bid_record: PrivateBid = PrivateBid {
+            owner: invite.auctioneer,
+            bid: private_bid,
+            bid_id,
+        };
+
+        return (invite, receipt, private_bid_record, finalize_bid_private(amount, invite.auction_id));
     }
-    async function finalize_create_private_bid(amount: u64, auction_id: field) {
+    async function finalize_bid_private(amount: u64, auction_id: field) {
         // Ensure the auction has been created.
         assert(auction_public_keys.contains(auction_id));
 

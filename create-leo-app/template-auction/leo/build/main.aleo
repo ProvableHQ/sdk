@@ -123,20 +123,21 @@ function create_public_auction:
     input r3 as [field; 4u32].private;
     input r4 as u64.private;
     input r5 as scalar.private;
-    lt r1 3field into r6;
-    assert.eq r6 true;
-    mul r5 1540945439182663264862696551825005342995406165131907382295858612069623286213group into r7;
-    cast self.signer into r8 as group;
-    mul r5 r8 into r9;
-    cast r9 into r10 as scalar;
-    cast 1field r1 into r11 as privacy_settings;
-    cast r2 r3 into r12 as item;
-    cast r4 r0 r12 into r13 as auction;
-    commit.bhp256 r13 r10 into r14 as field;
-    cast self.signer r13 r14 r11 into r15 as AuctionTicket.record;
-    async create_public_auction r13 r14 r7 self.signer r11 into r16;
-    output r15 as AuctionTicket.record;
-    output r16 as private_auction.aleo/create_public_auction.future;
+    input r6 as boolean.private;
+    lt r1 3field into r7;
+    assert.eq r7 true;
+    mul r5 1540945439182663264862696551825005342995406165131907382295858612069623286213group into r8;
+    cast self.signer into r9 as group;
+    mul r5 r9 into r10;
+    cast r10 into r11 as scalar;
+    cast 1field r1 into r12 as privacy_settings;
+    cast r2 r3 into r13 as item;
+    cast r4 r0 r13 into r14 as auction;
+    commit.bhp256 r14 r11 into r15 as field;
+    cast self.signer r14 r15 r12 into r16 as AuctionTicket.record;
+    async create_public_auction r14 r15 r8 self.signer r12 into r17;
+    output r16 as AuctionTicket.record;
+    output r17 as private_auction.aleo/create_public_auction.future;
 
 finalize create_public_auction:
     input r0 as auction.public;
@@ -147,7 +148,12 @@ finalize create_public_auction:
     contains auction_public_keys[r1] into r5;
     not r5 into r6;
     assert.eq r6 true;
+    is.neq r3 private_auction.aleo into r7;
+    branch.eq r7 false to end_then_0_0;
     set r3 into auction_owners[r1];
+    branch.eq true true to end_otherwise_0_1;
+    position end_then_0_0;
+    position end_otherwise_0_1;
     set r0 into public_auctions[r1];
     set r4 into auction_privacy_settings[r1];
     set r2 into auction_public_keys[r1];
@@ -192,6 +198,7 @@ function select_winner_private:
     input r0 as AuctionTicket.record;
     input r1 as PrivateBid.record;
     assert.neq r0.settings.bid_types_accepted 1field;
+    assert.eq r0.auction_id r1.bid.auction_id;
     async select_winner_private r1.bid.amount r1.bid.auction_id r1.bid_id into r2;
     output r2 as private_auction.aleo/select_winner_private.future;
 
@@ -218,24 +225,24 @@ finalize select_winner_public:
     assert.eq r2.amount r3;
     set r1 into winning_bids[r0];
 
-function create_public_bid:
+function bid_public:
     input r0 as u64.private;
     input r1 as field.private;
     input r2 as scalar.private;
     input r3 as boolean.private;
     mul r2 1540945439182663264862696551825005342995406165131907382295858612069623286213group into r4;
-    cast self.signer into r5 as group;
-    mul r2 r5 into r6;
-    cast r6 into r7 as scalar;
-    cast r0 r1 r4 into r8 as bid;
-    commit.bhp256 r8 r7 into r9 as field;
-    ternary r3 self.signer private_auction.aleo into r10;
-    cast self.signer r1 r8 r9 into r11 as BidReceipt.record;
-    async create_public_bid r8 r9 r10 into r12;
-    output r11 as BidReceipt.record;
-    output r12 as private_auction.aleo/create_public_bid.future;
+    cast r0 r1 r4 into r5 as bid;
+    cast self.signer into r6 as group;
+    mul r2 r6 into r7;
+    cast r7 into r8 as scalar;
+    commit.bhp256 r5 r8 into r9 as field;
+    cast self.signer r1 r5 r9 into r10 as BidReceipt.record;
+    ternary r3 self.signer private_auction.aleo into r11;
+    async bid_public r5 r9 r11 into r12;
+    output r10 as BidReceipt.record;
+    output r12 as private_auction.aleo/bid_public.future;
 
-finalize create_public_bid:
+finalize bid_public:
     input r0 as bid.public;
     input r1 as field.public;
     input r2 as address.public;
@@ -253,39 +260,88 @@ finalize create_public_bid:
     set r9 into bid_count[r0.auction_id];
     get.or_use highest_bids[r0.auction_id] 0u64 into r10;
     gt r0.amount r10 into r11;
-    branch.eq r11 false to end_then_0_0;
+    branch.eq r11 false to end_then_0_2;
     set r0.amount into highest_bids[r0.auction_id];
-    branch.eq true true to end_otherwise_0_1;
-    position end_then_0_0;
-    position end_otherwise_0_1;
-    is.neq r2 private_auction.aleo into r12;
-    branch.eq r12 false to end_then_0_2;
-    set r2 into public_bid_owners[r1];
     branch.eq true true to end_otherwise_0_3;
     position end_then_0_2;
     position end_otherwise_0_3;
+    is.neq r2 private_auction.aleo into r12;
+    branch.eq r12 false to end_then_0_4;
+    set r2 into public_bid_owners[r1];
+    branch.eq true true to end_otherwise_0_5;
+    position end_then_0_4;
+    position end_otherwise_0_5;
 
-function create_private_bid:
+function bid_private_on_public_auction:
+    input r0 as u64.private;
+    input r1 as field.private;
+    input r2 as address.private;
+    input r3 as group.private;
+    input r4 as scalar.private;
+    mul r4 1540945439182663264862696551825005342995406165131907382295858612069623286213group into r5;
+    cast r0 r1 r5 into r6 as bid;
+    cast self.signer into r7 as group;
+    mul r4 r7 into r8;
+    cast r8 into r9 as scalar;
+    commit.bhp256 r6 r9 into r10 as field;
+    cast self.signer r1 r6 r10 into r11 as BidReceipt.record;
+    hash.psd2 r11 into r12 as scalar;
+    cast r2 into r13 as group;
+    mul r12 r13 into r14;
+    add r14 r3 into r15;
+    cast r2 r6 r10 into r16 as PrivateBid.record;
+    async bid_private_on_public_auction r0 r1 r15 r12 into r17;
+    output r11 as BidReceipt.record;
+    output r16 as PrivateBid.record;
+    output r17 as private_auction.aleo/bid_private_on_public_auction.future;
+
+finalize bid_private_on_public_auction:
+    input r0 as u64.public;
+    input r1 as field.public;
+    input r2 as group.public;
+    input r3 as scalar.public;
+    get auction_public_keys[r1] into r4;
+    get auction_owners[r1] into r5;
+    cast r5 into r6 as group;
+    mul r3 r6 into r7;
+    add r7 r4 into r8;
+    is.eq r2 r8 into r9;
+    assert.eq r9 true;
+    contains winning_bids[r1] into r10;
+    not r10 into r11;
+    assert.eq r11 true;
+    get bid_count[r1] into r12;
+    add r12 1u64 into r13;
+    set r13 into bid_count[r1];
+    get.or_use highest_bids[r1] 0u64 into r14;
+    gt r0 r14 into r15;
+    branch.eq r15 false to end_then_0_6;
+    set r0 into highest_bids[r1];
+    branch.eq true true to end_otherwise_0_7;
+    position end_then_0_6;
+    position end_otherwise_0_7;
+
+function bid_private:
     input r0 as u64.private;
     input r1 as AuctionInvite.record;
     input r2 as scalar.private;
     gt r0 r1.auction.starting_bid into r3;
     assert.eq r3 true;
     mul r2 1540945439182663264862696551825005342995406165131907382295858612069623286213group into r4;
-    cast self.signer into r5 as group;
-    mul r2 r5 into r6;
-    cast r6 into r7 as scalar;
-    cast r0 r1.auction_id r4 into r8 as bid;
-    commit.bhp256 r8 r7 into r9 as field;
-    cast r1.auctioneer r8 r9 into r10 as PrivateBid.record;
-    cast self.signer r1.auction_id r8 r9 into r11 as BidReceipt.record;
-    async create_private_bid r0 r1.auction_id into r12;
+    cast r0 r1.auction_id r4 into r5 as bid;
+    cast self.signer into r6 as group;
+    mul r2 r6 into r7;
+    cast r7 into r8 as scalar;
+    commit.bhp256 r5 r8 into r9 as field;
+    cast self.signer r1.auction_id r5 r9 into r10 as BidReceipt.record;
+    cast r1.auctioneer r5 r9 into r11 as PrivateBid.record;
+    async bid_private r0 r1.auction_id into r12;
     output r1 as AuctionInvite.record;
-    output r11 as BidReceipt.record;
-    output r10 as PrivateBid.record;
-    output r12 as private_auction.aleo/create_private_bid.future;
+    output r10 as BidReceipt.record;
+    output r11 as PrivateBid.record;
+    output r12 as private_auction.aleo/bid_private.future;
 
-finalize create_private_bid:
+finalize bid_private:
     input r0 as u64.public;
     input r1 as field.public;
     contains auction_public_keys[r1] into r2;
@@ -298,11 +354,11 @@ finalize create_private_bid:
     set r6 into bid_count[r1];
     get.or_use highest_bids[r1] 0u64 into r7;
     gt r0 r7 into r8;
-    branch.eq r8 false to end_then_0_4;
+    branch.eq r8 false to end_then_0_8;
     set r0 into highest_bids[r1];
-    branch.eq true true to end_otherwise_0_5;
-    position end_then_0_4;
-    position end_otherwise_0_5;
+    branch.eq true true to end_otherwise_0_9;
+    position end_then_0_8;
+    position end_otherwise_0_9;
 
 function redeem_bid_public:
     input r0 as address.private;

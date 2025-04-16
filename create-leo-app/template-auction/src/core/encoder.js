@@ -54,4 +54,10 @@ function convertFieldToString(field) {
   return new TextDecoder("utf-8").decode(fieldBytes);
 }
 
-export { encodeStringAsField, convertFieldToString };
+function encodeStringAsFieldArray(auction_name) {
+  const encoder = new TextEncoder();
+  let utf8Bytes = encoder.encode(auction_name);
+  return utf8Bytes;
+}
+
+export { encodeStringAsField, convertFieldToString, encodeStringAsFieldArray };
