@@ -126,6 +126,18 @@ class AleoNetworkClient {
         }
     }
 
+
+    /**
+     * Wrapper around the POST helper to allow mocking in tests.
+     *
+     * @param url The URL to POST to.
+     * @param options The RequestInit options for the POST request.
+     * @returns The Response object from the POST request.
+     */
+    private async sendPost(url: string, options: RequestInit) {
+      return post(url, options);
+    }    
+
     /**
      * Attempt to find records in the Aleo blockchain.
      *
@@ -1347,12 +1359,13 @@ class AleoNetworkClient {
                 ? transaction.toString()
                 : transaction;
         try {
-            const response = await post(this.host + "/transaction/broadcast", {
-                body: transaction_string,
-                headers: Object.assign({}, this.headers, {
-                    "Content-Type": "application/json",
-                }),
-            });
+          const response = await retryWithBackoff(() =>
+            this.sendPost(this.host + "/transaction/broadcast", {
+              body: transaction_string,
+              headers: Object.assign({}, this.headers, {
+                "Content-Type": "application/json",
+              }),
+            }));
 
             try {
                 const text = await response.text();

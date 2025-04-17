@@ -18,6 +18,7 @@ import {
     TransitionObject,
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import { beaconPrivateKeyString } from "./data/account-data";
+import * as utils from "../src/utils";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {
@@ -234,6 +235,27 @@ describe("NodeConnection", () => {
             expect(attemptCount).to.be.greaterThan(1);
           }
         });
+      
+        it("should retry failed transaction submissions and eventually give up", async () => {
+            const client = new AleoNetworkClient("http://localhost:1234");
+          
+            let attemptCount = 0;
+          
+            // @ts-ignore override for testing
+            client["sendPost"] = async () => {
+              attemptCount++;
+              console.warn(`fake sendPost attempt ${attemptCount}`);
+              throw new Error("503 Service Unavailable");
+            };
+          
+            try {
+              await client.submitTransaction("dummy_tx_string");
+              throw new Error("Expected submitTransaction to fail");
+            } catch (err: any) {
+              expect(err.message).to.include("503");
+              expect(attemptCount).to.be.greaterThan(1);
+            }
+          });
       });
       
 
