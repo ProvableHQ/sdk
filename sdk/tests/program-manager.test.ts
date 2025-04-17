@@ -10,8 +10,29 @@ import {
 import { Account, ExecutionResponse, OfflineQuery, ProgramManager, RecordPlaintext } from "../src/node";
 
 describe('Program Manager', () => {
-    const programManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined);
+    const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
     programManager.setAccount(new Account({privateKey: statePathRecordOwnerPrivateKey}));
+
+    describe('Instantiate with AleoNetworkClientOptions', () => {
+        it('should have the specified headers when instantiated', async () => {
+            const newProgramManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined, { headers: {'X-Test-Header': 'programManager'} });
+            expect(Object.keys(newProgramManager.networkClient.headers).length).equal(1);
+            expect(newProgramManager.networkClient.headers['X-Test-Header']).equal('programManager');
+            expect(newProgramManager.networkClient.headers['X-Aleo-SDK-Version']).undefined;
+        })
+    });
+
+    describe('networkClient header methods', () => {
+        it('should correctly udpdate the networkClient headers map', async () => {
+            programManager.setHeader('X-Added-Header', 'programManager');
+            expect(programManager.networkClient.headers['X-Added-Header']).equal('programManager');
+        })
+
+        it('should remove header from the networkClient headers map', async () => {
+            programManager.removeHeader('X-Added-Header');
+            expect(programManager.networkClient.headers['X-Added-Header']).undefined;
+        })
+    })
 
     describe('Execute offline', () => {
         it.skip('Program manager should execute offline and verify the resulting proof correctly', async () => {
