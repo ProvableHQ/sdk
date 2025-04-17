@@ -214,6 +214,25 @@ describe("NodeConnection", () => {
         });
     });
 
+    describe("setHeader", () => {
+        it("should correctly update the headers map", async () => {
+            connection.setHeader('X-Test-Header', 'testvalue');
+            expect(connection.headers['X-Test-Header']).equal('testvalue');
+        })
+
+        it("should update existing header in map", async () => {
+            connection.setHeader('X-Test-Header', 'secondtestvalue');
+            expect(connection.headers['X-Test-Header']).equal('secondtestvalue');
+        })
+    })
+
+    describe("removeHeader", () => {
+        it("should remove header from the map", async () => {
+            connection.removeHeader('X-Test-Header');
+            expect(connection.headers['X-Test-Header']).undefined;
+        })
+    })
+
     describe("waitForTransactionConfirmation", () => {
         const mainnetAcceptedTx =
             "at1dl9lze8wscct0dee8x9tjnfmpjvj33hh23jcnp5f0ywjn5552yrsperzl9";

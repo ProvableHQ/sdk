@@ -95,6 +95,43 @@ class AleoNetworkClient {
     }
 
     /**
+     * Set a header in the `AleoNetworkClient`s header map
+     * 
+     * @param {string} headerName The name of the header to set
+     * @param {string} value The header value
+     * 
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     * 
+     * // Create a networkClient
+     * const networkClient = new AleoNetworkClient();
+     * 
+     * // Set the value of the `Accept-Language` header to `en-US`
+     * networkClient.setHeader('Accept-Language', 'en-US');
+     */
+    setHeader(headerName: string, value: string) {
+        this.headers[headerName] = value;
+    }
+
+    /**
+     * Remove a header from the `AleoNetworkClient`s header map
+     * 
+     * @param {string} headerName The name of the header to be removed
+     * 
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     * 
+     * // Create a networkClient
+     * const networkClient = new AleoNetworkClient();
+     * 
+     * // Remove the default `X-Aleo-SDK-Version` header
+     * networkClient.removeHeader('X-Aleo-SDK-Version');
+     */
+    removeHeader(headerName: string) {
+        delete this.headers[headerName]
+    }
+
+    /**
      * Fetches data from the Aleo network and returns it as a JSON object.
      *
      * @param url The URL to fetch data from.
