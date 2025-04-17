@@ -305,6 +305,7 @@ program private_auction_test.aleo {
 
         return (auction_ticket, create_auction_public_future);
     }
+
     // Finalize the creation of the auction.
     async function finalize_create_public_auction(new_auction: auction, auction_id: field, auction_public_key: group, auctioneer: address, settings: privacy_settings) {
         // Ensure the auction doesn't already exist.

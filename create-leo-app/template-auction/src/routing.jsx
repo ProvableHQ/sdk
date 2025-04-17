@@ -1,6 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
 import Main from "./main.jsx";
-import { AuctioneerBids} from "./tabs/auctioneer/AuctioneerBids.jsx";
 import { CreateAuction } from "./tabs/auctioneer/CreateAuction";
 import { OpenAuctions } from "./tabs/auctioneer/OpenAuctions";
 import { BidControls } from "./tabs/bidder/BidControls";
@@ -20,8 +19,6 @@ export const router = createBrowserRouter([
                 element: (
                     <>
                         <CreateAuction />
-                        <br />
-                        <AuctioneerBids />
                         <br />
                         <OpenAuctions />
                     </>

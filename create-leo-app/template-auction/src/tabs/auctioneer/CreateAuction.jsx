@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Select, Radio, Button, InputNumber, Table, Image, Typography, Space, Checkbox } from 'antd';
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
-import { encodeStringAsField } from "../../core/encoder.js";
+import { stringToFieldInputs, encodeStringAsField } from "../../core/encoder.js";
+import { PROGRAM_ID } from "../../core/constants.js";
+import { Field, Scalar } from "@provablehq/sdk";
 
 const { Text, Paragraph } = Typography;
 
@@ -83,31 +85,34 @@ export const CreateAuction = () => {
             // Encode the metadata URL as a field array (split into 4 parts)
             const selectedItem = PREDEFINED_ITEMS.find(item => item.id === values.itemId);
             const metadataUrl = selectedItem.metadata;
-            const encodedMetadata = encodeStringAsField(metadataUrl);
+            const encodedMetadata = `[${stringToFieldInputs(metadataUrl).toString()}]`;
+            const itemId = Field.random().toString();
 
             // Create the transaction inputs based on auction type
             const inputs = [
-                values.bidTypesAccepted, // bid types accepted (0 = private, 1 = public, 2 = mix)
-                encodeStringAsField(values.itemId.toString()), // item id
+                values.bidTypesAccepted + "field", // bid types accepted (0 = private, 1 = public, 2 = mix)
+                itemId, // item id
                 encodedName, // auction name
-                [encodedMetadata, encodedMetadata, encodedMetadata, encodedMetadata], // item offchain data (repeated to match [field; 4])
-                values.startingBid, // starting bid
-                nonce, // nonce
+                encodedMetadata, // item offchain data (repeated to match [field; 4])
+                values.startingBid.toString() + "u64", // starting bid
+                Scalar.random().toString(), // nonce
             ];
 
             // Add publishAddress parameter for public auctions
             if (values.auctionType === 'public') {
-                inputs.push(values.publishAddress);
+                inputs.push(values.publishAddress.toString());
             }
+
+            console.log(`Inputs:`, inputs);
 
             // Create the transaction
             const transaction = Transaction.createTransaction(
                 publicKey,
                 WalletAdapterNetwork.TestnetBeta,
-                'private_auction.aleo',
+                PROGRAM_ID,
                 values.auctionType === 'public' ? 'create_public_auction' : 'create_private_auction',
                 inputs,
-                30000,
+                97000,
                 false,
             );
 
@@ -187,11 +192,11 @@ export const CreateAuction = () => {
                 <Form.Item
                     name="startingBid"
                     label="Starting Bid Amount"
-                    rules={[{ required: true, message: 'Please enter a starting bid amount' }]}
+                    rules={[{ required: true, message: 'Please enter a starting bid in ALEO microcredits' }]}
                 >
                     <InputNumber
                         min={1}
-                        placeholder="Enter starting bid amount (microcredits)"
+                        placeholder="Enter starting bid amount (ALEO microcredits)"
                         style={{ width: '100%' }}
                     />
                 </Form.Item>

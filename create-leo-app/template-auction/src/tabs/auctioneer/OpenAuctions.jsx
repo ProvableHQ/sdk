@@ -1,49 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { Card, List, Typography, Image, Statistic, Row, Col, Tabs, Button } from 'antd';
 import { PROGRAM_ID } from "../../core/constants.js";
+import { removeVisbilityModifiers } from "../../core/processing.js";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { useAuctionState } from "../../components/AuctionState.jsx";
 import { ReloadOutlined } from "@ant-design/icons";
 import { convertFieldToString } from "../../core/encoder.js";
+import { AleoNetworkClient } from "@provablehq/sdk";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 export const OpenAuctions = () => {
     const { connected, requestRecords } = useWallet();
-    const { auctionState, setAuctionTickets } = useAuctionState();
+    const { auctionState, setAuctioneerState } = useAuctionState();
     const [loading, setLoading] = useState(false);
     const [auctionData, setAuctionData] = useState({});
 
     // Fetch auction tickets and related data
     const fetchAuctionData = async () => {
         setLoading(true);
+        let networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
         try {
             // Get AuctionTicket records
             const records = await requestRecords(PROGRAM_ID);
-            const auctionTickets = records.filter(record => 
-                record.type === "AuctionTicket" && !record.spent
+            const auctionTickets = records.filter(record =>
+                record.recordName === "AuctionTicket" && !record.spent
             );
-            setAuctionTickets(auctionTickets);
 
             // Process each auction ticket
             const processedData = {};
-            for (const ticket of auctionTickets) {
+            for (let ticket of auctionTickets) {
+                ticket = removeVisbilityModifiers(ticket);
                 const auctionId = ticket.data.auction_id;
                 
                 // Get highest bid for this auction
-                const highestBid = await window.aleo.getMapping(
-                    'private_auction.aleo',
-                    'highest_bids',
-                    auctionId
-                );
+                let highestBid = 0;
+                try {
+                    highestBid = (await networkClient.getProgramMappingPlaintext(
+                        PROGRAM_ID,
+                        'highest_bids',
+                        auctionId
+                    )).toObject();
+                } catch (e) {
+                    console.warn(`Error fetching highest bid for auction ${auctionId}:`, e);
+                }
 
                 // Get bid counts
-                const totalBids = await window.aleo.getMapping(
-                    'private_auction.aleo',
-                    'bid_count',
-                    auctionId
-                );
+                let totalBids = 0;
+                try {
+                    totalBids = (await networkClient.getProgramMappingPlaintext(
+                        PROGRAM_ID,
+                        'bid_count',
+                        auctionId
+                    )).toObject();
+                } catch (e) {
+                    console.warn(`Error fetching bid count for auction ${auctionId}:`, e);
+                }
 
                 // Get public bids for this auction
                 const publicBids = await fetchPublicBids(auctionId);
@@ -56,8 +69,8 @@ export const OpenAuctions = () => {
                     privateBids: [], // Will be populated from PrivateBid records
                 };
             }
-
-            setAuctionData(processedData);
+            console.log(processedData);
+            setAuctionData(removeVisbilityModifiers(processedData));
         } catch (error) {
             console.error('Error fetching auction data:', error);
         } finally {
@@ -73,9 +86,10 @@ export const OpenAuctions = () => {
 
     useEffect(() => {
         if (connected) {
-            fetchAuctionData();
-        }
-    }, [connected]);
+            fetchAuctionData().then(() => console.log("Auction data fetched."));
+            }
+        }, [connected]
+    );
 
     const renderAuctionCard = (auctionId, data) => {
         const { ticket, highestBid, totalBids, publicBids, privateBids } = data;
