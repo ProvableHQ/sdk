@@ -1,7 +1,7 @@
 import credits.aleo;
 
 // A an auction contract.
-program private_auction_test.aleo {
+program private_auction_test_2.aleo {
 
     ////////////////////////////////////////
     ///// ----- DATA DEFINITIONS ----- /////
@@ -15,6 +15,11 @@ program private_auction_test.aleo {
         starting_bid: u64,
         name: field,
         item: item,
+    }
+
+    struct auction_hashable {
+        auction: auction,
+        key_1: field,
     }
 
     // Description of an item being auctioned.
@@ -43,14 +48,17 @@ program private_auction_test.aleo {
         bid_public_key: group,
     }
 
+    // Hashable representation of a bid.
+    struct bid_hashable {
+        bid: bid,
+        key_1: field,
+    }
+
     ///////////////////////////////////
     ///// ----- PUBLIC DATA ----- /////
     ///////////////////////////////////
 
     ///// ----- AUCTION MAPPINGS ----- /////
-
-    // Searchable mapping of auction ids to auction data.
-    mapping auctions: u64 => field;
 
     // Bid count for an auction.
     mapping bid_count: field => u64;
@@ -73,6 +81,9 @@ program private_auction_test.aleo {
     // Highest bid for public or mixed auction.
     mapping highest_bids: field => u64;
 
+    // Map of redemption keys for auctions with hidden addresses.
+    mapping auction_redemption_keys: field => group;
+
     // Record of auctions in which the bidder has redeemed their bid.
     mapping redemptions: field => bool;
 
@@ -83,6 +94,11 @@ program private_auction_test.aleo {
 
     // Map of public bid owners.
     mapping public_bid_owners: field => address;
+
+    ///// ----- OTHER MAPPINGS ----- /////
+
+    // Map of public keys to prevent nonce re-use.
+    mapping public_keys: group => bool;
 
     ////////////////////////////////////
     ///// ----- PRIVATE DATA ----- /////
@@ -98,6 +114,7 @@ program private_auction_test.aleo {
         owner: address,
         auction: auction,
         auction_id: field,
+        redemption_key: scalar,
         settings: privacy_settings,
     }
 
@@ -123,6 +140,7 @@ program private_auction_test.aleo {
         auction_id: field,
         bid: bid,
         bid_id: field,
+        redemption_key: group,
     }
 
     // A bid in an auction.
@@ -139,7 +157,7 @@ program private_auction_test.aleo {
     ////////////////////////////////////////
     ///// ----- INLINE FUNCTIONS ----- /////
     ////////////////////////////////////////
-    inline create_bid(amount: u64, auction_id: field, nonce: scalar) -> (field, bid) {
+    inline create_bid(amount: u64, auction_id: field, nonce: scalar) -> (field, group, bid) {
         // Create the bid public key.
         let bid_public_key: group = nonce*group::GEN;
 
@@ -151,14 +169,19 @@ program private_auction_test.aleo {
         };
 
         // Create the bid committer key.
-        let bid_commit_key: group = nonce*(self.signer as group);
+        let bid_commit_key: field = (nonce*(self.signer as group)) as field;
+
+        // Create the hashable bid.
+        let hashable_bid: bid_hashable = bid_hashable {
+            bid: new_bid,
+            key_1: bid_commit_key,
+        };
 
         // Create the bid id.
-        let bid_id: field = (Poseidon2::hash_to_scalar(new_bid)*bid_commit_key) as field;
+        let bid_id: field = Poseidon2::hash_to_field(hashable_bid);
 
-        return (bid_id, new_bid);
+        return (bid_id, bid_public_key, new_bid);
     }
-
 
     ///////////////////////////////////
     ///// ----- TRANSITIONS ----- /////
@@ -210,14 +233,21 @@ program private_auction_test.aleo {
             item: auction_item,
         };
 
+        let hashable_auction: auction_hashable = auction_hashable {
+            auction: new_auction,
+            key_1: auction_commit_key as field,
+        };
+
         // Create an id.
-        let auction_id: field = (Poseidon2::hash_to_scalar(new_auction)*auction_commit_key) as field;
+        let auction_redemption_key: scalar = Poseidon2::hash_to_scalar(hashable_auction);
+        let auction_id: field = (auction_redemption_key*group::GEN) as field;
 
         // Create an auction token for the auctioneer to use.
         let ticket: AuctionTicket = AuctionTicket {
             owner: self.signer,
             auction: new_auction,
             auction_id,
+            redemption_key: auction_redemption_key,
             settings,
         };
 
@@ -227,12 +257,18 @@ program private_auction_test.aleo {
         // Return the auction ticket and future.
         return (ticket, create_auction_private_future);
     }
-    async function finalize_create_private_auction(auction_id: field, apk: group) {
-        // Ensure the auction doesn't already exist.
+    async function finalize_create_private_auction(auction_id: field, auction_public_key: group) {
+        // Ensure public key is unique.
+        assert(!public_keys.contains(auction_public_key));
+
+        // Ensure the auction_public_key doesn't already exist.
         assert(!auction_public_keys.contains(auction_id));
 
+        // Set the public key.
+        public_keys.set(auction_public_key, true);
+
         // Set the auction public key to indicate it's start.
-        auction_public_keys.set(auction_id, apk);
+        auction_public_keys.set(auction_id, auction_public_key);
     }
 
     // Create a new auction publicly. This function will create an open auction that publicly exposes the auction data
@@ -265,7 +301,7 @@ program private_auction_test.aleo {
 
         // Create the auction settings.
         let settings: privacy_settings = privacy_settings {
-            auction_privacy: 1field,
+            auction_privacy: 0field,
             bid_types_accepted,
         };
 
@@ -282,14 +318,21 @@ program private_auction_test.aleo {
             item: auction_item,
         };
 
+        let hashable_auction: auction_hashable = auction_hashable {
+            auction: new_auction,
+            key_1: auction_commit_key as field,
+        };
+
         // Create an id.
-        let auction_id: field = (Poseidon2::hash_to_scalar(new_auction)*auction_commit_key) as field;
+        let auction_redemption_key: scalar = Poseidon2::hash_to_scalar(hashable_auction);
+        let auction_id: field = (auction_redemption_key*group::GEN) as field;
 
         // Create an auction token for the auctioneer to use.
         let auction_ticket: AuctionTicket = AuctionTicket {
             owner: self.signer,
             auction: new_auction,
             auction_id,
+            redemption_key: auction_redemption_key,
             settings,
         };
 
@@ -305,22 +348,32 @@ program private_auction_test.aleo {
 
         return (auction_ticket, create_auction_public_future);
     }
-
     // Finalize the creation of the auction.
     async function finalize_create_public_auction(new_auction: auction, auction_id: field, auction_public_key: group, auctioneer: address, settings: privacy_settings) {
-        // Ensure the auction doesn't already exist.
+        // Ensure public key is unique.
+        assert(!public_keys.contains(auction_public_key));
+
+        // Ensure the auction_public_key doesn't already exist.
         assert(!auction_public_keys.contains(auction_id));
+
+        // Set the public key.
+        public_keys.set(auction_public_key, true);
+
+        // Set the auction public key.
+        auction_public_keys.set(auction_id, auction_public_key);
+
         // Set the auction owner if the auctioneer is not the contract address.
         if auctioneer != self.address {
             // Publish the address of the auctioneer.
             auction_owners.set(auction_id, auctioneer);
         }
+
         // Set the open auction data.
         public_auctions.set(auction_id, new_auction);
+
         // Set the auction settings.
         auction_privacy_settings.set(auction_id, settings);
-        // Set the auction public key.
-        auction_public_keys.set(auction_id, auction_public_key);
+
     }
 
     // Publish the auctioneer address to chain for a private auction.
@@ -353,6 +406,22 @@ program private_auction_test.aleo {
 
         // Set the auction address.
         public_auctions.set(auction_id, auction_info);
+    }
+
+    // Publish redemption key.
+    async transition publish_redemption_key(auction_ticket: AuctionTicket, winning_bid_public_key: group) -> (AuctionTicket, Future) {
+        // Calculate the redemption key.
+        let auction_redemption_key: group = auction_ticket.redemption_key*winning_bid_public_key + (self.signer as group);
+
+        // Ensure the auction exists.
+        return (auction_ticket, finalize_publish_redemption_key(auction_ticket.auction_id, auction_redemption_key));
+    }
+    async function finalize_publish_redemption_key(auction_id: field, redemption_key: group) {
+        // Ensure the auction exists.
+        assert(!winning_bids.contains(auction_id));
+
+        // Set the auction address.
+        auction_redemption_keys.set(auction_id, redemption_key);
     }
 
     // Send a private invite to an auction. This function takes an auction receipt to ensure a the auctioneer is sending
@@ -456,11 +525,8 @@ program private_auction_test.aleo {
         nonce: scalar,
         publish_bidder_address: bool,
     ) -> (BidReceipt, Future) {
-        // Create the bid public key.
-        let bid_public_key: group = nonce*group::GEN;
-
         // Create the bid.
-        let (bid_id, public_bid): (field, bid) = create_bid(amount, auction_id, nonce);
+        let (bid_id, bid_public_key, public_bid): (field, group, bid) = create_bid(amount, auction_id, nonce);
 
         // Create a bid receipt.
         let receipt: BidReceipt = BidReceipt {
@@ -468,6 +534,7 @@ program private_auction_test.aleo {
             auction_id,
             bid: public_bid,
             bid_id,
+            redemption_key: (auction_id as group)*nonce,
         };
 
         // Optionally hide the bidder's address.
@@ -477,10 +544,16 @@ program private_auction_test.aleo {
             bid_address = self.signer;
         }
 
-        let finalize_bid_future: Future = finalize_bid_public(public_bid, bid_id, bid_address);
+        let finalize_bid_future: Future = finalize_bid_public(public_bid, bid_id, bid_address, bid_public_key);
         return (receipt, finalize_bid_future);
     }
-    async function finalize_bid_public(public_bid: bid, bid_id: field, bid_address: address) {
+    async function finalize_bid_public(public_bid: bid, bid_id: field, bid_address: address, bpk: group) {
+        // Ensure public key is unique.
+        assert(!public_keys.contains(bpk));
+
+        // Set the public key.
+        public_keys.set(bpk, true);
+
         // Ensure auction has been created.
         assert(auction_public_keys.contains(public_bid.auction_id));
 
@@ -494,7 +567,7 @@ program private_auction_test.aleo {
         public_bids.set(bid_id, public_bid);
 
         // Increment the bid count.
-        bid_count.set(public_bid.auction_id, bid_count.get(public_bid.auction_id) + 1u64);
+        bid_count.set(public_bid.auction_id, Mapping::get_or_use(bid_count, public_bid.auction_id, 0u64) + 1u64);
 
         // Get the highest bid amount and if it's greater than the current highest bid, set it.
         let highest_bid_amount: u64 = Mapping::get_or_use(highest_bids, public_bid.auction_id, 0u64);
@@ -523,7 +596,7 @@ program private_auction_test.aleo {
         nonce: scalar,
     ) -> (BidReceipt, PrivateBid, Future) {
         // Create the bid.
-        let (bid_id, private_bid): (field, bid) = create_bid(amount, auction_id, nonce);
+        let (bid_id, bid_public_key, private_bid): (field, group, bid) = create_bid(amount, auction_id, nonce);
 
         // Create a bid receipt.
         let receipt: BidReceipt = BidReceipt {
@@ -531,6 +604,7 @@ program private_auction_test.aleo {
             auction_id,
             bid: private_bid,
             bid_id,
+            redemption_key: (auction_id as group)*nonce,
         };
 
         // A private bid.
@@ -540,9 +614,15 @@ program private_auction_test.aleo {
             bid_id,
         };
 
-        return (receipt, private_bid_record, finalize_bid_private(amount, auction_id));
+        return (receipt, private_bid_record, finalize_bid_private(amount, auction_id, bid_public_key));
     }
-    async function finalize_bid_private(amount: u64, auction_id: field) {
+    async function finalize_bid_private(amount: u64, auction_id: field, bpk: group) {
+        // Ensure public key is unique.
+        assert(!public_keys.contains(bpk));
+
+        // Set the public key.
+        public_keys.set(bpk, true);
+
         // Ensure the auction has been created.
         assert(auction_public_keys.contains(auction_id));
 
@@ -550,7 +630,7 @@ program private_auction_test.aleo {
         assert(!winning_bids.contains(auction_id));
 
         // Increment the bid count.
-        bid_count.set(auction_id, bid_count.get(auction_id) + 1u64);
+        bid_count.set(auction_id, Mapping::get_or_use(bid_count, auction_id, 0u64) + 1u64);
 
         // Set the bid amount.
         let highest_amount: u64 = Mapping::get_or_use(highest_bids, auction_id, 0u64);
@@ -663,5 +743,43 @@ program private_auction_test.aleo {
        // Set the bid as redeemed.
         redemptions.set(auction_id, true);
     }
-}
 
+    // Redeem bid anonymously and transfer credits privately to the auctioneer. This function will transfer the credits
+    // to the auctioneer and set the bid as redeemed, thus closing the auction.
+    //
+    // - `invite`         : The auction invite.
+    // - `bid_receipt`    : The bid receipt matching the bid.
+    // - `transfer_record`: The transfer record to use for the transfer.
+    async transition redeem_privately_with_redemption_key(
+        auctioneer_redemption_key: group,
+        bid_receipt: BidReceipt,
+        transfer_record: credits.aleo/credits,
+    ) -> Future {
+        // Ensure the transfer record has enough credits to pay the balance.
+        assert(transfer_record.microcredits >= bid_receipt.bid.amount);
+
+        // Calculate the auctioneer's address.
+        let auctioneer: address = (auctioneer_redemption_key - bid_receipt.redemption_key) as address;
+
+        // Transfer the the item to the auctioneer.
+        credits.aleo/transfer_private(transfer_record, auctioneer_redemption_key, bid_receipt.bid.amount);
+
+        // Attempt to redeem the bid.
+        return finalize_redeem_bid_private(bid_receipt.bid.auction_id, auctioneer_redemption_key, bid_receipt.bid_id);
+    }
+    async function redeem_privately_with_redemption_key(auction_id: field, auctioneer_redemption_key: group, bid_id: field) {
+        // Ensure the bid is the winner.
+        let winning_bid_id: field = winning_bids.get(auction_id);
+        assert_eq(winning_bid_id, bid_id);
+
+        // Ensure the bid hasn't been redeemed.
+        assert(!redemptions.get(auction_id));
+
+        // Get the auctioneer's redemption key and assert it's equal to the one provided.
+        let auctioneer_redemption_key: group = auction_redemption_keys.get(auction_id);
+        assert_eq(auctioneer_redemption_key, auctioneer_redemption_key);
+
+       // Set the bid as redeemed.
+        redemptions.set(auction_id, true);
+    }
+}
