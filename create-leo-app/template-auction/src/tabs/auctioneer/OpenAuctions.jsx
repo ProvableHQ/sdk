@@ -7,6 +7,7 @@ import { useWallet } from '@demox-labs/aleo-wallet-adapter-react';
 import { useAuctionState } from '../../components/AuctionState.jsx';
 import { AleoNetworkClient } from '@provablehq/sdk';
 import { AuctionCard } from '../../components/AuctionCard.jsx';
+import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
 
 const { Text } = Typography;
 
@@ -25,15 +26,30 @@ export const OpenAuctions = () => {
             const auctionTickets = records.filter(record =>
                 record.recordName === "AuctionTicket" && !record.spent
             );
-            const privateBids = records.filter(record =>
-                record.recordName === "PrivateBid"
-            ).map(record => (removeVisbilityModifiers(record)));
+            const privateBids = records
+                .filter(record => record.recordName === "PrivateBid")
+                .map(record => {
+                    record = removeVisbilityModifiers(record);
+
+                    const auctionId = record.data.bid.auction_id;
+                    const amount = parseInt(
+                        record.data.bid.amount.replace('u64', '')
+                    );
+                    const id = record.data.bid_id;
+                    const bidPublicKey = record.data.bid_id;
+
+                    return {
+                        auctionId,
+                        id,
+                        amount,
+                        bidPublicKey,
+                    };
+                });
 
             const processedData = {};
-            for (let ticket of auctionTickets) {
-                ticket = removeVisbilityModifiers(ticket);
+            for (const ticketRecord of auctionTickets) {
+                const ticket = removeVisbilityModifiers(structuredClone(ticketRecord));
                 const auctionId = ticket.data.auction_id;
-                console.log(ticket);
 
                 let isPublic = ticket.data.settings.auction_privacy !== '0field';
                 // try {
@@ -74,6 +90,7 @@ export const OpenAuctions = () => {
                 const publicBids = await fetchPublicBids(auctionId);
 
                 processedData[auctionId] = {
+                    ticketRecord,
                     ticket,
                     auctionId,
                     isPublic,
@@ -85,7 +102,7 @@ export const OpenAuctions = () => {
                 };
             }
 
-            setAuctionData(removeVisbilityModifiers(processedData));
+            setAuctionData(processedData);
         } catch (error) {
             console.error('Error fetching auction data:', error);
         } finally {
@@ -119,7 +136,10 @@ export const OpenAuctions = () => {
             style={{ width: '100%' }}
         >
             {!connected ? (
+                <>
+                <WalletMultiButton />
                 <Text>Please connect your wallet to view your auctions</Text>
+                </>
             ) : (
                 <List
                     dataSource={Object.entries(auctionData)}

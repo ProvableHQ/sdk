@@ -139,6 +139,7 @@ program private_auction_test_2.aleo {
     ////////////////////////////////////////
     ///// ----- INLINE FUNCTIONS ----- /////
     ////////////////////////////////////////
+
     inline create_bid(amount: u64, auction_id: field, nonce: scalar) -> (field, bid) {
         // Create the bid public key.
         let bid_public_key: group = nonce*group::GEN;

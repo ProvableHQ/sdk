@@ -1,11 +1,12 @@
 import React from 'react';
-import { Modal, Form, Input, InputNumber, Button, Checkbox } from 'antd';
+import { Modal, Form, InputNumber, Button, Checkbox } from 'antd';
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 import { PROGRAM_ID } from '../core/constants';
 import { Scalar } from '@provablehq/sdk';
 
 export const BidForm = ({ visible, onCancel, auctionData, bidType }) => {
+    const [ showAddress, setShowAddress ] = React.useState(false);
     const { publicKey, requestTransaction } = useWallet();
     const [form] = Form.useForm();
 
@@ -15,15 +16,17 @@ export const BidForm = ({ visible, onCancel, auctionData, bidType }) => {
             const nonce = Scalar.random().toString();
             
             let inputs = [];
+
             if (bidType === 'private') {
                 inputs = [
                     values.amount.toString() + "u64",
                     auctionData.auctionId,
-                    values.auctioneerAddress || auctionData.auctioneerAddress, // Use form input if no address provided
+                    auctionData.auctioneer,
                     "2group",
                     nonce,
                 ];
-                console.log(inputs);
+
+                console.log("Inputs for Private Bid:", inputs);
                 const transaction = Transaction.createTransaction(
                     publicKey,
                     WalletAdapterNetwork.TestnetBeta,
@@ -40,9 +43,10 @@ export const BidForm = ({ visible, onCancel, auctionData, bidType }) => {
                     values.amount.toString() + "u64",
                     auctionData.auctionId,
                     nonce,
-                    values.publishAddress.toString() || "false",
+                    values.publishAddress?.toString() || "false", // Optional: show bidder address
                 ];
-                console.log(inputs);
+                console.log(values);
+                console.log(bidType);
                 
                 const transaction = Transaction.createTransaction(
                     publicKey,
@@ -81,7 +85,7 @@ export const BidForm = ({ visible, onCancel, auctionData, bidType }) => {
                     label="Bid Amount"
                     rules={[
                         { required: true, message: 'Please enter bid amount' },
-                        { type: 'number', min: auctionData.startingBid, message: `Minimum bid is ${auctionData.startingBid}` }
+                        { type: 'number', min: auctionData.starting_bid, message: `Minimum bid is ${auctionData.starting_bid}` }
                     ]}
                 >
                     <InputNumber
@@ -90,28 +94,12 @@ export const BidForm = ({ visible, onCancel, auctionData, bidType }) => {
                     />
                 </Form.Item>
 
-                {bidType === 'private' && !auctionData.auctioneerAddress && (
-                    <Form.Item
-                        name="auctioneerAddress"
-                        label="Auctioneer Address"
-                        rules={[
-                            { required: true, message: 'Please enter the auctioneer address' },
-                            { 
-                                pattern: /^aleo1[a-z0-9]{58}$/i,
-                                message: 'Please enter a valid Aleo address'
-                            }
-                        ]}
-                    >
-                        <Input placeholder="Enter auctioneer's Aleo address" />
-                    </Form.Item>
-                )}
-
                 {bidType === 'public' && (
                     <Form.Item
                         name="publishAddress"
                         valuePropName="checked"
                     >
-                        <Checkbox>
+                        <Checkbox checked={showAddress} >
                             Show my address publicly
                         </Checkbox>
                     </Form.Item>

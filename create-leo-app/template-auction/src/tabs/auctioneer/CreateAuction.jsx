@@ -37,7 +37,7 @@ export const CreateAuction = () => {
     const [form] = Form.useForm();
     const [selectedItemData, setSelectedItemData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [auctionType, setAuctionType] = useState('private');
+    const [auctionType, setAuctionType] = useState('public');
 
     // Add useEffect to load the first item on mount
     useEffect(() => {
@@ -89,18 +89,26 @@ export const CreateAuction = () => {
             const itemId = Field.random().toString();
 
             // Create the transaction inputs based on auction type
-            const inputs = [
-                values.bidTypesAccepted + "field", // bid types accepted (0 = private, 1 = public, 2 = mix)
-                itemId, // item id
-                encodedName, // auction name
-                encodedMetadata, // item offchain data (repeated to match [field; 4])
-                values.startingBid.toString() + "u64", // starting bid
-                Scalar.random().toString(), // nonce
-            ];
-
-            // Add publishAddress parameter for public auctions
-            if (values.auctionType === 'public') {
-                inputs.push(values.publishAddress.toString());
+            let inputs = [];
+            if (values.auctionType === 'private') {
+                inputs = [
+                    values.bidTypesAccepted + "field", // bid types accepted (0 = private, 1 = public, 2 = mix)
+                    itemId, // item id
+                    encodedName, // auction name
+                    encodedMetadata, // item offchain data (repeated to match [field; 4])
+                    values.startingBid.toString() + "u64", // starting bid
+                    Scalar.random().toString(), // nonce
+                ];
+            } else {
+                inputs = [
+                    encodedName, // auction name
+                    values.bidTypesAccepted + "field", // bid types accepted (0 = private, 1 = public, 2 = mix)
+                    itemId, // item id
+                    encodedMetadata, // item offchain data (repeated to match [field; 4])
+                    values.startingBid.toString() + "u64", // starting bid
+                    Scalar.random().toString(), // nonce
+                    "false"
+                ];
             }
 
             console.log(`Inputs:`, inputs);
@@ -112,16 +120,12 @@ export const CreateAuction = () => {
                 PROGRAM_ID,
                 values.auctionType === 'public' ? 'create_public_auction' : 'create_private_auction',
                 inputs,
-                97000,
+                values.auctionType === 'public' ? 137000 : 127000,
                 false,
             );
 
             // Request the transaction
             await requestTransaction(transaction);
-
-            // Reset form after successful submission
-            form.resetFields();
-            setSelectedItemData(null);
 
         } catch (error) {
             console.error('Error creating auction:', error);
@@ -153,7 +157,7 @@ export const CreateAuction = () => {
                 layout="vertical"
                 onFinish={handleSubmit}
                 initialValues={{
-                    auctionType: 'private',
+                    auctionType: 'public',
                     bidTypesAccepted: '0',
                     publishAddress: false,
                     itemId: PREDEFINED_ITEMS[0].id  // Set initial itemId
@@ -178,17 +182,6 @@ export const CreateAuction = () => {
                     <Input placeholder="Enter auction name" />
                 </Form.Item>
 
-                {auctionType === 'public' && (
-                    <Form.Item
-                        name="publishAddress"
-                        valuePropName="checked"
-                    >
-                        <Checkbox>
-                            Hide Address
-                        </Checkbox>
-                    </Form.Item>
-                )}
-
                 <Form.Item
                     name="startingBid"
                     label="Starting Bid Amount"
@@ -198,6 +191,7 @@ export const CreateAuction = () => {
                         min={1}
                         placeholder="Enter starting bid amount (ALEO microcredits)"
                         style={{ width: '100%' }}
+                        defaultValue={10000}
                     />
                 </Form.Item>
 
@@ -206,10 +200,10 @@ export const CreateAuction = () => {
                     label="Accepted Bid Types"
                     rules={[{ required: true }]}
                 >
-                    <Select>
+                    <Select defaultValue={"2"} defaultActiveFirstOption={false}>
+                        <Select.Option value="2">Both Public and Private Bids</Select.Option>
                         <Select.Option value="0">Private Bids Only</Select.Option>
                         <Select.Option value="1">Public Bids Only</Select.Option>
-                        <Select.Option value="2">Both Public and Private Bids</Select.Option>
                     </Select>
                 </Form.Item>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs, Card } from 'antd';
 import { OpenBids } from './components/OpenBids';
-import { PastBids } from './components/PastBids';
+import { ActiveBids } from './components/ActiveBids';
 
 export const BidExplorer = () => {
     return (
@@ -11,13 +11,13 @@ export const BidExplorer = () => {
                 items={[
                     {
                         key: '1',
-                        label: 'My Open Bids',
-                        children: <OpenBids />,
+                        label: 'Active Bids',
+                        children: <ActiveBids />,
                     },
                     {
                         key: '2',
-                        label: 'Past Bids',
-                        children: <PastBids />,
+                        label: 'My Bids',
+                        children: <OpenBids />,
                     },
                 ]}
             />

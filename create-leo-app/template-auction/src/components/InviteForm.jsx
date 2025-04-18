@@ -4,29 +4,25 @@ import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 import { PROGRAM_ID } from '../core/constants';
 
-export const InviteForm = ({ visible, onCancel, auctionTicket }) => {
-    const { publicKey, requestTransaction } = useWallet();
+export const InviteForm = ({ visible, onCancel, ticketRecord }) => {
+    const { publicKey, requestTransaction, requestRecords } = useWallet();
     const [form] = Form.useForm();
 
     const handleSubmit = async (values) => {
         try {
-            const inputs = [
-                auctionTicket,
-                values.inviteeAddress
-            ];
-            
             const transaction = Transaction.createTransaction(
                 publicKey,
                 WalletAdapterNetwork.TestnetBeta,
                 PROGRAM_ID,
                 'invite_to_auction',
-                inputs,
-                30000,
+                [ticketRecord, "aleo1cuu3zmcsrfnu9mk32nvzjhfjty9kjvxl0p6cty6ewefp95hgqvfqmhe5pl"],
+                70000,
                 false,
             );
+
+            console.log(transaction);
             
             await requestTransaction(transaction);
-            form.resetFields();
             onCancel();
         } catch (error) {
             console.error('Error sending invite:', error);

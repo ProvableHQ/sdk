@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Image, Statistic, Typography, Tabs, List, Button, Space, Tag } from 'antd';
+import { Card, Row, Col, Image, Statistic, Typography, Tabs, List, Button, Space, Tag, Divider } from 'antd';
 import { convertFieldToString, fieldsToString } from '../core/encoder.js';
 import { removeVisbilityModifiers } from '../core/processing.js';
 import { BidForm } from './BidForm';
@@ -10,7 +10,7 @@ const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 export const AuctionCard = ({ auctionId, data, loading }) => {
-    const { ticket, highestBid, totalBids, publicBids, privateBids } = data;
+    const { ticketRecord, ticket, highestBid, totalBids, publicBids, privateBids } = data;
     const auctionName = convertFieldToString(ticket.data.auction.name);
     const itemData = ticket.data.auction.item;
     const bidTypesAccepted = ticket.data.settings.bid_types_accepted;
@@ -18,6 +18,7 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
     const { publicKey } = useWallet();
     const isPublic = data.isPublic;
     const auctioneerAddress = data.auctioneerAddress;
+    const matchingPrivateBids = privateBids.filter(bid => bid.auctionId === auctionId);
 
     const [metadata, setMetadata] = useState({ image: '', name: '' });
     const [bidFormVisible, setBidFormVisible] = useState(false);
@@ -70,51 +71,111 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
     };
 
     const renderBidButtons = () => {
+        if (!isOwner()) {
+            return (
+                <Row gutter={[8, 8]} justify="end">
+                    {(bidTypesAccepted === '0field' || bidTypesAccepted === '2field') && (
+                        <Col>
+                            <Button 
+                                type="primary"
+                                onClick={() => showBidForm('private')}
+                            >
+                                Bid Privately
+                            </Button>
+                        </Col>
+                    )}
+                    {(bidTypesAccepted === '1field' || bidTypesAccepted === '2field') && (
+                        <Col>
+                            <Button 
+                                type="default"
+                                onClick={() => showBidForm('public')}
+                            >
+                                Bid Publicly
+                            </Button>
+                        </Col>
+                    )}
+                </Row>
+            );
+        }
+        return null;
+    };
+
+    const renderOwnerButtons = () => {
+        if (isOwner()) {
+            return (
+                <Button 
+                    type="primary"
+                    block
+                    onClick={() => setInviteFormVisible(true)}
+                >
+                    Invite to Bid
+                </Button>
+            );
+        }
+        return null;
+    };
+
+    const renderBidCard = (bid, isPrivate = true) => {
+        const isHighestBid = bid.amount === highestBid;
+        
         return (
-            <Space>
-                {isOwner() && (
-                    <Button 
-                        type="primary"
-                        onClick={() => setInviteFormVisible(true)}
-                    >
-                        Invite to Bid
-                    </Button>
-                )}
-                {(bidTypesAccepted === '0field' || bidTypesAccepted === '2field') && (
-                    <Button 
-                        type="primary"
-                        onClick={() => showBidForm('private')}
-                    >
-                        Bid Privately
-                    </Button>
-                )}
-                {(bidTypesAccepted === '1field' || bidTypesAccepted === '2field') && (
-                    <Button 
-                        type="default"
-                        onClick={() => showBidForm('public')}
-                    >
-                        Bid Publicly
-                    </Button>
-                )}
-            </Space>
+            <Card size="small" style={{ marginBottom: '8px' }}>
+                <Row justify="space-between" align="middle">
+                    <Col>
+                        <Space direction="vertical" size={0}>
+                            <Text>Bid Amount: {bid.amount / 1_000_000} ALEO</Text>
+                            <Text type="secondary">
+                                {isPrivate ? 
+                                    `Bid ID: ${bid.id.substring(0, 21)}..` :
+                                    `Bidder: ${bid.bidder}`
+                                }
+                            </Text>
+                        </Space>
+                    </Col>
+                    {isOwner() && isHighestBid && (
+                        <Col>
+                            <Button 
+                                type="primary" 
+                                danger
+                                size="small"
+                                onClick={() => {/* TODO: Implement select winner logic */}}
+                            >
+                                Select as Winner
+                            </Button>
+                        </Col>
+                    )}
+                </Row>
+            </Card>
         );
     };
+
+    const renderStatusTags = () => (
+        <Space>
+            <Tag color={isPublic ? '#1890ff' : '#f50'}>
+                {isPublic ? 'Public Auction' : 'Private Auction'}
+            </Tag>
+            {isOwner() && (
+                <Tag color="#52c41a">Your Auction</Tag>
+            )}
+        </Space>
+    );
 
     return (
         <Card
             key={auctionId}
-            title={
-                <Space>
-                    {auctionName}
-                    <Tag color={isPublic ? '#1890ff' : '#f50'}>
-                        {isPublic ? 'Public Auction' : 'Private Auction'}
-                    </Tag>
-                </Space>
-            }
             style={{ width: '100%', marginBottom: '16px' }}
             loading={loading}
-            extra={renderBidButtons()}
         >
+            <Row align="middle" style={{ marginBottom: 8 }}>
+                <Col flex="auto">
+                    <Space size="middle" align="center">
+                        <Title level={4} style={{ margin: 0 }}>{auctionName}</Title>
+                        {renderStatusTags()}
+                    </Space>
+                </Col>
+            </Row>
+            <Divider style={{ margin: '0 0 16px 0' }} />
+
             <Row gutter={[16, 16]}>
                 <Col span={8}>
                     <Image
@@ -136,49 +197,46 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
                             Auctioneer: {auctioneerAddress}
                         </Typography.Text>
                     )}
+                    <div style={{ marginTop: '16px' }}>
+                        {renderOwnerButtons()}
+                    </div>
                 </Col>
                 <Col span={16}>
                     <Row gutter={[16, 16]}>
-                        <Col span={6}>
-                            <Statistic title="Starting Bid" value={startingBid / 1_000_000.0} suffix="ALEO" />
-                        </Col>
-                        <Col span={6}>
-                            <Statistic title="Highest Bid" value={highestBid / 1_000_000.0} suffix="ALEO" />
-                        </Col>
-                        <Col span={6}>
-                            <Statistic title="Total Bids" value={totalBids} />
+                        <Col span={18}>
+                            <Row gutter={[16, 16]}>
+                                <Col span={8}>
+                                    <Statistic title="Starting Bid" value={startingBid / 1_000_000.0} suffix="ALEO" />
+                                </Col>
+                                <Col span={8}>
+                                    <Statistic title="Highest Bid" value={Number(highestBid) / 1_000_000} suffix="ALEO" />
+                                </Col>
+                                <Col span={8}>
+                                    <Statistic title="Total Bids" value={totalBids} />
+                                </Col>
+                            </Row>
                         </Col>
                         <Col span={6}>
                             <Statistic title="Bid Types" value={getBidTypeLabel(bidTypesAccepted)} />
                         </Col>
                     </Row>
+                    
+                    <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+                        {renderBidButtons()}
+                    </div>
 
-                    <Tabs defaultActiveKey="1" style={{ marginTop: '16px' }}>
+                    <Tabs defaultActiveKey="1">
                         <TabPane tab="Private Bids" key="1">
                             <List
-                                dataSource={privateBids}
-                                renderItem={bid => (
-                                    <Card size="small" style={{ marginBottom: '8px' }}>
-                                        <Row justify="space-between">
-                                            <Col>Bid Amount: {bid.amount / 1_000_000}</Col>
-                                            <Col>Bid ID: {bid.bid_id}</Col>
-                                        </Row>
-                                    </Card>
-                                )}
+                                dataSource={matchingPrivateBids}
+                                renderItem={bid => renderBidCard(bid, true)}
                                 locale={{ emptyText: 'No private bids yet' }}
                             />
                         </TabPane>
                         <TabPane tab="Public Bids" key="2">
                             <List
                                 dataSource={publicBids}
-                                renderItem={bid => (
-                                    <Card size="small" style={{ marginBottom: '8px' }}>
-                                        <Row justify="space-between">
-                                            <Col>Bid Amount: {bid.amount / 1_000_000}</Col>
-                                            <Col>Bidder: {bid.bidder}</Col>
-                                        </Row>
-                                    </Card>
-                                )}
+                                renderItem={bid => renderBidCard(bid, false)}
                                 locale={{ emptyText: 'No public bids yet' }}
                             />
                         </TabPane>
@@ -196,7 +254,7 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
             <InviteForm
                 visible={inviteFormVisible}
                 onCancel={() => setInviteFormVisible(false)}
-                auctionTicket={ticket}
+                ticketRecord={ticketRecord}
             />
         </Card>
     );
