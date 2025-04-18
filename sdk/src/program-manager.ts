@@ -1,5 +1,5 @@
 import { Account } from "./account";
-import { AleoNetworkClient, ProgramImports } from "./network-client";
+import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client";
 
 import { RecordProvider, RecordSearchParams } from "./record-provider";
 
@@ -90,9 +90,10 @@ class ProgramManager {
         host?: string | undefined,
         keyProvider?: FunctionKeyProvider | undefined,
         recordProvider?: RecordProvider | undefined,
+        networkClientOptions?: AleoNetworkClientOptions | undefined,
     ) {
         this.host = host ? host : "https://api.explorer.provable.com/v1";
-        this.networkClient = new AleoNetworkClient(this.host);
+        this.networkClient = new AleoNetworkClient(this.host, networkClientOptions);
 
         this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
         this.recordProvider = recordProvider;
@@ -146,6 +147,43 @@ class ProgramManager {
      */
     setRecordProvider(recordProvider: RecordProvider) {
         this.recordProvider = recordProvider;
+    }
+
+    /**
+     * Set a header in the `AleoNetworkClient`s header map
+     * 
+     * @param {string} headerName The name of the header to set
+     * @param {string} value The header value
+     * 
+     * @example
+     * import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+     * 
+     * // Create a ProgramManager
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+     * 
+     * // Set the value of the `Accept-Language` header to `en-US`
+     * programManager.setHeader('Accept-Language', 'en-US');
+     */
+    setHeader(headerName: string, value: string) {
+        this.networkClient.headers[headerName] = value;
+    }
+
+    /**
+     * Remove a header from the `AleoNetworkClient`s header map
+     * 
+     * @param {string} headerName The name of the header to be removed
+     * 
+     * @example
+     * import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+     * 
+     * // Create a ProgramManager
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+     * 
+     * // Remove the default `X-Aleo-SDK-Version` header
+     * programManager.removeHeader('X-Aleo-SDK-Version');
+     */
+    removeHeader(headerName: string) {
+        delete this.networkClient.headers[headerName]
     }
 
     /**
