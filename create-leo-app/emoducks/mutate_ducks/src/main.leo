@@ -2,6 +2,7 @@
 import emoducks_nft.aleo;
 
 program mutate_emoducks.aleo {
+    // Mutate a private emoduck
     async transition private_mutate(emoduck: emoducks_nft.aleo/NFT) -> (emoducks_nft.aleo/NFT, Data, Future) {
         
         let owner: address = emoduck.owner;
@@ -16,12 +17,14 @@ program mutate_emoducks.aleo {
         return (mutated_emoduck, duck_data, finalize_private_mutate(update_duck_future));    
     }
 
-    // Why is this function necessary?  
+    // Update the mapping associated with the NFT commit.
+    // Why can't the async transition simply return the Future from the external call?
     async function finalize_private_mutate(mutate_future: Future) {
         // finalize the mutate
         mutate_future.await();
     }
 
+    // Mutate a public emoduck
     async transition public_mutate(old_emoduck_commit: field, nft_commit: field) -> Future {
         // There is no record to source randomness, so currently hashing the coommit
         let random_value: field = BHP256::hash_to_field(nft_commit);
@@ -38,6 +41,7 @@ program mutate_emoducks.aleo {
         return finalize_public_mutate(new_public_duck_future, old_emoduck_future);
     }
 
+    // Update the mappings associated with the NFT commits
     async function finalize_public_mutate( 
         public_mutate_future: Future,
         old_duck_future: Future

@@ -435,6 +435,10 @@ program emoducks_nft.aleo {
             data: nft_data,
             edition: nft_edition
         };
+        // Check that the public NFT doesn't exist.
+        assert(nft_contents.contains(nft_commit).not());
+        // Check that an identical private NFT doesn't exist.
+        assert(nft_commits.contains(nft_commit).not());
         nft_contents.set(nft_commit, public_data);
         nft_owners.set(nft_commit, caller);
     }
@@ -522,6 +526,7 @@ program emoducks_nft.aleo {
         nft_commits.set(new_nft_commit, true);
     }
 
+    // Delete old public Emoduck.
     async transition delete_old_public_emoduck(
         old_emoduck_commit: field,
     ) -> Future {
