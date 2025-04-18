@@ -1,0 +1,22 @@
+"{
+  owner: aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px.private,
+  data: {
+    metadata: [
+      0field.private,
+      0field.private,
+      0field.private,
+      0field.private
+    ],
+    uri: [
+      0field.private,
+      0field.private,
+      0field.private,
+      0field.private
+    ],
+    baby: 6field.private,
+    mania: 51field.private,
+    sadness: 87field.private
+  },
+  edition: 1scalar.private,
+  _nonce: 8319343325771579423910345376380560985961652863242480363038678786252586195679group.public
+}"
