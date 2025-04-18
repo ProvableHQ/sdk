@@ -2,9 +2,9 @@ import { createBrowserRouter } from "react-router-dom";
 import Main from "./main.jsx";
 import { CreateAuction } from "./tabs/auctioneer/CreateAuction";
 import { OpenAuctions } from "./tabs/auctioneer/OpenAuctions";
-import { BidControls } from "./tabs/bidder/BidControls";
-import { Bids } from "./tabs/bidder/Bids";
+import { BidExplorer } from "./tabs/bidder/BidExplorer.jsx";
 import Homepage from "./pages/Homepage";
+import { AuctionExplorer } from './tabs/bidder/AuctionExplorer';
 
 export const router = createBrowserRouter([
     {
@@ -28,12 +28,16 @@ export const router = createBrowserRouter([
                 path: "/bidder",
                 element: (
                     <>
-                        <BidControls />
+                        <AuctionExplorer />
                         <br />
-                        <Bids />
+                        <BidExplorer />
                     </>
                 ),
             },
         ],
+    },
+    {
+        path: '/explore',
+        element: <AuctionExplorer />
     },
 ]);

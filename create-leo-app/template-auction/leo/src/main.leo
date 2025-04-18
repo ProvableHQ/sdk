@@ -1,7 +1,7 @@
 import credits.aleo;
 
 // A an auction contract.
-program private_auction_test.aleo {
+program private_auction_test_2.aleo {
 
     ////////////////////////////////////////
     ///// ----- DATA DEFINITIONS ----- /////
@@ -391,6 +391,9 @@ program private_auction_test.aleo {
         // Ensure the bid is for the correct auction.
         assert_eq(auction_ticket.auction_id, private_bid.bid.auction_id);
 
+        // Ensure the bid amount is greater than the starting bid.
+        assert(private_bid.bid.amount >= auction_ticket.auction.starting_bid);
+
         // Finalize the selection of the winner.
         return finalize_select_winner_private(private_bid.bid.amount, private_bid.bid.auction_id, private_bid.bid_id);
     }
@@ -416,23 +419,30 @@ program private_auction_test.aleo {
     // - `winning_bid_id`  : The id of the winning bid.
     async transition select_winner_public(
         auction_ticket: AuctionTicket,
+        winning_bid: bid,
         winning_bid_id: field,
     ) -> Future {
         // Ensure the bid settings aren't restricted to private bids.
         assert_neq(auction_ticket.settings.bid_types_accepted, 0field);
 
+        // Ensure the winning bid is greater than the starting bid.
+        assert(winning_bid.amount >= auction_ticket.auction.starting_bid);
+
         // Finalize the selection of the winner.
-        let redemption_future: Future = finalize_select_winner_public(auction_ticket.auction_id, winning_bid_id);
+        let redemption_future: Future = finalize_select_winner_public(auction_ticket.auction_id, winning_bid_id, winning_bid);
 
         // Return the auction ticket and future.
         return redemption_future;
     }
-    async function finalize_select_winner_public(auction_id: field, bid_id: field) {
+    async function finalize_select_winner_public(auction_id: field, bid_id: field, winning_bid: bid) {
         // Get the bid to be selected to win.
-        let winning_bid: bid = public_bids.get(bid_id);
+        let stored_bid: bid = public_bids.get(bid_id);
+
+        // Ensure the bid is for the correct auction.
+        assert_eq(stored_bid, winning_bid);
 
         // Get the highest_bid for the auction and assert it's equal to the accepted bid.
-        let highest_bid_amount: u64 = highest_bids.get(auction_id);
+        let highest_bid_amount: u64 = Mapping::get_or_use(highest_bids, auction_id, 0u64);
 
         // Ensure the bid is higher than the highest bid.
         assert_eq(winning_bid.amount, highest_bid_amount);
@@ -494,7 +504,7 @@ program private_auction_test.aleo {
         public_bids.set(bid_id, public_bid);
 
         // Increment the bid count.
-        bid_count.set(public_bid.auction_id, bid_count.get(public_bid.auction_id) + 1u64);
+        bid_count.set(public_bid.auction_id, Mapping::get_or_use(bid_count, public_bid.auction_id, 0u64) + 1u64);
 
         // Get the highest bid amount and if it's greater than the current highest bid, set it.
         let highest_bid_amount: u64 = Mapping::get_or_use(highest_bids, public_bid.auction_id, 0u64);
@@ -550,7 +560,7 @@ program private_auction_test.aleo {
         assert(!winning_bids.contains(auction_id));
 
         // Increment the bid count.
-        bid_count.set(auction_id, bid_count.get(auction_id) + 1u64);
+        bid_count.set(auction_id, Mapping::get_or_use(bid_count, auction_id, 0u64) + 1u64);
 
         // Set the bid amount.
         let highest_amount: u64 = Mapping::get_or_use(highest_bids, auction_id, 0u64);

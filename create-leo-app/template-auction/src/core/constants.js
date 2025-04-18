@@ -1,1 +1,1 @@
-export const PROGRAM_ID = "private_auction_test.aleo";
+export const PROGRAM_ID = "private_auction_test_2.aleo";

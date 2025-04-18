@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, List, Typography, Image, Statistic, Row, Col, Tabs, Button } from 'antd';
-import { PROGRAM_ID } from "../../core/constants.js";
-import { removeVisbilityModifiers } from "../../core/processing.js";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
-import { useAuctionState } from "../../components/AuctionState.jsx";
-import { ReloadOutlined } from "@ant-design/icons";
-import { convertFieldToString } from "../../core/encoder.js";
-import { AleoNetworkClient } from "@provablehq/sdk";
+import { Card, List, Typography, Button } from 'antd';
+import { ReloadOutlined } from '@ant-design/icons';
+import { PROGRAM_ID } from '../../core/constants.js';
+import { removeVisbilityModifiers } from '../../core/processing.js';
+import { useWallet } from '@demox-labs/aleo-wallet-adapter-react';
+import { useAuctionState } from '../../components/AuctionState.jsx';
+import { AleoNetworkClient } from '@provablehq/sdk';
+import { AuctionCard } from '../../components/AuctionCard.jsx';
 
-const { Title, Text } = Typography;
-const { TabPane } = Tabs;
+const { Text } = Typography;
 
 export const OpenAuctions = () => {
     const { connected, requestRecords } = useWallet();
@@ -17,24 +16,39 @@ export const OpenAuctions = () => {
     const [loading, setLoading] = useState(false);
     const [auctionData, setAuctionData] = useState({});
 
-    // Fetch auction tickets and related data
     const fetchAuctionData = async () => {
         setLoading(true);
         let networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+
         try {
-            // Get AuctionTicket records
             const records = await requestRecords(PROGRAM_ID);
             const auctionTickets = records.filter(record =>
                 record.recordName === "AuctionTicket" && !record.spent
             );
+            const privateBids = records.filter(record =>
+                record.recordName === "PrivateBid"
+            ).map(record => (removeVisbilityModifiers(record)));
 
-            // Process each auction ticket
             const processedData = {};
             for (let ticket of auctionTickets) {
                 ticket = removeVisbilityModifiers(ticket);
                 const auctionId = ticket.data.auction_id;
-                
-                // Get highest bid for this auction
+                console.log(ticket);
+
+                let isPublic = ticket.data.settings.auction_privacy !== '0field';
+                // try {
+                //     const publicAuctionData = (await networkClient.getProgramMappingPlaintext(
+                //         PROGRAM_ID,
+                //         'public_auctions',
+                //         auctionId
+                //     )).toObject();
+                //     isPublic = !!publicAuctionData;
+                // } catch (e) {
+                //     console.warn(`Error checking public status for auction ${auctionId}:`, e);
+                // }
+
+                let auctioneerAddress = ticket.owner;
+
                 let highestBid = 0;
                 try {
                     highestBid = (await networkClient.getProgramMappingPlaintext(
@@ -46,7 +60,6 @@ export const OpenAuctions = () => {
                     console.warn(`Error fetching highest bid for auction ${auctionId}:`, e);
                 }
 
-                // Get bid counts
                 let totalBids = 0;
                 try {
                     totalBids = (await networkClient.getProgramMappingPlaintext(
@@ -58,18 +71,20 @@ export const OpenAuctions = () => {
                     console.warn(`Error fetching bid count for auction ${auctionId}:`, e);
                 }
 
-                // Get public bids for this auction
                 const publicBids = await fetchPublicBids(auctionId);
-                
+
                 processedData[auctionId] = {
                     ticket,
+                    auctionId,
+                    isPublic,
+                    auctioneerAddress,
                     highestBid: highestBid || 0,
                     totalBids: totalBids || 0,
                     publicBids,
-                    privateBids: [], // Will be populated from PrivateBid records
+                    privateBids: privateBids,
                 };
             }
-            console.log(processedData);
+
             setAuctionData(removeVisbilityModifiers(processedData));
         } catch (error) {
             console.error('Error fetching auction data:', error);
@@ -79,113 +94,14 @@ export const OpenAuctions = () => {
     };
 
     const fetchPublicBids = async (auctionId) => {
-        // This would need to be implemented based on your contract's public bid storage
-        // Return structure should match your bid data structure
         return [];
     };
 
     useEffect(() => {
         if (connected) {
             fetchAuctionData().then(() => console.log("Auction data fetched."));
-            }
-        }, [connected]
-    );
-
-    const renderAuctionCard = (auctionId, data) => {
-        const { ticket, highestBid, totalBids, publicBids, privateBids } = data;
-        const auctionName = convertFieldToString(ticket.data.auction.name);
-        const itemData = ticket.data.auction.item;
-        const bidTypesAccepted = ticket.data.settings.bid_types_accepted;
-
-        return (
-            <Card
-                key={auctionId}
-                title={auctionName}
-                style={{ width: '100%', marginBottom: '16px' }}
-                loading={loading}
-            >
-                <Row gutter={[16, 16]}>
-                    <Col span={8}>
-                        <Image
-                            src={itemData.image}
-                            alt={itemData.name}
-                            style={{ width: '100%', borderRadius: '8px' }}
-                        />
-                        <Title level={5} style={{ marginTop: '8px', textAlign: 'center' }}>
-                            {itemData.name}
-                        </Title>
-                    </Col>
-                    <Col span={16}>
-                        <Row gutter={[16, 16]}>
-                            <Col span={8}>
-                                <Statistic 
-                                    title="Highest Bid" 
-                                    value={highestBid} 
-                                    suffix="credits"
-                                />
-                            </Col>
-                            <Col span={8}>
-                                <Statistic 
-                                    title="Total Bids" 
-                                    value={totalBids}
-                                />
-                            </Col>
-                            <Col span={8}>
-                                <Statistic 
-                                    title="Bid Types" 
-                                    value={getBidTypeLabel(bidTypesAccepted)}
-                                />
-                            </Col>
-                        </Row>
-
-                        <Tabs defaultActiveKey="1" style={{ marginTop: '16px' }}>
-                            <TabPane tab="Private Bids" key="1">
-                                <List
-                                    dataSource={privateBids}
-                                    renderItem={bid => (
-                                        <Card size="small" style={{ marginBottom: '8px' }}>
-                                            <Row justify="space-between">
-                                                <Col>Bid Amount: {bid.amount}</Col>
-                                                <Col>Bid ID: {bid.bid_id}</Col>
-                                            </Row>
-                                        </Card>
-                                    )}
-                                    locale={{ emptyText: 'No private bids yet' }}
-                                />
-                            </TabPane>
-                            <TabPane tab="Public Bids" key="2">
-                                <List
-                                    dataSource={publicBids}
-                                    renderItem={bid => (
-                                        <Card size="small" style={{ marginBottom: '8px' }}>
-                                            <Row justify="space-between">
-                                                <Col>Bid Amount: {bid.amount}</Col>
-                                                <Col>Bidder: {bid.bidder}</Col>
-                                            </Row>
-                                        </Card>
-                                    )}
-                                    locale={{ emptyText: 'No public bids yet' }}
-                                />
-                            </TabPane>
-                        </Tabs>
-                    </Col>
-                </Row>
-            </Card>
-        );
-    };
-
-    const getBidTypeLabel = (bidType) => {
-        switch (bidType) {
-            case '0':
-                return 'Private Only';
-            case '1':
-                return 'Public Only';
-            case '2':
-                return 'Mixed';
-            default:
-                return 'Unknown';
         }
-    };
+    }, [connected]);
 
     return (
         <Card
@@ -207,10 +123,12 @@ export const OpenAuctions = () => {
             ) : (
                 <List
                     dataSource={Object.entries(auctionData)}
-                    renderItem={([auctionId, data]) => renderAuctionCard(auctionId, data)}
+                    renderItem={([auctionId, data]) => (
+                        <AuctionCard auctionId={auctionId} data={data} loading={loading} />
+                    )}
                     locale={{ emptyText: 'No open auctions found' }}
                 />
             )}
         </Card>
     );
-}; 
+};
