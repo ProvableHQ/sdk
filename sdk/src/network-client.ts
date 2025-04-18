@@ -100,12 +100,19 @@ class AleoNetworkClient {
      * @param url The URL to fetch data from.
      */
     async fetchData<Type>(url = "/"): Promise<Type> {
-        try {
-            return retryWithBackoff(() => this.fetchRaw(url).then(parseJSON));
-        } catch (error) {
-            throw new Error(`Error fetching data: ${error}`);
-        }
-    }
+      try {
+          return await retryWithBackoff(() => this.fetchRaw(url).then(parseJSON), {
+              retryOnStatus: [500, 502, 503, 504],
+              shouldRetry: (err) => {
+                  const msg = err?.message?.toLowerCase?.() || "";
+                  return msg.includes("network") || msg.includes("timeout") || msg.includes("503");
+              }
+          });
+      } catch (error) {
+          throw new Error(`Error fetching data: ${error}`);
+      }
+  }
+  
 
     /**
      * Fetches data from the Aleo network and returns it as an unparsed string.

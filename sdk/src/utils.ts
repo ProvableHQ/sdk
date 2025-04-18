@@ -40,24 +40,35 @@ export async function post(url: URL | string, options: RequestInit) {
     return response;
 }
 
-export async function retryWithBackoff<T>(
+type RetryOptions = {
+    maxAttempts?: number;
+    baseDelay?: number;
+    retryOnStatus?: number[]; // e.g. [500, 502, 503]
+    shouldRetry?: (err: any) => boolean;
+  };
+  
+  export async function retryWithBackoff<T>(
     fn: () => Promise<T>,
-    maxAttempts = 5,
-    baseDelay = 100
+    {
+      maxAttempts = 5,
+      baseDelay = 100,
+      retryOnStatus = [],
+      shouldRetry,
+    }: RetryOptions = {}
   ): Promise<T> {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         return await fn();
       } catch (err: any) {
-        const error = err as Error & { code?: string };
         const isLast = attempt === maxAttempts;
   
-        // retry only for certain errors
+        const error = err as Error & { code?: string; status?: number };
+  
         const retryable =
-        //   err?. 404s but that will probably not be 404 soon ? 
-          error?.message?.includes('404') ||
-        //   retry for timeouts as well
-          error?.message?.includes('5');
+          (typeof error.status === "number" && retryOnStatus.includes(error.status)) ||
+          error.message?.includes("5") ||
+          error.message?.includes("404") || 
+          shouldRetry?.(error);
   
         if (!retryable || isLast) throw error;
   
@@ -65,7 +76,7 @@ export async function retryWithBackoff<T>(
         const delay = baseDelay * 2 ** (attempt - 1) + jitter;
         console.warn(`Retry ${attempt}/${maxAttempts} failed. Retrying in ${delay}ms...`);
   
-        await new Promise(res => setTimeout(res, delay));
+        await new Promise((res) => setTimeout(res, delay));
       }
     }
   
