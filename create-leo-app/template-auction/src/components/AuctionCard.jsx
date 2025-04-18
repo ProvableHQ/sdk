@@ -5,6 +5,9 @@ import { removeVisbilityModifiers } from '../core/processing.js';
 import { BidForm } from './BidForm';
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { InviteForm } from './InviteForm';
+import { Transaction } from '@demox-labs/aleo-wallet-adapter-base';
+import { PROGRAM_ID } from '../core/constants';
+
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -15,7 +18,7 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
     const itemData = ticket.data.auction.item;
     const bidTypesAccepted = ticket.data.settings.bid_types_accepted;
     const startingBid = parseInt(removeVisbilityModifiers(ticket.data.auction.starting_bid).replace('u64', ''));
-    const { publicKey } = useWallet();
+    const { publicKey, requestTransaction } = useWallet();
     const isPublic = data.isPublic;
     const auctioneerAddress = data.auctioneerAddress;
     const matchingPrivateBids = privateBids.filter(bid => bid.auctionId === auctionId);
@@ -115,10 +118,66 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
         return null;
     };
 
+    const findHighestBidAmount = () => {
+        let highestAmount = 0;
+        
+        // Check public bids
+        publicBids.forEach(bid => {
+            const amount = parseInt(bid.amount);
+            if (amount > highestAmount) {
+                highestAmount = amount;
+            }
+        });
+
+        // Check private bids
+        matchingPrivateBids.forEach(bid => {
+            const amount = parseInt(bid.amount);
+            if (amount > highestAmount) {
+                highestAmount = amount;
+            }
+        });
+
+        return highestAmount;
+    };
+
+    const handleSelectWinner = async (bid, isPrivate) => {
+        try {
+            const inputs = isPrivate ? 
+                // Inputs for private winner selection
+                [
+                    ticketRecord,     // Use original AuctionTicket record
+                    bid.originalRecord, // Use original PrivateBid record
+                ] :
+                // Inputs for public winner selection
+                [
+                    ticketRecord,     // Use original AuctionTicket record
+                    bid,
+                    bid.id,          // winning_bid_id
+                ];
+            
+            console.log('Inputs:', inputs);
+
+            const transaction = Transaction.createTransaction(
+                publicKey,
+                PROGRAM_ID,
+                isPrivate ? 'select_winner_private' : 'select_winner_public',
+                inputs,
+                0.276, // Fee in credits
+            );
+
+            const result = await requestTransaction(transaction);
+            console.log(`${isPrivate ? 'Private' : 'Public'} winner selection transaction:`, result);
+        } catch (error) {
+            console.error('Error selecting winner:', error);
+        }
+    };
+
     const renderBidCard = (bid, isPrivate = true) => {
         const bidAmount = parseInt(bid.amount);
-        const currentHighestBid = parseInt(highestBid);
-        const isHighestBid = bidAmount === currentHighestBid;
+        const isHighestBid = bidAmount === findHighestBidAmount();
+
+        console.log('Bid:', bid);
+        console.log('Is private:', isPrivate);
         
         return (
             <Card size="small" style={{ marginBottom: '8px' }}>
@@ -127,25 +186,24 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
                         <Space direction="vertical" size={0}>
                             <Text>Bid Amount: {bidAmount / 1_000_000} ALEO</Text>
                             <Text type="secondary">
-                                {isPrivate ? 
-                                    `Bid ID: ${bid.id.substring(0, 21)}..` :
-                                    `Bidder: ${bid.bidder}`
-                                }
+                                Bid ID: {bid.id.substring(0, 21)}..
                             </Text>
+                            {isHighestBid && (
+                                <Tag color="#87d068">Highest Bid</Tag>
+                            )}
                         </Space>
                     </Col>
-                    {isOwner() && isHighestBid && (
-                        <Col>
+                    <Col>
+                        {isOwner() && isHighestBid && (
                             <Button 
                                 type="primary"
                                 size="small"
-                                onClick={() => {/* TODO: Implement select winner logic */}}
-                                style={{ marginLeft: '8px' }}
+                                onClick={() => handleSelectWinner(bid, isPrivate)}
                             >
-                                Select as Winner
+                                Select Winner
                             </Button>
-                        </Col>
-                    )}
+                        )}
+                    </Col>
                 </Row>
             </Card>
         );
@@ -211,7 +269,11 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
                                     <Statistic title="Starting Bid" value={startingBid / 1_000_000.0} suffix="ALEO" />
                                 </Col>
                                 <Col span={8}>
-                                    <Statistic title="Highest Bid" value={Number(highestBid) / 1_000_000} suffix="ALEO" />
+                                    <Statistic 
+                                        title="Highest Bid" 
+                                        value={findHighestBidAmount() / 1_000_000} 
+                                        suffix="ALEO" 
+                                    />
                                 </Col>
                                 <Col span={8}>
                                     <Statistic title="Total Bids" value={totalBids} />
