@@ -116,14 +116,16 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
     };
 
     const renderBidCard = (bid, isPrivate = true) => {
-        const isHighestBid = bid.amount === highestBid;
+        const bidAmount = parseInt(bid.amount);
+        const currentHighestBid = parseInt(highestBid);
+        const isHighestBid = bidAmount === currentHighestBid;
         
         return (
             <Card size="small" style={{ marginBottom: '8px' }}>
                 <Row justify="space-between" align="middle">
                     <Col>
                         <Space direction="vertical" size={0}>
-                            <Text>Bid Amount: {bid.amount / 1_000_000} ALEO</Text>
+                            <Text>Bid Amount: {bidAmount / 1_000_000} ALEO</Text>
                             <Text type="secondary">
                                 {isPrivate ? 
                                     `Bid ID: ${bid.id.substring(0, 21)}..` :
@@ -135,10 +137,10 @@ export const AuctionCard = ({ auctionId, data, loading }) => {
                     {isOwner() && isHighestBid && (
                         <Col>
                             <Button 
-                                type="primary" 
-                                danger
+                                type="primary"
                                 size="small"
                                 onClick={() => {/* TODO: Implement select winner logic */}}
+                                style={{ marginLeft: '8px' }}
                             >
                                 Select as Winner
                             </Button>

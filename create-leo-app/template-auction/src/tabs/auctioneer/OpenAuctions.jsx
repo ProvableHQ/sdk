@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, List, Typography, Button } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { PROGRAM_ID } from '../../core/constants.js';
-import { removeVisbilityModifiers } from '../../core/processing.js';
+import { removeVisbilityModifiers, parseAleoStyle } from '../../core/processing.js';
 import { useWallet } from '@demox-labs/aleo-wallet-adapter-react';
 import { useAuctionState } from '../../components/AuctionState.jsx';
 import { AleoNetworkClient } from '@provablehq/sdk';
@@ -16,78 +16,85 @@ export const OpenAuctions = () => {
     const { auctionState, setAuctioneerState } = useAuctionState();
     const [loading, setLoading] = useState(false);
     const [auctionData, setAuctionData] = useState({});
+    const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 
     const fetchAuctionData = async () => {
         setLoading(true);
-        let networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
-
         try {
-            const records = await requestRecords(PROGRAM_ID);
-            const auctionTickets = records.filter(record =>
-                record.recordName === "AuctionTicket" && !record.spent
-            );
+            // Fetch all necessary data in parallel
+            const [records, publicBidsRes] = await Promise.all([
+                requestRecords(PROGRAM_ID),
+                fetch(`https://api.testnet.aleoscan.io/v2/mapping/list_program_mapping_values/${PROGRAM_ID}/public_bids`)
+            ]);
+
+            // Process public bids
+            const publicBidsData = await publicBidsRes.json();
+            const publicBidsByAuction = {};
+            publicBidsData.result.forEach(entry => {
+                const bid = parseAleoStyle(entry.value);
+                const auctionId = bid.auction_id;
+                if (!publicBidsByAuction[auctionId]) {
+                    publicBidsByAuction[auctionId] = [];
+                }
+                publicBidsByAuction[auctionId].push({
+                    amount: parseInt(bid.amount.replace('u64', '')),
+                    id: entry.key,
+                    bidder: bid.bid_public_key
+                });
+            });
+
+            // Process private bids
             const privateBids = records
                 .filter(record => record.recordName === "PrivateBid")
                 .map(record => {
                     record = removeVisbilityModifiers(record);
-
-                    const auctionId = record.data.bid.auction_id;
-                    const amount = parseInt(
-                        record.data.bid.amount.replace('u64', '')
-                    );
-                    const id = record.data.bid_id;
-                    const bidPublicKey = record.data.bid_id;
-
                     return {
-                        auctionId,
-                        id,
-                        amount,
-                        bidPublicKey,
+                        auctionId: record.data.bid.auction_id,
+                        amount: parseInt(record.data.bid.amount.replace('u64', '')),
+                        id: record.data.bid_id,
+                        bidder: record.data.bid.bid_public_key
                     };
                 });
+
+            // Process auction tickets
+            const auctionTickets = records.filter(record =>
+                record.recordName === "AuctionTicket" && !record.spent
+            );
 
             const processedData = {};
             for (const ticketRecord of auctionTickets) {
                 const ticket = removeVisbilityModifiers(structuredClone(ticketRecord));
                 const auctionId = ticket.data.auction_id;
+                const isPublic = ticket.data.settings.auction_privacy !== '0field';
+                const auctioneerAddress = ticket.owner;
 
-                let isPublic = ticket.data.settings.auction_privacy !== '0field';
-                // try {
-                //     const publicAuctionData = (await networkClient.getProgramMappingPlaintext(
-                //         PROGRAM_ID,
-                //         'public_auctions',
-                //         auctionId
-                //     )).toObject();
-                //     isPublic = !!publicAuctionData;
-                // } catch (e) {
-                //     console.warn(`Error checking public status for auction ${auctionId}:`, e);
-                // }
-
-                let auctioneerAddress = ticket.owner;
-
-                let highestBid = 0;
+                // Get highest bid and total bids from network
+                let highestBid = 0, totalBids = 0;
                 try {
-                    highestBid = (await networkClient.getProgramMappingPlaintext(
+                    const highestBidRes = await networkClient.getProgramMappingPlaintext(
                         PROGRAM_ID,
                         'highest_bids',
                         auctionId
-                    )).toObject();
+                    );
+                    highestBid = parseInt(highestBidRes.replace('u64', ''));
                 } catch (e) {
                     console.warn(`Error fetching highest bid for auction ${auctionId}:`, e);
                 }
 
-                let totalBids = 0;
                 try {
-                    totalBids = (await networkClient.getProgramMappingPlaintext(
+                    const totalBidsRes = await networkClient.getProgramMappingPlaintext(
                         PROGRAM_ID,
                         'bid_count',
                         auctionId
-                    )).toObject();
+                    );
+                    totalBids = parseInt(totalBidsRes.replace('u64', ''));
                 } catch (e) {
                     console.warn(`Error fetching bid count for auction ${auctionId}:`, e);
                 }
 
-                const publicBids = await fetchPublicBids(auctionId);
+                // Combine all bids for this auction
+                const auctionPublicBids = publicBidsByAuction[auctionId] || [];
+                const auctionPrivateBids = privateBids.filter(bid => bid.auctionId === auctionId);
 
                 processedData[auctionId] = {
                     ticketRecord,
@@ -97,8 +104,8 @@ export const OpenAuctions = () => {
                     auctioneerAddress,
                     highestBid: highestBid || 0,
                     totalBids: totalBids || 0,
-                    publicBids,
-                    privateBids: privateBids,
+                    publicBids: auctionPublicBids,
+                    privateBids: auctionPrivateBids
                 };
             }
 
@@ -108,10 +115,6 @@ export const OpenAuctions = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const fetchPublicBids = async (auctionId) => {
-        return [];
     };
 
     useEffect(() => {
@@ -137,8 +140,8 @@ export const OpenAuctions = () => {
         >
             {!connected ? (
                 <>
-                <WalletMultiButton />
-                <Text>Please connect your wallet to view your auctions</Text>
+                    <WalletMultiButton />
+                    <Text>Please connect your wallet to view your auctions</Text>
                 </>
             ) : (
                 <List
