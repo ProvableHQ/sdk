@@ -61,14 +61,15 @@ type RetryOptions = {
         return await fn();
       } catch (err: any) {
         const isLast = attempt === maxAttempts;
-  
         const error = err as Error & { code?: string; status?: number };
   
-        const retryable =
-          (typeof error.status === "number" && retryOnStatus.includes(error.status)) ||
-          error.message?.includes("5") ||
-          error.message?.includes("404") || 
-          shouldRetry?.(error);
+        let retryable = false;
+  
+        if (typeof error.status === "number") {
+          retryable = retryOnStatus.includes(error.status);
+        } else if (shouldRetry) {
+          retryable = shouldRetry(error);
+        }
   
         if (!retryable || isLast) throw error;
   

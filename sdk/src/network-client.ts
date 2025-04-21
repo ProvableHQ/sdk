@@ -1451,14 +1451,6 @@ class AleoNetworkClient {
                       "Content-Type": "application/json",
                   }),
               }),
-              {
-                // Only retry on network-level / transient errors to avoid duplicate submission
-                  retryOnStatus: [500, 502, 503, 504],
-                  shouldRetry: (err) => {
-                      const msg = err?.message?.toLowerCase?.() || "";
-                      return msg.includes("timeout") || msg.includes("network") || msg.includes("503");
-                  },
-              }
           );
   
           try {
