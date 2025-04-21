@@ -160,19 +160,27 @@ class AleoNetworkClient {
      * @param url
      */
     async fetchRaw(url = "/"): Promise<string> {
-        try {
-            const response = await get(this.host + url, {
-                headers: this.headers,
-            });
-            return await response.text();
-        } catch (error) {
-            throw new Error(`Error fetching data: ${error}`);
-        }
-    }
+      try {
+          return await retryWithBackoff(async () => {
+              const response = await get(this.host + url, {
+                  headers: this.headers,
+              });
+              return await response.text();
+          }, {
+              retryOnStatus: [500, 502, 503, 504],
+              shouldRetry: (err) => {
+                  const msg = err?.message?.toLowerCase?.() || "";
+                  return msg.includes("network") || msg.includes("timeout") || msg.includes("503");
+              }
+          });
+      } catch (error) {
+          throw new Error(`Error fetching data: ${error}`);
+      }
+  }
 
 
     /**
-     * Wrapper around the POST helper to allow mocking in tests.
+     * Wrapper around the POST helper to allow mocking in tests. Not meant for use in production.
      *
      * @param url The URL to POST to.
      * @param options The RequestInit options for the POST request.
@@ -383,25 +391,27 @@ class AleoNetworkClient {
                                                             }
 
                                                             if (unspent) {
-                                                                // Otherwise record the nonce that has been found
-                                                                const serialNumber =
-                                                                    recordPlaintext.serialNumberString(
-                                                                        resolvedPrivateKey,
-                                                                        "credits.aleo",
-                                                                        "credits",
-                                                                    );
-                                                                // Attempt to see if the serial number is spent
-                                                                try {
-                                                                    await this.getTransitionId(
-                                                                        serialNumber,
-                                                                    );
-                                                                    continue;
-                                                                } catch (error) {
-                                                                    console.log(
-                                                                        "Found unspent record!",
-                                                                    );
-                                                                }
-                                                            }
+                                                              // Otherwise record the nonce that has been found
+                                                              const serialNumber = recordPlaintext.serialNumberString(
+                                                                  resolvedPrivateKey,
+                                                                  "credits.aleo",
+                                                                  "credits",
+                                                              );
+                                                              // Attempt to see if the serial number is spent
+                                                              try {
+                                                                  await retryWithBackoff(() => this.getTransitionId(serialNumber), {
+                                                                      retryOnStatus: [500, 502, 503],
+                                                                      shouldRetry: (err) => {
+                                                                          const msg = err?.message?.toLowerCase?.() || "";
+                                                                          return msg.includes("timeout") || msg.includes("503") || msg.includes("network");
+                                                                      }
+                                                                  });
+                                                                  // If it succeeds, it means the record was spent → skip it
+                                                                  continue;
+                                                              } catch (error) {
+                                                                  console.log("Found unspent record!");
+                                                              }
+                                                          }
 
                                                             // Add the record to the list of records if the user did not specify amounts.
                                                             if (!amounts) {
@@ -1433,29 +1443,38 @@ class AleoNetworkClient {
      * @returns {Promise<string>} The solution id of the submitted solution or the resulting error.
      */
     async submitSolution(solution: string): Promise<string> {
-        try {
-            const response = await post(this.host + "/solution/broadcast", {
-                body: solution,
-                headers: Object.assign({}, this.headers, {
-                    "Content-Type": "application/json",
-                }),
-            });
-
-            try {
-                const text = await response.text();
-                return parseJSON(text);
-            } catch (error: any) {
-                throw new Error(
-                    `Error posting transaction. Aleo network response: ${error.message}`,
-                );
-            }
-        } catch (error: any) {
-            throw new Error(
-                `Error posting transaction: No response received: ${error.message}`,
-            );
-        }
-    }
-
+      try {
+          const response = await retryWithBackoff(() =>
+              post(this.host + "/solution/broadcast", {
+                  body: solution,
+                  headers: Object.assign({}, this.headers, {
+                      "Content-Type": "application/json",
+                  }),
+              }),
+              {
+                // Only retry on network-level / transient errors to avoid duplicate submission
+                  retryOnStatus: [500, 502, 503, 504],
+                  shouldRetry: (err) => {
+                      const msg = err?.message?.toLowerCase?.() || "";
+                      return msg.includes("timeout") || msg.includes("network") || msg.includes("503");
+                  },
+              }
+          );
+  
+          try {
+              const text = await response.text();
+              return parseJSON(text);
+          } catch (error: any) {
+              throw new Error(
+                  `Error posting solution. Aleo network response: ${error.message}`,
+              );
+          }
+      } catch (error: any) {
+          throw new Error(
+              `Error posting solution: No response received: ${error.message}`,
+          );
+      }
+  }
     /**
      * Await a submitted transaction to be confirmed or rejected on the Aleo network.
      *
