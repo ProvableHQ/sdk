@@ -224,7 +224,7 @@ describe("NodeConnection", () => {
           client.fetchRaw = async () => {
             attemptCount++;
             console.warn(`fake fetchRaw attempt ${attemptCount}`);
-            throw new Error("503 Service Unavailable");
+            throw Object.assign(new Error("503 Service Unavailable"), { status: 503 });
           };
       
           try {
@@ -237,25 +237,25 @@ describe("NodeConnection", () => {
         });
       
         it("should retry failed transaction submissions and eventually give up", async () => {
-            const client = new AleoNetworkClient("http://localhost:1234");
-          
-            let attemptCount = 0;
-          
-            // @ts-ignore override for testing
-            client["sendPost"] = async () => {
-              attemptCount++;
-              console.warn(`fake sendPost attempt ${attemptCount}`);
-              throw new Error("503 Service Unavailable");
-            };
-          
-            try {
-              await client.submitTransaction("dummy_tx_string");
-              throw new Error("Expected submitTransaction to fail");
-            } catch (err: any) {
-              expect(err.message).to.include("503");
-              expect(attemptCount).to.be.greaterThan(1);
-            }
-          });
+          const client = new AleoNetworkClient("http://localhost:1234");
+      
+          let attemptCount = 0;
+      
+          // @ts-ignore override for testing
+          client["sendPost"] = async () => {
+            attemptCount++;
+            console.warn(`fake sendPost attempt ${attemptCount}`);
+            throw Object.assign(new Error("503 Service Unavailable"), { status: 503 });
+          };
+      
+          try {
+            await client.submitTransaction("dummy_tx_string");
+            throw new Error("Expected submitTransaction to fail");
+          } catch (err: any) {
+            expect(err.message).to.include("503");
+            expect(attemptCount).to.be.greaterThan(1);
+          }
+        });
       });
       
     describe("setHeader", () => {
