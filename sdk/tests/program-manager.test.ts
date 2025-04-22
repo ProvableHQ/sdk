@@ -14,7 +14,7 @@ import { expect } from "chai";
 describe('Program Manager', () => {
     const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
     programManager.setAccount(new Account({privateKey: statePathRecordOwnerPrivateKey}));
-    const network = (<AleoNetworkClient>programManager.networkClient).host  === "https://api.explorer.provable.com/v1/testnet" ? "testnet" : "mainnet";
+    const network = programManager.networkClient.network;
 
     describe('Instantiate with AleoNetworkClientOptions', () => {
         it('should have the specified headers when instantiated', async () => {

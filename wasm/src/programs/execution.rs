@@ -16,9 +16,20 @@
 
 pub use super::*;
 
-use crate::{log, native::ProgramIDNative, types::native::{
-    CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramID, ProgramNative, VerifyingKeyNative
-}, Transition};
+use crate::{
+    Transition,
+    log,
+    native::ProgramIDNative,
+    types::native::{
+        CurrentNetwork,
+        ExecutionNative,
+        IdentifierNative,
+        ProcessNative,
+        ProgramID,
+        ProgramNative,
+        VerifyingKeyNative,
+    },
+};
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 
 use js_sys::{Array, Object, Reflect};
@@ -123,14 +134,14 @@ pub fn verify_function_execution(
     // Secondly, get the verifying keys and insert them into the process object.
     if let Some(imported_verifying_keys) = imported_verifying_keys {
         // Go through the imports and get the program IDs.
-        let program_ids = Object::entries(&imported_verifying_keys)
+        let program_ids = Object::keys(&imported_verifying_keys)
             .iter()
-            .filter_map(|entries| Array::try_from(entries).unwrap().get(0).as_string()) // Safe unwraps because `entries` returns arrays with string keys.
             .map(|entry| {
+                let entry = entry.as_string().unwrap(); // Safe unwraps because `keys` returns array of string keys.
                 ProgramIDNative::from_str(&entry)
                     .map_err(|_| format!("Program ID not found in imports provided: {entry}"))
             })
-            .collect::<Result<Vec<_>,_>>()?;
+            .collect::<Result<Vec<_>, _>>()?;
 
         // Go through the imports and insert the verifying keys for each function.
         for imported_program_id in &program_ids {
@@ -141,8 +152,8 @@ pub fn verify_function_execution(
             )
             .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?;
             // Get the verifying key for each function.
-            for i in 0..vk_list.length() {
-                let vk = Array::try_from(vk_list.get(i)).map_err(|_| format!("Verifying key and function not found for {}, for each function provide an array of the form ['function_name', 'vk']", imported_program_id))?;
+            for vk in vk_list.iter() {
+                let vk = Array::try_from(vk).map_err(|_| format!("Verifying key and function not found for {}, for each function provide an array of the form ['function_name', 'vk']", imported_program_id))?;
                 {
                     // Insert the verifying key into the temporary process.
                     let imported_function = IdentifierNative::from_str(

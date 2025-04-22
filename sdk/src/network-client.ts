@@ -33,12 +33,14 @@ interface AleoNetworkClientOptions {
  * const publicNetworkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined, account);
  */
 class AleoNetworkClient {
-    host: string;
-    headers: { [key: string]: string };
-    account: Account | undefined;
+  host: string;
+  headers: { [key: string]: string };
+  account: Account | undefined;
+  readonly network: string;
 
-    constructor(host: string, options?: AleoNetworkClientOptions | undefined) {
-        this.host = host + "/%%NETWORK%%";
+  constructor(host: string, options?: AleoNetworkClientOptions) {
+    this.host = host + "/%%NETWORK%%";
+    this.network = "%%NETWORK%%";
 
         if (options && options.headers) {
             this.headers = options.headers;

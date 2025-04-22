@@ -1,5 +1,5 @@
 import { Account } from "./account";
-import { AleoNetworkClient, ProgramImports } from "./network-client";
+import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client";
 import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports";
 import { RecordProvider, RecordSearchParams } from "./record-provider";
 
