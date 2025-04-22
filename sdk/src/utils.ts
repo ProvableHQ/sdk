@@ -66,7 +66,11 @@ type RetryOptions = {
         let retryable = false;
   
         if (typeof error.status === "number") {
-          retryable = retryOnStatus.includes(error.status);
+          if (error.status >= 500) {
+            retryable = true;
+          } else if (error.status >= 400 && shouldRetry) {
+            retryable = shouldRetry(error);
+          }
         } else if (shouldRetry) {
           retryable = shouldRetry(error);
         }

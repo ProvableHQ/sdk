@@ -138,19 +138,12 @@ class AleoNetworkClient {
      */
     async fetchData<Type>(url = "/"): Promise<Type> {
       try {
-        const raw = await retryWithBackoff(() => this.fetchRaw(url), {
-          retryOnStatus: [500, 502, 503, 504],
-          shouldRetry: (err) => {
-            const msg = err?.message?.toLowerCase?.() || "";
-            return msg.includes("network") || msg.includes("timeout") || msg.includes("503");
-          }
-        });
+        const raw = await retryWithBackoff(() => this.fetchRaw(url));
         return parseJSON(raw);
       } catch (error) {
         throw new Error(`Error fetching data: ${error}`);
       }
     }
-  
 
     /**
      * Fetches data from the Aleo network and returns it as an unparsed string.
@@ -163,17 +156,16 @@ class AleoNetworkClient {
     async fetchRaw(url = "/"): Promise<string> {
       try {
           return await retryWithBackoff(async () => {
-              const response = await get(this.host + url, {
-                  headers: this.headers,
-              });
-              return await response.text();
-          }, {
-              retryOnStatus: [500, 502, 503, 504],
-              shouldRetry: (err) => {
-                  const msg = err?.message?.toLowerCase?.() || "";
-                  return msg.includes("network") || msg.includes("timeout") || msg.includes("503");
-              }
-          });
+            const response = await get(this.host + url, {
+                headers: this.headers,
+            });
+            return await response.text();
+        }, {
+            shouldRetry: (err) => {
+                const msg = err?.message?.toLowerCase?.() || "";
+                return msg.includes("network") || msg.includes("timeout");
+            }
+        });      
       } catch (error) {
           throw new Error(`Error fetching data: ${error}`);
       }
