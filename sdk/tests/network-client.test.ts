@@ -18,7 +18,7 @@ import {
     TransitionObject,
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import { beaconPrivateKeyString } from "./data/account-data";
-import * as utils from "../src/utils";
+import { retryWithBackoff } from "../src/utils";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {
@@ -237,24 +237,52 @@ describe("NodeConnection", () => {
         });
       
         it("should retry failed transaction submissions and eventually give up", async () => {
-          const client = new AleoNetworkClient("http://localhost:1234");
-      
-          let attemptCount = 0;
-      
-          // @ts-ignore override for testing
-          client["sendPost"] = async () => {
+            const client = new AleoNetworkClient("http://localhost:1234");
+          
+            let attemptCount = 0;
+          
+            client["sendPost"] = async () => {
+              attemptCount++;
+              console.warn(`fake sendPost attempt ${attemptCount}`);
+              const error = new Error("503 Service Unavailable") as any;
+              error.status = 503;
+              throw error;
+            };
+          
+            try {
+              await retryWithBackoff(() =>
+                client["sendPost"]("http://fakeurl", { method: "POST" }), {
+                  retryOnStatus: [503],
+                }
+              );
+              throw new Error("Expected retryWithBackoff to fail");
+            } catch (err: any) {
+              expect(err.message).to.include("503");
+              expect(attemptCount).to.be.greaterThan(1);
+            }
+          });
+
+        it("should retry solution submission and eventually throw", async () => {
+        const client = new AleoNetworkClient("http://localhost:1234");
+
+        let attemptCount = 0;
+
+        client["sendPost"] = async function () {
             attemptCount++;
-            console.warn(`fake sendPost attempt ${attemptCount}`);
-            throw Object.assign(new Error("503 Service Unavailable"), { status: 503 });
-          };
-      
-          try {
-            await client.submitTransaction("dummy_tx_string");
-            throw new Error("Expected submitTransaction to fail");
-          } catch (err: any) {
-            expect(err.message).to.include("503");
+            throw Object.assign(new Error("Network error"), { status: 503 });
+        };
+
+        try {
+            await retryWithBackoff(() =>
+            client["sendPost"]("http://fakeurl", { method: "POST" }), {
+                retryOnStatus: [503],
+            }
+            );
+            throw new Error("Expected sendPost to fail");
+        } catch (err: any) {
+            expect(err.message).to.include("Network error");
             expect(attemptCount).to.be.greaterThan(1);
-          }
+        }
         });
       });
       

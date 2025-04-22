@@ -138,17 +138,18 @@ class AleoNetworkClient {
      */
     async fetchData<Type>(url = "/"): Promise<Type> {
       try {
-          return await retryWithBackoff(() => this.fetchRaw(url).then(parseJSON), {
-              retryOnStatus: [500, 502, 503, 504],
-              shouldRetry: (err) => {
-                  const msg = err?.message?.toLowerCase?.() || "";
-                  return msg.includes("network") || msg.includes("timeout") || msg.includes("503");
-              }
-          });
+        const raw = await retryWithBackoff(() => this.fetchRaw(url), {
+          retryOnStatus: [500, 502, 503, 504],
+          shouldRetry: (err) => {
+            const msg = err?.message?.toLowerCase?.() || "";
+            return msg.includes("network") || msg.includes("timeout") || msg.includes("503");
+          }
+        });
+        return parseJSON(raw);
       } catch (error) {
-          throw new Error(`Error fetching data: ${error}`);
+        throw new Error(`Error fetching data: ${error}`);
       }
-  }
+    }
   
 
     /**
@@ -400,7 +401,7 @@ class AleoNetworkClient {
                                                               // Attempt to see if the serial number is spent
                                                               try {
                                                                   await retryWithBackoff(() => this.getTransitionId(serialNumber), {
-                                                                      retryOnStatus: [500, 502, 503],
+                                                                      retryOnStatus: [500, 502, 503, 504],
                                                                       shouldRetry: (err) => {
                                                                           const msg = err?.message?.toLowerCase?.() || "";
                                                                           return msg.includes("timeout") || msg.includes("503") || msg.includes("network");
