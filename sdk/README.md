@@ -61,5 +61,5 @@ for all the SDK's classes, methods, and interfaces. The documentation is generat
 
 ### [Leo Language Documentation](https://docs.leo-lang.org)
 For developers who want to build their own zero-knowledge programs, the Leo Language provides an easy-to-use imperative
-programming language for writing zero-knowledge programs on Aleo. In conjuction with the SDK, private programs built
+programming language for writing zero-knowledge programs on Aleo. In conjunction with the SDK, private programs built
 using Leo can be turned into fully functional private web applications.
