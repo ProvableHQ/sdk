@@ -2254,7 +2254,7 @@ __*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *Record ciphertext*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Return the string reprensentation of the record ciphertext
+Return the string representation of the record ciphertext
 
 Parameters | Type | Description
 --- | --- | ---
