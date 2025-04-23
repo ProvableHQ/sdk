@@ -15,13 +15,24 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::*;
+
 use crate::{
     Transition,
-    types::native::{CurrentNetwork, ExecutionNative, IdentifierNative, ProcessNative, ProgramID, VerifyingKeyNative},
+    log,
+    native::ProgramIDNative,
+    types::native::{
+        CurrentNetwork,
+        ExecutionNative,
+        IdentifierNative,
+        ProcessNative,
+        ProgramID,
+        ProgramNative,
+        VerifyingKeyNative,
+    },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 
-use js_sys::Array;
+use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
@@ -92,14 +103,16 @@ impl Deref for Execution {
     }
 }
 
-/// Verify an execution with a single function and a single transition. Executions with multiple
-/// transitions or functions will fail to verify. Also, this does not verify that the state root of
-/// the execution is included in the Aleo Network ledger.
+/// Verify an execution. Executions with multiple transitions must have the program source code and
+/// verifying keys of imported functions supplied from outside to correctly verify. Also, this does
+/// not verify that the state root of the execution is included in the Aleo Network ledger.
 ///
 /// @param {Execution} execution The function execution to verify
 /// @param {VerifyingKey} verifying_key The verifying key for the function
 /// @param {Program} program The program that the function execution belongs to
 /// @param {String} function_id The name of the function that was executed
+/// @param {Object} imports The imports for the program in the form of { "program_id.aleo":"source code", ... }
+/// @param {Object} import_verifying_keys The verifying keys for the imports in the form of { "program_id.aleo": [["function, "verifying_key"], ...],  ...}
 /// @returns {boolean} True if the execution is valid, false otherwise
 #[wasm_bindgen(js_name = "verifyFunctionExecution")]
 pub fn verify_function_execution(
@@ -107,34 +120,67 @@ pub fn verify_function_execution(
     verifying_key: &VerifyingKey,
     program: &Program,
     function_id: &str,
+    imports: Option<Object>,
+    imported_verifying_keys: Option<Object>,
 ) -> Result<bool, String> {
+    // Get the function
     let function = IdentifierNative::from_str(function_id).map_err(|e| e.to_string())?;
-    let program_id = ProgramID::<CurrentNetwork>::from_str(&program.id()).unwrap();
     let mut process = ProcessNative::load_web().map_err(|e| e.to_string())?;
-    if &program.id() != "credits.aleo" {
-        process.add_program(program).map_err(|e| e.to_string())?;
+    let program_native = ProgramNative::from(program);
+
+    // First resolve the program's imports.
+    ProgramManager::resolve_imports(&mut process, program, imports)?;
+
+    // Secondly, get the verifying keys and insert them into the process object.
+    if let Some(imported_verifying_keys) = imported_verifying_keys {
+        // Go through the imports and get the program IDs.
+        let program_ids = Object::keys(&imported_verifying_keys)
+            .iter()
+            .map(|entry| {
+                let entry = entry.as_string().unwrap(); // Safe unwraps because `keys` returns array of string keys.
+                ProgramIDNative::from_str(&entry)
+                    .map_err(|_| format!("Program ID not found in imports provided: {entry}"))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // Go through the imports and insert the verifying keys for each function.
+        for imported_program_id in &program_ids {
+            // Get the list of functions.
+            let vk_list = Array::try_from(
+                Reflect::get(&imported_verifying_keys, &imported_program_id.to_string().into())
+                    .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?,
+            )
+            .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?;
+            // Get the verifying key for each function.
+            for vk in vk_list.iter() {
+                let vk = Array::try_from(vk).map_err(|_| format!("Verifying key and function not found for {}, for each function provide an array of the form ['function_name', 'vk']", imported_program_id))?;
+                {
+                    // Insert the verifying key into the temporary process.
+                    let imported_function = IdentifierNative::from_str(
+                        &vk.get(0).as_string().ok_or("Function not found in imports provided")?,
+                    )
+                    .map_err(|e| e.to_string())?;
+                    let verifying_key = VerifyingKeyNative::from_str(
+                        &vk.get(1).as_string().ok_or("Verifying key not found in imports provided")?,
+                    )
+                    .map_err(|e| e.to_string())?;
+                    log(&format!("Importing verifying key for function: {imported_program_id}/{imported_function}"));
+                    process
+                        .insert_verifying_key(imported_program_id, &imported_function, verifying_key)
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+        }
     }
-    process
-        .insert_verifying_key(&program_id, &function, VerifyingKeyNative::from(verifying_key))
-        .map_err(|e| e.to_string())?;
+
+    // If the program is not credits.aleo, add the program and its verifying key to the process.
+    if &program.id() != "credits.aleo" {
+        process.add_program(&program_native).map_err(|e| e.to_string())?;
+        process
+            .insert_verifying_key(program_native.id(), &function, VerifyingKeyNative::from(verifying_key))
+            .map_err(|e| e.to_string())?;
+    }
+
+    // Verify the execution.
     process.verify_execution(VarunaVersion::V2, execution).map_or(Ok(false), |_| Ok(true))
 }
-
-/*#[cfg(test)]
-mod tests {
-    use super::*;
-    use wasm_bindgen_test::*;
-
-    const EXECUTION: &str = r#"{ "transitions": [ { "id": "au1xe07pjnw6970k9lh0rfvpdnudcz0gcyy5qmv2efp3qrdxkkaj5rseklkfk", "program": "credits.aleo", "function": "transfer_public", "inputs": [ { "type": "public", "id": "6830040130268084683056203786650856838291629627526850542328121029117462649106field", "value": "aleo1q6qstg8q8shwqf5m6q5fcenuwsdqsvp4hhsgfnx5chzjm3secyzqt9mxm8" }, { "type": "public", "id": "3522622156280992546879723962866054193411134839313162974822034464277507937156field", "value": "1u64" } ], "outputs": [ { "type": "future", "id": "6287946476679554718269040652777030908815963134664267470652690289159774741065field", "value": "{\n  program_id: credits.aleo,\n  function_name: transfer_public,\n  arguments: [\n    aleo1q6qstg8q8shwqf5m6q5fcenuwsdqsvp4hhsgfnx5chzjm3secyzqt9mxm8,\n    aleo1q6qstg8q8shwqf5m6q5fcenuwsdqsvp4hhsgfnx5chzjm3secyzqt9mxm8,\n    1u64\n  ]\n}" } ], "tpk": "1124897318163588088766079717854473596955076479615330099205126740598806373414group", "tcm": "5379517959399780344431681060960827894902462418861353186658003065156167347920field" } ], "global_state_root": "sr1tml46c266j4gzv9qpk0adkt6tkl4mjq7s7supuy8dmv9lq09j5zsd5eqsz", "proof": "proof1qyqsqqqqqqqqqqqpqqqqqqqqqqq9eqfncmzufz24n5xvfk2yy2lm7k0jh2y23yj5ssekln7h2nmlc62mnjwe794rn5dxwwf7unaamfyqqxzhaqnm3xws740w8gwt3dt22r5l43xa9rhn6yc0vpuu46mal3a86n3qmc8yegeh8afyetmz7rs8mq8766v6rryrnhnhl8xudl3tr7rk50f0lrz36cjwp0vpg46fzq4wv9n3eglkn9ztx4kzhh9d0wmqgcqvv2e6lrnaqp9cafaxjh88pzfjn26vyq3y50hazf9c9ysc84x33mn4wculvu67z2utduq5qyy933qqtn7u5rtsztmtakuu2japhf7qcvrc663vkuk9s0twufhh42d2kk3ukf00290jxqe9qnfwr3txz05spv7tp88e7dduldq5wwulae6wm3nztzmzdjrypfz08awuvkzuale9h96hy8nyjt2znntu20c4xemlsyqpfn6ce0sv5nn5shxx2up8kw9xtyle3pcyaum9hsw29ctqcjqmn53j7dxy6ep37cfvnflxqctpuqqgtgss9tp5rzg4vp46fw8nsjztdum9xm2xp0d8hglr2v8fuyh38afsw0kymhn2lznaag7cwud0guqtpdn2l2zgn4sjg7n0gdd0ueg5ujeydmqkxx8dp9a4g456q4jvukjt2cycuvef5slqt3hwnuh6ez5qys785f6xw8xsc5ns6ee3la7rf3p24mkpeakd5ay73q30m3qezux2xzqv35zy8jclv7lxpvcnej8tkstf00fzh9l44q382hpt8eejyp3vs3pq2n3n2e0eq30zatqyrvqsqs4cllynrcytc6v9seuqgtdnzy5rr3vcwwhlrxzm2h66e9q4z94r7zpnkm6xt4yermvys6twaw6sncwt5x64qjdnatddjpeh97uszkvamu6kmltu2unnq2mq4kverfsg8ncpvkhvre77yjhgmw5nevw2az0s2dwr6navrchn7pdwkmmjcu9dedn40jacflfeld7agznzjw3cpwewyhhufu49l5ttjpqrcpl3yzn2m3h3mgq5ea4xedf8370lmmr4ansr60x5d0qwrx08n6r8qe6vq2jlk5t8fey0mcgteef0hxe84vm5khehwjr9vu7p839jpysctaz3z88zcum9nw6z04gqvj3dqvldndldatwknwu4plnlpsqxhg5x8qc0qvqqqqqqqqqqqf57wtv2gucqnx8n0ejkhtywfmxrvewes27sr0ng67f7900w4kga6ztwnzhvtpd4rv0qqhjfmkwssqqvzr0sf8p6hsda4wgak42gtdcxfkf8xfywmdpgecqhxcptdrtvluv9adsn8vc5vwds4kd54thnaggqqxz3799lcez0f8v2xencv2z76fwvgp52wrnh5qyjtteckn2nhlhq8e60eq358pw2lezf74flec2wp4e8gvk5xtrwwy36j36axmy9pmh9kwa9cnsykxzwx38kdtqhnqytsyqqefuv9d" }"#;
-
-    #[wasm_bindgen_test]
-    fn test_execution_verification() {
-        let execution = Execution::from_string(EXECUTION).unwrap();
-        let verifying_key_bytes = crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
-        let verifying_key = VerifyingKey::from_bytes(&verifying_key_bytes).unwrap();
-        assert!(
-            verify_function_execution(&execution, &verifying_key, &Program::get_credits_program(), "transfer_public")
-                .unwrap()
-        );
-    }
-}*/

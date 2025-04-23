@@ -36,21 +36,11 @@ async function expectThrows(f: () => Promise<any>): Promise<void> {
 
 describe("NodeConnection", () => {
     let connection: AleoNetworkClient;
-    let network: string;
     let windowFetchSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-        connection = new AleoNetworkClient(
-            "https://api.explorer.provable.com/v1",
-        );
-        if (
-            connection.host === "https://api.explorer.provable.com/v1/testnet"
-        ) {
-            network = "testnet";
-        } else {
-            network = "mainnet";
-        }
-        windowFetchSpy = sinon.spy(globalThis, "fetch");
+        connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+        windowFetchSpy = sinon.spy(globalThis, 'fetch');
     });
 
     afterEach(() => {
@@ -469,9 +459,9 @@ describe("NodeConnection", () => {
         });
     });
 
-    describe("Test API methods that return wasm objects", () => {
-        it("Plaintext returned from the API should have expected properties", async () => {
-            if (network === "testnet") {
+    describe('Test API methods that return wasm objects', () => {
+        it('Plaintext returned from the API should have expected properties', async () => {
+            if (connection.network === "testnet") {
                 // Check a struct variant of a plaintext object.
                 let plaintext = await connection.getProgramMappingPlaintext(
                     "credits.aleo",
@@ -502,10 +492,8 @@ describe("NodeConnection", () => {
 
         it("should have correct data within the wasm object and summary object for an execution transaction", async () => {
             // Get the first transaction at block 24700 on testnet.
-            if (network === "testnet") {
-                const transaction = await connection.getTransactionObject(
-                    "at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd",
-                );
+            if (connection.network === "testnet") {
+                const transaction = await connection.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
                 const transition = <Transition>transaction.transitions()[0];
                 const summary = <TransactionObject>transaction.summary(true);
 
@@ -615,10 +603,8 @@ describe("NodeConnection", () => {
 
         it("should have correct data within the wasm object and summary object for a deployment transaction", async () => {
             // Get the deployment transaction for token_registry.aleo
-            if (network === "mainnet") {
-                const transaction = await connection.getTransactionObject(
-                    "at15mwg0jyhvpjjrfxwrlwzn8puusnmy7r3xzvpjht4e5gzgnp68q9qd0qqec",
-                );
+            if (connection.network === "mainnet") {
+                const transaction = await connection.getTransactionObject("at15mwg0jyhvpjjrfxwrlwzn8puusnmy7r3xzvpjht4e5gzgnp68q9qd0qqec");
                 const summary = <TransactionObject>transaction.summary(true);
                 const deployment = <DeploymentObject>summary.deployment;
 
@@ -646,8 +632,8 @@ describe("NodeConnection", () => {
             }
         });
 
-        it("Should give the correct JSON response when requesting multiple transactions", async () => {
-            if (network === "testnet") {
+        it('Should give the correct JSON response when requesting multiple transactions', async () => {
+            if (connection.network === "testnet") {
                 const transactions = await connection.getTransactions(27400);
                 expect(transactions.length).equal(4);
                 expect(transactions[0].status).equal("accepted");

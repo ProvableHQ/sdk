@@ -111,7 +111,7 @@ impl ProgramManager {
                     .as_string()
                 {
                     if &program_id != "credits.aleo" {
-                        crate::log(&format!("Importing program: {}", program_id));
+                        log(&format!("Importing program: {}", program_id));
                         let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
                         // If the program has imports, add them
                         Self::resolve_imports(process, &import, Some(imports.clone()))?;

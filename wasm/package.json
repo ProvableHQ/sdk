@@ -1,12 +1,12 @@
 {
   "name": "@provablehq/wasm",
   "version": "0.8.8",
+  "type": "module",
   "description": "SnarkVM WASM binaries with javascript bindings",
   "collaborators": [
     "The Provable Team"
   ],
   "license": "GPL-3.0",
-  "type": "module",
   "main": "./dist/testnet/index.js",
   "browser": "./dist/testnet/index.js",
   "types": "./dist/testnet/index.d.ts",
