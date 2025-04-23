@@ -490,6 +490,12 @@ impl From<Program> for ProgramNative {
     }
 }
 
+impl From<&Program> for ProgramNative {
+    fn from(program: &Program) -> Self {
+        program.0.clone()
+    }
+}
+
 impl FromStr for Program {
     type Err = String;
 
