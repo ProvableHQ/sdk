@@ -1,4 +1,4 @@
-import { get, post, parseJSON, logAndThrow } from "./utils";
+import { get, post, parseJSON, logAndThrow, retryWithBackoff } from "./utils";
 import { Account } from "./account";
 import { BlockJSON } from "./models/blockJSON";
 import { TransactionJSON } from "./models/transaction/transactionJSON";
@@ -98,16 +98,16 @@ class AleoNetworkClient {
 
     /**
      * Set a header in the `AleoNetworkClient`s header map
-     * 
+     *
      * @param {string} headerName The name of the header to set
      * @param {string} value The header value
-     * 
+     *
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Create a networkClient
      * const networkClient = new AleoNetworkClient();
-     * 
+     *
      * // Set the value of the `Accept-Language` header to `en-US`
      * networkClient.setHeader('Accept-Language', 'en-US');
      */
@@ -117,20 +117,20 @@ class AleoNetworkClient {
 
     /**
      * Remove a header from the `AleoNetworkClient`s header map
-     * 
+     *
      * @param {string} headerName The name of the header to be removed
-     * 
+     *
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Create a networkClient
      * const networkClient = new AleoNetworkClient();
-     * 
+     *
      * // Remove the default `X-Aleo-SDK-Version` header
      * networkClient.removeHeader('X-Aleo-SDK-Version');
      */
     removeHeader(headerName: string) {
-        delete this.headers[headerName]
+        delete this.headers[headerName];
     }
 
     /**
@@ -140,7 +140,8 @@ class AleoNetworkClient {
      */
     async fetchData<Type>(url = "/"): Promise<Type> {
         try {
-            return parseJSON(await this.fetchRaw(url));
+            const raw = await this.fetchRaw(url);
+            return parseJSON(raw);
         } catch (error) {
             throw new Error(`Error fetching data: ${error}`);
         }
@@ -156,13 +157,26 @@ class AleoNetworkClient {
      */
     async fetchRaw(url = "/"): Promise<string> {
         try {
-            const response = await get(this.host + url, {
-                headers: this.headers,
+            return await retryWithBackoff(async () => {
+                const response = await get(this.host + url, {
+                    headers: this.headers,
+                });
+                return await response.text();
             });
-            return await response.text();
         } catch (error) {
             throw new Error(`Error fetching data: ${error}`);
         }
+    }
+
+    /**
+     * Wrapper around the POST helper to allow mocking in tests. Not meant for use in production.
+     *
+     * @param url The URL to POST to.
+     * @param options The RequestInit options for the POST request.
+     * @returns The Response object from the POST request.
+     */
+    private async _sendPost(url: string, options: RequestInit) {
+        return post(url, options);
     }
 
     /**
@@ -375,8 +389,11 @@ class AleoNetworkClient {
                                                                     );
                                                                 // Attempt to see if the serial number is spent
                                                                 try {
-                                                                    await this.getTransitionId(
-                                                                        serialNumber,
+                                                                    await retryWithBackoff(
+                                                                        () =>
+                                                                            this.getTransitionId(
+                                                                                serialNumber,
+                                                                            ),
                                                                     );
                                                                     continue;
                                                                 } catch (error) {
@@ -1386,12 +1403,14 @@ class AleoNetworkClient {
                 ? transaction.toString()
                 : transaction;
         try {
-            const response = await post(this.host + "/transaction/broadcast", {
-                body: transaction_string,
-                headers: Object.assign({}, this.headers, {
-                    "Content-Type": "application/json",
+            const response = await retryWithBackoff(() =>
+                this._sendPost(this.host + "/transaction/broadcast", {
+                    body: transaction_string,
+                    headers: Object.assign({}, this.headers, {
+                        "Content-Type": "application/json",
+                    }),
                 }),
-            });
+            );
 
             try {
                 const text = await response.text();
@@ -1416,28 +1435,29 @@ class AleoNetworkClient {
      */
     async submitSolution(solution: string): Promise<string> {
         try {
-            const response = await post(this.host + "/solution/broadcast", {
-                body: solution,
-                headers: Object.assign({}, this.headers, {
-                    "Content-Type": "application/json",
+            const response = await retryWithBackoff(() =>
+                post(this.host + "/solution/broadcast", {
+                    body: solution,
+                    headers: Object.assign({}, this.headers, {
+                        "Content-Type": "application/json",
+                    }),
                 }),
-            });
+            );
 
             try {
                 const text = await response.text();
                 return parseJSON(text);
             } catch (error: any) {
                 throw new Error(
-                    `Error posting transaction. Aleo network response: ${error.message}`,
+                    `Error posting solution. Aleo network response: ${error.message}`,
                 );
             }
         } catch (error: any) {
             throw new Error(
-                `Error posting transaction: No response received: ${error.message}`,
+                `Error posting solution: No response received: ${error.message}`,
             );
         }
     }
-
     /**
      * Await a submitted transaction to be confirmed or rejected on the Aleo network.
      *
