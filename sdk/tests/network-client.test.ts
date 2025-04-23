@@ -217,93 +217,109 @@ describe("NodeConnection", () => {
 
     describe("retryWithBackoff", () => {
         it("should retry failed network requests and eventually give up", async () => {
-          const client = new AleoNetworkClient("http://localhost:1234");
-      
-          let attemptCount = 0;
-      
-          client.fetchRaw = async () => {
-            attemptCount++;
-            console.warn(`fake fetchRaw attempt ${attemptCount}`);
-            throw Object.assign(new Error("503 Service Unavailable"), { status: 503 });
-          };
-      
-          try {
-            await client.fetchData("/block/latest");
-            throw new Error("Expected fetchData to fail");
-          } catch (err: any) {
-            expect(err.message).to.include("503");
-            expect(attemptCount).to.be.greaterThan(1);
-          }
+            const client = new AleoNetworkClient("http://localhost:1234");
+
+            let attemptCount = 0;
+
+            client.fetchRaw = async () => {
+                return await retryWithBackoff(async () => {
+                    attemptCount++;
+                    console.warn(`fake fetchRaw attempt ${attemptCount}`);
+                    throw Object.assign(new Error("503 Service Unavailable"), {
+                        status: 503,
+                    });
+                });
+            };
+
+            try {
+                await client.fetchData("/block/latest");
+                throw new Error("Expected fetchData to fail");
+            } catch (err: any) {
+                expect(err.message).to.include("503");
+                expect(attemptCount).to.be.greaterThan(1);
+            }
         });
-      
+
         it("should retry failed transaction submissions and eventually give up", async () => {
             const client = new AleoNetworkClient("http://localhost:1234");
-          
+
             let attemptCount = 0;
-          
-            client["sendPost"] = async () => {
-              attemptCount++;
-              console.warn(`fake sendPost attempt ${attemptCount}`);
-              const error = new Error("503 Service Unavailable") as any;
-              error.status = 503;
-              throw error;
+
+            client["_sendPost"] = async () => {
+                attemptCount++;
+                console.warn(`fake sendPost attempt ${attemptCount}`);
+                const error = new Error("503 Service Unavailable") as any;
+                error.status = 503;
+                throw error;
             };
-          
+
             try {
-              await retryWithBackoff(() =>
-                client["sendPost"]("http://fakeurl", { method: "POST" }), {
-                  retryOnStatus: [503],
-                }
-              );
-              throw new Error("Expected retryWithBackoff to fail");
+                await retryWithBackoff(
+                    () =>
+                        client["_sendPost"]("http://fakeurl", {
+                            method: "POST",
+                        }),
+                    {
+                        retryOnStatus: [503],
+                    },
+                );
+                throw new Error("Expected retryWithBackoff to fail");
             } catch (err: any) {
-              expect(err.message).to.include("503");
-              expect(attemptCount).to.be.greaterThan(1);
+                expect(err.message).to.include("503");
+                expect(attemptCount).to.be.greaterThan(1);
             }
-          });
+        });
 
         it("should retry solution submission and eventually throw", async () => {
-        const client = new AleoNetworkClient("http://localhost:1234");
+            const client = new AleoNetworkClient("http://localhost:1234");
 
-        let attemptCount = 0;
+            let attemptCount = 0;
 
-        client["sendPost"] = async function () {
-            attemptCount++;
-            throw Object.assign(new Error("Network error"), { status: 503 });
-        };
+            client["_sendPost"] = async function () {
+                attemptCount++;
+                throw Object.assign(new Error("Network error"), {
+                    status: 503,
+                });
+            };
 
-        try {
-            await retryWithBackoff(() =>
-            client["sendPost"]("http://fakeurl", { method: "POST" }), {
-                retryOnStatus: [503],
+            try {
+                await retryWithBackoff(
+                    () =>
+                        client["_sendPost"]("http://fakeurl", {
+                            method: "POST",
+                        }),
+                    {
+                        retryOnStatus: [503],
+                    },
+                );
+                throw new Error("Expected sendPost to fail");
+            } catch (err: any) {
+                expect(err.message).to.include("Network error");
+                expect(attemptCount).to.be.greaterThan(1);
             }
-            );
-            throw new Error("Expected sendPost to fail");
-        } catch (err: any) {
-            expect(err.message).to.include("Network error");
-            expect(attemptCount).to.be.greaterThan(1);
-        }
         });
-      });
-      
+    });
+
     describe("setHeader", () => {
         it("should correctly update the headers map", async () => {
-            connection.setHeader('X-Test-Header', 'testvalue');
-            expect(connection.headers['X-Test-Header']).equal('testvalue');
-        })
+            connection.setHeader("X-Test-Header", "testvalue");
+            expect(connection.headers["X-Test-Header"]).equal("testvalue");
+        });
 
         it("should update existing header in map", async () => {
-            connection.setHeader('X-Test-Header', 'secondtestvalue');
-            expect(connection.headers['X-Test-Header']).equal('secondtestvalue');
-        })
-    })
+            connection.setHeader("X-Test-Header", "secondtestvalue");
+            expect(connection.headers["X-Test-Header"]).equal(
+                "secondtestvalue",
+            );
+        });
+    });
 
     describe("removeHeader", () => {
         it("should remove header from the map", async () => {
-            connection.removeHeader('X-Test-Header');
-            expect(connection.headers['X-Test-Header']).undefined;
-        })
-    })
+            connection.removeHeader("X-Test-Header");
+            expect(connection.headers["X-Test-Header"]).undefined;
+        });
+    });
 
     describe("waitForTransactionConfirmation", () => {
         const mainnetAcceptedTx =
