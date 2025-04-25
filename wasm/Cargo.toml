@@ -148,6 +148,7 @@ features = [
 default = [ "serial", "browser" ]
 serial = [ "snarkvm-console/serial", "snarkvm-synthesizer/serial", "snarkvm-ledger-query/serial", "snarkvm-ledger-block/serial", "snarkvm-ledger-store/serial" ]
 browser = [ ]
+node = [ ]
 testnet = [ ]
 mainnet = [ ]
 
@@ -160,3 +161,8 @@ lto = true
 opt-level = 3
 lto = "thin"
 incremental = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+js-sys = "0.3"
+node-bindgen = { version = "5.1", optional = true }

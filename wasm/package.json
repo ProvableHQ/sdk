@@ -41,6 +41,7 @@
   "homepage": "https://github.com/puzzlehq/sdk#readme",
   "scripts": {
     "build": "rimraf dist && node build.js",
+    "build-node": "rimraf dist && node build-node.js",
     "test": "node test.js"
   },
   "devDependencies": {
