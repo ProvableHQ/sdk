@@ -73,7 +73,7 @@ program emoducks_nft.aleo {
     
     ///// ----- Application Specific Mappings ----- /////
 
-    // Mapping of private NFTs commit hash to their owners (hashed address)
+    // Mapping of private NFTs address + salt hash to the NFT commit.
     mapping private_nft_owners: field => field;
 
     // Mapping of the NFT unique ids (commits) for a Emoduck to a "mutatable_data" struct.
@@ -409,42 +409,44 @@ program emoducks_nft.aleo {
             data: nft_data,
             edition: edition_value,
         };
+        let hashed_address: field = BHP256::hash_to_field(self.caller);
     let mint_private_future: Future = finalize_mint_private(
-        commit_hash, mutatable_data, random_value
+        hashed_address, commit_hash, mutatable_data
     );
         return (duck, mint_private_future);
     }
     
-    async function finalize_mint_private(hash: field, mutatable_data: MutatableData, owner_hash: field) { 
+    async function finalize_mint_private(hashed_address: field, commit: field, mutatable_data: MutatableData) { 
         // Ensure that the NFT doesn't already exist.
-        assert(nft_commits.contains(hash).not());
-        nft_commits.set(hash, true);
+        assert(nft_commits.contains(commit).not());
+        nft_commits.set(commit, true);
 
-        // Ensure that the NFT isn't arleady owned.
-        assert(private_nft_owners.contains(hash).not());
-        private_nft_owners.set(hash, owner_hash);
-        
         // Set the mutatable data for the NFT.
-        nft_mutatable_data.set(hash, mutatable_data);
+        nft_mutatable_data.set(commit, mutatable_data);
     }
 
     // Mutate the mania and sadness traits of an Emoduck NFT.
-    async transition mutate_emoduck(random_val: field, nft_commit: field) -> Future {
-        let caller_address: address = self.caller;
-        let hashed_caller: field = BHP256::hash_to_field(caller_address);
-        let mutate_future: Future = finalize_mutate_data(random_val, nft_commit, hashed_caller);
+    async transition mutate_emoduck(random_val: field, nft_commit: field, is_private: bool) -> Future {
+        let hashed_caller: field = BHP256::hash_to_field(self.caller);
+        let mutate_future: Future = finalize_mutate_data(random_val, nft_commit, hashed_caller, is_private);
         return mutate_future;
     }
 
     // Populate the Mutatable Data fields of the NFT with random values.
-    async function finalize_mutate_data(random_val: field, nft_commit: field, hashed_caller: field) {
-        // Ensure that the owner of the NFT is the caller.
-        let owner: address = nft_owners.get(nft_commit);
-        let hashed_owner: field = BHP256::hash_to_field(owner);
-        assert_eq(hashed_owner, hashed_caller);
+    async function finalize_mutate_data(random_val: field, nft_commit: field, hashed_caller: field, is_private: bool) {
+        // Check that the caller is the owner of a public NFT.
+        if !is_private {
+            let owner: address = nft_owners.get(nft_commit);
+            let hashed_owner: field = BHP256::hash_to_field(owner);
+            assert_eq(hashed_owner, hashed_caller);
+            // Check that public NFT exists.
+            assert(nft_contents.contains(nft_commit));
+        }
+        // Need a check for private NFT ownership here.
+        
+        // Get the mutatable NFT data from the commit.
+        assert(nft_mutatable_data.contains(nft_commit));
 
-        // Get the NFT data from the commit
-        assert(nft_contents.contains(nft_commit));
         let mutatable_data: MutatableData = nft_mutatable_data.get(nft_commit);
         // Ensure that mutate counter is less than 5. You can only mutate a duck 5 times.
         assert(mutatable_data.counter < 5u8);
@@ -458,6 +460,7 @@ program emoducks_nft.aleo {
             counter: mutatable_data.counter + 1u8,
         };
         // set the new data in the mapping
+        nft_mutatable_data.remove(nft_commit);
         nft_mutatable_data.set(nft_commit, mutated_data);
     }
 
