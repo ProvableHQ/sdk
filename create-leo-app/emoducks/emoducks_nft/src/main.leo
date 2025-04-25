@@ -73,6 +73,9 @@ program emoducks_nft.aleo {
     
     ///// ----- Application Specific Mappings ----- /////
 
+    // Mapping of private NFTs commit hash to their owners (hashed address)
+    mapping private_nft_owners: field => field;
+
     // Mapping of the NFT unique ids (commits) for a Emoduck to a "mutatable_data" struct.
     mapping nft_mutatable_data: field => MutatableData;
 
@@ -407,16 +410,20 @@ program emoducks_nft.aleo {
             edition: edition_value,
         };
     let mint_private_future: Future = finalize_mint_private(
-        commit_hash, mutatable_data
+        commit_hash, mutatable_data, random_value
     );
         return (duck, mint_private_future);
     }
     
-    async function finalize_mint_private(hash: field, mutatable_data: MutatableData) { 
+    async function finalize_mint_private(hash: field, mutatable_data: MutatableData, owner_hash: field) { 
         // Ensure that the NFT doesn't already exist.
         assert(nft_commits.contains(hash).not());
         nft_commits.set(hash, true);
 
+        // Ensure that the NFT isn't arleady owned.
+        assert(private_nft_owners.contains(hash).not());
+        private_nft_owners.set(hash, owner_hash);
+        
         // Set the mutatable data for the NFT.
         nft_mutatable_data.set(hash, mutatable_data);
     }
