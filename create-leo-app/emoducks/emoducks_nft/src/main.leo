@@ -480,7 +480,7 @@ program emoducks_nft.aleo {
         let mutatable_data: MutatableData = initialize_mutatable_data(random_value);
         let public_nft_commit: field = commit_nft(nft_data, nft_edition);
         let mint_nft_future: Future = finalize_public_mint(
-            public_nft_commit, nft_data, nft_edition, self.caller
+            public_nft_commit, nft_data, nft_edition, mutatable_data, self.caller
         );
         return mint_nft_future;
     }
@@ -489,6 +489,7 @@ program emoducks_nft.aleo {
         nft_commit: field,
         nft_data: CoreData,
         nft_edition: scalar,
+        mutatable_data: MutatableData,
         caller: address
     ){
         let public_data: NftContent = NftContent {
@@ -501,6 +502,12 @@ program emoducks_nft.aleo {
         assert(nft_commits.contains(nft_commit).not());
         nft_contents.set(nft_commit, public_data);
         nft_owners.set(nft_commit, caller);
+        nft_commits.set(nft_commit, true);
+
+        // Make sure the commit doesn't map to mutatable data.
+        assert(nft_mutatable_data.contains(nft_commit).not());
+        // Set the mutatable data for the NFT.
+        nft_mutatable_data.set(nft_commit, mutatable_data);
     }
     
 }
