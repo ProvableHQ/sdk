@@ -21,11 +21,9 @@ use crate::{
     log,
     native::ProgramIDNative,
     types::native::{
-        CurrentNetwork,
         ExecutionNative,
         IdentifierNative,
         ProcessNative,
-        ProgramID,
         ProgramNative,
         VerifyingKeyNative,
     },
