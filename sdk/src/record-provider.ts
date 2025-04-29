@@ -225,7 +225,16 @@ class NetworkRecordProvider implements RecordProvider {
             logAndThrow("Start height must be less than end height");
         }
 
-        return await this.networkClient.findRecords(startHeight, endHeight, unspent, ["credits.aleo"], microcredits, maxAmount, nonces, this.account.privateKey());
+        return await this.networkClient.findRecords({
+            startHeight,
+            endHeight,
+            unspent,
+            programs: ["credits.aleo"],
+            amounts: microcredits,
+            maxMicrocredits: maxAmount,
+            nonces,
+            privateKey: this.account.privateKey(),
+        });
     }
 
     /**
@@ -334,7 +343,16 @@ class NetworkRecordProvider implements RecordProvider {
             logAndThrow("Start height must be less than end height");
         }
 
-        return await this.networkClient.findRecords(startHeight, endHeight, unspent, programs, amounts, maxAmount, nonces, this.account.privateKey());
+        return await this.networkClient.findRecords({
+            startHeight,
+            endHeight,
+            unspent,
+            programs,
+            amounts,
+            maxMicrocredits: maxAmount,
+            nonces,
+            privateKey: this.account.privateKey(),
+        });
     }
 
 }

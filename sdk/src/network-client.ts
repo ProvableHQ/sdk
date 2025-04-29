@@ -208,14 +208,15 @@ class AleoNetworkClient {
     /**
      * Attempt to find records in the Aleo blockchain.
      *
-     * @param {number} startHeight - The height at which to start searching for unspent records
-     * @param {number} endHeight - The height at which to stop searching for unspent records
-     * @param {boolean} unspent - Whether to search for unspent records only
-     * @param {string[]} programs - The program(s) to search for unspent records in
-     * @param {number[]} amounts - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
-     * @param {number} maxMicrocredits - The maximum number of microcredits to search for
-     * @param {string[]} nonces - The nonces of already found records to exclude from the search
-     * @param {string | PrivateKey} privateKey - An optional private key to use to find unspent records.
+     * @param {Object} params
+     * @param {number} params.startHeight - The height at which to start searching for unspent records
+     * @param {number} [params.endHeight] - The height at which to stop searching for unspent records
+     * @param {boolean} [params.unspent=false] - Whether to search for unspent records only
+     * @param {string[]} [params.programs] - The program(s) to search for unspent records in
+     * @param {number[]} [params.amounts] - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
+     * @param {number} [params.maxMicrocredits] - The maximum number of microcredits to search for
+     * @param {string[]} [params.nonces] - The nonces of already found records to exclude from the search
+     * @param {string | PrivateKey} [params.privateKey] - An optional private key to use to find unspent records.
      * @returns {Promise<Array<RecordPlaintext>>} An array of records belonging to the account configured in the network client.
      *
      * @example
@@ -231,25 +232,32 @@ class AleoNetworkClient {
      * // Find specific amounts
      * const startHeight = 500000;
      * const amounts = [600000, 1000000];
-     * const records = networkClient.findRecords(startHeight, undefined, true, ["credits.aleo"] amounts);
+     * const records = networkClient.findRecords({ startHeight, unspent: true, programs: ["credits.aleo"], amounts });
      *
      * // Find specific amounts with a maximum number of cumulative microcredits
      * const maxMicrocredits = 100000;
-     * const records = networkClient.findRecords(startHeight, undefined, true, ["credits.aleo"] undefined, maxMicrocredits);
+     * const records = networkClient.findRecords({ startHeight, unspent: true, programs: ["credits.aleo"], maxMicrocredits });
      */
-    async findRecords(
+    async findRecords(params: {
         startHeight: number,
-        endHeight: number | undefined,
-        unspent: boolean = false,
+        endHeight?: number,
+        unspent?: boolean,
         programs?: string[],
-        amounts?: number[] | undefined,
-        maxMicrocredits?: number | undefined,
-        nonces?: string[] | undefined,
-        privateKey?: string | PrivateKey | undefined,
-    ): Promise<Array<RecordPlaintext>> {
-        nonces = nonces || [];
+        amounts?: number[],
+        maxMicrocredits?: number,
+        nonces?: string[],
+        privateKey?: string | PrivateKey,
+    }): Promise<Array<RecordPlaintext>> {
+        if (params.unspent == null) {
+            params.unspent = false;
+        }
+
+        if (params.nonces == null) {
+            params.nonces = [];
+        }
+
         // Ensure start height is not negative
-        if (startHeight < 0) {
+        if (params.startHeight < 0) {
             throw new Error("Start height must be greater than or equal to 0");
         }
 
@@ -263,7 +271,7 @@ class AleoNetworkClient {
         let latestHeight: number;
 
         // Ensure a private key is present to find owned records
-        if (typeof privateKey === "undefined") {
+        if (typeof params.privateKey === "undefined") {
             if (typeof this.account === "undefined") {
                 throw new Error(
                     "Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient",
@@ -274,9 +282,9 @@ class AleoNetworkClient {
         } else {
             try {
                 resolvedPrivateKey =
-                    privateKey instanceof PrivateKey
-                        ? privateKey
-                        : PrivateKey.from_string(privateKey);
+                    params.privateKey instanceof PrivateKey
+                        ? params.privateKey
+                        : PrivateKey.from_string(params.privateKey);
             } catch (error) {
                 throw new Error("Error parsing private key provided.");
             }
@@ -298,24 +306,24 @@ class AleoNetworkClient {
         }
 
         // If no end height is specified or is greater than the latest height, set the end height to the latest height
-        if (typeof endHeight === "number" && endHeight <= latestHeight) {
-            end = endHeight;
+        if (typeof params.endHeight === "number" && params.endHeight <= latestHeight) {
+            end = params.endHeight;
         } else {
             end = latestHeight;
         }
 
         // If the starting is greater than the ending height, return an error
-        if (startHeight > end) {
+        if (params.startHeight > end) {
             throw new Error(
                 "Start height must be less than or equal to end height.",
             );
         }
 
         // Iterate through blocks in reverse order in chunks of 50
-        while (end > startHeight) {
+        while (end > params.startHeight) {
             start = end - 50;
-            if (start < startHeight) {
-                start = startHeight;
+            if (start < params.startHeight) {
+                start = params.startHeight;
             }
             try {
                 // Get 50 blocks (or the difference between the start and end if less than 50)
@@ -352,10 +360,10 @@ class AleoNetworkClient {
                                                 ];
                                         // Only search for unspent records in the specified programs.
                                         if (
-                                            !(typeof programs === "undefined")
+                                            !(typeof params.programs === "undefined")
                                         ) {
                                             if (
-                                                !programs.includes(
+                                                !params.programs.includes(
                                                     transition.program,
                                                 )
                                             ) {
@@ -398,15 +406,16 @@ class AleoNetworkClient {
                                                             const nonce =
                                                                 recordPlaintext.nonce();
                                                             if (
-                                                                nonces.includes(
+                                                                params.nonces.includes(
                                                                     nonce,
                                                                 )
                                                             ) {
                                                                 continue;
                                                             }
 
-                                                            if (unspent) {
+                                                            if (params.unspent) {
                                                                 const recordViewKey = recordPlaintext.recordViewKey(viewKey).toString();
+
                                                                 // Otherwise record the nonce that has been found
                                                                 const serialNumber =
                                                                     recordPlaintext.serialNumberString(
@@ -432,13 +441,13 @@ class AleoNetworkClient {
                                                             }
 
                                                             // Add the record to the list of records if the user did not specify amounts.
-                                                            if (!amounts) {
+                                                            if (!params.amounts) {
                                                                 records.push(
                                                                     recordPlaintext,
                                                                 );
                                                                 // If the user specified a maximum number of microcredits, check if the search has found enough
                                                                 if (
-                                                                    typeof maxMicrocredits ===
+                                                                    typeof params.maxMicrocredits ===
                                                                     "number"
                                                                 ) {
                                                                     totalRecordValue +=
@@ -447,7 +456,7 @@ class AleoNetworkClient {
                                                                     if (
                                                                         totalRecordValue >=
                                                                         BigInt(
-                                                                            maxMicrocredits,
+                                                                            params.maxMicrocredits,
                                                                         )
                                                                     ) {
                                                                         return records;
@@ -458,16 +467,15 @@ class AleoNetworkClient {
                                                             // If the user specified a list of amounts, check if the search has found them
                                                             if (
                                                                 !(
-                                                                    typeof amounts ===
+                                                                    typeof params.amounts ===
                                                                     "undefined"
                                                                 ) &&
-                                                                amounts.length >
-                                                                0
+                                                                params.amounts.length > 0
                                                             ) {
                                                                 let amounts_found = 0;
                                                                 if (
                                                                     recordPlaintext.microcredits() >
-                                                                    amounts[
+                                                                    params.amounts[
                                                                         amounts_found
                                                                         ]
                                                                 ) {
@@ -477,7 +485,7 @@ class AleoNetworkClient {
                                                                     );
                                                                     // If the user specified a maximum number of microcredits, check if the search has found enough
                                                                     if (
-                                                                        typeof maxMicrocredits ===
+                                                                        typeof params.maxMicrocredits ===
                                                                         "number"
                                                                     ) {
                                                                         totalRecordValue +=
@@ -486,7 +494,7 @@ class AleoNetworkClient {
                                                                         if (
                                                                             totalRecordValue >=
                                                                             BigInt(
-                                                                                maxMicrocredits,
+                                                                                params.maxMicrocredits,
                                                                             )
                                                                         ) {
                                                                             return records;
@@ -494,7 +502,7 @@ class AleoNetworkClient {
                                                                     }
                                                                     if (
                                                                         records.length >=
-                                                                        amounts.length
+                                                                        params.amounts.length
                                                                     ) {
                                                                         return records;
                                                                     }
@@ -535,13 +543,14 @@ class AleoNetworkClient {
     /**
      * Attempts to find unspent records in the Aleo blockchain.
      *
-     * @param {number} startHeight - The height at which to start searching for unspent records
-     * @param {number} endHeight - The height at which to stop searching for unspent records
-     * @param {string[]} programs - The program(s) to search for unspent records in
-     * @param {number[]} amounts - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
-     * @param {number} maxMicrocredits - The maximum number of microcredits to search for
-     * @param {string[]} nonces - The nonces of already found records to exclude from the search
-     * @param {string | PrivateKey} privateKey - An optional private key to use to find unspent records.
+     * @param {Object} params
+     * @param {number} params.startHeight - The height at which to start searching for unspent records
+     * @param {number} [params.endHeight] - The height at which to stop searching for unspent records
+     * @param {string[]} [params.programs] - The program(s) to search for unspent records in
+     * @param {number[]} [params.amounts] - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
+     * @param {number} [params.maxMicrocredits] - The maximum number of microcredits to search for
+     * @param {string[]} [params.nonces] - The nonces of already found records to exclude from the search
+     * @param {string | PrivateKey} [params.privateKey] - An optional private key to use to find unspent records.
      * @returns {Promise<Array<RecordPlaintext>>} An array of unspent records belonging to the account configured in the network client.
      *
      * @example
@@ -557,35 +566,29 @@ class AleoNetworkClient {
      * const startHeight = 500000;
      * const endHeight = 550000;
      * const amounts = [600000, 1000000];
-     * const records = networkClient.findUnspentRecords(startHeight, endHeight, ["credits.aleo"], amounts);
+     * const records = networkClient.findUnspentRecords({ startHeight, endHeight, programs: ["credits.aleo"], amounts });
      *
      * // Find specific amounts with a maximum number of cumulative microcredits
      * const maxMicrocredits = 100000;
-     * const records = networkClient.findUnspentRecords(startHeight, undefined, ["credits.aleo"], undefined, maxMicrocredits);
+     * const records = networkClient.findUnspentRecords({ startHeight, programs: ["credits.aleo"], maxMicrocredits });
      */
-    async findUnspentRecords(
+    async findUnspentRecords(params: {
         startHeight: number,
-        endHeight: number | undefined,
+        endHeight?: number,
         programs?: string[],
-        amounts?: number[] | undefined,
-        maxMicrocredits?: number | undefined,
-        nonces?: string[] | undefined,
-        privateKey?: string | PrivateKey | undefined,
-    ): Promise<Array<RecordPlaintext>> {
+        amounts?: number[],
+        maxMicrocredits?: number,
+        nonces?: string[],
+        privateKey?: string | PrivateKey,
+    }): Promise<Array<RecordPlaintext>> {
+        this.ctx = { "X-ALEO-METHOD": "findUnspentRecords" };
+
         try {
-            this.ctx = { "X-ALEO-METHOD": "findUnspentRecords" };
-            return await this.findRecords(
-                startHeight,
-                endHeight,
-                true,
-                programs,
-                amounts,
-                maxMicrocredits,
-                nonces,
-                privateKey,
-            );
-        } catch (error) {
-            throw new Error("Error finding unspent records: " + error);
+            return await this.findRecords({
+                ...params,
+                unspent: true,
+            });
+
         } finally {
             this.ctx = {};
         }
