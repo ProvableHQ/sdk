@@ -1190,9 +1190,10 @@ class AleoNetworkClient {
     /**
      * Returns the value of a program's mapping for a specific key.
      *
-     * @param {string} programId - The program ID to get the mapping value of (e.g. "credits.aleo")
-     * @param {string} mappingName - The name of the mapping to get the value of (e.g. "account")
-     * @param {string | Plaintext} key - The key to look up in the mapping (e.g. an address for the "account" mapping)
+     * @param {Object} params
+     * @param {string} params.programId - The program ID to get the mapping value of (e.g. "credits.aleo")
+     * @param {string} params.mappingName - The name of the mapping to get the value of (e.g. "account")
+     * @param {string | Plaintext} params.key - The key to look up in the mapping (e.g. an address for the "account" mapping)
      * @returns {Promise<string>} String representation of the value of the mapping
      *
      * @example
@@ -1202,25 +1203,35 @@ class AleoNetworkClient {
      * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
      *
      * // Get public balance of an account
-     * const mappingValue = networkClient.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+     * const mappingValue = networkClient.getProgramMappingValue({
+     *     programId: "credits.aleo",
+     *     mappingName: "account",
+     *     key: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     * });
      * const expectedValue = "0u64";
      * assert(mappingValue === expectedValue);
      */
-    async getProgramMappingValue(
+    async getProgramMappingValue(params: {
         programId: string,
         mappingName: string,
         key: string | Plaintext,
-    ): Promise<string> {
+    }): Promise<string> {
+        const { programId, mappingName, key } = params;
+
+        this.ctx = { "X-ALEO-METHOD": "getProgramMappingValue" };
+
         try {
-            this.ctx = { "X-ALEO-METHOD": "getProgramMappingValue" };
             const keyString = key instanceof Plaintext ? key.toString() : key;
+
             return await this.fetchData<string>(
                 `/program/${programId}/mapping/${mappingName}/${keyString}`,
             );
+
         } catch (error) {
             throw new Error(
                 `Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct: ${error}`,
             );
+
         } finally {
             this.ctx = {};
         }
@@ -1229,9 +1240,10 @@ class AleoNetworkClient {
     /**
      * Returns the value of a mapping as a wasm Plaintext object. Returning an object in this format allows it to be converted to a Js type and for its internal members to be inspected if it's a struct or array.
      *
-     * @param {string} programId - The program ID to get the mapping value of (e.g. "credits.aleo")
-     * @param {string} mappingName - The name of the mapping to get the value of (e.g. "bonded")
-     * @param {string | Plaintext} key - The key to look up in the mapping (e.g. an address for the "bonded" mapping)
+     * @param {Object} params
+     * @param {string} params.programId - The program ID to get the mapping value of (e.g. "credits.aleo")
+     * @param {string} params.mappingName - The name of the mapping to get the value of (e.g. "bonded")
+     * @param {string | Plaintext} params.key - The key to look up in the mapping (e.g. an address for the "bonded" mapping)
      * @returns {Promise<Plaintext>} String representation of the value of the mapping
      *
      * @example
@@ -1241,7 +1253,11 @@ class AleoNetworkClient {
      * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
      *
      * // Get the bond state as an account.
-     * const unbondedState = networkClient.getMappingPlaintext("credits.aleo", "bonded", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+     * const unbondedState = networkClient.getProgramMappingPlaintext({
+     *     programId: "credits.aleo",
+     *     mappingName: "bonded",
+     *     key: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     * });
      *
      * // Get the two members of the object individually.
      * const validator = unbondedState.getMember("validator");
@@ -1260,20 +1276,25 @@ class AleoNetworkClient {
      * };
      * assert.equal(unbondedState, expectedState);
      */
-    async getProgramMappingPlaintext(
+    async getProgramMappingPlaintext(params: {
         programId: string,
         mappingName: string,
         key: string | Plaintext,
-    ): Promise<Plaintext> {
+    }): Promise<Plaintext> {
+        this.ctx = { "X-ALEO-METHOD": "getProgramMappingPlaintext" };
+
         try {
-            this.ctx = { "X-ALEO-METHOD": "getProgramMappingPlaintext" };
-            const keyString = key instanceof Plaintext ? key.toString() : key;
+            const keyString = params.key instanceof Plaintext ? params.key.toString() : params.key;
+
             const value = await this.fetchRaw(
-                `/program/${programId}/mapping/${mappingName}/${keyString}`,
+                `/program/${params.programId}/mapping/${params.mappingName}/${keyString}`,
             );
+
             return Plaintext.fromString(JSON.parse(value));
+
         } catch (error) {
             throw new Error("Failed to fetch mapping value." + error);
+
         } finally {
             this.ctx = {};
         }
@@ -1302,11 +1323,11 @@ class AleoNetworkClient {
             this.ctx = { "X-ALEO-METHOD": "getPublicBalance" };
             const addressString =
                 address instanceof Address ? address.to_string() : address;
-            const balanceStr = await this.getProgramMappingValue(
-                "credits.aleo",
-                "account",
-                addressString,
-            );
+            const balanceStr = await this.getProgramMappingValue({
+                programId: "credits.aleo",
+                mappingName: "account",
+                key: addressString,
+            });
             return balanceStr ? parseInt(balanceStr) : 0;
         } catch (error) {
             throw new Error(
@@ -1671,9 +1692,10 @@ class AleoNetworkClient {
     /**
      * Await a submitted transaction to be confirmed or rejected on the Aleo network.
      *
-     * @param {string} transactionId - The transaction ID to wait for confirmation
-     * @param {number} checkInterval - The interval in milliseconds to check for confirmation (default: 2000)
-     * @param {number} timeout - The maximum time in milliseconds to wait for confirmation (default: 45000)
+     * @param {Object} params
+     * @param {string} params.transactionId - The transaction ID to wait for confirmation
+     * @param {number} [params.checkInterval=2000] - The interval in milliseconds to check for confirmation (default: 2000)
+     * @param {number} [params.timeout=45000] - The maximum time in milliseconds to wait for confirmation (default: 45000)
      * @returns {Promise<Transaction>} The confirmed transaction object that returns if the transaction is confirmed.
      *
      * @example
@@ -1695,11 +1717,15 @@ class AleoNetworkClient {
      * // Wait for the transaction to be confirmed.
      * const transaction = await networkClient.waitForTransactionConfirmation(transactionId);
      */
-    async waitForTransactionConfirmation(
+    async waitForTransactionConfirmation({
+        transactionId,
+        checkInterval = 2000,
+        timeout = 45000,
+    }: {
         transactionId: string,
-        checkInterval: number = 2000,
-        timeout: number = 45000,
-    ): Promise<ConfirmedTransactionJSON> {
+        checkInterval: number,
+        timeout: number,
+    }): Promise<ConfirmedTransactionJSON> {
         const startTime = Date.now();
 
         return new Promise((resolve, reject) => {
