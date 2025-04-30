@@ -387,63 +387,52 @@ describe("NodeConnection", () => {
     describe("findUnspentRecords", () => {
         it("should fail if block heights or private keys are incorrectly specified", async () => {
             await expectThrows(() =>
-                connection.findUnspentRecords(
-                    5,
-                    0,
-                    [],
-                    undefined,
-                    undefined,
-                    [],
-                    beaconPrivateKeyString,
-                ),
+                connection.findUnspentRecords({
+                    startHeight: 5,
+                    endHeight: 0,
+                    programs: [],
+                    nonces: [],
+                    privateKey: beaconPrivateKeyString,
+                }),
             );
 
             await expectThrows(() =>
-                connection.findUnspentRecords(
-                    -5,
-                    5,
-                    [],
-                    undefined,
-                    undefined,
-                    [],
-                    beaconPrivateKeyString,
-                ),
+                connection.findUnspentRecords({
+                    startHeight: -5,
+                    endHeight: 5,
+                    programs: [],
+                    nonces: [],
+                    privateKey: beaconPrivateKeyString,
+                }),
             );
 
             await expectThrows(() =>
-                connection.findUnspentRecords(
-                    0,
-                    5,
-                    [],
-                    undefined,
-                    undefined,
-                    [],
-                    "definitelynotaprivatekey",
-                ),
+                connection.findUnspentRecords({
+                    startHeight: 0,
+                    endHeight: 5,
+                    programs: [],
+                    nonces: [],
+                    privateKey: "definitelynotaprivatekey",
+                }),
             );
 
             await expectThrows(() =>
-                connection.findUnspentRecords(
-                    0,
-                    5,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [],
-                ),
+                connection.findUnspentRecords({
+                    startHeight: 0,
+                    endHeight: 5,
+                    nonces: [],
+                }),
             );
         });
 
         it.skip("should search a range correctly and not find records where none exist", async () => {
-            const records = await connection.findUnspentRecords(
-                0,
-                204,
-                [],
-                undefined,
-                undefined,
-                [],
-                beaconPrivateKeyString,
-            );
+            const records = await connection.findUnspentRecords({
+                startHeight: 0,
+                endHeight: 204,
+                programs: [],
+                nonces: [],
+                privateKey: beaconPrivateKeyString,
+            });
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).equal(0);

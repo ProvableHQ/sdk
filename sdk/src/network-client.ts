@@ -212,10 +212,10 @@ class AleoNetworkClient {
      * @param {number} params.startHeight - The height at which to start searching for unspent records
      * @param {number} [params.endHeight] - The height at which to stop searching for unspent records
      * @param {boolean} [params.unspent=false] - Whether to search for unspent records only
-     * @param {string[]} [params.programs] - The program(s) to search for unspent records in
-     * @param {number[]} [params.amounts] - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
+     * @param {string[]} [params.programs=[]] - The program(s) to search for unspent records in
+     * @param {number[]} [params.amounts=[]] - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
      * @param {number} [params.maxMicrocredits] - The maximum number of microcredits to search for
-     * @param {string[]} [params.nonces] - The nonces of already found records to exclude from the search
+     * @param {string[]} [params.nonces=[]] - The nonces of already found records to exclude from the search
      * @param {string | PrivateKey} [params.privateKey] - An optional private key to use to find unspent records.
      * @returns {Promise<Array<RecordPlaintext>>} An array of records belonging to the account configured in the network client.
      *
@@ -546,10 +546,10 @@ class AleoNetworkClient {
      * @param {Object} params
      * @param {number} params.startHeight - The height at which to start searching for unspent records
      * @param {number} [params.endHeight] - The height at which to stop searching for unspent records
-     * @param {string[]} [params.programs] - The program(s) to search for unspent records in
-     * @param {number[]} [params.amounts] - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
+     * @param {string[]} [params.programs=[]] - The program(s) to search for unspent records in
+     * @param {number[]} [params.amounts=[]] - The amounts (in microcredits) to search for (eg. [100, 200, 3000])
      * @param {number} [params.maxMicrocredits] - The maximum number of microcredits to search for
-     * @param {string[]} [params.nonces] - The nonces of already found records to exclude from the search
+     * @param {string[]} [params.nonces=[]] - The nonces of already found records to exclude from the search
      * @param {string | PrivateKey} [params.privateKey] - An optional private key to use to find unspent records.
      * @returns {Promise<Array<RecordPlaintext>>} An array of unspent records belonging to the account configured in the network client.
      *
