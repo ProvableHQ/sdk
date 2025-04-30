@@ -353,7 +353,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
             }
 
             if (proverUrl && verifierUrl) {
-                return await this.fetchRemoteKeys(proverUrl, verifierUrl, cacheKey);
+                return await this.fetchRemoteKeys({ proverUrl, verifierUrl, cacheKey });
             }
 
             if (cacheKey) {
@@ -366,9 +366,10 @@ class AleoKeyProvider implements FunctionKeyProvider {
     /**
      * Returns the proving and verifying keys for a specified program from a specified url.
      *
-     * @param {string} verifierUrl Url of the proving key
-     * @param {string} proverUrl Url the verifying key
-     * @param {string} cacheKey Key to store the keys in the cache
+     * @param {Object} params
+     * @param {string} params.verifierUrl Url of the proving key
+     * @param {string} params.proverUrl Url the verifying key
+     * @param {string} [params.cacheKey] Key to store the keys in the cache
      *
      * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the specified program
      *
@@ -383,12 +384,18 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually
-     * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchKeys(
-     *     CREDITS_PROGRAM_KEYS.transfer_private.prover,
-     *     CREDITS_PROGRAM_KEYS.transfer_private.verifier,
-     * );
+     * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchRemoteKeys({
+     *     proverUrl: CREDITS_PROGRAM_KEYS.transfer_private.prover,
+     *     verifierUrl: CREDITS_PROGRAM_KEYS.transfer_private.verifier,
+     * });
      */
-    async fetchRemoteKeys(proverUrl: string, verifierUrl: string, cacheKey?: string): Promise<FunctionKeyPair> {
+    async fetchRemoteKeys(params: {
+        proverUrl: string,
+        verifierUrl: string,
+        cacheKey?: string,
+    }): Promise<FunctionKeyPair> {
+        let { proverUrl, verifierUrl, cacheKey } = params;
+
         try {
             // If cache is enabled, check if the keys have already been fetched and return them if they have
             if (this.cacheOption) {
@@ -421,12 +428,18 @@ class AleoKeyProvider implements FunctionKeyProvider {
     /***
      * Fetches the proving key from a remote source.
      *
-     * @param proverUrl
-     * @param cacheKey
+     * @param {Object} params
+     * @param {string} params.proverUrl
+     * @param {string} [params.cacheKey]
      *
      * @returns {Promise<ProvingKey>} Proving key for the specified program
      */
-    async fetchProvingKey(proverUrl: string, cacheKey?: string): Promise<ProvingKey> {
+    async fetchProvingKey(params: {
+        proverUrl: string,
+        cacheKey?: string,
+    }): Promise<ProvingKey> {
+        let { proverUrl, cacheKey } = params;
+
         try {
             // If cache is enabled, check if the keys have already been fetched and return them if they have
             if (this.cacheOption) {
@@ -455,7 +468,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
         try {
             if (!this.cache.has(key.locator) || !this.cacheOption) {
                 const verifying_key = key.verifyingKey()
-                const proving_key = <ProvingKey>await this.fetchProvingKey(key.prover, key.locator);
+                const proving_key = <ProvingKey>await this.fetchProvingKey({ proverUrl: key.prover, cacheKey: key.locator });
                 if (this.cacheOption) {
                     this.cache.set(CREDITS_PROGRAM_KEYS.bond_public.locator, [proving_key.toBytes(), verifying_key.toBytes()]);
                 }
