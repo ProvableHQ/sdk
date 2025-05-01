@@ -1996,6 +1996,8 @@ class ProgramManager {
                 verifyingKey,
                 program,
                 function_id,
+                imports,
+                importedVerifyingKeys,
             );
         } catch (e) {
             console.warn(
