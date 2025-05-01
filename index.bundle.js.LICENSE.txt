@@ -4,7 +4,7 @@
 	http://jedwatson.github.io/classnames
 */
 
-/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
+/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */
 
 /**
  * @license React
@@ -67,7 +67,7 @@
  */
 
 /**
- * react-router v7.4.1
+ * react-router v7.5.3
  *
  * Copyright (c) Remix Software Inc.
  *
