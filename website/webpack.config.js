@@ -1,8 +1,16 @@
 import CopyPlugin from "copy-webpack-plugin";
 import TerserPlugin from "terser-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
-
+import webpack from "webpack";
+import dotenv from "dotenv";
 import path from "path";
+
+const env = dotenv.config().parsed || {};
+const envKeys = Object.keys(env).reduce((acc, key) => {
+  acc[`process.env.${key}`] = JSON.stringify(env[key]);
+  return acc;
+}, {});
+
 
 const appConfig = {
     mode: "production",
@@ -52,6 +60,7 @@ const appConfig = {
         new HtmlWebpackPlugin({
             template: "./index.html",
         }),
+        new webpack.DefinePlugin(envKeys),
     ],
     optimization: {
         minimize: true,

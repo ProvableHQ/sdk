@@ -8,7 +8,7 @@ import { init } from '@amplitude/analytics-browser';
 import { autocapturePlugin } from '@amplitude/plugin-autocapture-browser';
 
 // Initialize Amplitude with your API key
-const AMPLITUDE_API_KEY = import.meta.env.VITE_AMPLITUDE_API_KEY;
+const AMPLITUDE_API_KEY = process.env.VITE_AMPLITUDE_API_KEY;
 
 if (AMPLITUDE_API_KEY) {
   init(AMPLITUDE_API_KEY, {
