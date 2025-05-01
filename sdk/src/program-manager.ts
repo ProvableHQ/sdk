@@ -157,16 +157,20 @@ class ProgramManager {
 
     /** Create a new instance of the ProgramManager
      *
-     * @param { string | undefined } host A host uri running the official Aleo API
-     * @param { FunctionKeyProvider | undefined } keyProvider A key provider that implements {@link FunctionKeyProvider} interface
-     * @param { RecordProvider | undefined } recordProvider A record provider that implements {@link RecordProvider} interface
+     * @param {Object} params
+     * @param { string | undefined } [params.host] A host uri running the official Aleo API
+     * @param { FunctionKeyProvider | undefined } [params.keyProvider] A key provider that implements {@link FunctionKeyProvider} interface
+     * @param { RecordProvider | undefined } [params.recordProvider] A record provider that implements {@link RecordProvider} interface
+     * @param {AleoNetworkClientOptions} [params.networkClientOptions]
      */
-    constructor(
+    constructor(params: {
         host?: string | undefined,
         keyProvider?: FunctionKeyProvider | undefined,
         recordProvider?: RecordProvider | undefined,
         networkClientOptions?: AleoNetworkClientOptions | undefined,
-    ) {
+    }) {
+        const { host, keyProvider, recordProvider, networkClientOptions } = params;
+
         this.host = host ? host : "https://api.explorer.provable.com/v1";
         this.networkClient = new AleoNetworkClient(this.host, networkClientOptions);
 
@@ -177,7 +181,12 @@ class ProgramManager {
     /**
      * Check if the fee is sufficient to pay for the transaction
      */
-    async checkFee(address: string, feeAmount: bigint) {
+    async checkFee(params: {
+        address: string,
+        feeAmount: bigint,
+    }) {
+        const { address, feeAmount } = params;
+
         const balance =
             BigInt(await this.networkClient.getPublicBalance(address));
         if (feeAmount > balance) {
@@ -264,12 +273,13 @@ class ProgramManager {
     /**
      * Builds a deployment transaction for submission to the Aleo network.
      *
-     * @param {string} program Program source code
-     * @param {number} priorityFee The optional priority fee to be paid for that transaction.
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
-     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {Object} params
+     * @param {string} params.program Program source code
+     * @param {number} params.priorityFee The optional priority fee to be paid for that transaction.
+     * @param {boolean} params.privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} [params.recordSearchParams] Optional parameters for searching for a record to use pay the deployment fee
+     * @param {string | RecordPlaintext | undefined} [params.feeRecord] Optional Fee record to use for the transaction
+     * @param {PrivateKey | undefined} [params.privateKey] Optional private key to use for the transaction
      * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
@@ -290,7 +300,7 @@ class ProgramManager {
      * const priorityFee = 0.0;
      *
      * // Create the deployment transaction.
-     * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
+     * const tx = await programManager.buildDeploymentTransaction({ program, priorityFee, privateFee: false });
      * await programManager.networkClient.submitTransaction(tx);
      *
      * // Verify the transaction was successful
@@ -299,14 +309,16 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 20000);
      */
-    async buildDeploymentTransaction(
+    async buildDeploymentTransaction(params: {
         program: string,
         priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
-    ): Promise<Transaction> {
+    }): Promise<Transaction> {
+        let { program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey } = params;
+
         // Ensure the program is valid.
         let programObject;
         try {
@@ -354,13 +366,13 @@ class ProgramManager {
         try {
             feeRecord = privateFee
                 ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )
-                )
+                    await this.getCreditsRecord({
+                        amount: priorityFee,
+                        nonces: [],
+                        record: feeRecord,
+                        params: recordSearchParams,
+                    })
+                  )
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -407,12 +419,13 @@ class ProgramManager {
     /**
      * Deploy an Aleo program to the Aleo network
      *
-     * @param {string} program Program source code
-     * @param {number} priorityFee The optional fee to be paid for the transaction
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to used pay the deployment fee
-     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {Object} params
+     * @param {string} params.program Program source code
+     * @param {number} params.priorityFee The optional fee to be paid for the transaction
+     * @param {boolean} params.privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} [params.recordSearchParams] Optional parameters for searching for a record to used pay the deployment fee
+     * @param {string | RecordPlaintext | undefined} [params.feeRecord] Optional Fee record to use for the transaction
+     * @param {PrivateKey | undefined} [params.privateKey] Optional private key to use for the transaction
      * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
@@ -432,7 +445,7 @@ class ProgramManager {
      * const priorityFee = 0.0;
      *
      * // Deploy the program
-     * const tx_id = await programManager.deploy(program, fee, false);
+     * const tx_id = await programManager.deploy({ program, priorityFee, privateFee: false });
      *
      * // Verify the transaction was successful
      * setTimeout(async () => {
@@ -440,23 +453,18 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 20000);
      */
-    async deploy(
+    async deploy(params: {
         program: string,
         priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
-    ): Promise<string> {
+    }): Promise<string> {
+        const { privateKey } = params;
+
         const tx = <Transaction>(
-            await this.buildDeploymentTransaction(
-                program,
-                priorityFee,
-                privateFee,
-                recordSearchParams,
-                feeRecord,
-                privateKey,
-            )
+            await this.buildDeploymentTransaction(params)
         );
 
         let feeAddress;
@@ -472,7 +480,10 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee({
+            address: feeAddress.to_string(),
+            feeAmount: tx.feeAmount(),
+        });
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -584,13 +595,13 @@ class ProgramManager {
         try {
             feeRecord = privateFee
                 ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )
-                )
+                    await this.getCreditsRecord({
+                        amount: priorityFee,
+                        nonces: [],
+                        record: feeRecord,
+                        params: recordSearchParams,
+                    })
+                  )
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -1138,7 +1149,10 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee({
+            address: feeAddress.to_string(),
+            feeAmount: tx.feeAmount(),
+        });
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1146,16 +1160,17 @@ class ProgramManager {
     /**
      * Run an Aleo program in offline mode
      *
-     * @param {string} program Program source code containing the function to be executed
-     * @param {string} function_name Function name to execute
-     * @param {string[]} inputs Inputs to the function
-     * @param {number} proveExecution Whether to prove the execution of the function and return an execution transcript that contains the proof.
-     * @param {string[] | undefined} imports Optional imports to the program
-     * @param {KeySearchParams | undefined} keySearchParams Optional parameters for finding the matching proving & verifying keys for the function
-     * @param {ProvingKey | undefined} provingKey Optional proving key to use for the transaction
-     * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
-     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {Object} params
+     * @param {string} params.program Program source code containing the function to be executed
+     * @param {string} params.functionName Function name to execute
+     * @param {string[]} params.inputs Inputs to the function
+     * @param {number} params.proveExecution Whether to prove the execution of the function and return an execution transcript that contains the proof.
+     * @param {string[] | undefined} [params.imports] Optional imports to the program
+     * @param {KeySearchParams | undefined} [params.keySearchParams] Optional parameters for finding the matching proving & verifying keys for the function
+     * @param {ProvingKey | undefined} [params.provingKey] Optional proving key to use for the transaction
+     * @param {VerifyingKey | undefined} [params.verifyingKey] Optional verifying key to use for the transaction
+     * @param {PrivateKey | undefined} [params.privateKey] Optional private key to use for the transaction
+     * @param {OfflineQuery | undefined} [params.offlineQuery] Optional offline query if creating transactions in an offline environment
      * @returns {Promise<ExecutionResponse>} The execution response containing the outputs of the function and the proof if the program is proved.
      *
      * @example
@@ -1171,13 +1186,13 @@ class ProgramManager {
      * programManager.setAccount(account);
      *
      * /// Get the response and ensure that the program executed correctly
-     * const executionResponse = await programManager.run(program, "hello", ["5u32", "5u32"]);
+     * const executionResponse = await programManager.run({ program, functionName: "hello", inputs: ["5u32", "5u32"] });
      * const result = executionResponse.getOutputs();
      * assert(result === ["10u32"]);
      */
-    async run(
+    async run(params: {
         program: string,
-        function_name: string,
+        functionName: string,
         inputs: string[],
         proveExecution: boolean,
         imports?: ProgramImports,
@@ -1186,8 +1201,10 @@ class ProgramManager {
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-        edition?: number
-    ): Promise<ExecutionResponse> {
+        edition?: number,
+    }): Promise<ExecutionResponse> {
+        let { program, functionName, inputs, proveExecution, imports, keySearchParams, provingKey, verifyingKey, privateKey, offlineQuery, edition } = params;
+
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (
@@ -1221,7 +1238,7 @@ class ProgramManager {
         return WasmProgramManager.executeFunctionOffline(
             executionPrivateKey,
             program,
-            function_name,
+            functionName,
             inputs,
             proveExecution,
             false,
@@ -1237,14 +1254,15 @@ class ProgramManager {
     /**
      * Join two credits records into a single credits record
      *
-     * @param {RecordPlaintext | string} recordOne First credits record to join
-     * @param {RecordPlaintext | string} recordTwo Second credits record to join
-     * @param {number} priorityFee The optional priority fee to be paid for the transaction
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the fee record to use to pay the fee for the join transaction
-     * @param {RecordPlaintext | string | undefined} feeRecord Fee record to use for the join transaction
-     * @param {PrivateKey | undefined} privateKey Private key to use for the join transaction
-     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {Object} params
+     * @param {RecordPlaintext | string} params.recordOne First credits record to join
+     * @param {RecordPlaintext | string} params.recordTwo Second credits record to join
+     * @param {number} params.priorityFee The optional priority fee to be paid for the transaction
+     * @param {boolean} params.privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} [params.recordSearchParams] Optional parameters for finding the fee record to use to pay the fee for the join transaction
+     * @param {RecordPlaintext | string | undefined} [params.feeRecord] Fee record to use for the join transaction
+     * @param {PrivateKey | undefined} [params.privateKey] Private key to use for the join transaction
+     * @param {OfflineQuery | undefined} [params.offlineQuery] Optional offline query if creating transactions in an offline environment
      * @returns {Promise<string>} The transaction id
      *
      * @example
@@ -1258,9 +1276,9 @@ class ProgramManager {
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * const record_1 = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
-     * const record_2 = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 1540945439182663264862696551825005342995406165131907382295858612069623286213group.public}"
-     * const tx_id = await programManager.join(record_1, record_2, 0.05, false);
+     * const record1 = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
+     * const record2 = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 1540945439182663264862696551825005342995406165131907382295858612069623286213group.public}"
+     * const tx_id = await programManager.join({ record1, record2, priorityFee: 0.05, privateFee: false });
      *
      * // Verify the transaction was successful
      * setTimeout(async () => {
@@ -1268,16 +1286,18 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async join(
-        recordOne: RecordPlaintext | string,
-        recordTwo: RecordPlaintext | string,
+    async join(params: {
+        record1: RecordPlaintext | string,
+        record2: RecordPlaintext | string,
         priorityFee: number,
         privateFee: boolean,
         recordSearchParams?: RecordSearchParams | undefined,
         feeRecord?: RecordPlaintext | string | undefined,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-    ): Promise<string> {
+    }): Promise<string> {
+        let { record1, record2, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey, offlineQuery } = params;
+
         // Get the private key from the account if it is not provided in the parameters and assign the fee address
         let executionPrivateKey = privateKey;
         let feeAddress;
@@ -1315,13 +1335,13 @@ class ProgramManager {
         try {
             feeRecord = privateFee
                 ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )
-                )
+                    await this.getCreditsRecord({
+                        amount: priorityFee,
+                        nonces: [],
+                        record: feeRecord,
+                        params: recordSearchParams,
+                    })
+                  )
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -1331,14 +1351,14 @@ class ProgramManager {
 
         // Validate the records provided are valid plaintext records
         try {
-            recordOne =
-                recordOne instanceof RecordPlaintext
-                    ? recordOne
-                    : RecordPlaintext.fromString(recordOne);
-            recordTwo =
-                recordTwo instanceof RecordPlaintext
-                    ? recordTwo
-                    : RecordPlaintext.fromString(recordTwo);
+            record1 =
+                record1 instanceof RecordPlaintext
+                    ? record1
+                    : RecordPlaintext.fromString(record1);
+            record2 =
+                record2 instanceof RecordPlaintext
+                    ? record2
+                    : RecordPlaintext.fromString(record2);
         } catch (e: any) {
             logAndThrow(
                 "Records provided are not valid. Please ensure they are valid plaintext records.",
@@ -1348,8 +1368,8 @@ class ProgramManager {
         // Build an execution transaction and submit it to the network
         const tx = await WasmProgramManager.buildJoinTransaction(
             executionPrivateKey,
-            recordOne,
-            recordTwo,
+            record1,
+            record2,
             priorityFee,
             feeRecord,
             this.host,
@@ -1361,7 +1381,10 @@ class ProgramManager {
         );
 
         // Check if the account has sufficient credits to pay for the transaction
-        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee({
+            address: feeAddress.to_string(),
+            feeAmount: tx.feeAmount(),
+        });
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1369,10 +1392,11 @@ class ProgramManager {
     /**
      * Split credits into two new credits records
      *
-     * @param {number} splitAmount Amount in microcredits to split from the original credits record
-     * @param {RecordPlaintext | string} amountRecord Amount record to use for the split transaction
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the split transaction
-     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {Object} params
+     * @param {number} params.splitAmount Amount in microcredits to split from the original credits record
+     * @param {RecordPlaintext | string} params.amountRecord Amount record to use for the split transaction
+     * @param {PrivateKey | undefined} [params.privateKey] Optional private key to use for the split transaction
+     * @param {OfflineQuery | undefined} [params.offlineQuery] Optional offline query if creating transactions in an offline environment
      * @returns {Promise<string>} The transaction id
      *
      * @example
@@ -1387,7 +1411,7 @@ class ProgramManager {
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      * const record = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
-     * const tx_id = await programManager.split(25000000, record);
+     * const tx_id = await programManager.split({ splitAmount: 25000000, amountRecord: record });
      *
      * // Verify the transaction was successful
      * setTimeout(async () => {
@@ -1395,12 +1419,14 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async split(
+    async split(params: {
         splitAmount: number,
         amountRecord: RecordPlaintext | string,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-    ): Promise<string> {
+    }): Promise<string> {
+        let { splitAmount, amountRecord, privateKey, offlineQuery } = params;
+
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (
@@ -1454,19 +1480,22 @@ class ProgramManager {
     /**
      * Pre-synthesize proving and verifying keys for a program
      *
-     * @param program {string} The program source code to synthesize keys for
-     * @param function_id {string} The function id to synthesize keys for
-     * @param inputs {Array<string>}  Sample inputs to the function
-     * @param privateKey {PrivateKey | undefined} Optional private key to use for the key synthesis
+     * @param {Object} params
+     * @param params.program {string} The program source code to synthesize keys for
+     * @param params.functionId {string} The function id to synthesize keys for
+     * @param params.inputs {Array<string>}  Sample inputs to the function
+     * @param [params.privateKey] {PrivateKey | undefined} Optional private key to use for the key synthesis
      *
      * @returns {Promise<FunctionKeyPair>}
      */
-    async synthesizeKeys(
+    async synthesizeKeys(params: {
         program: string,
-        function_id: string,
+        functionId: string,
         inputs: Array<string>,
         privateKey?: PrivateKey,
-    ): Promise<FunctionKeyPair> {
+    }): Promise<FunctionKeyPair> {
+        let { program, functionId, inputs, privateKey } = params;
+
         // Resolve the program imports if they exist
         let imports;
 
@@ -1485,7 +1514,7 @@ class ProgramManager {
             const keyPair = await WasmProgramManager.synthesizeKeyPair(
                 executionPrivateKey,
                 program,
-                function_id,
+                functionId,
                 inputs,
                 imports,
             );
@@ -1503,16 +1532,17 @@ class ProgramManager {
     /**
      * Build a transaction to transfer credits to another account for later submission to the Aleo network
      *
-     * @param {number} amount The amount of credits to transfer
-     * @param {string} recipient The recipient of the transfer
-     * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} priorityFee The optional priority fee to be paid for the transaction
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
-     * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
-     * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
-     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {Object} params
+     * @param {number} params.amount The amount of credits to transfer
+     * @param {string} params.recipient The recipient of the transfer
+     * @param {string} params.transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
+     * @param {number} params.priorityFee The optional priority fee to be paid for the transaction
+     * @param {boolean} params.privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} [params.recordSearchParams] Optional parameters for finding the amount and fee records for the transfer transaction
+     * @param {RecordPlaintext | string} [params.amountRecord] Optional amount record to use for the transfer
+     * @param {RecordPlaintext | string} [params.feeRecord] Optional fee record to use for the transfer
+     * @param {PrivateKey | undefined} [params.privateKey] Optional private key to use for the transfer transaction
+     * @param {OfflineQuery | undefined} [params.offlineQuery] Optional offline query if creating transactions in an offline environment
      * @returns {Promise<Transaction>} The transaction object
      *
      * @example
@@ -1526,7 +1556,13 @@ class ProgramManager {
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * const tx = await programManager.buildTransferTransaction(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "public", 0.2, false);
+     * const tx = await programManager.buildTransferTransaction({
+     *     amount: 1,
+     *     recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     *     transferType: "public",
+     *     priorityFee: 0.2,
+     *     privateFee: false,
+     * });
      * await programManager.networkClient.submitTransaction(tx.toString());
      *
      * // Verify the transaction was successful
@@ -1535,7 +1571,7 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildTransferTransaction(
+    async buildTransferTransaction(params: {
         amount: number,
         recipient: string,
         transferType: string,
@@ -1546,7 +1582,9 @@ class ProgramManager {
         feeRecord?: RecordPlaintext | string,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-    ): Promise<Transaction> {
+    }): Promise<Transaction> {
+        let { amount, recipient, transferType, priorityFee, privateFee, recordSearchParams, amountRecord, feeRecord, privateKey, offlineQuery } = params;
+
         // Validate the transfer type
         transferType = <string>validateTransferType(transferType);
 
@@ -1588,12 +1626,12 @@ class ProgramManager {
             if (requiresAmountRecord(transferType)) {
                 // If the transfer type is private and requires an amount record, get it from the record provider
                 amountRecord = <RecordPlaintext>(
-                    await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        amountRecord,
-                        recordSearchParams,
-                    )
+                    await this.getCreditsRecord({
+                        amount: priorityFee,
+                        nonces: [],
+                        record: amountRecord,
+                        params: recordSearchParams,
+                    })
                 );
                 nonces.push(amountRecord.nonce());
             } else {
@@ -1601,13 +1639,13 @@ class ProgramManager {
             }
             feeRecord = privateFee
                 ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
-                        priorityFee,
-                        nonces,
-                        feeRecord,
-                        recordSearchParams,
-                    )
-                )
+                    await this.getCreditsRecord({
+                        amount: priorityFee,
+                        nonces: nonces,
+                        record: feeRecord,
+                        params: recordSearchParams,
+                    })
+                  )
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -1636,11 +1674,12 @@ class ProgramManager {
     /**
      * Build a transfer_public transaction to transfer credits to another account for later submission to the Aleo network
      *
-     * @param {number} amount The amount of credits to transfer
-     * @param {string} recipient The recipient of the transfer
-     * @param {number} priorityFee The optional priority fee to be paid for the transfer
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
-     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {Object} params
+     * @param {number} params.amount The amount of credits to transfer
+     * @param {string} params.recipient The recipient of the transfer
+     * @param {number} params.priorityFee The optional priority fee to be paid for the transfer
+     * @param {PrivateKey | undefined} [params.privateKey] Optional private key to use for the transfer transaction
+     * @param {OfflineQuery | undefined} [params.offlineQuery] Optional offline query if creating transactions in an offline environment
      * @returns {Promise<Transaction>} The transaction object
      *
      * @example
@@ -1654,7 +1693,11 @@ class ProgramManager {
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * const tx = await programManager.buildTransferPublicTransaction(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 0.2);
+     * const tx = await programManager.buildTransferPublicTransaction({
+     *     amount: 1,
+     *     recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     *     priorityFee: 0.2,
+     * });
      * await programManager.networkClient.submitTransaction(tx.toString());
      *
      * // Verify the transaction was successful
@@ -1663,35 +1706,29 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildTransferPublicTransaction(
+    async buildTransferPublicTransaction(params: {
         amount: number,
         recipient: string,
         priorityFee: number,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-    ): Promise<Transaction> {
-        return this.buildTransferTransaction(
-            amount,
-            recipient,
-            "public",
-            priorityFee,
-            false,
-            undefined,
-            undefined,
-            undefined,
-            privateKey,
-            offlineQuery,
-        );
+    }): Promise<Transaction> {
+        return this.buildTransferTransaction({
+            ...params,
+            transferType: "public",
+            privateFee: false,
+        });
     }
 
     /**
      * Build a transfer_public_as_signer transaction to transfer credits to another account for later submission to the Aleo network
      *
-     * @param {number} amount The amount of credits to transfer
-     * @param {string} recipient The recipient of the transfer
-     * @param {number} priorityFee The optional priority fee to be paid for the transfer
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
-     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {Object} params
+     * @param {number} params.amount The amount of credits to transfer
+     * @param {string} params.recipient The recipient of the transfer
+     * @param {number} params.priorityFee The optional priority fee to be paid for the transfer
+     * @param {PrivateKey | undefined} [params.privateKey] Optional private key to use for the transfer transaction
+     * @param {OfflineQuery | undefined} [params.offlineQuery] Optional offline query if creating transactions in an offline environment
      * @returns {Promise<Transaction>} The transaction object
      *
      * @example
@@ -1705,7 +1742,11 @@ class ProgramManager {
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * const tx = await programManager.buildTransferPublicAsSignerTransaction(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 0.2);
+     * const tx = await programManager.buildTransferPublicAsSignerTransaction({
+     *     amount: 1,
+     *     recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     *     priorityFee: 0.2,
+     * });
      * await programManager.networkClient.submitTransaction(tx.toString());
      *
      * // Verify the transaction was successful
@@ -1714,40 +1755,34 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildTransferPublicAsSignerTransaction(
+    async buildTransferPublicAsSignerTransaction(params: {
         amount: number,
         recipient: string,
         priorityFee: number,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-    ): Promise<Transaction> {
-        return this.buildTransferTransaction(
-            amount,
-            recipient,
-            "public",
-            priorityFee,
-            false,
-            undefined,
-            undefined,
-            undefined,
-            privateKey,
-            offlineQuery,
-        );
+    }): Promise<Transaction> {
+        return this.buildTransferTransaction({
+            ...params,
+            transferType: "public",
+            privateFee: false,
+        });
     }
 
     /**
      * Transfer credits to another account
      *
-     * @param {number} amount The amount of credits to transfer
-     * @param {string} recipient The recipient of the transfer
-     * @param {string} transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
-     * @param {number} priorityFee The optional priority fee to be paid for the transfer
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for finding the amount and fee records for the transfer transaction
-     * @param {RecordPlaintext | string} amountRecord Optional amount record to use for the transfer
-     * @param {RecordPlaintext | string} feeRecord Optional fee record to use for the transfer
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transfer transaction
-     * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {Object} params
+     * @param {number} params.amount The amount of credits to transfer
+     * @param {string} params.recipient The recipient of the transfer
+     * @param {string} params.transferType The type of transfer to perform - options: 'private', 'privateToPublic', 'public', 'publicToPrivate'
+     * @param {number} params.priorityFee The optional priority fee to be paid for the transfer
+     * @param {boolean} params.privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} [params.recordSearchParams] Optional parameters for finding the amount and fee records for the transfer transaction
+     * @param {RecordPlaintext | string} [params.amountRecord] Optional amount record to use for the transfer
+     * @param {RecordPlaintext | string} [params.feeRecord] Optional fee record to use for the transfer
+     * @param {PrivateKey | undefined} [params.privateKey] Optional private key to use for the transfer transaction
+     * @param {OfflineQuery | undefined} [params.offlineQuery] Optional offline query if creating transactions in an offline environment
      * @returns {Promise<string>} The transaction id
      *
      * @example
@@ -1761,7 +1796,13 @@ class ProgramManager {
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * const tx_id = await programManager.transfer(1, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "public", 0.2, false);
+     * const tx_id = await programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     *     transferType: "public",
+     *     priorityFee: 0.2,
+     *     privateFee: false,
+     * });
      *
      * // Verify the transaction was successful
      * setTimeout(async () => {
@@ -1769,7 +1810,7 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async transfer(
+    async transfer(params: {
         amount: number,
         recipient: string,
         transferType: string,
@@ -1780,26 +1821,15 @@ class ProgramManager {
         feeRecord?: RecordPlaintext | string,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-    ): Promise<string> {
+    }): Promise<string> {
         const tx = <Transaction>(
-            await this.buildTransferTransaction(
-                amount,
-                recipient,
-                transferType,
-                priorityFee,
-                privateFee,
-                recordSearchParams,
-                amountRecord,
-                feeRecord,
-                privateKey,
-                offlineQuery,
-            )
+            await this.buildTransferTransaction(params)
         );
 
         let feeAddress;
 
-        if (typeof privateKey !== "undefined") {
-            feeAddress = Address.from_private_key(privateKey);
+        if (typeof params.privateKey !== "undefined") {
+            feeAddress = Address.from_private_key(params.privateKey);
         } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
@@ -1809,7 +1839,10 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee({
+            address: feeAddress.to_string(),
+            feeAmount: tx.feeAmount(),
+        });
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1817,10 +1850,11 @@ class ProgramManager {
     /**
      * Build transaction to bond credits to a validator for later submission to the Aleo Network
      *
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
-     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
-     * @param {number} amount The amount of credits to bond
-     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * @param {Object} params
+     * @param {string} params.validatorAddress Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} params.withdrawalAddress Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} params.amount The amount of credits to bond
+     * @param {Partial<ExecuteOptions>} [params.options] - Override default execution options.
      * @returns {Promise<Transaction>} The transaction object
      *
      * @example
@@ -1836,7 +1870,11 @@ class ProgramManager {
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction object for later submission
-     * const tx = await programManager.buildBondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
+     * const tx = await programManager.buildBondPublicTransaction({
+     *     validatorAddress: "aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j",
+     *     withdrawalAddress: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     *     amount: 2000000,
+     * });
      *
      * // The transaction can be later submitted to the network using the network client.
      * await programManager.networkClient.submitTransaction(tx.toString());
@@ -1847,12 +1885,14 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildBondPublicTransaction(
-        validator_address: string,
-        withdrawal_address: string,
+    async buildBondPublicTransaction(params: {
+        validatorAddress: string,
+        withdrawalAddress: string,
         amount: number,
-        options: Partial<ExecuteOptions> = {},
-    ) {
+        options: Partial<ExecuteOptions>,
+    }) {
+        const { validatorAddress, withdrawalAddress, amount, options = {} } = params;
+
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const {
@@ -1861,8 +1901,8 @@ class ProgramManager {
             priorityFee = options.priorityFee || 0,
             privateFee = false,
             inputs = [
-                validator_address,
-                withdrawal_address,
+                validatorAddress,
+                withdrawalAddress,
                 `${scaledAmount.toString()}u64`,
             ],
             keySearchParams = new AleoKeyProviderParams({
@@ -1890,10 +1930,11 @@ class ProgramManager {
     /**
      * Bond credits to validator.
      *
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the signer (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
-     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
-     * @param {number} amount The amount of credits to bond
-     * @param {Options} options Options for the execution
+     * @param {Object} params
+     * @param {string} params.validatorAddress Address of the validator to bond to, if this address is the same as the signer (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 1,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} params.withdrawalAddress Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} params.amount The amount of credits to bond
+     * @param {Options} [params.options] Options for the execution
      * @returns {Promise<string>} The transaction id
      *
      * @example
@@ -1908,7 +1949,11 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      *
      * // Create the bonding transaction
-     * tx_id = await programManager.bondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
+     * tx_id = await programManager.bondPublic({
+     *     validatorAddress: "aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j",
+     *     withdrawalAddress: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     *     amount: 2000000,
+     * });
      *
      * // Verify the transaction was successful
      * setTimeout(async () => {
@@ -1916,19 +1961,16 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async bondPublic(
-        validator_address: string,
-        withdrawal_address: string,
+    async bondPublic(params: {
+        validatorAddress: string,
+        withdrawalAddress: string,
         amount: number,
-        options: Partial<ExecuteOptions> = {},
-    ) {
+        options: Partial<ExecuteOptions>,
+    }) {
+        const { options = {} } = params;
+
         const tx = <Transaction>(
-            await this.buildBondPublicTransaction(
-                validator_address,
-                withdrawal_address,
-                amount,
-                options,
-            )
+            await this.buildBondPublicTransaction(params)
         );
 
         let feeAddress;
@@ -1944,7 +1986,10 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee({
+            address: feeAddress.to_string(),
+            feeAmount: tx.feeAmount(),
+        });
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -1952,11 +1997,12 @@ class ProgramManager {
     /**
      * Build a bond_validator transaction for later submission to the Aleo Network.
      *
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator.
-     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
-     * @param {number} amount The amount of credits to bond. A minimum of 10000 credits is required to bond as a delegator.
-     * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
-     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * @param {Object} params
+     * @param {string} params.validatorAddress Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator.
+     * @param {string} params.withdrawalAddress Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} params.amount The amount of credits to bond. A minimum of 10000 credits is required to bond as a delegator.
+     * @param {number} params.commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
+     * @param {Partial<ExecuteOptions>} [params.options] - Override default execution options.
      * @returns {Promise<Transaction>} The transaction object
      *
      * @example
@@ -1972,7 +2018,12 @@ class ProgramManager {
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bond validator transaction object for later use.
-     * const tx = await programManager.buildBondValidatorTransaction("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
+     * const tx = await programManager.buildBondValidatorTransaction({
+     *     validatorAddress: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     *     withdrawalAddress: "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9",
+     *     amount: 2000000,
+     *     commission: 10,
+     * });
      *
      * // The transaction can later be submitted to the network using the network client.
      * const tx_id = await programManager.networkClient.submitTransaction(tx.toString());
@@ -1983,13 +2034,15 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async buildBondValidatorTransaction(
-        validator_address: string,
-        withdrawal_address: string,
+    async buildBondValidatorTransaction(params: {
+        validatorAddress: string,
+        withdrawalAddress: string,
         amount: number,
         commission: number,
-        options: Partial<ExecuteOptions> = {},
-    ) {
+        options: Partial<ExecuteOptions>,
+    }) {
+        const { validatorAddress, withdrawalAddress, amount, commission, options } = params;
+
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const adjustedCommission = Math.trunc(commission);
@@ -2000,8 +2053,8 @@ class ProgramManager {
             priorityFee = options.priorityFee || 0,
             privateFee = false,
             inputs = [
-                validator_address,
-                withdrawal_address,
+                validatorAddress,
+                withdrawalAddress,
                 `${scaledAmount.toString()}u64`,
                 `${adjustedCommission.toString()}u8`,
             ],
@@ -2030,11 +2083,12 @@ class ProgramManager {
     /**
      * Build transaction to bond a validator.
      *
-     * @param {string} validator_address Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
-     * @param {string} withdrawal_address Address to withdraw the staked credits to when unbond_public is called.
-     * @param {number} amount The amount of credits to bond
-     * @param {number} commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
-     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * @param {Object} params
+     * @param {string} params.validatorAddress Address of the validator to bond to, if this address is the same as the staker (i.e. the executor of this function), it will attempt to bond the credits as a validator. Bonding as a validator currently requires a minimum of 10,000,000 credits to bond (subject to change). If the address is specified is an existing validator and is different from the address of the executor of this function, it will bond the credits to that validator's staking committee as a delegator. A minimum of 10 credits is required to bond as a delegator.
+     * @param {string} params.withdrawalAddress Address to withdraw the staked credits to when unbond_public is called.
+     * @param {number} params.amount The amount of credits to bond
+     * @param {number} params.commission The commission rate for the validator (must be between 0 and 100 - an error will be thrown if it is not)
+     * @param {Partial<ExecuteOptions>} [params.options] - Override default execution options.
      * @returns {Promise<string>} The transaction id
      *
      * @example
@@ -2050,7 +2104,11 @@ class ProgramManager {
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
-     * const tx_id = await programManager.bondValidator("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9", 2000000);
+     * const tx_id = await programManager.bondValidator({
+     *     validatorAddress: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     *     withdrawalAddress: "aleo1feya8sjy9k2zflvl2dx39pdsq5tju28elnp2ektnn588uu9ghv8s84msv9",
+     *     amount: 2000000,
+     * });
      *
      * // Verify the transaction was successful
      * setTimeout(async () => {
@@ -2058,21 +2116,17 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async bondValidator(
-        validator_address: string,
-        withdrawal_address: string,
+    async bondValidator(params: {
+        validatorAddress: string,
+        withdrawalAddress: string,
         amount: number,
         commission: number,
-        options: Partial<ExecuteOptions> = {},
-    ) {
+        options: Partial<ExecuteOptions>,
+    }) {
+        const { options = {} } = params;
+
         const tx = <Transaction>(
-            await this.buildBondValidatorTransaction(
-                validator_address,
-                withdrawal_address,
-                amount,
-                commission,
-                options,
-            )
+            await this.buildBondValidatorTransaction(params)
         );
 
         let feeAddress;
@@ -2088,7 +2142,10 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee({
+            address: feeAddress.to_string(),
+            feeAmount: tx.feeAmount(),
+         });
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -2096,9 +2153,10 @@ class ProgramManager {
     /**
      * Build an unbond_public execution transaction to unbond credits from a validator in the Aleo network.
      *
-     * @param {string} staker_address - The address of the staker who is unbonding the credits.
-     * @param {number} amount - The amount of credits to unbond (scaled by 1,000,000).
-     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * @param {Object} params
+     * @param {string} params.stakerAddress - The address of the staker who is unbonding the credits.
+     * @param {number} params.amount - The amount of credits to unbond (scaled by 1,000,000).
+     * @param {Partial<ExecuteOptions>} [params.options] - Override default execution options.
      * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error message.
      *
      * @example
@@ -2111,7 +2169,10 @@ class ProgramManager {
      *
      * // Create a new ProgramManager with the key that will be used to unbond credits.
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
-     * const tx = await programManager.buildUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", 2000000);
+     * const tx = await programManager.buildUnbondPublicTransaction({
+     *     stakerAddress: "aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j",
+     *     amount: 2000000,
+     * });
      *
      * // The transaction can be submitted later to the network using the network client.
      * programManager.networkClient.submitTransaction(tx.toString());
@@ -2122,11 +2183,13 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildUnbondPublicTransaction(
-        staker_address: string,
+    async buildUnbondPublicTransaction(params: {
+        stakerAddress: string,
         amount: number,
-        options: Partial<ExecuteOptions> = {},
-    ): Promise<Transaction> {
+        options: Partial<ExecuteOptions>,
+    }): Promise<Transaction> {
+        const { stakerAddress, amount, options = {} } = params;
+
         const scaledAmount = Math.trunc(amount * 1000000);
 
         const {
@@ -2134,7 +2197,7 @@ class ProgramManager {
             functionName = "unbond_public",
             priorityFee = options.priorityFee || 0,
             privateFee = false,
-            inputs = [staker_address, `${scaledAmount.toString()}u64`],
+            inputs = [stakerAddress, `${scaledAmount.toString()}u64`],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.unbond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.unbond_public.verifier,
@@ -2165,9 +2228,10 @@ class ProgramManager {
      * subtract this amount of credits from the delegator's staked credits. If there are less than 10 credits bonded
      * after the unbond operation, the delegator will be removed from the validator's staking pool.
      *
-     * @param {string} staker_address Address of the staker who is unbonding the credits
-     * @param {number} amount Amount of credits to unbond.
-     * @param {ExecuteOptions} options Options for the execution
+     * @param {Object} params
+     * @param {string} params.stakerAddress Address of the staker who is unbonding the credits
+     * @param {number} params.amount Amount of credits to unbond.
+     * @param {ExecuteOptions} [params.options] Options for the execution
      * @returns {Promise<string>} The transaction id
      *
      * @example
@@ -2183,7 +2247,10 @@ class ProgramManager {
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the unbond_public transaction and send it to the network
-     * const tx_id = await programManager.unbondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j", 10);
+     * const tx_id = await programManager.unbondPublic({
+     *     stakerAddress: "aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j",
+     *     amount: 10,
+     * });
      *
      * // Verify the transaction was successful
      * setTimeout(async () => {
@@ -2191,17 +2258,15 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async unbondPublic(
-        staker_address: string,
+    async unbondPublic(params: {
+        stakerAddress: string,
         amount: number,
-        options: Partial<ExecuteOptions> = {},
-    ): Promise<string> {
+        options: Partial<ExecuteOptions>,
+    }): Promise<string> {
+        const { options = {} } = params;
+
         const tx = <Transaction>(
-            await this.buildUnbondPublicTransaction(
-                staker_address,
-                amount,
-                options,
-            )
+            await this.buildUnbondPublicTransaction(params)
         );
 
         let feeAddress;
@@ -2217,7 +2282,10 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee({
+            address: feeAddress.to_string(),
+            feeAmount: tx.feeAmount(),
+        });
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -2225,8 +2293,9 @@ class ProgramManager {
     /**
      * Build a transaction to claim unbonded public credits in the Aleo network.
      *
-     * @param {string} staker_address - The address of the staker who is claiming the credits.
-     * @param {Partial<ExecuteOptions>} options - Override default execution options.
+     * @param {Object} params
+     * @param {string} params.stakerAddress - The address of the staker who is claiming the credits.
+     * @param {Partial<ExecuteOptions>} [params.options] - Override default execution options.
      * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error message.
      *
      * @example
@@ -2241,7 +2310,9 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      *
      * // Create the claim_unbond_public transaction object for later use.
-     * const tx = await programManager.buildClaimUnbondPublicTransaction("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j");
+     * const tx = await programManager.buildClaimUnbondPublicTransaction({
+     *     stakerAddress: "aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j",
+     * });
      *
      * // The transaction can be submitted later to the network using the network client.
      * programManager.networkClient.submitTransaction(tx.toString());
@@ -2252,16 +2323,18 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildClaimUnbondPublicTransaction(
-        staker_address: string,
-        options: Partial<ExecuteOptions> = {},
-    ): Promise<Transaction> {
+    async buildClaimUnbondPublicTransaction(params: {
+        stakerAddress: string,
+        options: Partial<ExecuteOptions>,
+    }): Promise<Transaction> {
+        const { stakerAddress, options = {} } = params;
+
         const {
             programName = "credits.aleo",
             functionName = "claim_unbond_public",
             priorityFee = options.priorityFee || 0,
             privateFee = false,
-            inputs = [staker_address],
+            inputs = [stakerAddress],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier,
@@ -2289,8 +2362,9 @@ class ProgramManager {
      * Claim unbonded credits. If credits have been unbonded by the account executing this function, this method will
      * claim them and add them to the public balance of the account.
      *
-     * @param {string} staker_address Address of the staker who is claiming the credits
-     * @param {ExecuteOptions} options
+     * @param {Object} params
+     * @param {string} params.stakerAddress Address of the staker who is claiming the credits
+     * @param {ExecuteOptions} [params.options]
      * @returns {Promise<string>} The transaction id
      *
      * @example
@@ -2306,7 +2380,9 @@ class ProgramManager {
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the claim_unbond_public transaction
-     * const tx_id = await programManager.claimUnbondPublic("aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j");
+     * const tx_id = await programManager.claimUnbondPublic({
+     *     stakerAddress: "aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j",
+     * });
      *
      * // Verify the transaction was successful
      * setTimeout(async () => {
@@ -2314,15 +2390,14 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async claimUnbondPublic(
-        staker_address: string,
-        options: Partial<ExecuteOptions> = {},
-    ): Promise<string> {
+    async claimUnbondPublic(params: {
+        stakerAddress: string,
+        options: Partial<ExecuteOptions>,
+    }): Promise<string> {
+        const { options = {} } = params;
+
         const tx = <Transaction>(
-            await this.buildClaimUnbondPublicTransaction(
-                staker_address,
-                options,
-            )
+            await this.buildClaimUnbondPublicTransaction(params)
         );
 
         let feeAddress;
@@ -2338,7 +2413,10 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee({
+            address: feeAddress.to_string(),
+            feeAmount: tx.feeAmount(),
+        });
 
         return await this.networkClient.submitTransaction(tx);
     }
@@ -2354,8 +2432,9 @@ class ProgramManager {
      * 1. Allow a validator to leave the committee, by closing themselves to stakers and then unbonding all of their stakers.
      * 2. Allow a validator to maintain their % of stake, by closing themselves to allowing more stakers to bond to them.
      *
-     * @param {boolean} validator_state
-     * @param {Partial<ExecuteOptions>} options - Override default execution options
+     * @param {Object} params
+     * @param {boolean} params.validatorState
+     * @param {Partial<ExecuteOptions>} [params.options] - Override default execution options
      * @returns {Promise<Transaction>} The transaction object
      *
      * @example
@@ -2370,7 +2449,9 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      *
      * // Create the set_validator_state transaction
-     * const tx = await programManager.buildSetValidatorStateTransaction(true);
+     * const tx = await programManager.buildSetValidatorStateTransaction({
+     *     validatorState: true,
+     * });
      *
      * // The transaction can be submitted later to the network using the network client.
      * programManager.networkClient.submitTransaction(tx.toString());
@@ -2381,16 +2462,18 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
-    async buildSetValidatorStateTransaction(
-        validator_state: boolean,
-        options: Partial<ExecuteOptions> = {},
-    ): Promise<Transaction> {
+    async buildSetValidatorStateTransaction(params: {
+        validatorState: boolean,
+        options: Partial<ExecuteOptions>,
+    }): Promise<Transaction> {
+        const { validatorState, options = {} } = params;
+
         const {
             programName = "credits.aleo",
             functionName = "set_validator_state",
             priorityFee = 0,
             privateFee = false,
-            inputs = [validator_state.toString()],
+            inputs = [validatorState.toString()],
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.set_validator_state.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.set_validator_state.verifier,
@@ -2423,8 +2506,9 @@ class ProgramManager {
      * 1. Allow a validator to leave the committee, by closing themselves to stakers and then unbonding all of their stakers.
      * 2. Allow a validator to maintain their % of stake, by closing themselves to allowing more stakers to bond to them.
      *
-     * @param {boolean} validator_state
-     * @param {Partial<ExecuteOptions>} options - Override default execution options
+     * @param {Object} params
+     * @param {boolean} params.validatorState
+     * @param {Partial<ExecuteOptions>} [params.options] - Override default execution options
      * @returns {Promise<string>} The transaction id
      *
      * @example
@@ -2439,7 +2523,9 @@ class ProgramManager {
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
      *
      * // Create the set_validator_state transaction
-     * const tx_id = await programManager.setValidatorState(true);
+     * const tx_id = await programManager.setValidatorState({
+     *     validatorState: true,
+     * });
      *
      * // Verify the transaction was successful
      * setTimeout(async () => {
@@ -2447,15 +2533,14 @@ class ProgramManager {
      *  assert(transaction.id() === tx_id);
      * }, 10000);
      */
-    async setValidatorState(
-        validator_state: boolean,
-        options: Partial<ExecuteOptions> = {},
-    ) {
+    async setValidatorState(params: {
+        validatorState: boolean,
+        options: Partial<ExecuteOptions>,
+    }) {
+        const { options = {} } = params;
+
         const tx = <Transaction>(
-            await this.buildSetValidatorStateTransaction(
-                validator_state,
-                options,
-            )
+            await this.buildSetValidatorStateTransaction(params)
         );
 
         let feeAddress;
@@ -2471,7 +2556,10 @@ class ProgramManager {
         }
 
         // Check if the account has sufficient credits to pay for the transaction
-        await this.checkFee(feeAddress.to_string(), tx.feeAmount());
+        await this.checkFee({
+            address: feeAddress.to_string(),
+            feeAmount: tx.feeAmount(),
+        });
 
         return this.networkClient.submitTransaction(tx);
     }
@@ -2479,10 +2567,11 @@ class ProgramManager {
     /**
      * Verify a proof from an offline execution. This is useful when it is desired to do offchain proving and verification.
      *
-     * @param {executionResponse} executionResponse The response from an offline function execution (via the `programManager.run` method)
-     * @param {blockHeight} blockHeight The ledger height when the execution was generated.
-     * @param {ImportedPrograms} imports The imported programs used in the execution. Specified as { "programName": "programSourceCode", ... }
-     * @param {ImportedVerifyingKeys} importedVerifyingKeys The verifying keys in the execution. Specified as { "programName": [["functionName", "verifyingKey"], ...], ... }
+     * @param {Object} params
+     * @param {executionResponse} params.executionResponse The response from an offline function execution (via the `programManager.run` method)
+     * @param {blockHeight} params.blockHeight The ledger height when the execution was generated.
+     * @param {ImportedPrograms} [params.imports] The imported programs used in the execution. Specified as { "programName": "programSourceCode", ... }
+     * @param {ImportedVerifyingKeys} [params.importedVerifyingKeys] The verifying keys in the execution. Specified as { "programName": [["functionName", "verifyingKey"], ...], ... }
      * @returns {boolean} True if the proof is valid, false otherwise
      *
      * @example
@@ -2507,10 +2596,17 @@ class ProgramManager {
      *
      * /// Verify the execution.
      * const blockHeight = 9000000;
-     * const isValid = programManager.verifyExecution(executionResponse, blockHeight, imports, importedVerifyingKeys);
+     * const isValid = programManager.verifyExecution({ executionResponse, blockHeight, imports, importedVerifyingKeys });
      * assert(isValid);
      */
-    verifyExecution(executionResponse: ExecutionResponse, blockHeight: number, imports?: ImportedPrograms, importedVerifyingKeys?: ImportedVerifyingKeys): boolean {
+    verifyExecution(params: {
+        executionResponse: ExecutionResponse,
+        blockHeight: number,
+        imports?: ImportedPrograms,
+        importedVerifyingKeys?: ImportedVerifyingKeys,
+    }): boolean {
+        const { executionResponse, blockHeight, imports, importedVerifyingKeys } = params;
+
         try {
             const execution = <FunctionExecution>(
                 executionResponse.getExecution()
@@ -2569,12 +2665,14 @@ class ProgramManager {
     }
 
     // Internal utility function for getting a credits.aleo record
-    async getCreditsRecord(
+    async getCreditsRecord(options: {
         amount: number,
         nonces: string[],
         record?: RecordPlaintext | string,
         params?: RecordSearchParams,
-    ): Promise<RecordPlaintext> {
+    }): Promise<RecordPlaintext> {
+        const { amount, nonces, record, params } = options;
+
         try {
             return record instanceof RecordPlaintext
                 ? record

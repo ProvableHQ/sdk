@@ -290,7 +290,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
                     const provingKey = ProvingKey.fromBytes(provingKeyBytes);
                     const verifyingKey = VerifyingKey.fromBytes(verifyingKeyBytes);
                     if (verifyCreditsKeys) {
-                        const keysMatchExpected = this.verifyCreditsKeys(keyId, provingKey, verifyingKey)
+                        const keysMatchExpected = this.verifyCreditsKeys({ locator: keyId, provingKey, verifyingKey })
                         if (!keysMatchExpected) {
                             reject (new Error(`Cached keys do not match expected keys for ${keyId}`));
                         }
@@ -306,9 +306,18 @@ class OfflineKeyProvider implements FunctionKeyProvider {
     /**
      * Determines if the keys for a given credits function match the expected keys.
      *
+     * @param {Object} params
+     * @param {ProvingKey} params.provingKey
+     * @param {VerifyingKey} params.verifyingKey
      * @returns {boolean} Whether the keys match the expected keys
      */
-    verifyCreditsKeys(locator: string, provingKey: ProvingKey, verifyingKey: VerifyingKey): boolean {
+    verifyCreditsKeys(params: {
+        locator: string,
+        provingKey: ProvingKey,
+        verifyingKey: VerifyingKey,
+    }): boolean {
+        const { locator, provingKey, verifyingKey } = params;
+
         switch (locator) {
             case CREDITS_PROGRAM_KEYS.bond_public.locator:
                 return provingKey.isBondPublicProver() && verifyingKey.isBondPublicVerifier();
