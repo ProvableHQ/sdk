@@ -20,15 +20,7 @@ use crate::{
     Transition,
     log,
     native::ProgramIDNative,
-    types::native::{
-        CurrentNetwork,
-        ExecutionNative,
-        IdentifierNative,
-        ProcessNative,
-        ProgramID,
-        ProgramNative,
-        VerifyingKeyNative,
-    },
+    types::native::{ExecutionNative, IdentifierNative, ProcessNative, ProgramNative, VerifyingKeyNative},
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 
