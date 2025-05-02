@@ -73,9 +73,6 @@ program emoducks_nft.aleo {
     
     ///// ----- Application Specific Mappings ----- /////
 
-    // Mapping of private NFTs address + salt hash to the NFT commit.
-    mapping private_nft_owners: field => field;
-
     // Mapping of the NFT unique ids (commits) for a Emoduck to a "mutatable_data" struct.
     mapping nft_mutatable_data: field => MutatableData;
 
@@ -410,7 +407,7 @@ program emoducks_nft.aleo {
             edition: edition_value,
         };
         let hashed_address: field = BHP256::hash_to_field(self.caller);
-    let mint_private_future: Future = finalize_mint_private(
+        let mint_private_future: Future = finalize_mint_private(
         hashed_address, commit_hash, mutatable_data
     );
         return (duck, mint_private_future);
@@ -473,16 +470,16 @@ program emoducks_nft.aleo {
     // 4 - Get mint_public() show what was minted then transfer_private() to the recipient. Effects, shows what was minted, the transfers it, increasing speculation.
     // 5 - This implementation sources randomness from the caller's address.
     async transition mint_public(
-        public nft_edition: scalar,
-        private random_value: field,
-    ) -> Future {
+    ) -> (CoreData, Future) {
+        let random_value: field = BHP256::hash_to_field(self.caller);
+        let nft_edition: scalar = 1scalar;
         let nft_data: CoreData = initialize_core(random_value);
         let mutatable_data: MutatableData = initialize_mutatable_data(random_value);
         let public_nft_commit: field = commit_nft(nft_data, nft_edition);
         let mint_nft_future: Future = finalize_public_mint(
             public_nft_commit, nft_data, nft_edition, mutatable_data, self.caller
         );
-        return mint_nft_future;
+        return (nft_data, mint_nft_future);
     }
 
     async function finalize_public_mint(
@@ -509,5 +506,4 @@ program emoducks_nft.aleo {
         // Set the mutatable data for the NFT.
         nft_mutatable_data.set(nft_commit, mutatable_data);
     }
-    
 }
