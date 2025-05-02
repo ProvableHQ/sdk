@@ -5,6 +5,89 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
+"@amplitude/analytics-browser@npm:^2.16.1":
+  version: 2.16.1
+  resolution: "@amplitude/analytics-browser@npm:2.16.1"
+  dependencies:
+    "@amplitude/analytics-core": "npm:^2.10.1"
+    "@amplitude/analytics-remote-config": "npm:^0.4.0"
+    "@amplitude/plugin-autocapture-browser": "npm:^1.1.10"
+    "@amplitude/plugin-page-view-tracking-browser": "npm:^2.3.20"
+    tslib: "npm:^2.4.1"
+  checksum: 10c0/9889f38bdbcf235b883e93e550cc4468a50fcf9158aa38c6a494aafb25a898aa58a2d9aa6d0c5b2d6ae50f18b6f92ad8bf069538c5358ebceaedd5c4f7e955d4
+  languageName: node
+  linkType: hard
+
+"@amplitude/analytics-client-common@npm:>=1 <3, @amplitude/analytics-client-common@npm:^2.3.17":
+  version: 2.3.17
+  resolution: "@amplitude/analytics-client-common@npm:2.3.17"
+  dependencies:
+    "@amplitude/analytics-connector": "npm:^1.4.8"
+    "@amplitude/analytics-core": "npm:^2.10.1"
+    "@amplitude/analytics-types": "npm:^2.9.1"
+    tslib: "npm:^2.4.1"
+  checksum: 10c0/404e8b63c398a023c253505784f256f4451280e89f7056ba110fc217e6744d0690f589c1d81f4b1d2c1127abfa323a8de3df6dcff7abed1189ee23b3dba34e8d
+  languageName: node
+  linkType: hard
+
+"@amplitude/analytics-connector@npm:^1.4.8, @amplitude/analytics-connector@npm:^1.6.4":
+  version: 1.6.4
+  resolution: "@amplitude/analytics-connector@npm:1.6.4"
+  checksum: 10c0/b084180029e48c011fffc47301462fc2db06830421348ca5fdf235fb6d30e4c0309161eb4392350bc00ab2bf7537306f18b9dfffa9998f70db2b6f31470f0e88
+  languageName: node
+  linkType: hard
+
+"@amplitude/analytics-core@npm:>=1 <3, @amplitude/analytics-core@npm:^2.10.1":
+  version: 2.10.1
+  resolution: "@amplitude/analytics-core@npm:2.10.1"
+  dependencies:
+    "@amplitude/analytics-connector": "npm:^1.6.4"
+    tslib: "npm:^2.4.1"
+  checksum: 10c0/4884796ba74421faaef8301b5a4c9660acf5b82e4214a23ae5c33c67d6b13892f5a861f0f9c09d3a84fc1a3dd1ee05585cbb7b8d12479c9c939139b0ec9a9559
+  languageName: node
+  linkType: hard
+
+"@amplitude/analytics-remote-config@npm:^0.4.0":
+  version: 0.4.1
+  resolution: "@amplitude/analytics-remote-config@npm:0.4.1"
+  dependencies:
+    "@amplitude/analytics-client-common": "npm:>=1 <3"
+    "@amplitude/analytics-core": "npm:>=1 <3"
+    "@amplitude/analytics-types": "npm:>=1 <3"
+    tslib: "npm:^2.4.1"
+  checksum: 10c0/9bd4bc880e1c44760097948b002525651da8de32b204a83a5d5e216a3cf4556e1b886963d741a495bcd76927a9f82bf346c5b44fb0d326d10ae8d464c62a8101
+  languageName: node
+  linkType: hard
+
+"@amplitude/analytics-types@npm:>=1 <3, @amplitude/analytics-types@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "@amplitude/analytics-types@npm:2.9.1"
+  checksum: 10c0/5ef23ee1e80f1034cbbe6479b4a757c3226fb8bdda92434635da1bb4f6be2fd04e4877b957a0a8db99abc34e9ce357ee74ba63195f11d104cb5e59a3b37a6f8d
+  languageName: node
+  linkType: hard
+
+"@amplitude/plugin-autocapture-browser@npm:^1.1.10":
+  version: 1.1.10
+  resolution: "@amplitude/plugin-autocapture-browser@npm:1.1.10"
+  dependencies:
+    "@amplitude/analytics-core": "npm:^2.10.1"
+    rxjs: "npm:^7.8.1"
+    tslib: "npm:^2.4.1"
+  checksum: 10c0/30dd7dfd962aa81be211444405cd92b634effd7597fea8d60f7922f5ab8dbc30b8662f008cea07b0d6a4fbbd25d70274b7cdbf0555ad1181bbaae86fa63ec6d5
+  languageName: node
+  linkType: hard
+
+"@amplitude/plugin-page-view-tracking-browser@npm:^2.3.20":
+  version: 2.3.20
+  resolution: "@amplitude/plugin-page-view-tracking-browser@npm:2.3.20"
+  dependencies:
+    "@amplitude/analytics-client-common": "npm:^2.3.17"
+    "@amplitude/analytics-types": "npm:^2.9.1"
+    tslib: "npm:^2.4.1"
+  checksum: 10c0/f7d3d4a6e2baffa081da785102d3427acef4ce48dd89dc566b3374d955ebb8c6d8a2ae1a34ce4cf067097460032b54cf9f2351764e7613651a7a9192e5c7e10e
+  languageName: node
+  linkType: hard
+
 "@ampproject/remapping@npm:^2.2.0":
   version: 2.3.0
   resolution: "@ampproject/remapping@npm:2.3.0"
@@ -4714,6 +4797,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aleo-website@workspace:website"
   dependencies:
+    "@amplitude/analytics-browser": "npm:^2.16.1"
     "@ant-design/icons": "npm:^6.0.0"
     "@babel/core": "npm:^7.27.1"
     "@babel/preset-env": "npm:^7.27.1"
@@ -4734,10 +4818,7 @@ __metadata:
     copy-to-clipboard: "npm:^3.3.3"
     copy-webpack-plugin: "npm:^13.0.0"
     css-loader: "npm:^7.1.2"
-    eslint: "npm:^9.25.1"
-    eslint-plugin-react: "npm:^7.37.5"
-    eslint-plugin-react-hooks: "npm:^5.2.0"
-    eslint-plugin-react-refresh: "npm:^0.4.20"
+    dotenv: "npm:^16.5.0"
     gh-pages: "npm:^6.3.0"
     html-webpack-plugin: "npm:^5.6.3"
     mini-css-extract-plugin: "npm:^2.9.2"
@@ -6669,6 +6750,13 @@ __metadata:
     no-case: "npm:^3.0.4"
     tslib: "npm:^2.0.3"
   checksum: 10c0/5b859ea65097a7ea870e2c91b5768b72ddf7fa947223fd29e167bcdff58fe731d941c48e47a38ec8aa8e43044c8fbd15cd8fa21689a526bc34b6548197cd5b05
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^16.5.0":
+  version: 16.5.0
+  resolution: "dotenv@npm:16.5.0"
+  checksum: 10c0/5bc94c919fbd955bf0ba44d33922a1e93d1078e64a1db5c30faeded1d996e7a83c55332cb8ea4fae5a9ca4d0be44cbceb95c5811e70f9f095298df09d1997dd9
   languageName: node
   linkType: hard
 
@@ -12681,6 +12769,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rxjs@npm:^7.8.1":
+  version: 7.8.2
+  resolution: "rxjs@npm:7.8.2"
+  dependencies:
+    tslib: "npm:^2.1.0"
+  checksum: 10c0/1fcd33d2066ada98ba8f21fcbbcaee9f0b271de1d38dc7f4e256bfbc6ffcdde68c8bfb69093de7eeb46f24b1fb820620bf0223706cff26b4ab99a7ff7b2e2c45
+  languageName: node
+  linkType: hard
+
 "safe-array-concat@npm:^1.1.3":
   version: 1.1.3
   resolution: "safe-array-concat@npm:1.1.3"
@@ -13883,7 +13980,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.4.0, tslib@npm:^2.6.2, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
+"tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.4.0, tslib@npm:^2.4.1, tslib@npm:^2.6.2, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62
