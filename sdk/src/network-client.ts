@@ -1715,7 +1715,7 @@ class AleoNetworkClient {
      * const transactionId = await networkClient.submitTransaction(tx);
      *
      * // Wait for the transaction to be confirmed.
-     * const transaction = await networkClient.waitForTransactionConfirmation(transactionId);
+     * const transaction = await networkClient.waitForTransactionConfirmation({ transactionId });
      */
     async waitForTransactionConfirmation({
         transactionId,
@@ -1723,8 +1723,8 @@ class AleoNetworkClient {
         timeout = 45000,
     }: {
         transactionId: string,
-        checkInterval: number,
-        timeout: number,
+        checkInterval?: number,
+        timeout?: number,
     }): Promise<ConfirmedTransactionJSON> {
         const startTime = Date.now();
 

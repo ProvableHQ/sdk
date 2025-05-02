@@ -345,7 +345,9 @@ describe("NodeConnection", () => {
             if (connection.network === "mainnet") {
                 const connection = new AleoNetworkClient(host);
                 const txId = getTxId(connection, "accepted");
-                const data = await connection.waitForTransactionConfirmation(txId);
+                const data = await connection.waitForTransactionConfirmation({
+                    transactionId: txId,
+                });
                 expect(data.status).to.equal("accepted");
                 expect(data.type).to.be.a("string");
             }
@@ -356,7 +358,9 @@ describe("NodeConnection", () => {
             const txId = getTxId(connection, "rejected");
             try {
                 console.log(txId);
-                await connection.waitForTransactionConfirmation(txId);
+                await connection.waitForTransactionConfirmation({
+                    transactionId: txId,
+                });
                 throw new Error(
                     "Expected waitForTransactionConfirmation to throw for rejected tx",
                 );
@@ -371,7 +375,9 @@ describe("NodeConnection", () => {
         it("should throw for a malformed tx ID", async () => {
             const connection = new AleoNetworkClient(host);
             try {
-                await connection.waitForTransactionConfirmation(invalidTx);
+                await connection.waitForTransactionConfirmation({
+                    transactionId: invalidTx,
+                });
                 throw new Error(
                     "Expected waitForTransactionConfirmation to throw",
                 );
@@ -480,11 +486,11 @@ describe("NodeConnection", () => {
         it('Plaintext returned from the API should have expected properties', async () => {
             if (connection.network === "testnet") {
                 // Check a struct variant of a plaintext object.
-                let plaintext = await connection.getProgramMappingPlaintext(
-                    "credits.aleo",
-                    "committee",
-                    "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal",
-                );
+                let plaintext = await connection.getProgramMappingPlaintext({
+                    programId: "credits.aleo",
+                    mappingName: "committee",
+                    key: "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal",
+                });
                 expect(plaintext.plaintextType()).equal("struct");
 
                 // Ensure the JS object representation matches the wasm representation.
@@ -497,11 +503,11 @@ describe("NodeConnection", () => {
                 expect(plaintextObject.commission).equal(commission);
 
                 // Check a literal variant of a plaintext object.
-                plaintext = await connection.getProgramMappingPlaintext(
-                    "credits.aleo",
-                    "account",
-                    "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal",
-                );
+                plaintext = await connection.getProgramMappingPlaintext({
+                    programId: "credits.aleo",
+                    mappingName: "account",
+                    key: "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal",
+                });
                 expect(plaintext.plaintextType()).equal("u64");
                 expect(plaintext.toObject()).a("bigint");
             }

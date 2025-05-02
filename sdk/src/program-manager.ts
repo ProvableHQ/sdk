@@ -2681,12 +2681,12 @@ class ProgramManager {
             try {
                 const recordProvider = <RecordProvider>this.recordProvider;
                 return <RecordPlaintext>(
-                    await recordProvider.findCreditsRecord(
-                        amount,
-                        true,
+                    await recordProvider.findCreditsRecord({
+                        microcredits: amount,
+                        unspent: true,
                         nonces,
-                        params,
-                    )
+                        searchParameters: params,
+                    })
                 );
             } catch (e: any) {
                 logAndThrow(

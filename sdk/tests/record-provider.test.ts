@@ -15,8 +15,13 @@ describe.skip('RecordProvider', () => {
 
     describe('Record provider', () => {
         it('should not find records where there are none', async () => {
-            const params = new BlockHeightSearch(0, 100);
-            const records = await recordProvider.findCreditsRecords([100, 200], true, [], params);
+            const params = new BlockHeightSearch({ startHeight: 0, endHeight: 100 });
+            const records = await recordProvider.findCreditsRecords({
+                microcredits: [100, 200],
+                unspent: true,
+                nonces: [],
+                searchParameters: params,
+            });
             expect(<object>records).equal([]);
         });
     });
