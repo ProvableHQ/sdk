@@ -1482,7 +1482,7 @@ class ProgramManager {
      *
      * @param {Object} params
      * @param params.program {string} The program source code to synthesize keys for
-     * @param params.functionId {string} The function id to synthesize keys for
+     * @param params.functionName {string} The function id to synthesize keys for
      * @param params.inputs {Array<string>}  Sample inputs to the function
      * @param [params.privateKey] {PrivateKey | undefined} Optional private key to use for the key synthesis
      *
@@ -1490,11 +1490,11 @@ class ProgramManager {
      */
     async synthesizeKeys(params: {
         program: string,
-        functionId: string,
+        functionName: string,
         inputs: Array<string>,
         privateKey?: PrivateKey,
     }): Promise<FunctionKeyPair> {
-        let { program, functionId, inputs, privateKey } = params;
+        let { program, functionName, inputs, privateKey } = params;
 
         // Resolve the program imports if they exist
         let imports;
@@ -1514,7 +1514,7 @@ class ProgramManager {
             const keyPair = await WasmProgramManager.synthesizeKeyPair(
                 executionPrivateKey,
                 program,
-                functionId,
+                functionName,
                 inputs,
                 imports,
             );
