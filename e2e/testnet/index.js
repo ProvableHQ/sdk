@@ -26,7 +26,11 @@ async function localProgramExecution(program, programName, aleoFunction, inputs)
     programManager.setKeyProvider(keyProvider);
 
     // Pre-synthesize the program keys and then cache them in memory using key provider
-    const keyPair = await programManager.synthesizeKeys(hello_hello_program, aleoFunction, inputs);
+    const keyPair = await programManager.synthesizeKeys({
+        program: hello_hello_program,
+        functionName: aleoFunction,
+        inputs,
+    });
     programManager.keyProvider.cacheKeys(`${programName}:${aleoFunction}`, keyPair);
 
     // Specify parameters for the key provider to use search for program keys. In particular specify the cache key
@@ -35,18 +39,17 @@ async function localProgramExecution(program, programName, aleoFunction, inputs)
 
     // Execute once using the key provider params defined above. This will use the cached proving keys and make
     // execution significantly faster.
-    let executionResponse = await programManager.run(
+    let executionResponse = await programManager.run({
         program,
-        aleoFunction,
+        functionName: aleoFunction,
         inputs,
-        true,
-        undefined,
+        proveExecution: true,
         keyProviderParams,
-    );
+    });
     console.log("hello_hello/hello executed - result:", executionResponse.getOutputs());
 
     // Verify the execution using the verifying key that was generated earlier.
-    if (programManager.verifyExecution(executionResponse, 9_000_000)) {
+    if (programManager.verifyExecution({ executionResponse, blockHeight: 9_000_000 })) {
         console.log("hello_hello/hello execution verified!");
     } else {
         throw("Execution failed verification!");

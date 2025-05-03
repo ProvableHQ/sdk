@@ -157,7 +157,7 @@ class ProgramManager {
 
     /** Create a new instance of the ProgramManager
      *
-     * @param {Object} params
+     * @param {Object} [params]
      * @param { string | undefined } [params.host] A host uri running the official Aleo API
      * @param { FunctionKeyProvider | undefined } [params.keyProvider] A key provider that implements {@link FunctionKeyProvider} interface
      * @param { RecordProvider | undefined } [params.recordProvider] A record provider that implements {@link RecordProvider} interface
@@ -168,7 +168,7 @@ class ProgramManager {
         keyProvider?: FunctionKeyProvider | undefined,
         recordProvider?: RecordProvider | undefined,
         networkClientOptions?: AleoNetworkClientOptions | undefined,
-    }) {
+    } = {}) {
         const { host, keyProvider, recordProvider, networkClientOptions } = params;
 
         this.host = host ? host : "https://api.explorer.provable.com/v1";

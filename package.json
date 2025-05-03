@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "workspaces": [
     "sdk",
+    "sdk/e2e/*",
     "wasm",
     "website",
     "create-leo-app",
