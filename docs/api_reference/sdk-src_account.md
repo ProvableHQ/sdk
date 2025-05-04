@@ -236,7 +236,7 @@ __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The decrypted record plaint
 import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
 
 // Get the record ciphertexts from a transaction.
@@ -272,7 +272,7 @@ __*return*__ | `Array.<RecordPlaintext>` | *An array of decrypted record plainte
 import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
 
 // Get the record ciphertexts from a transaction.
@@ -358,7 +358,7 @@ __*return*__ | `boolean` | *True if the account owns the record, false otherwise
 import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
 
 // Get the record ciphertexts from a transaction and check ownership of them.
@@ -620,7 +620,7 @@ __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The decrypted record plaint
 import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
 
 // Get the record ciphertexts from a transaction.
@@ -656,7 +656,7 @@ __*return*__ | `Array.<RecordPlaintext>` | *An array of decrypted record plainte
 import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
 
 // Get the record ciphertexts from a transaction.
@@ -742,7 +742,7 @@ __*return*__ | `boolean` | *True if the account owns the record, false otherwise
 import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
 
 // Get the record ciphertexts from a transaction and check ownership of them.
