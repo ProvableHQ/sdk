@@ -288,7 +288,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
@@ -434,7 +434,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider.
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
@@ -500,7 +500,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider.
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
@@ -1111,7 +1111,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
@@ -1271,7 +1271,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
@@ -1405,7 +1405,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
@@ -1551,7 +1551,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
@@ -1688,7 +1688,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
@@ -1737,7 +1737,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
@@ -1791,7 +1791,7 @@ class ProgramManager {
      *
      * // Create a new NetworkClient, KeyProvider, and RecordProvider
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions

@@ -10,7 +10,7 @@ describe('RecordProvider', () => {
     beforeEach(() => {
         account = new Account({privateKey: beaconPrivateKeyString});
         networkClient = new AleoNetworkClient("http://0.0.0.0:3030");
-        recordProvider = new NetworkRecordProvider(account, networkClient);
+        recordProvider = new NetworkRecordProvider({ account, networkClient });
     });
 
     describe('Record provider', () => {

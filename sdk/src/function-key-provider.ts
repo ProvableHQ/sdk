@@ -147,7 +147,7 @@ interface FunctionKeyProvider {
      *
      * const keyProvider = new AleoKeyProvider();
      * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
      * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
@@ -202,7 +202,7 @@ interface FunctionKeyProvider {
      * // Create a new object which implements the KeyProvider interface
      * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
      * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
@@ -330,7 +330,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * // Create a new object which implements the KeyProvider interface
      * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
      * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
@@ -392,7 +392,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * // Create a new AleoKeyProvider object
      * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
      * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
@@ -523,7 +523,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * // Create a new AleoKeyProvider
      * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
      * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });

@@ -212,7 +212,7 @@ class NetworkRecordProvider implements RecordProvider {
      * // Create a new NetworkRecordProvider
      * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
      * // The record provider can be used to find records with a given number of microcredits
      * const record = await recordProvider.findCreditsRecord({
@@ -311,7 +311,7 @@ class NetworkRecordProvider implements RecordProvider {
      * // Create a new NetworkRecordProvider
      * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
      * // The record provider can be used to find records with a given number of microcredits
      * const record = await recordProvider.findCreditsRecord({
@@ -464,7 +464,7 @@ class NetworkRecordProvider implements RecordProvider {
  * // Create a new NetworkRecordProvider
  * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
  * const keyProvider = new AleoKeyProvider();
- * const recordProvider = new NetworkRecordProvider(account, networkClient);
+ * const recordProvider = new NetworkRecordProvider({ account, networkClient });
  *
  * // The record provider can be used to find records with a given number of microcredits and the block height search
  * // can be used to find records within a given block height range

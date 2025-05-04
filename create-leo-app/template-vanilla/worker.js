@@ -52,7 +52,7 @@ async function deployProgram(program) {
     privateKey: "user1PrivateKey",
   });
 
-  const recordProvider = new NetworkRecordProvider(account, networkClient);
+  const recordProvider = new NetworkRecordProvider({ account, networkClient });
 
   // Initialize a program manager to talk to the Aleo network with the configured key and record providers
   const programManager = new ProgramManager({
