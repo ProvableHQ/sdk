@@ -248,16 +248,18 @@ class AleoNetworkClient {
         nonces?: string[],
         privateKey?: string | PrivateKey,
     }): Promise<Array<RecordPlaintext>> {
-        if (params.unspent == null) {
-            params.unspent = false;
+        let { startHeight, endHeight, unspent, programs, amounts, maxMicrocredits, nonces, privateKey } = params;
+
+        if (unspent == null) {
+            unspent = false;
         }
 
-        if (params.nonces == null) {
-            params.nonces = [];
+        if (nonces == null) {
+            nonces = [];
         }
 
         // Ensure start height is not negative
-        if (params.startHeight < 0) {
+        if (startHeight < 0) {
             throw new Error("Start height must be greater than or equal to 0");
         }
 
@@ -271,7 +273,7 @@ class AleoNetworkClient {
         let latestHeight: number;
 
         // Ensure a private key is present to find owned records
-        if (typeof params.privateKey === "undefined") {
+        if (typeof privateKey === "undefined") {
             if (typeof this.account === "undefined") {
                 throw new Error(
                     "Private key must be specified in an argument to findOwnedRecords or set in the AleoNetworkClient",
@@ -282,9 +284,9 @@ class AleoNetworkClient {
         } else {
             try {
                 resolvedPrivateKey =
-                    params.privateKey instanceof PrivateKey
-                        ? params.privateKey
-                        : PrivateKey.from_string(params.privateKey);
+                    privateKey instanceof PrivateKey
+                        ? privateKey
+                        : PrivateKey.from_string(privateKey);
             } catch (error) {
                 throw new Error("Error parsing private key provided.");
             }
@@ -306,24 +308,24 @@ class AleoNetworkClient {
         }
 
         // If no end height is specified or is greater than the latest height, set the end height to the latest height
-        if (typeof params.endHeight === "number" && params.endHeight <= latestHeight) {
-            end = params.endHeight;
+        if (typeof endHeight === "number" && endHeight <= latestHeight) {
+            end = endHeight;
         } else {
             end = latestHeight;
         }
 
         // If the starting is greater than the ending height, return an error
-        if (params.startHeight > end) {
+        if (startHeight > end) {
             throw new Error(
                 "Start height must be less than or equal to end height.",
             );
         }
 
         // Iterate through blocks in reverse order in chunks of 50
-        while (end > params.startHeight) {
+        while (end > startHeight) {
             start = end - 50;
-            if (start < params.startHeight) {
-                start = params.startHeight;
+            if (start < startHeight) {
+                start = startHeight;
             }
             try {
                 // Get 50 blocks (or the difference between the start and end if less than 50)
@@ -360,10 +362,10 @@ class AleoNetworkClient {
                                                 ];
                                         // Only search for unspent records in the specified programs.
                                         if (
-                                            !(typeof params.programs === "undefined")
+                                            !(typeof programs === "undefined")
                                         ) {
                                             if (
-                                                !params.programs.includes(
+                                                !programs.includes(
                                                     transition.program,
                                                 )
                                             ) {
@@ -406,14 +408,14 @@ class AleoNetworkClient {
                                                             const nonce =
                                                                 recordPlaintext.nonce();
                                                             if (
-                                                                params.nonces.includes(
+                                                                nonces.includes(
                                                                     nonce,
                                                                 )
                                                             ) {
                                                                 continue;
                                                             }
 
-                                                            if (params.unspent) {
+                                                            if (unspent) {
                                                                 const recordViewKey = recordPlaintext.recordViewKey(viewKey).toString();
 
                                                                 // Otherwise record the nonce that has been found
@@ -441,13 +443,13 @@ class AleoNetworkClient {
                                                             }
 
                                                             // Add the record to the list of records if the user did not specify amounts.
-                                                            if (!params.amounts) {
+                                                            if (!amounts) {
                                                                 records.push(
                                                                     recordPlaintext,
                                                                 );
                                                                 // If the user specified a maximum number of microcredits, check if the search has found enough
                                                                 if (
-                                                                    typeof params.maxMicrocredits ===
+                                                                    typeof maxMicrocredits ===
                                                                     "number"
                                                                 ) {
                                                                     totalRecordValue +=
@@ -456,7 +458,7 @@ class AleoNetworkClient {
                                                                     if (
                                                                         totalRecordValue >=
                                                                         BigInt(
-                                                                            params.maxMicrocredits,
+                                                                            maxMicrocredits,
                                                                         )
                                                                     ) {
                                                                         return records;
@@ -467,15 +469,15 @@ class AleoNetworkClient {
                                                             // If the user specified a list of amounts, check if the search has found them
                                                             if (
                                                                 !(
-                                                                    typeof params.amounts ===
+                                                                    typeof amounts ===
                                                                     "undefined"
                                                                 ) &&
-                                                                params.amounts.length > 0
+                                                                amounts.length > 0
                                                             ) {
                                                                 let amounts_found = 0;
                                                                 if (
                                                                     recordPlaintext.microcredits() >
-                                                                    params.amounts[
+                                                                    amounts[
                                                                         amounts_found
                                                                         ]
                                                                 ) {
@@ -485,7 +487,7 @@ class AleoNetworkClient {
                                                                     );
                                                                     // If the user specified a maximum number of microcredits, check if the search has found enough
                                                                     if (
-                                                                        typeof params.maxMicrocredits ===
+                                                                        typeof maxMicrocredits ===
                                                                         "number"
                                                                     ) {
                                                                         totalRecordValue +=
@@ -494,7 +496,7 @@ class AleoNetworkClient {
                                                                         if (
                                                                             totalRecordValue >=
                                                                             BigInt(
-                                                                                params.maxMicrocredits,
+                                                                                maxMicrocredits,
                                                                             )
                                                                         ) {
                                                                             return records;
@@ -502,7 +504,7 @@ class AleoNetworkClient {
                                                                     }
                                                                     if (
                                                                         records.length >=
-                                                                        params.amounts.length
+                                                                        amounts.length
                                                                     ) {
                                                                         return records;
                                                                     }
@@ -1281,13 +1283,15 @@ class AleoNetworkClient {
         mappingName: string,
         key: string | Plaintext,
     }): Promise<Plaintext> {
+        const { programId, mappingName, key } = params;
+
         this.ctx = { "X-ALEO-METHOD": "getProgramMappingPlaintext" };
 
         try {
-            const keyString = params.key instanceof Plaintext ? params.key.toString() : params.key;
+            const keyString = key instanceof Plaintext ? key.toString() : key;
 
             const value = await this.fetchRaw(
-                `/program/${params.programId}/mapping/${params.mappingName}/${keyString}`,
+                `/program/${programId}/mapping/${mappingName}/${keyString}`,
             );
 
             return Plaintext.fromString(JSON.parse(value));
@@ -1717,15 +1721,13 @@ class AleoNetworkClient {
      * // Wait for the transaction to be confirmed.
      * const transaction = await networkClient.waitForTransactionConfirmation({ transactionId });
      */
-    async waitForTransactionConfirmation({
-        transactionId,
-        checkInterval = 2000,
-        timeout = 45000,
-    }: {
+    async waitForTransactionConfirmation(params: {
         transactionId: string,
         checkInterval?: number,
         timeout?: number,
     }): Promise<ConfirmedTransactionJSON> {
+        const { transactionId, checkInterval = 2000, timeout = 45000 } = params;
+
         const startTime = Date.now();
 
         return new Promise((resolve, reject) => {

@@ -170,9 +170,9 @@ class NetworkRecordProvider implements RecordProvider {
     account: Account;
     networkClient: AleoNetworkClient;
 
-    constructor(account: Account, networkClient: AleoNetworkClient) {
-        this.account = account;
-        this.networkClient = networkClient;
+    constructor(params: { account: Account, networkClient: AleoNetworkClient }) {
+        this.account = params.account;
+        this.networkClient = params.networkClient;
     }
 
     /**
