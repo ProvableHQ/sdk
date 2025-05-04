@@ -44,7 +44,7 @@ async function localProgramExecution(program, programName, aleoFunction, inputs)
         functionName: aleoFunction,
         inputs,
         proveExecution: true,
-        keyProviderParams,
+        keySearchParams: keyProviderParams,
     });
     console.log("hello_hello/hello executed - result:", executionResponse.getOutputs());
 

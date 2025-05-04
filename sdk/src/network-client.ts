@@ -1713,7 +1713,11 @@ class AleoNetworkClient {
      * programManager.setAccount(Account.fromCiphertext(process.env.ciphertext, process.env.password));
      *
      * // Build a transfer transaction.
-     * const tx = await programManager.buildTransferPublicTransaction(100, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 0);
+     * const tx = await programManager.buildTransferPublicTransaction({
+     *     amount: 100,
+     *     recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+     *     priorityFee: 0,
+     * });
      *
      * // Submit the transaction to the network.
      * const transactionId = await networkClient.submitTransaction(tx);

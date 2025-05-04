@@ -150,8 +150,13 @@ interface FunctionKeyProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      *
      * // Keys can also be fetched manually
      * const searchParams = new IndexDbSearch({db: "keys", keyId: "credits.aleo:transferPrivate"});
@@ -200,8 +205,13 @@ interface FunctionKeyProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      *
      * // Keys can also be fetched manually
      * const [transferPublicProvingKey, transferPublicVerifyingKey] = await keyProvider.transferKeys("public");
@@ -323,8 +333,13 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      *
      * // Keys can also be fetched manually using the key provider
      * const keySearchParams = { "cacheKey": "myProgram:myFunction" };
@@ -380,8 +395,13 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      *
      * // Keys can also be fetched manually
      * const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchRemoteKeys({
@@ -506,8 +526,13 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      *
      * // Keys can also be fetched manually
      * const [transferPublicProvingKey, transferPublicVerifyingKey] = await keyProvider.transferKeys("public");

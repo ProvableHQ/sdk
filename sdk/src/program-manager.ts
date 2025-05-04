@@ -243,7 +243,7 @@ class ProgramManager {
      * import { ProgramManager } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a ProgramManager
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1" });
      *
      * // Set the value of the `Accept-Language` header to `en-US`
      * programManager.setHeader('Accept-Language', 'en-US');
@@ -261,7 +261,7 @@ class ProgramManager {
      * import { ProgramManager } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a ProgramManager
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1" });
      *
      * // Remove the default `X-Aleo-SDK-Version` header
      * programManager.removeHeader('X-Aleo-SDK-Version');
@@ -293,7 +293,7 @@ class ProgramManager {
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      * programManager.setAccount(Account);
      *
      * // Define a fee in credits
@@ -439,7 +439,7 @@ class ProgramManager {
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for deployments
      * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      *
      * // Define a fee in credits
      * const priorityFee = 0.0;
@@ -504,7 +504,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      *
      * // Build and execute the transaction
      * const tx = await programManager.buildExecutionTransaction({
@@ -1115,7 +1115,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      *
      * // Build and execute the transaction
      * const tx_id = await programManager.execute({
@@ -1179,7 +1179,7 @@ class ProgramManager {
      *
      * /// Create the source for the "helloworld" program
      * const program = "program helloworld.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager(undefined, undefined, undefined);
+     * const programManager = new ProgramManager();
      *
      * /// Create a temporary account for the execution of the program
      * const account = new Account();
@@ -1275,7 +1275,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      * const record1 = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
      * const record2 = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 1540945439182663264862696551825005342995406165131907382295858612069623286213group.public}"
      * const tx_id = await programManager.join({ record1, record2, priorityFee: 0.05, privateFee: false });
@@ -1409,7 +1409,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      * const record = "{  owner: aleo184vuwr5u7u0ha5f5k44067dd2uaqewxx6pe5ltha5pv99wvhfqxqv339h4.private,  microcredits: 45000000u64.private,  _nonce: 4106205762862305308495708971985748592380064201230396559307556388725936304984group.public}"
      * const tx_id = await programManager.split({ splitAmount: 25000000, amountRecord: record });
      *
@@ -1555,7 +1555,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      * const tx = await programManager.buildTransferTransaction({
      *     amount: 1,
      *     recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
@@ -1692,7 +1692,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      * const tx = await programManager.buildTransferPublicTransaction({
      *     amount: 1,
      *     recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
@@ -1741,7 +1741,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      * const tx = await programManager.buildTransferPublicAsSignerTransaction({
      *     amount: 1,
      *     recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
@@ -1795,7 +1795,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
      * const tx_id = await programManager.transfer({
      *     amount: 1,
      *     recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
@@ -1866,7 +1866,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction object for later submission
@@ -1946,7 +1946,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      *
      * // Create the bonding transaction
      * tx_id = await programManager.bondPublic({
@@ -2014,7 +2014,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bond validator transaction object for later use.
@@ -2100,7 +2100,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the bonding transaction
@@ -2168,7 +2168,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to unbond credits.
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      * const tx = await programManager.buildUnbondPublicTransaction({
      *     stakerAddress: "aleo1jx8s4dvjepculny4wfrzwyhs3tlyv65r58ns3g6q2gm2esh7ps8sqy9s5j",
      *     amount: 2000000,
@@ -2243,7 +2243,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the unbond_public transaction and send it to the network
@@ -2307,7 +2307,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to claim unbonded credits.
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      *
      * // Create the claim_unbond_public transaction object for later use.
      * const tx = await programManager.buildClaimUnbondPublicTransaction({
@@ -2376,7 +2376,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      * programManager.setAccount(new Account("YourPrivateKey"));
      *
      * // Create the claim_unbond_public transaction
@@ -2446,7 +2446,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      *
      * // Create the set_validator_state transaction
      * const tx = await programManager.buildSetValidatorStateTransaction({
@@ -2520,7 +2520,7 @@ class ProgramManager {
      * keyProvider.useCache(true);
      *
      * // Create a new ProgramManager with the key that will be used to bond credits
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider });
      *
      * // Create the set_validator_state transaction
      * const tx_id = await programManager.setValidatorState({
@@ -2581,14 +2581,19 @@ class ProgramManager {
      * /// Create the source for two programs.
      * const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add_it r1 r2 into r3;  output r3 as u32.private;\n";
      * const program_import = "program add_it_up.aleo;\n\nfunction add_it:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
-     * const programManager = new ProgramManager(undefined, undefined, undefined);
+     * const programManager = new ProgramManager();
      *
      * /// Create a temporary account for the execution of the program
      * const account = Account.fromCipherText(process.env.ciphertext, process.env.password);
      * programManager.setAccount(account);
      *
      * /// Get the response and ensure that the program executed correctly
-     * const executionResponse = await programManager.run(program, "mul_and_add", ["5u32", "5u32"], true);
+     * const executionResponse = await programManager.run({
+     *     program,
+     *     functionName: "mul_and_add",
+     *     inputs: ["5u32", "5u32"],
+     *     proveExecution: true,
+     * });
      *
      * /// Construct the imports and verifying keys
      * const imports = { "add_it_up.aleo": program_import };

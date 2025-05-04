@@ -47,11 +47,11 @@ async function deployProgram(program) {
   const recordProvider = new NetworkRecordProvider(account, networkClient);
 
   // Initialize a program manager to talk to the Aleo network with the configured key and record providers
-  const programManager = new ProgramManager(
-    "https://api.explorer.provable.com/v1",
+  const programManager = new ProgramManager({
+    host: "https://api.explorer.provable.com/v1",
     keyProvider,
     recordProvider,
-  );
+  });
 
   programManager.setAccount(account);
 
@@ -59,11 +59,11 @@ async function deployProgram(program) {
   const fee = 1.9; // 1.9 Aleo credits
 
   // Deploy the program to the Aleo network
-  const tx_id = await programManager.deploy(program, fee);
+  const tx_id = await programManager.deploy({ program, priorityFee: fee });
 
   // Optional: Pass in fee record manually to avoid long scan times
   // const feeRecord = "{  owner: aleo1xxx...xxx.private,  microcredits: 2000000u64.private,  _nonce: 123...789group.public}";
-  // const tx_id = await programManager.deploy(program, fee, undefined, feeRecord);
+  // const tx_id = await programManager.deploy({ program, priorityFee: fee, feeRecord });
 
   return tx_id;
 }

@@ -48,8 +48,13 @@ interface RecordProvider {
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
      * // fee records and amount records for value transfers so that they do not need to be specified manually
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      */
     findCreditsRecord(params: { microcredits: number, unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams }): Promise<RecordPlaintext>;
 
@@ -75,12 +80,21 @@ interface RecordProvider {
      * // found again if a subsequent search is performed
      * const nonces = [];
      * records.forEach(record => { nonces.push(record.nonce()) });
-     * const records2 = await recordProvider.findCreditsRecord(5000, true, nonces);
+     * const records2 = await recordProvider.findCreditsRecord({
+     *     microcredits: 5000,
+     *     unspent: true,
+     *     nonces,
+     * });
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
      * // fee records and amount records for value transfers so that they do not need to be specified manually
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      */
     findCreditsRecords(params: { microcredits: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams }): Promise<RecordPlaintext[]>;
 
@@ -201,7 +215,11 @@ class NetworkRecordProvider implements RecordProvider {
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // The record provider can be used to find records with a given number of microcredits
-     * const record = await recordProvider.findCreditsRecord(5000, true, []);
+     * const record = await recordProvider.findCreditsRecord({
+     *     microcredits: 5000,
+     *     unspent: true,
+     *     nonces: [],
+     * });
      *
      * // When a record is found but not yet used, it's nonce should be added to the nonces parameter so that it is not
      * // found again if a subsequent search is performed
@@ -213,8 +231,13 @@ class NetworkRecordProvider implements RecordProvider {
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
      * // fee records and amount records for value transfers so that they do not need to be specified manually
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      *
      * */
     async findCreditsRecords(params: {
@@ -299,12 +322,21 @@ class NetworkRecordProvider implements RecordProvider {
      *
      * // When a record is found but not yet used, it's nonce should be added to the nonces parameter so that it is not
      * // found again if a subsequent search is performed
-     * const records = await recordProvider.findCreditsRecords(5000, true, [record.nonce()]);
+     * const records = await recordProvider.findCreditsRecords({
+     *     microcredits: 5000,
+     *     unspent: true,
+     *     nonces: [record.nonce()],
+     * });
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
      * // fee records and amount records for value transfers so that they do not need to be specified manually
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      */
     async findCreditsRecord(params: {
         microcredits: number,
