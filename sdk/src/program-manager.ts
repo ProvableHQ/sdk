@@ -167,7 +167,7 @@ class ProgramManager {
         host?: string | undefined,
         keyProvider?: FunctionKeyProvider | undefined,
         recordProvider?: RecordProvider | undefined,
-        networkClientOptions?: AleoNetworkClientOptions | undefined,
+        networkClientOptions?: Omit<AleoNetworkClientOptions, "host"> | undefined,
     } = {}) {
         const { host, keyProvider, recordProvider, networkClientOptions } = params;
 
