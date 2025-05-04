@@ -18,6 +18,7 @@ import { ProvingResponse } from "./models/provingResponse.js";
 type ProgramImports = { [key: string]: string | Program };
 
 interface AleoNetworkClientOptions {
+    host: string;
     headers?: { [key: string]: string };
 }
 
@@ -41,11 +42,11 @@ interface DelegatedProvingParams {
  * @param {string} host
  * @example
  * // Connection to a local node.
- * const localNetworkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined, account);
+ * const localNetworkClient = new AleoNetworkClient({ host: "http://0.0.0.0:3030" });
  *
  * // Connection to a public beacon node
  * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
- * const publicNetworkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined, account);
+ * const publicNetworkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
  */
 class AleoNetworkClient {
     host: string;
@@ -55,14 +56,15 @@ class AleoNetworkClient {
     verboseErrors: boolean;
     readonly network: string;
 
-    constructor(host: string, options?: AleoNetworkClientOptions) {
-        this.host = host + "/%%NETWORK%%";
+    constructor(options: AleoNetworkClientOptions) {
+        this.host = options.host + "/%%NETWORK%%";
         this.network = "%%NETWORK%%";
         this.ctx = {};
         this.verboseErrors = true;
 
-        if (options && options.headers) {
+        if (options.headers) {
             this.headers = options.headers;
+
         } else {
             this.headers = {
                 // This is replaced by the actual version by a Rollup plugin
@@ -79,7 +81,7 @@ class AleoNetworkClient {
      * @example
      * import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1");
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * const account = new Account();
      * networkClient.setAccount(account);
      */
@@ -106,7 +108,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a networkClient that connects to a local node.
-     * const networkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://0.0.0.0:3030" });
      *
      * // Set the host to a public node.
      * networkClient.setHost("http://api.explorer.provable.com/v1");
@@ -226,7 +228,7 @@ class AleoNetworkClient {
      * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * networkClient.setAccount(account);
      *
      * // Find specific amounts
@@ -561,7 +563,7 @@ class AleoNetworkClient {
      * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
      *
      * // Create a network client and set an account to search for records with.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * networkClient.setAccount(account);
      *
      * // Find specific amounts
@@ -628,7 +630,7 @@ class AleoNetworkClient {
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
      */
     async getBlockByHash(blockHash: string): Promise<BlockJSON> {
@@ -690,7 +692,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/testnet.js";
      *
      * // Get the transaction ID of the deployment transaction for a program.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * const transactionId = networkClient.getDeploymentTransactionIDForProgram("hello_hello.aleo");
      *
      * // Get the transaction data for the deployment transaction.
@@ -730,7 +732,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient, DeploymentJSON } from "@provablehq/sdk/testnet.js";
      *
      * // Get the transaction ID of the deployment transaction for a program.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * const transaction = networkClient.getDeploymentTransactionForProgram("hello_hello.aleo");
      *
      * // Get the verifying keys for each function in the deployment.
@@ -768,7 +770,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/testnet.js";
      *
      * // Get the transaction ID of the deployment transaction for a program.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * const transactionId = networkClient.getDeploymentTransactionIDForProgram("hello_hello.aleo");
      *
      * // Get the transaction data for the deployment transaction.
@@ -804,7 +806,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/testnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const latestHeight = networkClient.getLatestBlock();
      */
@@ -830,10 +832,10 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Create a network client and get the latest committee.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * const latestCommittee = await networkClient.getLatestCommittee();
      */
     async getLatestCommittee(): Promise<object> {
@@ -857,10 +859,10 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Create a network client and get the committee for a specific block.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * const committee = await networkClient.getCommitteeByBlockHeight(1234);
      */
     async getCommitteeByBlockHeight(blockHeight: number): Promise<object> {
@@ -885,7 +887,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const latestHeight = networkClient.getLatestHeight();
      */
@@ -909,7 +911,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Get the latest block hash.
      * const latestHash = networkClient.getLatestBlockHash();
@@ -945,7 +947,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const program = networkClient.getProgram("hello_hello.aleo");
      * const expectedSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
@@ -1006,7 +1008,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const programID = "hello_hello.aleo";
      * const programSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
@@ -1049,7 +1051,7 @@ class AleoNetworkClient {
      * }
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Imports can be fetched using the program ID, source code, or program object
      * let programImports = await networkClient.getProgramImports("double_test.aleo");
@@ -1125,7 +1127,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const programImportsNames = networkClient.getProgramImports("wrapped_credits.aleo");
      * const expectedImportsNames = ["credits.aleo"];
@@ -1160,7 +1162,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const mappings = networkClient.getProgramMappingNames("credits.aleo");
      * const expectedMappings = [
@@ -1202,7 +1204,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Get public balance of an account
      * const mappingValue = networkClient.getProgramMappingValue({
@@ -1252,7 +1254,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Get the bond state as an account.
      * const unbondedState = networkClient.getProgramMappingPlaintext({
@@ -1314,7 +1316,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Get the balance of an account from either an address object or address string.
      * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
@@ -1351,7 +1353,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Get the latest state root.
      * const stateRoot = networkClient.getStateRoot();
@@ -1377,7 +1379,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
      */
@@ -1406,7 +1408,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const transaction = networkClient.getConfirmedTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
      * assert.equal(transaction.status, "confirmed");
@@ -1479,7 +1481,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const transactions = networkClient.getTransactions(654);
      */
@@ -1508,7 +1510,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * const transactions = networkClient.getTransactionsByBlockHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
      */
@@ -1540,7 +1542,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Get the current transactions in the mempool.
      * const transactions = networkClient.getTransactionsInMempool();
@@ -1706,7 +1708,7 @@ class AleoNetworkClient {
      * import { AleoNetworkClient, Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
      *
      * // Create a network client and program manager.
-     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      * const programManager = new ProgramManager(networkClient);
      *
      * // Set the account for the program manager.

@@ -40,7 +40,7 @@ describe("NodeConnection", () => {
     let windowFetchSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-        connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+        connection = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
         windowFetchSpy = sinon.spy(globalThis, 'fetch');
     });
 
@@ -209,7 +209,7 @@ describe("NodeConnection", () => {
 
     describe("retryWithBackoff", () => {
         it("should retry failed network requests and eventually give up", async () => {
-            const client = new AleoNetworkClient("http://localhost:1234");
+            const client = new AleoNetworkClient({ host: "http://localhost:1234" });
 
             let attemptCount = 0;
 
@@ -233,7 +233,7 @@ describe("NodeConnection", () => {
         });
 
         it("should retry failed transaction submissions and eventually give up", async () => {
-            const client = new AleoNetworkClient("http://localhost:1234");
+            const client = new AleoNetworkClient({ host: "http://localhost:1234" });
 
             let attemptCount = 0;
 
@@ -263,7 +263,7 @@ describe("NodeConnection", () => {
         });
 
         it("should retry solution submission and eventually throw", async () => {
-            const client = new AleoNetworkClient("http://localhost:1234");
+            const client = new AleoNetworkClient({ host: "http://localhost:1234" });
 
             let attemptCount = 0;
 
@@ -343,7 +343,7 @@ describe("NodeConnection", () => {
 
         it("should return confirmed transaction data for an accepted tx ID", async () => {
             if (connection.network === "mainnet") {
-                const connection = new AleoNetworkClient(host);
+                const connection = new AleoNetworkClient({ host });
                 const txId = getTxId(connection, "accepted");
                 const data = await connection.waitForTransactionConfirmation({
                     transactionId: txId,
@@ -354,7 +354,7 @@ describe("NodeConnection", () => {
         });
 
         it("should throw for a rejected tx ID", async () => {
-            const connection = new AleoNetworkClient(host);
+            const connection = new AleoNetworkClient({ host });
             const txId = getTxId(connection, "rejected");
             try {
                 console.log(txId);
@@ -373,7 +373,7 @@ describe("NodeConnection", () => {
         });
 
         it("should throw for a malformed tx ID", async () => {
-            const connection = new AleoNetworkClient(host);
+            const connection = new AleoNetworkClient({ host });
             try {
                 await connection.waitForTransactionConfirmation({
                     transactionId: invalidTx,

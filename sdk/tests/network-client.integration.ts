@@ -7,8 +7,8 @@ describe('NodeConnection', () => {
     let remoteApiClientWithPrivateKey: AleoNetworkClient;
 
     beforeEach(() => {
-        localApiClient = new AleoNetworkClient("http://0.0.0.0:3030");
-        remoteApiClientWithPrivateKey = new AleoNetworkClient("http://0.0.0.0:3030");
+        localApiClient = new AleoNetworkClient({ host: "http://0.0.0.0:3030" });
+        remoteApiClientWithPrivateKey = new AleoNetworkClient({ host: "http://0.0.0.0:3030" });
         remoteApiClientWithPrivateKey.setAccount(new Account({privateKey: beaconPrivateKeyString}));
     });
 

@@ -172,7 +172,7 @@ class ProgramManager {
         const { host, keyProvider, recordProvider, networkClientOptions } = params;
 
         this.host = host ? host : "https://api.explorer.provable.com/v1";
-        this.networkClient = new AleoNetworkClient(this.host, networkClientOptions);
+        this.networkClient = new AleoNetworkClient({ ...networkClientOptions, host: this.host });
 
         this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
         this.recordProvider = recordProvider;

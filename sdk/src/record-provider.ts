@@ -210,7 +210,7 @@ class NetworkRecordProvider implements RecordProvider {
      *
      * @example
      * // Create a new NetworkRecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+     * const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
@@ -309,7 +309,7 @@ class NetworkRecordProvider implements RecordProvider {
      *
      * @example
      * // Create a new NetworkRecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+     * const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
@@ -462,7 +462,7 @@ class NetworkRecordProvider implements RecordProvider {
  * const params = new BlockHeightSearch({ startHeight: 89995, endHeight: 99995 });
  *
  * // Create a new NetworkRecordProvider
- * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+ * const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
  * const keyProvider = new AleoKeyProvider();
  * const recordProvider = new NetworkRecordProvider({ account, networkClient });
  *
