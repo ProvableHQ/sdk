@@ -146,6 +146,15 @@ interface ProvingRequestOptions {
 }
 
 /**
+ * @property { FunctionKeyProvider | undefined } [params.keyProvider] A key provider that implements {@link FunctionKeyProvider} interface
+ * @property { RecordProvider | undefined } [params.recordProvider] A record provider that implements {@link RecordProvider} interface
+ */
+interface ProgramManagerOptions extends AleoNetworkClientOptions {
+    keyProvider?: FunctionKeyProvider | undefined,
+    recordProvider?: RecordProvider | undefined,
+}
+
+/**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
  */
 class ProgramManager {
@@ -157,25 +166,22 @@ class ProgramManager {
 
     /** Create a new instance of the ProgramManager
      *
-     * @param {Object} [params]
-     * @param { string | undefined } [params.host] A host uri running the official Aleo API
-     * @param { FunctionKeyProvider | undefined } [params.keyProvider] A key provider that implements {@link FunctionKeyProvider} interface
-     * @param { RecordProvider | undefined } [params.recordProvider] A record provider that implements {@link RecordProvider} interface
-     * @param {AleoNetworkClientOptions} [params.networkClientOptions]
+     * @param {Object} ProgramManagerOptions
      */
-    constructor(params: {
-        host?: string | undefined,
-        keyProvider?: FunctionKeyProvider | undefined,
-        recordProvider?: RecordProvider | undefined,
-        networkClientOptions?: Omit<AleoNetworkClientOptions, "host"> | undefined,
-    } = {}) {
-        const { host, keyProvider, recordProvider, networkClientOptions } = params;
+    constructor(params?: ProgramManagerOptions) {
+        if (params == null) {
+            params = {} as ProgramManagerOptions;
+        }
 
-        this.host = host ? host : "https://api.explorer.provable.com/v1";
-        this.networkClient = new AleoNetworkClient({ ...networkClientOptions, host: this.host });
+        if (params.host == null) {
+            params.host = "https://api.explorer.provable.com/v1";
+        }
 
-        this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
-        this.recordProvider = recordProvider;
+        this.host = params.host;
+        this.networkClient = new AleoNetworkClient(params);
+
+        this.keyProvider = params.keyProvider ? params.keyProvider : new AleoKeyProvider();
+        this.recordProvider = params.recordProvider;
     }
 
     /**

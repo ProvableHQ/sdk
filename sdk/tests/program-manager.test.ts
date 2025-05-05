@@ -50,7 +50,7 @@ describe('Program Manager', async () => {
         it('should have the specified headers when instantiated', async () => {
             const newProgramManager = new ProgramManager({
                 host: "https://api.explorer.provable.com/v1",
-                networkClientOptions: { headers: {'X-Test-Header': 'programManager'} },
+                headers: {'X-Test-Header': 'programManager'},
             });
             expect(Object.keys(newProgramManager.networkClient.headers).length).equal(1);
             expect(newProgramManager.networkClient.headers['X-Test-Header']).equal('programManager');

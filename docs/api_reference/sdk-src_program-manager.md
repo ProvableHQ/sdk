@@ -13,17 +13,13 @@ The ProgramManager class is used to execute and deploy programs on the Aleo netw
 ## Constructors
 
 
-### `ProgramManager(params)`
+### `ProgramManager(ProgramManagerOptions)`
 
 Create a new instance of the ProgramManager
 
 Parameters | Type | Description
 --- | --- | ---
-__params__ | `Object` | **
-__params.host__ | `string` | *A host uri running the official Aleo API*
-__params.keyProvider__ | `FunctionKeyProvider` | *A key provider that implements {@link FunctionKeyProvider} interface*
-__params.recordProvider__ | `RecordProvider` | *A record provider that implements {@link RecordProvider} interface*
-__params.networkClientOptions__ | `AleoNetworkClientOptions` | **
+__ProgramManagerOptions__ | `Object` | **
 
 ---
 
