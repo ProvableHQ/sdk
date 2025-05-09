@@ -1803,6 +1803,23 @@
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
+"@provablehq/sdk@^0.8.8":
+  version "0.8.8"
+  resolved "https://registry.yarnpkg.com/@provablehq/sdk/-/sdk-0.8.8.tgz#506d84153fd6d70c4891f830cb6deaaf322d7131"
+  integrity sha512-OuogQY7fPixxUxbI6n+GIEH9Sx5RtVuglRrFQnj3C8UNrgUQGMToR20glxabn6HMaDgTl+2zVTmUG8I15dHRaA==
+  dependencies:
+    "@provablehq/wasm" "^0.8.8"
+    comlink "^4.4.2"
+    core-js "^3.40.0"
+    mime "^4.0.6"
+    sync-request "^6.1.0"
+    xmlhttprequest-ssl "^3.1.0"
+
+"@provablehq/wasm@^0.8.8":
+  version "0.8.8"
+  resolved "https://registry.yarnpkg.com/@provablehq/wasm/-/wasm-0.8.8.tgz#b162e07e79e3d70f6fc5d7c2855115937b608dcf"
+  integrity sha512-EOB36wv9bAb8ISDje8ambIyixtVgkgCycUg76vlx6O9OsCSpe+4TW6kZuqc5F398GRFeo46F0Ll4NtxiYELfpw==
+
 "@rc-component/async-validator@^5.0.3":
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/@rc-component/async-validator/-/async-validator-5.0.4.tgz#5291ad92f00a14b6766fc81735c234277f83e948"
