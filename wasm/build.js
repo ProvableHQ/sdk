@@ -27,34 +27,28 @@ async function buildWasm(network) {
             rust({
                 extraArgs: {
                     cargo: [
-                        "--config", "build.rustflags=" + JSON.stringify([
-                            // This enables multi-threading
-                            "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
-                            "-C", "link-arg=--max-memory=4294967296",
-
-                            // Strips out debug information
-                            "-Z", "location-detail=none",
-                            "-Z", "fmt-debug=none",
-                        ]),
-
                         "--no-default-features",
                         "--features", `browser,${network}`,
                     ],
-                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt"],
+                    /*rustc: [
+                        "-C", "link-arg=--max-memory=4294967296",
+                    ],*/
+                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt", "--enable-nontrapping-float-to-int"],
                 },
 
                 experimental: {
+                    atomics: true,
                     typescriptDeclarationDir: `dist/${network}`,
                 },
             }),
         ],
     }, {
-        dir: `dist/${network}`,
+        dir: `dist/${network}/tmp`,
         format: "es",
         sourcemap: true,
         assetFileNames: `[name][extname]`,
-        chunkFileNames: `tmp/[name].js`,
-        entryFileNames: `tmp/[name].js`,
+        chunkFileNames: `[name].js`,
+        entryFileNames: `[name].js`,
     });
 }
 
@@ -185,6 +179,11 @@ async function build(network) {
         buildWorker(network),
     ]);
 
+    await $fs.rename(
+        $path.join("dist", network, "tmp", "aleo_wasm.wasm"),
+        $path.join("dist", network, "aleo_wasm.wasm"),
+    );
+
     await Promise.all([
         $fs.rm($path.join("dist", network, "tmp"), { recursive: true }),
         $fs.rm($path.join("dist", network, "aleo_wasm_custom.d.ts")),
@@ -192,9 +191,13 @@ async function build(network) {
 }
 
 
+console.time("Building wasm");
+
 const networks = [
     "testnet",
     "mainnet",
 ];
 
 await Promise.all(networks.map(build));
+
+console.timeEnd("Building wasm");
