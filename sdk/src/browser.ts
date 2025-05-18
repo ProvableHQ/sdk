@@ -46,11 +46,6 @@ import {
     RecordSearchParams,
 } from "./record-provider";
 
-// @TODO: This function is no longer needed, remove it.
-async function initializeWasm() {
-    console.warn("initializeWasm is deprecated, you no longer need to use it");
-}
-
 export { createAleoWorker } from "./managed-worker";
 
 export { ProgramManager } from "./program-manager";
@@ -92,8 +87,6 @@ export {
     initThreadPool,
     verifyFunctionExecution,
 } from "./wasm";
-
-export { initializeWasm };
 
 export {
     Key,
