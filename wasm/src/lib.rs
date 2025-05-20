@@ -167,6 +167,9 @@ pub use programs::*;
 pub mod record;
 pub use record::*;
 
+pub mod synthesizer;
+pub use synthesizer::*;
+
 pub mod types;
 pub use types::{Field, Group, Scalar};
 
@@ -174,6 +177,7 @@ pub use types::{Field, Group, Scalar};
 mod thread_pool;
 
 mod utilities;
+
 #[cfg(test)]
 pub use utilities::*;
 

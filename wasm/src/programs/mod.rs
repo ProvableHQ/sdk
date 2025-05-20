@@ -39,6 +39,9 @@ pub use program::*;
 pub mod proving_key;
 pub use proving_key::*;
 
+pub mod request;
+pub use request::*;
+
 pub mod response;
 pub use response::*;
 
