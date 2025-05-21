@@ -1458,6 +1458,39 @@ class AleoNetworkClient {
             );
         }
     }
+
+    /**
+     * Submit a `ProvingRequest` to the Aleo network.
+     *
+     * @param {string} provingRequest - The string representation of the `ProvingRequest` to submit
+     * @returns {Promise<string>} The solution id of the submitted solution or the resulting error.
+     */
+    async submitProvingRequest(provingRequest: string): Promise<string> {
+        try {
+            const response = await retryWithBackoff(() =>
+                post(this.host + "/solution/broadcast", {
+                    body: provingRequest,
+                    headers: Object.assign({}, this.headers, {
+                        "Content-Type": "application/json",
+                    }),
+                }),
+            );
+
+            try {
+                const text = await response.text();
+                return parseJSON(text);
+            } catch (error: any) {
+                throw new Error(
+                    `Error posting proving request. Aleo network response: ${error.message}`,
+                );
+            }
+        } catch (error: any) {
+            throw new Error(
+                `Error posting solution: No response received: ${error.message}`,
+            );
+        }
+    }
+
     /**
      * Await a submitted transaction to be confirmed or rejected on the Aleo network.
      *

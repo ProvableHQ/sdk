@@ -1,5 +1,6 @@
 export {
     Address,
+    Authorization,
     BHP256,
     BHP512,
     BHP768,
@@ -23,8 +24,10 @@ export {
     Program,
     ProgramManager,
     ProvingKey,
+    ProvingRequest,
     RecordCiphertext,
     RecordPlaintext,
+    Request,
     Scalar,
     Signature,
     Transaction,
