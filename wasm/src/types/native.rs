@@ -180,13 +180,13 @@ impl FromStr for ProvingRequestNative {
 
 impl Debug for ProvingRequestNative {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", serde_json::to_string(self).unwrap())
+        Display::fmt(self, f)
     }
 }
 
 impl Display for ProvingRequestNative {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Display::fmt(self, f)
+        write!(f, "{}", serde_json::to_string(self).unwrap())
     }
 }
 
@@ -208,20 +208,20 @@ impl ToBytes for ProvingRequestNative {
 }
 
 impl FromBytes for ProvingRequestNative {
-    fn read_le<R: Read>(reader: &mut R) -> io::Result<Self>
+    fn read_le<R: Read>(mut reader: R) -> io::Result<Self>
     where
         Self: Sized,
     {
         // Read the version flag.
-        let version = u8::read_le(reader)?;
+        let version = u8::read_le(&mut reader)?;
         if version != 1 {
             return Err(error("Invalid proving request version"));
         }
 
         // Read the authorization, fee authorization, and broadcast flag.
-        let authorization = FromBytes::read_le(reader)?;
-        let fee_authorization = FromBytes::read_le(reader)?;
-        let broadcast = bool::read_le(reader)?;
+        let authorization = FromBytes::read_le(&mut reader)?;
+        let fee_authorization = FromBytes::read_le(&mut reader)?;
+        let broadcast = bool::read_le(&mut reader)?;
 
         Ok(Self::new_from_native(authorization, fee_authorization, broadcast))
     }

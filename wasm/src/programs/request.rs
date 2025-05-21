@@ -1,3 +1,19 @@
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
+
+// The Provable SDK library is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// The Provable SDK library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
+
 use crate::{
     account::{Address, PrivateKey, Signature},
     types::{
@@ -16,12 +32,14 @@ use crate::{
         },
     },
 };
+use snarkvm_console::network::Network;
 
 use js_sys::{Array, Uint8Array};
 use rand::{SeedableRng, rngs::StdRng};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
 pub struct Request(RequestNative);
 
 #[wasm_bindgen]
@@ -76,12 +94,12 @@ impl Request {
 
     /// Returns the input IDs for the transition.
     pub fn input_ids(&self) -> Array {
-        self.0.input_ids().map(|input_id| JsValue::from_str(&input_id.to_string()))
+        self.0.input_ids().into_iter().map(|input_id| JsValue::from_str(&input_id.to_string())).collect::<Array>()
     }
 
     /// Returns the function inputs as an array of strings.
     pub fn inputs(&self) -> Array {
-        self.0.inputs().map(|input| JsValue::from_str(&input.to_string()))
+        self.0.inputs().into_iter().map(|input| JsValue::from_str(&input.to_string())).collect::<Array>()
     }
 
     /// Returns the signature for the transition.
@@ -136,12 +154,14 @@ impl Request {
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
 
-        let inputs =
-            inputs.iter().map(|input| ValueNative::from_str(&input.as_string().unwrap())).collect::<Vec<ValueNative>>();
+        let inputs = inputs
+            .iter()
+            .map(|input| ValueNative::from_str(&input.as_string().unwrap()).unwrap())
+            .collect::<Vec<ValueNative>>();
 
         let input_types = input_types
             .iter()
-            .map(|input_type| ValueTypeNative::from_str(&input_type.as_string().unwrap()))
+            .map(|input_type| ValueTypeNative::from_str(&input_type.as_string().unwrap()).unwrap())
             .collect::<Vec<ValueTypeNative>>();
 
         let root_tvk = root_tvk.map(|tvk| FieldNative::from(tvk));
@@ -152,7 +172,7 @@ impl Request {
             &private_key,
             program_id,
             function_name,
-            inputs,
+            inputs.into_iter(),
             &input_types,
             root_tvk,
             is_root,
@@ -166,7 +186,7 @@ impl Request {
     pub fn verify(&self, input_types: Array, is_root: bool) -> bool {
         let input_types = input_types
             .iter()
-            .map(|input_type| ValueTypeNative::from_str(&input_type.as_string().unwrap()))
+            .map(|input_type| ValueTypeNative::from_str(&input_type.as_string().unwrap()).unwrap())
             .collect::<Vec<ValueTypeNative>>();
 
         self.0.verify(&input_types, is_root)

@@ -1,3 +1,19 @@
+// Copyright (C) 2019-2025 Provable Inc.
+// This file is part of the Provable SDK library.
+
+// The Provable SDK library is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// The Provable SDK library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
+
 use crate::{
     Request,
     Transition,
@@ -12,12 +28,12 @@ use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 /// Authorization object containing the authorization for a transaction.
+#[wasm_bindgen]
 pub struct Authorization(AuthorizationNative);
 
 #[wasm_bindgen]
 impl Authorization {
     /// Create transition.
-    #[wasm_bindgen(constructor)]
     pub fn new(request: Request) -> Result<Authorization, JsValue> {
         Ok(Authorization(AuthorizationNative::new(RequestNative::from(request))))
     }
@@ -90,14 +106,19 @@ impl Authorization {
 impl Authorization {
     #[wasm_bindgen(js_name = insertTransition)]
     pub fn insert_transition(&self, transition: Transition) -> Result<(), String> {
-        self.0.insert_transition(TransitionNative::from(transition)).map_err(|e| e.to_string())
+        let transition = <TransitionNative as From<Transition>>::from(transition);
+        self.0.insert_transition(transition).map_err(|e| e.to_string())
     }
 
     /// Get the transitions in an authorization.
     ///
     /// @returns {Array<Transition>} Array of transition objects
     pub fn transitions(&self) -> Array {
-        self.0.transitions().map(|transition| JsValue::from(Transition::from(transition))).collect::<Array>()
+        self.0
+            .transitions()
+            .into_iter()
+            .map(|(_, transition)| JsValue::from(Transition::from(transition)))
+            .collect::<Array>()
     }
 
     /// Returns the execution ID for the authorization.

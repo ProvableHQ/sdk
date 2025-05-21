@@ -17,6 +17,7 @@
 pub mod deploy;
 pub mod execute;
 pub mod join;
+pub mod request;
 pub mod split;
 pub mod transfer;
 
