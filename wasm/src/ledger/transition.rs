@@ -115,7 +115,7 @@ impl Transition {
     /// Find a record in the transition by the record's commitment.
     #[wasm_bindgen(js_name = findRecord)]
     pub fn find_record(&self, commitment: &Field) -> Option<RecordCiphertext> {
-        self.0.find_record(commitment).map(|record_ciphertext| RecordCiphertext::from(record_ciphertext))
+        self.0.find_record(commitment).map(RecordCiphertext::from)
     }
 
     /// Get the record plaintext present in a transition owned by a specific view key.

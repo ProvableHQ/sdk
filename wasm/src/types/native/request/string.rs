@@ -27,7 +27,7 @@ impl FromStr for ProvingRequestNative {
 
     /// Initializes the request from a JSON-string.
     fn from_str(request: &str) -> Result<Self, String> {
-        Ok(serde_json::from_str(request).map_err(|e| e.to_string())?)
+        serde_json::from_str(request).map_err(|e| e.to_string())
     }
 }
 

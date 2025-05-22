@@ -7,11 +7,13 @@ import {
     Plaintext,
     RecordCiphertext,
     Program,
+    ProvingRequest,
     RecordPlaintext,
     PrivateKey,
     Transaction,
 } from "./wasm";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction";
+import { ProvingResponse } from "./models/provingResponse";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -1398,14 +1400,14 @@ class AleoNetworkClient {
     async submitTransaction(
         transaction: Transaction | string,
     ): Promise<string> {
-        const transaction_string =
+        const transactionString =
             transaction instanceof Transaction
                 ? transaction.toString()
                 : transaction;
         try {
             const response = await retryWithBackoff(() =>
                 this._sendPost(this.host + "/transaction/broadcast", {
-                    body: transaction_string,
+                    body: transactionString,
                     headers: Object.assign({}, this.headers, {
                         "Content-Type": "application/json",
                     }),
@@ -1462,14 +1464,18 @@ class AleoNetworkClient {
     /**
      * Submit a `ProvingRequest` to the Aleo network.
      *
-     * @param {string} provingRequest - The string representation of the `ProvingRequest` to submit
-     * @returns {Promise<string>} The solution id of the submitted solution or the resulting error.
+     * @param {ProvingRequest | string} provingRequest - The `ProvingRequest` to submit
+     * @returns {Promise<ProvingResponse>} The solution id of the submitted solution or the resulting error.
      */
-    async submitProvingRequest(provingRequest: string): Promise<string> {
+    async submitProvingRequest(provingRequest: ProvingRequest | string): Promise<ProvingResponse> {
+        const provingRequestString =
+            provingRequest instanceof ProvingRequest
+                ? provingRequest.toString()
+                : provingRequest;
         try {
             const response = await retryWithBackoff(() =>
                 post(this.host + "/prove", {
-                    body: provingRequest,
+                    body: provingRequestString,
                     headers: Object.assign({}, this.headers, {
                         "Content-Type": "application/json",
                     }),

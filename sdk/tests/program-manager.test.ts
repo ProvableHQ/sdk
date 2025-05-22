@@ -145,7 +145,7 @@ describe('Program Manager', () => {
 
             // Get the authorizations.
             const authorization = provingRequest.authorization();
-            const fee_authorization = <Authorization>provingRequest.fee_authorization();
+            const fee_authorization = <Authorization>provingRequest.feeAuthorization();
 
             // Ensure the authorizations have the correct number of transitions.
             expect(authorization.transitions().length).equal(3);

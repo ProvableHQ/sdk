@@ -114,7 +114,7 @@ impl Address {
     /// Get the field array representation of the address.
     #[wasm_bindgen(js_name = "toFields")]
     pub fn to_fields(&self) -> Result<Array, String> {
-        let native = self.0.clone();
+        let native = self.0;
         let native_fields = native.to_fields().map_err(|e| e.to_string())?;
         Ok(js_array_from_fields!(&native_fields))
     }
@@ -195,7 +195,7 @@ impl From<Address> for AddressNative {
 
 impl From<&AddressNative> for Address {
     fn from(value: &AddressNative) -> Self {
-        Self(value.clone())
+        Self(*value)
     }
 }
 
@@ -220,7 +220,7 @@ impl From<Address> for Group {
 
 impl From<&AddressNative> for Group {
     fn from(value: &AddressNative) -> Self {
-        Self::from(value.clone())
+        Self::from(*value)
     }
 }
 

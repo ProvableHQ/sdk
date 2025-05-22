@@ -93,17 +93,17 @@ impl ExecutionRequest {
 
     /// Returns the input IDs for the transition.
     pub fn input_ids(&self) -> Array {
-        self.0.input_ids().into_iter().map(|input_id| JsValue::from_str(&input_id.to_string())).collect::<Array>()
+        self.0.input_ids().iter().map(|input_id| JsValue::from_str(&input_id.to_string())).collect::<Array>()
     }
 
     /// Returns the function inputs as an array of strings.
     pub fn inputs(&self) -> Array {
-        self.0.inputs().into_iter().map(|input| JsValue::from_str(&input.to_string())).collect::<Array>()
+        self.0.inputs().iter().map(|input| JsValue::from_str(&input.to_string())).collect::<Array>()
     }
 
     /// Returns the signature for the transition.
     pub fn signature(&self) -> Signature {
-        Signature::from(self.0.signature().clone())
+        Signature::from(*self.0.signature())
     }
 
     /// Returns the tag secret key `sk_tag`.
@@ -163,7 +163,7 @@ impl ExecutionRequest {
             .map(|input_type| ValueTypeNative::from_str(&input_type.as_string().unwrap()).unwrap())
             .collect::<Vec<ValueTypeNative>>();
 
-        let root_tvk = root_tvk.map(|tvk| FieldNative::from(tvk));
+        let root_tvk = root_tvk.map(FieldNative::from);
 
         let mut rng = StdRng::from_entropy();
 

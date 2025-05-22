@@ -37,7 +37,7 @@ impl ProvingRequestNative {
     ) -> Self {
         Self {
             authorization: AuthorizationNative::from(authorization),
-            fee_authorization: fee_authorization.map(|auth| AuthorizationNative::from(auth)),
+            fee_authorization: fee_authorization.map(AuthorizationNative::from),
             broadcast,
         }
     }

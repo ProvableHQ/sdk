@@ -28,7 +28,7 @@ use crate::{
 use wasm_bindgen::JsValue;
 
 pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue {
-    let js_value = match output {
+    match output {
         OutputNative::Constant(id, plaintext) => {
             let value = if let Some(plaintext) = plaintext {
                 if convert_to_js { plaintext_to_js_value(plaintext) } else { JsValue::from(Plaintext::from(plaintext)) }
@@ -105,6 +105,5 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
             };
             JsValue::from(&value)
         }
-    };
-    js_value
+    }
 }

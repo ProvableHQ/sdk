@@ -47,7 +47,7 @@ impl ProvingRequest {
 
     /// Creates a string representation of the proving request.
     #[wasm_bindgen(js_name = "toString")]
-    #[allow(clippy::inherent_to_string)]
+    #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
@@ -75,7 +75,7 @@ impl ProvingRequest {
     /// Get the fee authorization for the request.
     #[wasm_bindgen(js_name = "feeAuthorization")]
     pub fn fee_authorization(&self) -> Option<Authorization> {
-        self.0.fee_authorization().map(|auth| Authorization::from(auth))
+        self.0.fee_authorization().map(Authorization::from)
     }
 
     /// Get the broadcast flag for the request.

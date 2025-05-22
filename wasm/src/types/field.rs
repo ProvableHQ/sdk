@@ -85,8 +85,9 @@ impl Field {
     }
 
     /// Clone the field element.
+    #[allow(clippy::should_implement_trait)]
     pub fn clone(&self) -> Field {
-        Field(self.0.clone())
+        Field(self.0)
     }
 
     /// Generate a random field element.

@@ -83,8 +83,9 @@ impl Scalar {
     }
 
     /// Clone the scalar element.
+    #[allow(clippy::should_implement_trait)]
     pub fn clone(&self) -> Scalar {
-        Scalar(self.0.clone())
+        Scalar(self.0)
     }
 
     /// Generate a random scalar element.

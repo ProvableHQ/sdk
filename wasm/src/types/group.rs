@@ -103,8 +103,9 @@ impl Group {
     }
 
     /// Clone the group element.
+    #[allow(clippy::should_implement_trait)]
     pub fn clone(&self) -> Group {
-        Group(self.0.clone())
+        Group(self.0)
     }
 
     /// Generate a random group element.
@@ -203,7 +204,7 @@ impl From<Group> for Address {
 
 impl From<&GroupNative> for Address {
     fn from(value: &GroupNative) -> Self {
-        Address::from(value.clone())
+        Address::from(*value)
     }
 }
 

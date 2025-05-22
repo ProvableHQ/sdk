@@ -114,7 +114,7 @@ impl Signature {
     /// Get the field array representation of the signature.
     #[wasm_bindgen(js_name = "toFields")]
     pub fn to_fields(&self) -> Result<Array, String> {
-        let native = self.0.clone();
+        let native = self.0;
         let native_fields = native.to_fields().map_err(|e| e.to_string())?;
         Ok(js_array_from_fields!(&native_fields))
     }

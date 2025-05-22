@@ -92,13 +92,13 @@ impl From<GraphKey> for GraphKeyNative {
 
 impl From<&GraphKey> for GraphKeyNative {
     fn from(value: &GraphKey) -> Self {
-        value.0.clone()
+        value.0
     }
 }
 
 impl From<&GraphKeyNative> for GraphKey {
     fn from(value: &GraphKeyNative) -> Self {
-        Self(value.clone())
+        Self(*value)
     }
 }
 

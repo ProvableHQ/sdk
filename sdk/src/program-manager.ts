@@ -603,10 +603,10 @@ class ProgramManager {
     }
 
     /**
-     * Builds an execution transaction for submission to the Aleo network.
+     * Builds a `ProvingRequest` for submission to a delegated proving service for remote execution.
      *
-     * @param {ExecuteOptions} options - The options for the execution transaction.
-     * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error.
+     * @param {ProvingRequestOptions} options - The options for building the proving request
+     * @returns {Promise<ProvingRequest>} - A promise that resolves to the transaction or an error.
      *
      * @example
      * /// Import the mainnet version of the sdk.
@@ -620,20 +620,35 @@ class ProgramManager {
      * // Initialize a program manager with the key provider to automatically fetch keys for executions
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
-     * // Build and execute the transaction
-     * const tx = await programManager.buildExecutionTransaction({
-     *   programName: "hello_hello.aleo",
-     *   functionName: "hello_hello",
-     *   priorityFee: 0.0,
+     * // Build the proving request.
+     * const provingRequest = await programManager.provingRequest({
+     *   programName: "credits.aleo",
+     *   functionName: "transfer_public",
+     *   baseFee: 100000,
+     *   priorityFee: 0,
      *   privateFee: false,
-     *   inputs: ["5u32", "5u32"],
-     *   keySearchParams: { "cacheKey": "hello_hello:hello" }
+     *   inputs: [
+     *     "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+     *     "10000000u64",
+     *   ],
+     *   broadcast: true,
      * });
      *
-     * // Submit the transaction to the network
-     * await programManager.networkClient.submitTransaction(tx.toString());
+     * // Submit the transaction to the network and await the response.
+     * const provingResponse = await programManager.networkClient.submitProvingRequest(provingRequest);
+     * // Get the transaction from the proving response.
+     * const tx = provingResponse.transaction;
+     * const submitted = provingResponse.broadcast;
      *
-     * // Verify the transaction was successful
+     * // Get the transaction id.
+     * const tx_id = tx.id();
+     *
+     * // If the response doesn't indicate the transaction was submitted, submit it manually.
+     * if (!submitted) {
+     *   await programManager.networkClient.submitTransaction(tx);
+     * }
+     *
+     * // Wait to see if the transaction has appeared on chain.
      * setTimeout(async () => {
      *  const transaction = await programManager.networkClient.getTransaction(tx.id());
      *  assert(transaction.id() === tx.id());

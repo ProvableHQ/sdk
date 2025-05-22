@@ -67,8 +67,7 @@
 //! when run within this crate:
 //! 1. **NodeJS module:** Used to build NodeJS applications.
 //! 2. **Single-Threaded browser module:** Used to build browser-based web applications.
-//! 3. **Multi-Threaded browser module:** Used to build browser-based web applications which use web-worker based
-//! multi-threading to achieve significant performance increases.
+//! 3. **Multi-Threaded browser module:** Used to build browser-based web applications which use web-worker based multi-threading to achieve significant performance increases.
 //!
 //! These 3 modules and how to build them are explained in more detail below.
 //!

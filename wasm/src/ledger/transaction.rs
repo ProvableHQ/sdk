@@ -105,7 +105,7 @@ impl Transaction {
     /// Find a record in the transaction by the record's commitment.
     #[wasm_bindgen(js_name = findRecord)]
     pub fn find_record(&self, commitment: &Field) -> Option<RecordCiphertext> {
-        self.0.find_record(commitment).map(|record_ciphertext| RecordCiphertext::from(record_ciphertext))
+        self.0.find_record(commitment).map(RecordCiphertext::from)
     }
 
     /// Returns the transaction's base fee.
@@ -337,8 +337,6 @@ impl Transaction {
         self.0.id().to_string()
     }
 
-    /// Get the
-
     /// Get the type of the transaction (will return "deploy" or "execute")
     ///
     /// @returns {string} Transaction type
@@ -379,7 +377,7 @@ impl Transaction {
                     })
                     .collect::<Array>()
             })
-            .unwrap_or_else(|| Array::new())
+            .unwrap_or_default()
     }
 }
 
