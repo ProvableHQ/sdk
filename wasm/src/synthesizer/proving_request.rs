@@ -73,6 +73,7 @@ impl ProvingRequest {
     }
 
     /// Get the fee authorization for the request.
+    #[wasm_bindgen(js_name = "feeAuthorization")]
     pub fn fee_authorization(&self) -> Option<Authorization> {
         self.0.fee_authorization().map(|auth| Authorization::from(auth))
     }

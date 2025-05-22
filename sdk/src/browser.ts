@@ -59,6 +59,7 @@ export { logAndThrow } from "./utils";
 
 export {
     Address,
+    Authorization,
     BHP256,
     BHP512,
     BHP768,
@@ -66,6 +67,7 @@ export {
     Ciphertext,
     ComputeKey,
     Execution as FunctionExecution,
+    ExecutionRequest,
     ExecutionResponse,
     Field,
     Group,
@@ -81,6 +83,7 @@ export {
     Program,
     ProgramManager as ProgramManagerBase,
     ProvingKey,
+    ProvingRequest,
     RecordCiphertext,
     RecordPlaintext,
     Signature,

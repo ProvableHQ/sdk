@@ -104,7 +104,6 @@ interface ProvingRequestOptions {
     privateKey?: PrivateKey;
     programSource?: string | Program;
     programImports?: ProgramImports;
-    uri?: string;
     broadcast?: boolean;
 }
 
@@ -652,8 +651,7 @@ class ProgramManager {
             privateFee,
             inputs,
             recordSearchParams,
-            uri,
-            broadcast,
+            broadcast = false,
         } = options;
 
         let program = options.programSource;
@@ -722,7 +720,7 @@ class ProgramManager {
         }
 
         // Build a `ProvingRequest`
-        return await WasmProgramManager.provingRequest(
+        return await WasmProgramManager.buildProvingRequest(
             executionPrivateKey,
             program,
             functionName,

@@ -1468,7 +1468,7 @@ class AleoNetworkClient {
     async submitProvingRequest(provingRequest: string): Promise<string> {
         try {
             const response = await retryWithBackoff(() =>
-                post(this.host + "/solution/broadcast", {
+                post(this.host + "/prove", {
                     body: provingRequest,
                     headers: Object.assign({}, this.headers, {
                         "Content-Type": "application/json",
