@@ -16,8 +16,9 @@
 
 use crate::{
     account::Address,
-    types::native::{CurrentNetwork, EntryType, IdentifierNative, PlaintextType, ProgramNative, ValueType},
+    types::native::{CurrentNetwork, IdentifierNative, ProgramNative},
 };
+use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
 
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};

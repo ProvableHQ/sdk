@@ -226,7 +226,7 @@ macro_rules! object {
         ($($key:literal: $value:expr,)*) => {{
             let object = ::js_sys::Object::new();
 
-            $(Reflect::set(&object, &::wasm_bindgen::JsValue::from_str($key), &::wasm_bindgen::JsValue::from($value)).unwrap();)*
+            $(js_sys::Reflect::set(&object, &::wasm_bindgen::JsValue::from_str($key), &::wasm_bindgen::JsValue::from($value)).unwrap();)*
 
             object
         }};
@@ -249,9 +249,10 @@ impl Credits for RecordPlaintextNative {
             .find(&[native::IdentifierNative::from_str("microcredits").map_err(|e| e.to_string())?])
             .map_err(|e| e.to_string())?
         {
-            native::Entry::Private(native::PlaintextNative::Literal(native::LiteralNative::U64(amount), _)) => {
-                Ok(*amount)
-            }
+            snarkvm_console::program::Entry::Private(native::PlaintextNative::Literal(
+                native::LiteralNative::U64(amount),
+                _,
+            )) => Ok(*amount),
             _ => Err("The record provided does not contain a microcredits field".to_string()),
         }
     }

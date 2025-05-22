@@ -15,16 +15,19 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Request,
+    ExecutionRequest,
+    Field,
     Transition,
-    types::{
-        Field,
-        native::{AuthorizationNative, FromBytes, RequestNative, ToBytes, TransitionNative},
-    },
+    types::native::{AuthorizationNative, RequestNative, TransitionNative},
 };
+use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use js_sys::{Array, Uint8Array};
-use std::{ops::Deref, str::FromStr};
+use std::{
+    fmt::{Debug, Display},
+    ops::Deref,
+    str::FromStr,
+};
 use wasm_bindgen::prelude::*;
 
 /// Authorization object containing the authorization for a transaction.
@@ -34,7 +37,7 @@ pub struct Authorization(AuthorizationNative);
 #[wasm_bindgen]
 impl Authorization {
     /// Create transition.
-    pub fn new(request: Request) -> Result<Authorization, JsValue> {
+    pub fn new(request: ExecutionRequest) -> Result<Authorization, JsValue> {
         Ok(Authorization(AuthorizationNative::new(RequestNative::from(request))))
     }
 
@@ -67,6 +70,11 @@ impl Authorization {
         let rust_bytes = bytes.to_vec();
         let native = AuthorizationNative::from_bytes_le(rust_bytes.as_slice()).map_err(|e| e.to_string())?;
         Ok(Authorization(native))
+    }
+
+    /// Check if an authorization is the same as another.
+    pub fn equals(&self, other: &Authorization) -> bool {
+        self == other
     }
 }
 
@@ -160,5 +168,73 @@ impl From<&Authorization> for AuthorizationNative {
 impl From<Authorization> for AuthorizationNative {
     fn from(authorization: Authorization) -> Self {
         authorization.0
+    }
+}
+
+impl Debug for Authorization {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self, f)
+    }
+}
+
+impl Display for Authorization {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl PartialEq for Authorization {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl Eq for Authorization {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{types::native::CurrentNetwork, utilities::test::PUZZLE_SPINNER_V002_AUTHORIZATION};
+    use snarkvm_wasm::console::network::Network;
+
+    use wasm_bindgen_test::*;
+
+    #[wasm_bindgen_test]
+    fn test_authorization_serialization() {
+        if CurrentNetwork::ID == 0 {
+            // Check to ensure the authorization deserialized correctly.
+            let authorization = Authorization::from_string(PUZZLE_SPINNER_V002_AUTHORIZATION.to_string()).unwrap();
+
+            // Check to ensure serialization roundtrips are correct and result in the same objects.
+            let authorization_byte_roundtrip =
+                Authorization::from_bytes_le(authorization.to_bytes_le().unwrap()).unwrap();
+            let authorization_string_roundtrip = Authorization::from_string(authorization.to_string()).unwrap();
+            assert!(
+                authorization.equals(&authorization_byte_roundtrip)
+                    && authorization.equals(&authorization_string_roundtrip)
+            );
+        }
+    }
+
+    #[wasm_bindgen_test]
+    fn test_authorization_methods_work_as_expected() {
+        if CurrentNetwork::ID == 0 {
+            // Ensure the authorization has the expected content.
+            let authorization = Authorization::from_string(PUZZLE_SPINNER_V002_AUTHORIZATION.to_string()).unwrap();
+            let transitions = AuthorizationNative::from(&authorization).transitions();
+            let (_, transition_0) = transitions.get_index(0).unwrap();
+            let (_, transition_1) = transitions.get_index(1).unwrap();
+            let (_, transition_2) = transitions.get_index(2).unwrap();
+
+            // Ensure help methods result in the correct data.
+            assert_eq!(transition_0.program_id().to_string(), "puzzle_arcade_coin_v002.aleo");
+            assert_eq!(transition_1.program_id().to_string(), "puzzle_arcade_ticket_v002.aleo");
+            assert_eq!(transition_2.program_id().to_string(), "puzzle_spinner_v002.aleo");
+            assert!(!authorization.is_fee_public());
+            assert!(!authorization.is_fee_private());
+            assert!(!authorization.is_split());
+            assert!(!authorization.is_empty());
+            assert_eq!(authorization.len(), 3);
+        }
     }
 }

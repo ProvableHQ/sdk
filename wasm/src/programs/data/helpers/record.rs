@@ -19,7 +19,7 @@ use crate::{
     object,
     types::native::{EntryNative, RecordPlaintextNative},
 };
-use js_sys::{Object, Reflect};
+use js_sys::Object;
 
 /// Convert a record to a javascript object.
 pub fn record_to_js_object(record: &RecordPlaintextNative) -> Result<Object, String> {

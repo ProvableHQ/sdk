@@ -22,7 +22,7 @@ use crate::{
     from_js_typed_array,
     from_wasm_object_array,
     js_array_from_fields,
-    native::{CiphertextNative, CurrentNetwork, FieldNative, FromBytes, IdentifierNative, ProgramIDNative, ToBytes},
+    native::{CiphertextNative, CurrentNetwork, FieldNative, IdentifierNative, ProgramIDNative},
     to_bits_array_le,
 };
 use snarkvm_console::{
@@ -30,6 +30,7 @@ use snarkvm_console::{
     program::{FromBits, FromFields, ToBits, ToFields, compute_function_id},
     types::U16,
 };
+use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -234,14 +235,25 @@ impl From<&Ciphertext> for CiphertextNative {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{PrivateKey, Transition, plaintext_to_js_value};
-    use snarkvm_console::{collections::OrHalt, program::compute_function_id, types::U16};
-
-    use crate::types::native::{CurrentNetwork, FieldNative, IdentifierNative, Network, ProgramID};
+    use crate::{
+        PrivateKey,
+        Transition,
+        plaintext_to_js_value,
+        types::native::{CurrentNetwork, FieldNative, IdentifierNative},
+        utilities::test::get_env,
+    };
+    use snarkvm_console::{
+        collections::OrHalt,
+        network::Network,
+        program::{ProgramID, compute_function_id},
+        types::U16,
+    };
     use wasm_bindgen_test::wasm_bindgen_test;
 
     // Ciphertext encoding 2u32 from hello_hello.aleo.
     const CIPHERTEXT: &str = "ciphertext1qyq0m5mp0d2gzh2pv9p25z70gz2avhqdt3dp8y8thzwf3aq6g35zcqcuyptz3";
+    // Mainnet ciphertext from puzzle arcade.
+    const MAINNET_CIPHERTEXT: &str = "ciphertext1q5qw3wxwgjc3x945jspj7y38ltw8ggh2mx0lqut5xegwtmzlz5w5qqnvma8czvd55cm6qs6xz3rpzc59j9jyre8x30p8lphhzr4y60pdzpedflu99y73punfk5zshac5yxzjy30gfj8j8j0sr50tauxu4kxqq9mmt02uzuweljeykezn830cpjhfph3fl0zz5sjn4rlzz9a6m4qg59z4u2wdra5ea88wrcv48mk3m05c4pal07hdcmgmu9uah5luvc9ql4jr4h";
     // Development private key of node 0 in a SnarkOS test network.
     const PRIVATE_KEY: &str = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
     // Transition associated with the ciphertext.
@@ -320,6 +332,26 @@ mod tests {
             // Ensure the decrypted plaintexts are correct.
             assert_eq!(decrypted_plaintext_1.to_string(), "2u32");
             assert_eq!(decrypted_plaintext_2.to_string(), "2u32");
+        } else {
+            let private_key = PrivateKey::from_string(&get_env("PUZZLE_PK")).unwrap();
+            let ciphertext = Ciphertext::from_string(MAINNET_CIPHERTEXT.to_string()).unwrap();
+            let view_key = ViewKey::from_private_key(&private_key);
+            let tpk =
+                Group::from_string("4836727228112195507899959946473951966332108644709301619354443293014225839809group")
+                    .unwrap();
+            let decrypted_plaintext = ciphertext
+                .decrypt_with_transition_info(
+                    view_key,
+                    tpk,
+                    "puzzle_spinner_v002.aleo".to_string(),
+                    "spin".to_string(),
+                    2,
+                )
+                .unwrap();
+            assert_eq!(
+                decrypted_plaintext.to_string(),
+                crate::utilities::test::PUZZLE_SPINNER_V002_INPUT_2.to_string()
+            );
         }
     }
 }

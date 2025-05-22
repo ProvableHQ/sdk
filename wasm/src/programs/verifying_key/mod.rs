@@ -17,12 +17,13 @@
 mod credits;
 mod metadata;
 
-use crate::types::native::{CurrentNetwork, FromBytes, Network, ToBytes, VerifyingKeyNative};
+use crate::types::native::{CurrentNetwork, VerifyingKeyNative};
+use snarkvm_console::network::Network;
+use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use sha2::Digest;
-use wasm_bindgen::prelude::wasm_bindgen;
-
 use std::{ops::Deref, str::FromStr};
+use wasm_bindgen::prelude::wasm_bindgen;
 
 pub use metadata::Metadata;
 

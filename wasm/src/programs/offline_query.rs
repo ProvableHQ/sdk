@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::native::{CurrentNetwork, Field, Network};
-use snarkvm_console::program::StatePath;
+use crate::types::native::CurrentNetwork;
+use snarkvm_console::{network::Network, program::StatePath, types::Field};
 use snarkvm_ledger_query::QueryTrait;
 
 use anyhow::anyhow;

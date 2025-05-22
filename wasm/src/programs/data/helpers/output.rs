@@ -25,7 +25,6 @@ use crate::{
     types::native::OutputNative,
 };
 
-use js_sys::Reflect;
 use wasm_bindgen::JsValue;
 
 pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue {

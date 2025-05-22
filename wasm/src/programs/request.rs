@@ -15,24 +15,23 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    account::{Address, PrivateKey, Signature},
-    types::{
-        Field,
-        Group,
-        native::{
-            CurrentNetwork,
-            FieldNative,
-            FromBytes,
-            IdentifierNative,
-            ProgramIDNative,
-            RequestNative,
-            ToBytes,
-            ValueNative,
-            ValueTypeNative,
-        },
+    Address,
+    Field,
+    Group,
+    PrivateKey,
+    Signature,
+    types::native::{
+        CurrentNetwork,
+        FieldNative,
+        IdentifierNative,
+        ProgramIDNative,
+        RequestNative,
+        ValueNative,
+        ValueTypeNative,
     },
 };
 use snarkvm_console::network::Network;
+use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use js_sys::{Array, Uint8Array};
 use rand::{SeedableRng, rngs::StdRng};
@@ -40,10 +39,10 @@ use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub struct Request(RequestNative);
+pub struct ExecutionRequest(RequestNative);
 
 #[wasm_bindgen]
-impl Request {
+impl ExecutionRequest {
     /// Returns the request as a string.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
@@ -53,8 +52,8 @@ impl Request {
 
     /// Builds a request object from a string representation of a request.
     #[wasm_bindgen(js_name = "fromString")]
-    pub fn from_string(request: String) -> Result<Request, String> {
-        Ok(Request(RequestNative::from_str(&request).map_err(|e| e.to_string())?))
+    pub fn from_string(request: String) -> Result<ExecutionRequest, String> {
+        Ok(ExecutionRequest(RequestNative::from_str(&request).map_err(|e| e.to_string())?))
     }
 
     /// Returns the bytes representation of the request.
@@ -66,10 +65,10 @@ impl Request {
 
     /// Creates an request object from a bytes representation of an request.
     #[wasm_bindgen(js_name = "fromBytesLe")]
-    pub fn from_bytes_le(bytes: Uint8Array) -> Result<Request, String> {
+    pub fn from_bytes_le(bytes: Uint8Array) -> Result<ExecutionRequest, String> {
         let rust_bytes = bytes.to_vec();
         let native = RequestNative::from_bytes_le(rust_bytes.as_slice()).map_err(|e| e.to_string())?;
-        Ok(Request(native))
+        Ok(ExecutionRequest(native))
     }
 
     /// Returns the request signer.
@@ -141,7 +140,7 @@ impl Request {
 }
 
 #[wasm_bindgen]
-impl Request {
+impl ExecutionRequest {
     pub fn sign(
         private_key: PrivateKey,
         program_id: String,
@@ -150,7 +149,7 @@ impl Request {
         input_types: Array,
         root_tvk: Option<Field>,
         is_root: bool,
-    ) -> Result<Request, String> {
+    ) -> Result<ExecutionRequest, String> {
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
 
@@ -180,7 +179,7 @@ impl Request {
         )
         .map_err(|e| e.to_string())?;
 
-        Ok(Request(request))
+        Ok(ExecutionRequest(request))
     }
 
     pub fn verify(&self, input_types: Array, is_root: bool) -> bool {
@@ -193,7 +192,7 @@ impl Request {
     }
 }
 
-impl Deref for Request {
+impl Deref for ExecutionRequest {
     type Target = RequestNative;
 
     fn deref(&self) -> &Self::Target {
@@ -201,26 +200,26 @@ impl Deref for Request {
     }
 }
 
-impl From<RequestNative> for Request {
+impl From<RequestNative> for ExecutionRequest {
     fn from(native: RequestNative) -> Self {
         Self(native)
     }
 }
 
-impl From<&RequestNative> for Request {
+impl From<&RequestNative> for ExecutionRequest {
     fn from(native: &RequestNative) -> Self {
         Self(native.clone())
     }
 }
 
-impl From<Request> for RequestNative {
-    fn from(request: Request) -> Self {
+impl From<ExecutionRequest> for RequestNative {
+    fn from(request: ExecutionRequest) -> Self {
         request.0
     }
 }
 
-impl From<&Request> for RequestNative {
-    fn from(request: &Request) -> Self {
+impl From<&ExecutionRequest> for RequestNative {
+    fn from(request: &ExecutionRequest) -> Self {
         request.0.clone()
     }
 }

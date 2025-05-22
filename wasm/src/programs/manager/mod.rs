@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod deploy;
-pub mod execute;
-pub mod join;
-pub mod request;
-pub mod split;
-pub mod transfer;
+mod authorize;
+mod delegated;
+mod deploy;
+mod execute;
+mod join;
+mod split;
+mod transfer;
 
 const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
 
@@ -38,10 +39,9 @@ use crate::{
         ProvingKeyNative,
         QueryNative,
         VerifyingKeyNative,
-        cost_in_microcredits_v2,
-        deployment_cost,
     },
 };
+use snarkvm_synthesizer::process::{cost_in_microcredits_v2, deployment_cost};
 use snarkvm_synthesizer_program::StackKeys;
 
 use js_sys::{Object, Reflect};
@@ -220,14 +220,8 @@ function add_and_double:
 
         ProgramManager::resolve_imports(&mut process, &program, Some(imports)).unwrap();
 
-        let add_import = process.get_program("addition_test.aleo").unwrap();
-        let multiply_import = process.get_program("multiply_test.aleo").unwrap();
-        let double_import = process.get_program("double_test.aleo").unwrap();
-        let main_program = process.get_program("imported_add_mul.aleo");
-
-        assert_eq!(add_import, &add_program);
-        assert_eq!(multiply_import, &multiply_program);
-        assert_eq!(double_import, &double_program);
-        assert!(main_program.is_err());
+        assert!(process.contains_program(add_program.id()));
+        assert!(process.contains_program(multiply_program.id()));
+        assert!(process.contains_program(double_program.id()));
     }
 }

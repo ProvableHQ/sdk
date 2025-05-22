@@ -18,9 +18,10 @@ use crate::{
     Plaintext,
     from_js_typed_array,
     to_bits_array_le,
-    types::native::{FieldNative, LiteralNative, PlaintextNative, Uniform},
+    types::native::{FieldNative, LiteralNative, PlaintextNative},
 };
 use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Zero};
+use snarkvm_wasm::utilities::Uniform;
 
 use js_sys::{Array, Uint8Array};
 use once_cell::sync::OnceCell;
