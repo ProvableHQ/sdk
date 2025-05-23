@@ -52,7 +52,7 @@ class AleoNetworkClient {
         this.headers = {
             // This is replaced by the actual version by a Rollup plugin
             "X-Aleo-SDK-Version": "%%VERSION%%",
-            "X-Aleo-environment" : environment(),
+            "X-ALEO-ENVIRONMENT" : environment(),
         };
     }
   }
