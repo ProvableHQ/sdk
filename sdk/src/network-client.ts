@@ -1,4 +1,4 @@
-import { get, post, parseJSON, logAndThrow, retryWithBackoff } from "./utils";
+import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment } from "./utils";
 import { Account } from "./account";
 import { BlockJSON } from "./models/blockJSON";
 import { TransactionJSON } from "./models/transaction/transactionJSON";
@@ -38,21 +38,24 @@ class AleoNetworkClient {
   host: string;
   headers: { [key: string]: string };
   account: Account | undefined;
+  ctx: { [key: string]: string };
   readonly network: string;
 
   constructor(host: string, options?: AleoNetworkClientOptions) {
     this.host = host + "/%%NETWORK%%";
     this.network = "%%NETWORK%%";
+    this.ctx = {};
 
-        if (options && options.headers) {
-            this.headers = options.headers;
-        } else {
-            this.headers = {
-                // This is replaced by the actual version by a Rollup plugin
-                "X-Aleo-SDK-Version": "%%VERSION%%",
-            };
-        }
+    if (options && options.headers) {
+        this.headers = options.headers;
+    } else {
+        this.headers = {
+            // This is replaced by the actual version by a Rollup plugin
+            "X-Aleo-SDK-Version": "%%VERSION%%",
+            "X-Aleo-environment" : environment(),
+        };
     }
+  }
 
     /**
      * Set an account to use in networkClient calls
@@ -159,9 +162,13 @@ class AleoNetworkClient {
      */
     async fetchRaw(url = "/"): Promise<string> {
         try {
+            const ctx = {...this.ctx};
             return await retryWithBackoff(async () => {
                 const response = await get(this.host + url, {
-                    headers: this.headers,
+                    headers: {
+                        ...this.headers,
+                        ...ctx,
+                    },
                 });
                 return await response.text();
             });
@@ -546,16 +553,23 @@ class AleoNetworkClient {
         nonces?: string[] | undefined,
         privateKey?: string | PrivateKey | undefined,
     ): Promise<Array<RecordPlaintext>> {
-        return await this.findRecords(
-            startHeight,
-            endHeight,
-            true,
-            programs,
-            amounts,
-            maxMicrocredits,
-            nonces,
-            privateKey,
-        );
+        try {
+            this.ctx = { "X-ALEO-METHOD": "findUnspentRecords" };
+            return await this.findRecords(
+                startHeight,
+                endHeight,
+                true,
+                programs,
+                amounts,
+                maxMicrocredits,
+                nonces,
+                privateKey,
+            );
+        } catch (error) {
+            throw new Error("Error finding unspent records: " + error);
+        } finally {
+            this.ctx = {};
+        }
     }
 
     /**
@@ -569,12 +583,15 @@ class AleoNetworkClient {
      */
     async getBlock(blockHeight: number): Promise<BlockJSON> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getBlock" };
             const block = await this.fetchData<BlockJSON>(
                 "/block/" + blockHeight,
             );
             return block;
         } catch (error) {
             throw new Error(`Error fetching block ${blockHeight}: ${error}`);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -592,12 +609,15 @@ class AleoNetworkClient {
      */
     async getBlockByHash(blockHash: string): Promise<BlockJSON> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getBlockByHash" };
             const block = await this.fetchData<BlockJSON>(
                 `/block/${blockHash}`,
             );
             return block;
         } catch (error) {
             throw new Error(`Error fetching block ${blockHash}: ${error}`);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -623,6 +643,7 @@ class AleoNetworkClient {
      */
     async getBlockRange(start: number, end: number): Promise<Array<BlockJSON>> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getBlockRange" };
             return await this.fetchData<Array<BlockJSON>>(
                 "/blocks?start=" + start + "&end=" + end,
             );
@@ -630,6 +651,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching blocks between ${start} and ${end}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -655,6 +678,7 @@ class AleoNetworkClient {
     async getDeploymentTransactionIDForProgram(
         program: Program | string,
     ): Promise<string> {
+        this.ctx = { "X-ALEO-METHOD": "getDeploymentTransactionIDForProgram" };
         if (program instanceof Program) {
             program = program.id();
         }
@@ -667,6 +691,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching deployment transaction for program ${program}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -694,6 +720,7 @@ class AleoNetworkClient {
             program = program.id();
         }
         try {
+            this.ctx = { "X-ALEO-METHOD": "getDeploymentTransactionForProgram" };
             const transaction_id = <string>(
                 await this.getDeploymentTransactionIDForProgram(program)
             );
@@ -702,6 +729,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching deployment transaction for program ${program}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -728,6 +757,7 @@ class AleoNetworkClient {
         program: Program | string,
     ): Promise<Transaction> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getDeploymentTransactionObjectForProgram" };
             const transaction_id = <string>(
                 await this.getDeploymentTransactionIDForProgram(program)
             );
@@ -736,6 +766,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching deployment transaction for program ${program}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -754,11 +786,14 @@ class AleoNetworkClient {
      */
     async getLatestBlock(): Promise<BlockJSON> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getLatestBlock" };
             return (await this.fetchData<BlockJSON>(
                 "/block/latest",
             )) as BlockJSON;
         } catch (error) {
             throw new Error(`Error fetching latest block: ${error}`);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -779,9 +814,12 @@ class AleoNetworkClient {
      */
     async getLatestCommittee(): Promise<object> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getLatestCommittee" };
             return await this.fetchData<object>("/committee/latest");
         } catch (error) {
             throw new Error(`Error fetching latest committee: ${error}`);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -803,11 +841,14 @@ class AleoNetworkClient {
      */
     async getCommitteeByBlockHeight(blockHeight: number): Promise<object> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getCommitteeByBlockHeight" };
             return await this.fetchData<object>(`/committee/${blockHeight}`);
         } catch (error) {
             throw new Error(
                 `Error fetching committee at height ${blockHeight}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -826,9 +867,12 @@ class AleoNetworkClient {
      */
     async getLatestHeight(): Promise<number> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getLatestHeight" };
             return Number(await this.fetchData<bigint>("/block/height/latest"));
         } catch (error) {
             throw new Error(`Error fetching latest height: ${error}`);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -848,9 +892,12 @@ class AleoNetworkClient {
      */
     async getLatestBlockHash(): Promise<string> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getLatestBlockHash" };
             return String(await this.fetchData<string>("/block/hash/latest"));
         } catch (error) {
             throw new Error(`Error fetching latest hash: ${error}`);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -872,9 +919,12 @@ class AleoNetworkClient {
      */
     async getProgram(programId: string): Promise<string> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getProgram" };
             return await this.fetchData<string>("/program/" + programId);
         } catch (error) {
             throw new Error(`Error fetching program ${programId}: ${error}`);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -902,6 +952,7 @@ class AleoNetworkClient {
      */
     async getProgramObject(inputProgram: string): Promise<Program> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getProgramObject" };
             return Program.fromString(inputProgram);
         } catch (error) {
             try {
@@ -913,6 +964,8 @@ class AleoNetworkClient {
                     `${inputProgram} is neither a program name or a valid program: ${error}`,
                 );
             }
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -950,6 +1003,7 @@ class AleoNetworkClient {
         inputProgram: Program | string,
     ): Promise<ProgramImports> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
             const imports: ProgramImports = {};
 
             // Get the program object or fail if the program is not valid or does not exist
@@ -982,6 +1036,8 @@ class AleoNetworkClient {
             return imports;
         } catch (error: any) {
             logAndThrow("Error fetching program imports: " + error.message);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1005,6 +1061,7 @@ class AleoNetworkClient {
         inputProgram: Program | string,
     ): Promise<string[]> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getProgramImportNames" };
             const program =
                 inputProgram instanceof Program
                     ? inputProgram
@@ -1014,6 +1071,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching imports for program ${inputProgram instanceof Program ? inputProgram.id() : inputProgram}: ${error.message}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1043,6 +1102,7 @@ class AleoNetworkClient {
      */
     async getProgramMappingNames(programId: string): Promise<Array<string>> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getProgramMappingNames" };
             return await this.fetchData<Array<string>>(
                 `/program/${programId}/mappings`,
             );
@@ -1050,6 +1110,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching mappings for program ${programId} - ensure the program exists on chain before trying again`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1078,6 +1140,7 @@ class AleoNetworkClient {
         key: string | Plaintext,
     ): Promise<string> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getProgramMappingValue" };
             const keyString = key instanceof Plaintext ? key.toString() : key;
             return await this.fetchData<string>(
                 `/program/${programId}/mapping/${mappingName}/${keyString}`,
@@ -1086,6 +1149,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1129,6 +1194,7 @@ class AleoNetworkClient {
         key: string | Plaintext,
     ): Promise<Plaintext> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getProgramMappingPlaintext" };
             const keyString = key instanceof Plaintext ? key.toString() : key;
             const value = await this.fetchRaw(
                 `/program/${programId}/mapping/${mappingName}/${keyString}`,
@@ -1136,6 +1202,8 @@ class AleoNetworkClient {
             return Plaintext.fromString(JSON.parse(value));
         } catch (error) {
             throw new Error("Failed to fetch mapping value." + error);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1159,6 +1227,7 @@ class AleoNetworkClient {
      */
     async getPublicBalance(address: Address | string): Promise<number> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getPublicBalance" };
             const addressString =
                 address instanceof Address ? address.to_string() : address;
             const balanceStr = await this.getProgramMappingValue(
@@ -1171,6 +1240,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching public balance for ${address}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1190,9 +1261,12 @@ class AleoNetworkClient {
      */
     async getStateRoot(): Promise<string> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getStateRoot" };
             return await this.fetchData<string>("/stateRoot/latest");
         } catch (error) {
             throw new Error(`Error fetching latest state root: ${error}`);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1212,6 +1286,7 @@ class AleoNetworkClient {
      */
     async getTransaction(transactionId: string): Promise<TransactionJSON> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getTransaction" };
             return await this.fetchData<TransactionJSON>(
                 "/transaction/" + transactionId,
             );
@@ -1219,6 +1294,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching transaction ${transactionId}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1241,6 +1318,7 @@ class AleoNetworkClient {
         transactionId: string,
     ): Promise<ConfirmedTransactionJSON> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getConfirmedTransaction" };
             return await this.fetchData<ConfirmedTransactionJSON>(
                 `/transaction/confirmed/${transactionId}`,
             );
@@ -1248,6 +1326,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching confirmed transaction ${transactionId}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1278,6 +1358,7 @@ class AleoNetworkClient {
      */
     async getTransactionObject(transactionId: string): Promise<Transaction> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getTransactionObject" };
             const transaction = await this.fetchRaw(
                 "/transaction/" + transactionId,
             );
@@ -1286,6 +1367,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching transaction object ${transactionId}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1307,11 +1390,14 @@ class AleoNetworkClient {
         blockHeight: number,
     ): Promise<Array<ConfirmedTransactionJSON>> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getTransactions" };
             return await this.fetchData<Array<ConfirmedTransactionJSON>>(
                 "/block/" + blockHeight.toString() + "/transactions",
             );
         } catch (error) {
             throw new Error(`Error fetching transactions: ${error}`);
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1333,6 +1419,7 @@ class AleoNetworkClient {
         blockHash: string,
     ): Promise<Array<ConfirmedTransactionJSON>> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getTransactionsByBlockHash" };
             const block = await this.fetchData<BlockJSON>(
                 `/block/${blockHash}`,
             );
@@ -1342,6 +1429,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching transactions for block ${blockHash}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1361,6 +1450,7 @@ class AleoNetworkClient {
      */
     async getTransactionsInMempool(): Promise<Array<TransactionJSON>> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getTransactionsInMempool" };
             return await this.fetchData<Array<TransactionJSON>>(
                 "/memoryPool/transactions",
             );
@@ -1368,6 +1458,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching transactions from mempool: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1381,6 +1473,7 @@ class AleoNetworkClient {
      */
     async getTransitionId(inputOrOutputID: string): Promise<string> {
         try {
+            this.ctx = { "X-ALEO-METHOD": "getTransitionId" };
             return await this.fetchData<string>(
                 "/find/transitionID/" + inputOrOutputID,
             );
@@ -1388,6 +1481,8 @@ class AleoNetworkClient {
             throw new Error(
                 `Error fetching transition ID for input/output ${inputOrOutputID}: ${error}`,
             );
+        } finally {
+            this.ctx = {};
         }
     }
 
@@ -1407,8 +1502,8 @@ class AleoNetworkClient {
         try {
             const response = await retryWithBackoff(() =>
                 this._sendPost(this.host + "/transaction/broadcast", {
-                    body: transactionString,
-                    headers: Object.assign({}, this.headers, {
+                    body: transaction_string,
+                    headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD" : "submitTransaction"}, {
                         "Content-Type": "application/json",
                     }),
                 }),
@@ -1440,7 +1535,7 @@ class AleoNetworkClient {
             const response = await retryWithBackoff(() =>
                 post(this.host + "/solution/broadcast", {
                     body: solution,
-                    headers: Object.assign({}, this.headers, {
+                    headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD": "submitSolution"}, {
                         "Content-Type": "application/json",
                     }),
                 }),
@@ -1550,7 +1645,10 @@ class AleoNetworkClient {
                     const res = await fetch(
                         `${this.host}/transaction/confirmed/${transactionId}`,
                         {
-                            headers: this.headers,
+                            headers: {
+                                ...this.headers,
+                                "X-ALEO-METHOD" : "waitForTransactionConfirmation",
+                            },
                         },
                     );
                     if (!res.ok) {

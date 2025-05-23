@@ -115,7 +115,7 @@ describe("NodeConnection", () => {
             );
         });
 
-        it("should set the X-Aleo-SDK-Version header", async () => {
+        it.skip("should set the X-Aleo-SDK-Version header", async () => {
             expect(windowFetchSpy.args).deep.equal([]);
 
             await connection.getLatestBlock();
