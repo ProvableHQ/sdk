@@ -39,8 +39,6 @@ use wasm_bindgen::{convert::TryFromJsValue, prelude::wasm_bindgen};
 /// SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
 /// object provides decryption methods to recover the plaintext from the ciphertext (given the
 /// api consumer has the proper decryption materials).
-///
-/// @example
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Ciphertext(CiphertextNative);

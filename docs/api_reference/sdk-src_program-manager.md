@@ -83,6 +83,55 @@ __recordProvider__ | `RecordProvider` | **
 
 ---
 
+### `setHeader(headerName, value)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a header in the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to set*
+__value__ | `string` | *The header value*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Set the value of the `Accept-Language` header to `en-US`
+programManager.setHeader('Accept-Language', 'en-US');
+```
+
+---
+
+### `removeHeader(headerName)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Remove a header from the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to be removed*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Remove the default `X-Aleo-SDK-Version` header
+programManager.removeHeader('X-Aleo-SDK-Version');
+```
+
+---
+
 ### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -220,6 +269,148 @@ setTimeout(async () => {
  const transaction = await programManager.networkClient.getTransaction(tx.id());
  assert(transaction.id() === tx.id());
 }, 10000);
+```
+
+---
+
+### `provingRequest(options) ► Promise.<ProvingRequest>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a &#x60;ProvingRequest&#x60; for submission to a delegated proving service for remote execution.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `ProvingRequestOptions` | *The options for building the proving request*
+__*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the transaction or an error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the proving request.
+const provingRequest = await programManager.provingRequest({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  baseFee: 100000,
+  priorityFee: 0,
+  privateFee: false,
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+  broadcast: true,
+});
+
+// Submit the transaction to the network and await the response.
+const provingResponse = await programManager.networkClient.submitProvingRequest(provingRequest);
+// Get the transaction from the proving response.
+const tx = provingResponse.transaction;
+const submitted = provingResponse.broadcast;
+
+// Get the transaction id.
+const tx_id = tx.id();
+
+// If the response doesn't indicate the transaction was submitted, submit it manually.
+if (!submitted) {
+  await programManager.networkClient.submitTransaction(tx);
+}
+
+// Wait to see if the transaction has appeared on chain.
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 10000);
+```
+
+---
+
+### `buildAuthorization(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM &#x60;Authorization&#x60; for a specific function.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `AuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the `Authorization`.
+const authorization = await programManager.buildAuthorization({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+});
+```
+
+---
+
+### `buildFeeAuthorization(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM fee &#x60;Authorization&#x60; for &#x60;credits.aleo/fee_private&#x60; or &#x60;credits.aleo/fee_public&#x60;. If a record is provided &#x60;fee_private&#x60; will be executed, otherwise &#x60;fee_public&#x60; will be executed.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `FeeAuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;.*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build a credits.aleo/fee_public `Authorization`.
+const feePublicAuthorization = await programManager.authorizeFee({
+  deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+  baseFeeCredits: 0.1,
+});
+
+// Build a credits.aleo/fee_private `Authorization`.
+const record = "{ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private, microcredits: 1500000000000000u64.private, _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public }";
+const feePrivateAuthorization = await programManager.authorizeFee({
+  deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+  baseFeeCredits: 0.1,
+  feeRecord: record,
+});
 ```
 
 ---
@@ -1000,16 +1191,45 @@ setTimeout(async () => {
 
 ---
 
-### `verifyExecution(executionResponse) ► boolean`
+### `verifyExecution(executionResponse, imports, importedVerifyingKeys) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Verify a proof of execution from an offline execution
+Verify a proof from an offline execution. This is useful when it is desired to do offchain proving and verification.
 
 Parameters | Type | Description
 --- | --- | ---
-__executionResponse__ | `executionResponse` | **
+__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
+__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __*return*__ | `boolean` | *True if the proof is valid, false otherwise*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk used to build executions.
+import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+/// Create the source for two programs.
+const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add_it r1 r2 into r3;  output r3 as u32.private;\n";
+const program_import = "program add_it_up.aleo;\n\nfunction add_it:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager(undefined, undefined, undefined);
+
+/// Create a temporary account for the execution of the program
+const account = Account.fromCipherText(process.env.ciphertext, process.env.password);
+programManager.setAccount(account);
+
+/// Get the response and ensure that the program executed correctly
+const executionResponse = await programManager.run(program, "mul_and_add", ["5u32", "5u32"], true);
+
+/// Construct the imports and verifying keys
+const imports = { "add_it_up.aleo": program_import };
+const importedVerifyingKeys = { "add_it_up.aleo": [["add_it", "verifyingKey1..."]] };
+
+/// Verify the execution.
+const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
+assert(isValid);
+```
 
 ---
 
@@ -1111,6 +1331,55 @@ __recordProvider__ | `RecordProvider` | **
 
 ---
 
+### `setHeader(headerName, value)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a header in the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to set*
+__value__ | `string` | *The header value*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Set the value of the `Accept-Language` header to `en-US`
+programManager.setHeader('Accept-Language', 'en-US');
+```
+
+---
+
+### `removeHeader(headerName)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Remove a header from the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to be removed*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Remove the default `X-Aleo-SDK-Version` header
+programManager.removeHeader('X-Aleo-SDK-Version');
+```
+
+---
+
 ### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1248,6 +1517,148 @@ setTimeout(async () => {
  const transaction = await programManager.networkClient.getTransaction(tx.id());
  assert(transaction.id() === tx.id());
 }, 10000);
+```
+
+---
+
+### `provingRequest(options) ► Promise.<ProvingRequest>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a &#x60;ProvingRequest&#x60; for submission to a delegated proving service for remote execution.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `ProvingRequestOptions` | *The options for building the proving request*
+__*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the transaction or an error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the proving request.
+const provingRequest = await programManager.provingRequest({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  baseFee: 100000,
+  priorityFee: 0,
+  privateFee: false,
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+  broadcast: true,
+});
+
+// Submit the transaction to the network and await the response.
+const provingResponse = await programManager.networkClient.submitProvingRequest(provingRequest);
+// Get the transaction from the proving response.
+const tx = provingResponse.transaction;
+const submitted = provingResponse.broadcast;
+
+// Get the transaction id.
+const tx_id = tx.id();
+
+// If the response doesn't indicate the transaction was submitted, submit it manually.
+if (!submitted) {
+  await programManager.networkClient.submitTransaction(tx);
+}
+
+// Wait to see if the transaction has appeared on chain.
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 10000);
+```
+
+---
+
+### `buildAuthorization(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM &#x60;Authorization&#x60; for a specific function.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `AuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the `Authorization`.
+const authorization = await programManager.buildAuthorization({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+});
+```
+
+---
+
+### `buildFeeAuthorization(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM fee &#x60;Authorization&#x60; for &#x60;credits.aleo/fee_private&#x60; or &#x60;credits.aleo/fee_public&#x60;. If a record is provided &#x60;fee_private&#x60; will be executed, otherwise &#x60;fee_public&#x60; will be executed.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `FeeAuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;.*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build a credits.aleo/fee_public `Authorization`.
+const feePublicAuthorization = await programManager.authorizeFee({
+  deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+  baseFeeCredits: 0.1,
+});
+
+// Build a credits.aleo/fee_private `Authorization`.
+const record = "{ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private, microcredits: 1500000000000000u64.private, _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public }";
+const feePrivateAuthorization = await programManager.authorizeFee({
+  deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+  baseFeeCredits: 0.1,
+  feeRecord: record,
+});
 ```
 
 ---
@@ -2028,16 +2439,45 @@ setTimeout(async () => {
 
 ---
 
-### `verifyExecution(executionResponse) ► boolean`
+### `verifyExecution(executionResponse, imports, importedVerifyingKeys) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Verify a proof of execution from an offline execution
+Verify a proof from an offline execution. This is useful when it is desired to do offchain proving and verification.
 
 Parameters | Type | Description
 --- | --- | ---
-__executionResponse__ | `executionResponse` | **
+__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
+__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __*return*__ | `boolean` | *True if the proof is valid, false otherwise*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk used to build executions.
+import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+/// Create the source for two programs.
+const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add_it r1 r2 into r3;  output r3 as u32.private;\n";
+const program_import = "program add_it_up.aleo;\n\nfunction add_it:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager(undefined, undefined, undefined);
+
+/// Create a temporary account for the execution of the program
+const account = Account.fromCipherText(process.env.ciphertext, process.env.password);
+programManager.setAccount(account);
+
+/// Get the response and ensure that the program executed correctly
+const executionResponse = await programManager.run(program, "mul_and_add", ["5u32", "5u32"], true);
+
+/// Construct the imports and verifying keys
+const imports = { "add_it_up.aleo": program_import };
+const importedVerifyingKeys = { "add_it_up.aleo": [["add_it", "verifyingKey1..."]] };
+
+/// Verify the execution.
+const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
+assert(isValid);
+```
 
 ---
 
