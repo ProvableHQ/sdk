@@ -24,9 +24,6 @@ use std::{
 
 impl ToBytes for ProvingRequestNative {
     fn write_le<W: Write>(&self, mut writer: W) -> io::Result<()> {
-        // Write version flag.
-        1u8.write_le(&mut writer)?;
-
         // Write required authorization.
         self.authorization.write_le(&mut writer)?;
 
@@ -50,12 +47,6 @@ impl ToBytes for ProvingRequestNative {
 
 impl FromBytes for ProvingRequestNative {
     fn read_le<R: Read>(mut reader: R) -> io::Result<Self> {
-        // Read version.
-        let version = u8::read_le(&mut reader)?;
-        if version != 1 {
-            return Err(error("Invalid proving request version"));
-        }
-
         // Read required authorization.
         let authorization = AuthorizationNative::read_le(&mut reader)?;
 
