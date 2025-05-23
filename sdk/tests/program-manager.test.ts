@@ -115,8 +115,8 @@ describe('Program Manager', () => {
         });
     });
 
-    describe('Proving Requests', () => {
-        it('Should build correct authorizations', async () => {
+    describe('Proving Requests and Authorizations', () => {
+        it('Should build correct authorizations from Proving Request', async () => {
             const provingRequest = await programManager.provingRequest({
                 programName: PUZZLE_SPINNER_PROGRAM_ID,
                 functionName: "spin",
@@ -145,11 +145,47 @@ describe('Program Manager', () => {
 
             // Get the authorizations.
             const authorization = provingRequest.authorization();
-            const fee_authorization = <Authorization>provingRequest.feeAuthorization();
+            const feeAuthorization = <Authorization>provingRequest.feeAuthorization();
 
             // Ensure the authorizations have the correct number of transitions.
             expect(authorization.transitions().length).equal(3);
-            expect(fee_authorization.transitions().length).equal(1);
+            expect(feeAuthorization.transitions().length).equal(1);
+        })
+
+        it('Should build correct authorizations', async () => {
+            const authorization = await programManager.buildAuthorization({
+                programName: PUZZLE_SPINNER_PROGRAM_ID,
+                functionName: "spin",
+                inputs: [
+                    PUZZLE_SPINNER_V002_INPUT_0,
+                    PUZZLE_SPINNER_V002_INPUT_1,
+                    PUZZLE_SPINNER_V002_INPUT_2,
+                ],
+                privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
+            });
+
+            // Ensure serialization methods lead to the expected.
+            const authorizationFromString = Authorization.fromString(authorization.toString());
+            const authorizationFromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+
+            // Ensure all authorizations are equal.
+            expect(authorizationFromString.equals(authorizationFromBytes));
+            expect(authorizationFromString.equals(authorization));
+
+            // Get execution ID from previous authorization.
+            const executionId = authorization.toExecutionId().toString();
+            const feeAuthorization = await programManager.buildFeeAuthorization({
+                deploymentOrExecutionId: executionId,
+                baseFeeCredits: 0.1,
+            });
+
+            // Ensure the authorizations have the correct number of transitions.
+            expect(authorization.transitions().length).equal(3);
+            expect(feeAuthorization.transitions().length).equal(1);
+
+            // Build a proving request from the ProvingRequest and ensure it's created successfully.
+            const provingRequest = ProvingRequest.new(authorization, feeAuthorization, false);
+            expect(provingRequest.broadcast()).equal(false);
         });
     });
 });

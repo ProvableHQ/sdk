@@ -13,6 +13,7 @@ import {
 
 import {
     Address,
+    Authorization,
     ExecutionResponse,
     Execution as FunctionExecution,
     OfflineQuery,
@@ -105,6 +106,42 @@ interface ProvingRequestOptions {
     programSource?: string | Program;
     programImports?: ProgramImports;
     broadcast?: boolean;
+}
+
+/**
+ * Options for building an Authorization for a function.
+ *
+ * @property programName {string} Name of the program containing the function to build the authorization for.
+ * @property functionName {string} Name of the function name to build the authorization for.
+ * @property inouts {string[]} The inputs to the function.
+ * @property programSource {string | Program} The optional source code for the program to build an execution for.
+ * @property privateKey {PrivateKey} Optional private key to use to build the authorization.
+ * @property programImports {ProgramImports} The other programs the program imports.
+ */
+interface AuthorizationOptions {
+    programName: string;
+    functionName: string;
+    inputs: string[];
+    programSource?: string | Program;
+    privateKey?: PrivateKey;
+    programImports?: ProgramImports;
+}
+
+/**
+ * Options for executing a fee authorization.
+ *
+ * @property deploymentOrExecutionId {string} The id of a previously built Execution or Authorization.
+ * @property baseFeeCredits {number} The number of Aleo Credits to pay for the base fee.
+ * @property priorityFeeCredits {number} The number of Aleo Credits to pay for the priority fee.
+ * @property privateKey {PrivateKey} Optional private key to specify for the authorization.
+ * @property feeRecord {RecordPlaintext} A record to specify to pay the private fee. If this is specified a `fee_private` authorization will be built.
+ */
+interface FeeAuthorizationOptions {
+    deploymentOrExecutionId: string,
+    baseFeeCredits: number,
+    priorityFeeCredits?: number,
+    privateKey?: PrivateKey,
+    feeRecord?: RecordPlaintext,
 }
 
 /**
@@ -669,9 +706,9 @@ class ProgramManager {
             broadcast = false,
         } = options;
 
+        const privateKey = options.privateKey;
         let program = options.programSource;
         let feeRecord = options.feeRecord;
-        let privateKey = options.privateKey;
         let imports = options.programImports;
 
         // Ensure the function exists on the network
@@ -745,6 +782,166 @@ class ProgramManager {
             feeRecord,
             imports,
             broadcast
+        );
+    }
+
+    /**
+     * Builds a SnarkVM `Authorization` for a specific function.
+     *
+     * @param {AuthorizationOptions} options - The options for building the `Authorization`
+     * @returns {Promise<Authorization>} - A promise that resolves to an `Authorization` or throws an Error.
+     *
+     * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     *
+     * // Build the `Authorization`.
+     * const authorization = await programManager.buildAuthorization({
+     *   programName: "credits.aleo",
+     *   functionName: "transfer_public",
+     *   inputs: [
+     *     "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+     *     "10000000u64",
+     *   ],
+     * });
+     */
+    async buildAuthorization(
+        options: AuthorizationOptions,
+    ): Promise<Authorization> {
+        // Destructure the options object to access the parameters
+        const {
+            programName,
+            functionName,
+            inputs,
+        } = options;
+
+        const privateKey = options.privateKey;
+        let program = options.programSource;
+        let imports = options.programImports;
+
+        // Ensure the function exists on the network
+        if (program === undefined) {
+            try {
+                program = <string>(
+                    await this.networkClient.getProgram(programName)
+                );
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`,
+                );
+            }
+        } else if (program instanceof Program) {
+            program = program.toString();
+        }
+
+        // Get the private key from the account if it is not provided in the parameters
+        let executionPrivateKey = privateKey;
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
+            executionPrivateKey = this.account.privateKey();
+        }
+
+        if (typeof executionPrivateKey === "undefined") {
+            throw "No private key provided and no private key set in the ProgramManager";
+        }
+
+        // Resolve the program imports if they exist
+        const numberOfImports = Program.fromString(program).getImports().length;
+        if (numberOfImports > 0 && !imports) {
+            try {
+                imports = <ProgramImports>(
+                    await this.networkClient.getProgramImports(programName)
+                );
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+                );
+            }
+        }
+
+        // Build an `Authorization` for the desired function.
+        return await WasmProgramManager.authorize(
+            executionPrivateKey,
+            program,
+            functionName,
+            inputs,
+            imports
+        );
+    }
+
+    /**
+     * Builds a SnarkVM fee `Authorization` for `credits.aleo/fee_private` or `credits.aleo/fee_public`. If a record is provided `fee_private` will be executed, otherwise `fee_public` will be executed.
+     *
+     * @param {FeeAuthorizationOptions} options - The options for building the `Authorization`.
+     * @returns {Promise<Authorization>} - A promise that resolves to an `Authorization` or throws an Error.
+     *
+     * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     *
+     * // Build a credits.aleo/fee_public `Authorization`.
+     * const feePublicAuthorization = await programManager.authorizeFee({
+     *   deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+     *   baseFeeCredits: 0.1,
+     * });
+     *
+     * // Build a credits.aleo/fee_private `Authorization`.
+     * const record = "{ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private, microcredits: 1500000000000000u64.private, _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public }";
+     * const feePrivateAuthorization = await programManager.authorizeFee({
+     *   deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+     *   baseFeeCredits: 0.1,
+     *   feeRecord: record,
+     * });
+     */
+    async buildFeeAuthorization(
+        options: FeeAuthorizationOptions,
+    ): Promise<Authorization> {
+        // Destructure the options object to access the parameters
+        const {
+            privateKey,
+            deploymentOrExecutionId,
+            baseFeeCredits,
+            priorityFeeCredits,
+            feeRecord,
+        } = options;
+        // Get the private key from the account if it is not provided in the parameters
+        let executionPrivateKey = privateKey;
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
+            executionPrivateKey = this.account.privateKey();
+        }
+
+        if (typeof executionPrivateKey === "undefined") {
+            throw "No private key provided and no private key set in the ProgramManager";
+        }
+
+        // Build a `ProvingRequest`
+        return await WasmProgramManager.authorizeFee(
+            executionPrivateKey,
+            deploymentOrExecutionId,
+            baseFeeCredits,
+            priorityFeeCredits || 0,
+            feeRecord,
         );
     }
 
@@ -2268,4 +2465,4 @@ function validateTransferType(transferType: string): string {
           );
 }
 
-export { ProgramManager };
+export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions };
