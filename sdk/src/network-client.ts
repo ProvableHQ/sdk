@@ -1502,7 +1502,7 @@ class AleoNetworkClient {
         try {
             const response = await retryWithBackoff(() =>
                 this._sendPost(this.host + "/transaction/broadcast", {
-                    body: transaction_string,
+                    body: transactionString,
                     headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD" : "submitTransaction"}, {
                         "Content-Type": "application/json",
                     }),
