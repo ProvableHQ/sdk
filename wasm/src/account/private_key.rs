@@ -20,7 +20,12 @@ use crate::{
     PrivateKeyCiphertext,
     Signature,
     ViewKey,
-    types::native::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
+    types::native::{CurrentNetwork, PrivateKeyNative},
+};
+use snarkvm_console::network::Environment;
+use snarkvm_wasm::{
+    fields::PrimeField,
+    utilities::{FromBytes, ToBytes},
 };
 
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};

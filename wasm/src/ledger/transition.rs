@@ -23,10 +23,11 @@ use crate::{
     input_to_js_value,
     object,
     output_to_js_value,
-    types::native::{FromBytes, ToBytes, TransitionNative},
+    types::native::TransitionNative,
 };
+use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
-use js_sys::{Array, Reflect, Uint8Array};
+use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
@@ -114,7 +115,7 @@ impl Transition {
     /// Find a record in the transition by the record's commitment.
     #[wasm_bindgen(js_name = findRecord)]
     pub fn find_record(&self, commitment: &Field) -> Option<RecordCiphertext> {
-        self.0.find_record(commitment).map(|record_ciphertext| RecordCiphertext::from(record_ciphertext))
+        self.0.find_record(commitment).map(RecordCiphertext::from)
     }
 
     /// Get the record plaintext present in a transition owned by a specific view key.
@@ -237,8 +238,8 @@ impl FromStr for Transition {
 mod tests {
     use super::*;
     use crate::PrivateKey;
-    use js_sys::Object;
 
+    use js_sys::{Object, Reflect};
     use wasm_bindgen_test::wasm_bindgen_test;
 
     pub const INPUT_RECORD_SERIAL_NUMBER: &str =

@@ -16,7 +16,8 @@
 
 mod credits;
 
-use crate::types::native::{FromBytes, ProvingKeyNative, ToBytes};
+use crate::types::native::ProvingKeyNative;
+use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use sha2::Digest;
 use wasm_bindgen::prelude::wasm_bindgen;

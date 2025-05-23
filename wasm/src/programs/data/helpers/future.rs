@@ -23,7 +23,7 @@ use crate::{
 };
 
 use crate::types::native::FieldNative;
-use js_sys::{Array, Reflect};
+use js_sys::Array;
 use wasm_bindgen::JsValue;
 
 /// Convert a future to a javascript value.

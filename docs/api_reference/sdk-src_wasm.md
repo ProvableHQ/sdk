@@ -202,6 +202,159 @@ __*return*__ | `boolean` | *Boolean representing whether or not the signature is
 
 ---
 
+# Class `Authorization`
+
+Authorization object containing the authorization for a transaction.
+
+## Methods
+
+### `new(request) ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Create transition.
+
+Parameters | Type | Description
+--- | --- | ---
+__request__ | `ExecutionRequest` | **
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `replicate() ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns a new and independent replica of the authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the bytes representation of the authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBytesLe(bytes) ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates an authorization object from a bytes representation of an authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | **
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `equals(other) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check if an authorization is the same as another.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Authorization](sdk-src_wasm.md) | **
+__*return*__ | `boolean` | **
+
+---
+
+### `len() ► number`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the number of &#x60;Request&#x60;s in the authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `number` | **
+
+---
+
+### `isEmpty() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Return &#x60;true&#x60; if the authorization is empty.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `isFeePrivate() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the authorization is for call to &#x60;credits.aleo/fee_private&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `isFeePublic() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the authorization is for call to &#x60;credits.aleo/fee_public&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `isSplit() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the authorization is for call to &#x60;credits.aleo/split&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `transitions() ► Array.<Transition>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the transitions in an authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<Transition>` | *Array of transition objects*
+
+---
+
+### `toExecutionId() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the execution ID for the authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | *The execution ID for the authorization, call toString() after this result to get the string representation.*
+
+---
+
 # Class `Ciphertext`
 
 SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
@@ -2231,6 +2384,126 @@ __*return*__ | `string` | *String representation of the proving key*
 
 ---
 
+# Class `ProvingRequest`
+
+Represents a proving request to a delegated proving service.
+
+## Methods
+
+### `new(authorization, fee_authorization, broadcast) ► ProvingRequest`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a new proving request from an authorization and fee authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__authorization__ | [Authorization](sdk-src_wasm.md) | **
+__fee_authorization__ | [Authorization](sdk-src_wasm.md) | **
+__broadcast__ | `boolean` | **
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
+### `fromString(request) ► ProvingRequest`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a proving request from a string representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__request__ | `string` | **
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Creates a string representation of the proving request.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
+
+---
+
+### `fromBytesLe(bytes) ► ProvingRequest`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a proving request from a bytes representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | **
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Creates a byte representation of the proving request.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `authorization() ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the main authorization for the request.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `feeAuthorization() ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the fee authorization for the request.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `broadcast() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the broadcast flag for the request.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `equals(other) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check if an authorization is the same as another.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [ProvingRequest](sdk-src_wasm.md) | **
+__*return*__ | `boolean` | **
+
+---
+
 # Class `RecordCiphertext`
 
 Encrypted Aleo record
@@ -3233,7 +3506,6 @@ __*return*__ | `string` | *TransactionId*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the
 Get the type of the transaction (will return &quot;deploy&quot; or &quot;execute&quot;)
 
 Parameters | Type | Description

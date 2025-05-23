@@ -7,11 +7,13 @@ import {
     Plaintext,
     RecordCiphertext,
     Program,
+    ProvingRequest,
     RecordPlaintext,
     PrivateKey,
     Transaction,
 } from "./wasm";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction";
+import { ProvingResponse } from "./models/provingResponse";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -1493,7 +1495,7 @@ class AleoNetworkClient {
     async submitTransaction(
         transaction: Transaction | string,
     ): Promise<string> {
-        const transaction_string =
+        const transactionString =
             transaction instanceof Transaction
                 ? transaction.toString()
                 : transaction;
@@ -1553,6 +1555,45 @@ class AleoNetworkClient {
             );
         }
     }
+
+    /**
+     * Submit a `ProvingRequest` to the Aleo network.
+     *
+     * @param {ProvingRequest | string} provingRequest - The `ProvingRequest` to submit
+     * @param {string} url - (Optional) The url of the proving service.
+     * @returns {Promise<ProvingResponse>} The solution id of the submitted solution or the resulting error.
+     */
+    async submitProvingRequest(provingRequest: ProvingRequest | string, url?: string): Promise<ProvingResponse> {
+        const prover_uri = url ? url : this.host;
+        const provingRequestString =
+            provingRequest instanceof ProvingRequest
+                ? provingRequest.toString()
+                : provingRequest;
+        try {
+            const response = await retryWithBackoff(() =>
+                post(prover_uri + "/prove", {
+                    body: provingRequestString,
+                    headers: Object.assign({}, this.headers, {
+                        "Content-Type": "application/json",
+                    }),
+                }),
+            );
+
+            try {
+                const text = await response.text();
+                return parseJSON(text);
+            } catch (error: any) {
+                throw new Error(
+                    `Error posting proving request. Aleo network response: ${error.message}`,
+                );
+            }
+        } catch (error: any) {
+            throw new Error(
+                `Error posting solution: No response received: ${error.message}`,
+            );
+        }
+    }
+
     /**
      * Await a submitted transaction to be confirmed or rejected on the Aleo network.
      *

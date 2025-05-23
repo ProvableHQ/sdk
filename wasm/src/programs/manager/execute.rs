@@ -324,9 +324,9 @@ impl ProgramManager {
 
             // Calculate the finalize cost for the function identified in the transition
             let cost = if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
-                cost_in_microcredits_v2(stack, function_name).map_err(|e| e.to_string())?
+                cost_in_microcredits_v2(&stack, function_name).map_err(|e| e.to_string())?
             } else {
-                cost_in_microcredits_v1(stack, function_name).map_err(|e| e.to_string())?
+                cost_in_microcredits_v1(&stack, function_name).map_err(|e| e.to_string())?
             };
 
             // Accumulate the finalize cost.
@@ -360,6 +360,6 @@ impl ProgramManager {
 
         let stack = process.get_stack(program.id()).map_err(|e| e.to_string())?;
 
-        cost_in_microcredits_v2(stack, &function_id).map_err(|e| e.to_string())
+        cost_in_microcredits_v2(&stack, &function_id).map_err(|e| e.to_string())
     }
 }

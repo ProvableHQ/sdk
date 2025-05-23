@@ -39,19 +39,25 @@ impl Pedersen128 {
     /// Returns the Pedersen hash for a given (up to) 128-bit input.
     pub fn hash(&self, input: Array) -> Result<Field, String> {
         let input = from_js_typed_array!(input, as_bool, "boolean")?;
-        self.0.hash(&input).map(|field| Field::from(field)).map_err(|e| e.to_string())
+        self.0.hash(&input).map(Field::from).map_err(|e| e.to_string())
     }
 
     /// Returns a Pedersen commitment for the given (up to) 128-bit input and randomizer.
     pub fn commit(&self, input: Array, randomizer: Scalar) -> Result<Field, String> {
         let input = from_js_typed_array!(input, as_bool, "boolean")?;
-        self.0.commit(&input, &randomizer).map(|field| Field::from(field)).map_err(|e| e.to_string())
+        self.0.commit(&input, &randomizer).map(Field::from).map_err(|e| e.to_string())
     }
 
     /// Returns a Pedersen commitment for the given (up to) 128-bit input and randomizer.
     #[wasm_bindgen(js_name = "commitToGroup")]
     pub fn commit_to_group(&self, input: Array, randomizer: Scalar) -> Result<Group, String> {
         let input = from_js_typed_array!(input, as_bool, "boolean")?;
-        self.0.commit_uncompressed(&input, &randomizer).map(|field| Group::from(field)).map_err(|e| e.to_string())
+        self.0.commit_uncompressed(&input, &randomizer).map(Group::from).map_err(|e| e.to_string())
+    }
+}
+
+impl Default for Pedersen128 {
+    fn default() -> Self {
+        Self::new()
     }
 }
