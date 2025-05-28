@@ -212,7 +212,7 @@ Authorization object containing the authorization for a transaction.
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Create transition.
+Create a new authorization from a request object.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -225,10 +225,35 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns a new and independent replica of the authorization.
+Returns a new and independent replica of the Authorization.
 
 Parameters | Type | Description
 --- | --- | ---
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
+
+---
+
+### `fromString(authorization) ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Reconstructs an Authorization object from its string representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__authorization__ | `string` | **
 __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ---
@@ -237,7 +262,7 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the bytes representation of the authorization.
+Returns the left-endian byte representation of the Authorization.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -249,7 +274,7 @@ __*return*__ | `Uint8Array` | **
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Creates an authorization object from a bytes representation of an authorization.
+Creates an authorization object from a left-endian byte representation of an Authorization.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -262,7 +287,7 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Check if an authorization is the same as another.
+Check if an Authorization object is the same as another.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -275,7 +300,7 @@ __*return*__ | `boolean` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the number of &#x60;Request&#x60;s in the authorization.
+Returns the number of &#x60;Request&#x60;s in the Authorization.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -287,7 +312,7 @@ __*return*__ | `number` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Return &#x60;true&#x60; if the authorization is empty.
+Return &#x60;true&#x60; if the Authorization is empty.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -299,7 +324,7 @@ __*return*__ | `boolean` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns &#x60;true&#x60; if the authorization is for call to &#x60;credits.aleo/fee_private&#x60;.
+Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/fee_private&#x60;.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -311,7 +336,7 @@ __*return*__ | `boolean` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns &#x60;true&#x60; if the authorization is for call to &#x60;credits.aleo/fee_public&#x60;.
+Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/fee_public&#x60;.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -323,7 +348,7 @@ __*return*__ | `boolean` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns &#x60;true&#x60; if the authorization is for call to &#x60;credits.aleo/split&#x60;.
+Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/split&#x60;.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -331,11 +356,24 @@ __*return*__ | `boolean` | **
 
 ---
 
+### `insertTransition(transition) ► void`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Insert a transition into the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__transition__ | `Transition` | **
+__*return*__ | `void` | **
+
+---
+
 ### `transitions() ► Array.<Transition>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the transitions in an authorization.
+Get the transitions in an Authorization.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -347,11 +385,11 @@ __*return*__ | `Array.<Transition>` | *Array of transition objects*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the execution ID for the authorization.
+Returns the execution ID for the Authorization.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [Field](sdk-src_wasm.md) | *The execution ID for the authorization, call toString() after this result to get the string representation.*
+__*return*__ | [Field](sdk-src_wasm.md) | *The execution ID for the Authorization, call toString() after this result to get the string representation.*
 
 ---
 
@@ -2394,7 +2432,7 @@ Represents a proving request to a delegated proving service.
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Creates a new proving request from an authorization and fee authorization.
+Creates a new ProvingRequest from a function authorization and an optional fee authorization.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2409,7 +2447,7 @@ __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Creates a proving request from a string representation.
+Creates a ProvingRequest from a string representation.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2422,7 +2460,7 @@ __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Creates a string representation of the proving request.
+Creates a string representation of the ProvingRequest.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2434,7 +2472,7 @@ __*return*__ | `string` | **
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Creates a proving request from a bytes representation.
+Creates a ProvingRequest from a left-endian byte representation of the proving request.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2447,7 +2485,7 @@ __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Creates a byte representation of the proving request.
+Creates a left-endian byte representation of the ProvingRequest.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2495,7 +2533,7 @@ __*return*__ | `boolean` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Check if an authorization is the same as another.
+Check if a ProvingRequest is the same as another ProvingRequest.
 
 Parameters | Type | Description
 --- | --- | ---

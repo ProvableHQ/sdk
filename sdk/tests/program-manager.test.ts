@@ -117,6 +117,7 @@ describe('Program Manager', () => {
 
     describe('Proving Requests and Authorizations', () => {
         it('Should build correct authorizations from Proving Request', async () => {
+            // Build a proving request for the "spin" function of "puzzle_spinner_v002.aleo".
             const provingRequest = await programManager.provingRequest({
                 programName: PUZZLE_SPINNER_PROGRAM_ID,
                 functionName: "spin",
@@ -153,6 +154,7 @@ describe('Program Manager', () => {
         })
 
         it('Should build correct authorizations', async () => {
+            // Build an authorization for the spin function of "puzzle_spinner_v002.aleo".
             const authorization = await programManager.buildAuthorization({
                 programName: PUZZLE_SPINNER_PROGRAM_ID,
                 functionName: "spin",

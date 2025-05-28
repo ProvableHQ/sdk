@@ -72,9 +72,6 @@ interface ExecuteOptions {
     imports?: ProgramImports;
 }
 
-/// @param url The url of the Aleo network node to send the transaction to
-/// @param broadcast (optional) Flag to indicate if the transaction should be broadcast
-/// @returns {Authorization}
 /**
  * Represents the options for executing a transaction in the Aleo network.
  * This interface is used to specify the parameters required for building and submitting an execution transaction.
@@ -113,7 +110,7 @@ interface ProvingRequestOptions {
  *
  * @property programName {string} Name of the program containing the function to build the authorization for.
  * @property functionName {string} Name of the function name to build the authorization for.
- * @property inouts {string[]} The inputs to the function.
+ * @property inputs {string[]} The inputs to the function.
  * @property programSource {string | Program} The optional source code for the program to build an execution for.
  * @property privateKey {PrivateKey} Optional private key to use to build the authorization.
  * @property programImports {ProgramImports} The other programs the program imports.
@@ -418,7 +415,7 @@ class ProgramManager {
      * /// Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
      *
-     * // Create a new NetworkClient, KeyProvider, and RecordProvider
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider.
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      * keyProvider.useCache = true;
@@ -486,7 +483,7 @@ class ProgramManager {
      * /// Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
      *
-     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider.
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      * keyProvider.useCache = true;
@@ -649,12 +646,12 @@ class ProgramManager {
      * /// Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
      *
-     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider.
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      * keyProvider.useCache = true;
      *
-     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * // Initialize a ProgramManager with the key and record providers.
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build the proving request.
@@ -671,10 +668,11 @@ class ProgramManager {
      *   broadcast: true,
      * });
      *
-     * // Submit the transaction to the network and await the response.
+     * // Submit the ProvingRequest to the network and await the response.
      * const provingResponse = await programManager.networkClient.submitProvingRequest(provingRequest);
      * // Get the transaction from the proving response.
      * const tx = provingResponse.transaction;
+     * // Check if the proving service has already submitted the transaction.
      * const submitted = provingResponse.broadcast;
      *
      * // Get the transaction id.
@@ -694,7 +692,7 @@ class ProgramManager {
     async provingRequest(
         options: ProvingRequestOptions,
     ): Promise<ProvingRequest> {
-        // Destructure the options object to access the parameters
+        // Destructure the options object to access the parameters.
         const {
             programName,
             functionName,
@@ -711,7 +709,7 @@ class ProgramManager {
         let feeRecord = options.feeRecord;
         let imports = options.programImports;
 
-        // Ensure the function exists on the network
+        // Ensure the function exists on the network.
         if (program === undefined) {
             try {
                 program = <string>(
@@ -726,7 +724,7 @@ class ProgramManager {
             program = program.toString();
         }
 
-        // Get the private key from the account if it is not provided in the parameters
+        // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;
         if (
             typeof privateKey === "undefined" &&
@@ -739,7 +737,7 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        // Get the fee record from the account if it is not provided in the parameters
+        // Get the fee record from the account if it is not provided in the parameters.
         try {
             feeRecord = privateFee
                 ? <RecordPlaintext>(
@@ -757,7 +755,7 @@ class ProgramManager {
             );
         }
 
-        // Resolve the program imports if they exist
+        // Resolve the program imports if they exist.
         const numberOfImports = Program.fromString(program).getImports().length;
         if (numberOfImports > 0 && !imports) {
             try {
@@ -771,7 +769,7 @@ class ProgramManager {
             }
         }
 
-        // Build a `ProvingRequest`
+        // Build and return the `ProvingRequest`.
         return await WasmProgramManager.buildProvingRequest(
             executionPrivateKey,
             program,
@@ -795,12 +793,12 @@ class ProgramManager {
      * /// Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
      *
-     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider.
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      * keyProvider.useCache = true;
      *
-     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * // Initialize a ProgramManager with the key and record providers.
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build the `Authorization`.
@@ -816,7 +814,7 @@ class ProgramManager {
     async buildAuthorization(
         options: AuthorizationOptions,
     ): Promise<Authorization> {
-        // Destructure the options object to access the parameters
+        // Destructure the options object to access the parameters.
         const {
             programName,
             functionName,
@@ -827,7 +825,7 @@ class ProgramManager {
         let program = options.programSource;
         let imports = options.programImports;
 
-        // Ensure the function exists on the network
+        // Ensure the function exists on the network.
         if (program === undefined) {
             try {
                 program = <string>(
@@ -842,7 +840,7 @@ class ProgramManager {
             program = program.toString();
         }
 
-        // Get the private key from the account if it is not provided in the parameters
+        // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;
         if (
             typeof privateKey === "undefined" &&
@@ -855,7 +853,7 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        // Resolve the program imports if they exist
+        // Resolve the program imports if they exist.
         const numberOfImports = Program.fromString(program).getImports().length;
         if (numberOfImports > 0 && !imports) {
             try {
@@ -869,7 +867,7 @@ class ProgramManager {
             }
         }
 
-        // Build an `Authorization` for the desired function.
+        // Build and return an `Authorization` for the desired function.
         return await WasmProgramManager.authorize(
             executionPrivateKey,
             program,
@@ -889,12 +887,12 @@ class ProgramManager {
      * /// Import the mainnet version of the sdk.
      * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
      *
-     * // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider.
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      * keyProvider.useCache = true;
      *
-     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * // Initialize a ProgramManager with the key and record providers.
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
      *
      * // Build a credits.aleo/fee_public `Authorization`.
@@ -914,7 +912,7 @@ class ProgramManager {
     async buildFeeAuthorization(
         options: FeeAuthorizationOptions,
     ): Promise<Authorization> {
-        // Destructure the options object to access the parameters
+        // Destructure the options object to access the parameters.
         const {
             privateKey,
             deploymentOrExecutionId,
@@ -922,7 +920,8 @@ class ProgramManager {
             priorityFeeCredits,
             feeRecord,
         } = options;
-        // Get the private key from the account if it is not provided in the parameters
+
+        // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;
         if (
             typeof privateKey === "undefined" &&
@@ -935,7 +934,7 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        // Build a `ProvingRequest`
+        // Build and return the fee `Authorization`.
         return await WasmProgramManager.authorizeFee(
             executionPrivateKey,
             deploymentOrExecutionId,

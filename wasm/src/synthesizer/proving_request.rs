@@ -34,25 +34,25 @@ pub struct ProvingRequest(ProvingRequestNative);
 
 #[wasm_bindgen]
 impl ProvingRequest {
-    /// Creates a new proving request from an authorization and fee authorization.
+    /// Creates a new ProvingRequest from a function authorization and an optional fee authorization.
     pub fn new(authorization: Authorization, fee_authorization: Option<Authorization>, broadcast: bool) -> Self {
         ProvingRequest(ProvingRequestNative::new(authorization, fee_authorization, broadcast))
     }
 
-    /// Creates a proving request from a string representation.
+    /// Creates a ProvingRequest from a string representation.
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(request: String) -> Result<ProvingRequest, String> {
         Ok(ProvingRequest(ProvingRequestNative::from_str(&request).map_err(|e| e.to_string())?))
     }
 
-    /// Creates a string representation of the proving request.
+    /// Creates a string representation of the ProvingRequest.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
 
-    /// Creates a proving request from a bytes representation.
+    /// Creates a ProvingRequest from a left-endian byte representation of the proving request.
     #[wasm_bindgen(js_name = "fromBytesLe")]
     pub fn from_bytes_le(bytes: Uint8Array) -> Result<ProvingRequest, String> {
         let rust_bytes = bytes.to_vec();
@@ -60,7 +60,7 @@ impl ProvingRequest {
         Ok(ProvingRequest(native))
     }
 
-    /// Creates a byte representation of the proving request.
+    /// Creates a left-endian byte representation of the ProvingRequest.
     #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
@@ -83,7 +83,7 @@ impl ProvingRequest {
         self.0.broadcast()
     }
 
-    /// Check if an authorization is the same as another.
+    /// Check if a ProvingRequest is the same as another ProvingRequest.
     pub fn equals(&self, other: &ProvingRequest) -> bool {
         self == other
     }

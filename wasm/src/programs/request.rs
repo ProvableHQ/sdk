@@ -141,6 +141,15 @@ impl ExecutionRequest {
 
 #[wasm_bindgen]
 impl ExecutionRequest {
+    /// Create a new request by signing over a program ID and set of inputs.
+    ///
+    /// @param {PrivateKey} private_key The private key of the signer.
+    /// @param {string} program_id The id of the program to create the signature for.
+    /// @param {string} function_name The function name to create the signature for.
+    /// @param {string[]} inputs The inputs to the function.
+    /// @param {string[]} input_types The input types of the function.
+    /// @param {Field | undefined} root_tvk The tvk of the function at the top of the call graph. This is undefined if this request is built for the top-level call or if there is only one function in the call graph.
+    /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
     pub fn sign(
         private_key: PrivateKey,
         program_id: String,
@@ -150,23 +159,29 @@ impl ExecutionRequest {
         root_tvk: Option<Field>,
         is_root: bool,
     ) -> Result<ExecutionRequest, String> {
+        // Convert the ProgramID and function name to their native objects.
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
 
+        // Ensure the inputs are valid Aleo types.
         let inputs = inputs
             .iter()
             .map(|input| ValueNative::from_str(&input.as_string().unwrap()).unwrap())
             .collect::<Vec<ValueNative>>();
 
+        // Ensure the input types specified match the types of the specified inputs.
         let input_types = input_types
             .iter()
             .map(|input_type| ValueTypeNative::from_str(&input_type.as_string().unwrap()).unwrap())
             .collect::<Vec<ValueTypeNative>>();
 
+        // Get the root tvk if it was specified.
         let root_tvk = root_tvk.map(FieldNative::from);
 
+        // Generate an RNG for the function fro system entropy.
         let mut rng = StdRng::from_entropy();
 
+        // Generate the signature over the (program_id, function, input, and private_key) tuple.
         let request = RequestNative::sign(
             &private_key,
             program_id,
@@ -179,9 +194,14 @@ impl ExecutionRequest {
         )
         .map_err(|e| e.to_string())?;
 
+        // Return the execution request.
         Ok(ExecutionRequest(request))
     }
 
+    /// Verify the input types within a request.
+    ///
+    /// @param {string[]} The input_types within the request.
+    /// @param {boolean} Flag to indicate whether this request is the first function in the call graph.
     pub fn verify(&self, input_types: Array, is_root: bool) -> bool {
         let input_types = input_types
             .iter()
