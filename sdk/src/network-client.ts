@@ -1573,7 +1573,7 @@ class AleoNetworkClient {
             const response = await retryWithBackoff(() =>
                 post(prover_uri + "/prove", {
                     body: provingRequestString,
-                    headers: Object.assign({}, this.headers, {
+                    headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD": "submitProvingRequest"}, {
                         "Content-Type": "application/json",
                     }),
                 }),
@@ -1589,7 +1589,7 @@ class AleoNetworkClient {
             }
         } catch (error: any) {
             throw new Error(
-                `Error posting solution: No response received: ${error.message}`,
+                `Error posting proving request: No response received: ${error.message}`,
             );
         }
     }
