@@ -34,12 +34,18 @@ pub struct ProvingRequest(ProvingRequestNative);
 
 #[wasm_bindgen]
 impl ProvingRequest {
-    /// Creates a new ProvingRequest from a function authorization and an optional fee authorization.
+    /// Creates a new ProvingRequest from a function Authorization and an optional fee Authorization.
+    ///
+    /// @param {Authorization} authorization An Authorization for a function.
+    /// @param {Authorization} fee_authorization The authorization for the `credits.aleo/fee_public` or `credits.aleo/fee_private` function that pays the fee for the execution of the main function.
+    /// @param {boolean} broadcast Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller's behalf.
     pub fn new(authorization: Authorization, fee_authorization: Option<Authorization>, broadcast: bool) -> Self {
         ProvingRequest(ProvingRequestNative::new(authorization, fee_authorization, broadcast))
     }
 
     /// Creates a ProvingRequest from a string representation.
+    ///
+    /// @param {Uint8Array} request String representation of the ProvingRequest.
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(request: String) -> Result<ProvingRequest, String> {
         Ok(ProvingRequest(ProvingRequestNative::from_str(&request).map_err(|e| e.to_string())?))
@@ -52,7 +58,9 @@ impl ProvingRequest {
         self.0.to_string()
     }
 
-    /// Creates a ProvingRequest from a left-endian byte representation of the proving request.
+    /// Creates a ProvingRequest from a left-endian byte representation of the ProvingRequest.
+    ///
+    /// @param {Uint8Array} bytes Left-endian bytes representing the proving request.
     #[wasm_bindgen(js_name = "fromBytesLe")]
     pub fn from_bytes_le(bytes: Uint8Array) -> Result<ProvingRequest, String> {
         let rust_bytes = bytes.to_vec();
@@ -67,18 +75,18 @@ impl ProvingRequest {
         Ok(Uint8Array::from(bytes.as_slice()))
     }
 
-    /// Get the main authorization for the request.
+    /// Get the Authorization of the main function in the ProvingRequest.
     pub fn authorization(&self) -> Authorization {
         Authorization::from(self.0.authorization())
     }
 
-    /// Get the fee authorization for the request.
+    /// Get the fee Authorization in the ProvingRequest.
     #[wasm_bindgen(js_name = "feeAuthorization")]
     pub fn fee_authorization(&self) -> Option<Authorization> {
         self.0.fee_authorization().map(Authorization::from)
     }
 
-    /// Get the broadcast flag for the request.
+    /// Get the broadcast flag set in the ProvingRequest.
     pub fn broadcast(&self) -> bool {
         self.0.broadcast()
     }

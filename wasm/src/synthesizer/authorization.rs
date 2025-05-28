@@ -37,6 +37,8 @@ pub struct Authorization(AuthorizationNative);
 #[wasm_bindgen]
 impl Authorization {
     /// Create a new authorization from a request object.
+    ///
+    /// @param {ExecutionRequest} request The ExecutionRequest to build the authorization from.
     pub fn new(request: ExecutionRequest) -> Result<Authorization, JsValue> {
         Ok(Authorization(AuthorizationNative::new(RequestNative::from(request))))
     }
@@ -54,6 +56,8 @@ impl Authorization {
     }
 
     /// Reconstructs an Authorization object from its string representation.
+    ///
+    /// @param {String} authorization The string representation of the Authorization.
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(authorization: String) -> Result<Authorization, String> {
         Ok(Authorization(AuthorizationNative::from_str(&authorization).map_err(|e| e.to_string())?))
@@ -67,6 +71,8 @@ impl Authorization {
     }
 
     /// Creates an authorization object from a left-endian byte representation of an Authorization.
+    ///
+    /// @param {Uint8Array} bytes Left-endian bytes representing the Authorization.
     #[wasm_bindgen(js_name = "fromBytesLe")]
     pub fn from_bytes_le(bytes: Uint8Array) -> Result<Authorization, String> {
         let rust_bytes = bytes.to_vec();
@@ -75,6 +81,8 @@ impl Authorization {
     }
 
     /// Check if an Authorization object is the same as another.
+    ///
+    /// @param {Authorization} other The Authorization object to determine equality with.
     pub fn equals(&self, other: &Authorization) -> bool {
         self == other
     }
@@ -115,6 +123,8 @@ impl Authorization {
 #[wasm_bindgen]
 impl Authorization {
     /// Insert a transition into the Authorization.
+    ///
+    /// @param {Transition} transition The transition object to insert into the Authorization.
     #[wasm_bindgen(js_name = insertTransition)]
     pub fn insert_transition(&self, transition: Transition) -> Result<(), String> {
         let transition = <TransitionNative as From<Transition>>::from(transition);

@@ -108,30 +108,6 @@ programManager.setHeader('Accept-Language', 'en-US');
 
 ---
 
-### `removeHeader(headerName)`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Remove a header from the &#x60;AleoNetworkClient&#x60;s header map
-
-Parameters | Type | Description
---- | --- | ---
-__headerName__ | `string` | *The name of the header to be removed*
-
-#### Examples
-
-```javascript
-import { ProgramManager } from "@provablehq/sdk/mainnet.js";
-
-// Create a ProgramManager
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
-
-// Remove the default `X-Aleo-SDK-Version` header
-programManager.removeHeader('X-Aleo-SDK-Version');
-```
-
----
-
 ### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1353,30 +1329,6 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 
 // Set the value of the `Accept-Language` header to `en-US`
 programManager.setHeader('Accept-Language', 'en-US');
-```
-
----
-
-### `removeHeader(headerName)`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Remove a header from the &#x60;AleoNetworkClient&#x60;s header map
-
-Parameters | Type | Description
---- | --- | ---
-__headerName__ | `string` | *The name of the header to be removed*
-
-#### Examples
-
-```javascript
-import { ProgramManager } from "@provablehq/sdk/mainnet.js";
-
-// Create a ProgramManager
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
-
-// Remove the default `X-Aleo-SDK-Version` header
-programManager.removeHeader('X-Aleo-SDK-Version');
 ```
 
 ---

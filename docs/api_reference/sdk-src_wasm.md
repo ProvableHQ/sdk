@@ -216,7 +216,7 @@ Create a new authorization from a request object.
 
 Parameters | Type | Description
 --- | --- | ---
-__request__ | `ExecutionRequest` | **
+__request__ | `ExecutionRequest` | *The ExecutionRequest to build the authorization from.*
 __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ---
@@ -253,7 +253,7 @@ Reconstructs an Authorization object from its string representation.
 
 Parameters | Type | Description
 --- | --- | ---
-__authorization__ | `string` | **
+__authorization__ | `String` | *The string representation of the Authorization.*
 __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ---
@@ -278,7 +278,7 @@ Creates an authorization object from a left-endian byte representation of an Aut
 
 Parameters | Type | Description
 --- | --- | ---
-__bytes__ | `Uint8Array` | **
+__bytes__ | `Uint8Array` | *Left-endian bytes representing the Authorization.*
 __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ---
@@ -291,7 +291,7 @@ Check if an Authorization object is the same as another.
 
 Parameters | Type | Description
 --- | --- | ---
-__other__ | [Authorization](sdk-src_wasm.md) | **
+__other__ | [Authorization](sdk-src_wasm.md) | *The Authorization object to determine equality with.*
 __*return*__ | `boolean` | **
 
 ---
@@ -364,7 +364,7 @@ Insert a transition into the Authorization.
 
 Parameters | Type | Description
 --- | --- | ---
-__transition__ | `Transition` | **
+__transition__ | `Transition` | *The transition object to insert into the Authorization.*
 __*return*__ | `void` | **
 
 ---
@@ -2432,13 +2432,13 @@ Represents a proving request to a delegated proving service.
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Creates a new ProvingRequest from a function authorization and an optional fee authorization.
+Creates a new ProvingRequest from a function Authorization and an optional fee Authorization.
 
 Parameters | Type | Description
 --- | --- | ---
-__authorization__ | [Authorization](sdk-src_wasm.md) | **
-__fee_authorization__ | [Authorization](sdk-src_wasm.md) | **
-__broadcast__ | `boolean` | **
+__authorization__ | [Authorization](sdk-src_wasm.md) | *An Authorization for a function.*
+__fee_authorization__ | [Authorization](sdk-src_wasm.md) | *The authorization for the &#x60;credits.aleo/fee_public&#x60; or &#x60;credits.aleo/fee_private&#x60; function that pays the fee for the execution of the main function.*
+__broadcast__ | `boolean` | *Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller&#x27;s behalf.*
 __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ---
@@ -2451,7 +2451,7 @@ Creates a ProvingRequest from a string representation.
 
 Parameters | Type | Description
 --- | --- | ---
-__request__ | `string` | **
+__request__ | `Uint8Array` | *String representation of the ProvingRequest.*
 __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ---
@@ -2472,11 +2472,11 @@ __*return*__ | `string` | **
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Creates a ProvingRequest from a left-endian byte representation of the proving request.
+Creates a ProvingRequest from a left-endian byte representation of the ProvingRequest.
 
 Parameters | Type | Description
 --- | --- | ---
-__bytes__ | `Uint8Array` | **
+__bytes__ | `Uint8Array` | *Left-endian bytes representing the proving request.*
 __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ---
@@ -2497,7 +2497,7 @@ __*return*__ | `Uint8Array` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the main authorization for the request.
+Get the Authorization of the main function in the ProvingRequest.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2509,7 +2509,7 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the fee authorization for the request.
+Get the fee Authorization in the ProvingRequest.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2521,7 +2521,7 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the broadcast flag for the request.
+Get the broadcast flag set in the ProvingRequest.
 
 Parameters | Type | Description
 --- | --- | ---
