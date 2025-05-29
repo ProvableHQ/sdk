@@ -1,3 +1,33 @@
+function detectBrowser() {
+    const userAgent = navigator.userAgent;
+
+    if (/chrome|crios|crmo/i.test(userAgent) && !/edge|edg|opr/i.test(userAgent)) {
+        return "chrome";
+    } else if (/firefox|fxios/i.test(userAgent)) {
+        return "firefox";
+    } else if (/safari/i.test(userAgent) && !/chrome|crios|crmo|android/i.test(userAgent)) {
+        return "safari";
+    } else if (/edg/i.test(userAgent)) {
+        return "edge";
+    } else if (/opr\//i.test(userAgent)) {
+        return "opera";
+    } else {
+        return "browser";
+    }
+}
+
+export function environment() {
+    if ((typeof process !== 'undefined') &&
+        (process.release?.name === 'node')) {
+        return 'node';
+    } else if (typeof window !== 'undefined') {
+        return detectBrowser();
+    } else {
+        return 'unknown';
+    }
+}
+
+
 export function logAndThrow(message: string): never {
     console.error(message);
     throw new Error(message);
