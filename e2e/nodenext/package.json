@@ -1,5 +1,6 @@
 {
     "name": "nodenext",
+    "type": "module",
     "dependencies": {
         "@provablehq/sdk": "^0.9.0",
         "typescript": "^5.8.3"
