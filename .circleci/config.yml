@@ -190,6 +190,9 @@ workflows:
       - e2e-mainnet:
           requires:
             - sdk
+      - e2e-nodenext:
+          requires:
+            - sdk
       - create-leo-app-cli:
           requires:
             - sdk
