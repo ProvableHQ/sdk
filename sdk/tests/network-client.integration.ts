@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data";
-import {Account, AleoNetworkClient} from "../src/browser";
+import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data.js";
+import {Account, AleoNetworkClient} from "../src/browser.js";
 
 describe('NodeConnection', () => {
     let localApiClient: AleoNetworkClient;

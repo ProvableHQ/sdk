@@ -1,2 +1,2 @@
-import "./node-polyfill";
-export * from "./browser";
+import "./node-polyfill.js";
+export * from "./browser.js";

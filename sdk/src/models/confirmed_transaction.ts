@@ -1,5 +1,5 @@
-import { TransactionJSON } from "./transaction/transactionJSON";
-import { FinalizeJSON } from "./finalizeJSON";
+import { TransactionJSON } from "./transaction/transactionJSON.js";
+import { FinalizeJSON } from "./finalizeJSON.js";
 
 export interface ConfirmedTransactionJSON {
     status: string

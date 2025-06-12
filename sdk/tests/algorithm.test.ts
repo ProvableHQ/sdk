@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import { expect } from "chai";
 import { Field, Group, Scalar, BHP256, BHP512, BHP768, BHP1024, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8 } from "@provablehq/sdk/%%NETWORK%%.js";
-import * as algebraicData from "./data/algebra";
+import * as algebraicData from "./data/algebra.js";
 
 const Fg = Field.fromString(algebraicData.FieldGenerator);
 const F2 = Fg.multiply(Fg);

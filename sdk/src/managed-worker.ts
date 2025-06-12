@@ -1,7 +1,7 @@
 // Experimental example where SDK manages worker
 
 import { wrap } from "comlink";
-import { WorkerAPI } from './worker';
+import { WorkerAPI } from "./worker.js";
 
 let singletonWorker: WorkerAPI | null = null;
 

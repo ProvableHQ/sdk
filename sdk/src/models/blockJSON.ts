@@ -1,6 +1,6 @@
-import { ConfirmedTransactionJSON } from "./confirmed_transaction";
-import { RatificationJSON} from "./ratification";
-import { SolutionsJSON } from "./solution";
+import { ConfirmedTransactionJSON } from "./confirmed_transaction.js";
+import { RatificationJSON} from "./ratification.js";
+import { SolutionsJSON } from "./solution.js";
 
 export type BlockJSON = {
     block_hash: string;

@@ -1,4 +1,4 @@
-import { TransitionObject } from "../transition/transitionObject";
+import { TransitionObject } from "../transition/transitionObject.js";
 
 export interface ExecutionObject {
     transitions: TransitionObject[];

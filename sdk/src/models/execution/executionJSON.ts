@@ -1,4 +1,4 @@
-import { TransitionJSON } from "../transition/transitionJSON";
+import { TransitionJSON } from "../transition/transitionJSON.js";
 
 export interface ExecutionJSON {
     transitions: TransitionJSON[];

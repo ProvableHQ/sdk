@@ -1,7 +1,7 @@
-import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment } from "./utils";
-import { Account } from "./account";
-import { BlockJSON } from "./models/blockJSON";
-import { TransactionJSON } from "./models/transaction/transactionJSON";
+import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment } from "./utils.js";
+import { Account } from "./account.js";
+import { BlockJSON } from "./models/blockJSON.js";
+import { TransactionJSON } from "./models/transaction/transactionJSON.js";
 import {
     Address,
     Plaintext,
@@ -10,8 +10,8 @@ import {
     RecordPlaintext,
     PrivateKey,
     Transaction,
-} from "./wasm";
-import { ConfirmedTransactionJSON } from "./models/confirmed_transaction";
+} from "./wasm.js";
+import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
 
 type ProgramImports = { [key: string]: string | Program };
 

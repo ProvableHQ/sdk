@@ -7,14 +7,14 @@ import {
     PUBLIC_TRANSFER,
     PUBLIC_TO_PRIVATE_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER,
-} from "./constants";
+} from "./constants.js";
 
 import {
     ProvingKey,
     VerifyingKey,
-} from "./wasm";
+} from "./wasm.js";
 
-import { get } from "./utils";
+import { get } from "./utils.js";
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 type CachedKeyPair = [Uint8Array, Uint8Array];

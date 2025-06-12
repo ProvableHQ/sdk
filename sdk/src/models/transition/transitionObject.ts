@@ -1,6 +1,6 @@
-import { InputObject } from "../input/inputObject";
-import { OutputObject } from "../output/outputObject";
-import { Field, Group } from "../../wasm";
+import { InputObject } from "../input/inputObject.js";
+import { OutputObject } from "../output/outputObject.js";
+import { Field, Group } from "../../wasm.js";
 
 export interface TransitionObject {
     id: string;
