@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Account, Address, ComputeKey, PrivateKey, RecordCiphertext, ViewKey } from "../src/node";
-import { seed, message, beaconPrivateKeyString, beaconViewKeyString, beaconAddressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from "./data/account-data";
+import { Account, Address, ComputeKey, PrivateKey, RecordCiphertext, ViewKey } from "../src/node.js";
+import { seed, message, beaconPrivateKeyString, beaconViewKeyString, beaconAddressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from "./data/account-data.js";
 
 describe('Account', () => {
     afterEach(() => {

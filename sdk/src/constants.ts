@@ -1,4 +1,4 @@
-import {VerifyingKey, Metadata} from "./wasm";
+import {VerifyingKey, Metadata} from "./wasm.js";
 
 export const KEY_STORE = Metadata.baseUrl();
 

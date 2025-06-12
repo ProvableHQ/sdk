@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "../src/node";
+import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "../src/node.js";
 import {
     seed,
     message,
@@ -10,7 +10,7 @@ import {
     foreignViewKeyString,
     recordPlaintextString,
     beaconPrivateKeyString
-} from './data/account-data';
+} from "./data/account-data.js";
 
 
 describe('WASM Objects', () => {

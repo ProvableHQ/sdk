@@ -1,7 +1,7 @@
-import { Account } from "./account";
-import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client";
-import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports";
-import { RecordProvider, RecordSearchParams } from "./record-provider";
+import { Account } from "./account.js";
+import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client.js";
+import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports.js";
+import { RecordProvider, RecordSearchParams } from "./record-provider.js";
 
 import {
     AleoKeyProvider,
@@ -9,7 +9,7 @@ import {
     FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./function-key-provider";
+} from "./function-key-provider.js";
 
 import {
     Address,
@@ -24,15 +24,15 @@ import {
     Transaction,
     ProgramManager as WasmProgramManager,
     verifyFunctionExecution,
-} from "./wasm";
+} from "./wasm.js";
 
 import {
     CREDITS_PROGRAM_KEYS,
     PRIVATE_TRANSFER_TYPES,
     VALID_TRANSFER_TYPES,
-} from "./constants";
+} from "./constants.js";
 
-import { logAndThrow } from "./utils";
+import { logAndThrow } from "./utils.js";
 
 /**
  * Represents the options for executing a transaction in the Aleo network.
@@ -151,16 +151,16 @@ class ProgramManager {
 
     /**
      * Set a header in the `AleoNetworkClient`s header map
-     * 
+     *
      * @param {string} headerName The name of the header to set
      * @param {string} value The header value
-     * 
+     *
      * @example
      * import { ProgramManager } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Create a ProgramManager
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
-     * 
+     *
      * // Set the value of the `Accept-Language` header to `en-US`
      * programManager.setHeader('Accept-Language', 'en-US');
      */
@@ -170,15 +170,15 @@ class ProgramManager {
 
     /**
      * Remove a header from the `AleoNetworkClient`s header map
-     * 
+     *
      * @param {string} headerName The name of the header to be removed
-     * 
+     *
      * @example
      * import { ProgramManager } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Create a ProgramManager
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
-     * 
+     *
      * // Remove the default `X-Aleo-SDK-Version` header
      * programManager.removeHeader('X-Aleo-SDK-Version');
      */

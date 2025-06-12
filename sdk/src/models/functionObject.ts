@@ -1,4 +1,4 @@
-import { VerifyingKey } from "../wasm";
+import { VerifyingKey } from "../wasm.js";
 
 export interface FunctionObject {
     "name" : string,

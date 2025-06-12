@@ -1,4 +1,4 @@
-import { FunctionObject } from "../functionObject";
+import { FunctionObject } from "../functionObject.js";
 
 export interface DeploymentObject {
     "edition" : number,

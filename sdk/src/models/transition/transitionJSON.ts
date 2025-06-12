@@ -1,5 +1,5 @@
-import { InputJSON } from "../input/inputJSON";
-import { OutputJSON } from "../output/outputJSON";
+import { InputJSON } from "../input/inputJSON.js";
+import { OutputJSON } from "../output/outputJSON.js";
 
 export interface TransitionJSON {
     id: string;

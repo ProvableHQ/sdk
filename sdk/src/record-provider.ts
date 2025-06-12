@@ -1,7 +1,7 @@
-import { RecordPlaintext } from "./wasm";
-import { logAndThrow } from "./utils";
-import { Account } from "./account";
-import { AleoNetworkClient } from "./network-client";
+import { RecordPlaintext } from "./wasm.js";
+import { logAndThrow } from "./utils.js";
+import { Account } from "./account.js";
+import { AleoNetworkClient } from "./network-client.js";
 
 /**
  * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
