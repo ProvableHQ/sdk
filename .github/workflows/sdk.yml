@@ -57,13 +57,13 @@ jobs:
     needs: build
     strategy:
       matrix:
-        network: [testnet, mainnet]
+        network: [testnet, mainnet, nodenext]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn
       - uses: ./.github/actions/use-build
 
-      - working-directory: sdk/e2e/${{ matrix.network }}
+      - working-directory: e2e/${{ matrix.network }}
         run: |
           yarn start
 
