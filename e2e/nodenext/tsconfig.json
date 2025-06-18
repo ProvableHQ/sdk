@@ -4,8 +4,6 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
-  },
-  "exclude": [
-    "../../node_modules/@types/send/**"
-  ]
+    "moduleDetection": "legacy"
+  }
 }
