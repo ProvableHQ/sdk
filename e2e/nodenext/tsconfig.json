@@ -6,6 +6,6 @@
     "esModuleInterop": true,
   },
   "exclude": [
-    "node_modules/@types/send"
+    "../../node_modules/@types/send/**"
   ]
 }
