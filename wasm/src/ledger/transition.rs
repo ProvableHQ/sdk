@@ -24,6 +24,8 @@ use crate::{
     object,
     output_to_js_value,
     types::native::{FromBytes, ToBytes, TransitionNative},
+    algorithms::hash_bhp1024,
+    U64Native,
 };
 
 use js_sys::{Array, Reflect, Uint8Array};
@@ -193,16 +195,12 @@ impl Transition {
     }
 
     /// Decrypt the transition using the view key.
-    pub fn decrypt_transition_impl<N: Network>(
+    pub fn decrypt_transition_impl(
+        &self,
         view_key: &ViewKey,
-        transition_str: &str
       ) -> Result<String, String> {
-        console_error_panic_hook::set_once();
       
-        let transition: TransitionNative<N> = serde_json::from_str(transition_str)
-          .map_err(|_| "Could not deserialize transition".to_string())?;
-      
-        let vk_native = ViewKeyNative::<N>::from_str(&*view_key)
+        let vk_native = ViewKeyNative::from_str(&*view_key)
           .map_err(|_| "Could not deserialize view key".to_string())?;
         let scalar = *vk_native;
         let tvk = (*transition.tpk() * scalar).to_x_coordinate();
@@ -212,31 +210,29 @@ impl Transition {
 
     /// Decrypt the transition using the transition view key.
     pub fn decrypt_transition_with_tvk(
+        &self,
         tvk_str: &str,
-        transition_str: &str
       ) -> Result<String, String> {
       
-        let tvk = Field::<N>::from_str(tvk_str)
+        let tvk = Field::from_str(tvk_str)
           .map_err(|_| "Could not deserialize transition public key".to_string())?;
       
-        let transition: TransitionNative<N> = serde_json::from_str(transition_str)
-          .map_err(|_| "Could not deserialize transition".to_string())?;
-      
-        let function_id = N::hash_bhp1024(
+        // Unsure about this implementation...  
+        let function_id = hash_bhp1024(
           &(U16::<N>::new(N::ID),
-          transition.program_id().name().size_in_bits(),
-          transition.program_id().name(),
-          transition.program_id().network().size_in_bits(),
-          transition.program_id().network(),
-          transition.function_name().size_in_bits(),
-          transition.function_name()
+          self.program_id().name().size_in_bits(),
+          self.program_id().name(),
+          self.program_id().network().size_in_bits(),
+          self.program_id().network(),
+          self.function_name().size_in_bits(),
+          self.function_name()
         ).to_bits_le(),
         ).map_err(|_| "Could not create function id".to_string())?;
       
         let mut decrypted_inputs: Vec<Input<N>> = vec![]; 
         let mut decrypted_outputs: Vec<Output<N>> = vec![];
       
-        for (index, input) in transition.inputs().iter().enumerate() {
+        for (index, input) in self.inputs().iter().enumerate() {
           if let Input::Private(id, ciphertext_option) = input {
             if let Some(ciphertext) = ciphertext_option {
               let index_field = Field::from_u16(u16::try_from(index).unwrap());
@@ -272,13 +268,13 @@ impl Transition {
         }
       
         let decrypted_transition = TransitionNative::<N>::new(
-          *transition.program_id(),
-          *transition.function_name(),
+          *self.program_id(),
+          *self.function_name(),
           decrypted_inputs,
           decrypted_outputs,
-          *transition.tpk(),
-          *transition.tcm(),
-          *transition.scm()
+          *self.tpk(),
+          *self.tcm(),
+          *self.scm()
         ).unwrap();
       
         let transition_output = serde_json::to_string(&decrypted_transition)
