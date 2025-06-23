@@ -25,7 +25,7 @@ use crate::{
     output_to_js_value,
     types::native::{FromBytes, ToBytes, TransitionNative},
     algorithms::hash_bhp1024,
-    U64Native,
+    U64Native, // unclear if needed
 };
 
 use js_sys::{Array, Reflect, Uint8Array};
@@ -195,7 +195,8 @@ impl Transition {
     }
 
     /// Decrypt the transition using the view key.
-    pub fn decrypt_transition_impl(
+    #[wasm_bindgen(js_name = decryptTransition)]
+    pub fn decrypt_transition(
         &self,
         view_key: &ViewKey,
       ) -> Result<String, String> {
@@ -209,6 +210,7 @@ impl Transition {
       }
 
     /// Decrypt the transition using the transition view key.
+    #[wasm_bindgen(js_name = decryptTransitionWithTvk)]
     pub fn decrypt_transition_with_tvk(
         &self,
         tvk_str: &str,
