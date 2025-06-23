@@ -65,6 +65,14 @@ impl RecordCiphertext {
         ))
     }
 
+    /// Decrypt the record ciphertext into plaintext using a transition view key.  The record
+    /// will only decrypt if the record was encrypted by the account that generated the
+    /// transaction.
+    ///
+    /// @param {ViewKey} view_key View key used to generate the transition view key
+    /// @param {Tpk} tpk transition proving key
+    pub fn generate_tvk()
+
     /// Determines if the account corresponding to the view key is the owner of the record
     ///
     /// @param {ViewKey} view_key View key used to decrypt the ciphertext
