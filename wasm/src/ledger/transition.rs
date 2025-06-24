@@ -19,12 +19,14 @@ use crate::{
     Group,
     RecordCiphertext,
     RecordPlaintext,
+    Transition,
     ViewKey,
     input_to_js_value,
     object,
     output_to_js_value,
     types::native::{FromBytes, ToBytes, TransitionNative},
     algorithms::hash_bhp1024,
+    decrypt::generate_tvk,
     U64Native, // unclear if needed
 };
 
@@ -194,95 +196,76 @@ impl Transition {
         Field::from(self.0.scm())
     }
 
-    /// Decrypt the transition using the view key.
+    /// Decrypt the transition using the transition view key.
     #[wasm_bindgen(js_name = decryptTransition)]
     pub fn decrypt_transition(
-        &self,
-        view_key: &ViewKey,
-      ) -> Result<String, String> {
-      
-        let vk_native = ViewKeyNative::from_str(&*view_key)
-          .map_err(|_| "Could not deserialize view key".to_string())?;
-        let scalar = *vk_native;
-        let tvk = (*transition.tpk() * scalar).to_x_coordinate();
-      
-        return decrypt_transition_with_tvk_impl::<N>(&tvk.to_string(), transition_str);
-      }
-
-    /// Decrypt the transition using the transition view key.
-    #[wasm_bindgen(js_name = decryptTransitionWithTvk)]
-    pub fn decrypt_transition_with_tvk(
-        &self,
-        tvk_str: &str,
-      ) -> Result<String, String> {
-      
-        let tvk = Field::from_str(tvk_str)
-          .map_err(|_| "Could not deserialize transition public key".to_string())?;
-      
-        // Unsure about this implementation...  
+        transition_str: &str,
+        vk: &ViewKey,
+        tpk: &Group,
+        ) -> Result<Self, String> {
+        let tvk = generate_tvk(vk, tpk);
+         // Unsure about this implementation...  
         let function_id = hash_bhp1024(
-          &(U16::<N>::new(N::ID),
-          self.program_id().name().size_in_bits(),
-          self.program_id().name(),
-          self.program_id().network().size_in_bits(),
-          self.program_id().network(),
-          self.function_name().size_in_bits(),
-          self.function_name()
-        ).to_bits_le(),
-        ).map_err(|_| "Could not create function id".to_string())?;
-      
+            &(U16::<N>::new(N::ID), // Need to get the network ID from a method accessible in the SDK.
+            self.program_id().name().size_in_bits(),
+            self.program_id().name(),
+            self.program_id().network().size_in_bits(),
+            self.program_id().network(),
+            self.function_name().size_in_bits(),
+            self.function_name()
+            ).to_bits_le(),
+            )
+            .map_err(|_| "Could not create function id".to_string())?;
+
         let mut decrypted_inputs: Vec<Input<N>> = vec![]; 
         let mut decrypted_outputs: Vec<Output<N>> = vec![];
-      
+
         for (index, input) in self.inputs().iter().enumerate() {
-          if let Input::Private(id, ciphertext_option) = input {
-            if let Some(ciphertext) = ciphertext_option {
-              let index_field = Field::from_u16(u16::try_from(index).unwrap());
-              let input_view_key = N::hash_psd4(&[function_id, tvk, index_field])
-                .map_err(|_| "Could not create input view key".to_string())?;
-              let plaintext = ciphertext.decrypt_symmetric(input_view_key)
-                .map_err(|e| e.to_string())?;
-              decrypted_inputs.push(Input::Public(*id, Some(plaintext)));
+            if let Input::Private(id, ciphertext_option) = input {
+              if let Some(ciphertext) = ciphertext_option {
+                let index_field = Field::from_u16(u16::try_from(index).unwrap());
+                let input_view_key = N::hash_psd4(&[function_id, tvk, index_field])
+                  .map_err(|_| "Could not create input view key".to_string())?;
+                let plaintext = ciphertext.decrypt_symmetric(input_view_key)
+                  .map_err(|e| e.to_string())?;
+                decrypted_inputs.push(Input::Public(*id, Some(plaintext)));
+              } else {
+                decrypted_inputs.push(input.clone());
+              }
             } else {
-              decrypted_inputs.push(input.clone());
+                decrypted_inputs.push(input.clone());
             }
-          } else {
-              decrypted_inputs.push(input.clone());
           }
-        }
-      
-        let num_inputs = transition.inputs().len();
-        for (index, output) in transition.outputs().iter().enumerate() {
-          if let Output::Private(id, ciphertext_option) = output {
-            if let Some(ciphertext) = ciphertext_option {
-              let index_field = Field::from_u16(u16::try_from(num_inputs + index).unwrap());
-              let output_view_key = N::hash_psd4(&[function_id, tvk, index_field])
-                .map_err(|_| "Could not create output view key".to_string())?;
-              let plaintext = ciphertext.decrypt_symmetric(output_view_key)
-                .map_err(|e| e.to_string())?;
-              decrypted_outputs.push(Output::Public(*id, Some(plaintext)));
+        
+          let num_inputs = transition.inputs().len();
+          for (index, output) in transition.outputs().iter().enumerate() {
+            if let Output::Private(id, ciphertext_option) = output {
+              if let Some(ciphertext) = ciphertext_option {
+                let index_field = Field::from_u16(u16::try_from(num_inputs + index).unwrap());
+                let output_view_key = N::hash_psd4(&[function_id, tvk, index_field])
+                  .map_err(|_| "Could not create output view key".to_string())?;
+                let plaintext = ciphertext.decrypt_symmetric(output_view_key)
+                  .map_err(|e| e.to_string())?;
+                decrypted_outputs.push(Output::Public(*id, Some(plaintext)));
+              } else {
+                decrypted_outputs.push(output.clone());
+              }
             } else {
-              decrypted_outputs.push(output.clone());
+                decrypted_outputs.push(output.clone());
             }
-          } else {
-              decrypted_outputs.push(output.clone());
           }
-        }
-      
-        let decrypted_transition = TransitionNative::<N>::new(
-          *self.program_id(),
-          *self.function_name(),
-          decrypted_inputs,
-          decrypted_outputs,
-          *self.tpk(),
-          *self.tcm(),
-          *self.scm()
-        ).unwrap();
-      
-        let transition_output = serde_json::to_string(&decrypted_transition)
-            .map_err(|_| "Could not serialize decrypted transition".to_string())?;
-      
-        Ok(transition_output)
+        
+          let decrypted_transition = Transition::new(
+            *self.program_id(),
+            *self.function_name(),
+            decrypted_inputs,
+            decrypted_outputs,
+            *self.tpk(),
+            *self.tcm(),
+            *self.scm()
+          ).unwrap();
+
+          decrypted_transition
       }
 }
 
