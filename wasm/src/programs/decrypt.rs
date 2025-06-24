@@ -36,6 +36,7 @@ use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
+#[wasm_bindgen(js_name = "gnerateTvk")]
 pub(crate) fn generate_tvk(
     view_key: &ViewKey,
     tpk_str: &str,
@@ -50,6 +51,7 @@ pub(crate) fn generate_tvk(
     Ok(tvk.to_string())
 }
 
+#[wasm_bindgen(js_name = "generateRecordVk")]
 pub(crate) fn generate_record_vk(
     view_key: &ViewKey,
     record: &Record,
@@ -62,6 +64,7 @@ pub(crate) fn generate_record_vk(
     record_vk_bytes
 }
 
+#[wasm_bindgen(js_name = "decryptRecordSymmetricUnchecked")]
 pub fn decrypt_record_symmetric_unchecked(
     record_vk: Uint8Array,
     record_ciphertext: RecordCiphertext,
