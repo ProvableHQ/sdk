@@ -30,6 +30,7 @@ use crate::{
     U64Native, // unclear if needed
 };
 use crate::types::native::CurrentNetwork as N;
+use snarkvm_console::{program::compute_function_id, types::U16};
 
 use js_sys::{Array, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -204,17 +205,9 @@ impl Transition {
         tvk: &Field,
         ) -> Result<Self, String> {
          // Unsure about this implementation...  
-        let function_id = hash_bhp1024(
-            &(U16::<N>::new(N::ID), // Need to get the network ID from a method accessible in the SDK.
-            self.program_id().name().size_in_bits(),
-            self.program_id().name(),
-            self.program_id().network().size_in_bits(),
-            self.program_id().network(),
-            self.function_name().size_in_bits(),
-            self.function_name()
-            ).to_bits_le(),
-            )
-            .map_err(|_| "Could not create function id".to_string())?;
+         let function_id =
+             compute_function_id(&U16::<CurrentNetwork>::new(CurrentNetwork::ID), &program_id, &function_name)
+             .map_err(|e| e.to_string())?;
 
         let mut decrypted_inputs: Vec<Input<N>> = vec![]; 
         let mut decrypted_outputs: Vec<Output<N>> = vec![];
