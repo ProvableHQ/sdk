@@ -21,13 +21,16 @@ use crate::{
     RecordPlaintext,
     Transition,
     ViewKey,
+    Input,
+    Output,
+    ProgramID,
+    Identifier,
     input_to_js_value,
     object,
     output_to_js_value,
     types::native::{FromBytes, ToBytes, TransitionNative},
     algorithms::hash_bhp1024,
     decrypt::generate_tvk,
-    U64Native, // unclear if needed
 };
 use crate::types::native::CurrentNetwork as N;
 use snarkvm_console::{program::compute_function_id, types::U16};
@@ -41,6 +44,31 @@ pub struct Transition(TransitionNative);
 
 #[wasm_bindgen]
 impl Transition {
+    /// Create a transition from its components.
+    ///
+    /// @param {string} program_id The program ID of the transition.
+    /// @param {string} function_name The function name of the transition.
+    /// @param {Array} inputs The inputs of the transition.
+    /// @param {Array} outputs The outputs of the transition.
+    /// @param {Group} tpk The transition public key.
+    /// @param {Field} tcm The transition commitment.
+    /// @param {Field} scm The transition signer commitment.
+    /// @returns {Transition}
+    pub fn new(
+        program_id: &str,
+        function_name: &str,
+        inputs: Vec<crate::Input>,
+        outputs: Vec<crate::Output>,
+        tpk: Group,
+        tcm: Field,
+        scm: Field,
+    ) -> Result<Self, String> {
+        let program_id = ProgramID::from_str(program_id).map_err(|e| e.to_string())?;
+        let function_name = IdentifierNative::from_str(function_name).map_err(|e| e.to_string())?;
+        
+        Ok(Self {id: id.into(), program_id, function_name, inputs, outputs, tpk, tcm, scm })
+    }
+    
     /// Get the transition ID
     ///
     /// @returns {string} The transition ID
