@@ -29,6 +29,7 @@ use crate::{
     decrypt::generate_tvk,
     U64Native, // unclear if needed
 };
+use crate::types::native::CurrentNetwork as N;
 
 use js_sys::{Array, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -199,11 +200,9 @@ impl Transition {
     /// Decrypt the transition using the transition view key.
     #[wasm_bindgen(js_name = decryptTransition)]
     pub fn decrypt_transition(
-        transition_str: &str,
-        vk: &ViewKey,
-        tpk: &Group,
+        &self,
+        tvk: &Field,
         ) -> Result<Self, String> {
-        let tvk = generate_tvk(vk, tpk);
          // Unsure about this implementation...  
         let function_id = hash_bhp1024(
             &(U16::<N>::new(N::ID), // Need to get the network ID from a method accessible in the SDK.
