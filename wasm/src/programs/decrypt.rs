@@ -104,3 +104,4 @@ mod tests {
         // Decrypt with the owner's view key
         let record_plaintext_decrypted = decrypt_record_symmetric_unchecked(record_vk, record_ciphertext.clone()).unwrap();
         assert_eq!(record_plaintext_decrypted.to_string(), OWNER_PLAINTEXT);
+}

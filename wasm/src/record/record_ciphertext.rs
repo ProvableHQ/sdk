@@ -21,7 +21,7 @@ use crate::{
     ViewKey,
     js_array_from_fields,
     to_bits_array_le,
-    types::native::RecordCiphertextNative,
+    types::native::{CurrentNetwork, RecordCiphertextNative},
 };
 use snarkvm_console::prelude::{FromBytes, ToBits, ToBytes, ToFields};
 
@@ -69,8 +69,7 @@ impl RecordCiphertext {
     /// will only decrypt if the record was encrypted by the account that generated the
     /// transaction.
     ///
-    /// @param {ViewKey} view_key View key used to generate the transition view key
-    /// @param {Tpk} tpk transition proving key
+    /// @param {ViewKey} view_key View key used to generate the record view key
     pub fn generate_rvk(&self, view_key: ViewKey) -> Field {
         unimplemented!("Not implemented yet")
     }
@@ -126,6 +125,31 @@ impl RecordCiphertext {
         let native = self.0.clone();
         let native_fields = native.to_fields().map_err(|e| e.to_string())?;
         Ok(js_array_from_fields!(&native_fields))
+    }
+
+    /// Generate a record view key from the record owner's view key
+    #[wasm_bindgen(js_name = "generateRecordVk")]
+    pub fn generate_record_vk(
+        &self,
+        view_key: &ViewKey,
+    ) -> Group {
+        let record_nonce = self.0.nonce();
+        record_nonce * **view_key
+    }
+
+    /// Decrypt the record ciphertext into plaintext using a record view key
+    #[wasm_bindgen(js_name = "decryptWithRecordVk")]
+    pub fn decrypt_with_record_vk(
+        &self,
+        record_vk: Group,
+    ) -> Result<RecordPlaintext, String> {
+        let num_randomizers = self.num_randomizers()
+            .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
+        let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers); // Not qwuite sure how to implement this on the SDK side.
+    
+        let record_plaintext = self.0.decrypt_with_randomizers(&randomizers);
+    
+        Ok(record_plaintext)
     }
 }
 
