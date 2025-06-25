@@ -45,7 +45,7 @@ impl RecordCiphertext {
         Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
     }
 
-    /// Return the string reprensentation of the record ciphertext
+    /// Return the string representation of the record ciphertext
     ///
     /// @returns {string} String representation of the record ciphertext
     #[allow(clippy::inherent_to_string)]
@@ -65,14 +65,17 @@ impl RecordCiphertext {
         ))
     }
 
-    /// Decrypt the record ciphertext into plaintext using a transition view key.  The record
-    /// will only decrypt if the record was encrypted by the account that generated the
-    /// transaction.
+    /// Generate the record view key.
     ///
     /// @param {ViewKey} view_key View key used to generate the record view key
-    pub fn generate_rvk(&self, view_key: ViewKey) -> Field {
-        unimplemented!("Not implemented yet")
+    ///
+    /// @returns {Group} record view key
+    #[wasm_bindgen(js_name = "generateRecordVk")]
+    pub fn generate_record_vk(&self, view_key: &ViewKey) -> Group {
+        let record_nonce = self.0.nonce();
+        record_nonce * **view_key
     }
+
 
     /// Determines if the account corresponding to the view key is the owner of the record
     ///
@@ -127,25 +130,15 @@ impl RecordCiphertext {
         Ok(js_array_from_fields!(&native_fields))
     }
 
-    /// Generate a record view key from the record owner's view key
-    #[wasm_bindgen(js_name = "generateRecordVk")]
-    pub fn generate_record_vk(
-        &self,
-        view_key: &ViewKey,
-    ) -> Group {
-        let record_nonce = self.0.nonce();
-        record_nonce * **view_key
-    }
-
     /// Decrypt the record ciphertext into plaintext using a record view key
     #[wasm_bindgen(js_name = "decryptWithRecordVk")]
     pub fn decrypt_with_record_vk(
         &self,
         record_vk: Group,
     ) -> Result<RecordPlaintext, String> {
-        let num_randomizers = self.num_randomizers()
+        let num_randomizers = self.0.num_randomizers()
             .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
-        let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers); // Not qwuite sure how to implement this on the SDK side.
+        let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
     
         let record_plaintext = self.0.decrypt_with_randomizers(&randomizers);
     
@@ -206,6 +199,7 @@ mod tests {
 }";
     const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
     const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
+    const RECORD_VIEW_KEY: &str = ""; // Needs to be computed
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
     const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
 
@@ -252,5 +246,23 @@ mod tests {
         assert!(record.is_owner(&view_key));
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         assert!(!record.is_owner(&incorrect_view_key));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_record_view_key_generation() {
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
+        let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
+        let record_vk = record.generate_record_vk(&view_key);
+        assert_eq!(record_vk.to_string(), RECORD_VIEW_KEY);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_decrypt_with_record_vk() {
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
+        let record_plaintext = RecordPlaintext::from_string(OWNER_PLAINTEXT).unwrap();
+        let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
+        let record_vk = record.generate_record_vk(&view_key);
+        let decrypted_plaintext = record.decrypt_with_record_vk(record_vk).unwrap();
+        assert_eq!(record_plaintext.to_string(), decrypted_plaintext.to_string());
     }
 }
