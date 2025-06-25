@@ -72,3 +72,35 @@ pub fn decrypt_record_symmetric_unchecked(
     
     Ok(record_plaintext)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use wasm_bindgen_test::wasm_bindgen_test;
+
+    const OWNER_PLAINTEXT: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 1500000000000000u64.private,
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
+}";
+    const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
+    const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
+    const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
+    const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
+
+
+
+    #[wasm_bindgen_test]
+    fn test_decrypt_record_symmetric() {
+        let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
+        let non_owner_view_key = ViewKey::from_str(NON_OWNER_VIEW_KEY).unwrap();
+        let record_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
+        let record_plaintext_expected = RecordPlaintext::from_str(OWNER_PLAINT};
+
+        // Generate the record view key
+        let record_vk = generate_record_vk(&owner_view_key, &record_plaintext_expected);
+
+        // Decrypt with the owner's view key
+        let record_plaintext_decrypted = decrypt_record_symmetric_unchecked(record_vk, record_ciphertext.clone()).unwrap();
+        assert_eq!(record_plaintext_decrypted.to_string(), OWNER_PLAINTEXT);

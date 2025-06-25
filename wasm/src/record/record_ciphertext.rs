@@ -71,7 +71,9 @@ impl RecordCiphertext {
     ///
     /// @param {ViewKey} view_key View key used to generate the transition view key
     /// @param {Tpk} tpk transition proving key
-    pub fn generate_tvk()
+    pub fn generate_rvk(&self, view_key: ViewKey) -> Field {
+        unimplemented!("Not implemented yet")
+    }
 
     /// Determines if the account corresponding to the view key is the owner of the record
     ///
