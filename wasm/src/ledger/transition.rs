@@ -18,18 +18,15 @@ use crate::{
     Field,
     Group,
     Identifier,
-    Input,
-    Output,
     ProgramID,
     RecordCiphertext,
     RecordPlaintext,
-    Transition,
     ViewKey,
     algorithms::hash_bhp1024,
     input_to_js_value,
     object,
     output_to_js_value,
-    types::native::{, FromBytes, ToBytes, TransitionNative},
+    types::native::{FromBytes, ToBytes, TransitionNative, InputNative, OutputNative},
     types::network::CurrentNetwork,
 };
 use snarkvm_console::{program::compute_function_id, types::U16};
@@ -245,13 +242,13 @@ impl Transition {
         let mut decrypted_outputs: Vec<Output<CurrenNetwork>> = vec![];
 
         for (index, input) in self.inputs().iter().enumerate() {
-            if let Input::Private(self.id, ciphertext_option) = input {
+            if let InputNative::Private(self.id, ciphertext_option) = input {
                 if let Some(ciphertext) = ciphertext_option {
                     let index_field = Field::from_u16(u16::try_from(index).unwrap());
                     let input_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
                         .map_err(|_| "Could not create input view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
-                    decrypted_inputs.push(Input::Public(self.id, Some(plaintext)));
+                    decrypted_inputs.push(InputNative::Public(self.id, Some(plaintext)));
                 } else {
                     decrypted_inputs.push(input.clone());
                 }
@@ -262,13 +259,13 @@ impl Transition {
 
         let num_inputs = transition.inputs().len();
         for (index, output) in transition.outputs().iter().enumerate() {
-            if let Output::Private(id, ciphertext_option) = output {
+            if let OutputNative::Private(id, ciphertext_option) = output {
                 if let Some(ciphertext) = ciphertext_option {
                     let index_field = Field::from_u16(u16::try_from(num_inputs + index).unwrap());
                     let output_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
                         .map_err(|_| "Could not create output view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(output_view_key).map_err(|e| e.to_string())?;
-                    decrypted_outputs.push(Output::Public(self.id, Some(plaintext)));
+                    decrypted_outputs.push(OutputNative::Public(self.id, Some(plaintext)));
                 } else {
                     decrypted_outputs.push(output.clone());
                 }
