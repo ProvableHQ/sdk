@@ -17,6 +17,7 @@
 pub use super::*;
 
 use crate::{
+    CurrentNetwork,
     Field,
     Group,
     Scalar,
@@ -26,15 +27,13 @@ use crate::{
     ViewKey,
 
     log,
-    native::ProgramIDNative,
-    types::network::CurrentNetwork,
-    types::native::{
+    native::{
         ExecutionNative,
         IdentifierNative,
         ProcessNative,
         ProgramID,
         ProgramNative,
-        RecordCipherTextNative,
+        RecordCiphertextNative,
         RecordPlaintextNative,
         VerifyingKeyNative,
     },
@@ -43,9 +42,10 @@ use crate::{
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+use snarkvm_ledger_block::{Input, Output};
 
 #[wasm_bindgen]
-struct DecryptToolBox {};
+struct DecryptToolBox {}
 
 impl DecryptToolBox {
     #[wasm_bindgen(js_name = "generateTvk")]
@@ -65,14 +65,14 @@ impl DecryptToolBox {
         record_nonce * **view_key
     }
 
-    #[wasm_bindgen(js_name = "decryptRecordSymmetricUnchecked")]
+    #[wasm_bindgen(js_name = "decryptRecordWithRVk")]
     pub fn decrypt_record_symmetric_unchecked(
         record_vk: Group,
         record_ciphertext: RecordCiphertextNative,
     ) -> Result<RecordPlaintext, String> {
         let num_randomizers = record_ciphertext.num_randomizers()
             .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
-        let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_view_key], num_randomizers); // Not qwuite sure how to implement this on the SDK side.
+        let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers); // Not qwuite sure how to implement this on the SDK side.
 
         let record_plaintext = record_ciphertext.decrypt_with_randomizers(&randomizers);
     
@@ -83,22 +83,22 @@ impl DecryptToolBox {
     pub fn decrypt_transition_with_vk(
         transition: &Transition,
         transition_vk: &Field,
-    ) - > Result<Transition, String> {
+    ) -> Result<Transition, String> {
         let function_id =
-        compute_function_id(&U16::<CurrentNetwork>::new(CurrentNetwork::ID), transition.program_id, &function_name)
+        compute_function_id(&U16::<CurrentNetwork>::new(CurrentNetwork::ID), transition.program_id(), transition.function_name())
             .map_err(|e| e.to_string())?;
 
-        let mut decrypted_inputs: Vec<Input<N>> = vec![];
-        let mut decrypted_outputs: Vec<Output<N>> = vec![];
+        let mut decrypted_inputs: Vec<Input<CurrentNetwork>> = vec![];
+        let mut decrypted_outputs: Vec<Output<CurrentNetwork>> = vec![];
 
-        for (index, input) in self.inputs().iter().enumerate() {
+        for (index, input) in transition.inputs().iter().enumerate() {
             if let Input::Private(id, ciphertext_option) = input {
                 if let Some(ciphertext) = ciphertext_option {
                     let index_field = Field::from_u16(u16::try_from(index).unwrap());
-                    let input_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
+                    let input_view_key = CurrentNetwork::hash_psd4(&[function_id, transition_vk, index_field])
                         .map_err(|_| "Could not create input view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
-                    decrypted_inputs.push(Input::Public(self.id, Some(plaintext)));
+                    decrypted_inputs.push(Input::Public(transition.id(), Some(plaintext)));
                 } else {
                     decrypted_inputs.push(input.clone());
                 }
@@ -112,10 +112,10 @@ impl DecryptToolBox {
             if let Output::Private(id, ciphertext_option) = output {
                 if let Some(ciphertext) = ciphertext_option {
                     let index_field = Field::from_u16(u16::try_from(num_inputs + index).unwrap());
-                    let output_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
+                    let output_view_key = CurrentNetwork::hash_psd4(&[function_id, transition_vk, index_field])
                         .map_err(|_| "Could not create output view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(output_view_key).map_err(|e| e.to_string())?;
-                    decrypted_outputs.push(Output::Public(self.id, Some(plaintext)));
+                    decrypted_outputs.push(Output::Public(transition.id(), Some(plaintext)));
                 } else {
                     decrypted_outputs.push(output.clone());
                 }
@@ -125,13 +125,13 @@ impl DecryptToolBox {
         }
 
         let decrypted_transition = Transition::new(
-            self.program_id(),
-            self.function_name(),
+            transition.program_id(),
+            transition.function_name(),
             decrypted_inputs,
             decrypted_outputs,
-            self.tpk(),
-            self.tcm(),
-            self.scm(),
+            transition.tpk(),
+            transition.tcm(),
+            transition.scm(),
         )
         .unwrap();
 
