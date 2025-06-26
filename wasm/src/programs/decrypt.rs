@@ -25,6 +25,7 @@ use crate::{
     RecordCiphertext,
     RecordPlaintext,
     ViewKey,
+    types::RecordPlaintextNative,
 };
 
 use std::str::FromStr;
@@ -78,8 +79,8 @@ impl DecryptToolBox {
         }
 
         // Decrypt the program data.
-        let mut decrypted_data = IndexMap::with_capacity(self.data.len());
-        for (id, entry, num_randomizers) in self.data.iter().map(|(id, entry)| (id, entry, entry.num_randomizers())) {
+        let mut decrypted_data = IndexMap::with_capacity(record.data.len());
+        for (id, entry, num_randomizers) in record.data.iter().map(|(id, entry)| (id, entry, entry.num_randomizers())) {
             // Retrieve the result for `num_randomizers`.
             let num_randomizers = num_randomizers? as usize;
             // Retrieve the randomizers for this entry.
@@ -108,7 +109,7 @@ impl DecryptToolBox {
         }
 
         // Return the decrypted record.
-        Self::from_plaintext(owner, decrypted_data, self.nonce)
+        RecordPlaintext(RecordPlaintextNative{0owner, decrypted_data, record.nonce})
     }
 
     #[wasm_bindgen(js_name = "generateTvk")]
