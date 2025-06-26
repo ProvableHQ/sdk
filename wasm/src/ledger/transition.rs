@@ -29,7 +29,8 @@ use crate::{
     input_to_js_value,
     object,
     output_to_js_value,
-    types::native::{CurrentNetwork as N, FromBytes, ToBytes, TransitionNative},
+    types::native::{, FromBytes, ToBytes, TransitionNative},
+    types::network::CurrentNetwork,
 };
 use snarkvm_console::{program::compute_function_id, types::U16};
 
@@ -354,7 +355,7 @@ mod tests {
 
     #[test]
     fn transition_to_and_from_serialization() {
-        let transition = Transition::from_string(TRANSITION).unwrap();
+        let transition = Transition::from_str(TRANSITION).unwrap();
         assert_eq!(transition.to_string(), TRANSITION);
 
         let bytes = transition.to_bytes_le().unwrap();
@@ -434,7 +435,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_input_correctness() {
-        let transition = Transition::from_string(TRANSITION).unwrap();
+        let transition = Transition::from_str(TRANSITION).unwrap();
         let inputs = transition.inputs(true);
         let input_1 = Object::from(inputs.get(0));
         let input_2 = inputs.get(1);

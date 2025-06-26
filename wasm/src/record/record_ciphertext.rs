@@ -21,7 +21,8 @@ use crate::{
     ViewKey,
     js_array_from_fields,
     to_bits_array_le,
-    types::native::{CurrentNetwork, RecordCiphertextNative},
+    types::native::RecordCiphertextNative,
+    types::network::CurrentNetwork,
 };
 use snarkvm_console::prelude::{FromBytes, ToBits, ToBytes, ToFields};
 

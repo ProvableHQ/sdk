@@ -27,13 +27,15 @@ use crate::{
 
     log,
     native::ProgramIDNative,
+    types::network::CurrentNetwork,
     types::native::{
-        CurrentNetwork,
         ExecutionNative,
         IdentifierNative,
         ProcessNative,
         ProgramID,
         ProgramNative,
+        RecordCipherTextNative,
+        RecordPlaintextNative,
         VerifyingKeyNative,
     },
 };
@@ -57,7 +59,7 @@ impl DecryptToolBox {
     #[wasm_bindgen(js_name = "generateRecordVk")]
     pub(crate) fn generate_record_vk(
         view_key: &ViewKey,
-        record: &Record,
+        record: &RecordCiphertextNative,
     ) -> Group {
         let record_nonce = record.0.nonce();
         record_nonce * **view_key
@@ -66,9 +68,9 @@ impl DecryptToolBox {
     #[wasm_bindgen(js_name = "decryptRecordSymmetricUnchecked")]
     pub fn decrypt_record_symmetric_unchecked(
         record_vk: Group,
-        record_ciphertext: RecordCiphertext,
+        record_ciphertext: RecordCiphertextNative,
     ) -> Result<RecordPlaintext, String> {
-        let num_randomizers = record_ciphertext.0.num_randomizers()
+        let num_randomizers = record_ciphertext.num_randomizers()
             .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
         let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_view_key], num_randomizers); // Not qwuite sure how to implement this on the SDK side.
 
@@ -161,13 +163,13 @@ mod tests {
         let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
         let non_owner_view_key = ViewKey::from_str(NON_OWNER_VIEW_KEY).unwrap();
         let record_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
-        let record_plaintext_expected = RecordPlaintext::from_str(OWNER_PLAINTEXT).unwrap();;
+        let record_plaintext_expected = RecordPlaintext::from_str(OWNER_PLAINTEXT).unwrap();
 
         // Generate the record view key
-        let record_vk = generate_record_vk(&owner_view_key, &record_plaintext_expected);
+        let record_vk = DecryptToolBox::generate_record_vk(&owner_view_key, &record_plaintext_expected);
 
         // Decrypt with the owner's view key
-        let record_plaintext_decrypted = decrypt_record_symmetric_unchecked(record_vk, record_ciphertext.clone()).unwrap();
+        let record_plaintext_decrypted = DecryptToolBox::decrypt_record_symmetric_unchecked(record_vk, record_ciphertext.clone()).unwrap();
         assert_eq!(record_plaintext_decrypted.to_string(), OWNER_PLAINTEXT);
     }
 
