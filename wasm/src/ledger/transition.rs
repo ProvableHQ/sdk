@@ -352,7 +352,7 @@ mod tests {
 
     #[test]
     fn transition_to_and_from_serialization() {
-        let transition = Transition::from_str(TRANSITION).unwrap();
+        let transition = Transition::from_string(TRANSITION).unwrap();
         assert_eq!(transition.to_string(), TRANSITION);
 
         let bytes = transition.to_bytes_le().unwrap();
@@ -455,7 +455,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_output_correctness() {
-        let transition = Transition::from_string(TRANSITION).unwrap();
+        let transition = Self::from_string(TRANSITION).unwrap();
         let outputs = transition.outputs(true);
         let output_1 = Object::from(outputs.get(0));
         let output_2 = Object::from(outputs.get(1));
