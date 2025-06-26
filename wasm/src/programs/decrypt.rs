@@ -161,7 +161,7 @@ mod tests {
         let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
         let non_owner_view_key = ViewKey::from_str(NON_OWNER_VIEW_KEY).unwrap();
         let record_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
-        let record_plaintext_expected = RecordPlaintext::from_str(OWNER_PLAINT};
+        let record_plaintext_expected = RecordPlaintext::from_str(OWNER_PLAINTEXT).unwrap();;
 
         // Generate the record view key
         let record_vk = generate_record_vk(&owner_view_key, &record_plaintext_expected);
@@ -169,4 +169,10 @@ mod tests {
         // Decrypt with the owner's view key
         let record_plaintext_decrypted = decrypt_record_symmetric_unchecked(record_vk, record_ciphertext.clone()).unwrap();
         assert_eq!(record_plaintext_decrypted.to_string(), OWNER_PLAINTEXT);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_decrypt_transition_with_vk() {
+        // TODO: Implement this test
+    }
 }
