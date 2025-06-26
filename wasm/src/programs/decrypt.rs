@@ -34,26 +34,25 @@ use snarkvm_ledger_block::{Input, Output};
 use snarkvm_console::{program::compute_function_id, types::U16};
 
 #[wasm_bindgen]
-struct DecryptToolBox {}
+pub struct DecryptToolBox {}
 
 #[wasm_bindgen]
 impl DecryptToolBox {
-
     /// Returns the number of field elements to encode `self`.
-    pub(crate) fn num_randomizers(record: &RecordCiphertext) -> Result<u16> {
+    pub(crate) fn num_randomizers(record: &RecordCiphertext) -> Result<u16, String> {
         // Initialize an tracker for the number of randomizers.
         let mut num_randomizers: u16 = 0;
 
         // If the owner is private, increment the number of randomizers by 1.
-        if record.owner.is_private() {
+        if **record.owner.is_private() {
             num_randomizers += 1;
         }
 
         // Increment the number of randomizers by the number of data randomizers.
-        for (_, entry) in record.data.iter() {
+        for (_, entry) in **record.data.iter() {
             num_randomizers = num_randomizers
                 .checked_add(entry.num_randomizers()?)
-                .ok_or_else(|| anyhow!("Number of randomizers exceeds maximum allowed size."))?;
+                .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
         }
 
         // Ensure the number of randomizers does not exceed the maximum allowed size.
@@ -68,9 +67,9 @@ impl DecryptToolBox {
         let mut index: usize = 0;
 
         // Decrypt the owner.
-        let owner = match record.owner.is_public() {
-            true => record.owner.decrypt_with_randomizer(&[])?,
-            false => record.owner.decrypt_with_randomizer(&[randomizers[index]])?,
+        let owner = match **record.owner.is_public() {
+            true => **record.owner.decrypt_with_randomizer(&[])?,
+            false => **record.owner.decrypt_with_randomizer(&[randomizers[index]])?,
         };
 
         // Increment the index if the owner is private.
@@ -80,7 +79,7 @@ impl DecryptToolBox {
 
         // Decrypt the program data.
         let mut decrypted_data = IndexMap::with_capacity(record.data.len());
-        for (id, entry, num_randomizers) in record.data.iter().map(|(id, entry)| (id, entry, entry.num_randomizers())) {
+        for (id, entry, num_randomizers) in **record.data.iter().map(|(id, entry)| (id, entry, entry.num_randomizers())) {
             // Retrieve the result for `num_randomizers`.
             let num_randomizers = num_randomizers? as usize;
             // Retrieve the randomizers for this entry.
@@ -109,7 +108,7 @@ impl DecryptToolBox {
         }
 
         // Return the decrypted record.
-        RecordPlaintext(RecordPlaintextNative{0owner, decrypted_data, record.nonce})
+        RecordPlaintext(RecordPlaintextNative{owner, decrypted_data, **record.nonce()})
     }
 
     #[wasm_bindgen(js_name = "generateTvk")]
@@ -146,7 +145,7 @@ impl DecryptToolBox {
             .map_err(|_| "Failed to parse record ciphertext".to_string())?;
         let num_randomizers = DecryptToolBox::num_randomizers(record_ciphertext)
             .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
-        let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers); // Not qwuite sure how to implement this on the SDK side.
+        let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
 
         let record_plaintext = record_ciphertext.decrypt_with_randomizers(&randomizers);
     
@@ -233,7 +232,6 @@ mod tests {
     const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
     const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
-
 
 
     #[wasm_bindgen_test]

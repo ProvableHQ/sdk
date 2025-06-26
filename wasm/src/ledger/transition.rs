@@ -240,13 +240,13 @@ impl Transition {
         let mut decrypted_outputs: Vec<Output<CurrenNetwork>> = vec![];
 
         for (index, input) in self.inputs().iter().enumerate() {
-            if let InputNative::Private(self.id(), ciphertext_option) = input {
+            if let InputNative::Private(*self.id(), ciphertext_option) = input {
                 if let Some(ciphertext) = ciphertext_option {
                     let index_field = Field::from_u16(u16::try_from(index).unwrap());
                     let input_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
                         .map_err(|_| "Could not create input view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
-                    decrypted_inputs.push(InputNative::Public(self.id(), Some(plaintext)));
+                    decrypted_inputs.push(InputNative::Public(*self.id(), Some(plaintext)));
                 } else {
                     decrypted_inputs.push(input.clone());
                 }
@@ -273,13 +273,13 @@ impl Transition {
         }
 
         let decrypted_transition = Self::new(
-            self.program_id(),
-            self.function_name(),
+            *self.program_id(),
+            *self.function_name(),
             decrypted_inputs,
             decrypted_outputs,
-            self.tpk(),
-            self.tcm(),
-            self.scm(),
+            *self.tpk(),
+            *self.tcm(),
+            *self.scm(),
         )
         .unwrap();
 
