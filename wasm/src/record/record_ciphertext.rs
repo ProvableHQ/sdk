@@ -76,7 +76,6 @@ impl RecordCiphertext {
         record_nonce * **view_key
     }
 
-
     /// Determines if the account corresponding to the view key is the owner of the record
     ///
     /// @param {ViewKey} view_key View key used to decrypt the ciphertext
@@ -132,16 +131,16 @@ impl RecordCiphertext {
 
     /// Decrypt the record ciphertext into plaintext using a record view key
     #[wasm_bindgen(js_name = "decryptWithRecordVk")]
-    pub fn decrypt_with_record_vk(
-        &self,
-        record_vk: Group,
-    ) -> Result<RecordPlaintext, String> {
-        let num_randomizers = self.0.num_randomizers()
+    pub fn decrypt_with_record_vk(&self, record_vk: Group) -> Result<RecordPlaintext, String> {
+        let num_randomizers = self
+            .0
+            .num_randomizers()
             .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
-        let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
-    
+        let randomizers =
+            CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
+
         let record_plaintext = self.0.decrypt_with_randomizers(&randomizers);
-    
+
         Ok(record_plaintext)
     }
 }

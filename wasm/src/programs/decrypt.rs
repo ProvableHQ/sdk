@@ -42,36 +42,101 @@ use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
-#[wasm_bindgen(js_name = "generateTvk")]
-pub fn generate_tvk(
-    view_key: &ViewKey,
-    tpk: &Group,
-) -> Field {
-    tpk.scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
+#[wasm_bindgen]
+struct DecryptToolBox {};
+
+impl DecryptToolBox {
+    #[wasm_bindgen(js_name = "generateTvk")]
+    pub fn generate_tvk(
+        view_key: &ViewKey,
+        tpk: &Group,
+    ) -> Field {
+        tpk.scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
+    }
+
+    #[wasm_bindgen(js_name = "generateRecordVk")]
+    pub(crate) fn generate_record_vk(
+        view_key: &ViewKey,
+        record: &Record,
+    ) -> Group {
+        let record_nonce = record.0.nonce();
+        record_nonce * **view_key
+    }
+
+    #[wasm_bindgen(js_name = "decryptRecordSymmetricUnchecked")]
+    pub fn decrypt_record_symmetric_unchecked(
+        record_vk: Group,
+        record_ciphertext: RecordCiphertext,
+    ) -> Result<RecordPlaintext, String> {
+        let num_randomizers = record_ciphertext.0.num_randomizers()
+            .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
+        let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_view_key], num_randomizers); // Not qwuite sure how to implement this on the SDK side.
+
+        let record_plaintext = record_ciphertext.decrypt_with_randomizers(&randomizers);
+    
+        Ok(record_plaintext)
+    }
+
+    #[wasm_bindgen(js_name = "decryptTransitionWithVk")]
+    pub fn decrypt_transition_with_vk(
+        transition: &Transition,
+        transition_vk: &Field,
+    ) - > Result<Transition, String> {
+        let function_id =
+        compute_function_id(&U16::<CurrentNetwork>::new(CurrentNetwork::ID), transition.program_id, &function_name)
+            .map_err(|e| e.to_string())?;
+
+        let mut decrypted_inputs: Vec<Input<N>> = vec![];
+        let mut decrypted_outputs: Vec<Output<N>> = vec![];
+
+        for (index, input) in self.inputs().iter().enumerate() {
+            if let Input::Private(id, ciphertext_option) = input {
+                if let Some(ciphertext) = ciphertext_option {
+                    let index_field = Field::from_u16(u16::try_from(index).unwrap());
+                    let input_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
+                        .map_err(|_| "Could not create input view key".to_string())?;
+                    let plaintext = ciphertext.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
+                    decrypted_inputs.push(Input::Public(self.id, Some(plaintext)));
+                } else {
+                    decrypted_inputs.push(input.clone());
+                }
+            } else {
+                decrypted_inputs.push(input.clone());
+            }
+        }
+
+        let num_inputs = transition.inputs().len();
+        for (index, output) in transition.outputs().iter().enumerate() {
+            if let Output::Private(id, ciphertext_option) = output {
+                if let Some(ciphertext) = ciphertext_option {
+                    let index_field = Field::from_u16(u16::try_from(num_inputs + index).unwrap());
+                    let output_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
+                        .map_err(|_| "Could not create output view key".to_string())?;
+                    let plaintext = ciphertext.decrypt_symmetric(output_view_key).map_err(|e| e.to_string())?;
+                    decrypted_outputs.push(Output::Public(self.id, Some(plaintext)));
+                } else {
+                    decrypted_outputs.push(output.clone());
+                }
+            } else {
+                decrypted_outputs.push(output.clone());
+            }
+        }
+
+        let decrypted_transition = Transition::new(
+            self.program_id(),
+            self.function_name(),
+            decrypted_inputs,
+            decrypted_outputs,
+            self.tpk(),
+            self.tcm(),
+            self.scm(),
+        )
+        .unwrap();
+
+        decrypted_transition
+    }
 }
 
-#[wasm_bindgen(js_name = "generateRecordVk")]
-pub(crate) fn generate_record_vk(
-    view_key: &ViewKey,
-    record: &Record,
-) -> Group {
-    let record_nonce = record.nonce();
-    record_nonce * **view_key
-}
-
-#[wasm_bindgen(js_name = "decryptRecordSymmetricUnchecked")]
-pub fn decrypt_record_symmetric_unchecked(
-    record_vk: Group,
-    record_ciphertext: RecordCiphertext,
-) -> Result<RecordPlaintext, String> {
-    let num_randomizers = record_ciphertext.num_randomizers()
-        .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
-    let randomizers = N::hash_many_psd8(&[N::encryption_domain(), *record_view_key], num_randomizers); // Not qwuite sure how to implement this on the SDK side.
-    
-    let record_plaintext = record_ciphertext.decrypt_with_randomizers(&randomizers);
-    
-    Ok(record_plaintext)
-}
 
 #[cfg(test)]
 mod tests {
