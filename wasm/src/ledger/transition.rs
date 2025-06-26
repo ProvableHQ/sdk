@@ -19,14 +19,12 @@ use crate::{
     Group,
     Identifier,
     ProgramID,
-    RecordCiphertext,
-    RecordPlaintext,
     ViewKey,
     algorithms::hash_bhp1024,
     input_to_js_value,
     object,
     output_to_js_value,
-    types::native::{FromBytes, ToBytes, TransitionNative, InputNative, OutputNative},
+    types::native::{TransitionNative, InputNative, OutputNative},
     types::network::CurrentNetwork,
 };
 use snarkvm_console::{program::compute_function_id, types::U16};

@@ -25,28 +25,17 @@ use crate::{
     RecordCiphertext,
     RecordPlaintext,
     ViewKey,
-
-    log,
-    native::{
-        ExecutionNative,
-        IdentifierNative,
-        ProcessNative,
-        ProgramID,
-        ProgramNative,
-        RecordCiphertextNative,
-        RecordPlaintextNative,
-        VerifyingKeyNative,
-    },
 };
 
-use js_sys::{Array, Object, Reflect};
-use std::{ops::Deref, str::FromStr};
-use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
+use std::str::FromStr;
+use wasm_bindgen::prelude::wasm_bindgen;
 use snarkvm_ledger_block::{Input, Output};
+use snarkvm_console::{program::compute_function_id, types::U16};
 
 #[wasm_bindgen]
 struct DecryptToolBox {}
 
+#[wasm_bindgen]
 impl DecryptToolBox {
     #[wasm_bindgen(js_name = "generateTvk")]
     pub fn generate_tvk(
@@ -57,19 +46,29 @@ impl DecryptToolBox {
     }
 
     #[wasm_bindgen(js_name = "generateRecordVk")]
-    pub(crate) fn generate_record_vk(
-        view_key: &ViewKey,
-        record: &RecordCiphertextNative,
+    pub fn generate_record_vk(
+        view_key: &str,
+        record: &str,
     ) -> Group {
-        let record_nonce = record.0.nonce();
+        let view_key = ViewKey::from_str(view_key)
+            .map_err(|_| "Failed to parse view key".to_string())
+            .unwrap();
+        let record_ciphertext = RecordCiphertext::from_str(record)
+            .map_err(|_| "Failed to parse record ciphertext".to_string())
+            .unwrap();
+        let record_nonce = record_ciphertext.0.nonce();
         record_nonce * **view_key
     }
 
     #[wasm_bindgen(js_name = "decryptRecordWithRVk")]
     pub fn decrypt_record_symmetric_unchecked(
-        record_vk: Group,
-        record_ciphertext: RecordCiphertextNative,
+        record_vk: &str,
+        record: &str,
     ) -> Result<RecordPlaintext, String> {
+        let record_vk = Field::from_str(record_vk)
+            .map_err(|_| "Failed to parse record view key".to_string())?;
+        let record_ciphertext = RecordCiphertext::from_str(record)
+            .map_err(|_| "Failed to parse record ciphertext".to_string())?;
         let num_randomizers = record_ciphertext.num_randomizers()
             .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
         let randomizers = CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers); // Not qwuite sure how to implement this on the SDK side.
@@ -81,9 +80,13 @@ impl DecryptToolBox {
 
     #[wasm_bindgen(js_name = "decryptTransitionWithVk")]
     pub fn decrypt_transition_with_vk(
-        transition: &Transition,
-        transition_vk: &Field,
+        transition: &str,
+        transition_vk: &str,
     ) -> Result<Transition, String> {
+        let transition = Transition::from_string(transition)
+            .map_err(|_| "Failed to parse transition".to_string())?;
+        let transition_vk = Field::from_string(transition_vk)
+            .map_err(|_| "Failed to parse transition view key".to_string())?;
         let function_id =
         compute_function_id(&U16::<CurrentNetwork>::new(CurrentNetwork::ID), transition.program_id(), transition.function_name())
             .map_err(|e| e.to_string())?;
@@ -94,7 +97,7 @@ impl DecryptToolBox {
         for (index, input) in transition.inputs().iter().enumerate() {
             if let Input::Private(id, ciphertext_option) = input {
                 if let Some(ciphertext) = ciphertext_option {
-                    let index_field = Field::from_u16(u16::try_from(index).unwrap());
+                    let index_field = Field::from(u16::try_from(index).unwrap());
                     let input_view_key = CurrentNetwork::hash_psd4(&[function_id, transition_vk, index_field])
                         .map_err(|_| "Could not create input view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
@@ -111,7 +114,7 @@ impl DecryptToolBox {
         for (index, output) in transition.outputs().iter().enumerate() {
             if let Output::Private(id, ciphertext_option) = output {
                 if let Some(ciphertext) = ciphertext_option {
-                    let index_field = Field::from_u16(u16::try_from(num_inputs + index).unwrap());
+                    let index_field = Field::from(u16::try_from(num_inputs + index).unwrap());
                     let output_view_key = CurrentNetwork::hash_psd4(&[function_id, transition_vk, index_field])
                         .map_err(|_| "Could not create output view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(output_view_key).map_err(|e| e.to_string())?;
@@ -162,14 +165,13 @@ mod tests {
     fn test_decrypt_record_symmetric() {
         let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
         let non_owner_view_key = ViewKey::from_str(NON_OWNER_VIEW_KEY).unwrap();
-        let record_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
         let record_plaintext_expected = RecordPlaintext::from_str(OWNER_PLAINTEXT).unwrap();
 
         // Generate the record view key
-        let record_vk = DecryptToolBox::generate_record_vk(&owner_view_key, &record_plaintext_expected);
+        let record_vk = DecryptToolBox::generate_record_vk(OWNER_VIEW_KEY, OWNER_PLAINTEXT).unwrap();
 
         // Decrypt with the owner's view key
-        let record_plaintext_decrypted = DecryptToolBox::decrypt_record_symmetric_unchecked(record_vk, record_ciphertext.clone()).unwrap();
+        let record_plaintext_decrypted = DecryptToolBox::decrypt_record_symmetric_unchecked(record_vk, OWNER_CIPHERTEXT);
         assert_eq!(record_plaintext_decrypted.to_string(), OWNER_PLAINTEXT);
     }
 
