@@ -17,12 +17,13 @@
 use crate::{
     Field,
     Group,
+    RecordCiphertext,
+    RecordPlaintext,
     ViewKey,
-    algorithms::hash_bhp1024,
     input_to_js_value,
     object,
     output_to_js_value,
-    types::native::{CurrentNetwork, TransitionNative, IdentifierNative, InputNative, OutputNative, ProgramIDNative},
+    types::native::{CurrentNetwork, FieldNative, TransitionNative, IdentifierNative, InputNative, OutputNative, ProgramIDNative},
 };
 use snarkvm_console::{
     program::compute_function_id, 
@@ -50,8 +51,8 @@ impl Transition {
     pub fn new(
         program_id: &str,
         function_name: &str,
-        inputs: Vec<crate::Input>,
-        outputs: Vec<crate::Output>,
+        inputs: Vec<InputNative>,
+        outputs: Vec<OutputNative>,
         tpk: Group,
         tcm: Field,
         scm: Field,
@@ -59,15 +60,15 @@ impl Transition {
         let program_id = ProgramIDNative::from_str(program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(function_name).map_err(|e| e.to_string())?;
 
-        Ok( Self.0.new(
+        Ok(Transition(TransitionNative::new(
             program_id,
             function_name,
             inputs,
             outputs,
-            tpk,
-            tcm,
-            scm,
-            ).map_err(|e| e.to_string())? )
+            *tpk,
+            *tcm,
+            *scm,
+            ).map_err(|e| e.to_string())? ))
         }
 
     /// Get the transition ID
@@ -230,59 +231,56 @@ impl Transition {
     /// Decrypt the transition using the transition view key.
     #[wasm_bindgen(js_name = decryptTransition)]
     pub fn decrypt_transition(&self, tvk: &Field) -> Result<Self, String> {
-        // Unsure about this implementation...
-        let function_id =
-            compute_function_id(&U16::<CurrentNetwork>::new(CurrentNetwork::ID), self.program_id, self.function_name)
-                .map_err(|e| e.to_string())?;
-
-        let mut decrypted_inputs: Vec<Input<CurrenNetwork>> = vec![];
-        let mut decrypted_outputs: Vec<Output<CurrenNetwork>> = vec![];
-
+        let function_id = compute_function_id(
+            &U16::<CurrentNetwork>::new(CurrentNetwork::ID),
+            self.0.program_id(),
+            self.0.function_name(),
+        )
+        .map_err(|e| e.to_string())?;
+    
+        let id = self.id();
+        let mut decrypted_inputs = Vec::with_capacity(self.inputs().len());
+    
         for (index, input) in self.inputs().iter().enumerate() {
-            if let InputNative::Private(self.id(), ciphertext_option) = input {
-                if let Some(ciphertext) = ciphertext_option {
-                    let index_field = Field::from_u16(u16::try_from(index).unwrap());
-                    let input_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
+            decrypted_inputs.push(match input {
+                InputNative::Private(ref input_id, Some(ciphertext)) if input_id == &id => {
+                    let index_field = FieldNative::from_u16(index as u16);
+                    let input_view_key = CurrentNetwork::hash_psd4(&[function_id, *tvk, index_field])
                         .map_err(|_| "Could not create input view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
-                    decrypted_inputs.push(InputNative::Public(self.id(), Some(plaintext)));
-                } else {
-                    decrypted_inputs.push(input.clone());
+                    InputNative::Public(id.clone(), Some(plaintext))
                 }
-            } else {
-                decrypted_inputs.push(input.clone());
-            }
+                _ => input.clone(),
+            });
         }
-
-        let num_inputs = transition.inputs().len();
-        for (index, output) in transition.outputs().iter().enumerate() {
-            if let OutputNative::Private(self.id(), ciphertext_option) = output {
-                if let Some(ciphertext) = ciphertext_option {
-                    let index_field = Field::from_u16(u16::try_from(num_inputs + index).unwrap());
+    
+        let outputs = self.outputs(true);
+        let num_inputs = self.inputs(true).len();
+        let mut decrypted_outputs = Vec::with_capacity(outputs.len());
+    
+        for (index, output) in outputs.iter().enumerate() {
+            decrypted_outputs.push(match output {
+                OutputNative::Private(ref output_id, Some(ciphertext)) if output_id == &id => {
+                    let index_field = FieldNative::from_u16((num_inputs + index) as u16);
                     let output_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
                         .map_err(|_| "Could not create output view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(output_view_key).map_err(|e| e.to_string())?;
-                    decrypted_outputs.push(OutputNative::Public(self.id(), Some(plaintext)));
-                } else {
-                    decrypted_outputs.push(output.clone());
+                    OutputNative::Public(id.clone(), Some(plaintext))
                 }
-            } else {
-                decrypted_outputs.push(output.clone());
-            }
+                _ => output.clone(),
+            });
         }
-
-        let decrypted_transition = Self::new(
-            *self.program_id(),
-            *self.function_name(),
+    
+        Ok(Self::new(
+            &self.program_id(),
+            &self.function_name(),
             decrypted_inputs,
             decrypted_outputs,
-            *self.tpk(),
-            *self.tcm(),
-            *self.scm(),
+            self.tpk(),
+            self.tcm(),
+            self.scm(),
         )
-        .unwrap();
-
-        Ok(decrypted_transition)
+        .expect("failed to construct decrypted transition"))
     }
 }
 
@@ -514,7 +512,7 @@ mod tests {
         // Get the transition public key.
         let tpk = transition.tpk();
         // Reconstruct the transition view key (vk*tpk*r)).
-        let tvk = transition.tvk(&view_key.to_scalar());
+        let tvk = transition.tvk(&view_key);
 
         let decrypted_transition = transition.decrypt_transition(&tvk).unwrap();
 
