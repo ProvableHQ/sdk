@@ -17,17 +17,16 @@
 use crate::{
     Field,
     Group,
-    Identifier,
-    ProgramID,
     ViewKey,
     algorithms::hash_bhp1024,
     input_to_js_value,
     object,
     output_to_js_value,
-    types::native::{TransitionNative, InputNative, OutputNative},
-    types::network::CurrentNetwork,
+    types::native::{CurrentNetwork, TransitionNative, IdentifierNative, InputNative, OutputNative, ProgramIDNative},
 };
-use snarkvm_console::{program::compute_function_id, types::U16};
+use snarkvm_console::{
+    program::compute_function_id, 
+    types::U16};
 
 use js_sys::{Array, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -57,7 +56,7 @@ impl Transition {
         tcm: Field,
         scm: Field,
     ) -> Result<Self, String> {
-        let program_id = ProgramID::from_str(program_id).map_err(|e| e.to_string())?;
+        let program_id = ProgramIDNative::from_str(program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(function_name).map_err(|e| e.to_string())?;
 
         Ok( Self.0.new(
@@ -240,13 +239,13 @@ impl Transition {
         let mut decrypted_outputs: Vec<Output<CurrenNetwork>> = vec![];
 
         for (index, input) in self.inputs().iter().enumerate() {
-            if let InputNative::Private(*self.id(), ciphertext_option) = input {
+            if let InputNative::Private(self.id(), ciphertext_option) = input {
                 if let Some(ciphertext) = ciphertext_option {
                     let index_field = Field::from_u16(u16::try_from(index).unwrap());
                     let input_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
                         .map_err(|_| "Could not create input view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
-                    decrypted_inputs.push(InputNative::Public(*self.id(), Some(plaintext)));
+                    decrypted_inputs.push(InputNative::Public(self.id(), Some(plaintext)));
                 } else {
                     decrypted_inputs.push(input.clone());
                 }
@@ -283,7 +282,7 @@ impl Transition {
         )
         .unwrap();
 
-        decrypted_transition
+        Ok(decrypted_transition)
     }
 }
 

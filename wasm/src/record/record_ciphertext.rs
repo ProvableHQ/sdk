@@ -23,8 +23,7 @@ use crate::{
     ViewKey,
     js_array_from_fields,
     to_bits_array_le,
-    types::native::RecordCiphertextNative,
-    types::network::CurrentNetwork,
+    types::native::{CurrentNetwork, RecordCiphertextNative},
 };
 use snarkvm_console::prelude::{FromBytes, ToBits, ToBytes, ToFields};
 
@@ -136,11 +135,11 @@ impl RecordCiphertext {
     /// Decrypt the record ciphertext into plaintext using a record view key
     #[wasm_bindgen(js_name = "decryptWithRecordViewKey")]
     pub fn decrypt_with_record_view_key(&self, record_vk: Group) -> Result<RecordPlaintext, String> {
-        let num_randomizers = DecryptToolBox::num_randomizers(*self);
+        let num_randomizers = DecryptionToolBox::num_randomizers(*self);
         let randomizers =
             CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
 
-        let record_plaintext = DecryptToolBox::decrypt_with_randomizers(*self, &randomizers);
+        let record_plaintext = DecryptionToolBox::decrypt_with_randomizers(*self, &randomizers);
 
         Ok(record_plaintext)
     }
@@ -252,7 +251,7 @@ mod tests {
     fn test_record_view_key_generation() {
         let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
-        let record_vk = record.generate_record_vk(&view_key);
+        let record_vk = record.record_view_key(&view_key);
         assert_eq!(record_vk.to_string(), RECORD_VIEW_KEY);
     }
 
@@ -261,8 +260,8 @@ mod tests {
         let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         let record_plaintext = RecordPlaintext::from_string(OWNER_PLAINTEXT).unwrap();
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
-        let record_vk = record.generate_record_vk(&view_key);
-        let decrypted_plaintext = record.decrypt_with_record_vk(record_vk).unwrap();
+        let record_vk = record.record_view_key(&view_key);
+        let decrypted_plaintext = record.decrypt_with_record_view_key(record_vk).unwrap();
         assert_eq!(record_plaintext.to_string(), decrypted_plaintext.to_string());
     }
 }

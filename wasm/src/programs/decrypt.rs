@@ -17,7 +17,6 @@
 pub use super::*;
 
 use crate::{
-    CurrentNetwork,
     Field,
     Group,
     Scalar,
@@ -25,7 +24,7 @@ use crate::{
     RecordCiphertext,
     RecordPlaintext,
     ViewKey,
-    types::RecordPlaintextNative,
+    types::native::{CurrentNetwork, RecordPlaintextNative}
 };
 
 use std::str::FromStr;
@@ -236,10 +235,10 @@ mod tests {
         let record_plaintext_expected = RecordPlaintext::from_str(OWNER_PLAINTEXT).unwrap();
 
         // Generate the record view key
-        let record_vk = DecryptToolBox::generate_record_vk(OWNER_VIEW_KEY, OWNER_PLAINTEXT).unwrap();
+        let record_vk = DecryptionToolBox::generate_record_vk(OWNER_VIEW_KEY, OWNER_PLAINTEXT).unwrap();
 
         // Decrypt with the owner's view key
-        let record_plaintext_decrypted = DecryptToolBox::decrypt_record_symmetric_unchecked(record_vk, OWNER_CIPHERTEXT);
+        let record_plaintext_decrypted = DecryptionToolBox::decrypt_record_symmetric_unchecked(record_vk, OWNER_CIPHERTEXT);
         assert_eq!(record_plaintext_decrypted.to_string(), OWNER_PLAINTEXT);
     }
 
