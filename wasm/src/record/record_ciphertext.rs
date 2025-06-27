@@ -15,7 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    decrypt::DecryptToolBox,
+    decrypt::DecryptionToolBox,
     Field,
     GraphKey,
     Group,

@@ -126,15 +126,13 @@ impl DecryptToolBox {
     pub fn generate_record_vk(
         view_key: &str,
         record: &str,
-    ) -> Group {
+    ) -> Result<Group, String> {
         let view_key = ViewKey::from_str(view_key)
-            .map_err(|_| "Failed to parse view key".to_string())
-            .unwrap();
+            .map_err(|_| "Failed to parse view key".to_string());
         let record_ciphertext = RecordCiphertext::from_str(record)
-            .map_err(|_| "Failed to parse record ciphertext".to_string())
-            .unwrap();
-        let record_nonce = record_ciphertext.0.nonce();
-        record_nonce * **view_key
+            .map_err(|_| "Failed to parse record ciphertext".to_string());
+        let record_nonce = *record_ciphertext.nonce();
+        Ok(record_nonce * **view_key)
     }
 
     /// Decrypts a record ciphertext using the record view key.  Decryption only succeeds
@@ -178,7 +176,8 @@ impl DecryptToolBox {
         for (index, input) in transition.inputs().iter().enumerate() {
             if let Input::Private(id, ciphertext_option) = input {
                 if let Some(ciphertext) = ciphertext_option {
-                    let index_field = Field::from(u16::try_from(index).unwrap());
+                    let index_field = Field::from(u16::try_from(index)
+                        .map_err(|_| "Index out of bounds for input".to_string())?);
                     let input_view_key = CurrentNetwork::hash_psd4(&[function_id, transition_vk, index_field])
                         .map_err(|_| "Could not create input view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
@@ -195,7 +194,8 @@ impl DecryptToolBox {
         for (index, output) in transition.outputs().iter().enumerate() {
             if let Output::Private(id, ciphertext_option) = output {
                 if let Some(ciphertext) = ciphertext_option {
-                    let index_field = Field::from(u16::try_from(num_inputs + index).unwrap());
+                    let index_field = Field::from(u16::try_from(num_inputs + index)
+                        .map_err(|_| "Index out of bounds for output".to_string())?);
                     let output_view_key = CurrentNetwork::hash_psd4(&[function_id, transition_vk, index_field])
                         .map_err(|_| "Could not create output view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(output_view_key).map_err(|e| e.to_string())?;
@@ -217,9 +217,9 @@ impl DecryptToolBox {
             transition.tcm(),
             transition.scm(),
         )
-        .unwrap();
+        .map_err(|e| e.to_string())?;
 
-        decrypted_transition
+        Ok(decrypted_transition)
     }
 }
 
