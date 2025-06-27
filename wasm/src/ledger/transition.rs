@@ -23,11 +23,17 @@ use crate::{
     input_to_js_value,
     object,
     output_to_js_value,
-    types::native::{CurrentNetwork, FieldNative, TransitionNative, IdentifierNative, InputNative, OutputNative, ProgramIDNative},
+    types::native::{
+        CurrentNetwork,
+        FieldNative,
+        IdentifierNative,
+        InputNative,
+        OutputNative,
+        ProgramIDNative,
+        TransitionNative,
+    },
 };
-use snarkvm_console::{
-    program::compute_function_id, 
-    types::U16};
+use snarkvm_console::{program::compute_function_id, types::U16};
 
 use js_sys::{Array, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -60,16 +66,11 @@ impl Transition {
         let program_id = ProgramIDNative::from_str(program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(function_name).map_err(|e| e.to_string())?;
 
-        Ok(Transition(TransitionNative::new(
-            program_id,
-            function_name,
-            inputs,
-            outputs,
-            *tpk,
-            *tcm,
-            *scm,
-            ).map_err(|e| e.to_string())? ))
-        }
+        Ok(Transition(
+            TransitionNative::new(program_id, function_name, inputs, outputs, *tpk, *tcm, *scm)
+                .map_err(|e| e.to_string())?,
+        ))
+    }
 
     /// Get the transition ID
     ///
@@ -237,10 +238,10 @@ impl Transition {
             self.0.function_name(),
         )
         .map_err(|e| e.to_string())?;
-    
+
         let id = self.id();
         let mut decrypted_inputs = Vec::with_capacity(self.inputs().len());
-    
+
         for (index, input) in self.inputs().iter().enumerate() {
             decrypted_inputs.push(match input {
                 InputNative::Private(ref input_id, Some(ciphertext)) if input_id == &id => {
@@ -253,11 +254,11 @@ impl Transition {
                 _ => input.clone(),
             });
         }
-    
+
         let outputs = self.outputs(true);
         let num_inputs = self.inputs(true).len();
         let mut decrypted_outputs = Vec::with_capacity(outputs.len());
-    
+
         for (index, output) in outputs.iter().enumerate() {
             decrypted_outputs.push(match output {
                 OutputNative::Private(ref output_id, Some(ciphertext)) if output_id == &id => {
@@ -270,7 +271,7 @@ impl Transition {
                 _ => output.clone(),
             });
         }
-    
+
         Ok(Self::new(
             &self.program_id(),
             &self.function_name(),

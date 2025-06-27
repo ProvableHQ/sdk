@@ -15,12 +15,12 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    decrypt::DecryptionToolBox,
     Field,
     GraphKey,
     Group,
     RecordPlaintext,
     ViewKey,
+    decrypt::DecryptionToolBox,
     js_array_from_fields,
     to_bits_array_le,
     types::native::{CurrentNetwork, RecordCiphertextNative},
@@ -67,7 +67,7 @@ impl RecordCiphertext {
         ))
     }
 
-    /// Generate the record view key. The record view key can only decrypt record if the 
+    /// Generate the record view key. The record view key can only decrypt record if the
     /// supplied view key belongs to the record owner.
     ///
     /// @param {ViewKey} view_key View key used to generate the record view key
