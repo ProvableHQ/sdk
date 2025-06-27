@@ -68,7 +68,8 @@ impl RecordCiphertext {
         ))
     }
 
-    /// Generate the record view key.
+    /// Generate the record view key. The record view key can only decrypt record if the 
+    /// supplied view key belongs to the record owner.
     ///
     /// @param {ViewKey} view_key View key used to generate the record view key
     ///
