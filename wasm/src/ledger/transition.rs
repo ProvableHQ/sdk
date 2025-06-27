@@ -509,8 +509,6 @@ mod tests {
         // Construct the ciphertext to be decrypted and the transition it is a part of.
         let transition = Transition::from_string(TRANSITION_2).unwrap();
 
-        // Get the transition public key.
-        let tpk = transition.tpk();
         // Reconstruct the transition view key (vk*tpk*r)).
         let tvk = transition.tvk(&view_key);
 
