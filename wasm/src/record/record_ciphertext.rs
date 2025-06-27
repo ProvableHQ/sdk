@@ -74,8 +74,8 @@ impl RecordCiphertext {
     /// @param {ViewKey} view_key View key used to generate the record view key
     ///
     /// @returns {Group} record view key
-    #[wasm_bindgen(js_name = "recordVk")]
-    pub fn record_vk(&self, view_key: &ViewKey) -> Group {
+    #[wasm_bindgen(js_name = "recordViewKey")]
+    pub fn record_view_key(&self, view_key: &ViewKey) -> Group {
         let record_nonce = self.0.nonce();
         record_nonce * **view_key
     }
@@ -134,8 +134,8 @@ impl RecordCiphertext {
     }
 
     /// Decrypt the record ciphertext into plaintext using a record view key
-    #[wasm_bindgen(js_name = "decryptWithRecordVk")]
-    pub fn decrypt_with_record_vk(&self, record_vk: Group) -> Result<RecordPlaintext, String> {
+    #[wasm_bindgen(js_name = "decryptWithRecordViewKey")]
+    pub fn decrypt_with_record_view_key(&self, record_vk: Group) -> Result<RecordPlaintext, String> {
         let num_randomizers = DecryptToolBox::num_randomizers(*self);
         let randomizers =
             CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
