@@ -73,8 +73,8 @@ impl RecordCiphertext {
     /// @param {ViewKey} view_key View key used to generate the record view key
     ///
     /// @returns {Group} record view key
-    #[wasm_bindgen(js_name = "getRecordVk")]
-    pub fn generate_record_vk(&self, view_key: &ViewKey) -> Group {
+    #[wasm_bindgen(js_name = "recordVk")]
+    pub fn record_vk(&self, view_key: &ViewKey) -> Group {
         let record_nonce = self.0.nonce();
         record_nonce * **view_key
     }
