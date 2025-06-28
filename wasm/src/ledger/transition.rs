@@ -263,7 +263,7 @@ impl Transition {
             decrypted_outputs.push(match output {
                 OutputNative::Private(ref output_id, Some(ciphertext)) if output_id == &id => {
                     let index_field = FieldNative::from_u16((num_inputs + index) as u16);
-                    let output_view_key = CurrentNetwork::hash_psd4(&[function_id, tvk, index_field])
+                    let output_view_key = CurrentNetwork::hash_psd4(&[function_id, **tvk, index_field])
                         .map_err(|_| "Could not create output view key".to_string())?;
                     let plaintext = ciphertext.decrypt_symmetric(output_view_key).map_err(|e| e.to_string())?;
                     OutputNative::Public(id.clone(), Some(plaintext))

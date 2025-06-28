@@ -43,12 +43,12 @@ impl DecryptToolBox {
         let mut num_randomizers: u16 = 0;
 
         // If the owner is private, increment the number of randomizers by 1.
-        if **record.owner.is_private() {
+        if **record.owner().is_private() {
             num_randomizers += 1;
         }
 
         // Increment the number of randomizers by the number of data randomizers.
-        for (_, entry) in **record.data.iter() {
+        for (_, entry) in **record.data().iter() {
             num_randomizers = num_randomizers
                 .checked_add(entry.num_randomizers()?)
                 .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
@@ -70,19 +70,19 @@ impl DecryptToolBox {
         let mut index: usize = 0;
 
         // Decrypt the owner.
-        let owner = match **record.owner.is_public() {
-            true => **record.owner.decrypt_with_randomizer(&[])?,
-            false => **record.owner.decrypt_with_randomizer(&[randomizers[index]])?,
+        let owner = match **record.owner().is_public() {
+            true => **record.owner().decrypt_with_randomizer(&[])?,
+            false => **record.owner().decrypt_with_randomizer(&[randomizers[index]])?,
         };
 
         // Increment the index if the owner is private.
-        if owner.is_private() {
+        if **record.owner().is_private() {
             index += 1;
         }
 
         // Decrypt the program data.
-        let mut decrypted_data = IndexMap::with_capacity(record.data.len());
-        for (id, entry, num_randomizers) in **record.data.iter().map(|(id, entry)| (id, entry, entry.num_randomizers()))
+        let mut decrypted_data = IndexMap::with_capacity(record.data().len());
+        for (id, entry, num_randomizers) in **record.data().iter().map(|(id, entry)| (id, entry, entry.num_randomizers()))
         {
             // Retrieve the result for `num_randomizers`.
             let num_randomizers = num_randomizers? as usize;
@@ -112,7 +112,10 @@ impl DecryptToolBox {
         }
 
         // Return the decrypted record.
-        RecordPlaintext(RecordPlaintextNative { owner, decrypted_data, nonce: **record.nonce() })
+        let decrypted_record = RecordPlaintext::new(owner, decrypted_data, **record.nonce())
+            .map_err(|e| e.to_string())?;
+
+        Ok(decrypted_record)
     }
 
     #[wasm_bindgen(js_name = "generateTvk")]
@@ -196,8 +199,8 @@ impl DecryptToolBox {
         }
 
         let decrypted_transition = Transition::new(
-            transition.program_id(),
-            transition.function_name(),
+            &transition.program_id(),
+            &transition.function_name(),
             decrypted_inputs,
             decrypted_outputs,
             transition.tpk(),

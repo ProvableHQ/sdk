@@ -52,6 +52,13 @@ pub struct RecordPlaintext(RecordPlaintextNative);
 
 #[wasm_bindgen]
 impl RecordPlaintext {
+    pub fn new(owner: Owner, data: IndexMap, nonce: Group) -> Result<Self, String> {
+        let owner_native = Owner::<CurrentNetwork, PlaintextNative>::Public(owner.into());
+        let record = RecordPlaintextNative::from_plaintext(owner_native, data, nonce)
+            .map_err(|e| e.to_string())?;
+        Ok(Self(record))
+    }
+    
     pub fn commitment(&self, program_id: &str, record_name: &str) -> Result<Field, String> {
         Ok(Field::from(
             self.to_commitment(

@@ -1,0 +1,1736 @@
+   Compiling aleo-wasm v0.9.2 (/Users/royrotstein/provablehq/sdk/wasm)
+   Compiling snarkvm-synthesizer-process v1.5.0
+   Compiling snarkvm-ledger-puzzle-epoch v1.5.0
+   Compiling snarkvm-synthesizer v1.5.0
+   Compiling snarkvm-wasm v1.5.0
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/account/encryptor.rs:19:5
+   |
+19 |     CurrentNetwork,
+   |     ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/account/private_key.rs:23:21
+   |
+23 |     types::native::{CurrentNetwork, Environment, FromBytes, PrimeField, PrivateKeyNative, ToBytes},
+   |                     ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/ledger/transition.rs:27:9
+   |
+27 |         CurrentNetwork,
+   |         ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::native::CurrentNetwork`
+  --> src/programs/data/ciphertext.rs:27:9
+   |
+27 |         CurrentNetwork,
+   |         ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/programs/decrypt.rs:27:21
+   |
+27 |     types::native::{CurrentNetwork, RecordPlaintextNative},
+   |                     ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/programs/execution.rs:24:9
+   |
+24 |         CurrentNetwork,
+   |         ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved imports `crate::types::native::CurrentAleo`, `crate::types::native::CurrentNetwork`
+  --> src/programs/manager/deploy.rs:27:9
+   |
+27 |         CurrentAleo,
+   |         ^^^^^^^^^^^ no `CurrentAleo` in `types::native`
+28 |         CurrentNetwork,
+   |         ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved imports `crate::types::native::CurrentAleo`, `crate::types::native::CurrentNetwork`
+  --> src/programs/manager/execute.rs:31:9
+   |
+31 |         CurrentAleo,
+   |         ^^^^^^^^^^^ no `CurrentAleo` in `types::native`
+32 |         CurrentNetwork,
+   |         ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved imports `crate::types::native::CurrentAleo`, `crate::types::native::CurrentNetwork`
+  --> src/programs/manager/join.rs:30:9
+   |
+30 |         CurrentAleo,
+   |         ^^^^^^^^^^^ no `CurrentAleo` in `types::native`
+31 |         CurrentNetwork,
+   |         ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::types::native::CurrentAleo`
+  --> src/programs/manager/split.rs:27:21
+   |
+27 |     types::native::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
+   |                     ^^^^^^^^^^^ no `CurrentAleo` in `types::native`
+
+error[E0432]: unresolved imports `crate::types::native::CurrentAleo`, `crate::types::native::CurrentNetwork`
+  --> src/programs/manager/transfer.rs:30:9
+   |
+30 |         CurrentAleo,
+   |         ^^^^^^^^^^^ no `CurrentAleo` in `types::native`
+31 |         CurrentNetwork,
+   |         ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/programs/offline_query.rs:17:28
+   |
+17 | use crate::types::native::{CurrentNetwork, Field, Network};
+   |                            ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/programs/program.rs:19:21
+   |
+19 |     types::native::{CurrentNetwork, EntryType, IdentifierNative, PlaintextType, ProgramNative, ValueType},
+   |                     ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/programs/verifying_key/mod.rs:20:28
+   |
+20 | use crate::types::native::{CurrentNetwork, FromBytes, Network, ToBytes, VerifyingKeyNative};
+   |                            ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/record/record_ciphertext.rs:26:21
+   |
+26 |     types::native::{CurrentNetwork, RecordCiphertextNative},
+   |                     ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+   |
+   = note: unresolved item `crate::verifying_key::metadata::CurrentNetwork` exists but is inaccessible
+
+error[E0432]: unresolved import `crate::types::native::CurrentNetwork`
+  --> src/record/record_plaintext.rs:29:13
+   |
+29 |             CurrentNetwork,
+   |             ^^^^^^^^^^^^^^ no `CurrentNetwork` in `types::native`
+   |
+   = note: unresolved item `crate::verifying_key::metadata::CurrentNetwork` exists but is inaccessible
+
+error: cannot find macro `bail` in this scope
+  --> src/programs/decrypt.rs:60:22
+   |
+60 |             false => bail!("Number of randomizers exceeds the maximum allowed size."),
+   |                      ^^^^
+   |
+help: consider importing one of these macros
+   |
+17 + use anyhow::bail;
+   |
+17 + use snarkvm_console::prelude::bail;
+   |
+
+error: cannot find macro `bail` in this scope
+   --> src/programs/decrypt.rs:108:17
+    |
+108 |                 bail!("Duplicate identifier in record: {}", id);
+    |                 ^^^^
+    |
+help: consider importing one of these macros
+    |
+17  + use anyhow::bail;
+    |
+17  + use snarkvm_console::prelude::bail;
+    |
+
+error[E0412]: cannot find type `DecryptToolBox` in this scope
+  --> src/programs/decrypt.rs:39:6
+   |
+36 | pub struct DecryptionToolBox {}
+   | ---------------------------- similarly named struct `DecryptionToolBox` defined here
+...
+39 | impl DecryptToolBox {
+   |      ^^^^^^^^^^^^^^ help: a struct with a similar name exists: `DecryptionToolBox`
+
+error[E0433]: failed to resolve: use of undeclared type `IndexMap`
+  --> src/programs/decrypt.rs:84:34
+   |
+84 |         let mut decrypted_data = IndexMap::with_capacity(record.data().len());
+   |                                  ^^^^^^^^ use of undeclared type `IndexMap`
+   |
+help: consider importing this struct
+   |
+17 + use indexmap::IndexMap;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Entry`
+  --> src/programs/decrypt.rs:94:17
+   |
+94 |                 Entry::Constant(plaintext) => Entry::Constant(plaintext.clone()),
+   |                 ^^^^^ use of undeclared type `Entry`
+   |
+help: consider importing one of these enums
+   |
+17 + use crate::native::Entry;
+   |
+17 + use std::collections::btree_map::Entry;
+   |
+17 + use std::collections::btree_set::Entry;
+   |
+17 + use std::collections::hash_map::Entry;
+   |
+     and 4 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Entry`
+  --> src/programs/decrypt.rs:94:47
+   |
+94 |                 Entry::Constant(plaintext) => Entry::Constant(plaintext.clone()),
+   |                                               ^^^^^ use of undeclared type `Entry`
+   |
+help: consider importing one of these enums
+   |
+17 + use crate::native::Entry;
+   |
+17 + use std::collections::btree_map::Entry;
+   |
+17 + use std::collections::btree_set::Entry;
+   |
+17 + use std::collections::hash_map::Entry;
+   |
+     and 4 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Entry`
+  --> src/programs/decrypt.rs:96:17
+   |
+96 |                 Entry::Public(plaintext) => Entry::Public(plaintext.clone()),
+   |                 ^^^^^ use of undeclared type `Entry`
+   |
+help: consider importing one of these enums
+   |
+17 + use crate::native::Entry;
+   |
+17 + use std::collections::btree_map::Entry;
+   |
+17 + use std::collections::btree_set::Entry;
+   |
+17 + use std::collections::hash_map::Entry;
+   |
+     and 4 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Entry`
+  --> src/programs/decrypt.rs:96:45
+   |
+96 |                 Entry::Public(plaintext) => Entry::Public(plaintext.clone()),
+   |                                             ^^^^^ use of undeclared type `Entry`
+   |
+help: consider importing one of these enums
+   |
+17 + use crate::native::Entry;
+   |
+17 + use std::collections::btree_map::Entry;
+   |
+17 + use std::collections::btree_set::Entry;
+   |
+17 + use std::collections::hash_map::Entry;
+   |
+     and 4 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Entry`
+  --> src/programs/decrypt.rs:98:17
+   |
+98 |                 Entry::Private(private) => Entry::Private(Plaintext::from_fields(
+   |                 ^^^^^ use of undeclared type `Entry`
+   |
+help: consider importing one of these enums
+   |
+17 + use crate::native::Entry;
+   |
+17 + use std::collections::btree_map::Entry;
+   |
+17 + use std::collections::btree_set::Entry;
+   |
+17 + use std::collections::hash_map::Entry;
+   |
+     and 4 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Entry`
+  --> src/programs/decrypt.rs:98:44
+   |
+98 |                 Entry::Private(private) => Entry::Private(Plaintext::from_fields(
+   |                                            ^^^^^ use of undeclared type `Entry`
+   |
+help: consider importing one of these enums
+   |
+17 + use crate::native::Entry;
+   |
+17 + use std::collections::btree_map::Entry;
+   |
+17 + use std::collections::btree_set::Entry;
+   |
+17 + use std::collections::hash_map::Entry;
+   |
+     and 4 other candidates
+
+error[E0425]: cannot find value `record_ciphertext` in this scope
+   --> src/programs/decrypt.rs:130:30
+    |
+130 |         let record_nonce = **record_ciphertext.nonce();
+    |                              ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `record_ciphertext` in this scope
+   --> src/programs/decrypt.rs:141:66
+    |
+141 |         let num_randomizers = DecryptionToolBox::num_randomizers(record_ciphertext)
+    |                                                                  ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/proving_key/credits.rs:36:78
+   |
+36 |         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::BondPublicProver::METADATA)
+   |                                                                              ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::BondPublicProver;
+   |
+17 + use snarkvm_parameters::mainnet::BondPublicProver;
+   |
+17 + use snarkvm_parameters::testnet::BondPublicProver;
+   |
+help: if you import `BondPublicProver`, refer to it directly
+   |
+36 -         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::BondPublicProver::METADATA)
+36 +         self.checksum() == ProvingKey::prover_checksum(BondPublicProver::METADATA)
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/proving_key/credits.rs:48:78
+   |
+48 |         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::BondValidatorProver::METADATA)
+   |                                                                              ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::BondValidatorProver;
+   |
+17 + use snarkvm_parameters::mainnet::BondValidatorProver;
+   |
+17 + use snarkvm_parameters::testnet::BondValidatorProver;
+   |
+help: if you import `BondValidatorProver`, refer to it directly
+   |
+48 -         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::BondValidatorProver::METADATA)
+48 +         self.checksum() == ProvingKey::prover_checksum(BondValidatorProver::METADATA)
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/proving_key/credits.rs:61:66
+   |
+61 |             == ProvingKey::prover_checksum(crate::types::native::parameters::ClaimUnbondPublicProver::METADATA)
+   |                                                                  ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::ClaimUnbondPublicProver;
+   |
+17 + use snarkvm_parameters::mainnet::ClaimUnbondPublicProver;
+   |
+17 + use snarkvm_parameters::testnet::ClaimUnbondPublicProver;
+   |
+help: if you import `ClaimUnbondPublicProver`, refer to it directly
+   |
+61 -             == ProvingKey::prover_checksum(crate::types::native::parameters::ClaimUnbondPublicProver::METADATA)
+61 +             == ProvingKey::prover_checksum(ClaimUnbondPublicProver::METADATA)
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/proving_key/credits.rs:73:78
+   |
+73 |         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::FeePrivateProver::METADATA)
+   |                                                                              ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::FeePrivateProver;
+   |
+17 + use snarkvm_parameters::mainnet::FeePrivateProver;
+   |
+17 + use snarkvm_parameters::testnet::FeePrivateProver;
+   |
+help: if you import `FeePrivateProver`, refer to it directly
+   |
+73 -         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::FeePrivateProver::METADATA)
+73 +         self.checksum() == ProvingKey::prover_checksum(FeePrivateProver::METADATA)
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/proving_key/credits.rs:85:78
+   |
+85 |         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::FeePublicProver::METADATA)
+   |                                                                              ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::FeePublicProver;
+   |
+17 + use snarkvm_parameters::mainnet::FeePublicProver;
+   |
+17 + use snarkvm_parameters::testnet::FeePublicProver;
+   |
+help: if you import `FeePublicProver`, refer to it directly
+   |
+85 -         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::FeePublicProver::METADATA)
+85 +         self.checksum() == ProvingKey::prover_checksum(FeePublicProver::METADATA)
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/proving_key/credits.rs:97:78
+   |
+97 |         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::InclusionProver::METADATA)
+   |                                                                              ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::InclusionProver;
+   |
+17 + use snarkvm_parameters::mainnet::InclusionProver;
+   |
+17 + use snarkvm_parameters::testnet::InclusionProver;
+   |
+help: if you import `InclusionProver`, refer to it directly
+   |
+97 -         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::InclusionProver::METADATA)
+97 +         self.checksum() == ProvingKey::prover_checksum(InclusionProver::METADATA)
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/proving_key/credits.rs:109:78
+    |
+109 |         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::JoinProver::METADATA)
+    |                                                                              ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::JoinProver;
+    |
+17  + use snarkvm_parameters::mainnet::JoinProver;
+    |
+17  + use snarkvm_parameters::testnet::JoinProver;
+    |
+help: if you import `JoinProver`, refer to it directly
+    |
+109 -         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::JoinProver::METADATA)
+109 +         self.checksum() == ProvingKey::prover_checksum(JoinProver::METADATA)
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/proving_key/credits.rs:122:66
+    |
+122 |             == ProvingKey::prover_checksum(crate::types::native::parameters::SetValidatorStateProver::METADATA)
+    |                                                                  ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::SetValidatorStateProver;
+    |
+17  + use snarkvm_parameters::mainnet::SetValidatorStateProver;
+    |
+17  + use snarkvm_parameters::testnet::SetValidatorStateProver;
+    |
+help: if you import `SetValidatorStateProver`, refer to it directly
+    |
+122 -             == ProvingKey::prover_checksum(crate::types::native::parameters::SetValidatorStateProver::METADATA)
+122 +             == ProvingKey::prover_checksum(SetValidatorStateProver::METADATA)
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/proving_key/credits.rs:134:78
+    |
+134 |         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::SplitProver::METADATA)
+    |                                                                              ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::SplitProver;
+    |
+17  + use snarkvm_parameters::mainnet::SplitProver;
+    |
+17  + use snarkvm_parameters::testnet::SplitProver;
+    |
+help: if you import `SplitProver`, refer to it directly
+    |
+134 -         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::SplitProver::METADATA)
+134 +         self.checksum() == ProvingKey::prover_checksum(SplitProver::METADATA)
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/proving_key/credits.rs:147:66
+    |
+147 |             == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPrivateProver::METADATA)
+    |                                                                  ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPrivateProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPrivateProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPrivateProver;
+    |
+help: if you import `TransferPrivateProver`, refer to it directly
+    |
+147 -             == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPrivateProver::METADATA)
+147 +             == ProvingKey::prover_checksum(TransferPrivateProver::METADATA)
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/proving_key/credits.rs:160:66
+    |
+160 |             == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPrivateToPublicProver::METADATA)
+    |                                                                  ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPrivateToPublicProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPrivateToPublicProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPrivateToPublicProver;
+    |
+help: if you import `TransferPrivateToPublicProver`, refer to it directly
+    |
+160 -             == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPrivateToPublicProver::METADATA)
+160 +             == ProvingKey::prover_checksum(TransferPrivateToPublicProver::METADATA)
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/proving_key/credits.rs:172:78
+    |
+172 |         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPublicProver::METADATA)
+    |                                                                              ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPublicProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPublicProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPublicProver;
+    |
+help: if you import `TransferPublicProver`, refer to it directly
+    |
+172 -         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPublicProver::METADATA)
+172 +         self.checksum() == ProvingKey::prover_checksum(TransferPublicProver::METADATA)
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/proving_key/credits.rs:185:66
+    |
+185 |             == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPublicAsSignerProver::METADATA)
+    |                                                                  ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPublicAsSignerProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPublicAsSignerProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPublicAsSignerProver;
+    |
+help: if you import `TransferPublicAsSignerProver`, refer to it directly
+    |
+185 -             == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPublicAsSignerProver::METADATA)
+185 +             == ProvingKey::prover_checksum(TransferPublicAsSignerProver::METADATA)
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/proving_key/credits.rs:198:66
+    |
+198 |             == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPublicToPrivateProver::METADATA)
+    |                                                                  ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPublicToPrivateProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPublicToPrivateProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPublicToPrivateProver;
+    |
+help: if you import `TransferPublicToPrivateProver`, refer to it directly
+    |
+198 -             == ProvingKey::prover_checksum(crate::types::native::parameters::TransferPublicToPrivateProver::METADATA)
+198 +             == ProvingKey::prover_checksum(TransferPublicToPrivateProver::METADATA)
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/proving_key/credits.rs:210:78
+    |
+210 |         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::UnbondPublicProver::METADATA)
+    |                                                                              ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::UnbondPublicProver;
+    |
+17  + use snarkvm_parameters::mainnet::UnbondPublicProver;
+    |
+17  + use snarkvm_parameters::testnet::UnbondPublicProver;
+    |
+help: if you import `UnbondPublicProver`, refer to it directly
+    |
+210 -         self.checksum() == ProvingKey::prover_checksum(crate::types::native::parameters::UnbondPublicProver::METADATA)
+210 +         self.checksum() == ProvingKey::prover_checksum(UnbondPublicProver::METADATA)
+    |
+
+error[E0425]: cannot find value `BASE_URL` in module `crate::types::native`
+  --> src/programs/verifying_key/metadata.rs:39:58
+   |
+39 |     const BASE_URL: &'static str = crate::types::native::BASE_URL;
+   |                                                          ^^^^^^^^ not found in `crate::types::native`
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/verifying_key/metadata.rs:72:35
+   |
+72 |             crate::types::native::parameters::BondPublicProver::METADATA,
+   |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::BondPublicProver;
+   |
+17 + use snarkvm_parameters::mainnet::BondPublicProver;
+   |
+17 + use snarkvm_parameters::testnet::BondPublicProver;
+   |
+help: if you import `BondPublicProver`, refer to it directly
+   |
+72 -             crate::types::native::parameters::BondPublicProver::METADATA,
+72 +             BondPublicProver::METADATA,
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/verifying_key/metadata.rs:73:35
+   |
+73 |             crate::types::native::parameters::BondPublicVerifier::METADATA,
+   |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::BondPublicVerifier;
+   |
+17 + use snarkvm_parameters::mainnet::BondPublicVerifier;
+   |
+17 + use snarkvm_parameters::testnet::BondPublicVerifier;
+   |
+help: if you import `BondPublicVerifier`, refer to it directly
+   |
+73 -             crate::types::native::parameters::BondPublicVerifier::METADATA,
+73 +             BondPublicVerifier::METADATA,
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/verifying_key/metadata.rs:83:35
+   |
+83 |             crate::types::native::parameters::BondValidatorProver::METADATA,
+   |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::BondValidatorProver;
+   |
+17 + use snarkvm_parameters::mainnet::BondValidatorProver;
+   |
+17 + use snarkvm_parameters::testnet::BondValidatorProver;
+   |
+help: if you import `BondValidatorProver`, refer to it directly
+   |
+83 -             crate::types::native::parameters::BondValidatorProver::METADATA,
+83 +             BondValidatorProver::METADATA,
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/verifying_key/metadata.rs:84:35
+   |
+84 |             crate::types::native::parameters::BondValidatorVerifier::METADATA,
+   |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::BondValidatorVerifier;
+   |
+17 + use snarkvm_parameters::mainnet::BondValidatorVerifier;
+   |
+17 + use snarkvm_parameters::testnet::BondValidatorVerifier;
+   |
+help: if you import `BondValidatorVerifier`, refer to it directly
+   |
+84 -             crate::types::native::parameters::BondValidatorVerifier::METADATA,
+84 +             BondValidatorVerifier::METADATA,
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/verifying_key/metadata.rs:94:35
+   |
+94 |             crate::types::native::parameters::ClaimUnbondPublicProver::METADATA,
+   |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::ClaimUnbondPublicProver;
+   |
+17 + use snarkvm_parameters::mainnet::ClaimUnbondPublicProver;
+   |
+17 + use snarkvm_parameters::testnet::ClaimUnbondPublicProver;
+   |
+help: if you import `ClaimUnbondPublicProver`, refer to it directly
+   |
+94 -             crate::types::native::parameters::ClaimUnbondPublicProver::METADATA,
+94 +             ClaimUnbondPublicProver::METADATA,
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+  --> src/programs/verifying_key/metadata.rs:95:35
+   |
+95 |             crate::types::native::parameters::ClaimUnbondPublicVerifier::METADATA,
+   |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+   |
+help: consider importing one of these structs
+   |
+17 + use snarkvm_parameters::canary::ClaimUnbondPublicVerifier;
+   |
+17 + use snarkvm_parameters::mainnet::ClaimUnbondPublicVerifier;
+   |
+17 + use snarkvm_parameters::testnet::ClaimUnbondPublicVerifier;
+   |
+help: if you import `ClaimUnbondPublicVerifier`, refer to it directly
+   |
+95 -             crate::types::native::parameters::ClaimUnbondPublicVerifier::METADATA,
+95 +             ClaimUnbondPublicVerifier::METADATA,
+   |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:105:35
+    |
+105 |             crate::types::native::parameters::FeePrivateProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::FeePrivateProver;
+    |
+17  + use snarkvm_parameters::mainnet::FeePrivateProver;
+    |
+17  + use snarkvm_parameters::testnet::FeePrivateProver;
+    |
+help: if you import `FeePrivateProver`, refer to it directly
+    |
+105 -             crate::types::native::parameters::FeePrivateProver::METADATA,
+105 +             FeePrivateProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:106:35
+    |
+106 |             crate::types::native::parameters::FeePrivateVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::FeePrivateVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::FeePrivateVerifier;
+    |
+17  + use snarkvm_parameters::testnet::FeePrivateVerifier;
+    |
+help: if you import `FeePrivateVerifier`, refer to it directly
+    |
+106 -             crate::types::native::parameters::FeePrivateVerifier::METADATA,
+106 +             FeePrivateVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:116:35
+    |
+116 |             crate::types::native::parameters::FeePublicProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::FeePublicProver;
+    |
+17  + use snarkvm_parameters::mainnet::FeePublicProver;
+    |
+17  + use snarkvm_parameters::testnet::FeePublicProver;
+    |
+help: if you import `FeePublicProver`, refer to it directly
+    |
+116 -             crate::types::native::parameters::FeePublicProver::METADATA,
+116 +             FeePublicProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:117:35
+    |
+117 |             crate::types::native::parameters::FeePublicVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::FeePublicVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::FeePublicVerifier;
+    |
+17  + use snarkvm_parameters::testnet::FeePublicVerifier;
+    |
+help: if you import `FeePublicVerifier`, refer to it directly
+    |
+117 -             crate::types::native::parameters::FeePublicVerifier::METADATA,
+117 +             FeePublicVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:127:35
+    |
+127 |             crate::types::native::parameters::InclusionProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::InclusionProver;
+    |
+17  + use snarkvm_parameters::mainnet::InclusionProver;
+    |
+17  + use snarkvm_parameters::testnet::InclusionProver;
+    |
+help: if you import `InclusionProver`, refer to it directly
+    |
+127 -             crate::types::native::parameters::InclusionProver::METADATA,
+127 +             InclusionProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:128:35
+    |
+128 |             crate::types::native::parameters::InclusionVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::InclusionVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::InclusionVerifier;
+    |
+17  + use snarkvm_parameters::testnet::InclusionVerifier;
+    |
+help: if you import `InclusionVerifier`, refer to it directly
+    |
+128 -             crate::types::native::parameters::InclusionVerifier::METADATA,
+128 +             InclusionVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:138:35
+    |
+138 |             crate::types::native::parameters::JoinProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::JoinProver;
+    |
+17  + use snarkvm_parameters::mainnet::JoinProver;
+    |
+17  + use snarkvm_parameters::testnet::JoinProver;
+    |
+help: if you import `JoinProver`, refer to it directly
+    |
+138 -             crate::types::native::parameters::JoinProver::METADATA,
+138 +             JoinProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:139:35
+    |
+139 |             crate::types::native::parameters::JoinVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::JoinVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::JoinVerifier;
+    |
+17  + use snarkvm_parameters::testnet::JoinVerifier;
+    |
+help: if you import `JoinVerifier`, refer to it directly
+    |
+139 -             crate::types::native::parameters::JoinVerifier::METADATA,
+139 +             JoinVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:149:35
+    |
+149 |             crate::types::native::parameters::SetValidatorStateProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::SetValidatorStateProver;
+    |
+17  + use snarkvm_parameters::mainnet::SetValidatorStateProver;
+    |
+17  + use snarkvm_parameters::testnet::SetValidatorStateProver;
+    |
+help: if you import `SetValidatorStateProver`, refer to it directly
+    |
+149 -             crate::types::native::parameters::SetValidatorStateProver::METADATA,
+149 +             SetValidatorStateProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:150:35
+    |
+150 |             crate::types::native::parameters::SetValidatorStateVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::SetValidatorStateVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::SetValidatorStateVerifier;
+    |
+17  + use snarkvm_parameters::testnet::SetValidatorStateVerifier;
+    |
+help: if you import `SetValidatorStateVerifier`, refer to it directly
+    |
+150 -             crate::types::native::parameters::SetValidatorStateVerifier::METADATA,
+150 +             SetValidatorStateVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:160:35
+    |
+160 |             crate::types::native::parameters::SplitProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::SplitProver;
+    |
+17  + use snarkvm_parameters::mainnet::SplitProver;
+    |
+17  + use snarkvm_parameters::testnet::SplitProver;
+    |
+help: if you import `SplitProver`, refer to it directly
+    |
+160 -             crate::types::native::parameters::SplitProver::METADATA,
+160 +             SplitProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:161:35
+    |
+161 |             crate::types::native::parameters::SplitVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::SplitVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::SplitVerifier;
+    |
+17  + use snarkvm_parameters::testnet::SplitVerifier;
+    |
+help: if you import `SplitVerifier`, refer to it directly
+    |
+161 -             crate::types::native::parameters::SplitVerifier::METADATA,
+161 +             SplitVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:171:35
+    |
+171 |             crate::types::native::parameters::TransferPrivateProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPrivateProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPrivateProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPrivateProver;
+    |
+help: if you import `TransferPrivateProver`, refer to it directly
+    |
+171 -             crate::types::native::parameters::TransferPrivateProver::METADATA,
+171 +             TransferPrivateProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:172:35
+    |
+172 |             crate::types::native::parameters::TransferPrivateVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPrivateVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPrivateVerifier;
+    |
+17  + use snarkvm_parameters::testnet::TransferPrivateVerifier;
+    |
+help: if you import `TransferPrivateVerifier`, refer to it directly
+    |
+172 -             crate::types::native::parameters::TransferPrivateVerifier::METADATA,
+172 +             TransferPrivateVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:182:35
+    |
+182 |             crate::types::native::parameters::TransferPrivateToPublicProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPrivateToPublicProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPrivateToPublicProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPrivateToPublicProver;
+    |
+help: if you import `TransferPrivateToPublicProver`, refer to it directly
+    |
+182 -             crate::types::native::parameters::TransferPrivateToPublicProver::METADATA,
+182 +             TransferPrivateToPublicProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:183:35
+    |
+183 |             crate::types::native::parameters::TransferPrivateToPublicVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPrivateToPublicVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPrivateToPublicVerifier;
+    |
+17  + use snarkvm_parameters::testnet::TransferPrivateToPublicVerifier;
+    |
+help: if you import `TransferPrivateToPublicVerifier`, refer to it directly
+    |
+183 -             crate::types::native::parameters::TransferPrivateToPublicVerifier::METADATA,
+183 +             TransferPrivateToPublicVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:193:35
+    |
+193 |             crate::types::native::parameters::TransferPublicProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPublicProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPublicProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPublicProver;
+    |
+help: if you import `TransferPublicProver`, refer to it directly
+    |
+193 -             crate::types::native::parameters::TransferPublicProver::METADATA,
+193 +             TransferPublicProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:194:35
+    |
+194 |             crate::types::native::parameters::TransferPublicVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPublicVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPublicVerifier;
+    |
+17  + use snarkvm_parameters::testnet::TransferPublicVerifier;
+    |
+help: if you import `TransferPublicVerifier`, refer to it directly
+    |
+194 -             crate::types::native::parameters::TransferPublicVerifier::METADATA,
+194 +             TransferPublicVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:204:35
+    |
+204 |             crate::types::native::parameters::TransferPublicAsSignerProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPublicAsSignerProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPublicAsSignerProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPublicAsSignerProver;
+    |
+help: if you import `TransferPublicAsSignerProver`, refer to it directly
+    |
+204 -             crate::types::native::parameters::TransferPublicAsSignerProver::METADATA,
+204 +             TransferPublicAsSignerProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:205:35
+    |
+205 |             crate::types::native::parameters::TransferPublicAsSignerVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPublicAsSignerVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPublicAsSignerVerifier;
+    |
+17  + use snarkvm_parameters::testnet::TransferPublicAsSignerVerifier;
+    |
+help: if you import `TransferPublicAsSignerVerifier`, refer to it directly
+    |
+205 -             crate::types::native::parameters::TransferPublicAsSignerVerifier::METADATA,
+205 +             TransferPublicAsSignerVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:215:35
+    |
+215 |             crate::types::native::parameters::TransferPublicToPrivateProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPublicToPrivateProver;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPublicToPrivateProver;
+    |
+17  + use snarkvm_parameters::testnet::TransferPublicToPrivateProver;
+    |
+help: if you import `TransferPublicToPrivateProver`, refer to it directly
+    |
+215 -             crate::types::native::parameters::TransferPublicToPrivateProver::METADATA,
+215 +             TransferPublicToPrivateProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:216:35
+    |
+216 |             crate::types::native::parameters::TransferPublicToPrivateVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::TransferPublicToPrivateVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::TransferPublicToPrivateVerifier;
+    |
+17  + use snarkvm_parameters::testnet::TransferPublicToPrivateVerifier;
+    |
+help: if you import `TransferPublicToPrivateVerifier`, refer to it directly
+    |
+216 -             crate::types::native::parameters::TransferPublicToPrivateVerifier::METADATA,
+216 +             TransferPublicToPrivateVerifier::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:226:35
+    |
+226 |             crate::types::native::parameters::UnbondPublicProver::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::UnbondPublicProver;
+    |
+17  + use snarkvm_parameters::mainnet::UnbondPublicProver;
+    |
+17  + use snarkvm_parameters::testnet::UnbondPublicProver;
+    |
+help: if you import `UnbondPublicProver`, refer to it directly
+    |
+226 -             crate::types::native::parameters::UnbondPublicProver::METADATA,
+226 +             UnbondPublicProver::METADATA,
+    |
+
+error[E0433]: failed to resolve: could not find `parameters` in `native`
+   --> src/programs/verifying_key/metadata.rs:227:35
+    |
+227 |             crate::types::native::parameters::UnbondPublicVerifier::METADATA,
+    |                                   ^^^^^^^^^^ could not find `parameters` in `native`
+    |
+help: consider importing one of these structs
+    |
+17  + use snarkvm_parameters::canary::UnbondPublicVerifier;
+    |
+17  + use snarkvm_parameters::mainnet::UnbondPublicVerifier;
+    |
+17  + use snarkvm_parameters::testnet::UnbondPublicVerifier;
+    |
+help: if you import `UnbondPublicVerifier`, refer to it directly
+    |
+227 -             crate::types::native::parameters::UnbondPublicVerifier::METADATA,
+227 +             UnbondPublicVerifier::METADATA,
+    |
+
+error[E0412]: cannot find type `IndexMap` in this scope
+  --> src/record/record_plaintext.rs:55:36
+   |
+55 |     pub fn new(owner: Owner, data: IndexMap, nonce: Group) -> Result<Self, String> {
+   |                                    ^^^^^^^^ not found in this scope
+   |
+help: consider importing this struct
+   |
+17 + use indexmap::IndexMap;
+   |
+
+error[E0412]: cannot find type `Group` in this scope
+  --> src/record/record_plaintext.rs:55:53
+   |
+55 |     pub fn new(owner: Owner, data: IndexMap, nonce: Group) -> Result<Self, String> {
+   |                                                     ^^^^^ not found in this scope
+   |
+help: consider importing one of these structs
+   |
+17 + use crate::Group;
+   |
+17 + use crate::native::Group;
+   |
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:57:34
+   |
+57 | pub type AddressNative = Address<CurrentNetwork>;
+   |                                  ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+57 | pub type AddressNative<CurrentNetwork> = Address<CurrentNetwork>;
+   |                       ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:58:40
+   |
+58 | pub type ComputeKeyNative = ComputeKey<CurrentNetwork>;
+   |                                        ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+58 | pub type ComputeKeyNative<CurrentNetwork> = ComputeKey<CurrentNetwork>;
+   |                          ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:59:36
+   |
+59 | pub type GraphKeyNative = GraphKey<CurrentNetwork>;
+   |                                    ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+59 | pub type GraphKeyNative<CurrentNetwork> = GraphKey<CurrentNetwork>;
+   |                        ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:60:40
+   |
+60 | pub type PrivateKeyNative = PrivateKey<CurrentNetwork>;
+   |                                        ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+60 | pub type PrivateKeyNative<CurrentNetwork> = PrivateKey<CurrentNetwork>;
+   |                          ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:61:38
+   |
+61 | pub type SignatureNative = Signature<CurrentNetwork>;
+   |                                      ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+61 | pub type SignatureNative<CurrentNetwork> = Signature<CurrentNetwork>;
+   |                         ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:62:34
+   |
+62 | pub type ViewKeyNative = ViewKey<CurrentNetwork>;
+   |                                  ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+62 | pub type ViewKeyNative<CurrentNetwork> = ViewKey<CurrentNetwork>;
+   |                       ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:65:30
+   |
+65 | pub type FieldNative = Field<CurrentNetwork>;
+   |                              ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+65 | pub type FieldNative<CurrentNetwork> = Field<CurrentNetwork>;
+   |                     ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:66:30
+   |
+66 | pub type GroupNative = Group<CurrentNetwork>;
+   |                              ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+66 | pub type GroupNative<CurrentNetwork> = Group<CurrentNetwork>;
+   |                     ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:67:32
+   |
+67 | pub type ScalarNative = Scalar<CurrentNetwork>;
+   |                                ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+67 | pub type ScalarNative<CurrentNetwork> = Scalar<CurrentNetwork>;
+   |                      ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:68:26
+   |
+68 | pub type U64Native = U64<CurrentNetwork>;
+   |                          ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+68 | pub type U64Native<CurrentNetwork> = U64<CurrentNetwork>;
+   |                   ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:71:32
+   |
+71 | pub type BHP256Native = BHP256<CurrentNetwork>;
+   |                                ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+71 | pub type BHP256Native<CurrentNetwork> = BHP256<CurrentNetwork>;
+   |                      ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:72:32
+   |
+72 | pub type BHP512Native = BHP512<CurrentNetwork>;
+   |                                ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+72 | pub type BHP512Native<CurrentNetwork> = BHP512<CurrentNetwork>;
+   |                      ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:73:32
+   |
+73 | pub type BHP768Native = BHP768<CurrentNetwork>;
+   |                                ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+73 | pub type BHP768Native<CurrentNetwork> = BHP768<CurrentNetwork>;
+   |                      ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:74:34
+   |
+74 | pub type BHP1024Native = BHP1024<CurrentNetwork>;
+   |                                  ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+74 | pub type BHP1024Native<CurrentNetwork> = BHP1024<CurrentNetwork>;
+   |                       ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:75:40
+   |
+75 | pub type Pedersen64Native = Pedersen64<CurrentNetwork>;
+   |                                        ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+75 | pub type Pedersen64Native<CurrentNetwork> = Pedersen64<CurrentNetwork>;
+   |                          ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:76:42
+   |
+76 | pub type Pedersen128Native = Pedersen128<CurrentNetwork>;
+   |                                          ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+76 | pub type Pedersen128Native<CurrentNetwork> = Pedersen128<CurrentNetwork>;
+   |                           ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:77:38
+   |
+77 | pub type Poseidon2Native = Poseidon2<CurrentNetwork>;
+   |                                      ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+77 | pub type Poseidon2Native<CurrentNetwork> = Poseidon2<CurrentNetwork>;
+   |                         ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:78:38
+   |
+78 | pub type Poseidon4Native = Poseidon4<CurrentNetwork>;
+   |                                      ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+78 | pub type Poseidon4Native<CurrentNetwork> = Poseidon4<CurrentNetwork>;
+   |                         ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:79:38
+   |
+79 | pub type Poseidon8Native = Poseidon8<CurrentNetwork>;
+   |                                      ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+79 | pub type Poseidon8Native<CurrentNetwork> = Poseidon8<CurrentNetwork>;
+   |                         ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:82:40
+   |
+82 | pub type CiphertextNative = Ciphertext<CurrentNetwork>;
+   |                                        ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+82 | pub type CiphertextNative<CurrentNetwork> = Ciphertext<CurrentNetwork>;
+   |                          ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:83:30
+   |
+83 | pub type EntryNative = Entry<CurrentNetwork, PlaintextNative>;
+   |                              ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+83 | pub type EntryNative<CurrentNetwork> = Entry<CurrentNetwork, PlaintextNative>;
+   |                     ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:84:42
+   |
+84 | pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
+   |                                          ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+84 | pub type RecordCiphertextNative<CurrentNetwork> = Record<CurrentNetwork, CiphertextNative>;
+   |                                ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:85:41
+   |
+85 | pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
+   |                                         ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+85 | pub type RecordPlaintextNative<CurrentNetwork> = Record<CurrentNetwork, PlaintextNative>;
+   |                               ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:88:36
+   |
+88 | pub type ArgumentNative = Argument<CurrentNetwork>;
+   |                                    ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+88 | pub type ArgumentNative<CurrentNetwork> = Argument<CurrentNetwork>;
+   |                        ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:89:39
+   |
+89 | type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
+   |                                       ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+89 | type CurrentBlockMemory<CurrentNetwork> = BlockMemory<CurrentNetwork>;
+   |                        ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:90:38
+   |
+90 | pub type ExecutionNative = Execution<CurrentNetwork>;
+   |                                      ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+90 | pub type ExecutionNative<CurrentNetwork> = Execution<CurrentNetwork>;
+   |                         ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:91:32
+   |
+91 | pub type FutureNative = Future<CurrentNetwork>;
+   |                                ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+91 | pub type FutureNative<CurrentNetwork> = Future<CurrentNetwork>;
+   |                      ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:92:40
+   |
+92 | pub type IdentifierNative = Identifier<CurrentNetwork>;
+   |                                        ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+92 | pub type IdentifierNative<CurrentNetwork> = Identifier<CurrentNetwork>;
+   |                          ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:93:30
+   |
+93 | pub type InputNative = Input<CurrentNetwork>;
+   |                              ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+93 | pub type InputNative<CurrentNetwork> = Input<CurrentNetwork>;
+   |                     ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:94:34
+   |
+94 | pub type LiteralNative = Literal<CurrentNetwork>;
+   |                                  ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+94 | pub type LiteralNative<CurrentNetwork> = Literal<CurrentNetwork>;
+   |                       ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:95:32
+   |
+95 | pub type OutputNative = Output<CurrentNetwork>;
+   |                                ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+95 | pub type OutputNative<CurrentNetwork> = Output<CurrentNetwork>;
+   |                      ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:96:38
+   |
+96 | pub type PlaintextNative = Plaintext<CurrentNetwork>;
+   |                                      ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+96 | pub type PlaintextNative<CurrentNetwork> = Plaintext<CurrentNetwork>;
+   |                         ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:97:34
+   |
+97 | pub type ProcessNative = Process<CurrentNetwork>;
+   |                                  ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+97 | pub type ProcessNative<CurrentNetwork> = Process<CurrentNetwork>;
+   |                       ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:98:38
+   |
+98 | pub type ProgramIDNative = ProgramID<CurrentNetwork>;
+   |                                      ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+98 | pub type ProgramIDNative<CurrentNetwork> = ProgramID<CurrentNetwork>;
+   |                         ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+  --> src/types/native.rs:99:34
+   |
+99 | pub type ProgramNative = Program<CurrentNetwork>;
+   |                                  ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+99 | pub type ProgramNative<CurrentNetwork> = Program<CurrentNetwork>;
+   |                       ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+   --> src/types/native.rs:100:44
+    |
+100 | pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
+    |                                            ^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+100 | pub type ProgramOwnerNative<CurrentNetwork> = ProgramOwner<CurrentNetwork>;
+    |                            ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+   --> src/types/native.rs:101:40
+    |
+101 | pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
+    |                                        ^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+101 | pub type ProvingKeyNative<CurrentNetwork> = ProvingKey<CurrentNetwork>;
+    |                          ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+   --> src/types/native.rs:102:30
+    |
+102 | pub type QueryNative = Query<CurrentNetwork, CurrentBlockMemory>;
+    |                              ^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+102 | pub type QueryNative<CurrentNetwork> = Query<CurrentNetwork, CurrentBlockMemory>;
+    |                     ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+   --> src/types/native.rs:103:36
+    |
+103 | pub type ResponseNative = Response<CurrentNetwork>;
+    |                                    ^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+103 | pub type ResponseNative<CurrentNetwork> = Response<CurrentNetwork>;
+    |                        ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+   --> src/types/native.rs:104:42
+    |
+104 | pub type TransactionNative = Transaction<CurrentNetwork>;
+    |                                          ^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+104 | pub type TransactionNative<CurrentNetwork> = Transaction<CurrentNetwork>;
+    |                           ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+   --> src/types/native.rs:105:40
+    |
+105 | pub type TransitionNative = Transition<CurrentNetwork>;
+    |                                        ^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+105 | pub type TransitionNative<CurrentNetwork> = Transition<CurrentNetwork>;
+    |                          ++++++++++++++++
+
+error[E0412]: cannot find type `CurrentNetwork` in this scope
+   --> src/types/native.rs:106:44
+    |
+106 | pub type VerifyingKeyNative = VerifyingKey<CurrentNetwork>;
+    |                                            ^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+106 | pub type VerifyingKeyNative<CurrentNetwork> = VerifyingKey<CurrentNetwork>;
+    |                            ++++++++++++++++
+
+warning: unused import: `Network`
+  --> src/account/encryptor.rs:23:5
+   |
+23 |     Network,
+   |     ^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `RecordCiphertextNative`
+  --> src/programs/data/ciphertext.rs:32:9
+   |
+32 |         RecordCiphertextNative,
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `network::Network`
+  --> src/programs/data/ciphertext.rs:38:5
+   |
+38 |     network::Network,
+   |     ^^^^^^^^^^^^^^^^
+
+warning: unused imports: `RecordPlaintextNative` and `Scalar`
+  --> src/programs/decrypt.rs:24:5
+   |
+24 |     Scalar,
+   |     ^^^^^^
+...
+27 |     types::native::{CurrentNetwork, RecordPlaintextNative},
+   |                                     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::str::FromStr`
+  --> src/programs/decrypt.rs:32:5
+   |
+32 | use std::str::FromStr;
+   |     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ProgramID`
+  --> src/programs/execution.rs:28:9
+   |
+28 |         ProgramID,
+   |         ^^^^^^^^^
+
+warning: unused import: `Network`
+  --> src/programs/manager/execute.rs:41:50
+   |
+41 | use snarkvm_console::network::{ConsensusVersion, Network};
+   |                                                  ^^^^^^^
+
+warning: unused import: `Network`
+  --> src/programs/manager/join.rs:40:50
+   |
+40 | use snarkvm_console::prelude::{ConsensusVersion, Network};
+   |                                                  ^^^^^^^
+
+warning: unused import: `Network`
+  --> src/programs/manager/transfer.rs:40:50
+   |
+40 | use snarkvm_console::prelude::{ConsensusVersion, Network};
+   |                                                  ^^^^^^^
+
+warning: unused import: `super::networks::*`
+  --> src/types/native.rs:17:9
+   |
+17 | pub use super::networks::*;
+   |         ^^^^^^^^^^^^^^^^^^
+
