@@ -190,7 +190,7 @@ mod tests {
 }";
     const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
     const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
-    const RECORD_VIEW_KEY: &str = ""; // Needs to be computed
+    const RECORD_VIEW_KEY: &str = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
     const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
 
@@ -244,6 +244,7 @@ mod tests {
         let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
         let record_vk = record.record_view_key(&view_key);
+        
         assert_eq!(record_vk.to_string(), RECORD_VIEW_KEY);
     }
 
