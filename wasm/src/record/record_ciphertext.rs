@@ -14,22 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    Field,
-    GraphKey,
-    Group,
-    RecordPlaintext,
-    ViewKey,
-    decrypt::DecryptionToolBox,
-    js_array_from_fields,
-    to_bits_array_le,
-    types::native::{CurrentNetwork, RecordCiphertextNative},
-};
-use snarkvm_console::prelude::{FromBytes, ToBits, ToBytes, ToFields};
+use crate::{js_array_from_fields, to_bits_array_le, types::native::{CurrentNetwork, RecordCiphertextNative}, Field, GraphKey, Group, RecordPlaintext, ViewKey};
+use snarkvm_console::prelude::{FromBytes, Network, ToBits, ToBytes, ToFields};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
+use crate::utilities::encrypt::EncryptionToolkit;
 
 /// Encrypted Aleo record
 #[wasm_bindgen]
@@ -74,9 +65,8 @@ impl RecordCiphertext {
     ///
     /// @returns {Group} record view key
     #[wasm_bindgen(js_name = "recordViewKey")]
-    pub fn record_view_key(&self, view_key: &ViewKey) -> Group {
-        let record_nonce = self.0.nonce();
-        record_nonce * **view_key
+    pub fn record_view_key(&self, view_key: &ViewKey) -> Field {
+        self.nonce().scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
     }
 
     /// Determines if the account corresponding to the view key is the owner of the record
@@ -134,14 +124,16 @@ impl RecordCiphertext {
 
     /// Decrypt the record ciphertext into plaintext using a record view key
     #[wasm_bindgen(js_name = "decryptWithRecordViewKey")]
-    pub fn decrypt_with_record_view_key(&self, record_vk: Group) -> Result<RecordPlaintext, String> {
-        let num_randomizers = DecryptionToolBox::num_randomizers(*self);
+    pub fn decrypt_with_record_view_key(&self, record_vk: Field) -> Result<RecordPlaintext, String> {
+        let num_randomizers = EncryptionToolkit::num_record_randomizers(self)?;
         let randomizers =
             CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
-
-        let record_plaintext = DecryptionToolBox::decrypt_with_randomizers(*self, &randomizers);
-
-        Ok(record_plaintext)
+        EncryptionToolkit::decrypt_with_randomizers(self, &randomizers)
+    }
+    
+    /// Get the record nonce.
+    pub fn nonce(&self) -> Group {
+        Group::from(self.0.nonce())
     }
 }
 

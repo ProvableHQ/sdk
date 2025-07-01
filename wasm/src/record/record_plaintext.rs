@@ -27,7 +27,7 @@ use crate::{
         Field,
         native::{
             CurrentNetwork,
-            EntryNative,
+            PlaintextEntryNative,
             IdentifierNative,
             PlaintextNative,
             ProgramIDNative,
@@ -52,16 +52,9 @@ pub struct RecordPlaintext(RecordPlaintextNative);
 
 #[wasm_bindgen]
 impl RecordPlaintext {
-    pub fn new(owner: Owner, data: IndexMap, nonce: Group) -> Result<Self, String> {
-        let owner_native = Owner::<CurrentNetwork, PlaintextNative>::Public(owner.into());
-        let record = RecordPlaintextNative::from_plaintext(owner_native, data, nonce)
-            .map_err(|e| e.to_string())?;
-        Ok(Self(record))
-    }
-    
     pub fn commitment(&self, program_id: &str, record_name: &str) -> Result<Field, String> {
         Ok(Field::from(
-            self.to_commitment(
+            self.0.to_commitment(
                 &ProgramIDNative::from_str(program_id)
                     .map_err(|_| format!("{program_id} is an invalid program name"))?,
                 &IdentifierNative::from_str(record_name)
@@ -89,9 +82,9 @@ impl RecordPlaintext {
             .context("Record member not found")
             .map_err(|e| e.to_string())?;
         let entry = match entry {
-            EntryNative::Public(entry) => entry,
-            EntryNative::Constant(entry) => entry,
-            EntryNative::Private(entry) => entry,
+            PlaintextEntryNative::Public(entry) => entry,
+            PlaintextEntryNative::Constant(entry) => entry,
+            PlaintextEntryNative::Private(entry) => entry,
         };
         Ok(Plaintext::from(entry.clone()))
     }

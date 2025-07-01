@@ -18,3 +18,6 @@ mod array;
 mod bits;
 #[cfg(test)]
 pub mod test;
+
+pub mod encrypt;
+pub use encrypt::EncryptionToolkit;

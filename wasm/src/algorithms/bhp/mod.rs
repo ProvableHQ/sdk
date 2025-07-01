@@ -37,7 +37,7 @@ mod tests {
         Scalar,
         Signature,
         native::{FieldNative, GroupNative, LiteralNative, PlaintextNative, ScalarNative, SignatureNative},
-        test::{TEST_STRUCT, create_native_field_vector},
+        utilities::test::{TEST_STRUCT, create_native_field_vector},
         types::native::{BHP256Native, BHP512Native, BHP768Native, BHP1024Native},
     };
     use snarkvm_console::algorithms::{Commit, CommitUncompressed, Hash, HashUncompressed, ToBits};

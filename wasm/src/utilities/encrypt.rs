@@ -14,75 +14,87 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::*;
 
 use crate::{
     Field,
     Group,
     RecordCiphertext,
     RecordPlaintext,
-    Scalar,
     Transition,
     ViewKey,
-    types::native::{CurrentNetwork, RecordPlaintextNative},
+    types::native::{CurrentNetwork, CiphertextEntryNative, RecordPlaintextNative, PlaintextEntryNative, FieldNative, PlaintextNative},
 };
+use snarkvm_console::prelude::{FromFields, Itertools, Network, Visibility};
 
-use snarkvm_console::{program::compute_function_id, types::U16};
-use snarkvm_ledger_block::{Input, Output};
-use std::str::FromStr;
+use indexmap::IndexMap;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]
-pub struct DecryptionToolBox {}
+#[derive(Clone)]
+pub struct EncryptionToolkit;
 
 #[wasm_bindgen]
-impl DecryptToolBox {
+impl EncryptionToolkit {
+    /// Returns the number of field elements required to decrypt an Entry
+    pub(crate) fn num_entry_randomizers(entry: &CiphertextEntryNative) -> Result<u16, String> {
+        match entry {
+            // Constant and public entries do not need to be encrypted.
+            CiphertextEntryNative::Constant(..) | CiphertextEntryNative::Public(..) => Ok(0u16),
+            // Private entries need one randomizer per field element.
+            CiphertextEntryNative::Private(private) => private.size_in_fields().map_err(|_| "Private entry has invalid size".to_string()),
+        }
+    }
+    
     /// Returns the number of field elements required to decrypt a record.
-    pub(crate) fn num_randomizers(record: &RecordCiphertext) -> Result<u16, String> {
+    pub(crate) fn num_record_randomizers(record: &RecordCiphertext) -> Result<u16, String> {
         // Initialize an tracker for the number of randomizers.
         let mut num_randomizers: u16 = 0;
 
+        let record_native = &**record;
+
         // If the owner is private, increment the number of randomizers by 1.
-        if **record.owner().is_private() {
+        if record_native.owner().is_private() {
             num_randomizers += 1;
         }
 
         // Increment the number of randomizers by the number of data randomizers.
-        for (_, entry) in **record.data().iter() {
+        for (_, entry) in record_native.data().iter() {
             num_randomizers = num_randomizers
-                .checked_add(entry.num_randomizers()?)
-                .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
+                .checked_add(Self::num_entry_randomizers(&entry)?)
+                .ok_or_else(|| "Number of randomizers exceeds maximum allowed size.".to_string())?;
         }
 
         // Ensure the number of randomizers does not exceed the maximum allowed size.
         match num_randomizers as u32 <= CurrentNetwork::MAX_DATA_SIZE_IN_FIELDS {
             true => Ok(num_randomizers),
-            false => bail!("Number of randomizers exceeds the maximum allowed size."),
+            false => Err("Number of randomizers exceeds the maximum allowed size.".to_string()),
         }
     }
 
     /// Decrypts a record ciphertext using the provided randomizers.
     pub(crate) fn decrypt_with_randomizers(
         record: &RecordCiphertext,
-        randomizers: &[Field],
+        randomizers: &[FieldNative],
     ) -> Result<RecordPlaintext, String> {
         // Initialize an index to keep track of the randomizer index.
         let mut index: usize = 0;
 
+        let record_native = &**record;
+
         // Decrypt the owner.
-        let owner = match **record.owner().is_public() {
-            true => **record.owner().decrypt_with_randomizer(&[])?,
-            false => **record.owner().decrypt_with_randomizer(&[randomizers[index]])?,
+        let owner = match record_native.owner().is_public() {
+            true => record_native.owner().decrypt_with_randomizer(&[]).map_err(|e| e.to_string())?,
+            false => record_native.owner().decrypt_with_randomizer(&[randomizers[index]]).map_err(|e| e.to_string())?,
         };
 
         // Increment the index if the owner is private.
-        if **record.owner().is_private() {
+        if record_native.owner().is_private() {
             index += 1;
         }
 
         // Decrypt the program data.
-        let mut decrypted_data = IndexMap::with_capacity(record.data().len());
-        for (id, entry, num_randomizers) in **record.data().iter().map(|(id, entry)| (id, entry, entry.num_randomizers()))
+        let mut decrypted_data = IndexMap::with_capacity(record_native.data().len());
+        for (id, entry, num_randomizers) in record_native.data().iter().map(|(id, entry)| (id, entry, Self::num_entry_randomizers(&entry)))
         {
             // Retrieve the result for `num_randomizers`.
             let num_randomizers = num_randomizers? as usize;
@@ -91,31 +103,31 @@ impl DecryptToolBox {
             // Decrypt the entry.
             let entry = match entry {
                 // Constant entries do not need to be decrypted.
-                Entry::Constant(plaintext) => Entry::Constant(plaintext.clone()),
+                CiphertextEntryNative::Constant(plaintext) => PlaintextEntryNative::Constant(plaintext.clone()),
                 // Public entries do not need to be decrypted.
-                Entry::Public(plaintext) => Entry::Public(plaintext.clone()),
+                CiphertextEntryNative::Public(plaintext) => PlaintextEntryNative::Public(plaintext.clone()),
                 // Private entries are decrypted with the given randomizers.
-                Entry::Private(private) => Entry::Private(Plaintext::from_fields(
+                CiphertextEntryNative::Private(private) => PlaintextEntryNative::Private(PlaintextNative::from_fields(
                     &private
                         .iter()
                         .zip_eq(randomizers)
                         .map(|(ciphertext, randomizer)| *ciphertext - randomizer)
                         .collect::<Vec<_>>(),
-                )?),
+                ).map_err(|e| e.to_string())?),
             };
             // Insert the decrypted entry.
             if decrypted_data.insert(*id, entry).is_some() {
-                bail!("Duplicate identifier in record: {}", id);
+                return Err(format!("Duplicate identifier in record: {}", id));
             }
             // Increment the index.
             index += num_randomizers;
         }
 
         // Return the decrypted record.
-        let decrypted_record = RecordPlaintext::new(owner, decrypted_data, **record.nonce())
+        let decrypted_record = RecordPlaintextNative::from_plaintext(owner, decrypted_data, *record_native.nonce())
             .map_err(|e| e.to_string())?;
 
-        Ok(decrypted_record)
+        Ok(RecordPlaintext::from(decrypted_record))
     }
 
     #[wasm_bindgen(js_name = "generateTvk")]
@@ -126,9 +138,9 @@ impl DecryptToolBox {
     /// Creates a record view key from the view key.  This method is intended to be used
     /// by the record owner to enable decryption of a select record by a third party.
     #[wasm_bindgen(js_name = "generateRecordVk")]
-    pub fn generate_record_vk(view_key: &ViewKey, record: &RecordCiphertext) -> Result<Group, String> {
-        let record_nonce = **record_ciphertext.nonce();
-        Ok(record_nonce * **view_key)
+    pub fn generate_record_vk(view_key: &ViewKey, record_ciphertext: &RecordCiphertext) -> Result<Field, String> {
+        let record_nonce = record_ciphertext.nonce();
+        Ok(record_nonce.scalar_multiply(&view_key.to_scalar()).to_x_coordinate())
     }
 
     /// Decrypts a record ciphertext using the record view key.  Decryption only succeeds
@@ -136,14 +148,14 @@ impl DecryptToolBox {
     #[wasm_bindgen(js_name = "decryptRecordWithRVk")]
     pub fn decrypt_record_symmetric_unchecked(
         record_vk: &Field,
-        record: &RecordCiphertext,
+        record_ciphertext: &RecordCiphertext,
     ) -> Result<RecordPlaintext, String> {
-        let num_randomizers = DecryptionToolBox::num_randomizers(record_ciphertext)
+        let num_randomizers = EncryptionToolkit::num_record_randomizers(record_ciphertext)
             .map_err(|_| "Failed to get the number of randomizers from the record ciphertext".to_string())?;
         let randomizers =
-            CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
+            CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), **record_vk], num_randomizers);
 
-        let record_plaintext = DecryptionToolBox::decrypt_with_randomizers(record, &randomizers);
+        let record_plaintext = EncryptionToolkit::decrypt_with_randomizers(record_ciphertext, &randomizers)?;
 
         Ok(record_plaintext)
     }
@@ -152,64 +164,7 @@ impl DecryptToolBox {
     /// can only be decrypted if the transition view key was generated by the transaction signer.
     #[wasm_bindgen(js_name = "decryptTransitionWithVk")]
     pub fn decrypt_transition_with_vk(transition: &Transition, transition_vk: &Field) -> Result<Transition, String> {
-        let function_id = compute_function_id(
-            &U16::<CurrentNetwork>::new(CurrentNetwork::ID),
-            transition.program_id(),
-            transition.function_name(),
-        )
-        .map_err(|e| e.to_string())?;
-
-        let mut decrypted_inputs: Vec<Input<CurrentNetwork>> = vec![];
-        let mut decrypted_outputs: Vec<Output<CurrentNetwork>> = vec![];
-
-        for (index, input) in transition.inputs().iter().enumerate() {
-            if let Input::Private(id, ciphertext_option) = input {
-                if let Some(ciphertext) = ciphertext_option {
-                    let index_field =
-                        Field::from(u16::try_from(index).map_err(|_| "Index out of bounds for input".to_string())?);
-                    let input_view_key = CurrentNetwork::hash_psd4(&[function_id, transition_vk, index_field])
-                        .map_err(|_| "Could not create input view key".to_string())?;
-                    let plaintext = ciphertext.decrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
-                    decrypted_inputs.push(Input::Public(transition.id(), Some(plaintext)));
-                } else {
-                    decrypted_inputs.push(input.clone());
-                }
-            } else {
-                decrypted_inputs.push(input.clone());
-            }
-        }
-
-        let num_inputs = transition.inputs().len();
-        for (index, output) in transition.outputs().iter().enumerate() {
-            if let Output::Private(id, ciphertext_option) = output {
-                if let Some(ciphertext) = ciphertext_option {
-                    let index_field = Field::from(
-                        u16::try_from(num_inputs + index).map_err(|_| "Index out of bounds for output".to_string())?,
-                    );
-                    let output_view_key = CurrentNetwork::hash_psd4(&[function_id, transition_vk, index_field])
-                        .map_err(|_| "Could not create output view key".to_string())?;
-                    let plaintext = ciphertext.decrypt_symmetric(output_view_key).map_err(|e| e.to_string())?;
-                    decrypted_outputs.push(Output::Public(transition.id(), Some(plaintext)));
-                } else {
-                    decrypted_outputs.push(output.clone());
-                }
-            } else {
-                decrypted_outputs.push(output.clone());
-            }
-        }
-
-        let decrypted_transition = Transition::new(
-            &transition.program_id(),
-            &transition.function_name(),
-            decrypted_inputs,
-            decrypted_outputs,
-            transition.tpk(),
-            transition.tcm(),
-            transition.scm(),
-        )
-        .map_err(|e| e.to_string())?;
-
-        Ok(decrypted_transition)
+        transition.decrypt_transition(transition_vk)
     }
 }
 
@@ -217,6 +172,7 @@ impl DecryptToolBox {
 mod tests {
     use super::*;
 
+    use std::str::FromStr;
     use wasm_bindgen_test::wasm_bindgen_test;
 
     const OWNER_PLAINTEXT: &str = r"{
@@ -231,21 +187,18 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_decrypt_record_symmetric() {
+        let owner_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
         let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
         let non_owner_view_key = ViewKey::from_str(NON_OWNER_VIEW_KEY).unwrap();
         let record_plaintext_expected = RecordPlaintext::from_str(OWNER_PLAINTEXT).unwrap();
 
         // Generate the record view key
-        let record_vk = DecryptionToolBox::generate_record_vk(OWNER_VIEW_KEY, OWNER_PLAINTEXT).unwrap();
+        let record_vk = EncryptionToolkit::generate_record_vk(&owner_view_key, &owner_ciphertext).unwrap();
 
         // Decrypt with the owner's view key
         let record_plaintext_decrypted =
-            DecryptionToolBox::decrypt_record_symmetric_unchecked(record_vk, OWNER_CIPHERTEXT);
+            EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, &owner_ciphertext)
+                .unwrap();
         assert_eq!(record_plaintext_decrypted.to_string(), OWNER_PLAINTEXT);
-    }
-
-    #[wasm_bindgen_test]
-    fn test_decrypt_transition_with_vk() {
-        // TODO: Implement this test
     }
 }

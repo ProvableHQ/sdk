@@ -29,7 +29,6 @@ use crate::{
         FromBytes,
         IdentifierNative,
         ProgramIDNative,
-        RecordCiphertextNative,
         ToBytes,
     },
     to_bits_array_le,
