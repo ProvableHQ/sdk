@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-
 use crate::{
     Field,
     Group,
@@ -22,7 +21,14 @@ use crate::{
     RecordPlaintext,
     Transition,
     ViewKey,
-    types::native::{CurrentNetwork, CiphertextEntryNative, RecordPlaintextNative, PlaintextEntryNative, FieldNative, PlaintextNative},
+    types::native::{
+        CiphertextEntryNative,
+        CurrentNetwork,
+        FieldNative,
+        PlaintextEntryNative,
+        PlaintextNative,
+        RecordPlaintextNative,
+    },
 };
 use snarkvm_console::prelude::{FromFields, Itertools, Network, Visibility};
 
@@ -41,10 +47,12 @@ impl EncryptionToolkit {
             // Constant and public entries do not need to be encrypted.
             CiphertextEntryNative::Constant(..) | CiphertextEntryNative::Public(..) => Ok(0u16),
             // Private entries need one randomizer per field element.
-            CiphertextEntryNative::Private(private) => private.size_in_fields().map_err(|_| "Private entry has invalid size".to_string()),
+            CiphertextEntryNative::Private(private) => {
+                private.size_in_fields().map_err(|_| "Private entry has invalid size".to_string())
+            }
         }
     }
-    
+
     /// Returns the number of field elements required to decrypt a record.
     pub(crate) fn num_record_randomizers(record: &RecordCiphertext) -> Result<u16, String> {
         // Initialize an tracker for the number of randomizers.
@@ -94,7 +102,8 @@ impl EncryptionToolkit {
 
         // Decrypt the program data.
         let mut decrypted_data = IndexMap::with_capacity(record_native.data().len());
-        for (id, entry, num_randomizers) in record_native.data().iter().map(|(id, entry)| (id, entry, Self::num_entry_randomizers(&entry)))
+        for (id, entry, num_randomizers) in
+            record_native.data().iter().map(|(id, entry)| (id, entry, Self::num_entry_randomizers(&entry)))
         {
             // Retrieve the result for `num_randomizers`.
             let num_randomizers = num_randomizers? as usize;
@@ -107,13 +116,16 @@ impl EncryptionToolkit {
                 // Public entries do not need to be decrypted.
                 CiphertextEntryNative::Public(plaintext) => PlaintextEntryNative::Public(plaintext.clone()),
                 // Private entries are decrypted with the given randomizers.
-                CiphertextEntryNative::Private(private) => PlaintextEntryNative::Private(PlaintextNative::from_fields(
-                    &private
-                        .iter()
-                        .zip_eq(randomizers)
-                        .map(|(ciphertext, randomizer)| *ciphertext - randomizer)
-                        .collect::<Vec<_>>(),
-                ).map_err(|e| e.to_string())?),
+                CiphertextEntryNative::Private(private) => PlaintextEntryNative::Private(
+                    PlaintextNative::from_fields(
+                        &private
+                            .iter()
+                            .zip_eq(randomizers)
+                            .map(|(ciphertext, randomizer)| *ciphertext - randomizer)
+                            .collect::<Vec<_>>(),
+                    )
+                    .map_err(|e| e.to_string())?,
+                ),
             };
             // Insert the decrypted entry.
             if decrypted_data.insert(*id, entry).is_some() {
@@ -189,16 +201,26 @@ mod tests {
     fn test_decrypt_record_symmetric() {
         let owner_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
         let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
-        let non_owner_view_key = ViewKey::from_str(NON_OWNER_VIEW_KEY).unwrap();
-        let record_plaintext_expected = RecordPlaintext::from_str(OWNER_PLAINTEXT).unwrap();
 
         // Generate the record view key
         let record_vk = EncryptionToolkit::generate_record_vk(&owner_view_key, &owner_ciphertext).unwrap();
 
         // Decrypt with the owner's view key
         let record_plaintext_decrypted =
-            EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, &owner_ciphertext)
-                .unwrap();
+            EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, &owner_ciphertext).unwrap();
         assert_eq!(record_plaintext_decrypted.to_string(), OWNER_PLAINTEXT);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_decrypt_record_with_wrong_rvk() {
+        let owner_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
+        let non_owner_view_key = ViewKey::from_str(NON_OWNER_VIEW_KEY).unwrap();
+
+        // Generate the record view key with a non-owner view key
+        let record_vk = EncryptionToolkit::generate_record_vk(&non_owner_view_key, &owner_ciphertext).unwrap();
+
+        // Attempt to decrypt with the non-owner's view key
+        let result = EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, &owner_ciphertext);
+        assert!(result.is_err(), "Decryption should fail with a non-owner's view key");
     }
 }

@@ -22,15 +22,7 @@ use crate::{
     from_js_typed_array,
     from_wasm_object_array,
     js_array_from_fields,
-    native::{
-        CiphertextNative,
-        CurrentNetwork,
-        FieldNative,
-        FromBytes,
-        IdentifierNative,
-        ProgramIDNative,
-        ToBytes,
-    },
+    native::{CiphertextNative, CurrentNetwork, FieldNative, FromBytes, IdentifierNative, ProgramIDNative, ToBytes},
     to_bits_array_le,
 };
 use snarkvm_console::{

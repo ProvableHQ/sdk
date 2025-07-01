@@ -36,7 +36,7 @@ pub use snarkvm_console::{
         Response,
         ValueType,
     },
-    types::{Field, Group, Scalar, U64, U16},
+    types::{Field, Group, Scalar, U16, U64},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
 pub use snarkvm_ledger_query::Query;

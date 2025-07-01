@@ -23,16 +23,12 @@ use crate::{
     input_to_js_value,
     object,
     output_to_js_value,
-    types::native::{
-        CurrentNetwork,
-        FieldNative,
-        InputNative,
-        OutputNative,
-        TransitionNative,
-        U16Native,
-    },
+    types::native::{CurrentNetwork, FieldNative, InputNative, OutputNative, TransitionNative, U16Native},
 };
-use snarkvm_console::{program::compute_function_id, prelude::{FromBytes, ToBytes, Network}};
+use snarkvm_console::{
+    prelude::{FromBytes, Network, ToBytes},
+    program::compute_function_id,
+};
 
 use js_sys::{Array, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -206,12 +202,9 @@ impl Transition {
     /// Decrypt the transition using the transition view key.
     #[wasm_bindgen(js_name = decryptTransition)]
     pub fn decrypt_transition(&self, tvk: &Field) -> Result<Self, String> {
-        let function_id = compute_function_id(
-            &U16Native::new(CurrentNetwork::ID),
-            self.0.program_id(),
-            self.0.function_name(),
-        )
-            .map_err(|e| e.to_string())?;
+        let function_id =
+            compute_function_id(&U16Native::new(CurrentNetwork::ID), self.0.program_id(), self.0.function_name())
+                .map_err(|e| e.to_string())?;
 
         let mut decrypted_inputs = Vec::with_capacity(self.0.inputs().len());
 
@@ -245,16 +238,18 @@ impl Transition {
             });
         }
 
-        Ok(Self(TransitionNative::new(
-            *self.0.program_id(),
-            *self.0.function_name(),
-            decrypted_inputs,
-            decrypted_outputs,
-            *self.0.tpk(),
-            *self.0.tcm(),
-            *self.0.scm(),
-        )
-            .expect("failed to construct decrypted transition")))
+        Ok(Self(
+            TransitionNative::new(
+                *self.0.program_id(),
+                *self.0.function_name(),
+                decrypted_inputs,
+                decrypted_outputs,
+                *self.0.tpk(),
+                *self.0.tcm(),
+                *self.0.scm(),
+            )
+            .expect("failed to construct decrypted transition"),
+        ))
     }
 }
 
@@ -316,8 +311,10 @@ mod tests {
         "3771264214823666953346974490700157125043441681812666085949968314967709800215field";
     pub const TRANSITION: &str = r#"{"id":"au1naeu56spz0x0zct003sa8qgpzndy6nxj8rrcm7n0fehy9llcl5yscflt0k","program":"token_registry.aleo","function":"burn_private","inputs":[{"type":"record","id":"4569194627311410524427044648350523511369013276760031398859310110870190258038field","tag":"4584393733726099907383249165298083023636530416018938077800083356406243497342field"},{"type":"public","id":"4155661860779318196369465902681808025430867777096367712868886959018716227815field","value":"2853086u128"}],"outputs":[{"type":"record","id":"3771264214823666953346974490700157125043441681812666085949968314967709800215field","checksum":"17461704767783030875142836237730678349755524657182224909428747180538982740field","value":"record1qyqspwnlv6gfxx05yj7aw7z2dl44gyh06jrvgf42jux0dep33cy7jlsvqsrxzmt0w4h8ggcqqgqsqwdwr889h9fhnyclazs8yt26t6r5ua4qk7yksj7p40rz9846mzgrpp6x76m9de0kjezrqqpqyq9sj8x3qdmz6nal4j470a0wwcray54lffe3ya5u2zlpeq45lg4up3na8gul0vgrn3eced6dka4ax2ja85xzds4pmqf8csrn8ku5cv3qz8m90p6x2unwv9k97ct4w35x7unf0fshg6t0de0hyet3w45hyetyyvqqyqgq8djhghnte2w86qsdjaumy4zcux2fxszm3ej2956af8cpl2w95g9pqct4w35x7unf0fjkghm4de6xjmprqqpqzqxd6c782j0ny65ed2ckzp3vlx7cv8drslasq8kqpdzmjeyzal38qemw38x0axnz5t53fj6ttavh8l4jlfjdryc6mesd4w6uvpmzfsqqjvtu0xd"},{"type":"future","id":"2177527202823505610844479366424698260670813913152550670302738921219693374616field","value":"{\n  program_id: token_registry.aleo,\n  function_name: burn_private,\n  arguments: [\n    3443843282313283355522573239085696902919850365217539366784739393210722344986field,\n    2853086u128,\n    aleo1tjkv7vquk6yldxz53ecwsy5csnun43rfaknpkjc97v5223dlnyxsglv7nm,\n    5783861720504029593520331872442756678068735468923730684279741068753131773333field\n  ]\n}"}],"tpk":"8426225807947287980879824833030089440060785195861154519084544916641544071836group","tcm":"3226339871444496417979841037237975848011574524309845233165930705339306709897field","scm":"6845182532650964173356391969005331370591444046632036068754797772530920467754field"}"#;
     pub const TEST_PRIVATE_KEY: &str = "APrivateKey1zkp6rE5FSWGD3jxrsAT64aZutFs3w6xvF8uQzGZKJEKsN8j";
-    const TRANSITION_2: &str = r#"{"id":"au1u62jasyx78x9hktak24awyj38fz73aseq8g9cx98u8egd9pj9uxq3u6s2z","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"private","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"ciphertext1qyq0m5mp0d2gzh2pv9p25z70gz2avhqdt3dp8y8thzwf3aq6g35zcqcuyptz3"}],"outputs":[{"type":"private","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"ciphertext1qyqzmhw8ln9r6uuyh0n5jrsqlt25wdggqp3d9yqyttpr3g7g00k2sysdf9rmv"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}"#;
-    const PRIVATE_KEY: &str = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
+    pub const TRANSITION_2: &str = r#"{"id":"au1u62jasyx78x9hktak24awyj38fz73aseq8g9cx98u8egd9pj9uxq3u6s2z","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"private","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"ciphertext1qyq0m5mp0d2gzh2pv9p25z70gz2avhqdt3dp8y8thzwf3aq6g35zcqcuyptz3"}],"outputs":[{"type":"private","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"ciphertext1qyqzmhw8ln9r6uuyh0n5jrsqlt25wdggqp3d9yqyttpr3g7g00k2sysdf9rmv"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}"#;
+    pub const TRANSITION_2_DECRYPTED: &str = r#"{"id":"au1mhdz6jqm973v5vfkz2pwgv63p340c9tpvydxha2zs8w03746qcpqvx3yye","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"public","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"2u32"}],"outputs":[{"type":"public","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"3u32"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}"#;
+    pub const PRIVATE_KEY: &str = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
+
 
     #[test]
     fn transition_to_and_from_serialization() {
@@ -472,5 +469,23 @@ mod tests {
             arguments.get(3).as_string().unwrap(),
             "5783861720504029593520331872442756678068735468923730684279741068753131773333field"
         );
+    }
+
+    #[wasm_bindgen_test]
+    fn test_transition_decryption() {
+        // Create a view key from the test private key.
+        let private_key = PrivateKey::from_str(PRIVATE_KEY).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+
+        // Get a transition with records.
+        let transition = Transition::from_string(TRANSITION_2).unwrap();
+
+        // Get the transition view key.
+        let tvk = transition.tvk(&view_key);
+
+        // Decrypt the transition using the transition view key.
+        let decrypted_transition = transition.decrypt_transition(&tvk).unwrap();
+
+        assert_eq!(decrypted_transition.to_string(), TRANSITION_2_DECRYPTED);
     }
 }

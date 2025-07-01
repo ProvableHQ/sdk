@@ -14,13 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{js_array_from_fields, to_bits_array_le, types::native::{CurrentNetwork, RecordCiphertextNative}, Field, GraphKey, Group, RecordPlaintext, ViewKey};
+use crate::{
+    Field,
+    GraphKey,
+    Group,
+    RecordPlaintext,
+    ViewKey,
+    js_array_from_fields,
+    to_bits_array_le,
+    types::native::{CurrentNetwork, RecordCiphertextNative},
+};
 use snarkvm_console::prelude::{FromBytes, Network, ToBits, ToBytes, ToFields};
 
+use crate::utilities::encrypt::EncryptionToolkit;
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
-use crate::utilities::encrypt::EncryptionToolkit;
 
 /// Encrypted Aleo record
 #[wasm_bindgen]
@@ -130,7 +139,7 @@ impl RecordCiphertext {
             CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
         EncryptionToolkit::decrypt_with_randomizers(self, &randomizers)
     }
-    
+
     /// Get the record nonce.
     pub fn nonce(&self) -> Group {
         Group::from(self.0.nonce())
@@ -244,7 +253,7 @@ mod tests {
         let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
         let record_vk = record.record_view_key(&view_key);
-        
+
         assert_eq!(record_vk.to_string(), RECORD_VIEW_KEY);
     }
 

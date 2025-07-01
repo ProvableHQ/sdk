@@ -27,8 +27,8 @@ use crate::{
         Field,
         native::{
             CurrentNetwork,
-            PlaintextEntryNative,
             IdentifierNative,
+            PlaintextEntryNative,
             PlaintextNative,
             ProgramIDNative,
             RecordPlaintextNative,
@@ -54,13 +54,14 @@ pub struct RecordPlaintext(RecordPlaintextNative);
 impl RecordPlaintext {
     pub fn commitment(&self, program_id: &str, record_name: &str) -> Result<Field, String> {
         Ok(Field::from(
-            self.0.to_commitment(
-                &ProgramIDNative::from_str(program_id)
-                    .map_err(|_| format!("{program_id} is an invalid program name"))?,
-                &IdentifierNative::from_str(record_name)
-                    .map_err(|_| format!("{record_name} is an invalid identifier"))?,
-            )
-            .map_err(|e| e.to_string())?,
+            self.0
+                .to_commitment(
+                    &ProgramIDNative::from_str(program_id)
+                        .map_err(|_| format!("{program_id} is an invalid program name"))?,
+                    &IdentifierNative::from_str(record_name)
+                        .map_err(|_| format!("{record_name} is an invalid identifier"))?,
+                )
+                .map_err(|e| e.to_string())?,
         ))
     }
 
