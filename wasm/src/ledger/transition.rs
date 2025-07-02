@@ -195,11 +195,12 @@ impl Transition {
     pub fn scm(&self) -> Field {
         Field::from(self.0.scm())
     }
-}
 
-#[wasm_bindgen]
-impl Transition {
     /// Decrypt the transition using the transition view key.
+    ///
+    /// @param {Field} tvk The transition view key.
+    ///
+    /// @returns {Transition} The transition with public values for inputs and outputs.
     #[wasm_bindgen(js_name = decryptTransition)]
     pub fn decrypt_transition(&self, tvk: &Field) -> Result<Self, String> {
         let function_id =

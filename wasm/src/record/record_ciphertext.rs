@@ -132,6 +132,10 @@ impl RecordCiphertext {
     }
 
     /// Decrypt the record ciphertext into plaintext using a record view key
+    ///
+    /// @param {Field} record_vk Record view key used to decrypt the record.
+    ///
+    /// @returns {RecordPlaintext}
     #[wasm_bindgen(js_name = "decryptWithRecordViewKey")]
     pub fn decrypt_with_record_view_key(&self, record_vk: Field) -> Result<RecordPlaintext, String> {
         let num_randomizers = EncryptionToolkit::num_record_randomizers(self)?;
