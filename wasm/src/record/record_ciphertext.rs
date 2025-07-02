@@ -23,7 +23,7 @@ use crate::{
     js_array_from_fields,
     to_bits_array_le,
     types::native::{CurrentNetwork, RecordCiphertextNative},
-    utilities::encrypt::EncryptionToolkilt,
+    utilities::encrypt::EncryptionToolkit,
 };
 use snarkvm_console::prelude::{FromBytes, Network, ToBits, ToBytes, ToFields};
 
@@ -233,7 +233,8 @@ mod tests {
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
         let graph_key = GraphKey::from_view_key(&view_key);
         let plaintext = record.decrypt(&view_key).unwrap();
-        assert_eq!(plaintext.to_string(), OWNER_PLAINTEXT);
+        let owner_plaintext = RecordPlaintext::from_string(OWNER_PLAINTEXT).unwrap();
+        assert_eq!(plaintext.to_string(), owner_plaintext.to_string());
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         assert!(record.decrypt(&incorrect_view_key).is_err());
 
@@ -269,5 +270,13 @@ mod tests {
         let record_vk = record.record_view_key(&view_key);
         let decrypted_plaintext = record.decrypt_with_record_view_key(record_vk).unwrap();
         assert_eq!(record_plaintext.to_string(), decrypted_plaintext.to_string());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_decrypt_with_record_vk_invalid() {
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
+        let view_key_non_owner = ViewKey::from_string(NON_OWNER_VIEW_KEY);
+        let invalid_record_vk = record.record_view_key(&view_key_non_owner);
+        assert!(record.decrypt_with_record_view_key(invalid_record_vk).is_err());
     }
 }

@@ -207,8 +207,8 @@ impl Transition {
             compute_function_id(&U16Native::new(CurrentNetwork::ID), self.0.program_id(), self.0.function_name())
                 .map_err(|e| e.to_string())?;
 
-        // Create a vector that will be populated with decrypted private inputs and 
-        // non-private inputs.        
+        // Create a vector that will be populated with decrypted private inputs and
+        // non-private inputs.
         let mut decrypted_inputs = Vec::with_capacity(self.0.inputs().len());
 
         // Iterate over the inputs and decrypt if they are private.  Non-private inputs
@@ -229,7 +229,7 @@ impl Transition {
         let outputs = self.0.outputs();
         let num_inputs = self.0.inputs().len();
 
-        // Create a vector that will be populated with decrypted private outputs and 
+        // Create a vector that will be populated with decrypted private outputs and
         // non-private outputs.
         let mut decrypted_outputs = Vec::with_capacity(outputs.len());
 
@@ -259,7 +259,7 @@ impl Transition {
                 *self.0.tcm(),
                 *self.0.scm(),
             )
-            .map_err(||"failed to construct decrypted transition".to_string()),
+            .map_err(|_| "failed to construct decrypted transition".to_string())?,
         ))
     }
 }
@@ -519,5 +519,41 @@ mod tests {
         let decrypted_transition = transition.decrypt_transition(&tvk).unwrap();
 
         assert_eq!(decrypted_transition.to_string(), TRANSITION_MAINNET_DECRYPTED);
+    }
+
+    #[wasm_bindgen_test]
+    #[cfg(feature = "testnet")]
+    fn test_transition_decrypt_testnet_invalid_vk() {
+        // Create a view key from the test private key.
+        let private_key = PrivateKey::from_str(TEST_PRIVATE_KEY).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+
+        // Get a transition with records.
+        let transition = Transition::from_string(TRANSITION_TESTNET).unwrap();
+
+        // Create an invalid transition view key.
+        let invalid_tvk = transition.tvk(&view_key);
+
+        // Attempt to decrypt the transition using the invalid transition view key.
+        let result = transition.decrypt_transition(&invalid_tvk);
+        assert!(result.is_err());
+    }
+
+    #[wasm_bindgen_test]
+    #[cfg(feature = "mainnet")]
+    fn test_transition_decrypt_testnet_invalid_vk() {
+        // Create a view key from the test private key.
+        let private_key = PrivateKey::from_str(TEST_PRIVATE_KEY).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+
+        // Get a transition with records.
+        let transition = Transition::from_string(TRANSITION_MAINNET).unwrap();
+
+        // Create an invalid transition view key.
+        let invalid_tvk = transition.tvk(&view_key);
+
+        // Attempt to decrypt the transition using the invalid transition view key.
+        let result = transition.decrypt_transition(&invalid_tvk);
+        assert!(result.is_err());
     }
 }

@@ -186,7 +186,7 @@ mod tests {
     use super::*;
 
     use std::str::FromStr;
-    use wasm_bindgen_test::wasm_bindgen_test;
+    use wasm_bindgen_test::{console_log, wasm_bindgen_test};
 
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
     const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
@@ -196,7 +196,37 @@ mod tests {
   _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
 }";
     const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
+    const RECORD_VIEW_KEY: &str = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
     const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
+    const TRANSITION_PUBLIC_KEY: &str =
+        "7532444547840484531569841377269810017844130178606467837628364672670182422388group";
+    const TRANSITION_VIEW_KEY: &str =
+        "5089075468761042335883809641276568724009791331127957254389204093712358605127field";
+
+    #[wasm_bindgen_test]
+    fn test_record_view_key_generation() {
+        let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
+        let owner_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
+
+        // Generate the record view key
+        let record_vk = EncryptionToolkit::generate_record_view_key(&owner_view_key, &owner_ciphertext).unwrap();
+
+        // Verify the record view key matches the expected value
+        assert_eq!(record_vk.to_string(), RECORD_VIEW_KEY);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_tvk_generation() {
+        let view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
+        let tpk = Group::from_string(TRANSITION_PUBLIC_KEY).unwrap();
+
+        // Generate the transition view key
+        let tvk = EncryptionToolkit::generate_tvk(&view_key, &tpk);
+
+        // Verify the transition view key matches the expected value
+        // console_log!("Transition View Key: {}", tvk.to_string());
+        assert_eq!(tvk.to_string(), TRANSITION_VIEW_KEY);
+    }
 
     #[wasm_bindgen_test]
     fn test_decrypt_record_symmetric() {
