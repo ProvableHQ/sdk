@@ -143,13 +143,14 @@ impl EncryptionToolkit {
         Ok(RecordPlaintext::from(decrypted_record))
     }
 
+    /// Generates a transition view key from the view key and the transition public key.
     #[wasm_bindgen(js_name = "generateTvk")]
     pub fn generate_tvk(view_key: &ViewKey, tpk: &Group) -> Field {
         tpk.scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
     }
 
-    /// Creates a record view key from the view key.  This method is intended to be used
-    /// by the record owner to enable decryption of a select record by a third party.
+    /// Creates a record view key from the view key.  This can be later be used to decrypt a 
+    // record without revealing an account's view key.
     #[wasm_bindgen(js_name = "generateRecordViewkey")]
     pub fn generate_record_view_key(view_key: &ViewKey, record_ciphertext: &RecordCiphertext) -> Result<Field, String> {
         let record_nonce = record_ciphertext.nonce();
@@ -186,7 +187,7 @@ mod tests {
     use super::*;
 
     use std::str::FromStr;
-    use wasm_bindgen_test::{console_log, wasm_bindgen_test};
+    use wasm_bindgen_test::wasm_bindgen_test;
 
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
     const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
@@ -224,7 +225,6 @@ mod tests {
         let tvk = EncryptionToolkit::generate_tvk(&view_key, &tpk);
 
         // Verify the transition view key matches the expected value
-        // console_log!("Transition View Key: {}", tvk.to_string());
         assert_eq!(tvk.to_string(), TRANSITION_VIEW_KEY);
     }
 

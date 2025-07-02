@@ -19,7 +19,8 @@ mod macros;
 pub mod data;
 pub use data::*;
 
-pub use crate::utilities::encrypt::*;
+pub mod utilities;
+pub use utilities::encrypt::*;
 
 pub mod execution;
 pub use execution::*;

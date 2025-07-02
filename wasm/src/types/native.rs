@@ -65,8 +65,8 @@ pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 pub type FieldNative = Field<CurrentNetwork>;
 pub type GroupNative = Group<CurrentNetwork>;
 pub type ScalarNative = Scalar<CurrentNetwork>;
-pub type U64Native = U64<CurrentNetwork>;
 pub type U16Native = U16<CurrentNetwork>;
+pub type U64Native = U64<CurrentNetwork>;
 
 // Algorithmic types
 pub type BHP256Native = BHP256<CurrentNetwork>;
