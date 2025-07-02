@@ -207,8 +207,12 @@ impl Transition {
             compute_function_id(&U16Native::new(CurrentNetwork::ID), self.0.program_id(), self.0.function_name())
                 .map_err(|e| e.to_string())?;
 
+        // Create a vector that will be populated with decrypted private inputs and 
+        // non-private inputs.        
         let mut decrypted_inputs = Vec::with_capacity(self.0.inputs().len());
 
+        // Iterate over the inputs and decrypt if they are private.  Non-private inputs
+        // such as public inputs and records are copied and added to the inputs vector.
         for (index, input) in self.0.inputs().iter().enumerate() {
             decrypted_inputs.push(match input {
                 InputNative::Private(input_id, Some(ciphertext)) => {
@@ -224,8 +228,13 @@ impl Transition {
 
         let outputs = self.0.outputs();
         let num_inputs = self.0.inputs().len();
+
+        // Create a vector that will be populated with decrypted private outputs and 
+        // non-private outputs.
         let mut decrypted_outputs = Vec::with_capacity(outputs.len());
 
+        // Iterate over the outputs and decrypt if they are private.  Non-private outputs
+        // are copied and added to the outputs vector.
         for (index, output) in outputs.iter().enumerate() {
             decrypted_outputs.push(match output {
                 OutputNative::Private(output_id, Some(ciphertext)) => {
@@ -239,6 +248,7 @@ impl Transition {
             });
         }
 
+        // The Transition struct is reconstructed with the decrypted inputs and outputs.
         Ok(Self(
             TransitionNative::new(
                 *self.0.program_id(),
@@ -249,7 +259,7 @@ impl Transition {
                 *self.0.tcm(),
                 *self.0.scm(),
             )
-            .expect("failed to construct decrypted transition"),
+            .map_err(||"failed to construct decrypted transition".to_string()),
         ))
     }
 }
