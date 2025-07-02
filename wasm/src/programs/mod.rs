@@ -19,9 +19,6 @@ mod macros;
 pub mod data;
 pub use data::*;
 
-pub mod utilities;
-pub use utilities::encrypt::*;
-
 pub mod execution;
 pub use execution::*;
 
