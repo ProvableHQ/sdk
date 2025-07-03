@@ -387,11 +387,9 @@ describe('WASM Objects', () => {
         const transition = Transition.fromString(transitionString);
         const transitionDecryptedString = `{"id":"au1mhdz6jqm973v5vfkz2pwgv63p340c9tpvydxha2zs8w03746qcpqvx3yye","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"public","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"2u32"}],"outputs":[{"type":"public","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"3u32"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`
         const transitionDecrypted = Transition.fromString(transitionDecryptedString);
-        const transitionViewKeyString = "5089075468761042335883809641276568724009791331127957254389204093712358605127field";
         const invalidTransitionViewKeyString = "5089075468761042335883809641276568724119791331127957254389204093712358605127field"
-        const transitionViewKey = Field.fromString(transitionViewKeyString);
         const invalidTransitionViewKey = Field.fromString(invalidTransitionViewKeyString);
-        const privateKey = PrivateKey.from_string("APrivateKey1zkp6rE5FSWGD3jxrsAT64aZutFs3w6xvF8uQzGZKJEKsN8j");
+        const privateKey = PrivateKey.from_string("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH");
         const viewKey = privateKey.to_view_key();
         const tvk = transition.tvk(viewKey);
 
@@ -407,8 +405,10 @@ describe('WASM Objects', () => {
 
         it('can generate a transition view key from a valid view key', () => {
             const generatedTransitionViewKey = transition.tvk(viewKey);
+
+            const generatedTransitionViewKeyFromEncryptionToolkit = EncryptionToolkit.generateTransitionViewKey(viewKey, transition); 
             // Ensure the generated transition view key is the same as the one used to decrypt
-            expect(generatedTransitionViewKey.toString()).equal(transitionViewKeyString);
+            expect(generatedTransitionViewKey.toString()).equal(generatedTransitionViewKeyFromEncryptionToolkit.toString());
         });
     });
 
