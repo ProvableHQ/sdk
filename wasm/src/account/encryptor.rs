@@ -20,11 +20,11 @@ use crate::types::native::{
     FieldNative,
     IdentifierNative,
     LiteralNative,
-    Network,
     PlaintextNative,
     PrivateKeyNative,
-    Uniform,
 };
+use snarkvm_console::network::Network;
+use snarkvm_wasm::utilities::Uniform;
 
 use once_cell::sync::OnceCell;
 use std::str::FromStr;

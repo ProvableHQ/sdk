@@ -18,9 +18,10 @@ use crate::{
     Plaintext,
     from_js_typed_array,
     to_bits_array_le,
-    types::native::{FieldNative, LiteralNative, PlaintextNative, Uniform},
+    types::native::{FieldNative, LiteralNative, PlaintextNative},
 };
 use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Zero};
+use snarkvm_wasm::utilities::Uniform;
 
 use js_sys::{Array, Uint8Array};
 use once_cell::sync::OnceCell;
@@ -84,8 +85,9 @@ impl Field {
     }
 
     /// Clone the field element.
+    #[allow(clippy::should_implement_trait)]
     pub fn clone(&self) -> Field {
-        Field(self.0.clone())
+        Field(self.0)
     }
 
     /// Generate a random field element.

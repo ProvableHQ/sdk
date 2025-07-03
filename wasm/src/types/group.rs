@@ -18,16 +18,14 @@ use crate::{
     Address,
     Field,
     Plaintext,
+    Scalar,
     from_js_typed_array,
     js_array_from_fields,
     native::AddressNative,
     to_bits_array_le,
-    types::{
-        Scalar,
-        native::{GroupNative, LiteralNative, PlaintextNative, Uniform},
-    },
+    types::native::{GroupNative, LiteralNative, PlaintextNative},
 };
-use snarkvm_console::prelude::{Double, FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields, Zero};
+use snarkvm_console::prelude::{Double, FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields, Uniform, Zero};
 
 use js_sys::{Array, Uint8Array};
 use once_cell::sync::OnceCell;
@@ -105,8 +103,9 @@ impl Group {
     }
 
     /// Clone the group element.
+    #[allow(clippy::should_implement_trait)]
     pub fn clone(&self) -> Group {
-        Group(self.0.clone())
+        Group(self.0)
     }
 
     /// Generate a random group element.
@@ -205,7 +204,7 @@ impl From<Group> for Address {
 
 impl From<&GroupNative> for Address {
     fn from(value: &GroupNative) -> Self {
-        Address::from(value.clone())
+        Address::from(*value)
     }
 }
 

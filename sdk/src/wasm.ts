@@ -1,11 +1,13 @@
 export {
     Address,
+    Authorization,
     BHP256,
     BHP512,
     BHP768,
     BHP1024,
     Ciphertext,
     ComputeKey,
+    ExecutionRequest,
     Execution,
     ExecutionResponse,
     Field,

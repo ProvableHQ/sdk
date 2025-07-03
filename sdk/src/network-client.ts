@@ -118,20 +118,6 @@ class AleoNetworkClient {
         this.headers[headerName] = value;
     }
 
-    /**
-     * Remove a header from the `AleoNetworkClient`s header map
-     *
-     * @param {string} headerName The name of the header to be removed
-     *
-     * @example
-     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
-     *
-     * // Create a networkClient
-     * const networkClient = new AleoNetworkClient();
-     *
-     * // Remove the default `X-Aleo-SDK-Version` header
-     * networkClient.removeHeader('X-Aleo-SDK-Version');
-     */
     removeHeader(headerName: string) {
         delete this.headers[headerName];
     }

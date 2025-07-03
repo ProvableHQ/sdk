@@ -202,6 +202,197 @@ __*return*__ | `boolean` | *Boolean representing whether or not the signature is
 
 ---
 
+# Class `Authorization`
+
+Authorization object containing the authorization for a transaction.
+
+## Methods
+
+### `new(request) ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Create a new authorization from a request object.
+
+Parameters | Type | Description
+--- | --- | ---
+__request__ | `ExecutionRequest` | *The ExecutionRequest to build the authorization from.*
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `replicate() ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns a new and independent replica of the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
+
+---
+
+### `fromString(authorization) ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Reconstructs an Authorization object from its string representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__authorization__ | `String` | *The string representation of the Authorization.*
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the left-endian byte representation of the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBytesLe(bytes) ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates an authorization object from a left-endian byte representation of an Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *Left-endian bytes representing the Authorization.*
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `equals(other) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check if an Authorization object is the same as another.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Authorization](sdk-src_wasm.md) | *The Authorization object to determine equality with.*
+__*return*__ | `boolean` | **
+
+---
+
+### `len() ► number`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the number of &#x60;Request&#x60;s in the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `number` | **
+
+---
+
+### `isEmpty() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Return &#x60;true&#x60; if the Authorization is empty.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `isFeePrivate() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/fee_private&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `isFeePublic() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/fee_public&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `isSplit() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/split&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `insertTransition(transition) ► void`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Insert a transition into the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__transition__ | `Transition` | *The transition object to insert into the Authorization.*
+__*return*__ | `void` | **
+
+---
+
+### `transitions() ► Array.<Transition>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the transitions in an Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<Transition>` | *Array of transition objects*
+
+---
+
+### `toExecutionId() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the execution ID for the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | *The execution ID for the Authorization, call toString() after this result to get the string representation.*
+
+---
+
 # Class `Ciphertext`
 
 SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
@@ -2254,7 +2445,7 @@ __*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *Record ciphertext*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Return the string reprensentation of the record ciphertext
+Return the string representation of the record ciphertext
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2273,6 +2464,20 @@ Parameters | Type | Description
 --- | --- | ---
 __view_key__ | `ViewKey` | *View key used to decrypt the ciphertext*
 __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext object*
+
+---
+
+### `recordViewKey(view_key) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Generate the record view key. The record view key can only decrypt record if the
+supplied view key belongs to the record owner.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key used to generate the record view key*
+__*return*__ | [Group](sdk-src_wasm.md) | *record view key*
 
 ---
 
@@ -2349,6 +2554,31 @@ Get the field array representation of the record ciphertext.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `Array.<any>` | **
+
+---
+
+### `decryptWithRecordViewKey(record_vk) ► RecordPlaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Decrypt the record ciphertext into plaintext using a record view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__record_vk__ | [Field](sdk-src_wasm.md) | *Record view key used to decrypt the record.*
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | **
+
+---
+
+### `nonce() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the record nonce.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 
@@ -3233,7 +3463,6 @@ __*return*__ | `string` | *TransactionId*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the
 Get the type of the transaction (will return &quot;deploy&quot; or &quot;execute&quot;)
 
 Parameters | Type | Description

@@ -85,6 +85,31 @@ networkClient.setHost("http://api.explorer.provable.com/v1");
 
 ---
 
+### `setHeader(headerName, value)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a header in the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to set*
+__value__ | `string` | *The header value*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a networkClient
+const networkClient = new AleoNetworkClient();
+
+// Set the value of the `Accept-Language` header to `en-US`
+networkClient.setHeader('Accept-Language', 'en-US');
+```
+
+---
+
 ### `fetchData(url)`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1058,6 +1083,31 @@ networkClient.setHost("http://api.explorer.provable.com/v1");
 
 ---
 
+### `setHeader(headerName, value)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a header in the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to set*
+__value__ | `string` | *The header value*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a networkClient
+const networkClient = new AleoNetworkClient();
+
+// Set the value of the `Accept-Language` header to `en-US`
+networkClient.setHeader('Accept-Language', 'en-US');
+```
+
+---
+
 ### `fetchData(url) ► Promise.<Type>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1965,5 +2015,33 @@ const transactionId = await networkClient.submitTransaction(tx);
 // Wait for the transaction to be confirmed.
 const transaction = await networkClient.waitForTransactionConfirmation(transactionId);
 ```
+
+---
+
+### `_sendPost(url, options) ► `
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Wrapper around the POST helper to allow mocking in tests. Not meant for use in production.
+
+Parameters | Type | Description
+--- | --- | ---
+__url__ | `undefined` | *The URL to POST to.*
+__options__ | `undefined` | *The RequestInit options for the POST request.*
+__*return*__ | `undefined` | *The Response object from the POST request.*
+
+---
+
+### `_sendPost(url, options) ► `
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Wrapper around the POST helper to allow mocking in tests. Not meant for use in production.
+
+Parameters | Type | Description
+--- | --- | ---
+__url__ | `undefined` | *The URL to POST to.*
+__options__ | `undefined` | *The RequestInit options for the POST request.*
+__*return*__ | `undefined` | *The Response object from the POST request.*
 
 ---

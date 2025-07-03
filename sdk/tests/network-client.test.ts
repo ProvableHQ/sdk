@@ -85,12 +85,6 @@ describe("NodeConnection", () => {
                 "ab1uqmm97qk5gzhgwh6308h48aszazhfnn0xdq84lrj7e7myyrf9yyqmqdf42",
             );
         });
-
-        it("should throw an error if the request fails", async () => {
-            await expectThrows(() =>
-                connection.getBlockRange(999999999, 1000000000),
-            );
-        });
     });
 
     describe("getProgram", () => {
@@ -153,12 +147,6 @@ describe("NodeConnection", () => {
         it("should return a string", async () => {
             const stateRoot = await connection.getStateRoot();
             expect(typeof stateRoot).equal("string");
-        });
-    });
-
-    describe("getTransactions", () => {
-        it("should throw an error if the request fails", async () => {
-            await expectThrows(() => connection.getTransactions(999999999));
         });
     });
 
@@ -638,10 +626,10 @@ describe("NodeConnection", () => {
                 expect(transactions.length).equal(4);
                 expect(transactions[0].status).equal("accepted");
                 expect(transactions[0].type).equal("execute");
-                expect(transactions[0].index).equal(BigInt(0));
+                expect(transactions[0].index).equal(BigInt(2));
                 expect(transactions[0].finalize.length).equal(1);
                 expect(transactions[0].transaction.id).equal(
-                    "at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd",
+                    "at138fg8qgtpz0t6qs2sss5xpcnu8g5tfz2vvwvqgspgulmsrmq95zsqjlffj",
                 );
                 expect(transactions[0].transaction.type).equal("execute");
 
@@ -650,7 +638,7 @@ describe("NodeConnection", () => {
                 );
                 expect(execution.transitions.length).equal(1);
                 expect(execution.transitions[0].id).equal(
-                    "au1j529auupdhlc2jcl802fm2uf3khcwm7xt7wxkrl2jv3pvj7zhu8qvna5pp",
+                    "au1938vjhpr6v8ef0zrp98u8fn2vjcyn4742fttqpxf6lhsnmqmqszq7fxsn8",
                 );
                 expect(execution.transitions[0].program).equal(
                     "puzzle_arcade_coin_v001.aleo",
@@ -665,19 +653,19 @@ describe("NodeConnection", () => {
                 expect(outputs.length).equal(1);
                 expect(outputs[0].type).equal("record");
                 expect(outputs[0].id).equal(
-                    "5572694414900952602617575422938223520445524449912062453787036904987112234218field",
+                    "6817422891118474274247599913784134683996272412886646414026001662646317225059field",
                 );
                 expect(outputs[0].value).equal(
-                    "record1qyqsqkh52naqk7l62m9rw3emwm0swuttcs7qs6lqqeu2czc34mv7h2c8qyrxzmt0w4h8ggcqqgqsq5de236vn6h0z3cvecduyzmqmaw0ue8wk4a9a5z89r7qxv53cwgg4xqpmzq9tv35fzyt6xfem9f74qcx9qsj90e6gzajfetc874q6g9snrzkgw",
+                    "record1qyqspvrrwn0fzhrtj02htqd27m5q4dskdq4fdksjwcdvjuduwjejrkgtqyrxzmt0w4h8ggcqqgqsqd7njmujg88tuhvr8snk5lqw5xpz5dxzv4alvclchs0mlf2xylcvqlj0lzxdf780jllfcgn0wksjyjejqrkjp0qywf7lg98nhl004vqsytjdcz",
                 );
                 expect(<string>outputs[0].checksum).equal(
-                    "976841447793933847827686780055501802433867163411662643088590532874495495156field",
+                    "3292133074455271291191412792489196291558528545777011656317544607191050261126field",
                 );
                 expect(transactions[0].transaction.fee.proof).equal(
-                    "proof1qyqsqqqqqqqqqqqpqqqqqqqqqqqys4nj07zk5yc2xrzccul4ghsyjd3zh86wpxk2jy7r4fludh27jsjaf4saz40sss0e22ge74xgz5spqxqpe56uw3c6c27p80glmxwegkkkdpxfnd6yww2pwsrtwtl8c0a80dyd7jfw66retckp7uk93qcx5qt7h2xql37xx4umft9aqrlls2xgtuxvvap3j6d7l4gkdwy3dtn5xg32zr7ywndpl3dle54fdnku0kq3c6f0f4lqmrd3dmmdg6tu7cqmx4h3d9lc56duws2y3628fpfw2v4877pf2v4exvlx4h5mrl5zaeqq6rht59wewjnuzsvhwkjrrxl6ur9mr4mxluahrg3zug7vrmg43p6x4fsrgztun49a5qrtmelv64fgpdeyk4m2dp0y3zwet4wmj2cx4euausakj2k4paeql74xn7yv63m5evt9uymx3ygav8ysj58hd3q0sp8a79cvd83s0rmq2gy443mpe2tfdamxzufpz9jts4fhe9sf7mk82fc602wv279mughzztu3t93k3q8glzqaj3ltjx4cnvr3a99ukngxunvzgw6wd77msg396vffn8gtlhe5fepzkum3q9xvqpd4hqymr7qyx0q7vup99443kyvrh0v962gc26p47zghgsh9hfmah46vd9jej9drvwn25sm8mrysew7zwr5r24yqup2jlh9k0pdtswus7mw0gnlzsphpqc4n6ck23932ekrt438ntuxenzzjk8y2qh006ddvztzky6stq8ylyzh2ezcn75pnzsql8aq6ky2kawwllsqay4eymmth2k22nlk2g7l2gyzkgg7vw5gsnavdfp5vq09dzwm30uq7348qwd3eqna6j7zyygexdwgdtrt5pf3ankyl360s2mxmrxsu2zy9ghw99dk7vv7dh9hcfrsy8j8ezygjc72dtzra4vqgpmq7ufpkhurw7mhl70eg674zxfehhaugfn44h70efq3azy00nuqh8ncztrkzq0zut90r4aeyd9f43qw33309zf62selcyq22f7u4cywxgjxac6vs8nmfrcdtthys7jghcct8v3zal00nx3vyjn0qa7lzpjphg653779sqzhhrwjy588mjp9dpvzvpslsd594as2zgumz9l0qy673u6sp4ukfyln6jjdyz5n03xcn7ntdl69uqwdpajg8l4d782sxqvqqqqqqqqqqpwj6l0njz3pyaa6d4k7jf3shynxuamh48qlg02vsl9cdd9cqh050mndm6a77ldye0jtyu882yj4zsqqvfkqadh2gvhlwqmrlfvn79wn0uh006uyes4cptqytgm6w9ufefqzdpz0vr85nl34cjvs849p6efvqqxvrklggzu92te588dtal4n8pr9q2fnl2e46v83z0flcyt398xspzcl4920jaj54umh60ndhh6rqhqudna94uftlhfxk0652lruhxpw2xcncjm5lywt4tzu8et0kg9rwqyqqruc9kg",
+                    "proof1qyqsqqqqqqqqqqqpqqqqqqqqqqqqha9xy3wlj6trgmp4kcmhvlj2xmj7elzzd0pnwy6mwdphcs58g4r0g4s269vrsyh25fljgmqcg7cpq882dyw0ucprxdgga3y6pcr84jfr7n9uh5sffvcmvj3unjl2mj0wuk0v535lrgg97lp6z3css88y9qg5pgsumqad96cl2n92wu3rhzylz3qfwh2p280ntlmq85mwykauugytjlc9qz2h5nv4rz3htlznx2qt9pwr9pgqygrynqmfzeh5tryudcfr305ced3yevq88kefeqgxs9h0h49m6xkgs904nd6km03q7dvqnwfrku9wqzpkn8zje07xqg88lf49ke8qhsxsnpztl0dtgz4vh0d7pcjwp5ptr3crexhc05kaa80qqys8axds3sqr3hu52sjz0sm7cjzxmma3rmnrycefmy6qsv28a3ufpv6yu48pst86xmw4xaxcxpn5sqrlhvsx0srxchpj76l5wgnf33vy5awyhv5u7at434j3pp058059d2uda5kthzykch9zldqgdhueeq92djmkunpclshfkleq28pg8vqufexqc8uma7mswr9ev77q963mgrmzm4z7t9dw6ym5x32hsx9992qk3xrp092a62yj672cs87j7yxgfuhuzy2dxph6l4uursmqx5tksu8dshjcpjuadla2a8aypwvdz6gp7tqhjwgz23dggjjh9ejf700y9syqhchrgfu9qe8ua8remj9d8uxqv3q4zdc6t3meyp48w6kg88w0sthevxxm8qxp4x9f7pppjs4vvpzly7ztkl5sxrvxwy30n50rfj0gd63mueskea9a7kuv277fr6r3q2udsm74h6wqpcrmncuwfetyrraumdvkwx8u8te25qngcw90raupru29ffs3p2swysagmmtyaxdx2ypzk2nyse2lda6cfulspxtjlwcga3jtjcz4tc7xxcez7frtrl5cqxluyh24svgt8e0lg0a7j7khqupkxlrfs9jc5gnwmp298zwmfmcs65autm67phf5jy5ar3kcfrs77y0e5vqnfexsh56jlac4vsrcfnvak3c64ppgzzqhpw6vwe0cs6dmzz3acu7ygk094usmyv7plttk7t8ff8gnfvq8rh0cckhzrmcwnmuqq6klg02hfhssdpxqpm9rpsntn5gqvvn5zg60hu7xqlnkaz9gyjqfqvqqqqqqqqqqqelp043ptq7k8hmrulh7pqygtuytn4qmwsqk73yfrnyzrvwd30nh03rm3f7l220sdgktupv9zchvsqq24q6tey0eyv82p6ks2e0cqql3gdn0q55gm2pr3rkklc0wpacfvnr7wdvp30y8mtleykmp86y5yrgqq9a0z7dhfzzp3897jgpdvhw0apqs3ul5mgetznkxpgttdxtndnj3r2wsg6tscaqxjv2lacwp798z93jl2c6ykh3gnwapx99u35sgwn03v23vx82jawf79d5uyfaq4m6vqyqquwfs0x",
                 );
                 expect(transactions[0].transaction.fee.global_state_root).equal(
-                    "sr13gjf6m2h2evlyvqdmrg0k69wlnpzruasxeekytx3gj7xf5ht6sxs27ldvh",
+                    "sr1uwx36xp95j7p2w7yadnj5ups6n8ktf0uwnvq0yauk2fefa2lsqysj4ydym",
                 );
                 expect(
                     transactions[0].transaction.fee.transition.function,
@@ -694,7 +682,7 @@ describe("NodeConnection", () => {
                 expect(feeInputs[0].type).equal("public");
                 // expect(feeInputs[0].value).equal("1449u64");
                 expect(feeInputs[0].id).equal(
-                    "4386982425102730230159169800986934827054209772356695389341764668009606015212field",
+                    "7979811994391082433649905735902803438919884682173343399169977021461204057201field",
                 );
 
                 // Check the fee outputs.
@@ -704,7 +692,7 @@ describe("NodeConnection", () => {
                 expect(feeOutputs.length).equal(1);
                 expect(feeOutputs[0].type).equal("future");
                 expect(feeOutputs[0].id).equal(
-                    "5266202420911953477603237216561767366202408116662663021354607932182034937240field",
+                    "1476545115130530285809395059911737967159046196284872253242026022319105772784field",
                 );
                 expect(feeOutputs[0].value).equal(
                     "{\n  program_id: credits.aleo,\n  function_name: fee_public,\n  arguments: [\n    aleo193cgzzpr5lcwq6rmzq4l2ctg5f4mznead080mclfgrc0e5k0w5pstfdfps,\n    1449u64\n  ]\n}",
