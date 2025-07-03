@@ -1,6 +1,8 @@
 import {
   Address,
   ComputeKey,
+  Field,
+  Group,
   PrivateKey,
   Signature,
   ViewKey,
@@ -128,6 +130,15 @@ export class Account {
   }
 
   /**
+   * Returns the Transition View Key associated with the transition public key.
+   * @returns {Field} The transition view key
+   * 
+   * @example
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   * const account = 
+   */
+
+  /**
    * Returns the ComputeKey associated with the account.
    * @returns {ComputeKey} The compute key of the account
    *
@@ -223,6 +234,24 @@ export class Account {
    */
   decryptRecord(ciphertext: string): RecordPlaintext {
     return this._viewKey.decrypt(ciphertext);
+  }
+
+  /**
+   * Decrypts an encrypted record string into a plaintext record object using the record view key.
+   *
+   * @param {string} ciphertext A string representing the ciphertext of a record.
+   * @param {string} recordViewKey The record view key used to decrypt the record.
+   * @returns {RecordPlaintext} The decrypted record plaintext
+   *
+   * @example
+   * // Decrypt a record using a record view key
+   * const recordViewKey = Field.fromString("your_record_view_key_here");
+   * const decryptedRecord = decryptRecordWithRecordViewKey(ciphertext, recordViewKey);
+   * console.log(decryptedRecord);
+   */
+  decryptRecordWithRecordViewKey(ciphertext: string, recordViewKey: Field): RecordPlaintext {
+    const recordCiphertext = RecordCiphertext.fromString(ciphertext);
+    return recordCiphertext.decryptWithRecordViewKey(recordViewKey);
   }
 
   /**

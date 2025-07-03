@@ -351,6 +351,23 @@ describe('WASM Objects', () => {
             // Ensure the record ciphertext cannot be decrypted with a foreign view key
             expect(() => ciphertext.decrypt(foreignViewKey)).throw();
         });
+
+        it('can be decrypted with a valid record view key', () => {
+            const recordViewKey = ciphertext.generateRecordViewKey(viewKey);
+            const plaintext = ciphertext.decryptWithRecordViewKey(recordViewKey);
+            const isOwner = ciphertext.isOwner(viewKey);
+
+            // Ensure the record ciphertext is decrypted correctly
+            expect(plaintext.toString()).equal(recordPlaintextString);
+            expect(isOwner).equal(true);
+        })
+
+        it ('cannot be decrypted with an invalid record view key', () => {
+            const badRecordViewKey = ciphertext.generateRecordViewKey(foreignViewKeyString);
+
+            // Ensure the record ciphertext cannot be decrypted with an invalid record view key
+            expect(() => ciphertext.decryptWithRecordViewKey(badRecordViewKey)).throw();
+        })
     });
 
     describe('RecordPlaintext', () => {
