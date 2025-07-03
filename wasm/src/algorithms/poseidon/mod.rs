@@ -35,9 +35,8 @@ mod tests {
         Signature,
         js_array_from_fields,
         native::{GroupNative, LiteralNative, PlaintextNative, ScalarNative, SignatureNative},
-        test::TEST_STRUCT,
         types::native::{FieldNative, Poseidon2Native, Poseidon4Native, Poseidon8Native},
-        utilities::test::create_native_field_vector,
+        utilities::test::{TEST_STRUCT, create_native_field_vector},
     };
     use snarkvm_console::{
         algorithms::{Hash, HashMany, HashToGroup, HashToScalar},

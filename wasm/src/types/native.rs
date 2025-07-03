@@ -36,7 +36,7 @@ pub use snarkvm_console::{
         Response,
         ValueType,
     },
-    types::{Field, Group, Scalar, U64},
+    types::{Field, Group, Scalar, U16, U64},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
 pub use snarkvm_ledger_query::Query;
@@ -65,6 +65,7 @@ pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 pub type FieldNative = Field<CurrentNetwork>;
 pub type GroupNative = Group<CurrentNetwork>;
 pub type ScalarNative = Scalar<CurrentNetwork>;
+pub type U16Native = U16<CurrentNetwork>;
 pub type U64Native = U64<CurrentNetwork>;
 
 // Algorithmic types
@@ -80,7 +81,8 @@ pub type Poseidon8Native = Poseidon8<CurrentNetwork>;
 
 // Record types
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;
-pub type EntryNative = Entry<CurrentNetwork, PlaintextNative>;
+pub type CiphertextEntryNative = Entry<CurrentNetwork, CiphertextNative>;
+pub type PlaintextEntryNative = Entry<CurrentNetwork, PlaintextNative>;
 pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
 pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 
