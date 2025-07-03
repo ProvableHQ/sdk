@@ -155,6 +155,14 @@ describe('Account', () => {
             // Ensure the records were decrypted to the correct data
             expect(decryptedRecords).deep.equal([recordPlaintextString, recordPlaintextString]);
         });
+
+        it('decrypts a record in ciphertext form with a record view key', () => {
+            const account = new Account({privateKey: "APrivateKey1zkpJkyYRGYtkeHDaFfwsKtUJzia7csiWhfBWPXWhXJzy9Ls"});
+            const recordCiphertext = RecordCiphertext.fromString(recordCiphertextString);
+            const recordViewKey = account.generateRecordViewKey(recordCiphertext);
+            const decryptedCiphertext = account.decryptRecordWithRecordViewKey(recordCiphertextString, recordViewKey);
+            expect(decryptedCiphertext).equal(recordPlaintextString);
+        })
     });
 
     describe('Sign and Verify', () => {
