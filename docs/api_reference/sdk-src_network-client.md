@@ -1108,33 +1108,6 @@ networkClient.setHeader('Accept-Language', 'en-US');
 
 ---
 
-<<<<<<< HEAD
-### `removeHeader(headerName)`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Remove a header from the &#x60;AleoNetworkClient&#x60;s header map
-
-Parameters | Type | Description
---- | --- | ---
-__headerName__ | `string` | *The name of the header to be removed*
-
-#### Examples
-
-```javascript
-import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
-
-// Create a networkClient
-const networkClient = new AleoNetworkClient();
-
-// Remove the default `X-Aleo-SDK-Version` header
-networkClient.removeHeader('X-Aleo-SDK-Version');
-```
-
----
-
-=======
->>>>>>> 250b119cf9aec51d67c2ec112753db9609026fbf
 ### `fetchData(url) ► Promise.<Type>`
 
 ![modifier: public](images/badges/modifier-public.svg)
