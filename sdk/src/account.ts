@@ -263,53 +263,6 @@ export class Account {
     return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext));
   }
 
-    /**
-   * Decrypts an encrypted record string into a plaintext record object using the record view key.
-   *
-   * @param {string | RecordCiphertext} ciphertext A string representing the ciphertext of a record.
-   * @param {string | Field} recordViewKey The record view key used to decrypt the record.
-   * @returns {RecordPlaintext} The decrypted record plaintext
-   *
-   * @example
-   * // Decrypt a record using a record view key
-   * const recordViewKey = Field.fromString("your_record_view_key_here");
-   * const decryptedRecord = decryptRecordWithRecordViewKey(ciphertext, recordViewKey);
-   * console.log(decryptedRecord);
-   */
-    decryptRecordWithRecordViewKey(ciphertext: RecordCiphertext | string, recordViewKey: Field | string): RecordPlaintext {
-      if (typeof ciphertext === 'string' ) {
-        ciphertext = RecordCiphertext.fromString(ciphertext);
-      }
-      if (typeof recordViewKey === 'string') {
-        recordViewKey = Field.fromString(recordViewKey);
-      }
-      
-      return ciphertext.decryptWithRecordViewKey(recordViewKey);
-    }
-
-  /**
-   * Decrypts a transition using the transition view key.
-   * This method is used to decrypt the private inputs and outputs of a transition without revealing
-   * the signer's view key.
-   * @param {string | Transition } transition The transition with private inputs and outputs to decrypt
-   * @param {string | Field} transitionViewKey The transition view key used to decrypt the transition
-   * @returns {Transition} The decrypted transition
-   * 
-   * @example
-   * // Import the Account class
-   * import { Account } from "@provablehq/sdk/testnet.js";
-   * 
-   */
-  decryptTransitionWithViewKey(transition: string | Transition, transitionViewKey: string | Field): Transition {
-    if (typeof transition === 'string') {
-      transition = Transition.fromString(transition);
-    }
-    if (typeof transitionViewKey === 'string') {
-      transitionViewKey = Field.fromString(transitionViewKey);
-    }
-    return EncryptionToolkit.decryptTransitionWithVk(transitionViewKey);
-  }
-
   /**
    * Generates a record view key from the account owner's view key and the record ciphertext.
    * This key can be used to decrypt the record without revealing the account's view key.
