@@ -83,6 +83,55 @@ __recordProvider__ | `RecordProvider` | **
 
 ---
 
+### `setHeader(headerName, value)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a header in the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to set*
+__value__ | `string` | *The header value*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Set the value of the `Accept-Language` header to `en-US`
+programManager.setHeader('Accept-Language', 'en-US');
+```
+
+---
+
+### `removeHeader(headerName)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Remove a header from the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to be removed*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Remove the default `X-Aleo-SDK-Version` header
+programManager.removeHeader('X-Aleo-SDK-Version');
+```
+
+---
+
 ### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1000,16 +1049,45 @@ setTimeout(async () => {
 
 ---
 
-### `verifyExecution(executionResponse) ► boolean`
+### `verifyExecution(executionResponse, imports, importedVerifyingKeys) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Verify a proof of execution from an offline execution
+Verify a proof from an offline execution. This is useful when it is desired to do offchain proving and verification.
 
 Parameters | Type | Description
 --- | --- | ---
-__executionResponse__ | `executionResponse` | **
+__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
+__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __*return*__ | `boolean` | *True if the proof is valid, false otherwise*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk used to build executions.
+import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+/// Create the source for two programs.
+const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add_it r1 r2 into r3;  output r3 as u32.private;\n";
+const program_import = "program add_it_up.aleo;\n\nfunction add_it:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager(undefined, undefined, undefined);
+
+/// Create a temporary account for the execution of the program
+const account = Account.fromCipherText(process.env.ciphertext, process.env.password);
+programManager.setAccount(account);
+
+/// Get the response and ensure that the program executed correctly
+const executionResponse = await programManager.run(program, "mul_and_add", ["5u32", "5u32"], true);
+
+/// Construct the imports and verifying keys
+const imports = { "add_it_up.aleo": program_import };
+const importedVerifyingKeys = { "add_it_up.aleo": [["add_it", "verifyingKey1..."]] };
+
+/// Verify the execution.
+const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
+assert(isValid);
+```
 
 ---
 
@@ -1111,6 +1189,55 @@ __recordProvider__ | `RecordProvider` | **
 
 ---
 
+### `setHeader(headerName, value)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a header in the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to set*
+__value__ | `string` | *The header value*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Set the value of the `Accept-Language` header to `en-US`
+programManager.setHeader('Accept-Language', 'en-US');
+```
+
+---
+
+### `removeHeader(headerName)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Remove a header from the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to be removed*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Remove the default `X-Aleo-SDK-Version` header
+programManager.removeHeader('X-Aleo-SDK-Version');
+```
+
+---
+
 ### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -2028,16 +2155,45 @@ setTimeout(async () => {
 
 ---
 
-### `verifyExecution(executionResponse) ► boolean`
+### `verifyExecution(executionResponse, imports, importedVerifyingKeys) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Verify a proof of execution from an offline execution
+Verify a proof from an offline execution. This is useful when it is desired to do offchain proving and verification.
 
 Parameters | Type | Description
 --- | --- | ---
-__executionResponse__ | `executionResponse` | **
+__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
+__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __*return*__ | `boolean` | *True if the proof is valid, false otherwise*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk used to build executions.
+import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+/// Create the source for two programs.
+const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add_it r1 r2 into r3;  output r3 as u32.private;\n";
+const program_import = "program add_it_up.aleo;\n\nfunction add_it:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager(undefined, undefined, undefined);
+
+/// Create a temporary account for the execution of the program
+const account = Account.fromCipherText(process.env.ciphertext, process.env.password);
+programManager.setAccount(account);
+
+/// Get the response and ensure that the program executed correctly
+const executionResponse = await programManager.run(program, "mul_and_add", ["5u32", "5u32"], true);
+
+/// Construct the imports and verifying keys
+const imports = { "add_it_up.aleo": program_import };
+const importedVerifyingKeys = { "add_it_up.aleo": [["add_it", "verifyingKey1..."]] };
+
+/// Verify the execution.
+const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
+assert(isValid);
+```
 
 ---
 

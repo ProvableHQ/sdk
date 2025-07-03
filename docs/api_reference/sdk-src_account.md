@@ -285,6 +285,61 @@ const decryptedRecords = account.decryptRecords(records);
 
 ---
 
+### `generateRecordViewKey(recordCiphertext) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Generates a record view key from the account owner&#x27;s view key and the record ciphertext.
+This key can be used to decrypt the record without revealing the account&#x27;s view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__recordCiphertext__ | [RecordCiphertext](sdk-src_wasm.md) | *The record ciphertext to generate the view key for*
+__*return*__ | [Field](sdk-src_wasm.md) | *The record view key*
+
+#### Examples
+
+```javascript
+// Import the Account class
+import { Account } from "@provablehq/sdk/testnet.js";
+
+// Create an account object from a previously encrypted ciphertext and password.
+const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+
+// Generate a record view key from the account's view key and a record ciphertext
+const recordCiphertext = RecordCiphertext.fromString("your_record_ciphertext_here");
+const recordViewKey = account.generateRecordViewKey(recordCiphertext);
+```
+
+---
+
+### `generateTransitionViewKey(tpk) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Generates a transition view key from the account owner&#x27;s view key and the transition public key.
+This key can be used to decrypt the private inputs and outputs of a the transition without
+revealing the account&#x27;s view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__tpk__ | `string` | *The transition public key*
+__*return*__ | [Field](sdk-src_wasm.md) | *The transition view key*
+
+#### Examples
+
+```javascript
+// Import the Account class
+import { Account } from "@provablehq/sdk/testnet.js";
+
+// Generate a transition view key from the account's view key and a transition public key
+const tpk = Group.fromString("your_transition_public_key_here");
+
+const transitionViewKey = account.generateTransitionViewKey(tpk);
+```
+
+---
+
 ### `ownsRecordCiphertext(ciphertext) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -449,23 +504,21 @@ const viewKey = account.viewKey();
 
 ---
 
-### `computeKey() ► ComputeKey`
+### `computeKey() ► Field`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the ComputeKey associated with the account.
+Returns the Transition View Key associated with the transition public key.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `ComputeKey` | *The compute key of the account*
+__*return*__ | [Field](sdk-src_wasm.md) | *The transition view key*
 
 #### Examples
 
 ```javascript
 import { Account } from "@provablehq/sdk/testnet.js";
-
-const account = new Account();
-const computeKey = account.computeKey();
+const account =
 ```
 
 ---
@@ -610,6 +663,61 @@ const records = transaction.records();
 
 // Decrypt any records the account owns. If the account owns no records, the array will be empty.
 const decryptedRecords = account.decryptRecords(records);
+```
+
+---
+
+### `generateRecordViewKey(recordCiphertext) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Generates a record view key from the account owner&#x27;s view key and the record ciphertext.
+This key can be used to decrypt the record without revealing the account&#x27;s view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__recordCiphertext__ | [RecordCiphertext](sdk-src_wasm.md) | *The record ciphertext to generate the view key for*
+__*return*__ | [Field](sdk-src_wasm.md) | *The record view key*
+
+#### Examples
+
+```javascript
+// Import the Account class
+import { Account } from "@provablehq/sdk/testnet.js";
+
+// Create an account object from a previously encrypted ciphertext and password.
+const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+
+// Generate a record view key from the account's view key and a record ciphertext
+const recordCiphertext = RecordCiphertext.fromString("your_record_ciphertext_here");
+const recordViewKey = account.generateRecordViewKey(recordCiphertext);
+```
+
+---
+
+### `generateTransitionViewKey(tpk) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Generates a transition view key from the account owner&#x27;s view key and the transition public key.
+This key can be used to decrypt the private inputs and outputs of a the transition without 
+revealing the account&#x27;s view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__tpk__ | `string` | *The transition public key*
+__*return*__ | [Field](sdk-src_wasm.md) | *The transition view key*
+
+#### Examples
+
+```javascript
+// Import the Account class
+import { Account } from "@provablehq/sdk/testnet.js";
+
+// Generate a transition view key from the account's view key and a transition public key
+const tpk = Group.fromString("your_transition_public_key_here");
+
+const transitionViewKey = account.generateTransitionViewKey(tpk);
 ```
 
 ---

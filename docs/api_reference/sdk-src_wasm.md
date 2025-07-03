@@ -208,6 +208,12 @@ SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted pl
 object provides decryption methods to recover the plaintext from the ciphertext (given the
 api consumer has the proper decryption materials).
 
+## Examples
+
+```javascript
+
+```
+
 ## Methods
 
 ### `decrypt(viewKey, nonce) ► Plaintext`
@@ -2254,7 +2260,7 @@ __*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *Record ciphertext*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Return the string reprensentation of the record ciphertext
+Return the string representation of the record ciphertext
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2273,6 +2279,20 @@ Parameters | Type | Description
 --- | --- | ---
 __view_key__ | `ViewKey` | *View key used to decrypt the ciphertext*
 __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext object*
+
+---
+
+### `recordViewKey(view_key) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Generate the record view key. The record view key can only decrypt record if the
+supplied view key belongs to the record owner.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key used to generate the record view key*
+__*return*__ | [Group](sdk-src_wasm.md) | *record view key*
 
 ---
 
@@ -2349,6 +2369,31 @@ Get the field array representation of the record ciphertext.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `Array.<any>` | **
+
+---
+
+### `decryptWithRecordViewKey(record_vk) ► RecordPlaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Decrypt the record ciphertext into plaintext using a record view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__record_vk__ | [Field](sdk-src_wasm.md) | *Record view key used to decrypt the record.*
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | **
+
+---
+
+### `nonce() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the record nonce.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 
