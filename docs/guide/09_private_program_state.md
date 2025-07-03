@@ -217,3 +217,30 @@ if (RecordCiphertext.is_owner(account.viewKey())) {
    console.log(recordPlaintext.toString());
 }
 ```
+
+A record can be decrypted by a non-owner using a record view key for use cases requiring inspection of the data contained within a 
+record by a third party.  This approach enables a user to maintain privacy over the rest of their records and ciphertext data, 
+ensuring that only the desired record can be decrypted a third party.
+
+```typescript
+import {Account, EncryptionToolkit, Field, RecordCiphertext, RecordPlaintext} from '@provablehq/sdk';
+
+// Create an account from an existing private key
+const account = Account.from_string({privateKey: "existingPrivateKey"});
+
+// Record value received as a string from program output or found on the Aleo network
+const record = "record1qyqsq4r7mcd3ystjvjqda0v2a6dxnyzg9mk2daqjh0wwh359h396k7c9qyxx66trwfhkxun9v35hguerqqpqzqzshsw8dphxlzn5frh8pknsm5zlvhhee79xnhfesu68nkw75dt2qgrye03xqm4zf5xg5n6nscmmzh7ztgptlrzxq95syrzeaqaqu3vpzqf03s6";
+
+const recordCiphertext = RecordCiphertext.fromString(record);
+
+// The owner generates the record view key for a specific record
+const recordViewKey = recordCiphertext.recordViewKey(account.viewKey());
+
+// Alternatively, the record view key can be generarted using a method from the EncryptionToolkit object
+const recordViewKeyAlt = EncryptionToolkit::gnerateRecordViewKey(accoutn.viewKey(), recordCiphertext);
+
+// A third party can now decrypt the record using the record view key
+const recordPlaintext = recordciphertext.decryptWithRecordViewKey(recordViewKey);
+
+// Alternatively, the record can be decrypted using a method from the EncryptionToolkit object
+const recordPlaintextAlt = EncryptionToolkit::decryptRecordWithRVk(recordViewKeyAlt, reocrdCiphertext);
