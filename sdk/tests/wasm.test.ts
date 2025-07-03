@@ -391,7 +391,7 @@ describe('WASM Objects', () => {
         const transitionViewKey = Field.fromString(transitionViewKeyString);
         const invalidTransitionViewKey = Field.fromString(invalidTransitionViewKeyString);
         const viewKeyString = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
-        const viewKey = ViewKey.fromString(viewKeyString);
+        const viewKey = ViewKey.from_string(viewKeyString);
 
         it('can be decrypted with a valid transition view key', () => {
             const transitionDecryptedWithTVK = transition.decryptWithTransitionViewKey(transitionViewKey);
@@ -420,7 +420,7 @@ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
 }`;
         const recordPlaintext = RecordPlaintext.fromString(recordPlaintextString);
         const viewKeyString = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
-        const viewKey = ViewKey.fromString(viewKeyString);
+        const viewKey = ViewKey.from_string(viewKeyString);
         const recordViewKeyString = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
         const recordViewKey = Field.fromString(recordViewKeyString);
         
