@@ -67,6 +67,7 @@ export {
     ComputeKey,
     Execution as FunctionExecution,
     ExecutionResponse,
+    EncryptionToolkit,
     Field,
     Group,
     OfflineQuery,

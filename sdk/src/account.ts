@@ -1,6 +1,7 @@
 import {
   Address,
   ComputeKey,
+  EncryptionToolkit,
   Field,
   Group,
   PrivateKey,
@@ -277,6 +278,28 @@ export class Account {
    */
   decryptRecords(ciphertexts: string[]): RecordPlaintext[] {
     return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext));
+  }
+
+  /**
+   * Generates a transition view key from the account owner's view key and the transition public key.
+   * This key can be used to decrypt the private inputs and outputs of a the transition without 
+   * revealing the account's view key.
+   * @param {tpk: Group} tpk The transition public key
+   * @returns {Field} The transition view key
+   * 
+   * @example
+   * // Import the Account class
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   * // Create an account object
+   * const account = new Account();
+   * // Generate a transition view key from the account's view key and a transition public key
+   * const tpk = Group.fromString("your_transition_public_key_here");
+   * 
+   * const transitionViewKey = account.generateTransitionViewKey(tpk);
+   * console.log(transitionViewKey.toString());
+   */
+  generateTransitionViewKey(tpk: Group): Field {
+    return EncryptionToolkit.generateTvk(this._viewKey, tpk);
   }
 
   /**
