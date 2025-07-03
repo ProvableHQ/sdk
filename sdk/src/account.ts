@@ -311,6 +311,33 @@ export class Account {
   }
 
   /**
+   * Generates a record view key from the account owner's view key and the record ciphertext.
+   * This key can be used to decrypt the record without revealing the account's view key.
+   * @param {RecordCiphertext | string} recordCiphertext The record ciphertext to generate the view key for
+   * @returns {Field} The record view key
+   * 
+   * @example
+   * // Import the Account class
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   * 
+   * // Create an account object from a previously encrypted ciphertext and password.
+   * const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+   * 
+   * // Generate a record view key from the account's view key and a record ciphertext
+   * const recordCiphertext = RecordCiphertext.fromString("your_record_ciphertext_here");
+   * const recordViewKey = account.generateRecordViewKey(recordCiphertext);
+   */
+  generateRecordViewKey(recordCiphertext: RecordCiphertext | string): Field {
+    if (typeof recordCiphertext === 'string') {
+      recordCiphertext = RecordCiphertext.fromString(recordCiphertext);
+    }
+    if (!(recordCiphertext.isOwner(this._viewKey))) {
+      throw new Error("The record ciphertext does not belong to this account");
+    }
+    return EncryptionToolkit.generateRecordViewKey(this._viewKey, recordCiphertext);
+  }
+
+  /**
    * Generates a transition view key from the account owner's view key and the transition public key.
    * This key can be used to decrypt the private inputs and outputs of a the transition without 
    * revealing the account's view key.
@@ -320,8 +347,7 @@ export class Account {
    * @example
    * // Import the Account class
    * import { Account } from "@provablehq/sdk/testnet.js";
-   * // Create an account object
-   * const account = new Account();
+   * 
    * // Generate a transition view key from the account's view key and a transition public key
    * const tpk = Group.fromString("your_transition_public_key_here");
    * 
