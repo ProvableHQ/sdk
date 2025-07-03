@@ -16,7 +16,6 @@
 
 use crate::{Ciphertext, Field, Plaintext, object, plaintext_to_js_value, types::native::InputNative};
 
-use js_sys::Reflect;
 use wasm_bindgen::JsValue;
 
 pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {

@@ -229,7 +229,7 @@ impl From<&LiteralNative> for Plaintext {
 mod tests {
     use super::*;
     use crate::object;
-    use js_sys::{Object, Reflect};
+    use js_sys::Object;
 
     use wasm_bindgen_test::wasm_bindgen_test;
 

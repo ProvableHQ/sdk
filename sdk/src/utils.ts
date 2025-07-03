@@ -27,7 +27,6 @@ export function environment() {
     }
 }
 
-
 export function logAndThrow(message: string): never {
     console.error(message);
     throw new Error(message);

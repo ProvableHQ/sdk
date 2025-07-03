@@ -1,5 +1,18 @@
-import { Account, AleoNetworkClient, Program, ExecutionResponse, ImportedPrograms, ImportedVerifyingKeys, OfflineQuery,
-    ProgramManager, RecordPlaintext, Transaction, VerifyingKey, verifyFunctionExecution } from "@provablehq/sdk/%%NETWORK%%.js";
+import {
+    Account,
+    Authorization,
+    ExecutionResponse,
+    ImportedPrograms,
+    ImportedVerifyingKeys,
+    OfflineQuery,
+    PrivateKey,
+    Program,
+    ProgramManager,
+    RecordPlaintext,
+    Transaction,
+    verifyFunctionExecution,
+    VerifyingKey
+} from "@provablehq/sdk/%%NETWORK%%.js";
 import {
     beaconAddressString,
     helloProgram,
@@ -10,6 +23,13 @@ import {
 } from "./data/account-data.js";
 import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program.js";
 import { expect } from "chai";
+import {
+    PUZZLE_SPINNER_PROGRAM_ID,
+    PUZZLE_SPINNER_V002_INPUT_0,
+    PUZZLE_SPINNER_V002_INPUT_1,
+    PUZZLE_SPINNER_V002_INPUT_2
+} from "./data/proving";
+import * as process from "node:process";
 
 describe('Program Manager', () => {
     const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
@@ -84,6 +104,41 @@ describe('Program Manager', () => {
             const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecord, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
             const verified = programManager.verifyExecution(execution_result);
             expect(verified).equal(true);
+        });
+    });
+
+    describe('Proving Requests and Authorizations', () => {
+        it('Should build correct authorizations', async () => {
+            // Build an authorization for the spin function of "puzzle_spinner_v002.aleo".
+            const authorization = await programManager.buildAuthorization({
+                programName: PUZZLE_SPINNER_PROGRAM_ID,
+                functionName: "spin",
+                inputs: [
+                    PUZZLE_SPINNER_V002_INPUT_0,
+                    PUZZLE_SPINNER_V002_INPUT_1,
+                    PUZZLE_SPINNER_V002_INPUT_2,
+                ],
+                privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
+            });
+
+            // Ensure serialization methods lead to the expected.
+            const authorizationFromString = Authorization.fromString(authorization.toString());
+            const authorizationFromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+
+            // Ensure all authorizations are equal.
+            expect(authorizationFromString.equals(authorizationFromBytes));
+            expect(authorizationFromString.equals(authorization));
+
+            // Get execution ID from previous authorization.
+            const executionId = authorization.toExecutionId().toString();
+            const feeAuthorization = await programManager.buildFeeAuthorization({
+                deploymentOrExecutionId: executionId,
+                baseFeeCredits: 0.1,
+            });
+
+            // Ensure the authorizations have the correct number of transitions.
+            expect(authorization.transitions().length).equal(3);
+            expect(feeAuthorization.transitions().length).equal(1);
         });
     });
 });

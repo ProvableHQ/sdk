@@ -114,7 +114,7 @@ impl RecordCiphertext {
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let bytes_vec = self.0.to_bytes_le().map_err(|e| e.to_string())?;
         let bytes = bytes_vec.as_slice();
-        Uint8Array::try_from(bytes).map_err(|e| e.to_string())
+        Ok(Uint8Array::from(bytes))
     }
 
     /// Get the left endian boolean array representation of the record ciphertext bits.

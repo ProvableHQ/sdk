@@ -16,8 +16,9 @@
 
 use crate::{
     account::Address,
-    types::native::{CurrentNetwork, EntryType, IdentifierNative, PlaintextType, ProgramNative, ValueType},
+    types::native::{CurrentNetwork, IdentifierNative, ProgramNative},
 };
+use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
 
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
@@ -54,7 +55,7 @@ impl Program {
     /// @returns {boolean} True if the program is valid, false otherwise
     #[wasm_bindgen(js_name = "hasFunction")]
     pub fn has_function(&self, function_name: &str) -> bool {
-        IdentifierNative::from_str(function_name).map_or(false, |identifier| self.0.contains_function(&identifier))
+        IdentifierNative::from_str(function_name).is_ok_and(|identifier| self.0.contains_function(&identifier))
     }
 
     /// Get javascript array of functions names in the program

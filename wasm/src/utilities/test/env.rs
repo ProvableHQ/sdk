@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod env;
-pub use env::get_env;
+use wasm_bindgen::prelude::*;
 
-pub mod plaintext;
-pub use plaintext::*;
-
-pub mod programs;
-pub use programs::*;
+#[wasm_bindgen(inline_js = r#"
+    module.exports.getEnv = function(name) {
+        return process.env[name] || "";
+    };
+"#)]
+extern "C" {
+    #[wasm_bindgen(js_name = getEnv)]
+    pub fn get_env(name: &str) -> String;
+}

@@ -15,42 +15,35 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::networks::*;
-
-pub use snarkvm_console::{
+use snarkvm_console::{
     account::{Address, ComputeKey, GraphKey, PrivateKey, Signature, ViewKey},
     algorithms::{BHP256, BHP512, BHP768, BHP1024, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8},
-    network::Network,
     program::{
         Argument,
         Ciphertext,
         Entry,
-        EntryType,
         Future,
         Identifier,
         Literal,
         Plaintext,
-        PlaintextType,
         ProgramID,
         ProgramOwner,
         Record,
+        Request,
         Response,
+        Value,
         ValueType,
     },
     types::{Field, Group, Scalar, U16, U64},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
-pub use snarkvm_ledger_query::Query;
-pub use snarkvm_ledger_store::helpers::memory::BlockMemory;
-pub use snarkvm_synthesizer::{
+use snarkvm_ledger_query::Query;
+use snarkvm_ledger_store::helpers::memory::BlockMemory;
+use snarkvm_synthesizer::{
+    Authorization,
     Process,
     Program,
-    process::{cost_in_microcredits_v2, deployment_cost},
     snark::{ProvingKey, VerifyingKey},
-};
-pub use snarkvm_wasm::{
-    console::network::Environment,
-    fields::PrimeField,
-    utilities::{FromBytes, ToBytes, Uniform},
 };
 
 // Account types
@@ -61,14 +54,14 @@ pub type PrivateKeyNative = PrivateKey<CurrentNetwork>;
 pub type SignatureNative = Signature<CurrentNetwork>;
 pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 
-// Algebraic types
+// Algebraic & Primitive Data Types
 pub type FieldNative = Field<CurrentNetwork>;
 pub type GroupNative = Group<CurrentNetwork>;
 pub type ScalarNative = Scalar<CurrentNetwork>;
 pub type U16Native = U16<CurrentNetwork>;
 pub type U64Native = U64<CurrentNetwork>;
 
-// Algorithmic types
+// Algorithms
 pub type BHP256Native = BHP256<CurrentNetwork>;
 pub type BHP512Native = BHP512<CurrentNetwork>;
 pub type BHP768Native = BHP768<CurrentNetwork>;
@@ -79,30 +72,36 @@ pub type Poseidon2Native = Poseidon2<CurrentNetwork>;
 pub type Poseidon4Native = Poseidon4<CurrentNetwork>;
 pub type Poseidon8Native = Poseidon8<CurrentNetwork>;
 
-// Record types
-pub type CiphertextNative = Ciphertext<CurrentNetwork>;
-pub type CiphertextEntryNative = Entry<CurrentNetwork, CiphertextNative>;
-pub type PlaintextEntryNative = Entry<CurrentNetwork, PlaintextNative>;
-pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
-pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
-
 // Program types
 pub type ArgumentNative = Argument<CurrentNetwork>;
-type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
-pub type ExecutionNative = Execution<CurrentNetwork>;
+pub type CiphertextNative = Ciphertext<CurrentNetwork>;
+pub type CiphertextEntryNative = Entry<CurrentNetwork, CiphertextNative>;
 pub type FutureNative = Future<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
-pub type InputNative = Input<CurrentNetwork>;
 pub type LiteralNative = Literal<CurrentNetwork>;
-pub type OutputNative = Output<CurrentNetwork>;
 pub type PlaintextNative = Plaintext<CurrentNetwork>;
-pub type ProcessNative = Process<CurrentNetwork>;
+pub type PlaintextEntryNative = Entry<CurrentNetwork, PlaintextNative>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;
 pub type ProgramNative = Program<CurrentNetwork>;
-pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
-pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
-pub type QueryNative = Query<CurrentNetwork, CurrentBlockMemory>;
+pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
+pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 pub type ResponseNative = Response<CurrentNetwork>;
+pub type ValueNative = Value<CurrentNetwork>;
+pub type ValueTypeNative = ValueType<CurrentNetwork>;
+
+// Ledger types
+type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
+pub type ExecutionNative = Execution<CurrentNetwork>;
+pub type InputNative = Input<CurrentNetwork>;
+pub type OutputNative = Output<CurrentNetwork>;
+pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
+pub type QueryNative = Query<CurrentNetwork, CurrentBlockMemory>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
 pub type TransitionNative = Transition<CurrentNetwork>;
+
+// Synthesizer types
+pub type AuthorizationNative = Authorization<CurrentNetwork>;
+pub type ProcessNative = Process<CurrentNetwork>;
+pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
+pub type RequestNative = Request<CurrentNetwork>;
 pub type VerifyingKeyNative = VerifyingKey<CurrentNetwork>;

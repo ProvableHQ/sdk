@@ -202,7 +202,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 /// Import the mainnet version of the sdk.
 import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
-// Create a new NetworkClient, KeyProvider, and RecordProvider
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 keyProvider.useCache = true;
@@ -243,7 +243,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 /// Import the mainnet version of the sdk.
 import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
-// Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 keyProvider.useCache = true;
@@ -269,6 +269,86 @@ setTimeout(async () => {
  const transaction = await programManager.networkClient.getTransaction(tx.id());
  assert(transaction.id() === tx.id());
 }, 10000);
+```
+
+---
+
+### `buildAuthorization(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM &#x60;Authorization&#x60; for a specific function.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `AuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the `Authorization`.
+const authorization = await programManager.buildAuthorization({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+});
+```
+
+---
+
+### `buildFeeAuthorization(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM fee &#x60;Authorization&#x60; for &#x60;credits.aleo/fee_private&#x60; or &#x60;credits.aleo/fee_public&#x60;. If a record is provided &#x60;fee_private&#x60; will be executed, otherwise &#x60;fee_public&#x60; will be executed.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `FeeAuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;.*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build a credits.aleo/fee_public `Authorization`.
+const feePublicAuthorization = await programManager.authorizeFee({
+  deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+  baseFeeCredits: 0.1,
+});
+
+// Build a credits.aleo/fee_private `Authorization`.
+const record = "{ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private, microcredits: 1500000000000000u64.private, _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public }";
+const feePrivateAuthorization = await programManager.authorizeFee({
+  deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+  baseFeeCredits: 0.1,
+  feeRecord: record,
+});
 ```
 
 ---
@@ -1308,7 +1388,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 /// Import the mainnet version of the sdk.
 import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
-// Create a new NetworkClient, KeyProvider, and RecordProvider
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 keyProvider.useCache = true;
@@ -1349,7 +1429,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 /// Import the mainnet version of the sdk.
 import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
-// Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 keyProvider.useCache = true;
@@ -1375,6 +1455,86 @@ setTimeout(async () => {
  const transaction = await programManager.networkClient.getTransaction(tx.id());
  assert(transaction.id() === tx.id());
 }, 10000);
+```
+
+---
+
+### `buildAuthorization(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM &#x60;Authorization&#x60; for a specific function.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `AuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the `Authorization`.
+const authorization = await programManager.buildAuthorization({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+});
+```
+
+---
+
+### `buildFeeAuthorization(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM fee &#x60;Authorization&#x60; for &#x60;credits.aleo/fee_private&#x60; or &#x60;credits.aleo/fee_public&#x60;. If a record is provided &#x60;fee_private&#x60; will be executed, otherwise &#x60;fee_public&#x60; will be executed.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `FeeAuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;.*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build a credits.aleo/fee_public `Authorization`.
+const feePublicAuthorization = await programManager.authorizeFee({
+  deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+  baseFeeCredits: 0.1,
+});
+
+// Build a credits.aleo/fee_private `Authorization`.
+const record = "{ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private, microcredits: 1500000000000000u64.private, _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public }";
+const feePrivateAuthorization = await programManager.authorizeFee({
+  deploymentOrExecutionId: "2423957656946557501636078245035919227529640894159332581642187482178647335171field",
+  baseFeeCredits: 0.1,
+  feeRecord: record,
+});
 ```
 
 ---

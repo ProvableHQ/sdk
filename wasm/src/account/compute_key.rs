@@ -89,13 +89,13 @@ impl From<ComputeKey> for ComputeKeyNative {
 
 impl From<&ComputeKey> for ComputeKeyNative {
     fn from(compute_key: &ComputeKey) -> Self {
-        compute_key.0.clone()
+        compute_key.0
     }
 }
 
 impl From<&ComputeKeyNative> for ComputeKey {
     fn from(compute_key: &ComputeKeyNative) -> Self {
-        Self(compute_key.clone())
+        Self(*compute_key)
     }
 }
 

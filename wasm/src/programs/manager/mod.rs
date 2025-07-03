@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod deploy;
-pub mod execute;
-pub mod join;
-pub mod split;
-pub mod transfer;
+mod authorize;
+mod deploy;
+mod execute;
+mod join;
+mod split;
+mod transfer;
 
 const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
 
@@ -37,10 +38,9 @@ use crate::{
         ProvingKeyNative,
         QueryNative,
         VerifyingKeyNative,
-        cost_in_microcredits_v2,
-        deployment_cost,
     },
 };
+use snarkvm_synthesizer::process::{cost_in_microcredits_v2, deployment_cost};
 use snarkvm_synthesizer_program::StackKeys;
 
 use js_sys::{Object, Reflect};

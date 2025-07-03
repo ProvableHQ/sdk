@@ -28,15 +28,15 @@ pub fn insert_plaintext(js_object: &Object, key: &IdentifierNative, plaintext: &
     match plaintext {
         PlaintextNative::Literal(literal, _) => {
             let js_value = literal_to_js_value(literal);
-            Reflect::set(js_object, &key.to_string().into(), &js_value.into()).unwrap();
+            Reflect::set(js_object, &key.to_string().into(), &js_value).unwrap();
         }
         PlaintextNative::Struct(struct_members, ..) => {
             let struct_object = struct_to_js_object(struct_members);
-            Reflect::set(&js_object, &key.to_string().into(), &struct_object.into()).unwrap();
+            Reflect::set(js_object, &key.to_string().into(), &struct_object.into()).unwrap();
         }
         PlaintextNative::Array(array, ..) => {
-            let js_array = array.iter().map(|plaintext| plaintext_to_js_value(plaintext)).collect::<Array>();
-            Reflect::set(&js_object, &key.to_string().into(), &js_array.into()).unwrap();
+            let js_array = array.iter().map(plaintext_to_js_value).collect::<Array>();
+            Reflect::set(js_object, &key.to_string().into(), &js_array.into()).unwrap();
         }
     }
 }
@@ -47,7 +47,7 @@ pub fn plaintext_to_js_value(plaintext: &PlaintextNative) -> JsValue {
         PlaintextNative::Literal(literal, _) => literal_to_js_value(literal),
         PlaintextNative::Struct(struct_members, ..) => JsValue::from(struct_to_js_object(struct_members)),
         PlaintextNative::Array(array, ..) => {
-            let js_array = array.iter().map(|plaintext| plaintext_to_js_value(plaintext)).collect::<Array>();
+            let js_array = array.iter().map(plaintext_to_js_value).collect::<Array>();
             JsValue::from(js_array)
         }
     }
