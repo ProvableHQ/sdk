@@ -132,15 +132,6 @@ export class Account {
   }
 
   /**
-   * Returns the Transition View Key associated with the transition public key.
-   * @returns {Field} The transition view key
-   * 
-   * @example
-   * import { Account } from "@provablehq/sdk/testnet.js";
-   * const account = 
-   */
-
-  /**
    * Returns the ComputeKey associated with the account.
    * @returns {ComputeKey} The compute key of the account
    *
