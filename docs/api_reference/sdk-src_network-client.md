@@ -981,20 +981,6 @@ __*return*__ | `Promise.<string>` | *The solution id of the submitted solution o
 
 ---
 
-### `submitProvingRequest(provingRequest, url) ► Promise.<ProvingResponse>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Submit a &#x60;ProvingRequest&#x60; to the Aleo network.
-
-Parameters | Type | Description
---- | --- | ---
-__provingRequest__ | [ProvingRequest](sdk-src_wasm.md) | *The &#x60;ProvingRequest&#x60; to submit*
-__url__ | `string` | *(Optional) The url of the proving service.*
-__*return*__ | `Promise.<ProvingResponse>` | *The solution id of the submitted solution or the resulting error.*
-
----
-
 ### `waitForTransactionConfirmation(transactionId, checkInterval, timeout) ► Promise.<Transaction>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1992,20 +1978,6 @@ Parameters | Type | Description
 --- | --- | ---
 __solution__ | `string` | *The string representation of the solution to submit*
 __*return*__ | `Promise.<string>` | *The solution id of the submitted solution or the resulting error.*
-
----
-
-### `submitProvingRequest(provingRequest, url) ► Promise.<ProvingResponse>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Submit a &#x60;ProvingRequest&#x60; to the Aleo network.
-
-Parameters | Type | Description
---- | --- | ---
-__provingRequest__ | [ProvingRequest](sdk-src_wasm.md) | *The &#x60;ProvingRequest&#x60; to submit*
-__url__ | `string` | *(Optional) The url of the proving service.*
-__*return*__ | `Promise.<ProvingResponse>` | *The solution id of the submitted solution or the resulting error.*
 
 ---
 

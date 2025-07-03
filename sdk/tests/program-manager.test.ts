@@ -8,7 +8,6 @@ import {
     PrivateKey,
     Program,
     ProgramManager,
-    ProvingRequest,
     RecordPlaintext,
     Transaction,
     verifyFunctionExecution,
@@ -109,43 +108,6 @@ describe('Program Manager', () => {
     });
 
     describe('Proving Requests and Authorizations', () => {
-        it('Should build correct authorizations from Proving Request', async () => {
-            // Build a proving request for the "spin" function of "puzzle_spinner_v002.aleo".
-            const provingRequest = await programManager.provingRequest({
-                programName: PUZZLE_SPINNER_PROGRAM_ID,
-                functionName: "spin",
-                baseFee: 1000000,
-                priorityFee: 0,
-                privateFee: false,
-                inputs: [
-                    PUZZLE_SPINNER_V002_INPUT_0,
-                    PUZZLE_SPINNER_V002_INPUT_1,
-                    PUZZLE_SPINNER_V002_INPUT_2,
-                ],
-                broadcast: false,
-                privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
-            });
-
-            // Ensure serialization methods lead to the expected.
-            const provingRequestFromString = ProvingRequest.fromString(provingRequest.toString());
-            const provingRequestFromBytes = ProvingRequest.fromBytesLe(provingRequest.toBytesLe());
-
-            // Ensure all authorizations are equal.
-            expect(provingRequestFromString.equals(provingRequestFromBytes));
-            expect(provingRequestFromString.equals(provingRequest));
-
-            // Ensure the broadcast flag is set to false.
-            expect(provingRequest.broadcast()).equal(false);
-
-            // Get the authorizations.
-            const authorization = provingRequest.authorization();
-            const feeAuthorization = <Authorization>provingRequest.feeAuthorization();
-
-            // Ensure the authorizations have the correct number of transitions.
-            expect(authorization.transitions().length).equal(3);
-            expect(feeAuthorization.transitions().length).equal(1);
-        })
-
         it('Should build correct authorizations', async () => {
             // Build an authorization for the spin function of "puzzle_spinner_v002.aleo".
             const authorization = await programManager.buildAuthorization({
@@ -177,10 +139,6 @@ describe('Program Manager', () => {
             // Ensure the authorizations have the correct number of transitions.
             expect(authorization.transitions().length).equal(3);
             expect(feeAuthorization.transitions().length).equal(1);
-
-            // Build a proving request from the ProvingRequest and ensure it's created successfully.
-            const provingRequest = ProvingRequest.new(authorization, feeAuthorization, false);
-            expect(provingRequest.broadcast()).equal(false);
         });
     });
 });

@@ -2422,126 +2422,6 @@ __*return*__ | `string` | *String representation of the proving key*
 
 ---
 
-# Class `ProvingRequest`
-
-Represents a proving request to a delegated proving service.
-
-## Methods
-
-### `new(authorization, fee_authorization, broadcast) ► ProvingRequest`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Creates a new ProvingRequest from a function Authorization and an optional fee Authorization.
-
-Parameters | Type | Description
---- | --- | ---
-__authorization__ | [Authorization](sdk-src_wasm.md) | *An Authorization for a function.*
-__fee_authorization__ | [Authorization](sdk-src_wasm.md) | *The authorization for the &#x60;credits.aleo/fee_public&#x60; or &#x60;credits.aleo/fee_private&#x60; function that pays the fee for the execution of the main function.*
-__broadcast__ | `boolean` | *Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller&#x27;s behalf.*
-__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
-
----
-
-### `fromString(request) ► ProvingRequest`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Creates a ProvingRequest from a string representation.
-
-Parameters | Type | Description
---- | --- | ---
-__request__ | `Uint8Array` | *String representation of the ProvingRequest.*
-__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
-
----
-
-### `toString() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Creates a string representation of the ProvingRequest.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | **
-
----
-
-### `fromBytesLe(bytes) ► ProvingRequest`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Creates a ProvingRequest from a left-endian byte representation of the ProvingRequest.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | *Left-endian bytes representing the proving request.*
-__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
-
----
-
-### `toBytesLe() ► Uint8Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Creates a left-endian byte representation of the ProvingRequest.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Uint8Array` | **
-
----
-
-### `authorization() ► Authorization`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the Authorization of the main function in the ProvingRequest.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Authorization](sdk-src_wasm.md) | **
-
----
-
-### `feeAuthorization() ► Authorization`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the fee Authorization in the ProvingRequest.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Authorization](sdk-src_wasm.md) | **
-
----
-
-### `broadcast() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the broadcast flag set in the ProvingRequest.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | **
-
----
-
-### `equals(other) ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Check if a ProvingRequest is the same as another ProvingRequest.
-
-Parameters | Type | Description
---- | --- | ---
-__other__ | [ProvingRequest](sdk-src_wasm.md) | **
-__*return*__ | `boolean` | **
-
----
-
 # Class `RecordCiphertext`
 
 Encrypted Aleo record
@@ -2565,7 +2445,7 @@ __*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *Record ciphertext*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Return the string reprensentation of the record ciphertext
+Return the string representation of the record ciphertext
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2584,6 +2464,20 @@ Parameters | Type | Description
 --- | --- | ---
 __view_key__ | `ViewKey` | *View key used to decrypt the ciphertext*
 __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext object*
+
+---
+
+### `recordViewKey(view_key) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Generate the record view key. The record view key can only decrypt record if the
+supplied view key belongs to the record owner.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key used to generate the record view key*
+__*return*__ | [Group](sdk-src_wasm.md) | *record view key*
 
 ---
 
@@ -2660,6 +2554,31 @@ Get the field array representation of the record ciphertext.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `Array.<any>` | **
+
+---
+
+### `decryptWithRecordViewKey(record_vk) ► RecordPlaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Decrypt the record ciphertext into plaintext using a record view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__record_vk__ | [Field](sdk-src_wasm.md) | *Record view key used to decrypt the record.*
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | **
+
+---
+
+### `nonce() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the record nonce.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 

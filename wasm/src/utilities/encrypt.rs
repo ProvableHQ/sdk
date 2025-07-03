@@ -68,7 +68,7 @@ impl EncryptionToolkit {
         // Increment the number of randomizers by the number of data randomizers.
         for (_, entry) in record_native.data().iter() {
             num_randomizers = num_randomizers
-                .checked_add(Self::num_entry_randomizers(&entry)?)
+                .checked_add(Self::num_entry_randomizers(entry)?)
                 .ok_or_else(|| "Number of randomizers exceeds maximum allowed size.".to_string())?;
         }
 
@@ -104,7 +104,7 @@ impl EncryptionToolkit {
         // Decrypt the program data.
         let mut decrypted_data = IndexMap::with_capacity(record_native.data().len());
         for (id, entry, num_randomizers) in
-            record_native.data().iter().map(|(id, entry)| (id, entry, Self::num_entry_randomizers(&entry)))
+            record_native.data().iter().map(|(id, entry)| (id, entry, Self::num_entry_randomizers(entry)))
         {
             // Retrieve the result for `num_randomizers`.
             let num_randomizers = num_randomizers? as usize;

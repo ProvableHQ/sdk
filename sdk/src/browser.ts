@@ -83,7 +83,6 @@ export {
     Program,
     ProgramManager as ProgramManagerBase,
     ProvingKey,
-    ProvingRequest,
     RecordCiphertext,
     RecordPlaintext,
     Signature,

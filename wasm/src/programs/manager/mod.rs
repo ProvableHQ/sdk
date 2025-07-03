@@ -15,7 +15,6 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 mod authorize;
-mod delegated;
 mod deploy;
 mod execute;
 mod join;

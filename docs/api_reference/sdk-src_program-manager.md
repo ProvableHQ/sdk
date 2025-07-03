@@ -108,6 +108,30 @@ programManager.setHeader('Accept-Language', 'en-US');
 
 ---
 
+### `removeHeader(headerName)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Remove a header from the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to be removed*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Remove the default `X-Aleo-SDK-Version` header
+programManager.removeHeader('X-Aleo-SDK-Version');
+```
+
+---
+
 ### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -241,69 +265,6 @@ const tx = await programManager.buildExecutionTransaction({
 await programManager.networkClient.submitTransaction(tx.toString());
 
 // Verify the transaction was successful
-setTimeout(async () => {
- const transaction = await programManager.networkClient.getTransaction(tx.id());
- assert(transaction.id() === tx.id());
-}, 10000);
-```
-
----
-
-### `provingRequest(options) ► Promise.<ProvingRequest>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Builds a &#x60;ProvingRequest&#x60; for submission to a delegated proving service for remote execution.
-
-Parameters | Type | Description
---- | --- | ---
-__options__ | `ProvingRequestOptions` | *The options for building the proving request*
-__*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the transaction or an error.*
-
-#### Examples
-
-```javascript
-/// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
-
-// Create a new NetworkClient, KeyProvider, and RecordProvider.
-const keyProvider = new AleoKeyProvider();
-const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
-
-// Initialize a ProgramManager with the key and record providers.
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-
-// Build the proving request.
-const provingRequest = await programManager.provingRequest({
-  programName: "credits.aleo",
-  functionName: "transfer_public",
-  baseFee: 100000,
-  priorityFee: 0,
-  privateFee: false,
-  inputs: [
-    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
-    "10000000u64",
-  ],
-  broadcast: true,
-});
-
-// Submit the ProvingRequest to the network and await the response.
-const provingResponse = await programManager.networkClient.submitProvingRequest(provingRequest);
-// Get the transaction from the proving response.
-const tx = provingResponse.transaction;
-// Check if the proving service has already submitted the transaction.
-const submitted = provingResponse.broadcast;
-
-// Get the transaction id.
-const tx_id = tx.id();
-
-// If the response doesn't indicate the transaction was submitted, submit it manually.
-if (!submitted) {
-  await programManager.networkClient.submitTransaction(tx);
-}
-
-// Wait to see if the transaction has appeared on chain.
 setTimeout(async () => {
  const transaction = await programManager.networkClient.getTransaction(tx.id());
  assert(transaction.id() === tx.id());
@@ -1333,6 +1294,30 @@ programManager.setHeader('Accept-Language', 'en-US');
 
 ---
 
+### `removeHeader(headerName)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Remove a header from the &#x60;AleoNetworkClient&#x60;s header map
+
+Parameters | Type | Description
+--- | --- | ---
+__headerName__ | `string` | *The name of the header to be removed*
+
+#### Examples
+
+```javascript
+import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+
+// Remove the default `X-Aleo-SDK-Version` header
+programManager.removeHeader('X-Aleo-SDK-Version');
+```
+
+---
+
 ### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1466,69 +1451,6 @@ const tx = await programManager.buildExecutionTransaction({
 await programManager.networkClient.submitTransaction(tx.toString());
 
 // Verify the transaction was successful
-setTimeout(async () => {
- const transaction = await programManager.networkClient.getTransaction(tx.id());
- assert(transaction.id() === tx.id());
-}, 10000);
-```
-
----
-
-### `provingRequest(options) ► Promise.<ProvingRequest>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Builds a &#x60;ProvingRequest&#x60; for submission to a delegated proving service for remote execution.
-
-Parameters | Type | Description
---- | --- | ---
-__options__ | `ProvingRequestOptions` | *The options for building the proving request*
-__*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the transaction or an error.*
-
-#### Examples
-
-```javascript
-/// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
-
-// Create a new NetworkClient, KeyProvider, and RecordProvider.
-const keyProvider = new AleoKeyProvider();
-const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
-
-// Initialize a ProgramManager with the key and record providers.
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-
-// Build the proving request.
-const provingRequest = await programManager.provingRequest({
-  programName: "credits.aleo",
-  functionName: "transfer_public",
-  baseFee: 100000,
-  priorityFee: 0,
-  privateFee: false,
-  inputs: [
-    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
-    "10000000u64",
-  ],
-  broadcast: true,
-});
-
-// Submit the ProvingRequest to the network and await the response.
-const provingResponse = await programManager.networkClient.submitProvingRequest(provingRequest);
-// Get the transaction from the proving response.
-const tx = provingResponse.transaction;
-// Check if the proving service has already submitted the transaction.
-const submitted = provingResponse.broadcast;
-
-// Get the transaction id.
-const tx_id = tx.id();
-
-// If the response doesn't indicate the transaction was submitted, submit it manually.
-if (!submitted) {
-  await programManager.networkClient.submitTransaction(tx);
-}
-
-// Wait to see if the transaction has appeared on chain.
 setTimeout(async () => {
  const transaction = await programManager.networkClient.getTransaction(tx.id());
  assert(transaction.id() === tx.id());
