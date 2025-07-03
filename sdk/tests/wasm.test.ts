@@ -353,7 +353,7 @@ describe('WASM Objects', () => {
         });
 
         it('can be decrypted with a valid record view key', () => {
-            const recordViewKey = ciphertext.generateRecordViewKey(viewKey);
+            const recordViewKey = ciphertext.recordViewKey(viewKey);
             const plaintext = ciphertext.decryptWithRecordViewKey(recordViewKey);
             const isOwner = ciphertext.isOwner(viewKey);
 
@@ -363,7 +363,8 @@ describe('WASM Objects', () => {
         })
 
         it ('cannot be decrypted with an invalid record view key', () => {
-            const badRecordViewKey = ciphertext.generateRecordViewKey(foreignViewKeyString);
+            const foreignViewKey = ViewKey.from_string(foreignViewKeyString);
+            const badRecordViewKey = ciphertext.recordViewKey(foreignViewKey);
 
             // Ensure the record ciphertext cannot be decrypted with an invalid record view key
             expect(() => ciphertext.decryptWithRecordViewKey(badRecordViewKey)).throw();
@@ -390,21 +391,22 @@ describe('WASM Objects', () => {
         const invalidTransitionViewKeyString = "5089075468761042335883809641276568724119791331127957254389204093712358605127field"
         const transitionViewKey = Field.fromString(transitionViewKeyString);
         const invalidTransitionViewKey = Field.fromString(invalidTransitionViewKeyString);
-        const viewKeyString = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
-        const viewKey = ViewKey.from_string(viewKeyString);
+        const privateKey = PrivateKey.from_string("APrivateKey1zkp6rE5FSWGD3jxrsAT64aZutFs3w6xvF8uQzGZKJEKsN8j");
+        const viewKey = privateKey.to_view_key();
+        const tvk = transition.tvk(viewKey);
 
         it('can be decrypted with a valid transition view key', () => {
-            const transitionDecryptedWithTVK = transition.decryptWithTransitionViewKey(transitionViewKey);
+            const transitionDecryptedWithTVK = transition.decryptTransition(tvk);
             // Ensure the transition is valid
-            expect(transitionDecryptedWithTVK).equal(transitionDecrypted);
+            expect(transitionDecryptedWithTVK.toString()).equal(transitionDecrypted.toString());
         });
 
         it('cannot be decrypted with an invalid transition view key', () => {
-            expect(() => transition.decryptWithTransitionViewKey(invalidTransitionViewKey).toThrow());
+            expect(() => transition.decryptTransition(invalidTransitionViewKey).toThrow());
         });
 
         it('can generate a transition view key from a valid view key', () => {
-            const generatedTransitionViewKey = transition.generateTransitionViewKey(viewKey);
+            const generatedTransitionViewKey = transition.tvk(viewKey);
             // Ensure the generated transition view key is the same as the one used to decrypt
             expect(generatedTransitionViewKey.toString()).equal(transitionViewKeyString);
         });
@@ -425,16 +427,16 @@ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
         const recordViewKey = Field.fromString(recordViewKeyString);
         
         it('can generate a record view key from a view key and a record ciphertext', () => {
-            const generatedRecordViewKey = EncryptionToolkit.generateRecordViewKey(viewKey, recordCiphertext);
+            const generatedRecordViewKey = EncryptionToolkit.generateRecordViewkey(viewKey, recordCiphertext);
             // Ensure the generated record view key is the same as the one used to decrypt
-            expect(generatedRecordViewKey).equal(recordViewKey);
+            expect(generatedRecordViewKey.toString()).equal(recordViewKey.toString());
         });
         it('can decrypt a record ciphertext with the record view key', () => {
             const decryptedRecord = EncryptionToolkit.decryptRecordWithRVk(recordViewKey, recordCiphertext);
             // Ensure the decrypted record is the same as the plaintext
             expect(decryptedRecord).equal(recordPlaintext);
         });
-        it('caanot decrypt a record ciphertext with an invalid record view key', () => {
+        it('cannot decrypt a record ciphertext with an invalid record view key', () => {
             const invalidRecordViewKey = Field.fromString("4445718830394614891114647247073357114867447866913203502139893824059966201724field");
             expect(() => EncryptionToolkit.decryptRecordWithRVk(invalidRecordViewKey, recordCiphertext)).to.throw();
         });
