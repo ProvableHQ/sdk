@@ -80,7 +80,7 @@ jobs:
     steps:
       - setup-sdk
       - run:
-          working_directory: sdk/e2e/testnet
+          working_directory: e2e/testnet
           command: |
             yarn start
 
@@ -89,9 +89,18 @@ jobs:
     steps:
       - setup-sdk
       - run:
-          working_directory: sdk/e2e/mainnet
+          working_directory: e2e/mainnet
           command: |
             yarn start
+
+  e2e-nodenext:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - run:
+          working_directory: e2e/nodenext
+          command: |
+            yarn build
 
   create-leo-app-cli:
     executor: rust-node
@@ -179,6 +188,9 @@ workflows:
           requires:
             - sdk
       - e2e-mainnet:
+          requires:
+            - sdk
+      - e2e-nodenext:
           requires:
             - sdk
       - create-leo-app-cli:

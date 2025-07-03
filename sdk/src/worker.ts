@@ -1,6 +1,6 @@
-import "./polyfill/shared";
-import {initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution, FunctionKeyPair} from "./browser";
-import { AleoKeyProvider, AleoKeyProviderParams} from "./function-key-provider";
+import "./polyfill/shared.js";
+import {initThreadPool, ProgramManager, PrivateKey, verifyFunctionExecution, FunctionKeyPair} from "./browser.js";
+import { AleoKeyProvider, AleoKeyProviderParams} from "./function-key-provider.js";
 import { expose } from "comlink";
 
 await initThreadPool();

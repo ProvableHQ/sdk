@@ -1,6 +1,6 @@
-import { DeploymentJSON } from "../deployment/deploymentJSON";
-import { ExecutionJSON, FeeExecutionJSON } from "../execution/executionJSON";
-import { OwnerJSON } from "../owner/ownerJSON";
+import { DeploymentJSON } from "../deployment/deploymentJSON.js";
+import { ExecutionJSON, FeeExecutionJSON } from "../execution/executionJSON.js";
+import { OwnerJSON } from "../owner/ownerJSON.js";
 
 export interface TransactionJSON {
     type: string;

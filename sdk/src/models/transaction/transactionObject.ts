@@ -1,6 +1,6 @@
-import { DeploymentObject } from "../deployment/deploymentObject";
-import { ExecutionObject, FeeExecutionObject } from "../execution/executionObject";
-import { OwnerObject } from "../owner/ownerObject";
+import { DeploymentObject } from "../deployment/deploymentObject.js";
+import { ExecutionObject, FeeExecutionObject } from "../execution/executionObject.js";
+import { OwnerObject } from "../owner/ownerObject.js";
 
 export interface TransactionObject {
     type : string;

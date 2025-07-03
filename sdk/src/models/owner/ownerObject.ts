@@ -1,4 +1,4 @@
-import { Address, Signature } from "../../wasm";
+import { Address, Signature } from "../../wasm.js";
 
 export interface OwnerObject {
     address: string | Address;

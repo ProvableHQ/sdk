@@ -1,7 +1,7 @@
-import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment } from "./utils";
-import { Account } from "./account";
-import { BlockJSON } from "./models/blockJSON";
-import { TransactionJSON } from "./models/transaction/transactionJSON";
+import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment } from "./utils.js";
+import { Account } from "./account.js";
+import { BlockJSON } from "./models/blockJSON.js";
+import { TransactionJSON } from "./models/transaction/transactionJSON.js";
 import {
     Address,
     Plaintext,
@@ -11,9 +11,9 @@ import {
     RecordPlaintext,
     PrivateKey,
     Transaction,
-} from "./wasm";
-import { ConfirmedTransactionJSON } from "./models/confirmed_transaction";
-import { ProvingResponse } from "./models/provingResponse";
+} from "./wasm.js";
+import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
+import { ProvingResponse } from "./models/provingResponse.js";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -35,27 +35,27 @@ interface AleoNetworkClientOptions {
  * const publicNetworkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined, account);
  */
 class AleoNetworkClient {
-  host: string;
-  headers: { [key: string]: string };
-  account: Account | undefined;
-  ctx: { [key: string]: string };
-  readonly network: string;
+    host: string;
+    headers: { [key: string]: string };
+    account: Account | undefined;
+    ctx: { [key: string]: string };
+    readonly network: string;
 
-  constructor(host: string, options?: AleoNetworkClientOptions) {
-    this.host = host + "/%%NETWORK%%";
-    this.network = "%%NETWORK%%";
-    this.ctx = {};
+    constructor(host: string, options?: AleoNetworkClientOptions) {
+        this.host = host + "/%%NETWORK%%";
+        this.network = "%%NETWORK%%";
+        this.ctx = {};
 
-    if (options && options.headers) {
-        this.headers = options.headers;
-    } else {
-        this.headers = {
-            // This is replaced by the actual version by a Rollup plugin
-            "X-Aleo-SDK-Version": "%%VERSION%%",
-            "X-ALEO-ENVIRONMENT" : environment(),
-        };
+        if (options && options.headers) {
+            this.headers = options.headers;
+        } else {
+            this.headers = {
+                // This is replaced by the actual version by a Rollup plugin
+                "X-Aleo-SDK-Version": "%%VERSION%%",
+                "X-Aleo-environment" : environment(),
+            };
+        }
     }
-  }
 
     /**
      * Set an account to use in networkClient calls
@@ -318,7 +318,7 @@ class AleoNetworkClient {
                                         const transition =
                                             transaction.execution.transitions[
                                                 k
-                                            ];
+                                                ];
                                         // Only search for unspent records in the specified programs.
                                         if (
                                             !(typeof programs === "undefined")
@@ -429,14 +429,14 @@ class AleoNetworkClient {
                                                                     "undefined"
                                                                 ) &&
                                                                 amounts.length >
-                                                                    0
+                                                                0
                                                             ) {
                                                                 let amounts_found = 0;
                                                                 if (
                                                                     recordPlaintext.microcredits() >
                                                                     amounts[
                                                                         amounts_found
-                                                                    ]
+                                                                        ]
                                                                 ) {
                                                                     amounts_found += 1;
                                                                     records.push(
@@ -482,9 +482,9 @@ class AleoNetworkClient {
                 // If there is an error fetching blocks, log it and keep searching
                 console.warn(
                     "Error fetching blocks in range: " +
-                        start.toString() +
-                        "-" +
-                        end.toString(),
+                    start.toString() +
+                    "-" +
+                    end.toString(),
                 );
                 console.warn("Error: ", error);
                 failures += 1;

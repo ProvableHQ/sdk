@@ -17,13 +17,15 @@
 use crate::{
     Field,
     GraphKey,
+    Group,
     RecordPlaintext,
     ViewKey,
     js_array_from_fields,
     to_bits_array_le,
-    types::native::RecordCiphertextNative,
+    types::native::{CurrentNetwork, RecordCiphertextNative},
+    utilities::encrypt::EncryptionToolkit,
 };
-use snarkvm_console::prelude::{FromBytes, ToBits, ToBytes, ToFields};
+use snarkvm_console::prelude::{FromBytes, Network, ToBits, ToBytes, ToFields};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -45,7 +47,7 @@ impl RecordCiphertext {
         Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
     }
 
-    /// Return the string reprensentation of the record ciphertext
+    /// Return the string representation of the record ciphertext
     ///
     /// @returns {string} String representation of the record ciphertext
     #[allow(clippy::inherent_to_string)]
@@ -63,6 +65,17 @@ impl RecordCiphertext {
         Ok(RecordPlaintext::from(
             self.0.decrypt(view_key).map_err(|_| "Decryption failed - view key did not match record".to_string())?,
         ))
+    }
+
+    /// Generate the record view key. The record view key can only decrypt record if the
+    /// supplied view key belongs to the record owner.
+    ///
+    /// @param {ViewKey} view_key View key used to generate the record view key
+    ///
+    /// @returns {Group} record view key
+    #[wasm_bindgen(js_name = "recordViewKey")]
+    pub fn record_view_key(&self, view_key: &ViewKey) -> Field {
+        self.nonce().scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
     }
 
     /// Determines if the account corresponding to the view key is the owner of the record
@@ -117,6 +130,24 @@ impl RecordCiphertext {
         let native_fields = native.to_fields().map_err(|e| e.to_string())?;
         Ok(js_array_from_fields!(&native_fields))
     }
+
+    /// Decrypt the record ciphertext into plaintext using a record view key.
+    ///
+    /// @param {Field} record_vk Record view key used to decrypt the record.
+    ///
+    /// @returns {RecordPlaintext}
+    #[wasm_bindgen(js_name = "decryptWithRecordViewKey")]
+    pub fn decrypt_with_record_view_key(&self, record_vk: Field) -> Result<RecordPlaintext, String> {
+        let num_randomizers = EncryptionToolkit::num_record_randomizers(self)?;
+        let randomizers =
+            CurrentNetwork::hash_many_psd8(&[CurrentNetwork::encryption_domain(), *record_vk], num_randomizers);
+        EncryptionToolkit::decrypt_with_randomizers(self, &randomizers)
+    }
+
+    /// Get the record nonce.
+    pub fn nonce(&self) -> Group {
+        Group::from(self.0.nonce())
+    }
 }
 
 impl Deref for RecordCiphertext {
@@ -165,15 +196,16 @@ mod tests {
 
     use wasm_bindgen_test::wasm_bindgen_test;
 
-    const OWNER_PLAINTEXT: &str = r"{
-  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
-  microcredits: 1500000000000000u64.private,
-  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
-}";
-    const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
-    const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
+    const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
+    const OWNER_PLAINTEXT: &str = r"{
+        owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+        microcredits: 1500000000000000u64.private,
+        _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
+      }";
+    const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
     const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
+    const RECORD_VIEW_KEY: &str = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
 
     // Related material for use in future tests
     const _OWNER_PRIVATE_KEY: &str = "APrivateKey1zkpJkyYRGYtkeHDaFfwsKtUJzia7csiWhfBWPXWhXJzy9Ls";
@@ -201,7 +233,8 @@ mod tests {
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
         let graph_key = GraphKey::from_view_key(&view_key);
         let plaintext = record.decrypt(&view_key).unwrap();
-        assert_eq!(plaintext.to_string(), OWNER_PLAINTEXT);
+        let owner_plaintext = RecordPlaintext::from_string(OWNER_PLAINTEXT).unwrap();
+        assert_eq!(plaintext.to_string(), owner_plaintext.to_string());
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         assert!(record.decrypt(&incorrect_view_key).is_err());
 
@@ -218,5 +251,32 @@ mod tests {
         assert!(record.is_owner(&view_key));
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         assert!(!record.is_owner(&incorrect_view_key));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_record_view_key_generation() {
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
+        let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
+        let record_vk = record.record_view_key(&view_key);
+
+        assert_eq!(record_vk.to_string(), RECORD_VIEW_KEY);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_decrypt_with_record_vk() {
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
+        let record_plaintext = RecordPlaintext::from_string(OWNER_PLAINTEXT).unwrap();
+        let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
+        let record_vk = record.record_view_key(&view_key);
+        let decrypted_plaintext = record.decrypt_with_record_view_key(record_vk).unwrap();
+        assert_eq!(record_plaintext.to_string(), decrypted_plaintext.to_string());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_decrypt_with_record_vk_invalid() {
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
+        let view_key_non_owner = ViewKey::from_string(NON_OWNER_VIEW_KEY);
+        let invalid_record_vk = record.record_view_key(&view_key_non_owner);
+        assert!(record.decrypt_with_record_view_key(invalid_record_vk).is_err());
     }
 }

@@ -149,7 +149,7 @@ async function buildTypes(network) {
  */
 export function initThreadPool(threads?: number): Promise<void>;
 
-export * from "./aleo_wasm";`;
+export * from "./aleo_wasm.js";`;
 
     const worker = `export {};`;
 

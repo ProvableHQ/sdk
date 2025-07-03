@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { beaconPrivateKeyString } from "./data/account-data";
-import { Account, AleoNetworkClient, NetworkRecordProvider, RecordPlaintext } from "../src/node";
+import { beaconPrivateKeyString } from "./data/account-data.js";
+import { Account, AleoNetworkClient, NetworkRecordProvider, RecordPlaintext } from "../src/node.js";
 
 describe('RecordProvider', () => {
     let account: Account;

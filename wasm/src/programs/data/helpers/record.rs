@@ -17,7 +17,7 @@
 use crate::{
     insert_plaintext,
     object,
-    types::native::{EntryNative, RecordPlaintextNative},
+    types::native::{PlaintextEntryNative, RecordPlaintextNative},
 };
 use js_sys::Object;
 
@@ -35,13 +35,13 @@ pub fn record_to_js_object(record: &RecordPlaintextNative) -> Result<Object, Str
     // Get the metadata from the record and insert it into the javascript object.
     record.data().iter().for_each(|(key, value)| {
         match value {
-            EntryNative::Public(plaintext) => {
+            PlaintextEntryNative::Public(plaintext) => {
                 insert_plaintext(&js_record, key, plaintext);
             }
-            EntryNative::Constant(plaintext) => {
+            PlaintextEntryNative::Constant(plaintext) => {
                 insert_plaintext(&js_record, key, plaintext);
             }
-            EntryNative::Private(plaintext) => {
+            PlaintextEntryNative::Private(plaintext) => {
                 insert_plaintext(&js_record, key, plaintext);
             }
         };

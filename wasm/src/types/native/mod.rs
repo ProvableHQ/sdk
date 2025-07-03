@@ -34,7 +34,7 @@ use snarkvm_console::{
         Value,
         ValueType,
     },
-    types::{Field, Group, Scalar, U64},
+    types::{Field, Group, Scalar, U16, U64},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
 use snarkvm_ledger_query::Query;
@@ -61,6 +61,7 @@ pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 pub type FieldNative = Field<CurrentNetwork>;
 pub type GroupNative = Group<CurrentNetwork>;
 pub type ScalarNative = Scalar<CurrentNetwork>;
+pub type U16Native = U16<CurrentNetwork>;
 pub type U64Native = U64<CurrentNetwork>;
 
 // Algorithms
@@ -74,14 +75,15 @@ pub type Poseidon2Native = Poseidon2<CurrentNetwork>;
 pub type Poseidon4Native = Poseidon4<CurrentNetwork>;
 pub type Poseidon8Native = Poseidon8<CurrentNetwork>;
 
-// Program & AST data types
+// Program types
 pub type ArgumentNative = Argument<CurrentNetwork>;
 pub type CiphertextNative = Ciphertext<CurrentNetwork>;
-pub type EntryNative = Entry<CurrentNetwork, PlaintextNative>;
+pub type CiphertextEntryNative = Entry<CurrentNetwork, CiphertextNative>;
 pub type FutureNative = Future<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
 pub type LiteralNative = Literal<CurrentNetwork>;
 pub type PlaintextNative = Plaintext<CurrentNetwork>;
+pub type PlaintextEntryNative = Entry<CurrentNetwork, PlaintextNative>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;
 pub type ProgramNative = Program<CurrentNetwork>;
 pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;

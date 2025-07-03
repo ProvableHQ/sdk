@@ -1,8 +1,8 @@
 /**
  * Aleo function Input represented as a typed typescript object.
  */
-import { Ciphertext, Field, Plaintext } from "../../wasm";
-import { PlaintextObject } from "../plaintext/plaintext";
+import { Ciphertext, Field, Plaintext } from "../../wasm.js";
+import { PlaintextObject } from "../plaintext/plaintext.js";
 
 /**
  * Object representation of an Input as raw JSON returned from a SnarkOS node.

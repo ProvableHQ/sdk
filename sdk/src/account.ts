@@ -7,7 +7,7 @@ import {
   PrivateKeyCiphertext,
   RecordCiphertext,
   RecordPlaintext,
-} from "./wasm";
+} from "./wasm.js";
 
 interface AccountParam {
   privateKey?: string;

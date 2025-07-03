@@ -21,15 +21,8 @@ import {
     statePathRecord,
     statePathRecordOwnerPrivateKey,
     stateRoot
-} from "./data/account-data";
-import {
-    IMPORT_1,
-    IMPORT_2,
-    MINT_VERIFYING_KEY,
-    PROGRAM,
-    SPEND_VERIFYING_KEY,
-    SPIN_VERIFYING_KEY
-} from "./data/program";
+} from "./data/account-data.js";
+import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program.js";
 import { expect } from "chai";
 import {
     PUZZLE_SPINNER_PROGRAM_ID,
