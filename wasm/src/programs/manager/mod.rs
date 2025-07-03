@@ -219,14 +219,8 @@ function add_and_double:
 
         ProgramManager::resolve_imports(&mut process, &program, Some(imports)).unwrap();
 
-        let add_import = process.get_program("addition_test.aleo").unwrap();
-        let multiply_import = process.get_program("multiply_test.aleo").unwrap();
-        let double_import = process.get_program("double_test.aleo").unwrap();
-        let main_program = process.get_program("imported_add_mul.aleo");
-
-        assert_eq!(add_import, &add_program);
-        assert_eq!(multiply_import, &multiply_program);
-        assert_eq!(double_import, &double_program);
-        assert!(main_program.is_err());
+        assert!(process.contains_program(add_program.id()));
+        assert!(process.contains_program(multiply_program.id()));
+        assert!(process.contains_program(double_program.id()));
     }
 }

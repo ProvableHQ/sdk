@@ -31,6 +31,82 @@ macro_rules! process_inputs {
 }
 
 #[macro_export]
+macro_rules! authorize {
+    (
+        $process:expr,
+        $inputs:expr,
+        $program_string:expr,
+        $function_id_string:expr,
+        $private_key:expr,
+        $rng:expr
+    ) => {{
+        log("Loading program");
+        let program =
+            ProgramNative::from_str($program_string).map_err(|_| "The program ID provided was invalid".to_string())?;
+        log("Loading function");
+        let function_name = IdentifierNative::from_str($function_id_string)
+            .map_err(|_| "The function name provided was invalid".to_string())?;
+
+        let program_id = program.id().to_string();
+
+        if program_id != "credits.aleo" {
+            if !$process.contains_program(program.id()) {
+                log("Adding program to the process");
+                $process.add_program(&program).map_err(|e| e.to_string())?;
+            }
+        }
+
+        log(&format!("Creating authorization for {program_id}:{function_name}"));
+        $process
+            .authorize::<CurrentAleo, _>($private_key, program.id(), function_name, $inputs.iter(), $rng)
+            .map_err(|err| err.to_string())?
+    }};
+}
+
+#[macro_export]
+macro_rules! authorize_fee {
+    (
+        $process:expr,
+        $private_key:expr,
+        $deployment_or_execution_id:expr,
+        $base_fee:expr,
+        $priority_fee:expr,
+        $fee_record:expr,
+        $rng:expr
+    ) => {{
+        match $fee_record {
+            Some(fee_record) => {
+                log("Authorizing credits.aleo/fee_private");
+                let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string())
+                    .map_err(|e| format!("Invalid fee record: {}", e))?;
+                $process
+                    .authorize_fee_private::<CurrentAleo, _>(
+                        $private_key,
+                        fee_record_native,
+                        $base_fee,
+                        $priority_fee,
+                        $deployment_or_execution_id,
+                        $rng,
+                    )
+                    .map_err(|e| e.to_string())?
+            }
+            None => {
+                log("Authorizing credits.aleo/fee_public");
+                $process
+                    .authorize_fee_public::<CurrentAleo, _>(
+                        $private_key,
+                        $base_fee,
+                        $priority_fee,
+                        $deployment_or_execution_id,
+                        $rng,
+                    )
+                    .map_err(|e| e.to_string())?
+            }
+        }
+    }};
+}
+
+#[macro_export]
 macro_rules! execute_program {
     ($process:expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $proving_key:expr, $verifying_key:expr, $rng:expr) => {{
         if (($proving_key.is_some() && $verifying_key.is_none())
@@ -52,12 +128,8 @@ macro_rules! execute_program {
         let program_id = program.id().to_string();
 
         if program_id != "credits.aleo" {
-            log("Adding program to the process");
-            if let Ok(stored_program) = $process.get_program(program.id()) {
-                if stored_program != &program {
-                    return Err("The program provided does not match the program stored in the cache, please clear the cache before proceeding".to_string());
-                }
-            } else {
+            if !$process.contains_program(program.id()) {
+                log("Adding program to the process");
                 $process.add_program(&program).map_err(|e| e.to_string())?;
             }
         }
@@ -98,7 +170,7 @@ macro_rules! execute_program {
 
 #[macro_export]
 macro_rules! execute_fee {
-    ($process:expr, $private_key:expr, $fee_record:expr, $priority_fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr, $rng:expr, $offline_query:expr, $minimum_execution_cost:expr) => {{
+    ($process:expr, $private_key:expr, $fee_record:expr, $priority_fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $deployment_or_execution_id:expr, $rng:expr, $offline_query:expr, $minimum_execution_cost:expr) => {{
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
@@ -138,7 +210,7 @@ macro_rules! execute_fee {
                     fee_record_native,
                     $minimum_execution_cost,
                     $priority_fee_microcredits,
-                    $execution_id,
+                    $deployment_or_execution_id,
                     $rng,
                 ).map_err(|e| e.to_string())?
             }
@@ -147,7 +219,7 @@ macro_rules! execute_fee {
                     $private_key,
                     $minimum_execution_cost,
                     $priority_fee_microcredits,
-                    $execution_id,
+                    $deployment_or_execution_id,
                     $rng,
                 ).map_err(|e| e.to_string())?
             }
@@ -168,7 +240,7 @@ macro_rules! execute_fee {
         let fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V2, &mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");
-        $process.verify_fee(VarunaVersion::V2,&fee, $execution_id).map_err(|e| e.to_string())?;
+        $process.verify_fee(VarunaVersion::V2,&fee, $deployment_or_execution_id).map_err(|e| e.to_string())?;
 
         fee
     }}
