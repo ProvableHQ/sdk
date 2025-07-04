@@ -151,7 +151,7 @@ impl EncryptionToolkit {
 
     /// Creates a record view key from the view key.  This can be later be used to decrypt a
     // record without revealing an account's view key.
-    #[wasm_bindgen(js_name = "generateRecordViewkey")]
+    #[wasm_bindgen(js_name = "generateRecordViewKey")]
     pub fn generate_record_view_key(view_key: &ViewKey, record_ciphertext: &RecordCiphertext) -> Result<Field, String> {
         let record_nonce = record_ciphertext.nonce();
         Ok(record_nonce.scalar_multiply(&view_key.to_scalar()).to_x_coordinate())
