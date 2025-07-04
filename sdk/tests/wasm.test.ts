@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, Field, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition } from "../src/node.js";
+import { Address, AleoNetworkClient, Field, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition } from "../src/node.js";
 import {
     seed,
     message,
@@ -381,34 +381,65 @@ describe('WASM Objects', () => {
     });
 
     describe('Transition', () => {
-        const transitionString = `{"id":"au1u62jasyx78x9hktak24awyj38fz73aseq8g9cx98u8egd9pj9uxq3u6s2z","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"private","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"ciphertext1qyq0m5mp0d2gzh2pv9p25z70gz2avhqdt3dp8y8thzwf3aq6g35zcqcuyptz3"}],"outputs":[{"type":"private","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"ciphertext1qyqzmhw8ln9r6uuyh0n5jrsqlt25wdggqp3d9yqyttpr3g7g00k2sysdf9rmv"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`;
-        const transition = Transition.fromString(transitionString);
-        const transitionDecryptedString = `{"id":"au1mhdz6jqm973v5vfkz2pwgv63p340c9tpvydxha2zs8w03746qcpqvx3yye","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"public","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"2u32"}],"outputs":[{"type":"public","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"3u32"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`
-        const transitionDecrypted = Transition.fromString(transitionDecryptedString);
+        const transitionStringTestnet = `{"id":"au1u62jasyx78x9hktak24awyj38fz73aseq8g9cx98u8egd9pj9uxq3u6s2z","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"private","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"ciphertext1qyq0m5mp0d2gzh2pv9p25z70gz2avhqdt3dp8y8thzwf3aq6g35zcqcuyptz3"}],"outputs":[{"type":"private","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"ciphertext1qyqzmhw8ln9r6uuyh0n5jrsqlt25wdggqp3d9yqyttpr3g7g00k2sysdf9rmv"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`;
+        const transitionTestnet = Transition.fromString(transitionStringTestnet);
+        const transitionDecryptedStringTestnet = `{"id":"au1mhdz6jqm973v5vfkz2pwgv63p340c9tpvydxha2zs8w03746qcpqvx3yye","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"public","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"2u32"}],"outputs":[{"type":"public","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"3u32"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`
+        const transitionDecryptedTestnet = Transition.fromString(transitionDecryptedStringTestnet);
+        const transitionViewKeyStringTestnet = "3975242887442171718863200089461896014344887434842278474302914755871123010247field";
+
+        const transitionStringMainnet = `{"id":"au1mguuz0dh20f78802m4z0py7n08xhl0pz60llzck63mhl8pc8l5xqxpwgtn","program":"hello_hello.aleo","function":"main","inputs":[{"type":"public","id":"6393584049543470937057043098611271993206122889317039351966319038535020834557field","value": "1u32"},{"type":"private","id":"8207446256045172951742235001162005156507562935942883128759030124682934277495field","value":"ciphertext1qyqqgz9qnupeld9vr4vuwp6yrpmhgtkvmgag5m7mmrruw0r6je666qgqdswk3"}],"outputs":[{"type":"private","id":"127469473292952941321346770257126666363371158501875622169294663492714835110field","value":"ciphertext1qyqyapkjuxm9dcslgyjf7hkr2k3dek500z40gjspnwvll0uawj23vzgggc405"}],"tpk":"7647553513996966044119163122930125808381703910407273818947266861843062002251group","tcm":"4479413938380109857414238205380483440836495997450846894155088299187217672609field","scm":"6461007226176477784737642021400489186736987671609840640950580467598882134642field"}`;
+        const transitionMainnet = Transition.fromString(transitionStringMainnet);
+        const transitionDecryptedStringMainnet = `{"id":"au1jl2ur42sj7hwe4r0alv6gnklqxj0fszrvu3q82gjcls5x6q9pyzqdgmu2k","program":"hello_hello.aleo","function":"main","inputs":[{"type":"public","id":"6393584049543470937057043098611271993206122889317039351966319038535020834557field","value":"1u32"},{"type":"public","id":"8207446256045172951742235001162005156507562935942883128759030124682934277495field","value":"2u32"}],"outputs":[{"type":"public","id":"127469473292952941321346770257126666363371158501875622169294663492714835110field","value":"3u32"}],"tpk":"7647553513996966044119163122930125808381703910407273818947266861843062002251group","tcm":"4479413938380109857414238205380483440836495997450846894155088299187217672609field","scm":"6461007226176477784737642021400489186736987671609840640950580467598882134642field"}`;
+        const transitionDecryptedMainnet = Transition.fromString(transitionDecryptedStringMainnet);
+        const transitionViewKeyStringMainnet = "8161419549946991944867064830365679191883723972221767444308198038592561311302field";
+
         const invalidTransitionViewKeyString = "5089075468761042335883809641276568724119791331127957254389204093712358605127field"
         const invalidTransitionViewKey = Field.fromString(invalidTransitionViewKeyString);
         const privateKey = PrivateKey.from_string("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH");
         const viewKey = privateKey.to_view_key();
-        const tvk = transition.tvk(viewKey);
 
+        let connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+
+        if (connection.network === "testnet") {
         it('can be decrypted with a valid transition view key', () => {
-            const transitionDecryptedWithTVK = transition.decryptTransition(tvk);
+            const tvk = transitionTestnet.tvk(viewKey);
+            const transitionDecryptedWithTVK = transitionTestnet.decryptTransition(tvk);
             // Ensure the transition is valid
-            expect(transitionDecryptedWithTVK.toString()).equal(transitionDecrypted.toString());
+            expect(transitionDecryptedWithTVK.toString()).equal(transitionDecryptedTestnet.toString());
         });
 
         it('cannot be decrypted with an invalid transition view key', () => {
-            expect(() => transition.decryptTransition(invalidTransitionViewKey).toThrow());
+            expect(() => transitionTestnet.decryptTransition(invalidTransitionViewKey).toThrow());
         });
 
         it('can generate a transition view key from a valid view key', () => {
-            const generatedTransitionViewKey = transition.tvk(viewKey);
+            const generatedTransitionViewKey = transitionTestnet.tvk(viewKey);
 
-            const generatedTransitionViewKeyFromEncryptionToolkit = EncryptionToolkit.generateTvk(viewKey, transition.tpk());
             // Ensure the generated transition view key is the same as the one used to decrypt
-            expect(generatedTransitionViewKey.toString()).equal(generatedTransitionViewKeyFromEncryptionToolkit.toString());
+            expect(generatedTransitionViewKey.toString()).equal(transitionViewKeyStringTestnet);
         });
-    });
+    }
+    if (connection.network === "mainnet") {
+        const tvk = transitionMainnet.tvk(viewKey);
+        it('can be decrypted with a valid transition view key', () => {
+            const transitionDecryptedWithTVK = transitionMainnet.decryptTransition(tvk);
+            // Ensure the transition is valid
+            expect(transitionDecryptedWithTVK.toString()).equal(transitionDecryptedMainnet.toString());
+        });
+
+        it('cannot be decrypted with an invalid transition view key', () => {
+            expect(() => transitionMainnet.decryptTransition(invalidTransitionViewKey)).to.throw();
+        });
+
+        it('can generate a transition view key from a valid view key', () => {
+            const generatedTransitionViewKey = transitionMainnet.tvk(viewKey);
+
+            // Ensure the generated transition view key is the same as the one used to decrypt
+            expect(generatedTransitionViewKey.toString()).equal(transitionViewKeyStringMainnet);
+        });
+    }
+});
+
 
     describe('EncryptionToolkit', () => {
         const recordCiphertextString = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
