@@ -7,6 +7,7 @@ export {
     BHP1024,
     Ciphertext,
     ComputeKey,
+    EncryptionToolkit,
     ExecutionRequest,
     Execution,
     ExecutionResponse,

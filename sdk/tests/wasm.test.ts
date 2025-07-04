@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext } from "../src/node.js";
+import { Address, Field, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition } from "../src/node.js";
 import {
     seed,
     message,
@@ -351,6 +351,22 @@ describe('WASM Objects', () => {
             // Ensure the record ciphertext cannot be decrypted with a foreign view key
             expect(() => ciphertext.decrypt(foreignViewKey)).throw();
         });
+
+        it('can be decrypted with a valid record view key', () => {
+            const recordViewKey = ciphertext.recordViewKey(viewKey);
+            const plaintext = ciphertext.decryptWithRecordViewKey(recordViewKey);
+            const isOwner = ciphertext.isOwner(viewKey);
+
+            // Ensure the record ciphertext is decrypted correctly
+            expect(plaintext.toString()).equal(recordPlaintextString);
+            expect(isOwner).equal(true);
+        })
+
+        it('cannot be decrypted with an invalid record view key', () => {
+            const badRecordViewKey = ciphertext.recordViewKey(ViewKey.from_string(foreignViewKeyString));
+            // Ensure the record ciphertext cannot be decrypted with an invalid record view key
+            expect(() => ciphertext.decryptWithRecordViewKey(badRecordViewKey)).throw();
+        })
     });
 
     describe('RecordPlaintext', () => {
@@ -364,5 +380,63 @@ describe('WASM Objects', () => {
         });
     });
 
+    describe('Transition', () => {
+        const transitionString = `{"id":"au1u62jasyx78x9hktak24awyj38fz73aseq8g9cx98u8egd9pj9uxq3u6s2z","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"private","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"ciphertext1qyq0m5mp0d2gzh2pv9p25z70gz2avhqdt3dp8y8thzwf3aq6g35zcqcuyptz3"}],"outputs":[{"type":"private","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"ciphertext1qyqzmhw8ln9r6uuyh0n5jrsqlt25wdggqp3d9yqyttpr3g7g00k2sysdf9rmv"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`;
+        const transition = Transition.fromString(transitionString);
+        const transitionDecryptedString = `{"id":"au1mhdz6jqm973v5vfkz2pwgv63p340c9tpvydxha2zs8w03746qcpqvx3yye","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"public","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"2u32"}],"outputs":[{"type":"public","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"3u32"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`
+        const transitionDecrypted = Transition.fromString(transitionDecryptedString);
+        const invalidTransitionViewKeyString = "5089075468761042335883809641276568724119791331127957254389204093712358605127field"
+        const invalidTransitionViewKey = Field.fromString(invalidTransitionViewKeyString);
+        const privateKey = PrivateKey.from_string("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH");
+        const viewKey = privateKey.to_view_key();
+        const tvk = transition.tvk(viewKey);
 
+        it('can be decrypted with a valid transition view key', () => {
+            const transitionDecryptedWithTVK = transition.decryptTransition(tvk);
+            // Ensure the transition is valid
+            expect(transitionDecryptedWithTVK.toString()).equal(transitionDecrypted.toString());
+        });
+
+        it('cannot be decrypted with an invalid transition view key', () => {
+            expect(() => transition.decryptTransition(invalidTransitionViewKey).toThrow());
+        });
+
+        it('can generate a transition view key from a valid view key', () => {
+            const generatedTransitionViewKey = transition.tvk(viewKey);
+
+            const generatedTransitionViewKeyFromEncryptionToolkit = EncryptionToolkit.generateTvk(viewKey, transition.tpk());
+            // Ensure the generated transition view key is the same as the one used to decrypt
+            expect(generatedTransitionViewKey.toString()).equal(generatedTransitionViewKeyFromEncryptionToolkit.toString());
+        });
+    });
+
+    describe('EncryptionToolkit', () => {
+        const recordCiphertextString = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
+        const recordCiphertext = RecordCiphertext.fromString(recordCiphertextString);
+        const recordPlaintextString = `{
+owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 1500000000000000u64.private,
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
+}`;
+        const recordPlaintext = RecordPlaintext.fromString(recordPlaintextString);
+        const viewKeyString = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
+        const viewKey = ViewKey.from_string(viewKeyString);
+        const recordViewKeyString = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
+        const recordViewKey = Field.fromString(recordViewKeyString);
+        
+        it('can generate a record view key from a view key and a record ciphertext', () => {
+            const generatedRecordViewKey = EncryptionToolkit.generateRecordViewKey(viewKey, recordCiphertext);
+            // Ensure the generated record view key is the same as the one used to decrypt
+            expect(generatedRecordViewKey.toString()).equal(recordViewKey.toString());
+        });
+        it('can decrypt a record ciphertext with the record view key', () => {
+            const decryptedRecord = EncryptionToolkit.decryptRecordWithRVk(recordViewKey, recordCiphertext);
+            // Ensure the decrypted record is the same as the plaintext
+            expect(decryptedRecord.toString()).equal(recordPlaintext.toString());
+        });
+        it('cannot decrypt a record ciphertext with an invalid record view key', () => {
+            const invalidRecordViewKey = Field.fromString("4445718830394614891114647247073357114867447866913203502139893824059966201724field");
+            expect(() => EncryptionToolkit.decryptRecordWithRVk(invalidRecordViewKey, recordCiphertext)).to.throw();
+        });
+    });
 });

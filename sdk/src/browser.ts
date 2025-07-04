@@ -69,6 +69,7 @@ export {
     Execution as FunctionExecution,
     ExecutionRequest,
     ExecutionResponse,
+    EncryptionToolkit,
     Field,
     Group,
     OfflineQuery,
