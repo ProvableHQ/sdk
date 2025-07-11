@@ -73,11 +73,21 @@ impl Plaintext {
     }
 
     /// Encrypt a plaintext with an address and randomizer.
+    ///
+    /// @param {Address} address The address to encrypt the plaintext for.
+    /// @param {Scalar} randomizer The randomizer to use for encryption.
+    ///
+    /// @returns {Ciphertext} The encrypted ciphertext.
+    #[wasm_bindgen(js_name = encrypt)]
     pub fn encrypt(&self, address: &Address, randomizer: &Scalar) -> Result<Ciphertext, String> {
         self.0.encrypt(address, **randomizer).map_err(|e| e.to_string()).map(Ciphertext::from)
     }
 
     /// Encrypt a plaintext with a transition view key.
+    ///
+    /// @param {Field} transition_view_key The transition view key to use for encryption.
+    ///
+    /// @returns {Ciphertext} The encrypted ciphertext.
     #[wasm_bindgen(js_name = encryptSymmetric)]
     pub fn encrypt_symmetric(&self, transition_view_key: &Field) -> Result<Ciphertext, String> {
         self.0.encrypt_symmetric(**transition_view_key).map_err(|e| e.to_string()).map(Ciphertext::from)
@@ -106,6 +116,8 @@ impl Plaintext {
     }
 
     /// Get the left endian byte array representation of the plaintext.
+    ///
+    /// @returns {Uint8Array} The left endian byte array representation of the plaintext.
     #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
@@ -125,6 +137,8 @@ impl Plaintext {
     }
 
     /// Get the left endian boolean array representation of the bits of the plaintext.
+    ///
+    /// @returns {Array} The left endian boolean array representation of the bits of the plaintext.
     #[wasm_bindgen(js_name = "toBitsLe")]
     pub fn to_bits_le(&self) -> Array {
         to_bits_array_le!(self)
@@ -143,6 +157,8 @@ impl Plaintext {
     }
 
     /// Get the field array representation of the plaintext.
+    ///
+    /// @returns {Array} The field array representation of the plaintext.
     #[wasm_bindgen(js_name = "toFields")]
     pub fn to_fields(&self) -> Result<Array, String> {
         let native = self.0.clone();

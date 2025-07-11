@@ -110,6 +110,8 @@ impl RecordCiphertext {
     }
 
     /// Get the left endian byte array representation of the record ciphertext.
+    ///
+    /// @returns {Uint8Array} Left endian byte array representation of the record ciphertext.
     #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let bytes_vec = self.0.to_bytes_le().map_err(|e| e.to_string())?;
@@ -118,12 +120,16 @@ impl RecordCiphertext {
     }
 
     /// Get the left endian boolean array representation of the record ciphertext bits.
+    ///
+    /// returns {Array} Left endian boolean array representation of the bits of the record ciphertext.
     #[wasm_bindgen(js_name = "toBitsLe")]
     pub fn to_bits_le(&self) -> Array {
         to_bits_array_le!(self)
     }
 
     /// Get the field array representation of the record ciphertext.
+    ///
+    /// @returns {Array} Field array representation of the record ciphertext.
     #[wasm_bindgen(js_name = "toFields")]
     pub fn to_fields(&self) -> Result<Array, String> {
         let native = self.0.clone();
@@ -145,6 +151,8 @@ impl RecordCiphertext {
     }
 
     /// Get the record nonce.
+    ///
+    /// @returns {Group} The record nonce.
     pub fn nonce(&self) -> Group {
         Group::from(self.0.nonce())
     }

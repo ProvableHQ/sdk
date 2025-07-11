@@ -74,6 +74,7 @@ impl RecordPlaintext {
         Self::from_str(record).map_err(|_| "The record plaintext string provided was invalid".into())
     }
 
+    // Get a record plaintext from
     #[wasm_bindgen(js_name = getMember)]
     pub fn get_member(&self, input: String) -> Result<Plaintext, String> {
         let entry = self
@@ -91,6 +92,8 @@ impl RecordPlaintext {
     }
 
     /// Get the owner of the record.
+    ///
+    /// @returns {Address} Address of the owner of the record.
     pub fn owner(&self) -> Result<Address, String> {
         match self.0.owner() {
             Owner::<CurrentNetwork, PlaintextNative>::Public(owner) => Ok(Address::from(*owner)),

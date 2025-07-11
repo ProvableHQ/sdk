@@ -64,6 +64,8 @@ impl OfflineQuery {
     }
 
     /// Get a json string representation of the offline query object
+    ///
+    /// @returns {string} JSON string representation of the offline query object
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
@@ -71,6 +73,8 @@ impl OfflineQuery {
     }
 
     /// Create an offline query object from a json string representation
+    ///
+    /// @param {string} s JSON string representation of the offline query object
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(s: &str) -> Result<OfflineQuery, String> {
         serde_json::from_str(s).map_err(|e| e.to_string())
