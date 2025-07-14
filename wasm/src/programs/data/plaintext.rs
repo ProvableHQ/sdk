@@ -85,7 +85,7 @@ impl Plaintext {
 
     /// Encrypt a plaintext with a transition view key.
     ///
-    /// @param {Field} transition_view_key The transition view key of the transition 
+    /// @param {Field} transition_view_key The transition view key of the transition
     /// associated with the plaintext.
     ///
     /// @returns {Ciphertext} The encrypted ciphertext.
