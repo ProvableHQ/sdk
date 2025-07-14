@@ -39,6 +39,11 @@ pub struct OfflineQuery {
 #[wasm_bindgen]
 impl OfflineQuery {
     /// Creates a new offline query object. The state root is required to be passed in as a string
+    ///
+    /// @param {u32} block_height The block height.
+    /// @param {string} state_root The state root of the current network.
+    ///
+    /// @returns {OfflineQuery} The newly created offline query object.
     #[wasm_bindgen(constructor)]
     pub fn new(block_height: u32, state_root: &str) -> Result<OfflineQuery, String> {
         let state_root = <CurrentNetwork as Network>::StateRoot::from_str(state_root).map_err(|e| e.to_string())?;
@@ -46,6 +51,8 @@ impl OfflineQuery {
     }
 
     /// Add a new block height to the offline query object.
+    ///
+    /// @param {u32} block_height The block height to add.
     #[wasm_bindgen(js_name = "addBlockHeight")]
     pub fn add_block_height(&mut self, block_height: u32) {
         self.block_height = block_height;
@@ -53,8 +60,8 @@ impl OfflineQuery {
 
     /// Add a new state path to the offline query object.
     ///
-    /// @param {string} commitment: The commitment corresponding to a record inpout
-    /// @param {string} state_path: The state path corresponding to the commitment
+    /// @param {string} commitment: The commitment corresponding to a record input.
+    /// @param {string} state_path: The state path corresponding to the commitment.
     #[wasm_bindgen(js_name = "addStatePath")]
     pub fn add_state_path(&mut self, commitment: &str, state_path: &str) -> Result<(), String> {
         let commitment = Field::from_str(commitment).map_err(|e| e.to_string())?;
@@ -63,18 +70,18 @@ impl OfflineQuery {
         Ok(())
     }
 
-    /// Get a json string representation of the offline query object
+    /// Get a json string representation of the offline query object.
     ///
-    /// @returns {string} JSON string representation of the offline query object
+    /// @returns {string} JSON string representation of the offline query object.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         serde_json::to_string(&self).unwrap()
     }
 
-    /// Create an offline query object from a json string representation
+    /// Create an offline query object from a json string representation.
     ///
-    /// @param {string} s JSON string representation of the offline query object
+    /// @param {string} JSON string representation of the offline query object.
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(s: &str) -> Result<OfflineQuery, String> {
         serde_json::from_str(s).map_err(|e| e.to_string())
