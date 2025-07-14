@@ -85,7 +85,8 @@ impl Plaintext {
 
     /// Encrypt a plaintext with a transition view key.
     ///
-    /// @param {Field} transition_view_key The transition view key to use for encryption.
+    /// @param {Field} transition_view_key The transition view key of the transition 
+    /// associated with the plaintext.
     ///
     /// @returns {Ciphertext} The encrypted ciphertext.
     #[wasm_bindgen(js_name = encryptSymmetric)]
