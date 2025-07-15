@@ -636,6 +636,12 @@ class ProgramManager {
             }
         }
 
+        if (offlineQuery) {
+            console.log("Using offline query.");
+        } else {
+            console.log("Not using offline query.");
+        }
+
         // Build an execution transaction
         return await WasmProgramManager.buildExecutionTransaction(
             executionPrivateKey,
@@ -1605,6 +1611,12 @@ class ProgramManager {
             );
         }
 
+        if (offlineQuery) {
+            console.log("Using offline query.");
+        } else {
+            console.log("Using online query.")
+        }
+
         // Build an execution transaction
         return await WasmProgramManager.buildTransferTransaction(
             executionPrivateKey,
@@ -1871,6 +1883,7 @@ class ProgramManager {
             privateFee,
             inputs,
             keySearchParams,
+            program,
             ...additionalOptions,
         };
 
@@ -2011,6 +2024,7 @@ class ProgramManager {
             privateFee,
             inputs,
             keySearchParams,
+            program,
             ...additionalOptions,
         };
 
@@ -2141,6 +2155,7 @@ class ProgramManager {
             privateFee,
             inputs,
             keySearchParams,
+            program,
             ...additionalOptions,
         };
 
@@ -2268,6 +2283,7 @@ class ProgramManager {
             privateFee,
             inputs,
             keySearchParams,
+            program,
             ...additionalOptions,
         };
 
@@ -2386,6 +2402,7 @@ class ProgramManager {
                 verifierUri: CREDITS_PROGRAM_KEYS.set_validator_state.verifier,
                 cacheKey: "credits.aleo/set_validator_state",
             }),
+            program = this.creditsProgram(),
             ...additionalOptions
         } = options;
 
@@ -2396,6 +2413,7 @@ class ProgramManager {
             privateFee,
             inputs,
             keySearchParams,
+            program,
             ...additionalOptions,
         };
 
