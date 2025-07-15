@@ -44,6 +44,58 @@ describe('Field and Group Arithmetic Tests', () => {
             expect(two_power_four.equals(two_times_eight)).equal(true);
         });
 
+        it('Check boolean creation and serialization', () => {
+            const t = Boolean.one();
+            const f = Boolean.zero();
+
+            expect(t.toString()).equals("true");
+            expect(f.toString()).equals("false");
+
+            const tBytes = t.toBytesLe();
+            const fBytes = f.toBytesLe();
+
+            const tFromBytes = Boolean.fromBytesLe(tBytes);
+            const fFromBytes = Boolean.fromBytesLe(fBytes);
+
+            expect(t.equals(tFromBytes)).equals(true);
+            expect(f.equals(fFromBytes)).equals(true);
+
+            const tBits = t.toBitsLe();
+            const fBits = f.toBitsLe();
+
+            const tFromBits = Boolean.fromBitsLe(tBits);
+            const fFromBits = Boolean.fromBitsLe(fBits);
+
+            expect(t.equals(tFromBits)).equals(true);
+            expect(f.equals(fFromBits)).equals(true);
+        });
+
+        it('Check boolean logical operations', () => {
+            const t = Boolean.one();
+            const f = Boolean.zero();
+
+            expect(t.not().toString()).equals("false");
+            expect(f.not().toString()).equals("true");
+
+            expect(t.and(t).toString()).equals("true");
+            expect(t.and(f).toString()).equals("false");
+            expect(f.and(f).toString()).equals("false");
+
+            expect(t.or(t).toString()).equals("true");
+            expect(t.or(f).toString()).equals("true");
+            expect(f.or(f).toString()).equals("false");
+
+            expect(t.xor(t).toString()).equals("false");
+            expect(t.xor(f).toString()).equals("true");
+            expect(f.xor(f).toString()).equals("false");
+
+            expect(t.nand(t).toString()).equals("false");
+            expect(t.nand(f).toString()).equals("true");
+
+            expect(f.nor(f).toString()).equals("true");
+            expect(t.nor(f).toString()).equals("false");
+        });
+
         it('Check scalar field arithmetic', () => {
             // Create the 2 scalar element.
             const a = Scalar.fromString("2scalar");
