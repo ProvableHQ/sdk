@@ -28,7 +28,7 @@ async function preDownloadTransferKeys() {
     const keysDirPath = path.join(__dirname, "keys");
     await fsPromises.mkdir(keysDirPath, { recursive: true });
 
-    for (const keyData of [CREDITS_PROGRAM_KEYS.transfer_public, CREDITS_PROGRAM_KEYS.fee_public, CREDITS_PROGRAM_KEYS.transfer_public_as_signer]) {
+    for (const keyData of [CREDITS_PROGRAM_KEYS.transfer_public, CREDITS_PROGRAM_KEYS.fee_public, CREDITS_PROGRAM_KEYS.transfer_public_as_signer, CREDITS_PROGRAM_KEYS.inclusion]) {
         try {
             keyPaths[keyData.locator] = await downloadAndSaveKey(keyData, keysDirPath);
         } catch (error) {
@@ -45,7 +45,7 @@ async function preDownloadBondingKeys() {
     const keysDirPath = path.join(__dirname, "keys");
     await fsPromises.mkdir(keysDirPath, { recursive: true });
 
-    for (const keyData of [CREDITS_PROGRAM_KEYS.bond_public, CREDITS_PROGRAM_KEYS.fee_public, CREDITS_PROGRAM_KEYS.unbond_public, CREDITS_PROGRAM_KEYS.claim_unbond_public]) {
+    for (const keyData of [CREDITS_PROGRAM_KEYS.bond_public, CREDITS_PROGRAM_KEYS.fee_public, CREDITS_PROGRAM_KEYS.unbond_public, CREDITS_PROGRAM_KEYS.claim_unbond_public, CREDITS_PROGRAM_KEYS.inclusion]) {
         try {
             keyPaths[keyData.locator] = await downloadAndSaveKey(keyData, keysDirPath);
         } catch (error) {
