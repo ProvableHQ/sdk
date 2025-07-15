@@ -1,4 +1,16 @@
-import {Account, Address, CREDITS_PROGRAM_KEYS, initThreadPool, ProgramManager, OfflineQuery, OfflineKeyProvider, OfflineSearchParams, ProvingKey, Transaction} from "@provablehq/sdk";
+import {
+    Account,
+    Address,
+    CREDITS_PROGRAM_KEYS,
+    initThreadPool,
+    ProgramManager,
+    OfflineQuery,
+    OfflineKeyProvider,
+    OfflineSearchParams,
+    ProvingKey,
+    Transaction,
+    VerifyingKey
+} from "@provablehq/sdk";
 import { getLocalKey, preDownloadBondingKeys, preDownloadTransferKeys } from "./helpers";
 
 await initThreadPool();
@@ -19,6 +31,9 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     const transferPublicProvingKey = ProvingKey.fromBytes(
         await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.transfer_public.locator])
     );
+    const inclusionKey = ProvingKey.fromBytes(
+        await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.inclusion.locator])
+    );
     
     // Create an offline key provider
     console.log("Creating offline key provider");
@@ -28,25 +43,25 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     // keys into the key manager.
     console.log("Inserting proving keys into key provider");
     offlineKeyProvider.insertFeePublicKeys(feePublicProvingKey);
+    offlineKeyProvider.cacheKeys(CREDITS_PROGRAM_KEYS.inclusion.locator, [inclusionKey, VerifyingKey.inclusionVerifier()]);
 
-try {
-    offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
-    console.log("Successfully inserted proving key");
-} catch (err) {
-    console.error("Failed to insert proving key:", err);
-}
-
+    try {
+        offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
+        console.log("Successfully inserted proving key");
+    } catch (err) {
+        console.error("Failed to insert proving key:", err);
+    }
 
     // Create an offline query to complete the inclusion proof
     let offlineQuery: OfflineQuery;
     const blockHeight = 0;
     // TODO this is a placeholder block height for now, which offlineQuery now requires
-try {
-    const offlineQuery = new OfflineQuery(blockHeight, latestStateRoot);
-    console.log("Successfully created OfflineQuery", offlineQuery);
-} catch (err) {
-    console.error("Failed to create OfflineQuery:", err);
-}
+    try {
+        offlineQuery = new OfflineQuery(blockHeight, latestStateRoot);
+        console.log("Successfully created OfflineQuery", offlineQuery);
+    } catch (err) {
+        console.error("Failed to create OfflineQuery:", err);
+    }
 
     // Insert the key provider into the program manager
     programManager.setKeyProvider(offlineKeyProvider);
@@ -83,10 +98,12 @@ async function buildBondingTxOffline(
     const bondPublicKeyBytes = await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.bond_public.locator]);
     const unbondPublicKeyBytes = await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.unbond_public.locator]);
     const claimUnbondPublicKeyBytes = await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.claim_unbond_public.locator]);
+    const inclusionKeys = await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.inclusion.locator]);
     const feePublicProvingKey = ProvingKey.fromBytes(feePublicKeyBytes);
     const bondPublicProvingKey = ProvingKey.fromBytes(bondPublicKeyBytes);
     const unBondPublicProvingKey = ProvingKey.fromBytes(unbondPublicKeyBytes);
     const claimUnbondPublicProvingKey = ProvingKey.fromBytes(claimUnbondPublicKeyBytes);
+    const inclusionProvingKey = ProvingKey.fromBytes(inclusionKeys);
 
     // Create an offline key provider to fetch keys without connection to the internet
     console.log("Creating offline key provider");
@@ -98,6 +115,7 @@ async function buildBondingTxOffline(
     offlineKeyProvider.insertBondPublicKeys(bondPublicProvingKey);
     offlineKeyProvider.insertUnbondPublicKeys(unBondPublicProvingKey);
     offlineKeyProvider.insertClaimUnbondPublicKeys(claimUnbondPublicProvingKey);
+    offlineKeyProvider.cacheKeys(CREDITS_PROGRAM_KEYS.inclusion.locator, [inclusionProvingKey, VerifyingKey.inclusionVerifier()]);
 
     // Insert the key provider into the program manager
     programManager.setKeyProvider(offlineKeyProvider);
@@ -114,7 +132,7 @@ async function buildBondingTxOffline(
         offlineQuery: new OfflineQuery(0, latestStateRoot)
     };
 
-
+    console.log("Build bond public transaction");
     const bondTx = <Transaction>await programManager.buildBondPublicTransaction(
         validatorAddress.to_string(),
         withdrawalAddress.to_string(),
@@ -150,38 +168,48 @@ async function buildBondingTxOffline(
     return [bondTx, unBondTx, claimUnbondTx];
 }
 
-// -------------------ONLINE COMPONENT---------------------
-//     (Do this part on an internet connected machine)
-
-// Download the needed keys for the functions we want to execute offline
-const transferKeyPaths = await preDownloadTransferKeys();
-const bondingKeyPaths = await preDownloadBondingKeys();
-//---------------------------------------------------------
-
-// ------------------OFFLINE COMPONENT---------------------
-//           (Do this part on an offline machine)
-// Get the latest state root from an online machine and enter it into an offline machine
-const latestStateRoot = "sr1p93gpsezrjzdhcd2wujznx5s07k8qa39t6vfcej35zew8vn2jyrs46te8q";
-
-// Build a transfer_public transaction
 const stakerAddress = new Account().address();
 const validatorAddress = new Account().address();
 const withdrawalAddress = new Account().address();
-const transferTx = await buildTransferPublicTxOffline(stakerAddress, 10000, latestStateRoot, transferKeyPaths);
-console.log("Transfer transaction built offline!");
-console.log(`\n---------------transfer_public transaction---------------\n${transferTx}`);
-console.log(`---------------------------------------------------------`);
 
-// Build bonding & unbonding transactions
-const bondTransactions = await buildBondingTxOffline(validatorAddress, withdrawalAddress, 100, latestStateRoot, bondingKeyPaths);
-console.log("Bonding transactions built offline!");
-console.log(`\n-----------------bond_public transaction-----------------\n${bondTransactions[0]}`);
-console.log(`---------------------------------------------------------`);
-console.log(`\n----------------unbond_public transaction:---------------\n${bondTransactions[1]}`);
-console.log(`---------------------------------------------------------`);
-console.log(`\n-----------------claim_unbond_public transaction:---------------\n${bondTransactions[2]}`);
-console.log(`---------------------------------------------------------`);
-//---------------------------------------------------------
+async function main() {
+    try {
+        // -------------------ONLINE COMPONENT---------------------
+        //     (Do this part on an internet connected machine)
+
+        // Download the needed keys for the functions we want to execute offline
+        const transferKeyPaths = await preDownloadTransferKeys();
+        const bondingKeyPaths = await preDownloadBondingKeys();
+        //---------------------------------------------------------
+
+        // ------------------OFFLINE COMPONENT---------------------
+        //           (Do this part on an offline machine)
+        // Get the latest state root from an online machine and enter it into an offline machine
+        const latestStateRoot = "sr1p93gpsezrjzdhcd2wujznx5s07k8qa39t6vfcej35zew8vn2jyrs46te8q";
+
+        // Build a transfer_public transaction
+        const transferTx = await buildTransferPublicTxOffline(stakerAddress, 10000, latestStateRoot, transferKeyPaths);
+        console.log("Transfer transaction built offline!");
+        console.log(`\n---------------transfer_public transaction---------------\n${transferTx}`);
+        console.log(`---------------------------------------------------------`);
+
+        // Build bonding & unbonding transactions
+        const bondTransactions = await buildBondingTxOffline(validatorAddress, withdrawalAddress, 100, latestStateRoot, bondingKeyPaths);
+        console.log("Bonding transactions built offline!");
+        console.log(`\n-----------------bond_public transaction-----------------\n${bondTransactions[0]}`);
+        console.log(`---------------------------------------------------------`);
+        console.log(`\n----------------unbond_public transaction:---------------\n${bondTransactions[1]}`);
+        console.log(`---------------------------------------------------------`);
+        console.log(`\n-----------------claim_unbond_public transaction:---------------\n${bondTransactions[2]}`);
+        console.log(`---------------------------------------------------------`);
+        //---------------------------------------------------------
+    } catch (e) {
+        console.log(e);
+        process.exit(1);
+    }
+}
+
+await main();
 
 // -------------------ONLINE COMPONENT---------------------
 //     (Do this part on an internet connected machine)
