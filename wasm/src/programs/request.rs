@@ -44,6 +44,8 @@ pub struct ExecutionRequest(RequestNative);
 #[wasm_bindgen]
 impl ExecutionRequest {
     /// Returns the request as a string.
+    ///
+    /// @returns {string} String representation of the request.
     #[wasm_bindgen(js_name = "toString")]
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
@@ -51,6 +53,8 @@ impl ExecutionRequest {
     }
 
     /// Builds a request object from a string representation of a request.
+    ///
+    /// @param {string} request String representation of the request.
     #[wasm_bindgen(js_name = "fromString")]
     pub fn from_string(request: String) -> Result<ExecutionRequest, String> {
         Ok(ExecutionRequest(RequestNative::from_str(&request).map_err(|e| e.to_string())?))
