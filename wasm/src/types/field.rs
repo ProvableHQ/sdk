@@ -31,7 +31,7 @@ use wasm_bindgen::prelude::*;
 /// Field element.
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Field(pub FieldNative);
+pub struct Field(FieldNative);
 
 #[wasm_bindgen]
 impl Field {
