@@ -426,9 +426,9 @@ Parameters | Type | Description
 --- | --- | ---
 __view_key__ | `ViewKey` | *The view key of the transition signer.*
 __transition_public_key__ | [Group](sdk-src_wasm.md) | *The transition public key used to encrypt the ciphertext.*
-__program__ | `string` | *The program ID of the function that encrypted the ciphertext.*
-__function_name__ | `string` | *The function name that encrypted the ciphertext.*
-__index__ | `u16` | *The index of the input parameter that was encrypted.*
+__program__ | `string` | *The program ID associated with the ciphertext.*
+__function_name__ | `string` | *The name of the function associated with the encrypted inputs and outputs.*
+__index__ | `u16` | *The index of the input or output parameter that was encrypted.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The decrypted plaintext.*
 
 ---
@@ -442,9 +442,9 @@ Decrypt a ciphertext using the transition view key and a (program, function, ind
 Parameters | Type | Description
 --- | --- | ---
 __transition_view_key__ | [Field](sdk-src_wasm.md) | *The transition view key that was used to encrypt the ciphertext.*
-__program__ | `string` | *The program ID of the function that encrypted the ciphertext.*
-__function_name__ | `string` | *The function name that encrypted the ciphertext.*
-__index__ | `u16` | *The index of the input parameter that was encrypted.*
+__program__ | `string` | *The program ID associated with the ciphertext.*
+__function_name__ | `string` | *The name of the function associated with the encrypted inputs and outputs.*
+__index__ | `u16` | *The index of the input or output parameter that was encrypted.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The decrypted plaintext.*
 
 ---
@@ -1280,8 +1280,9 @@ Creates a new offline query object. The state root is required to be passed in a
 
 Parameters | Type | Description
 --- | --- | ---
-__block_height__ | `number` | **
-__state_root__ | `string` | **
+__block_height__ | `u32` | *The block height.*
+__state_root__ | `string` | *The state root of the current network.*
+__*return*__ | [OfflineQuery](sdk-src_wasm.md) | *The newly created offline query object.*
 
 ---
 
@@ -1295,7 +1296,7 @@ Add a new block height to the offline query object.
 
 Parameters | Type | Description
 --- | --- | ---
-__block_height__ | `number` | **
+__block_height__ | `u32` | *The block height to add.*
 __*return*__ | `void` | **
 
 ---
@@ -1308,8 +1309,8 @@ Add a new state path to the offline query object.
 
 Parameters | Type | Description
 --- | --- | ---
-__commitment:__ | `string` | *The commitment corresponding to a record inpout*
-__state_path:__ | `string` | *The state path corresponding to the commitment*
+__commitment:__ | `string` | *The commitment corresponding to a record input.*
+__state_path:__ | `string` | *The state path corresponding to the commitment.*
 __*return*__ | `void` | **
 
 ---
@@ -1318,23 +1319,23 @@ __*return*__ | `void` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get a json string representation of the offline query object
+Get a json string representation of the offline query object.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `string` | *JSON string representation of the offline query object*
+__*return*__ | `string` | *JSON string representation of the offline query object.*
 
 ---
 
-### `fromString(s) ► OfflineQuery`
+### `fromString(JSON) ► OfflineQuery`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Create an offline query object from a json string representation
+Create an offline query object from a json string representation.
 
 Parameters | Type | Description
 --- | --- | ---
-__s__ | `string` | *JSON string representation of the offline query object*
+__JSON__ | `string` | *string representation of the offline query object.*
 __*return*__ | [OfflineQuery](sdk-src_wasm.md) | **
 
 ---
@@ -1401,7 +1402,8 @@ Encrypt a plaintext with a transition view key.
 
 Parameters | Type | Description
 --- | --- | ---
-__transition_view_key__ | [Field](sdk-src_wasm.md) | *The transition view key to use for encryption.*
+__transition_view_key__ | [Field](sdk-src_wasm.md) | *The transition view key of the transition
+associated with the plaintext.*
 __*return*__ | [Ciphertext](sdk-src_wasm.md) | *The encrypted ciphertext.*
 
 ---
@@ -2598,8 +2600,21 @@ Return a record plaintext from a string.
 
 Parameters | Type | Description
 --- | --- | ---
-__record__ | `string` | *String representation of a plaintext representation of an Aleo record*
+__record__ | `string` | *String representation of a plaintext representation of an Aleo record.*
 __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext*
+
+---
+
+### `getMember(input) ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the record entry matching a key.
+
+Parameters | Type | Description
+--- | --- | ---
+__input__ | `string` | *The key to retrieve the value in the record data field.*
+__*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext value corresponding to the key.*
 
 ---
 
