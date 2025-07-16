@@ -20,7 +20,6 @@ use crate::{
     types::native::*,
 };
 use js_sys::{Array, Uint8Array};
-use once_cell::sync::OnceCell;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -71,6 +70,91 @@ macro_rules! impl_integer {
             #[wasm_bindgen(js_name = "toBitsLe")]
             pub fn to_bits_le(&self) -> Array {
                 to_bits_array_le!(self)
+            }
+
+            /// Checked absolute value.
+            #[wasm_bindgen(js_name = "absChecked")]
+            pub fn abs_checked(&self) -> $name {
+                Self(self.0.abs_checked())
+            }
+
+            /// Wrapped absolute value.
+            #[wasm_bindgen(js_name = "absWrapped")]
+            pub fn abs_wrapped(&self) -> $name {
+                Self(self.0.abs_wrapped())
+            }
+
+            /// Wrapped addition.
+            #[wasm_bindgen(js_name = "addWrapped")]
+            pub fn add_wrapped(&self, other: &$name) -> $name {
+                Self(self.0.add_wrapped(&other.0))
+            }
+
+            /// Wrapped subtraction.
+            #[wasm_bindgen(js_name = "subWrapped")]
+            pub fn sub_wrapped(&self, other: &$name) -> $name {
+                Self(self.0.sub_wrapped(&other.0))
+            }
+
+            /// Wrapped multiplication.
+            #[wasm_bindgen(js_name = "mulWrapped")]
+            pub fn mul_wrapped(&self, other: &$name) -> $name {
+                Self(self.0.mul_wrapped(&other.0))
+            }
+
+            /// Wrapped division.
+            #[wasm_bindgen(js_name = "divWrapped")]
+            pub fn div_wrapped(&self, other: &$name) -> $name {
+                Self(self.0.div_wrapped(&other.0))
+            }
+
+            /// Power.
+            #[wasm_bindgen(js_name = "pow")]
+            pub fn pow(&self, other: &$name) -> $name {
+                Self(self.0.pow(&other.0))
+            }
+
+            /// Remainder.
+            #[wasm_bindgen(js_name = "rem")]
+            pub fn rem(&self, other: &$name) -> $name {
+                Self(self.0.rem(&other.0))
+            }
+
+            /// Wrapped remainder.
+            #[wasm_bindgen(js_name = "remWrapped")]
+            pub fn rem_wrapped(&self, other: &$name) -> $name {
+                Self(self.0.rem_wrapped(&other.0))
+            }
+
+            /// Convert to Scalar.
+            #[wasm_bindgen(js_name = "toScalar")]
+            pub fn to_scalar(&self) -> crate::Scalar {
+                crate::Scalar(self.0.to_scalar())
+            }
+
+            /// Convert from Field.
+            #[wasm_bindgen(js_name = "fromField")]
+            pub fn from_field(field: &crate::Field) -> Result<$name, String> {
+                <$native>::from_field(&field.0)
+                    .map(Self)
+                    .map_err(|e| e.to_string())
+            }
+
+            /// Convert from Fields.
+            #[wasm_bindgen(js_name = "fromFields")]
+            pub fn from_fields(fields: js_sys::Array) -> Result<$name, String> {
+                // Collect JsValue → Field
+                let rust_fields: Result<Vec<_>, _> = fields.iter().map(|jsv| {
+
+                    let field_str = jsv.as_string().ok_or("Expected string for Field")?;
+                    let field = FieldNative::from_str(&field_str).map_err(|e| e.to_string())?;
+                    Ok(field)
+                }).collect();
+
+                let rust_fields = rust_fields?;
+                <$native>::from_fields(&rust_fields)
+                    .map(Self)
+                    .map_err(|e| e.to_string())
             }
 
             /// Clone.

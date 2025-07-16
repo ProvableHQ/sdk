@@ -30,7 +30,7 @@ use wasm_bindgen::prelude::*;
 /// Scalar field element.
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Scalar(ScalarNative);
+pub struct Scalar(pub ScalarNative);
 
 #[wasm_bindgen]
 impl Scalar {
