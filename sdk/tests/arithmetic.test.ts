@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Field, Scalar, Group, Boolean} from "../src/node.js";
+import { Field, Scalar, Group, Boolean, I8, I16, I32, U8, U16, U32} from "../src/node.js";
 import { FieldGenerator, GroupGenerator, ScalarGenerator } from "./data/algebra.js";
 
 describe('Field and Group Arithmetic Tests', () => {
@@ -94,6 +94,33 @@ describe('Field and Group Arithmetic Tests', () => {
 
             expect(f.nor(f).toString()).equals("true");
             expect(t.nor(f).toString()).equals("false");
+        });
+
+        it('Check integer serialization and arithmetic', () => {
+            const i8 = I8.fromString("42i8");
+            const i8Neg = i8.absChecked().neg();
+            const i8Clone = i8.clone();
+
+            expect(i8.toString()).equals("42i8");
+            expect(i8Clone.equals(i8)).equal(true);
+
+            const i8Bytes = i8.toBytesLe();
+            const i8FromBytes = I8.fromBytesLe(i8Bytes);
+            expect(i8.equals(i8FromBytes)).equal(true);
+
+            const i8Bits = i8.toBitsLe();
+            const i8FromBits = I8.fromBitsLe(i8Bits);
+            expect(i8.equals(i8FromBits)).equal(true);
+
+            const sum = i8.addWrapped(i8);
+            const diff = i8.subWrapped(i8);
+            const prod = i8.mulWrapped(i8);
+            const quot = i8.divWrapped(i8);
+
+            expect(sum).to.not.be.undefined;
+            expect(diff).to.not.be.undefined;
+            expect(prod).to.not.be.undefined;
+            expect(quot).to.not.be.undefined;
         });
 
         it('Check scalar field arithmetic', () => {
