@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Field, Scalar, Group} from "../src/node.js";
+import { Field, Scalar, Group, Boolean} from "../src/node.js";
 import { FieldGenerator, GroupGenerator, ScalarGenerator } from "./data/algebra.js";
 
 describe('Field and Group Arithmetic Tests', () => {

@@ -60,6 +60,7 @@ export { logAndThrow } from "./utils.js";
 export {
     Address,
     Authorization,
+    Boolean,
     BHP256,
     BHP512,
     BHP768,
