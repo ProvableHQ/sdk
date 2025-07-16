@@ -174,6 +174,13 @@ interface FunctionKeyProvider {
     feePublicKeys(): Promise<FunctionKeyPair>;
 
     /**
+     * Get keys for the inclusion proof.
+     *
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
+     */
+    inclusionKeys(): Promise<FunctionKeyPair>;
+
+    /**
      * Get join function keys from the credits.aleo program
      *
      * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
@@ -513,6 +520,24 @@ class AleoKeyProvider implements FunctionKeyProvider {
         } else {
             throw new Error("Invalid visibility type");
         }
+    }
+
+    /**
+     * Returns the proving and verifying keys for the transfer_public function.
+     *
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the transfer_public function
+     */
+    async transferPublicKeys(): Promise<FunctionKeyPair> {
+        return await this.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_public);
+    }
+
+    /**
+     * Returns the proving and verifying keys for the inclusion proof.
+     *
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the inclusion proof.
+     */
+    async inclusionKeys(): Promise<FunctionKeyPair> {
+        return await this.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.inclusion);
     }
 
     /**

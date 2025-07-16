@@ -362,6 +362,15 @@ class OfflineKeyProvider implements FunctionKeyProvider {
     };
 
     /**
+     * Get the inclusion prover keys from. The keys must be cached prior to calling this method for it to work.
+     *
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the inclusion prover
+     */
+    inclusionKeys(): Promise<FunctionKeyPair> {
+        return this.functionKeys(OfflineSearchParams.inclusionKeyParams());
+    };
+
+    /**
      * Get join function keys from the credits.aleo program. The keys must be cached prior to calling this
      * method for it to work.
      *
@@ -485,6 +494,21 @@ class OfflineKeyProvider implements FunctionKeyProvider {
             this.cache.set(CREDITS_PROGRAM_KEYS.fee_public.locator, [provingKey.toBytes(), VerifyingKey.feePublicVerifier().toBytes()]);
         } else {
             throw new Error("Attempted to insert invalid proving keys for fee_public");
+        }
+    }
+
+    /**
+     * Insert the proving and verifying keys for the inclusion prover into the cache. Only the proving key needs
+     * to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+     * that the keys match the expected checksum for the inclusion prover.
+     *
+     * @param provingKey
+     */
+    insertInclusionKeys(provingKey: ProvingKey) {
+        if (provingKey.isInclusionProver()) {
+            this.cache.set(CREDITS_PROGRAM_KEYS.inclusion.locator, [provingKey.toBytes(), VerifyingKey.inclusionVerifier().toBytes()]);
+        } else {
+            throw new Error("Attempted to insert invalid proving keys for the inclusion prover");
         }
     }
 

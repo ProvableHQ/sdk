@@ -43,7 +43,7 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     // keys into the key manager.
     console.log("Inserting proving keys into key provider");
     offlineKeyProvider.insertFeePublicKeys(feePublicProvingKey);
-    offlineKeyProvider.cacheKeys(CREDITS_PROGRAM_KEYS.inclusion.locator, [inclusionKey, VerifyingKey.inclusionVerifier()]);
+    offlineKeyProvider.insertInclusionKeys(inclusionKey)
 
     try {
         offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
@@ -54,7 +54,7 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
 
     // Create an offline query to complete the inclusion proof
     let offlineQuery: OfflineQuery;
-    const blockHeight = 0;
+    const blockHeight = 9233665;
     // TODO this is a placeholder block height for now, which offlineQuery now requires
     try {
         offlineQuery = new OfflineQuery(blockHeight, latestStateRoot);
@@ -115,7 +115,7 @@ async function buildBondingTxOffline(
     offlineKeyProvider.insertBondPublicKeys(bondPublicProvingKey);
     offlineKeyProvider.insertUnbondPublicKeys(unBondPublicProvingKey);
     offlineKeyProvider.insertClaimUnbondPublicKeys(claimUnbondPublicProvingKey);
-    offlineKeyProvider.cacheKeys(CREDITS_PROGRAM_KEYS.inclusion.locator, [inclusionProvingKey, VerifyingKey.inclusionVerifier()]);
+    offlineKeyProvider.insertInclusionKeys(inclusionProvingKey);
 
     // Insert the key provider into the program manager
     programManager.setKeyProvider(offlineKeyProvider);
@@ -129,7 +129,7 @@ async function buildBondingTxOffline(
 
     const bondPublicOptions = {
         keySearchParams: OfflineSearchParams.bondPublicKeyParams(),
-        offlineQuery: new OfflineQuery(0, latestStateRoot)
+        offlineQuery: new OfflineQuery(9233665, latestStateRoot)
     };
 
     console.log("Build bond public transaction");
@@ -144,7 +144,7 @@ async function buildBondingTxOffline(
 
     const unbondPublicOptions = {
         keySearchParams: OfflineSearchParams.unbondPublicKeyParams(),
-        offlineQuery: new OfflineQuery(0, latestStateRoot)
+        offlineQuery: new OfflineQuery(9233665, latestStateRoot)
     };
 
     const unBondTx = <Transaction>await programManager.buildUnbondPublicTransaction(
@@ -157,7 +157,7 @@ async function buildBondingTxOffline(
     console.log("Building a claim_unbond_public transaction offline");
     const claimUnbondPublicOptions = {
         keySearchParams: OfflineSearchParams.claimUnbondPublicKeyParams(),
-        offlineQuery: new OfflineQuery(0, latestStateRoot)
+        offlineQuery: new OfflineQuery(9233665, latestStateRoot)
     };
 
     const claimUnbondTx = <Transaction>await programManager.buildClaimUnbondPublicTransaction(
@@ -185,13 +185,18 @@ async function main() {
         // ------------------OFFLINE COMPONENT---------------------
         //           (Do this part on an offline machine)
         // Get the latest state root from an online machine and enter it into an offline machine
-        const latestStateRoot = "sr1p93gpsezrjzdhcd2wujznx5s07k8qa39t6vfcej35zew8vn2jyrs46te8q";
+        const latestStateRoot = "sr18kzmy5fw3rwr8gldzfg2deemvyapgkuahte372shyz7phtwtsypqngg0ml";
 
-        // Build a transfer_public transaction
+        // // // Build a transfer_public transaction
         const transferTx = await buildTransferPublicTxOffline(stakerAddress, 10000, latestStateRoot, transferKeyPaths);
         console.log("Transfer transaction built offline!");
         console.log(`\n---------------transfer_public transaction---------------\n${transferTx}`);
         console.log(`---------------------------------------------------------`);
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        await sleep(15000);
 
         // Build bonding & unbonding transactions
         const bondTransactions = await buildBondingTxOffline(validatorAddress, withdrawalAddress, 100, latestStateRoot, bondingKeyPaths);
