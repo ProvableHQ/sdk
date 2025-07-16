@@ -20,7 +20,7 @@ use crate::{
     to_bits_array_le,
     types::native::{BooleanNative, LiteralNative, PlaintextNative},
 };
-use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, Zero};
+use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes};
 use snarkvm_wasm::utilities::Uniform;
 
 use js_sys::{Array, Uint8Array};
@@ -32,7 +32,6 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Boolean(BooleanNative);
-
 
 #[wasm_bindgen]
 impl Boolean {
@@ -140,7 +139,6 @@ impl Boolean {
     pub fn equals(&self, other: &Boolean) -> bool {
         self.0 == BooleanNative::from(other)
     }
-
 }
 
 impl Deref for Boolean {
