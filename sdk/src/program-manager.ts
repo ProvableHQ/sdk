@@ -697,6 +697,100 @@ class ProgramManager {
     }
 
     /**
+     * Builds a SnarkVM `Authorization` for a specific function without building a circuit first. This should be used when fast authorization generation is needed and the invoker is confident inputs are coorect.
+     *
+     * @param {AuthorizationOptions} options - The options for building the `Authorization`
+     * @returns {Promise<Authorization>} - A promise that resolves to an `Authorization` or throws an Error.
+     *
+     * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a new NetworkClient, KeyProvider, and RecordProvider.
+     * const keyProvider = new AleoKeyProvider();
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache = true;
+     *
+     * // Initialize a ProgramManager with the key and record providers.
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+     *
+     * // Build the unchecked `Authorization`.
+     * const authorization = await programManager.buildAuthorizationUnchecked({
+     *   programName: "credits.aleo",
+     *   functionName: "transfer_public",
+     *   inputs: [
+     *     "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+     *     "10000000u64",
+     *   ],
+     * });
+     */
+    async buildAuthorizationUnchecked(
+        options: AuthorizationOptions,
+    ): Promise<Authorization> {
+        // Destructure the options object to access the parameters.
+        const {
+            programName,
+            functionName,
+            inputs,
+        } = options;
+
+        const privateKey = options.privateKey;
+        let program = options.programSource;
+        let imports = options.programImports;
+
+        // Ensure the function exists on the network.
+        if (program === undefined) {
+            try {
+                program = <string>(
+                    await this.networkClient.getProgram(programName)
+                );
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`,
+                );
+            }
+        } else if (program instanceof Program) {
+            program = program.toString();
+        }
+
+        // Get the private key from the account if it is not provided in the parameters.
+        let executionPrivateKey = privateKey;
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
+            executionPrivateKey = this.account.privateKey();
+        }
+
+        if (typeof executionPrivateKey === "undefined") {
+            throw "No private key provided and no private key set in the ProgramManager";
+        }
+
+        // Resolve the program imports if they exist.
+        const numberOfImports = Program.fromString(program).getImports().length;
+        if (numberOfImports > 0 && !imports) {
+            try {
+                imports = <ProgramImports>(
+                    await this.networkClient.getProgramImports(programName)
+                );
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+                );
+            }
+        }
+
+        // Build and return an `Authorization` for the desired function.
+        return await WasmProgramManager.buildAuthorizationUnchecked(
+            executionPrivateKey,
+            program,
+            functionName,
+            inputs,
+            imports
+        );
+    }
+
+    /**
      * Builds a SnarkVM fee `Authorization` for `credits.aleo/fee_private` or `credits.aleo/fee_public`. If a record is provided `fee_private` will be executed, otherwise `fee_public` will be executed.
      *
      * @param {FeeAuthorizationOptions} options - The options for building the `Authorization`.
@@ -2153,6 +2247,7 @@ class ProgramManager {
      * Verify a proof from an offline execution. This is useful when it is desired to do offchain proving and verification.
      *
      * @param {executionResponse} executionResponse The response from an offline function execution (via the `programManager.run` method)
+     * @param {blockHeight} blockHeight The ledger height when the execution was generated.
      * @param {ImportedPrograms} imports The imported programs used in the execution. Specified as { "programName": "programSourceCode", ... }
      * @param {ImportedVerifyingKeys} importedVerifyingKeys The verifying keys in the execution. Specified as { "programName": [["functionName", "verifyingKey"], ...], ... }
      * @returns {boolean} True if the proof is valid, false otherwise
@@ -2181,7 +2276,7 @@ class ProgramManager {
      * const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
      * assert(isValid);
      */
-    verifyExecution(executionResponse: ExecutionResponse, imports?: ImportedPrograms, importedVerifyingKeys?: ImportedVerifyingKeys): boolean {
+    verifyExecution(executionResponse: ExecutionResponse, blockHeight: number, imports?: ImportedPrograms, importedVerifyingKeys?: ImportedVerifyingKeys): boolean {
         try {
             const execution = <FunctionExecution>(
                 executionResponse.getExecution()
@@ -2196,10 +2291,11 @@ class ProgramManager {
                 function_id,
                 imports,
                 importedVerifyingKeys,
+                blockHeight
             );
         } catch (e) {
             console.warn(
-                "The execution was not found in the response, cannot verify the execution",
+                `The execution was not found in the response, cannot verify the execution: ${e}`,
             );
             return false;
         }

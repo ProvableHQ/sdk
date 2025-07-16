@@ -237,8 +237,9 @@ mod tests {
         assert_eq!(plaintext.to_string(), owner_plaintext.to_string());
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         assert!(record.decrypt(&incorrect_view_key).is_err());
+        let rvk = record.record_view_key(&view_key);
 
-        let commitment = plaintext.commitment("credits.aleo", "credits").unwrap();
+        let commitment = plaintext.commitment("credits.aleo", "credits", &rvk.to_string()).unwrap();
         let tag = RecordCiphertext::tag(&graph_key, commitment).unwrap();
         let expected_tag = Field::from_str(RECORD_TAG).unwrap();
         assert_eq!(tag, expected_tag);

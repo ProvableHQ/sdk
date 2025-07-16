@@ -39,7 +39,7 @@ use crate::{
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::prelude::{ConsensusVersion, Network};
 use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
+use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2, InclusionVersion};
 use snarkvm_synthesizer_program::StackKeys;
 
 use rand::{SeedableRng, rngs::StdRng};
@@ -178,10 +178,10 @@ impl ProgramManager {
 
         log("Preparing the inclusion proof for the transfer execution");
         if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query.clone()).await.map_err(|err| err.to_string())?;
+            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
         } else {
             let query = QueryNative::from(node_url);
-            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
         }
 
         log("Proving the transfer execution");
@@ -191,7 +191,7 @@ impl ProgramManager {
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the transfer execution");
-        process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
+        process.verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution).map_err(|err| err.to_string())?;
 
         // Calculate the minimum execution fee.
         log("Calculating the minimum execution fee");

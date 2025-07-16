@@ -34,7 +34,7 @@ use snarkvm_console::{
         Value,
         ValueType,
     },
-    types::{Field, Group, Scalar, U16, U64},
+    types::{Field, Group, Scalar, U8, U16, U64},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
 use snarkvm_ledger_query::Query;
@@ -58,6 +58,7 @@ pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 pub type FieldNative = Field<CurrentNetwork>;
 pub type GroupNative = Group<CurrentNetwork>;
 pub type ScalarNative = Scalar<CurrentNetwork>;
+pub type U8Native = U8<CurrentNetwork>;
 pub type U16Native = U16<CurrentNetwork>;
 pub type U64Native = U64<CurrentNetwork>;
 

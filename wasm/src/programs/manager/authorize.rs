@@ -58,8 +58,41 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         // Authorize the main program.
+        let unchecked = false;
         let authorization =
-            Authorization::from(authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng));
+            Authorization::from(authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked));
+        Ok(authorization)
+    }
+
+    /// Create an execution `Authorization` without generating a circuit. Use this function when
+    /// fast delegated proving is needed.
+    ///
+    /// @param private_key The private key of the signer.
+    /// @param program The program source code containing the function to authorize.
+    /// @param function_name The function to authorize.
+    /// @param inputs A javascript array of inputs to the function.
+    /// @param imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
+    #[wasm_bindgen(js_name = buildAuthorizationUnchecked)]
+    pub async fn authorize_unchecked(
+        private_key: &PrivateKey,
+        program: &str,
+        function_name: &str,
+        inputs: Array,
+        imports: Option<Object>,
+    ) -> Result<Authorization, String> {
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+        log(&format!("Creating proving request for {}:{function_name}", program_native.id()));
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let rng = &mut StdRng::from_entropy();
+
+        // Authorize the main program.
+        let unchecked = true;
+        let authorization =
+            Authorization::from(authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked));
         Ok(authorization)
     }
 
@@ -125,6 +158,7 @@ mod tests {
         // Create the puzzle spinner authorization and ensure it has the correct amount of transitions.
         let authorization =
             ProgramManager::authorize(&private_key, PUZZLE_SPINNER_V002, function_name, inputs, imports).await.unwrap();
+        console_log!("{authorization:?}");
 
         // Ensure the number of requests is correct.
         assert_eq!(authorization.len(), 3);

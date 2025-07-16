@@ -23,39 +23,59 @@ doctest = false
 
 [dependencies.snarkvm-algorithms]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 
 [dependencies.snarkvm-circuit-network]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 
 [dependencies.snarkvm-console]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-ledger-block]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-ledger-query]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 features = [ "async", "wasm" ]
 
 [dependencies.snarkvm-ledger-store]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 
 [dependencies.snarkvm-parameters]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-synthesizer-program]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 features = [ "wasm" ]
 
 [dependencies.snarkvm-synthesizer]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 features = [ "async", "wasm" ]
 
 [dependencies.snarkvm-wasm]
 version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "f3a639d"
 features = [ "console", "fields", "utilities" ]
 
 [dependencies.anyhow]
