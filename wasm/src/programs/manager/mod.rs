@@ -18,6 +18,7 @@ mod authorize;
 mod deploy;
 mod execute;
 mod join;
+mod proving_request;
 mod split;
 mod transfer;
 

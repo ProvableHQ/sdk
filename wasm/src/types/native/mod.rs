@@ -46,6 +46,9 @@ use snarkvm_synthesizer::{
     snark::{ProvingKey, VerifyingKey},
 };
 
+mod request;
+pub(crate) use request::ProvingRequestNative;
+
 // Account types
 pub type AddressNative = Address<CurrentNetwork>;
 pub type ComputeKeyNative = ComputeKey<CurrentNetwork>;

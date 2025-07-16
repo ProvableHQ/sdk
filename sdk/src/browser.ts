@@ -20,6 +20,8 @@ import { PlaintextArray} from "./models/plaintext/array.js";
 import { PlaintextLiteral} from "./models/plaintext/literal.js";
 import { PlaintextObject } from "./models/plaintext/plaintext.js";
 import { PlaintextStruct} from "./models/plaintext/struct.js";
+import { ProvingRequestJSON } from "./models/provingRequest.js";
+import { ProvingResponse } from "./models/provingResponse.js";
 import { RatificationJSON } from "./models/ratification.js";
 import { SolutionsJSON, SolutionJSON, PartialSolutionJSON } from "./models/solution.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
@@ -53,7 +55,7 @@ async function initializeWasm() {
 
 export { createAleoWorker } from "./managed-worker.js";
 
-export { ProgramManager } from "./program-manager.js";
+export { ProgramManager, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions } from "./program-manager.js";
 
 export { logAndThrow } from "./utils.js";
 
@@ -84,6 +86,7 @@ export {
     Program,
     ProgramManager as ProgramManagerBase,
     ProvingKey,
+    ProvingRequest,
     RecordCiphertext,
     RecordPlaintext,
     Signature,
@@ -150,6 +153,8 @@ export {
     PlaintextObject,
     PlaintextStruct,
     ProgramImports,
+    ProvingRequestJSON,
+    ProvingResponse,
     RatificationJSON,
     RecordProvider,
     RecordSearchParams,
