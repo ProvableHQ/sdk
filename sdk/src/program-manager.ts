@@ -156,6 +156,7 @@ class ProgramManager {
     host: string;
     networkClient: AleoNetworkClient;
     recordProvider: RecordProvider | undefined;
+    inclusionKeysLoaded: boolean = false;
 
     /** Create a new instance of the ProgramManager
      *
@@ -636,10 +637,15 @@ class ProgramManager {
             }
         }
 
-        if (offlineQuery) {
-            console.log("Using offline query.");
-        } else {
-            console.log("Not using offline query.");
+        if (offlineQuery && !this.inclusionKeysLoaded) {
+            try {
+                const inclusionKeys = await this.keyProvider.inclusionKeys();
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                this.inclusionKeysLoaded = true;
+                console.log("Successfully loaded inclusion key");
+            } catch {
+                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+            }
         }
 
         // Build an execution transaction
@@ -1345,6 +1351,18 @@ class ProgramManager {
             );
         }
 
+        // Load the inclusion prover offline.
+        if (offlineQuery && !this.inclusionKeysLoaded) {
+            try {
+                const inclusionKeys = await this.keyProvider.inclusionKeys();
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                this.inclusionKeysLoaded = true;
+                console.log("Successfully loaded inclusion key");
+            } catch {
+                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+            }
+        }
+
         // Build an execution transaction and submit it to the network
         const tx = await WasmProgramManager.buildJoinTransaction(
             executionPrivateKey,
@@ -1435,6 +1453,18 @@ class ProgramManager {
             logAndThrow(
                 "Record provided is not valid. Please ensure it is a valid plaintext record.",
             );
+        }
+
+        // Load the inclusion prover offline.
+        if (offlineQuery && !this.inclusionKeysLoaded) {
+            try {
+                const inclusionKeys = await this.keyProvider.inclusionKeys();
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                this.inclusionKeysLoaded = true;
+                console.log("Successfully loaded inclusion key");
+            } catch {
+                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+            }
         }
 
         // Build an execution transaction and submit it to the network
@@ -1611,10 +1641,18 @@ class ProgramManager {
             );
         }
 
-        if (offlineQuery) {
-            console.log("Using offline query.");
-        } else {
-            console.log("Using online query.")
+        // Load the inclusion prover offline.
+        if (offlineQuery && !this.inclusionKeysLoaded) {
+            const inclusionKeys = await this.keyProvider.inclusionKeys();
+            WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+            try {
+                const inclusionKeys = await this.keyProvider.inclusionKeys();
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                this.inclusionKeysLoaded = true;
+                console.log("Successfully loaded inclusion key");
+            } catch {
+                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+            }
         }
 
         // Build an execution transaction
@@ -2542,6 +2580,15 @@ class ProgramManager {
             return false;
         }
     }
+
+    /**
+     * Set the inclusion key bytes.
+     *
+     * @param {executionResponse} executionResponse The response from an offline function execution (via the `programManager.run` method)
+     * @param {ImportedPrograms} imports The imported programs used in the execution. Specified as { "programName": "programSourceCode", ... }
+     * @param {ImportedVerifyingKeys} importedVerifyingKeys The verifying keys in the execution. Specified as { "programName": [["functionName", "verifyingKey"], ...], ... }
+     * @returns {boolean} True if the proof is valid, false otherwise
+     *
 
     /**
      * Create a program object from a program's source code
