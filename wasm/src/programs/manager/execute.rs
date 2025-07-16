@@ -40,7 +40,7 @@ use crate::{
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::network::{ConsensusVersion, Network};
 use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::prelude::{cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2, InclusionVersion};
+use snarkvm_synthesizer::prelude::{InclusionVersion, cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
 
 use core::ops::Add;
 use js_sys::{Array, Object};
@@ -229,7 +229,9 @@ impl ProgramManager {
         );
 
         // Verify the execution
-        process.verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution).map_err(|err| err.to_string())?;
+        process
+            .verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution)
+            .map_err(|err| err.to_string())?;
 
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;

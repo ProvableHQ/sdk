@@ -29,9 +29,9 @@ use crate::{
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use std::{ops::Add, str::FromStr};
 use snarkvm_console::network::ConsensusVersion;
 use snarkvm_synthesizer::prelude::InclusionVersion;
+use std::{ops::Add, str::FromStr};
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -99,7 +99,9 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
 
         log("Verifying the split execution");
-        process.verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution).map_err(|err| err.to_string())?;
+        process
+            .verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution)
+            .map_err(|err| err.to_string())?;
 
         log("Creating execution transaction for split");
         let transaction = TransactionNative::from_execution(execution, None).map_err(|err| err.to_string())?;

@@ -14,19 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Address, Credits, GraphKey, Plaintext, PrivateKey, js_array_from_fields, record_to_js_object, to_bits_array_le, types::{
-    Field,
-    Group,
-    native::{
-        CurrentNetwork,
-        FieldNative,
-        IdentifierNative,
-        PlaintextEntryNative,
-        PlaintextNative,
-        ProgramIDNative,
-        RecordPlaintextNative,
+use crate::{
+    Address,
+    Credits,
+    GraphKey,
+    Plaintext,
+    PrivateKey,
+    ViewKey,
+    js_array_from_fields,
+    record_to_js_object,
+    to_bits_array_le,
+    types::{
+        Field,
+        Group,
+        native::{
+            CurrentNetwork,
+            FieldNative,
+            IdentifierNative,
+            PlaintextEntryNative,
+            PlaintextNative,
+            ProgramIDNative,
+            RecordPlaintextNative,
+        },
     },
-}, ViewKey};
+};
 use snarkvm_console::{
     prelude::{FromBytes, ToBits, ToBytes, ToFields},
     program::Owner,
@@ -374,8 +385,14 @@ mod tests {
         let record_name = "credits";
         let expected_sn = "8170619507075647151199239049653235187042661744691458644751012032123701508940field";
         let record_view_key = record.record_view_key(&vk);
-        assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name, &record_view_key.to_string()).unwrap());
-        assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name, &record_view_key.to_string()).unwrap());
+        assert_eq!(
+            expected_sn,
+            record.serial_number_string(&pk, program_id, record_name, &record_view_key.to_string()).unwrap()
+        );
+        assert_eq!(
+            expected_sn,
+            record.serial_number_string(&pk, program_id, record_name, &record_view_key.to_string()).unwrap()
+        );
     }
 
     #[wasm_bindgen_test]

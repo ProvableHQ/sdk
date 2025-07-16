@@ -59,11 +59,14 @@ macro_rules! authorize {
 
         log(&format!("Creating authorization for {program_id}:{function_name}"));
         if $unchecked {
-            $process.authorize_unchecked::<CurrentAleo, _>($private_key, program.id(), function_name, $inputs.iter(), $rng).map_err(|err| err.to_string())?
+            $process
+                .authorize_unchecked::<CurrentAleo, _>($private_key, program.id(), function_name, $inputs.iter(), $rng)
+                .map_err(|err| err.to_string())?
         } else {
-            $process.authorize::<CurrentAleo, _>($private_key, program.id(), function_name, $inputs.iter(), $rng).map_err(|err| err.to_string())?
+            $process
+                .authorize::<CurrentAleo, _>($private_key, program.id(), function_name, $inputs.iter(), $rng)
+                .map_err(|err| err.to_string())?
         }
-        
     }};
 }
 

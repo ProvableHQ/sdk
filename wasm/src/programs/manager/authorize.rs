@@ -59,8 +59,15 @@ impl ProgramManager {
 
         // Authorize the main program.
         let unchecked = false;
-        let authorization =
-            Authorization::from(authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked));
+        let authorization = Authorization::from(authorize!(
+            process,
+            process_inputs!(inputs),
+            program,
+            function_name,
+            private_key,
+            rng,
+            unchecked
+        ));
         Ok(authorization)
     }
 
@@ -91,8 +98,15 @@ impl ProgramManager {
 
         // Authorize the main program.
         let unchecked = true;
-        let authorization =
-            Authorization::from(authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked));
+        let authorization = Authorization::from(authorize!(
+            process,
+            process_inputs!(inputs),
+            program,
+            function_name,
+            private_key,
+            rng,
+            unchecked
+        ));
         Ok(authorization)
     }
 

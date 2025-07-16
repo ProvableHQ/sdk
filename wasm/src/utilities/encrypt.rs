@@ -138,10 +138,16 @@ impl EncryptionToolkit {
         }
 
         // Return the decrypted record.
-        let decrypted_record = if let Ok(record)  = RecordPlaintextNative::from_plaintext(owner.clone(), decrypted_data.clone(), *record_native.nonce(), U8Native::new(0u8)) {
+        let decrypted_record = if let Ok(record) = RecordPlaintextNative::from_plaintext(
+            owner.clone(),
+            decrypted_data.clone(),
+            *record_native.nonce(),
+            U8Native::new(0u8),
+        ) {
             record
         } else {
-            RecordPlaintextNative::from_plaintext(owner, decrypted_data, *record_native.nonce(), U8Native::new(1u8)).map_err(|e| e.to_string())?
+            RecordPlaintextNative::from_plaintext(owner, decrypted_data, *record_native.nonce(), U8Native::new(1u8))
+                .map_err(|e| e.to_string())?
         };
 
         Ok(RecordPlaintext::from(decrypted_record))
