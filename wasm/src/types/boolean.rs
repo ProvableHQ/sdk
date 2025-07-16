@@ -20,7 +20,7 @@ use crate::{
     to_bits_array_le,
     types::native::{BooleanNative, LiteralNative, PlaintextNative},
 };
-use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Zero};
+use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, Zero};
 use snarkvm_wasm::utilities::Uniform;
 
 use js_sys::{Array, Uint8Array};
@@ -36,6 +36,12 @@ pub struct Boolean(BooleanNative);
 
 #[wasm_bindgen]
 impl Boolean {
+    /// Creates a Boolean from a native JS bool.
+    #[wasm_bindgen(constructor)]
+    pub fn new(value: bool) -> Boolean {
+        Boolean(BooleanNative::new(value))
+    }
+
     /// Creates a boolean object from a string representation ("true"/"false").
     #[wasm_bindgen(js_name = "fromString")]
     #[allow(clippy::should_implement_trait)]
@@ -135,15 +141,6 @@ impl Boolean {
         self.0 == BooleanNative::from(other)
     }
 
-    /// `false`
-    pub fn zero() -> Boolean {
-        Boolean(BooleanNative::zero())
-    }
-
-    /// `true`
-    pub fn one() -> Boolean {
-        Boolean(BooleanNative::one())
-    }
 }
 
 impl Deref for Boolean {

@@ -45,8 +45,8 @@ describe('Field and Group Arithmetic Tests', () => {
         });
 
         it('Check boolean creation and serialization', () => {
-            const t = Boolean.one();
-            const f = Boolean.zero();
+            const t = Boolean.fromString("true");
+            const f = Boolean.fromString("false");
 
             expect(t.toString()).equals("true");
             expect(f.toString()).equals("false");
@@ -71,8 +71,8 @@ describe('Field and Group Arithmetic Tests', () => {
         });
 
         it('Check boolean logical operations', () => {
-            const t = Boolean.one();
-            const f = Boolean.zero();
+            const t = new Boolean(true);
+            const f = new Boolean(false);
 
             expect(t.not().toString()).equals("false");
             expect(f.not().toString()).equals("true");
