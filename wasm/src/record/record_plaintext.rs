@@ -67,13 +67,19 @@ impl RecordPlaintext {
 
     /// Return a record plaintext from a string.
     ///
-    /// @param {string} record String representation of a plaintext representation of an Aleo record
+    /// @param {string} record String representation of a plaintext representation of an Aleo record.
+    ///
     /// @returns {RecordPlaintext} Record plaintext
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordPlaintext, String> {
         Self::from_str(record).map_err(|_| "The record plaintext string provided was invalid".into())
     }
 
+    /// Get the record entry matching a key.
+    ///
+    /// @param {string} input The key to retrieve the value in the record data field.
+    ///
+    /// @returns {Plaintext} The plaintext value corresponding to the key.
     #[wasm_bindgen(js_name = getMember)]
     pub fn get_member(&self, input: String) -> Result<Plaintext, String> {
         let entry = self
@@ -91,6 +97,8 @@ impl RecordPlaintext {
     }
 
     /// Get the owner of the record.
+    ///
+    /// @returns {Address} Address of the owner of the record.
     pub fn owner(&self) -> Result<Address, String> {
         match self.0.owner() {
             Owner::<CurrentNetwork, PlaintextNative>::Public(owner) => Ok(Address::from(*owner)),

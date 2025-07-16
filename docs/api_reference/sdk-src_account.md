@@ -504,21 +504,23 @@ const viewKey = account.viewKey();
 
 ---
 
-### `computeKey() ► Field`
+### `computeKey() ► ComputeKey`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the Transition View Key associated with the transition public key.
+Returns the ComputeKey associated with the account.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [Field](sdk-src_wasm.md) | *The transition view key*
+__*return*__ | `ComputeKey` | *The compute key of the account*
 
 #### Examples
 
 ```javascript
 import { Account } from "@provablehq/sdk/testnet.js";
-const account =
+
+const account = new Account();
+const computeKey = account.computeKey();
 ```
 
 ---
