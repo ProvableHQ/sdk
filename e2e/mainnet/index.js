@@ -46,7 +46,7 @@ async function localProgramExecution(program, programName, aleoFunction, inputs)
     console.log("hello_hello/hello executed - result:", executionResponse.getOutputs());
 
     // Verify the execution using the verifying key that was generated earlier.
-    if (programManager.verifyExecution(executionResponse)) {
+    if (programManager.(executionResponse)) {
         console.log("hello_hello/hello execution verified!");
     } else {
         throw("Execution failed verification!");

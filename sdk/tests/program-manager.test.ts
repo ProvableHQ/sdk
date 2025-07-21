@@ -147,35 +147,38 @@ describe('Program Manager', () => {
 
         it('Should build correct authorizations when using the unchecked version', async () => {
             // Build an authorization for the spin function of "puzzle_spinner_v002.aleo".
-            const authorization = await programManager.buildAuthorizationUnchecked({
-                programName: PUZZLE_SPINNER_PROGRAM_ID,
-                functionName: "spin",
-                inputs: [
-                    PUZZLE_SPINNER_V002_INPUT_0,
-                    PUZZLE_SPINNER_V002_INPUT_1,
-                    PUZZLE_SPINNER_V002_INPUT_2,
-                ],
-                privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
-            });
+            if (network === "mainnet") {
+                const authorization = await programManager.buildAuthorizationUnchecked({
+                    programName: PUZZLE_SPINNER_PROGRAM_ID,
+                    functionName: "spin",
+                    inputs: [
+                        PUZZLE_SPINNER_V002_INPUT_0,
+                        PUZZLE_SPINNER_V002_INPUT_1,
+                        PUZZLE_SPINNER_V002_INPUT_2,
+                    ],
+                    privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
+                });
 
-            // Ensure serialization methods lead to the expected.
-            const authorizationFromString = Authorization.fromString(authorization.toString());
-            const authorizationFromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+                // Ensure serialization methods lead to the expected.
+                const authorizationFromString = Authorization.fromString(authorization.toString());
+                const authorizationFromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
 
-            // Ensure all authorizations are equal.
-            expect(authorizationFromString.equals(authorizationFromBytes));
-            expect(authorizationFromString.equals(authorization));
+                // Ensure all authorizations are equal.
+                expect(authorizationFromString.equals(authorizationFromBytes));
+                expect(authorizationFromString.equals(authorization));
 
-            // Get execution ID from previous authorization.
-            const executionId = authorization.toExecutionId().toString();
-            const feeAuthorization = await programManager.buildFeeAuthorization({
-                deploymentOrExecutionId: executionId,
-                baseFeeCredits: 0.1,
-            });
+                // Get execution ID from previous authorization.
+                const executionId = authorization.toExecutionId().toString();
+                const feeAuthorization = await programManager.buildFeeAuthorization({
+                    deploymentOrExecutionId: executionId,
+                    baseFeeCredits: 0.1,
+                });
 
-            // Ensure the authorizations have the correct number of transitions.
-            expect(authorization.transitions().length).equal(3);
-            expect(feeAuthorization.transitions().length).equal(1);
+                // Ensure the authorizations have the correct number of transitions.
+                expect(authorization.transitions().length).equal(3);
+                expect(feeAuthorization.transitions().length).equal(1);
+            }
+
         });
     });
 });

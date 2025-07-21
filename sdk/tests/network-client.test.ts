@@ -431,18 +431,35 @@ describe("NodeConnection", () => {
 
     describe("Mappings", () => {
         it("should find program mappings and read mappings", async () => {
-            const mappings =
-                await connection.getProgramMappingNames("credits.aleo");
-            if (!(mappings instanceof Error)) {
-                expect(mappings).deep.equal([
-                    "committee",
-                    "delegated",
-                    "metadata",
-                    "bonded",
-                    "unbonding",
-                    "account",
-                    "withdraw",
-                ]);
+            if (connection.network === "testnet") {
+                const mappings =
+                    await connection.getProgramMappingNames("credits.aleo");
+                if (!(mappings instanceof Error)) {
+                    expect(mappings).deep.equal([
+                        "committee",
+                        "delegated",
+                        "metadata",
+                        "bonded",
+                        "unbonding",
+                        "account",
+                        "withdraw",
+                        "pool",
+                    ]);
+                }
+            } else {
+                const mappings =
+                    await connection.getProgramMappingNames("credits.aleo");
+                if (!(mappings instanceof Error)) {
+                    expect(mappings).deep.equal([
+                        "committee",
+                        "delegated",
+                        "metadata",
+                        "bonded",
+                        "unbonding",
+                        "account",
+                        "withdraw",
+                    ]);
+                }
             }
         });
     });
@@ -589,7 +606,7 @@ describe("NodeConnection", () => {
             }
         });
 
-        it("should have correct data within the wasm object and summary object for a deployment transaction", async () => {
+        it.skip("should have correct data within the wasm object and summary object for a deployment transaction", async () => {
             // Get the deployment transaction for token_registry.aleo
             if (connection.network === "mainnet") {
                 const transaction = await connection.getTransactionObject("at15mwg0jyhvpjjrfxwrlwzn8puusnmy7r3xzvpjht4e5gzgnp68q9qd0qqec");

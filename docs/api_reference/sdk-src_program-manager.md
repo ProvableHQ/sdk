@@ -1165,7 +1165,8 @@ const imports = { "add_it_up.aleo": program_import };
 const importedVerifyingKeys = { "add_it_up.aleo": [["add_it", "verifyingKey1..."]] };
 
 /// Verify the execution.
-const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
+let blockHeight = 9_000_000;
+const isValid = programManager.verifyExecution(executionResponse, blockHeight, imports, importedVerifyingKeys);
 assert(isValid);
 ```
 

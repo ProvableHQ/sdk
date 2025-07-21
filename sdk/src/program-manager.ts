@@ -2273,7 +2273,8 @@ class ProgramManager {
      * const importedVerifyingKeys = { "add_it_up.aleo": [["add_it", "verifyingKey1..."]] };
      *
      * /// Verify the execution.
-     * const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
+     * const blockHeight = 9000000;
+     * const isValid = programManager.verifyExecution(executionResponse, blockHeight, imports, importedVerifyingKeys);
      * assert(isValid);
      */
     verifyExecution(executionResponse: ExecutionResponse, blockHeight: number, imports?: ImportedPrograms, importedVerifyingKeys?: ImportedVerifyingKeys): boolean {
