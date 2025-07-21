@@ -27,7 +27,7 @@ use snarkvm_console::prelude::{
     FromBytes, ToBytes, FromBits, ToBits,
     AbsChecked, AbsWrapped,
     AddWrapped, SubWrapped, MulWrapped, DivWrapped,
-    RemWrapped, Pow, Rem,
+    RemWrapped, Pow, Rem, FromField,
 };
 
 
@@ -152,13 +152,13 @@ macro_rules! impl_integer {
                 crate::Scalar::from_native(self.0.to_scalar())
             }
 
-            // /// Convert from Field.
-            // #[wasm_bindgen(js_name = "fromField")]
-            // pub fn from_field(field: &crate::Field) -> Result<$name, String> {
-            //     <$native>::from_field(&field.0)
-            //         .map(Self)
-            //         .map_err(|e| e.to_string())
-            // }
+            /// Convert from Field.
+            #[wasm_bindgen(js_name = "fromField")]
+            pub fn from_field(field: &crate::Field) -> Result<$name, String> {
+                <$native>::from_field(field.as_native())
+                    .map(Self)
+                    .map_err(|e| e.to_string())
+            }
 
             // /// Convert from Fields.
             // #[wasm_bindgen(js_name = "fromFields")]
