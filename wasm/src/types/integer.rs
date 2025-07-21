@@ -146,11 +146,11 @@ macro_rules! impl_integer {
                 Self(self.0.rem_wrapped(&other.0))
             }
 
-            // /// Convert to Scalar.
-            // #[wasm_bindgen(js_name = "toScalar")]
-            // pub fn to_scalar(&self) -> crate::Scalar {
-            //     crate::Scalar(self.0.to_scalar())
-            // }
+            /// Convert to Scalar.
+            #[wasm_bindgen(js_name = "toScalar")]
+            pub fn to_scalar(&self) -> crate::Scalar {
+                crate::Scalar::from_native(self.0.to_scalar())
+            }
 
             // /// Convert from Field.
             // #[wasm_bindgen(js_name = "fromField")]

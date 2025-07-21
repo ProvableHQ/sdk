@@ -47,6 +47,11 @@ impl Scalar {
         self.0.to_string()
     }
 
+    /// Constructs a Scalar from its native representation that can be exposed to JavaScript.
+    pub(crate) fn from_native(native: ScalarNative) -> Self {
+        Scalar(native)
+    }
+
     /// Create a scalar element from a Uint8Array of left endian bytes.
     #[wasm_bindgen(js_name = "fromBytesLe")]
     pub fn from_bytes_le(bytes: &Uint8Array) -> Result<Scalar, String> {
