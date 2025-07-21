@@ -14,14 +14,4 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod env;
-pub use env::get_env;
-
-pub mod plaintext;
-pub use plaintext::*;
-
-pub mod programs;
-pub use programs::*;
-
-pub mod uri;
-pub use uri::*;
+pub const PROVABLE_API: &str = "https://api.explorer.provable.com/v1";

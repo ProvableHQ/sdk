@@ -18,6 +18,14 @@ use crate::{array, object};
 
 use js_sys::{Array, Object};
 
+pub const HELLO_PROGRAM: &str = r#"program hello.aleo;
+function main:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    add r0 r1 into r2;
+    output r2 as u32.private;
+"#;
+
 pub const PUZZLE_SPINNER_V002: &str = r#"import puzzle_arcade_coin_v002.aleo;
 import puzzle_arcade_ticket_v002.aleo;
 

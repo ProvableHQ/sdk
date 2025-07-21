@@ -54,6 +54,7 @@ macro_rules! authorize {
             if !$process.contains_program(program.id()) {
                 log("Adding program to the process");
                 $process.add_program(&program).map_err(|e| e.to_string())?;
+                $process.add_program(&program).map_err(|e| e.to_string())?;
             }
         }
 
@@ -137,6 +138,7 @@ macro_rules! execute_program {
         if program_id != "credits.aleo" {
             if !$process.contains_program(program.id()) {
                 log("Adding program to the process");
+                $process.add_program(&program).map_err(|e| e.to_string())?;
                 $process.add_program(&program).map_err(|e| e.to_string())?;
             }
         }

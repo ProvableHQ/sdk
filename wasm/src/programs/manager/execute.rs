@@ -365,3 +365,45 @@ impl ProgramManager {
         cost_in_microcredits_v2(&stack, &function_id).map_err(|e| e.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        Metadata,
+        array,
+        utilities::test::{HELLO_PROGRAM, PROVABLE_API},
+    };
+
+    async fn test_execute_added_program() {
+        // Generate the private key.
+        let private_key = PrivateKey::new();
+
+        // Download the fee prover.
+        let fee_prover_uri = Metadata::fee_public().prover;
+        let fee_proving_key_bytes = reqwest::get(fee_prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
+        let fee_prover = ProvingKey::from_bytes(&fee_proving_key_bytes).unwrap();
+        let fee_verifier = VerifyingKey::fee_public_verifier();
+
+        // Create the execution.
+        let transaction = ProgramManager::execute(
+            &private_key,
+            HELLO_PROGRAM,
+            "main",
+            array!["5u32", "5u32"],
+            0.0,
+            None,
+            Some(PROVABLE_API.to_string()),
+            None,
+            None,
+            None,
+            Some(fee_prover),
+            Some(fee_verifier),
+            None,
+        )
+        .await
+        .unwrap();
+
+        assert!(transaction.is_execute());
+    }
+}
