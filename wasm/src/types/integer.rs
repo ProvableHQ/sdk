@@ -19,6 +19,7 @@ use crate::{
     to_bits_array_le,
     types::native::*,
 };
+// use crate::types::{U8, U16, U32};
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -115,10 +116,22 @@ macro_rules! impl_integer {
                 Self(self.0.div_wrapped(&other.0))
             }
 
-            /// Power.
-            #[wasm_bindgen(js_name = "pow")]
-            pub fn pow(&self, other: &$name) -> $name {
-                Self(self.0.pow(&other.0))
+            /// Power to a u8 exponent.
+            #[wasm_bindgen(js_name = "powU8")]
+            pub fn pow_u8(&self, exponent: &U8) -> $name {
+                Self(self.0.pow(&exponent.0))
+            }
+
+            /// Power to a u16 exponent.
+            #[wasm_bindgen(js_name = "powU16")]
+            pub fn pow_u16(&self, exponent: &U16) -> $name {
+                Self(self.0.pow(&exponent.0))
+            }
+
+            /// Power to a u32 exponent.
+            #[wasm_bindgen(js_name = "powU32")]
+            pub fn pow_u32(&self, exponent: &U32) -> $name {
+                Self(self.0.pow(&exponent.0))
             }
 
             /// Remainder.
