@@ -759,29 +759,8 @@ class ProgramManager {
      *     "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
      *     "10000000u64",
      *   ],
-     *   broadcast: true,
+     *   broadcast: false,
      * });
-     *
-     * // Submit the ProvingRequest to the network and await the response.
-     * const provingResponse = await programManager.networkClient.submitProvingRequest(provingRequest);
-     * // Get the transaction from the proving response.
-     * const tx = provingResponse.transaction;
-     * // Check if the proving service has already submitted the transaction.
-     * const submitted = provingResponse.broadcast;
-     *
-     * // Get the transaction id.
-     * const tx_id = tx.id();
-     *
-     * // If the response doesn't indicate the transaction was submitted, submit it manually.
-     * if (!submitted) {
-     *   await programManager.networkClient.submitTransaction(tx);
-     * }
-     *
-     * // Wait to see if the transaction has appeared on chain.
-     * setTimeout(async () => {
-     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
-     *  assert(transaction.id() === tx.id());
-     * }, 10000);
      */
     async provingRequest(
         options: ProvingRequestOptions,
