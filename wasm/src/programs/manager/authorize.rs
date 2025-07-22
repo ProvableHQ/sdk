@@ -172,7 +172,6 @@ mod tests {
         // Create the puzzle spinner authorization and ensure it has the correct amount of transitions.
         let authorization =
             ProgramManager::authorize(&private_key, PUZZLE_SPINNER_V002, function_name, inputs, imports).await.unwrap();
-        console_log!("{authorization:?}");
 
         // Ensure the number of requests is correct.
         assert_eq!(authorization.len(), 3);
