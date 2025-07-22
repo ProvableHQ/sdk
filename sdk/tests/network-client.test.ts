@@ -458,6 +458,7 @@ describe("NodeConnection", () => {
                         "unbonding",
                         "account",
                         "withdraw",
+                        "pool",
                     ]);
                 }
             }
