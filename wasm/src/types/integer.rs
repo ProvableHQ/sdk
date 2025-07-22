@@ -14,22 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    from_js_typed_array,
-    to_bits_array_le,
-    types::native::*,
-};
+use crate::{from_js_typed_array, to_bits_array_le, types::native::*};
 // use crate::types::{U8, U16, U32};
 use js_sys::{Array, Uint8Array};
+use snarkvm_console::prelude::{
+    AbsChecked,
+    AbsWrapped,
+    AddWrapped,
+    DivWrapped,
+    FromBits,
+    FromBytes,
+    FromField,
+    FromFields,
+    MulWrapped,
+    Pow,
+    Rem,
+    RemWrapped,
+    SubWrapped,
+    ToBits,
+    ToBytes,
+};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
-use snarkvm_console::prelude::{
-    FromBytes, ToBytes, FromBits, ToBits,
-    AbsChecked, AbsWrapped,
-    AddWrapped, SubWrapped, MulWrapped, DivWrapped,
-    RemWrapped, Pow, Rem, FromField, FromFields,
-};
-
 
 macro_rules! impl_integer {
     ($name:ident, $native:ty) => {
@@ -155,26 +161,24 @@ macro_rules! impl_integer {
             /// Convert from Field.
             #[wasm_bindgen(js_name = "fromField")]
             pub fn from_field(field: &crate::Field) -> Result<$name, String> {
-                <$native>::from_field(field.as_native())
-                    .map(Self)
-                    .map_err(|e| e.to_string())
+                <$native>::from_field(field.as_native()).map(Self).map_err(|e| e.to_string())
             }
 
             /// Convert from Fields.
             #[wasm_bindgen(js_name = "fromFields")]
             pub fn from_fields(fields: js_sys::Array) -> Result<$name, String> {
                 // Collect JsValue → Field
-            let rust_fields: Result<Vec<_>, String> = fields.iter().map(|jsv| {
-                let field_str = jsv.as_string().ok_or("Expected string for Field")?;
-                let field: FieldNative = FieldNative::from_str(&field_str).map_err(|e| e.to_string())?;
-                Ok(field)
-            }).collect();
-
+                let rust_fields: Result<Vec<_>, String> = fields
+                    .iter()
+                    .map(|jsv| {
+                        let field_str = jsv.as_string().ok_or("Expected string for Field")?;
+                        let field: FieldNative = FieldNative::from_str(&field_str).map_err(|e| e.to_string())?;
+                        Ok(field)
+                    })
+                    .collect();
 
                 let rust_fields = rust_fields?;
-                <$native>::from_fields(&rust_fields)
-                    .map(Self)
-                    .map_err(|e| e.to_string())
+                <$native>::from_fields(&rust_fields).map(Self).map_err(|e| e.to_string())
             }
 
             /// Clone.

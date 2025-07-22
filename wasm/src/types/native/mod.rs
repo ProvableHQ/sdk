@@ -34,7 +34,7 @@ use snarkvm_console::{
         Value,
         ValueType,
     },
-    types::{Boolean, Field, Group, Scalar, I8, I16, I32, I64, I128, U8, U16, U32, U64, U128},
+    types::{Boolean, Field, Group, I8, I16, I32, I64, I128, Scalar, U8, U16, U32, U64, U128},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
 use snarkvm_ledger_query::Query;
@@ -72,7 +72,6 @@ pub type U16Native = U16<CurrentNetwork>;
 pub type U32Native = U32<CurrentNetwork>;
 pub type U64Native = U64<CurrentNetwork>;
 pub type U128Native = U128<CurrentNetwork>;
-
 
 // Algorithms
 pub type BHP256Native = BHP256<CurrentNetwork>;
