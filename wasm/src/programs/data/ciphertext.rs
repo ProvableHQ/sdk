@@ -57,6 +57,14 @@ impl Ciphertext {
 
     /// Decrypt a ciphertext using the view key of the transition signer, transition public key, and
     /// (program, function, index) tuple.
+    ///
+    /// @param {ViewKey} view_key The view key of the transition signer.
+    /// @param {Group} transition_public_key The transition public key used to encrypt the ciphertext.
+    /// @param {string} program The program ID associated with the ciphertext.
+    /// @param {string} function_name The name of the function associated with the encrypted inputs and outputs.
+    /// @param {u16} index The index of the input or output parameter that was encrypted.
+    ///
+    /// @returns {Plaintext} The decrypted plaintext.
     #[wasm_bindgen(js_name = decryptWithTransitionInfo)]
     pub fn decrypt_with_transition_info(
         &self,
@@ -82,6 +90,13 @@ impl Ciphertext {
     }
 
     /// Decrypt a ciphertext using the transition view key and a (program, function, index) tuple.
+    ///
+    /// @param {Field} transition_view_key The transition view key that was used to encrypt the ciphertext.
+    /// @param {string} program The program ID associated with the ciphertext.
+    /// @param {string} function_name The name of the function associated with the encrypted inputs and outputs.
+    /// @param {u16} index The index of the input or output parameter that was encrypted.
+    ///
+    /// @returns {Plaintext} The decrypted plaintext.
     #[wasm_bindgen(js_name = decryptWithTransitionViewKey)]
     pub fn decrypt_with_transition_view_key(
         &self,

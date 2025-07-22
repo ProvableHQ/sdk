@@ -176,22 +176,32 @@ impl Transition {
     }
 
     /// Get the transition public key of the transition.
+    ///
+    /// @returns {Group} Transition public key
     pub fn tpk(&self) -> Group {
         Group::from(self.0.tpk())
     }
 
     /// Get the transition view key of the transition.
+    ///
+    /// @param {ViewKey} view_key The view key of the transition signer.
+    ///
+    /// @returns {Field} Transition view key
     pub fn tvk(&self, view_key: &ViewKey) -> Field {
         let tpk = self.tpk();
         tpk.scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
     }
 
     /// Get the transition commitment of the transition.
+    ///
+    /// @returns {Field} Transition commitment
     pub fn tcm(&self) -> Field {
         Field::from(self.0.tcm())
     }
 
     /// Get the transition signer commitment of the transition.
+    ///
+    /// @returns {Field} Transition signer commitment
     pub fn scm(&self) -> Field {
         Field::from(self.0.scm())
     }

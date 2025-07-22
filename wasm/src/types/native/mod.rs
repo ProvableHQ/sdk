@@ -34,7 +34,7 @@ use snarkvm_console::{
         Value,
         ValueType,
     },
-    types::{Field, Group, Scalar, U8, U16, U64},
+    types::{Boolean, Field, Group, Scalar, U8, U16, U64},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
 use snarkvm_ledger_query::Query;
@@ -55,6 +55,7 @@ pub type SignatureNative = Signature<CurrentNetwork>;
 pub type ViewKeyNative = ViewKey<CurrentNetwork>;
 
 // Algebraic & Primitive Data Types
+pub type BooleanNative = Boolean<CurrentNetwork>;
 pub type FieldNative = Field<CurrentNetwork>;
 pub type GroupNative = Group<CurrentNetwork>;
 pub type ScalarNative = Scalar<CurrentNetwork>;
