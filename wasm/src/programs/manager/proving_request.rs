@@ -76,7 +76,8 @@ impl ProgramManager {
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
 
         // Authorize the main program.
-        let authorization = authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked);
+        let authorization =
+            authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked);
 
         // Authorize the fee.
         let execution_id = authorization.to_execution_id().map_err(|e| e.to_string())?;
@@ -125,7 +126,7 @@ mod tests {
             None,
             imports,
             false,
-            false
+            false,
         )
         .await
         .unwrap();

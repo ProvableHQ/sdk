@@ -378,13 +378,13 @@ mod tests {
     async fn test_execute_added_program() {
         // Generate the private key.
         let private_key = PrivateKey::new();
-    
+
         // Download the fee prover.
         let fee_prover_uri = Metadata::fee_public().prover;
         let fee_proving_key_bytes = reqwest::get(fee_prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
         let fee_prover = ProvingKey::from_bytes(&fee_proving_key_bytes).unwrap();
         let fee_verifier = VerifyingKey::fee_public_verifier();
-    
+
         // Create the execution.
         let transaction = ProgramManager::execute(
             &private_key,
@@ -403,7 +403,7 @@ mod tests {
         )
         .await
         .unwrap();
-    
+
         assert!(transaction.is_execute());
     }
 }
