@@ -2776,7 +2776,7 @@ __*return*__ | `string` | *Nonce of the record*
 
 ---
 
-### `serialNumberString(private_key, program_id, record_name) ► string`
+### `serialNumberString(private_key, program_id, record_name, record_view_key) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -2787,6 +2787,7 @@ Parameters | Type | Description
 __private_key__ | [PrivateKey](sdk-src_wasm.md) | *Private key of the account that owns the record*
 __program_id__ | `string` | *Program ID of the program that the record is associated with*
 __record_name__ | `string` | *Name of the record*
+__record_view_key__ | `string` | *The string representation of the record view key.*
 __*return*__ | `string` | *Serial number of the record*
 
 ---
@@ -2802,6 +2803,20 @@ Parameters | Type | Description
 __graph_key__ | `GraphKey` | **
 __commitment__ | [Field](sdk-src_wasm.md) | **
 __*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `recordViewKey(view_key) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Generate the record view key. The record view key can only decrypt record if the
+supplied view key belongs to the record owner.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key used to generate the record view key*
+__*return*__ | [Group](sdk-src_wasm.md) | *record view key*
 
 ---
 

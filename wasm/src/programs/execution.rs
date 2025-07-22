@@ -20,9 +20,18 @@ use crate::{
     Transition,
     log,
     native::ProgramIDNative,
-    types::native::{ExecutionNative, IdentifierNative, ProcessNative, ProgramNative, VerifyingKeyNative},
+    types::native::{
+        CurrentNetwork,
+        ExecutionNative,
+        IdentifierNative,
+        ProcessNative,
+        ProgramNative,
+        VerifyingKeyNative,
+    },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
+use snarkvm_console::network::Network;
+use snarkvm_synthesizer::prelude::InclusionVersion;
 
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
@@ -114,6 +123,7 @@ pub fn verify_function_execution(
     function_id: &str,
     imports: Option<Object>,
     imported_verifying_keys: Option<Object>,
+    block_height: u32,
 ) -> Result<bool, String> {
     // Get the function
     let function = IdentifierNative::from_str(function_id).map_err(|e| e.to_string())?;
@@ -174,5 +184,14 @@ pub fn verify_function_execution(
     }
 
     // Verify the execution.
-    process.verify_execution(VarunaVersion::V2, execution).map_or(Ok(false), |_| Ok(true))
+    let consensus_version = <CurrentNetwork as Network>::CONSENSUS_VERSION(block_height).map_err(|e| e.to_string())?;
+    let inclusion_version =
+        if block_height >= <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|e| e.to_string())? {
+            InclusionVersion::V1
+        } else {
+            InclusionVersion::V0
+        };
+    process
+        .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, execution)
+        .map_or(Ok(false), |_| Ok(true))
 }
