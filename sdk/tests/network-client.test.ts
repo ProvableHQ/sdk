@@ -323,8 +323,8 @@ describe("NodeConnection", () => {
                     ? testnetAcceptedTx
                     : mainnetAcceptedTx
                 : isTestnet
-                  ? testnetRejectedTx
-                  : mainnetRejectedTx;
+                    ? testnetRejectedTx
+                    : mainnetRejectedTx;
         }
 
         it("should return confirmed transaction data for an accepted tx ID", async () => {
@@ -431,10 +431,10 @@ describe("NodeConnection", () => {
 
     describe("Mappings", () => {
         it("should find program mappings and read mappings", async () => {
-            const mappings =
-                await connection.getProgramMappingNames("credits.aleo");
-            if (!(mappings instanceof Error)) {
-                if (connection.network == "testnet") {
+            if (connection.network === "testnet") {
+                const mappings =
+                    await connection.getProgramMappingNames("credits.aleo");
+                if (!(mappings instanceof Error)) {
                     expect(mappings).deep.equal([
                         "committee",
                         "delegated",
@@ -443,9 +443,13 @@ describe("NodeConnection", () => {
                         "unbonding",
                         "account",
                         "withdraw",
-                        "pool"
+                        "pool",
                     ]);
-                } else {
+                }
+            } else {
+                const mappings =
+                    await connection.getProgramMappingNames("credits.aleo");
+                if (!(mappings instanceof Error)) {
                     expect(mappings).deep.equal([
                         "committee",
                         "delegated",

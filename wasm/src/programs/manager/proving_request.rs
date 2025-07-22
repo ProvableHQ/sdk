@@ -60,6 +60,7 @@ impl ProgramManager {
         fee_record: Option<RecordPlaintext>,
         imports: Option<Object>,
         broadcast: bool,
+        unchecked: bool,
     ) -> Result<ProvingRequest, String> {
         log(&format!("Creating proving request for {program}:{function_name}"));
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -75,7 +76,7 @@ impl ProgramManager {
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
 
         // Authorize the main program.
-        let authorization = authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng);
+        let authorization = authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked);
 
         // Authorize the fee.
         let execution_id = authorization.to_execution_id().map_err(|e| e.to_string())?;
@@ -124,11 +125,13 @@ mod tests {
             None,
             imports,
             false,
+            false
         )
         .await
         .unwrap();
 
         // Ensure the proving_request serialization roundtrips are valid.
+        console_log!("{}", proving_request.to_string());
         let request_from_string = ProvingRequest::from_string(proving_request.to_string()).unwrap();
         let request_from_bytes = ProvingRequest::from_bytes_le(proving_request.to_bytes_le().unwrap()).unwrap();
 

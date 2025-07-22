@@ -53,8 +53,6 @@ async function initializeWasm() {
     console.warn("initializeWasm is deprecated, you no longer need to use it");
 }
 
-export { createAleoWorker } from "./managed-worker.js";
-
 export { ProgramManager, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions } from "./program-manager.js";
 
 export { logAndThrow } from "./utils.js";

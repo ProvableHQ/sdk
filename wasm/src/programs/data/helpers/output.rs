@@ -72,7 +72,7 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
             };
             JsValue::from(private_output)
         }
-        OutputNative::Record(commitment, checksum, record_ciphertext) => {
+        OutputNative::Record(commitment, checksum, record_ciphertext, sender_ciphertext) => {
             let value = if let Some(record_ciphertext) = record_ciphertext {
                 if convert_to_js {
                     JsValue::from(record_ciphertext.to_string())
@@ -82,11 +82,21 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
             } else {
                 JsValue::UNDEFINED
             };
+            let sender_ciphertext = if let Some(sender_ciphertext) = sender_ciphertext {
+                if convert_to_js {
+                    JsValue::from(sender_ciphertext.to_string())
+                } else {
+                    JsValue::from(Field::from(sender_ciphertext))
+                }
+            } else {
+                JsValue::UNDEFINED
+            };
             let record = object! {
                 "type": "record",
                 "id": if convert_to_js { JsValue::from(commitment.to_string()) } else { JsValue::from(Field::from(commitment)) },
                 "checksum": if convert_to_js { JsValue::from(checksum.to_string()) } else { JsValue::from(Field::from(checksum)) },
                 "value" : value,
+                "sender_ciphertext": sender_ciphertext,
             };
             JsValue::from(record)
         }

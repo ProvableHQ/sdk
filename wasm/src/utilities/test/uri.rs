@@ -14,10 +14,4 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub use snarkvm_circuit_network::AleoV0 as CurrentAleo;
-
-pub use snarkvm_console::network::MainnetV0 as CurrentNetwork;
-
-pub use snarkvm_parameters::mainnet as parameters;
-
-pub const BASE_URL: &'static str = "https://parameters.provable.com/mainnet/";
+pub const PROVABLE_API: &str = "https://api.explorer.provable.com/v1";
