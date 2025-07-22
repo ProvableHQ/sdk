@@ -349,6 +349,48 @@ const authorization = await programManager.buildAuthorizationUnchecked({
 
 ---
 
+### `provingRequest(options) ► Promise.<ProvingRequest>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a &#x60;ProvingRequest&#x60; for submission to a prover for execution.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `ProvingRequestOptions` | *The options for building the proving request*
+__*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the transaction or an error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the proving request.
+const provingRequest = await programManager.provingRequest({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  baseFee: 100000,
+  priorityFee: 0,
+  privateFee: false,
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+  broadcast: false,
+});
+```
+
+---
+
 ### `buildFeeAuthorization(options) ► Promise.<Authorization>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1570,6 +1612,48 @@ const authorization = await programManager.buildAuthorizationUnchecked({
     "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
     "10000000u64",
   ],
+});
+```
+
+---
+
+### `provingRequest(options) ► Promise.<ProvingRequest>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a &#x60;ProvingRequest&#x60; for submission to a prover for execution.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `ProvingRequestOptions` | *The options for building the proving request*
+__*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the transaction or an error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache = true;
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the proving request.
+const provingRequest = await programManager.provingRequest({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  baseFee: 100000,
+  priorityFee: 0,
+  privateFee: false,
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+  broadcast: false,
 });
 ```
 

@@ -150,12 +150,12 @@ pub fn verify_function_execution(
             // Get the list of functions.
             let vk_list = Array::try_from(
                 Reflect::get(&imported_verifying_keys, &imported_program_id.to_string().into())
-                    .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?,
+                    .map_err(|_| format!("Verifying key not found for imported program {imported_program_id}"))?,
             )
-            .map_err(|_| format!("Verifying key not found for imported program {}", imported_program_id))?;
+            .map_err(|_| format!("Verifying key not found for imported program {imported_program_id}"))?;
             // Get the verifying key for each function.
             for vk in vk_list.iter() {
-                let vk = Array::try_from(vk).map_err(|_| format!("Verifying key and function not found for {}, for each function provide an array of the form ['function_name', 'vk']", imported_program_id))?;
+                let vk = Array::try_from(vk).map_err(|_| format!("Verifying key and function not found for {imported_program_id}, for each function provide an array of the form ['function_name', 'vk']"))?;
                 {
                     // Insert the verifying key into the temporary process.
                     let imported_function = IdentifierNative::from_str(
