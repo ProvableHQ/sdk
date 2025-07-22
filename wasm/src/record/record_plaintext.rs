@@ -20,13 +20,16 @@ use crate::{
     GraphKey,
     Plaintext,
     PrivateKey,
+    ViewKey,
     js_array_from_fields,
     record_to_js_object,
     to_bits_array_le,
     types::{
         Field,
+        Group,
         native::{
             CurrentNetwork,
+            FieldNative,
             IdentifierNative,
             PlaintextEntryNative,
             PlaintextNative,
@@ -52,7 +55,7 @@ pub struct RecordPlaintext(RecordPlaintextNative);
 
 #[wasm_bindgen]
 impl RecordPlaintext {
-    pub fn commitment(&self, program_id: &str, record_name: &str) -> Result<Field, String> {
+    pub fn commitment(&self, program_id: &str, record_name: &str, record_view_key: &str) -> Result<Field, String> {
         Ok(Field::from(
             self.0
                 .to_commitment(
@@ -60,6 +63,8 @@ impl RecordPlaintext {
                         .map_err(|_| format!("{program_id} is an invalid program name"))?,
                     &IdentifierNative::from_str(record_name)
                         .map_err(|_| format!("{record_name} is an invalid identifier"))?,
+                    &FieldNative::from_str(record_view_key)
+                        .map_err(|_| format!("record view key must be a valid field element {record_view_key} is not a valid field element."))?
                 )
                 .map_err(|e| e.to_string())?,
         ))
@@ -227,6 +232,7 @@ impl RecordPlaintext {
     /// @param {PrivateKey} private_key Private key of the account that owns the record
     /// @param {string} program_id Program ID of the program that the record is associated with
     /// @param {string} record_name Name of the record
+    /// @param {string} record_view_key The string representation of the record view key.
     ///
     /// @returns {string} Serial number of the record
     #[wasm_bindgen(js_name = serialNumberString)]
@@ -235,8 +241,9 @@ impl RecordPlaintext {
         private_key: &PrivateKey,
         program_id: &str,
         record_name: &str,
+        record_view_key: &str,
     ) -> Result<String, String> {
-        let commitment = self.commitment(program_id, record_name)?;
+        let commitment = self.commitment(program_id, record_name, record_view_key)?;
 
         let serial_number = RecordPlaintextNative::serial_number(private_key.into(), commitment.into())
             .map_err(|_| "Serial number derivation failed".to_string())?;
@@ -246,6 +253,17 @@ impl RecordPlaintext {
     /// Get the tag of the record using the graph key.
     pub fn tag(&self, graph_key: &GraphKey, commitment: Field) -> Result<Field, String> {
         RecordPlaintextNative::tag(*graph_key.sk_tag(), *commitment).map_err(|e| e.to_string()).map(Field::from)
+    }
+
+    /// Generate the record view key. The record view key can only decrypt record if the
+    /// supplied view key belongs to the record owner.
+    ///
+    /// @param {ViewKey} view_key View key used to generate the record view key
+    ///
+    /// @returns {Group} record view key
+    #[wasm_bindgen(js_name = "recordViewKey")]
+    pub fn record_view_key(&self, view_key: &ViewKey) -> Field {
+        Group::from_string(&self.nonce()).unwrap().scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
     }
 }
 
@@ -298,7 +316,8 @@ mod tests {
     const CREDITS_RECORD: &str = r"{
   owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
   microcredits: 1500000000000000u64.private,
-  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,
+  _version: 0u8.public
 }";
 
     const BATTLESHIP_RECORD: &str = r"{
@@ -312,7 +331,8 @@ mod tests {
   positions: 50794271u64.private,
   attempts: 0u64.private,
   hits: 0u64.private,
-  _nonce: 5668100912391182624073500093436664635767788874314097667746354181784048204413group.public
+  _nonce: 5668100912391182624073500093436664635767788874314097667746354181784048204413group.public,
+  _version: 0u8.public
 }";
 
     #[wasm_bindgen_test]
@@ -354,41 +374,55 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_serial_number() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
+        let vk = ViewKey::from_private_key(&pk);
         let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         let program_id = "credits.aleo";
         let record_name = "credits";
         let expected_sn = "8170619507075647151199239049653235187042661744691458644751012032123701508940field";
-        let result = record.serial_number_string(&pk, program_id, record_name);
+        let record_view_key = record.record_view_key(&vk);
+        let result = record.serial_number_string(&pk, program_id, record_name, &record_view_key.to_string());
         assert_eq!(expected_sn, result.unwrap());
     }
 
     #[wasm_bindgen_test]
     fn test_serial_number_can_run_twice_with_same_private_key() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
+        let vk = ViewKey::from_private_key(&pk);
         let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         let program_id = "credits.aleo";
         let record_name = "credits";
         let expected_sn = "8170619507075647151199239049653235187042661744691458644751012032123701508940field";
-        assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name).unwrap());
-        assert_eq!(expected_sn, record.serial_number_string(&pk, program_id, record_name).unwrap());
+        let record_view_key = record.record_view_key(&vk);
+        assert_eq!(
+            expected_sn,
+            record.serial_number_string(&pk, program_id, record_name, &record_view_key.to_string()).unwrap()
+        );
+        assert_eq!(
+            expected_sn,
+            record.serial_number_string(&pk, program_id, record_name, &record_view_key.to_string()).unwrap()
+        );
     }
 
     #[wasm_bindgen_test]
     fn test_serial_number_invalid_program_id_returns_err_string() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
+        let vk = ViewKey::from_private_key(&pk);
         let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         let program_id = "not a real program id";
         let record_name = "token";
-        assert!(record.serial_number_string(&pk, program_id, record_name).is_err());
+        let record_view_key = record.record_view_key(&vk);
+        assert!(record.serial_number_string(&pk, program_id, record_name, &record_view_key.to_string()).is_err());
     }
 
     #[wasm_bindgen_test]
     fn test_serial_number_invalid_record_name_returns_err_string() {
         let pk = PrivateKey::from_string("APrivateKey1zkpDeRpuKmEtLNPdv57aFruPepeH1aGvTkEjBo8bqTzNUhE").unwrap();
+        let vk = ViewKey::from_private_key(&pk);
         let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         let program_id = "token.aleo";
         let record_name = "not a real record name";
-        assert!(record.serial_number_string(&pk, program_id, record_name).is_err());
+        let record_view_key = record.record_view_key(&vk);
+        assert!(record.serial_number_string(&pk, program_id, record_name, &record_view_key.to_string()).is_err());
     }
 
     #[wasm_bindgen_test]

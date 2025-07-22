@@ -38,7 +38,8 @@ macro_rules! authorize {
         $program_string:expr,
         $function_id_string:expr,
         $private_key:expr,
-        $rng:expr
+        $rng:expr,
+        $unchecked:expr
     ) => {{
         log("Loading program");
         let program =
@@ -53,13 +54,20 @@ macro_rules! authorize {
             if !$process.contains_program(program.id()) {
                 log("Adding program to the process");
                 $process.add_program(&program).map_err(|e| e.to_string())?;
+                $process.add_program(&program).map_err(|e| e.to_string())?;
             }
         }
 
         log(&format!("Creating authorization for {program_id}:{function_name}"));
-        $process
-            .authorize::<CurrentAleo, _>($private_key, program.id(), function_name, $inputs.iter(), $rng)
-            .map_err(|err| err.to_string())?
+        if $unchecked {
+            $process
+                .authorize_unchecked::<CurrentAleo, _>($private_key, program.id(), function_name, $inputs.iter(), $rng)
+                .map_err(|err| err.to_string())?
+        } else {
+            $process
+                .authorize::<CurrentAleo, _>($private_key, program.id(), function_name, $inputs.iter(), $rng)
+                .map_err(|err| err.to_string())?
+        }
     }};
 }
 
@@ -130,6 +138,7 @@ macro_rules! execute_program {
         if program_id != "credits.aleo" {
             if !$process.contains_program(program.id()) {
                 log("Adding program to the process");
+                $process.add_program(&program).map_err(|e| e.to_string())?;
                 $process.add_program(&program).map_err(|e| e.to_string())?;
             }
         }
@@ -232,15 +241,15 @@ macro_rules! execute_fee {
 
         log("Preparing inclusion proofs for fee execution");
         if let Some(offline_query) = $offline_query.as_ref() {
-            trace.prepare_async(offline_query.clone()).await.map_err(|err| err.to_string())?;
+            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
         } else {
             let query = QueryNative::from($submission_url);
-            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
         };
-        let fee = trace.prove_fee::<CurrentAleo, _>(VarunaVersion::V2, &mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
+        let fee = trace.prove_fee::<CurrentAleo, _>(::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, &mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");
-        $process.verify_fee(VarunaVersion::V2,&fee, $deployment_or_execution_id).map_err(|e| e.to_string())?;
+        $process.verify_fee(::snarkvm_console::prelude::ConsensusVersion::V8, ::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, ::snarkvm_synthesizer::prelude::InclusionVersion::V1, &fee, $deployment_or_execution_id).map_err(|e| e.to_string())?;
 
         fee
     }}

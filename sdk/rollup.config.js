@@ -12,7 +12,6 @@ export default networks.map((network) => {
         input: {
             "node-polyfill": "./src/node-polyfill.ts",
             "browser": "./src/browser.ts",
-            "worker": "./src/worker.ts",
             "node": "./src/node.ts",
         },
         output: {

@@ -597,6 +597,11 @@ function add_and_double:
                 "key_type": "address",
                 "value_type": "address",
             },
+            object! {
+                "name":"pool",
+                "key_type":"address",
+                "value_type":"u64",
+            }
         ];
 
         // Assert that the mappings are equal

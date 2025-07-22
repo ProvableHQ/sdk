@@ -393,6 +393,226 @@ __*return*__ | [Field](sdk-src_wasm.md) | *The execution ID for the Authorizatio
 
 ---
 
+# Class `Boolean`
+
+Boolean element.
+
+## Constructors
+
+
+### `Boolean(value)`
+
+Creates a Boolean from a native JS bool.
+
+Parameters | Type | Description
+--- | --- | ---
+__value__ | `boolean` | **
+
+---
+
+## Methods
+
+### `fromString(boolean) ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a boolean object from a string representation (&quot;true&quot;/&quot;false&quot;).
+
+Parameters | Type | Description
+--- | --- | ---
+__boolean__ | `string` | **
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the boolean element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
+
+---
+
+### `fromBytesLe(bytes) ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Create a boolean element from a Uint8Array of left endian bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | **
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Encode the boolean element as a Uint8Array of left endian bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBitsLe(bits) ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Reconstruct a boolean element from a boolean array representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__bits__ | `Array.<any>` | **
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the boolean element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `toPlaintext() ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Create a plaintext from the boolean element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Plaintext](sdk-src_wasm.md) | **
+
+---
+
+### `clone() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Clone the boolean element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `random() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Generate a random boolean element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `not() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Logical NOT.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `and(other) ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Logical AND.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Boolean](sdk-src_wasm.md) | **
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `or(other) ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Logical OR.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Boolean](sdk-src_wasm.md) | **
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `xor(other) ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Logical XOR.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Boolean](sdk-src_wasm.md) | **
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `nand(other) ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Logical NAND.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Boolean](sdk-src_wasm.md) | **
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `nor(other) ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Logical NOR.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Boolean](sdk-src_wasm.md) | **
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `equals(other) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check if one boolean element equals another.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Boolean](sdk-src_wasm.md) | **
+__*return*__ | `boolean` | **
+
+---
+
 # Class `Ciphertext`
 
 SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
@@ -2424,6 +2644,126 @@ __*return*__ | `string` | *String representation of the proving key*
 
 ---
 
+# Class `ProvingRequest`
+
+Represents a proving request to a prover.
+
+## Methods
+
+### `new(authorization, fee_authorization, broadcast) ► ProvingRequest`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a new ProvingRequest from a function Authorization and an optional fee Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__authorization__ | [Authorization](sdk-src_wasm.md) | *An Authorization for a function.*
+__fee_authorization__ | [Authorization](sdk-src_wasm.md) | *The authorization for the &#x60;credits.aleo/fee_public&#x60; or &#x60;credits.aleo/fee_private&#x60; function that pays the fee for the execution of the main function.*
+__broadcast__ | `boolean` | *Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller&#x27;s behalf.*
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
+### `fromString(request) ► ProvingRequest`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a ProvingRequest from a string representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__request__ | `Uint8Array` | *String representation of the ProvingRequest.*
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Creates a string representation of the ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
+
+---
+
+### `fromBytesLe(bytes) ► ProvingRequest`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a ProvingRequest from a left-endian byte representation of the ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *Left-endian bytes representing the proving request.*
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Creates a left-endian byte representation of the ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `authorization() ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the Authorization of the main function in the ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `feeAuthorization() ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the fee Authorization in the ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `broadcast() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the broadcast flag set in the ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `equals(other) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check if a ProvingRequest is the same as another ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [ProvingRequest](sdk-src_wasm.md) | **
+__*return*__ | `boolean` | **
+
+---
+
 # Class `RecordCiphertext`
 
 Encrypted Aleo record
@@ -2776,7 +3116,7 @@ __*return*__ | `string` | *Nonce of the record*
 
 ---
 
-### `serialNumberString(private_key, program_id, record_name) ► string`
+### `serialNumberString(private_key, program_id, record_name, record_view_key) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -2787,6 +3127,7 @@ Parameters | Type | Description
 __private_key__ | [PrivateKey](sdk-src_wasm.md) | *Private key of the account that owns the record*
 __program_id__ | `string` | *Program ID of the program that the record is associated with*
 __record_name__ | `string` | *Name of the record*
+__record_view_key__ | `string` | *The string representation of the record view key.*
 __*return*__ | `string` | *Serial number of the record*
 
 ---
@@ -2802,6 +3143,20 @@ Parameters | Type | Description
 __graph_key__ | `GraphKey` | **
 __commitment__ | [Field](sdk-src_wasm.md) | **
 __*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `recordViewKey(view_key) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Generate the record view key. The record view key can only decrypt record if the
+supplied view key belongs to the record owner.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key used to generate the record view key*
+__*return*__ | [Group](sdk-src_wasm.md) | *record view key*
 
 ---
 

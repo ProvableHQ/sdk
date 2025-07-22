@@ -373,12 +373,14 @@ class AleoNetworkClient {
                                                             }
 
                                                             if (unspent) {
+                                                                const recordViewKey = recordPlaintext.recordViewKey(viewKey).toString();
                                                                 // Otherwise record the nonce that has been found
                                                                 const serialNumber =
                                                                     recordPlaintext.serialNumberString(
                                                                         resolvedPrivateKey,
                                                                         "credits.aleo",
                                                                         "credits",
+                                                                        recordViewKey
                                                                     );
                                                                 // Attempt to see if the serial number is spent
                                                                 try {

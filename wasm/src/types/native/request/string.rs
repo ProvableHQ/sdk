@@ -14,10 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-pub use snarkvm_circuit_network::AleoV0 as CurrentAleo;
+use crate::types::native::ProvingRequestNative;
 
-pub use snarkvm_console::network::MainnetV0 as CurrentNetwork;
+use std::{
+    fmt,
+    fmt::{Debug, Display, Formatter},
+    str::FromStr,
+};
 
-pub use snarkvm_parameters::mainnet as parameters;
+impl FromStr for ProvingRequestNative {
+    type Err = String;
 
-pub const BASE_URL: &'static str = "https://parameters.provable.com/mainnet/";
+    /// Initializes the request from a JSON-string.
+    fn from_str(request: &str) -> Result<Self, String> {
+        serde_json::from_str(request).map_err(|e| e.to_string())
+    }
+}
+
+impl Debug for ProvingRequestNative {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        Display::fmt(self, f)
+    }
+}
+
+impl Display for ProvingRequestNative {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}", serde_json::to_string(self).unwrap())
+    }
+}

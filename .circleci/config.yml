@@ -2,13 +2,13 @@ version: 2.1
 
 
 orbs:
-  node: circleci/node@7.0.0
+  node: circleci/node@7.1.0
 
 
 executors:
   rust-node:
     docker:
-      - image: cimg/rust:1.80-node
+      - image: cimg/rust:1.88-node
 
 
 commands:

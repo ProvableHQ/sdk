@@ -30,6 +30,7 @@ export {
     Program,
     ProgramManager,
     ProvingKey,
+    ProvingRequest,
     RecordCiphertext,
     RecordPlaintext,
     Scalar,

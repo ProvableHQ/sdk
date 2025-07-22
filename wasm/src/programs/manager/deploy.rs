@@ -34,7 +34,6 @@ use crate::{
         TransactionNative,
     },
 };
-use snarkvm_algorithms::snark::varuna::VarunaVersion;
 
 use js_sys::Object;
 use rand::{SeedableRng, rngs::StdRng};

@@ -75,7 +75,7 @@ impl ExecutionResponse {
     ) -> Result<(), String> {
         let proving_key = process
             .get_proving_key(program_id, function_id)
-            .map_err(|_| format!("Could not find proving key for {}/{}", program_id, function_id))?;
+            .map_err(|_| format!("Could not find proving key for {program_id}/{function_id}"))?;
         self.proving_key = Some(proving_key);
         Ok(())
     }

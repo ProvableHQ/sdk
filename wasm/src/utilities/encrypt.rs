@@ -28,6 +28,7 @@ use crate::{
         PlaintextEntryNative,
         PlaintextNative,
         RecordPlaintextNative,
+        U8Native,
     },
 };
 use snarkvm_console::prelude::{FromFields, Itertools, Network, Visibility};
@@ -130,15 +131,24 @@ impl EncryptionToolkit {
             };
             // Insert the decrypted entry.
             if decrypted_data.insert(*id, entry).is_some() {
-                return Err(format!("Duplicate identifier in record: {}", id));
+                return Err(format!("Duplicate identifier in record: {id}"));
             }
             // Increment the index.
             index += num_randomizers;
         }
 
         // Return the decrypted record.
-        let decrypted_record = RecordPlaintextNative::from_plaintext(owner, decrypted_data, *record_native.nonce())
-            .map_err(|e| e.to_string())?;
+        let decrypted_record = if let Ok(record) = RecordPlaintextNative::from_plaintext(
+            owner.clone(),
+            decrypted_data.clone(),
+            *record_native.nonce(),
+            U8Native::new(0u8),
+        ) {
+            record
+        } else {
+            RecordPlaintextNative::from_plaintext(owner, decrypted_data, *record_native.nonce(), U8Native::new(1u8))
+                .map_err(|e| e.to_string())?
+        };
 
         Ok(RecordPlaintext::from(decrypted_record))
     }
@@ -214,11 +224,11 @@ mod tests {
     const OWNER_PLAINTEXT: &str = r"{
   owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
   microcredits: 1500000000000000u64.private,
-  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,
+  _version: 0u8.public
 }";
     const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
     const RECORD_VIEW_KEY: &str = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
-    const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
     const TRANSITION_PUBLIC_KEY: &str =
         "7532444547840484531569841377269810017844130178606467837628364672670182422388group";
     const TRANSITION_VIEW_KEY: &str =
