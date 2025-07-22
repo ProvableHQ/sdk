@@ -323,8 +323,8 @@ describe("NodeConnection", () => {
                     ? testnetAcceptedTx
                     : mainnetAcceptedTx
                 : isTestnet
-                  ? testnetRejectedTx
-                  : mainnetRejectedTx;
+                    ? testnetRejectedTx
+                    : mainnetRejectedTx;
         }
 
         it("should return confirmed transaction data for an accepted tx ID", async () => {
