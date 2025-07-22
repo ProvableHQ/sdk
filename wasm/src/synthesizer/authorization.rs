@@ -147,7 +147,7 @@ impl Authorization {
     /// @returns {Field} The execution ID for the Authorization, call toString() after this result to get the string representation.
     #[wasm_bindgen(js_name = toExecutionId)]
     pub fn to_execution_id(&self) -> Result<Field, String> {
-        let id = self.0.to_execution_id().map_err(|e| format!("{:?}", e))?;
+        let id = self.0.to_execution_id().map_err(|e| format!("{e:?}"))?;
         Ok(Field::from(id))
     }
 }

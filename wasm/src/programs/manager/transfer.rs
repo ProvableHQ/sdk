@@ -185,7 +185,7 @@ impl ProgramManager {
         }
 
         log("Proving the transfer execution");
-        let locator = format!("credits.aleo/{}", transfer_type);
+        let locator = format!("credits.aleo/{transfer_type}");
         let execution =
             trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;

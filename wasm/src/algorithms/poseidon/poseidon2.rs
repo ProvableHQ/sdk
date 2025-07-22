@@ -41,7 +41,7 @@ impl Poseidon2 {
     pub fn setup(domain_separator: &str) -> Result<Self, String> {
         Poseidon2Native::setup(domain_separator)
             .map(Self)
-            .map_err(|e| format!("Failed to set up BHP1024 with domain separator {}: {}", domain_separator, e))
+            .map_err(|e| format!("Failed to set up BHP1024 with domain separator {domain_separator}: {e}"))
     }
 
     /// Returns the Poseidon hash with an input rate of 2.
