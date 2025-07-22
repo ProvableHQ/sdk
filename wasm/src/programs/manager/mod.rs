@@ -24,7 +24,6 @@ mod transfer;
 
 const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
 
-use std::panic::{catch_unwind, AssertUnwindSafe};
 use crate::{
     KeyPair,
     PrivateKey,
@@ -42,10 +41,10 @@ use crate::{
         VerifyingKeyNative,
     },
 };
-use snarkvm_console::network::Network;
-use snarkvm_console::prelude::ToBytes;
+use snarkvm_console::{network::Network, prelude::ToBytes};
 use snarkvm_synthesizer::process::{cost_in_microcredits_v2, deployment_cost};
 use snarkvm_synthesizer_program::StackTrait;
+use std::panic::{AssertUnwindSafe, catch_unwind};
 
 use js_sys::{Object, Reflect};
 use std::str::FromStr;
@@ -93,9 +92,7 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = "loadInclusionProver")]
     pub fn load_inclusion_prover(proving_key: ProvingKey) {
         let result = catch_unwind(AssertUnwindSafe(|| {
-            let bytes = ProvingKeyNative::from(proving_key)
-                .to_bytes_le()
-                .expect("failed to convert to bytes");
+            let bytes = ProvingKeyNative::from(proving_key).to_bytes_le().expect("failed to convert to bytes");
             <CurrentNetwork as Network>::inclusion_proving_key(Some(bytes));
         }));
 
@@ -181,10 +178,10 @@ impl ProgramManager {
 mod tests {
     use super::*;
 
+    use crate::Metadata;
     use js_sys::{Object, Reflect};
     use wasm_bindgen::JsValue;
     use wasm_bindgen_test::*;
-    use crate::Metadata;
 
     pub const MULTIPLY_PROGRAM: &str = r#"// The 'multiply_test.aleo' program which is imported by the 'double_test.aleo' program.
 program multiply_test.aleo;
@@ -252,7 +249,7 @@ function add_and_double:
         assert!(process.contains_program(multiply_program.id()));
         assert!(process.contains_program(double_program.id()));
     }
-    
+
     #[wasm_bindgen_test]
     async fn test_load_inclusion_prover() {
         let inclusion_prover_url = Metadata::inclusion().prover;
