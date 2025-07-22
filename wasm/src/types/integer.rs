@@ -27,7 +27,7 @@ use snarkvm_console::prelude::{
     FromBytes, ToBytes, FromBits, ToBits,
     AbsChecked, AbsWrapped,
     AddWrapped, SubWrapped, MulWrapped, DivWrapped,
-    RemWrapped, Pow, Rem, FromField,
+    RemWrapped, Pow, Rem, FromField, FromFields,
 };
 
 
@@ -160,22 +160,22 @@ macro_rules! impl_integer {
                     .map_err(|e| e.to_string())
             }
 
-            // /// Convert from Fields.
-            // #[wasm_bindgen(js_name = "fromFields")]
-            // pub fn from_fields(fields: js_sys::Array) -> Result<$name, String> {
-            //     // Collect JsValue → Field
-            //     let rust_fields: Result<Vec<_>, _> = fields.iter().map(|jsv| {
+            /// Convert from Fields.
+            #[wasm_bindgen(js_name = "fromFields")]
+            pub fn from_fields(fields: js_sys::Array) -> Result<$name, String> {
+                // Collect JsValue → Field
+            let rust_fields: Result<Vec<_>, String> = fields.iter().map(|jsv| {
+                let field_str = jsv.as_string().ok_or("Expected string for Field")?;
+                let field: FieldNative = FieldNative::from_str(&field_str).map_err(|e| e.to_string())?;
+                Ok(field)
+            }).collect();
 
-            //         let field_str = jsv.as_string().ok_or("Expected string for Field")?;
-            //         let field = FieldNative::from_str(&field_str).map_err(|e| e.to_string())?;
-            //         Ok(field)
-            //     }).collect();
 
-            //     let rust_fields = rust_fields?;
-            //     <$native>::from_fields(&rust_fields)
-            //         .map(Self)
-            //         .map_err(|e| e.to_string())
-            // }
+                let rust_fields = rust_fields?;
+                <$native>::from_fields(&rust_fields)
+                    .map(Self)
+                    .map_err(|e| e.to_string())
+            }
 
             /// Clone.
             pub fn clone(&self) -> $name {
