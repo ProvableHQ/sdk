@@ -117,10 +117,39 @@ describe('Field and Group Arithmetic Tests', () => {
             const prod = i8.mulWrapped(i8);
             const quot = i8.divWrapped(i8);
 
+            expect(I8.fromString("0i8").neg().toString()).equal("0i8");
+            expect(I8.fromString("-42i8").neg().toString()).equal("42i8");
+            
             expect(sum.toString()).equals("84i8");
             expect(diff.toString()).equals("0i8");
             expect(prod.toString()).equals("1764i8");
             expect(quot.toString()).equals("1i8");
+
+            const int = I8.fromString("42i8");
+            const plaintext = int.toPlaintext();
+            expect(plaintext.toString()).equal("42i8");
+
+
+            const original = I8.fromString("12i8");
+            const scalar = original.toScalar();
+            const field = scalar.toField();
+            const recreated = I8.fromField(field);
+            expect(recreated.toString()).equal("12i8");
+
+            const f = Field.fromString("12field");
+            const arr = new Array();
+            arr.push(f.toString());
+            const i16 = I16.fromFields(arr);
+            expect(i16.toString()).equal("12i16");
+
+            const a = I8.fromString("7i8");
+            const b = I8.fromString("3i8");
+
+            expect(a.rem(b).toString()).equal("1i8");
+            expect(a.remWrapped(b).toString()).equal("1i8");
+
+            const base = I8.fromString("2i8");
+            expect(base.powU8(U8.fromString("3u8")).toString()).equal("8i8");
         });
 
         it('Check scalar field arithmetic', () => {

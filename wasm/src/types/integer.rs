@@ -163,7 +163,7 @@ macro_rules! impl_integer {
             /// Convert to plaintext.
             #[wasm_bindgen(js_name = "toPlaintext")]
             pub fn to_plaintext(&self) -> Plaintext {
-                Plaintext::from(PlaintextNative::Literal(LiteralNative::Integer(self.0), OnceCell::new()))
+                Plaintext::from(PlaintextNative::Literal(LiteralNative::$name(self.0), OnceCell::new()))
             }
 
             /// Convert from Field.
