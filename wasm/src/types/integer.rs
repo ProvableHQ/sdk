@@ -17,6 +17,7 @@
 use crate::{from_js_typed_array, to_bits_array_le, types::native::*};
 // use crate::types::{U8, U16, U32};
 use js_sys::{Array, Uint8Array};
+use once_cell::sync::OnceCell;
 use snarkvm_console::prelude::{
     AbsChecked,
     AbsWrapped,
@@ -34,6 +35,7 @@ use snarkvm_console::prelude::{
     ToBits,
     ToBytes,
 };
+use crate::Plaintext;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -156,6 +158,12 @@ macro_rules! impl_integer {
             #[wasm_bindgen(js_name = "toScalar")]
             pub fn to_scalar(&self) -> crate::Scalar {
                 self.0.to_scalar().into()
+            }
+
+            /// Convert to plaintext.
+            #[wasm_bindgen(js_name = "toPlaintext")]
+            pub fn to_plaintext(&self) -> Plaintext {
+                Plaintext::from(PlaintextNative::Literal(LiteralNative::Integer(self.0), OnceCell::new()))
             }
 
             /// Convert from Field.
