@@ -155,7 +155,7 @@ macro_rules! impl_integer {
             /// Convert to Scalar.
             #[wasm_bindgen(js_name = "toScalar")]
             pub fn to_scalar(&self) -> crate::Scalar {
-                crate::Scalar::from_native(self.0.to_scalar())
+                self.0.to_scalar().into()
             }
 
             /// Convert from Field.
