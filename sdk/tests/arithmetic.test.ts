@@ -117,10 +117,10 @@ describe('Field and Group Arithmetic Tests', () => {
             const prod = i8.mulWrapped(i8);
             const quot = i8.divWrapped(i8);
 
-            expect(sum).to.not.be.undefined;
-            expect(diff).to.not.be.undefined;
-            expect(prod).to.not.be.undefined;
-            expect(quot).to.not.be.undefined;
+            expect(sum.toString()).equals("84i8");
+            expect(diff.toString()).equals("0i8");
+            expect(prod.toString()).equals("1764i8");
+            expect(quot.toString()).equals("1i8");
         });
 
         it('Check scalar field arithmetic', () => {

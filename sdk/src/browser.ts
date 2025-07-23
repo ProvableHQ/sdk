@@ -101,7 +101,7 @@ export {
     U16,
     U32,
     U64,
-    U128
+    U128,
     VerifyingKey,
     ViewKey,
     initThreadPool,
