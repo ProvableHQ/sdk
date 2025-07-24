@@ -142,6 +142,18 @@ macro_rules! impl_integer {
                 Self(self.0.pow(&exponent.0))
             }
 
+            /// Negates the integer (e.g., 5 → -5).
+            #[wasm_bindgen(js_name = "neg")]
+            pub fn neg(&self) -> $name {
+                Self(-self.0)
+            }
+
+            /// Checks equality with another integer.
+            #[wasm_bindgen(js_name = "equals")]
+            pub fn equals(&self, other: &$name) -> bool {
+                self.0 == other.0
+            }
+
             /// Remainder.
             #[wasm_bindgen(js_name = "rem")]
             pub fn rem(&self, other: &$name) -> $name {

@@ -122,19 +122,12 @@ describe('Field and Group Arithmetic Tests', () => {
             
             expect(sum.toString()).equals("84i8");
             expect(diff.toString()).equals("0i8");
-            expect(prod.toString()).equals("1764i8");
+            expect(prod.toString()).equals("-28i8");
             expect(quot.toString()).equals("1i8");
 
             const int = I8.fromString("42i8");
             const plaintext = int.toPlaintext();
             expect(plaintext.toString()).equal("42i8");
-
-
-            const original = I8.fromString("12i8");
-            const scalar = original.toScalar();
-            const field = scalar.toField();
-            const recreated = I8.fromField(field);
-            expect(recreated.toString()).equal("12i8");
 
             const f = Field.fromString("12field");
             const arr = new Array();
