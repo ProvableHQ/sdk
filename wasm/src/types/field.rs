@@ -90,12 +90,6 @@ impl Field {
         Field(self.0)
     }
 
-    /// Returns a reference to the inner native Field representation.
-    /// Useful when calling Rust functions that operate on FieldNative directly.
-    pub(crate) fn as_native(&self) -> &FieldNative {
-        &self.0
-    }
-
     /// Generate a random field element.
     pub fn random() -> Field {
         let rng = &mut rand::thread_rng();
