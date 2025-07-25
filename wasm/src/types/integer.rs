@@ -16,6 +16,7 @@
 
 use crate::{from_js_typed_array, to_bits_array_le, types::native::*};
 // use crate::types::{U8, U16, U32};
+use crate::Plaintext;
 use js_sys::{Array, Uint8Array};
 use once_cell::sync::OnceCell;
 use snarkvm_console::prelude::{
@@ -35,7 +36,6 @@ use snarkvm_console::prelude::{
     ToBits,
     ToBytes,
 };
-use crate::Plaintext;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
 
@@ -181,9 +181,7 @@ macro_rules! impl_integer {
             /// Convert from Field.
             #[wasm_bindgen(js_name = "fromField")]
             pub fn from_field(field: &crate::Field) -> Result<$name, String> {
-                <$native>::from_field(&FieldNative::from(field))
-                    .map(Self)
-                    .map_err(|e| e.to_string())
+                <$native>::from_field(&FieldNative::from(field)).map(Self).map_err(|e| e.to_string())
             }
 
             /// Convert from Fields.
