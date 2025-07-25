@@ -98,7 +98,6 @@ describe('Field and Group Arithmetic Tests', () => {
 
         it('Check integer serialization and arithmetic', () => {
             const i8 = I8.fromString("42i8");
-            const i8Neg = i8.absChecked().neg();
             const i8Clone = i8.clone();
 
             expect(i8.toString()).equals("42i8");
@@ -143,6 +142,8 @@ describe('Field and Group Arithmetic Tests', () => {
 
             const base = I8.fromString("2i8");
             expect(base.powU8(U8.fromString("3u8")).toString()).equal("8i8");
+            expect(base.powU16(U16.fromString("3u16")).toString()).equal("8i8");
+            expect(base.powU32(U32.fromString("3u32")).toString()).equal("8i8");
         });
 
         it('Check scalar field arithmetic', () => {
