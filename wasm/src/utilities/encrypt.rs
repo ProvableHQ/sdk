@@ -318,4 +318,21 @@ mod tests {
         let result = EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, &owner_ciphertext);
         assert!(result.is_err(), "Decryption should fail with a non-owner's view key");
     }
+
+    #[wasm_bindgen_test]
+    fn test_bulk_record_decryption() {
+        let owned_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
+        //Need to add these two non-owned ciphertexts for testing
+        let nonowned_ciphertext_1 = Recordciphertext::from_str(NON_OWNED_CIPHERTEXT_1).unwrap();
+        let nonowned_ciphertext_2 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_2).unwrap();
+
+        let records: Vec<RecordCiphertext> = vec![owned_ciphertext, nonowned_ciphertext_1, nonowned_ciphertext_2];
+        let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
+
+        // Decrypt the owned records
+        let decrypted_records = EncryptionToolkit::decrypt_owned_records(&owner_view_key, records).unwrap();
+        // Verify that only the owned record was decrypted
+        assert_eq!(decrypted_records.len(), 1, "Only one record should be decrypted");
+        assert_eq!(decrypted_records[0].to_string(), OWNER_PLAINTEXT, "Decrypted record should match the owner's plaintext");
+    }
 }
