@@ -11,6 +11,13 @@ import {
     recordPlaintextString,
     beaconPrivateKeyString
 } from "./data/account-data.js";
+import {
+    RECORD_CIPHERTEXT_STRING,
+    RECORD_CIPHERTEXT_STRING_COPY,
+    RECORD_CIPHERTEXT_STRING_NOT_OWNED,
+    RECORD_CIPHERTEXT_STRING_NOT_OWNED2,
+    RECORD_PLAINTEXT_STRING,
+} from "./data/records.js";
 
 
 describe('WASM Objects', () => {
@@ -440,28 +447,18 @@ describe('WASM Objects', () => {
     }
 });
 
-
     describe('EncryptionToolkit', () => {
-        const recordCiphertextString = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
-        const recordCiphertextStringCopy = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
-        const recordCiphertextStringNotOwned = "RECORD1QVQSQ5H8YT5682E73ZT7PYNJGPL29MWTSETRVS9VHCKFHJRNX9RX94CFQYXX66TRWFHKXUN9V35HGUERQQPQZQZ6KMY7S5HPKKF02L6R46QM8RQCW9X0K4RQ6GT234AMJ2UG3LMTQT5NY4UG8SXJY3U8D05K4Q3E9F54VX67ZMD3G6JYQQ7KXRWS0R0SWM6P833";
-        const recordCiphertextStringNotOwned2 = "RECORD1QVQSP37HJE4CEU8EFZE8XMAHE5TDTXCZ0K534WQPKVN6C9R629X3C4Q8QYRXZMT0W4H8GGCQQGQSPVUJYCN0K7HYFHENXA40HXTFSX68092WMVJ4E3XSEXR2DY0FMCCXT0DS42W5MAASZFJV930QVQRKATQJ900AKU4K777UMH2K54ZHLUGQC2AFJD";
-        const recordCiphertext = RecordCiphertext.fromString(recordCiphertextString);
-        const recordCiphertextNotOwned = RecordCiphertext.fromString(recordCiphertextStringNotOwned);
-        const recordCiphertextNotOwned2 = RecordCiphertext.fromString(recordCiphertextStringNotOwned2);
+        const recordCiphertext = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING);
+        const recordCiphertextNotOwned = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED);
+        const recordCiphertextNotOwned2 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED2);
         const recordCiphertextArray = [recordCiphertext, recordCiphertextNotOwned, recordCiphertextNotOwned2];
         // Create copies of the record ciphertexts
-        const recordCiphertextCopy1 = RecordCiphertext.fromString(recordCiphertextString);
-        const recordCiphertextNotOwnedCopy1 = RecordCiphertext.fromString(recordCiphertextStringNotOwned);
-        const recordCiphertextNotOwned2Copy1 = RecordCiphertext.fromString(recordCiphertextStringNotOwned2);
+        const recordCiphertextCopy1 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_COPY);
+        const recordCiphertextNotOwnedCopy1 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED);
+        const recordCiphertextNotOwned2Copy1 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED2);
         const recordCiphertextArrayCopy = [recordCiphertextCopy1, recordCiphertextNotOwnedCopy1, recordCiphertextNotOwned2Copy1];
-        const recordPlaintextString = `{
-owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
-  microcredits: 1500000000000000u64.private,
-  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
-}`;
-        const recordPlaintext = RecordPlaintext.fromString(recordPlaintextString);
-        const recordPlaintextCopy = RecordPlaintext.fromString(recordPlaintextString);
+        const recordPlaintext = RecordPlaintext.fromString(RECORD_PLAINTEXT_STRING);
+        const recordPlaintextCopy = RecordPlaintext.fromString(RECORD_PLAINTEXT_STRING);
         const viewKeyString = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
         const viewKey = ViewKey.from_string(viewKeyString);
         const recordViewKeyString = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
@@ -484,13 +481,12 @@ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
         it('can check if a record ciphertext from an array of record ciphertexts is owned by a view key', () => {
             const ownedRecords = EncryptionToolkit.checkOwnedRecords(viewKey, recordCiphertextArray);
             // Ensure the record ciphertext is owned by the view key
-            expect(ownedRecords[0].toString()).equal(recordCiphertextStringCopy.toString());
+            expect(ownedRecords[0].toString()).equal(RECORD_CIPHERTEXT_STRING_COPY.toString());
         });
         it('can decrypt a record ciphertext from an array of record ciphertexts', () => {
             const decryptedRecords = EncryptionToolkit.decryptOwnedRecords(viewKey, recordCiphertextArrayCopy);
             // Ensure the decrypted record is the same as the plaintext
             expect(decryptedRecords[0].toString()).equal(recordPlaintextCopy.toString());
         });
-
     });
 });
