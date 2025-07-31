@@ -226,7 +226,7 @@ impl EncryptionToolkit {
         // Use Rayon to parallelize the decryption process and store successful decryptions.
         let decrypted_records: Vec<RecordPlaintext> = records
             .par_iter()
-            .filter_map(|record| match try_decrypt_single_record(view_key, record) {
+            .filter_map(|record| match Self::try_decrypt_single_record(view_key, record) {
                 Ok(plaintext) => Some(plaintext),
                 Err(_) => None,
             })
@@ -252,20 +252,33 @@ impl EncryptionToolkit {
 
         Ok(owned_records)
     }
+
+    // Private helper method within the impl block to decrypt
+    fn try_decrypt_single_record(view_key: &ViewKey, record: &RecordCiphertext) -> Result<RecordPlaintext, String> {
+        // Generate the record view key using the owner's view key
+        let record_vk = EncryptionToolkit::generate_record_view_key(view_key, record)
+            .map_err(|_| "Failed to generate record view key".to_string())?;
+
+        // Attempt to decrypt the record using the generated record view key
+        let decryption_attempt = EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, record)
+            .map_err(|_| "Failed to decrypt record".to_string())?;
+
+        Ok(decryption_attempt)
+    }
 }
 
-// Private helper method within the impl block to decrypt
-fn try_decrypt_single_record(view_key: &ViewKey, record: &RecordCiphertext) -> Result<RecordPlaintext, String> {
-    // Generate the record view key using the owner's view key
-    let record_vk = EncryptionToolkit::generate_record_view_key(view_key, record)
-        .map_err(|_| "Failed to generate record view key".to_string())?;
+// // Private helper method within the impl block to decrypt
+// fn try_decrypt_single_record(view_key: &ViewKey, record: &RecordCiphertext) -> Result<RecordPlaintext, String> {
+//     // Generate the record view key using the owner's view key
+//     let record_vk = EncryptionToolkit::generate_record_view_key(view_key, record)
+//         .map_err(|_| "Failed to generate record view key".to_string())?;
 
-    // Attempt to decrypt the record using the generated record view key
-    let decryption_attempt = EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, record)
-        .map_err(|_| "Failed to decrypt record".to_string())?;
+//     // Attempt to decrypt the record using the generated record view key
+//     let decryption_attempt = EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, record)
+//         .map_err(|_| "Failed to decrypt record".to_string())?;
 
-    Ok(decryption_attempt)
-}
+//     Ok(decryption_attempt)
+// }
 
 #[cfg(test)]
 mod tests {
