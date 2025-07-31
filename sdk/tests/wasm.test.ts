@@ -450,6 +450,11 @@ describe('WASM Objects', () => {
         const recordCiphertextNotOwned = RecordCiphertext.fromString(recordCiphertextStringNotOwned);
         const recordCiphertextNotOwned2 = RecordCiphertext.fromString(recordCiphertextStringNotOwned2);
         const recordCiphertextArray = [recordCiphertext, recordCiphertextNotOwned, recordCiphertextNotOwned2];
+        // Create copies of the record ciphertexts
+        const recordCiphertextCopy1 = RecordCiphertext.fromString(recordCiphertextString);
+        const recordCiphertextNotOwnedCopy1 = RecordCiphertext.fromString(recordCiphertextStringNotOwned);
+        const recordCiphertextNotOwned2Copy1 = RecordCiphertext.fromString(recordCiphertextStringNotOwned2);
+        const recordCiphertextArrayCopy = [recordCiphertextCopy1, recordCiphertextNotOwnedCopy1, recordCiphertextNotOwned2Copy1];
         const recordPlaintextString = `{
 owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
   microcredits: 1500000000000000u64.private,
@@ -482,7 +487,7 @@ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
             expect(ownedRecords[0].toString()).equal(recordCiphertextStringCopy.toString());
         });
         it('can decrypt a record ciphertext from an array of record ciphertexts', () => {
-            const decryptedRecords = EncryptionToolkit.decryptOwnedRecords(viewKey, recordCiphertextArray);
+            const decryptedRecords = EncryptionToolkit.decryptOwnedRecords(viewKey, recordCiphertextArrayCopy);
             // Ensure the decrypted record is the same as the plaintext
             expect(decryptedRecords[0].toString()).equal(recordPlaintextCopy.toString());
         });
