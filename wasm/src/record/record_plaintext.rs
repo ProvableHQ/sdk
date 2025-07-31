@@ -265,6 +265,15 @@ impl RecordPlaintext {
     pub fn record_view_key(&self, view_key: &ViewKey) -> Field {
         Group::from_string(&self.nonce()).unwrap().scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
     }
+
+    /// Clone the record plaintext.
+    ///
+    /// @returns {RecordPlaintext} A clone of the record plaintext.
+    /// Clone the field element.
+    #[allow(clippy::should_implement_trait)]
+    pub fn clone(&self) -> RecordPlaintext {
+        RecordPlaintext(self.0.clone())
+    }
 }
 
 impl Deref for RecordPlaintext {
@@ -339,6 +348,13 @@ mod tests {
     fn test_to_and_from_string() {
         let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
         assert_eq!(record.to_string(), CREDITS_RECORD);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_clone() {
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
+        let cloned_record = record.clone();
+        assert_eq!(record.to_string(), cloned_record.to_string());
     }
 
     #[wasm_bindgen_test]

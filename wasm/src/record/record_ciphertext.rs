@@ -156,6 +156,15 @@ impl RecordCiphertext {
     pub fn nonce(&self) -> Group {
         Group::from(self.0.nonce())
     }
+
+    /// Clone the record ciphertext.
+    ///
+    /// @returns {RecordCiphertext} A clone of the record ciphertext.
+    /// Clone the field element.
+    #[allow(clippy::should_implement_trait)]
+    pub fn clone(&self) -> RecordCiphertext {
+        RecordCiphertext(self.0.clone())
+    }
 }
 
 impl Deref for RecordCiphertext {
@@ -233,6 +242,13 @@ mod tests {
             Some("The record ciphertext string provided was invalid".to_string())
         );
         assert!(RecordCiphertext::from_string(invalid_bech32).is_err());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_clone() {
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
+        let cloned_record = record.clone();
+        assert_eq!(record.to_string(), cloned_record.to_string());
     }
 
     #[wasm_bindgen_test]
