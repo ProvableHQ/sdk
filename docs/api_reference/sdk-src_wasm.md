@@ -2926,6 +2926,19 @@ __*return*__ | [Group](sdk-src_wasm.md) | *The record nonce.*
 
 ---
 
+### `clone() ► RecordCiphertext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Clone the record ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *A clone of the record ciphertext.
+Clone the field element.*
+
+---
+
 # Class `RecordPlaintext`
 
 Plaintext representation of an Aleo record
@@ -3157,6 +3170,19 @@ Parameters | Type | Description
 --- | --- | ---
 __view_key__ | `ViewKey` | *View key used to generate the record view key*
 __*return*__ | [Group](sdk-src_wasm.md) | *record view key*
+
+---
+
+### `clone() ► RecordPlaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Clone the record plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *A clone of the record plaintext.
+Clone the field element.*
 
 ---
 
