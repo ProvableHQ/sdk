@@ -226,11 +226,9 @@ impl EncryptionToolkit {
         // Use Rayon to parallelize the decryption process and store successful decryptions.
         let decrypted_records: Vec<RecordPlaintext> = records
             .par_iter()
-            .filter_map(|record| {
-                match try_decrypt_single_record(view_key, record) {
-                    Ok(plaintext) => Some(plaintext),
-                    Err(_) => None,  // Could log the error here if needed
-                }
+            .filter_map(|record| match try_decrypt_single_record(view_key, record) {
+                Ok(plaintext) => Some(plaintext),
+                Err(_) => None,
             })
             .collect();
 
@@ -246,31 +244,26 @@ impl EncryptionToolkit {
     #[wasm_bindgen(js_name = "checkOwnedRecords")]
     pub fn check_owned_records(
         view_key: &ViewKey,
-        records: Vec<RecordCiphertext>
+        records: Vec<RecordCiphertext>,
     ) -> Result<Vec<RecordCiphertext>, String> {
         // Use Rayon to parallelize the ownership check.
-        let owned_records: Vec<RecordCiphertext> = records
-            .into_par_iter()  // into_par_iter() moves instead of borrowing
-            .filter(|record| record.is_owner(view_key))
-            .collect();
+        let owned_records: Vec<RecordCiphertext> =
+            records.into_par_iter().filter(|record| record.is_owner(view_key)).collect();
 
         Ok(owned_records)
     }
 }
 
-// Private helper method within the impl block to decrypt 
-fn try_decrypt_single_record(
-    view_key: &ViewKey,
-    record: &RecordCiphertext,
-) -> Result<RecordPlaintext, String> {
-    // Generate the record view key using the owner's view key    
+// Private helper method within the impl block to decrypt
+fn try_decrypt_single_record(view_key: &ViewKey, record: &RecordCiphertext) -> Result<RecordPlaintext, String> {
+    // Generate the record view key using the owner's view key
     let record_vk = EncryptionToolkit::generate_record_view_key(view_key, record)
         .map_err(|_| "Failed to generate record view key".to_string())?;
-    
+
     // Attempt to decrypt the record using the generated record view key
     let decryption_attempt = EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, record)
         .map_err(|_| "Failed to decrypt record".to_string())?;
-    
+
     Ok(decryption_attempt)
 }
 
@@ -363,7 +356,11 @@ mod tests {
         let decrypted_records = EncryptionToolkit::decrypt_owned_records(&owner_view_key, records).unwrap();
         // Verify that only the owned record was decrypted
         assert_eq!(decrypted_records.len(), 1, "Only one record should be decrypted");
-        assert_eq!(decrypted_records[0].to_string(), OWNER_PLAINTEXT, "Decrypted record should match the owner's plaintext");
+        assert_eq!(
+            decrypted_records[0].to_string(),
+            OWNER_PLAINTEXT,
+            "Decrypted record should match the owner's plaintext"
+        );
     }
 
     #[wasm_bindgen_test]
