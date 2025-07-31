@@ -452,13 +452,9 @@ describe('WASM Objects', () => {
         const recordCiphertextNotOwned = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED);
         const recordCiphertextNotOwned2 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED2);
         const recordCiphertextArray = [recordCiphertext, recordCiphertextNotOwned, recordCiphertextNotOwned2];
-        // Create copies of the record ciphertexts
-        const recordCiphertextCopy1 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_COPY);
-        const recordCiphertextNotOwnedCopy1 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED);
-        const recordCiphertextNotOwned2Copy1 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED2);
-        const recordCiphertextArrayCopy = [recordCiphertextCopy1, recordCiphertextNotOwnedCopy1, recordCiphertextNotOwned2Copy1];
+        const recordCiphertextArrayCopy = recordCiphertextArray.map(record => record.clone());
         const recordPlaintext = RecordPlaintext.fromString(RECORD_PLAINTEXT_STRING);
-        const recordPlaintextCopy = RecordPlaintext.fromString(RECORD_PLAINTEXT_STRING);
+        const recordPlaintextCopy = recordPlaintext.clone();
         const viewKeyString = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
         const viewKey = ViewKey.from_string(viewKeyString);
         const recordViewKeyString = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
