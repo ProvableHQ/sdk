@@ -212,7 +212,12 @@ impl EncryptionToolkit {
     }
 
     /// Decrypts a set of record ciphertexts in parallel and stores successful decryptions.
-    [wasm_bindgen(js_name = "decryptOwnedRecords")]
+    ///
+    /// @param {ViewKey} view_key The view key of the owner of the records.
+    /// @param {Vec<RecordCiphertext>} records The record ciphertexts to decrypt.
+    ///
+    /// @returns {vec<RecordPlaintext>} The decrypted record plaintexts.
+    #[wasm_bindgen(js_name = "decryptOwnedRecords")]
     pub fn decrypt_owned_records(
         view_key: &ViewKey,
         records: Vec<RecordCiphertext>,
@@ -325,7 +330,7 @@ mod tests {
     fn test_bulk_record_decryption() {
         let owned_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
         //Need to add these two non-owned ciphertexts for testing
-        let nonowned_ciphertext_1 = Recordciphertext::from_str(NON_OWNED_CIPHERTEXT_1).unwrap();
+        let nonowned_ciphertext_1 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_1).unwrap();
         let nonowned_ciphertext_2 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_2).unwrap();
 
         let records: Vec<RecordCiphertext> = vec![owned_ciphertext, nonowned_ciphertext_1, nonowned_ciphertext_2];
