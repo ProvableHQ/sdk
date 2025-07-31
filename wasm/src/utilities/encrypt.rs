@@ -255,7 +255,6 @@ impl EncryptionToolkit {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
