@@ -11,6 +11,15 @@ import {
     recordPlaintextString,
     beaconPrivateKeyString
 } from "./data/account-data.js";
+import {
+    RECORD_CIPHERTEXT_STRING,
+    RECORD_CIPHERTEXT_STRING_COPY,
+    RECORD_CIPHERTEXT_STRING_NOT_OWNED,
+    RECORD_CIPHERTEXT_STRING_NOT_OWNED2,
+    RECORD_PLAINTEXT_STRING,
+    RECORD_VIEW_KEY_STRING,
+    VIEW_KEY_STRING,
+} from "./data/records.js";
 
 
 describe('WASM Objects', () => {
@@ -440,20 +449,16 @@ describe('WASM Objects', () => {
     }
 });
 
-
     describe('EncryptionToolkit', () => {
-        const recordCiphertextString = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
-        const recordCiphertext = RecordCiphertext.fromString(recordCiphertextString);
-        const recordPlaintextString = `{
-owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
-  microcredits: 1500000000000000u64.private,
-  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
-}`;
-        const recordPlaintext = RecordPlaintext.fromString(recordPlaintextString);
-        const viewKeyString = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
-        const viewKey = ViewKey.from_string(viewKeyString);
-        const recordViewKeyString = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
-        const recordViewKey = Field.fromString(recordViewKeyString);
+        const recordCiphertext = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING);
+        const recordCiphertextNotOwned = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED);
+        const recordCiphertextNotOwned2 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED2);
+        const recordCiphertextArray = [recordCiphertext, recordCiphertextNotOwned, recordCiphertextNotOwned2];
+        const recordCiphertextArrayCopy = recordCiphertextArray.map(record => record.clone());
+        const recordPlaintext = RecordPlaintext.fromString(RECORD_PLAINTEXT_STRING);
+        const recordPlaintextCopy = recordPlaintext.clone();
+        const viewKey = ViewKey.from_string(VIEW_KEY_STRING);
+        const recordViewKey = Field.fromString(RECORD_VIEW_KEY_STRING);
         
         it('can generate a record view key from a view key and a record ciphertext', () => {
             const generatedRecordViewKey = EncryptionToolkit.generateRecordViewKey(viewKey, recordCiphertext);
@@ -468,6 +473,16 @@ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
         it('cannot decrypt a record ciphertext with an invalid record view key', () => {
             const invalidRecordViewKey = Field.fromString("4445718830394614891114647247073357114867447866913203502139893824059966201724field");
             expect(() => EncryptionToolkit.decryptRecordWithRVk(invalidRecordViewKey, recordCiphertext)).to.throw();
+        });
+        it('can check if a record ciphertext from an array of record ciphertexts is owned by a view key', () => {
+            const ownedRecords = EncryptionToolkit.checkOwnedRecords(viewKey, recordCiphertextArray);
+            // Ensure the record ciphertext is owned by the view key
+            expect(ownedRecords[0].toString()).equal(RECORD_CIPHERTEXT_STRING_COPY.toString());
+        });
+        it('can decrypt a record ciphertext from an array of record ciphertexts', () => {
+            const decryptedRecords = EncryptionToolkit.decryptOwnedRecords(viewKey, recordCiphertextArrayCopy);
+            // Ensure the decrypted record is the same as the plaintext
+            expect(decryptedRecords[0].toString()).equal(recordPlaintextCopy.toString());
         });
     });
 });

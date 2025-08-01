@@ -31,6 +31,7 @@ use crate::{
         U8Native,
     },
 };
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use snarkvm_console::prelude::{FromFields, Itertools, Network, Visibility};
 
 use indexmap::IndexMap;
@@ -210,6 +211,48 @@ impl EncryptionToolkit {
     pub fn decrypt_transition_with_vk(transition: &Transition, transition_vk: &Field) -> Result<Transition, String> {
         transition.decrypt_transition(transition_vk)
     }
+
+    /// Decrypts a set of record ciphertexts in parallel and stores successful decryptions.
+    ///
+    /// @param {ViewKey} view_key The view key of the owner of the records.
+    /// @param {Vec<RecordCiphertext>} records The record ciphertexts to decrypt.
+    ///
+    /// @returns {vec<RecordPlaintext>} The decrypted record plaintexts.
+    #[wasm_bindgen(js_name = "decryptOwnedRecords")]
+    pub fn decrypt_owned_records(
+        view_key: &ViewKey,
+        records: Vec<RecordCiphertext>,
+    ) -> Result<Vec<RecordPlaintext>, String> {
+        // Use Rayon to parallelize the decryption process and store successful decryptions.
+        let decrypted_records: Vec<RecordPlaintext> = records
+            .par_iter()
+            .filter_map(|record| {
+                let record_vk = Self::generate_record_view_key(view_key, record).ok()?;
+                let decrypted_record = Self::decrypt_record_symmetric_unchecked(&record_vk, record).ok()?;
+                Some(decrypted_record)
+            })
+            .collect();
+
+        Ok(decrypted_records)
+    }
+
+    /// Checks if a record ciphertext is owned by the given view key.
+    ///
+    /// @param {ViewKey} view_key View key of the owner of the records.
+    /// @param {Vec<RecordCiphertext>} records The record ciphertexts for which to check ownership.
+    ///
+    /// @returns {Vec<RecordCiphertext>} The record ciphertexts that are owned by the view key.
+    #[wasm_bindgen(js_name = "checkOwnedRecords")]
+    pub fn check_owned_records(
+        view_key: &ViewKey,
+        records: Vec<RecordCiphertext>,
+    ) -> Result<Vec<RecordCiphertext>, String> {
+        // Use Rayon to parallelize the ownership check.
+        let owned_records: Vec<RecordCiphertext> =
+            records.into_par_iter().filter(|record| record.is_owner(view_key)).collect();
+
+        Ok(owned_records)
+    }
 }
 
 #[cfg(test)]
@@ -221,6 +264,8 @@ mod tests {
 
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
     const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
+    const NON_OWNED_CIPHERTEXT_1: &str = "RECORD1QVQSQ5H8YT5682E73ZT7PYNJGPL29MWTSETRVS9VHCKFHJRNX9RX94CFQYXX66TRWFHKXUN9V35HGUERQQPQZQZ6KMY7S5HPKKF02L6R46QM8RQCW9X0K4RQ6GT234AMJ2UG3LMTQT5NY4UG8SXJY3U8D05K4Q3E9F54VX67ZMD3G6JYQQ7KXRWS0R0SWM6P833";
+    const NON_OWNED_CIPHERTEXT_2: &str = "RECORD1QVQSP37HJE4CEU8EFZE8XMAHE5TDTXCZ0K534WQPKVN6C9R629X3C4Q8QYRXZMT0W4H8GGCQQGQSPVUJYCN0K7HYFHENXA40HXTFSX68092WMVJ4E3XSEXR2DY0FMCCXT0DS42W5MAASZFJV930QVQRKATQJ900AKU4K777UMH2K54ZHLUGQC2AFJD";
     const OWNER_PLAINTEXT: &str = r"{
   owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
   microcredits: 1500000000000000u64.private,
@@ -283,5 +328,42 @@ mod tests {
         // Attempt to decrypt with the non-owner's view key
         let result = EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, &owner_ciphertext);
         assert!(result.is_err(), "Decryption should fail with a non-owner's view key");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_bulk_record_decryption() {
+        let owned_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
+        //Need to add these two non-owned ciphertexts for testing
+        let nonowned_ciphertext_1 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_1).unwrap();
+        let nonowned_ciphertext_2 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_2).unwrap();
+
+        let records: Vec<RecordCiphertext> = vec![owned_ciphertext, nonowned_ciphertext_1, nonowned_ciphertext_2];
+        let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
+
+        // Decrypt the owned records
+        let decrypted_records = EncryptionToolkit::decrypt_owned_records(&owner_view_key, records).unwrap();
+        // Verify that only the owned record was decrypted
+        assert_eq!(decrypted_records.len(), 1, "Only one record should be decrypted");
+        assert_eq!(
+            decrypted_records[0].to_string(),
+            OWNER_PLAINTEXT,
+            "Decrypted record should match the owner's plaintext"
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn test_check_owned_records() {
+        let owned_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
+        // Need to add these two non-owned ciphertexts for testing
+        let nonowned_ciphertext_1 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_1).unwrap();
+        let nonowned_ciphertext_2 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_2).unwrap();
+        let records: Vec<RecordCiphertext> = vec![owned_ciphertext, nonowned_ciphertext_1, nonowned_ciphertext_2];
+        let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
+
+        // Check owned records
+        let owned_records = EncryptionToolkit::check_owned_records(&owner_view_key, records).unwrap();
+        // Verify that only the owned record is returned
+        assert_eq!(owned_records.len(), 1, "Only one owned record should be returned");
+        assert_eq!(owned_records[0].to_string(), OWNER_CIPHERTEXT, "Owned record should match the owner's ciphertext");
     }
 }
