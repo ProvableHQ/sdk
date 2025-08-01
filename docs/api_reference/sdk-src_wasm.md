@@ -2930,12 +2930,11 @@ __*return*__ | [Group](sdk-src_wasm.md) | *The record nonce.*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Clone the record ciphertext.
+Clone the RecordCiphertext WASM object.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *A clone of the record ciphertext.
-Clone the field element.*
+__*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *A clone of the RecordCiphertext WASM object.*
 
 ---
 
@@ -3177,12 +3176,11 @@ __*return*__ | [Group](sdk-src_wasm.md) | *record view key*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Clone the record plaintext.
+Clone the RecordPlaintext WASM object.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *A clone of the record plaintext.
-Clone the field element.*
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *A clone of the RecordPlaintext WASM object.*
 
 ---
 

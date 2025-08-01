@@ -157,10 +157,9 @@ impl RecordCiphertext {
         Group::from(self.0.nonce())
     }
 
-    /// Clone the record ciphertext.
+    /// Clone the RecordCiphertext WASM object.
     ///
-    /// @returns {RecordCiphertext} A clone of the record ciphertext.
-    /// Clone the field element.
+    /// @returns {RecordCiphertext} A clone of the RecordCiphertext WASM object.
     #[allow(clippy::should_implement_trait)]
     pub fn clone(&self) -> RecordCiphertext {
         RecordCiphertext(self.0.clone())

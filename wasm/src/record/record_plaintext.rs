@@ -266,10 +266,9 @@ impl RecordPlaintext {
         Group::from_string(&self.nonce()).unwrap().scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
     }
 
-    /// Clone the record plaintext.
+    /// Clone the RecordPlaintext WASM object.
     ///
-    /// @returns {RecordPlaintext} A clone of the record plaintext.
-    /// Clone the field element.
+    /// @returns {RecordPlaintext} A clone of the RecordPlaintext WASM object.
     #[allow(clippy::should_implement_trait)]
     pub fn clone(&self) -> RecordPlaintext {
         RecordPlaintext(self.0.clone())
