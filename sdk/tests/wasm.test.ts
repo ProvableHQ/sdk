@@ -17,6 +17,8 @@ import {
     RECORD_CIPHERTEXT_STRING_NOT_OWNED,
     RECORD_CIPHERTEXT_STRING_NOT_OWNED2,
     RECORD_PLAINTEXT_STRING,
+    RECORD_VIEW_KEY_STRING,
+    VIEW_KEY_STRING,
 } from "./data/records.js";
 
 
@@ -455,10 +457,8 @@ describe('WASM Objects', () => {
         const recordCiphertextArrayCopy = recordCiphertextArray.map(record => record.clone());
         const recordPlaintext = RecordPlaintext.fromString(RECORD_PLAINTEXT_STRING);
         const recordPlaintextCopy = recordPlaintext.clone();
-        const viewKeyString = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
-        const viewKey = ViewKey.from_string(viewKeyString);
-        const recordViewKeyString = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
-        const recordViewKey = Field.fromString(recordViewKeyString);
+        const viewKey = ViewKey.from_string(VIEW_KEY_STRING);
+        const recordViewKey = Field.fromString(RECORD_VIEW_KEY_STRING);
         
         it('can generate a record view key from a view key and a record ciphertext', () => {
             const generatedRecordViewKey = EncryptionToolkit.generateRecordViewKey(viewKey, recordCiphertext);
