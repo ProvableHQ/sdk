@@ -1650,7 +1650,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0":
+"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.38.1":
   version: 6.38.2
   resolution: "@codemirror/view@npm:6.38.2"
   dependencies:
@@ -2584,6 +2584,8 @@ __metadata:
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@types/chai": "npm:^5.0.1"
     "@types/mocha": "npm:^10.0.10"
+    "@types/react": "npm:^19"
+    "@types/react-dom": "npm:^19"
     "@types/sinon": "npm:^17.0.3"
     "@typescript-eslint/eslint-plugin": "npm:^8.22.0"
     "@typescript-eslint/parser": "npm:^8.22.0"
@@ -2602,12 +2604,14 @@ __metadata:
     mime: "npm:^4.0.6"
     mocha: "npm:^11.1.0"
     prettier: "npm:3.4.2"
+    react: "npm:^17.0.2"
+    react-dom: "npm:^17.0.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.32.0"
     rollup-plugin-typescript2: "npm:^0.36.0"
     sinon: "npm:^19.0.2"
     sync-request: "npm:^6.1.0"
-    typescript: "npm:^5.7.3"
+    typescript: "npm:~5.8.0"
     xmlhttprequest-ssl: "npm:^3.1.0"
   languageName: unknown
   linkType: soft
@@ -3559,7 +3563,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
+"@types/node@npm:*, @types/node@npm:^24.1.0":
   version: 24.5.2
   resolution: "@types/node@npm:24.5.2"
   dependencies:
@@ -3615,7 +3619,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.0.3":
+"@types/react-dom@npm:^19, @types/react-dom@npm:^19.0.3":
   version: 19.1.9
   resolution: "@types/react-dom@npm:19.1.9"
   peerDependencies:
@@ -3624,7 +3628,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.0.8":
+"@types/react@npm:^19, @types/react@npm:^19.0.8":
   version: 19.1.13
   resolution: "@types/react@npm:19.1.13"
   dependencies:
@@ -4458,6 +4462,7 @@ __metadata:
     "@codemirror/language": "npm:^6.10.8"
     "@codemirror/legacy-modes": "npm:^6.4.2"
     "@codemirror/stream-parser": "npm:^0.19.9"
+    "@codemirror/view": "npm:^6.38.1"
     "@provablehq/sdk": "npm:^0.9.8"
     "@types/react": "npm:^19.0.8"
     "@types/react-dom": "npm:^19.0.3"
@@ -4990,14 +4995,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"binary-install@npm:^1.0.1":
-  version: 1.1.2
-  resolution: "binary-install@npm:1.1.2"
+"binary-install@npm:1.1.0":
+  version: 1.1.0
+  resolution: "binary-install@npm:1.1.0"
   dependencies:
     axios: "npm:^0.26.1"
     rimraf: "npm:^3.0.2"
     tar: "npm:^6.1.11"
-  checksum: 10c0/7385d45c029abd7e0dc234679fb76725e5e59a349662192569e2c44752919ec7845d077cc77f93eb80b35329c5872b9da00ae92620673900ec1dcddf7151e3db
+  checksum: 10c0/c0c94a81262c037a1a84f12ff9acfe667b7938b126e764b0f066d5be128d21e0bb8ac5700f4d89f8f7b860b660882deddeaca300dea0ff218d94676999a133a1
   languageName: node
   linkType: hard
 
@@ -5820,6 +5825,7 @@ __metadata:
   resolution: "create-leo-app@workspace:create-leo-app"
   dependencies:
     "@types/minimist": "npm:^1.2.5"
+    "@types/node": "npm:^24.1.0"
     "@types/prompts": "npm:^2.4.9"
     kolorist: "npm:^1.8.0"
     minimist: "npm:^1.2.8"
@@ -9202,7 +9208,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loose-envify@npm:^1.4.0":
+"loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
   dependencies:
@@ -11791,6 +11797,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-dom@npm:^17.0.2":
+  version: 17.0.2
+  resolution: "react-dom@npm:17.0.2"
+  dependencies:
+    loose-envify: "npm:^1.1.0"
+    object-assign: "npm:^4.1.1"
+    scheduler: "npm:^0.20.2"
+  peerDependencies:
+    react: 17.0.2
+  checksum: 10c0/51abbcb72450fe527ebf978c3bc989ba266630faaa53f47a2fae5392369729e8de62b2e4683598cbe651ea7873cd34ec7d5127e2f50bf4bfe6bd0c3ad9bddcb0
+  languageName: node
+  linkType: hard
+
 "react-dom@npm:^19.0.0":
   version: 19.1.1
   resolution: "react-dom@npm:19.1.1"
@@ -11859,6 +11878,16 @@ __metadata:
     react-dom:
       optional: true
   checksum: 10c0/27448e4c84199d240f6a15d503cf26509320fd4ea31aec6f12a427ac4a560a320321e9b119981eddad25801c062be0f814d4461174f69efdc9f9e5af14cf6915
+  languageName: node
+  linkType: hard
+
+"react@npm:^17.0.2":
+  version: 17.0.2
+  resolution: "react@npm:17.0.2"
+  dependencies:
+    loose-envify: "npm:^1.1.0"
+    object-assign: "npm:^4.1.1"
+  checksum: 10c0/07ae8959acf1596f0550685102fd6097d461a54a4fd46a50f88a0cd7daaa97fdd6415de1dcb4bfe0da6aa43221a6746ce380410fa848acc60f8ac41f6649c148
   languageName: node
   linkType: hard
 
@@ -12417,6 +12446,16 @@ __metadata:
   version: 1.4.1
   resolution: "sax@npm:1.4.1"
   checksum: 10c0/6bf86318a254c5d898ede6bd3ded15daf68ae08a5495a2739564eb265cd13bcc64a07ab466fb204f67ce472bb534eb8612dac587435515169593f4fffa11de7c
+  languageName: node
+  linkType: hard
+
+"scheduler@npm:^0.20.2":
+  version: 0.20.2
+  resolution: "scheduler@npm:0.20.2"
+  dependencies:
+    loose-envify: "npm:^1.1.0"
+    object-assign: "npm:^4.1.1"
+  checksum: 10c0/b0982e4b0f34f4ffa4f2f486161c0fd9ce9b88680b045dccbf250eb1aa4fd27413570645455187a83535e2370f5c667a251045547765408492bd883cbe95fcdb
   languageName: node
   linkType: hard
 
@@ -13322,6 +13361,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     terser-webpack-plugin: "npm:^5.3.11"
     typescript: "npm:^5.7.3"
+    webpack: "npm:^5.101.0"
   languageName: unknown
   linkType: soft
 
@@ -13675,6 +13715,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:~5.8.0":
+  version: 5.8.3
+  resolution: "typescript@npm:5.8.3"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10c0/5f8bb01196e542e64d44db3d16ee0e4063ce4f3e3966df6005f2588e86d91c03e1fb131c2581baf0fb65ee79669eea6e161cd448178986587e9f6844446dbb48
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@npm%3A^3.2.2#optional!builtin<compat/typescript>":
   version: 3.9.10
   resolution: "typescript@patch:typescript@npm%3A3.9.10#optional!builtin<compat/typescript>::version=3.9.10&hash=3bd3d3"
@@ -13702,6 +13752,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/34d2a8e23eb8e0d1875072064d5e1d9c102e0bdce56a10a25c0b917b8aa9001a9cf5c225df12497e99da107dc379360bc138163c66b55b95f5b105b50578067e
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A~5.8.0#optional!builtin<compat/typescript>":
+  version: 5.8.3
+  resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10c0/39117e346ff8ebd87ae1510b3a77d5d92dae5a89bde588c747d25da5c146603a99c8ee588c7ef80faaf123d89ed46f6dbd918d534d641083177d5fac38b8a1cb
   languageName: node
   linkType: hard
 
@@ -14255,7 +14315,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack@npm:^5.97.1":
+"webpack@npm:^5.101.0, webpack@npm:^5.97.1":
   version: 5.101.3
   resolution: "webpack@npm:5.101.3"
   dependencies:

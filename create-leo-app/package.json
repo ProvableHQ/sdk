@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@types/minimist": "^1.2.5",
+    "@types/node": "^24.1.0",
     "@types/prompts": "^2.4.9",
     "kolorist": "^1.8.0",
     "minimist": "^1.2.8",
