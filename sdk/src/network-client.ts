@@ -45,7 +45,10 @@ interface DelegatedProvingParams {
  * const localNetworkClient = new AleoNetworkClient({ host: "http://0.0.0.0:3030" });
  *
  * // Connection to a public beacon node
- * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+ * const account = Account.fromCiphertext({
+ *     ciphertext: process.env.ciphertext,
+ *     password: process.env.password,
+ * });
  * const publicNetworkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
  */
 class AleoNetworkClient {
@@ -225,7 +228,10 @@ class AleoNetworkClient {
      * import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
      * // Import an account from a ciphertext and password.
-     * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+     * const account = Account.fromCiphertext({
+     *     ciphertext: process.env.ciphertext,
+     *     password: process.env.password,
+     * });
      *
      * // Create a network client.
      * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
@@ -331,7 +337,7 @@ class AleoNetworkClient {
             }
             try {
                 // Get 50 blocks (or the difference between the start and end if less than 50)
-                const blocks = await this.getBlockRange(start, end);
+                const blocks = await this.getBlockRange({ start, end });
                 end = start;
                 // Iterate through blocks to find unspent records
                 for (let i = 0; i < blocks.length; i++) {
@@ -560,7 +566,10 @@ class AleoNetworkClient {
      * @example
      * import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
-     * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+     * const account = Account.fromCiphertext({
+     *     ciphertext: process.env.ciphertext,
+     *     password: process.env.password,
+     * });
      *
      * // Create a network client and set an account to search for records with.
      * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
@@ -650,8 +659,9 @@ class AleoNetworkClient {
     /**
      * Returns a range of blocks between the specified block heights. A maximum of 50 blocks can be fetched at a time.
      *
-     * @param {number} start Starting block to fetch.
-     * @param {number} end Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.
+     * @param {Object} params
+     * @param {number} params.start Starting block to fetch.
+     * @param {number} params.end Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.
      * @returns {Promise<Array<BlockJSON>>} An array of block objects
      *
      * @example
@@ -659,7 +669,7 @@ class AleoNetworkClient {
      *
      * // Fetch 50 blocks.
      * const (start, end) = (2050, 2100);
-     * const blockRange = networkClient.getBlockRange(start, end);
+     * const blockRange = networkClient.getBlockRange({ start, end });
      *
      * let cursor = start;
      * blockRange.forEach((block) => {
@@ -667,7 +677,9 @@ class AleoNetworkClient {
      *   cursor += 1;
      *  }
      */
-    async getBlockRange(start: number, end: number): Promise<Array<BlockJSON>> {
+    async getBlockRange(params: { start: number, end: number }): Promise<Array<BlockJSON>> {
+        const { start, end } = params;
+
         try {
             this.ctx = { "X-ALEO-METHOD": "getBlockRange" };
             return await this.fetchData<Array<BlockJSON>>(
@@ -1319,7 +1331,10 @@ class AleoNetworkClient {
      * const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
      *
      * // Get the balance of an account from either an address object or address string.
-     * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+     * const account = Account.fromCiphertext({
+     *     ciphertext: process.env.ciphertext,
+     *     password: process.env.password,
+     * });
      * const publicBalance = await networkClient.getPublicBalance(account.address());
      * const publicBalanceFromString = await networkClient.getPublicBalance(account.address().to_string());
      * assert(publicBalance === publicBalanceFromString);
@@ -1712,7 +1727,10 @@ class AleoNetworkClient {
      * const programManager = new ProgramManager(networkClient);
      *
      * // Set the account for the program manager.
-     * programManager.setAccount(Account.fromCiphertext(process.env.ciphertext, process.env.password));
+     * programManager.setAccount(Account.fromCiphertext({
+     *     ciphertext: process.env.ciphertext,
+     *     password: process.env.password,
+     * }));
      *
      * // Build a transfer transaction.
      * const tx = await programManager.buildTransferPublicTransaction({

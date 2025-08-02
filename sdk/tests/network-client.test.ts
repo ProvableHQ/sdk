@@ -72,7 +72,7 @@ describe("NodeConnection", () => {
 
     describe("getBlockRange", () => {
         it.skip("should return an array of Block objects", async () => {
-            const blockRange = await connection.getBlockRange(1, 3);
+            const blockRange = await connection.getBlockRange({ start: 1, end: 3 });
             expect(Array.isArray(blockRange)).equal(true);
             expect((blockRange as BlockJSON[]).length).equal(3);
             expect(

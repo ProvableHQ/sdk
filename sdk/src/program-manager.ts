@@ -994,12 +994,12 @@ class ProgramManager {
         try {
             feeRecord = privateFee
                 ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )
+                    await this.getCreditsRecord({
+                        amount: priorityFee,
+                        nonces: [],
+                        record: feeRecord,
+                        params: recordSearchParams,
+                    })
                 )
                 : undefined;
         } catch (e: any) {
