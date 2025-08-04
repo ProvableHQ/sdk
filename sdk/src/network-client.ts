@@ -890,7 +890,17 @@ class AleoNetworkClient {
     /**
      * Returns the source code of a program given a program ID.
      *
-     * @param {string} programId The program ID of a program deployed to the Aleo Network
+     * @param {string} programId The program ID of a program deployed to the Aleo Network.
+     * @param {number | undefined} edition The edition of the program to fetch. When this is undefined it will fetch the latest version.
+     * @returns {Promise<string>} The source code of the program.
+     *
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a network client.
+     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     *
+     * // Get the source code of a program.)
      * @returns {Promise<string>} Source code of the program
      *
      * @example
@@ -903,12 +913,12 @@ class AleoNetworkClient {
      * const expectedSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
      * assert.equal(program, expectedSource);
      */
-    async getProgram(programId: string, version?: number): Promise<string> {
+    async getProgram(programId: string, edition?: number): Promise<string> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramVersion" };
-            if (typeof version === "number") {
+            if (typeof edition === "number") {
                 return await this.fetchData<string>(
-                    `/program/${programId}/${version}`,
+                    `/program/${programId}/${edition}`,
                 );
             } else {
                 return await this.fetchData<string>("/program/" + programId);
@@ -921,10 +931,10 @@ class AleoNetworkClient {
     }
 
     /**
-     * Returns the current program edition deployed on Aleo.
+     * Returns the current program edition deployed on the Aleo network.
      *
      * @param {string} programId The program ID of a program deployed to the Aleo Network.
-     * @returns {Promise<number>} Source code of the program.
+     * @returns {Promise<number>} The edition of the program.
      *
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
@@ -935,10 +945,10 @@ class AleoNetworkClient {
      * const programVersion = networkClient.getProgramSource("hello_hello.aleo");
      * assert.equal(programVersion, 1);
      */
-    async getLatestProgramEdition(programId: string): Promise<string> {
+    async getLatestProgramEdition(programId: string): Promise<number> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getLatestProgramEdition" };
-            return await this.fetchData<string>("/program/" + programId + "/latestEdition");
+            return await this.fetchData<number>("/program/" + programId + "/latest_edition");
         } catch (error) {
             throw new Error(`Error fetching program ${programId}: ${error}`);
         } finally {
@@ -951,8 +961,9 @@ class AleoNetworkClient {
     /**
      * Returns a program object from a program ID or program source code.
      *
-     * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
-     * @returns {Promise<Program>} Source code of the program
+     * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network.
+     * @param {number | undefined} edition The edition of the program to fetch. When this is undefined it will fetch the latest version.
+     * @returns {Promise<Program>} Source code of the program.
      *
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
@@ -970,20 +981,16 @@ class AleoNetworkClient {
      * // Both program objects should be equal
      * assert(programObjectFromID.to_string() === programObjectFromSource.to_string());
      */
-    async getProgramObject(inputProgram: string): Promise<Program> {
+    async getProgramObject(inputProgram: string, edition?: number): Promise<Program> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramObject" };
-            return Program.fromString(inputProgram);
+            return Program.fromString(
+                <string>await this.getProgram(inputProgram, edition),
+            );
         } catch (error) {
-            try {
-                return Program.fromString(
-                    <string>await this.getProgram(inputProgram),
-                );
-            } catch (error) {
-                throw new Error(
-                    `${inputProgram} is neither a program name or a valid program: ${error}`,
-                );
-            }
+            throw new Error(
+                `${inputProgram} is neither a program name or a valid program: ${error}`,
+            );
         } finally {
             this.ctx = {};
         }

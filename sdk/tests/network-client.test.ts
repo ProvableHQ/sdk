@@ -19,6 +19,7 @@ import {
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import { beaconPrivateKeyString } from "./data/account-data.js";
 import { retryWithBackoff } from "../src/utils.js";
+import { Program } from "@provablehq/wasm";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {
     try {
@@ -88,9 +89,26 @@ describe("NodeConnection", () => {
     });
 
     describe("getProgram", () => {
-        it("should return a string", async () => {
+        it("endpoints return the correct types", async () => {
+            // Ensure the program returned is a string.
             const program = await connection.getProgram("credits.aleo");
+            const programV0 = await connection.getProgram("credits.aleo", 0);
+            const programV1 = await connection.getProgram("credits.aleo", 1);
             expect(typeof program).equal("string");
+            expect(typeof programV0).equal("string");
+            expect(typeof programV1).equal("string");
+
+            // Ensure the program returned is of the correct object..
+            const programWasm = await connection.getProgramObject("credits.aleo");
+            const programWasmV0 = await connection.getProgramObject("credits.aleo", 0);
+            const programWasmV1 = await connection.getProgramObject("credits.aleo", 1);
+            expect(programWasm.id()).equals("credits.aleo");
+            expect(programWasmV0.id()).equals("credits.aleo");
+            expect(programWasmV1.id()).equals("credits.aleo");
+
+            // Ensure the edition returned is correct.
+            const creditsEdition = await connection.getLatestProgramEdition("credits.aleo");
+            expect(creditsEdition >= 1).to.equal(true);
         });
 
         it("should throw an error if the request fails", async () => {
