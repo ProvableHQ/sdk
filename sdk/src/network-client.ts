@@ -903,16 +903,50 @@ class AleoNetworkClient {
      * const expectedSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
      * assert.equal(program, expectedSource);
      */
-    async getProgram(programId: string): Promise<string> {
+    async getProgram(programId: string, version?: number): Promise<string> {
         try {
-            this.ctx = { "X-ALEO-METHOD": "getProgram" };
-            return await this.fetchData<string>("/program/" + programId);
+            this.ctx = { "X-ALEO-METHOD": "getProgramVersion" };
+            if (typeof version === "number") {
+                return await this.fetchData<string>(
+                    `/program/${programId}/${version}`,
+                );
+            } else {
+                return await this.fetchData<string>("/program/" + programId);
+            }
         } catch (error) {
             throw new Error(`Error fetching program ${programId}: ${error}`);
         } finally {
             this.ctx = {};
         }
     }
+
+    /**
+     * Returns the current program edition deployed on Aleo.
+     *
+     * @param {string} programId The program ID of a program deployed to the Aleo Network.
+     * @returns {Promise<number>} Source code of the program.
+     *
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a network client.
+     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     *
+     * const programVersion = networkClient.getProgramSource("hello_hello.aleo");
+     * assert.equal(programVersion, 1);
+     */
+    async getLatestProgramEdition(programId: string): Promise<string> {
+        try {
+            this.ctx = { "X-ALEO-METHOD": "getLatestProgramEdition" };
+            return await this.fetchData<string>("/program/" + programId + "/latestEdition");
+        } catch (error) {
+            throw new Error(`Error fetching program ${programId}: ${error}`);
+        } finally {
+            this.ctx = {};
+        }
+    }
+
+
 
     /**
      * Returns a program object from a program ID or program source code.
