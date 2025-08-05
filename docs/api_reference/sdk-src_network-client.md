@@ -552,7 +552,7 @@ import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 // Create a network client.
 const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
 
-const programVersion = networkClient.getProgramSource("hello_hello.aleo");
+const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
 assert.equal(programVersion, 1);
 ```
 
@@ -1588,7 +1588,7 @@ import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 // Create a network client.
 const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
 
-const programVersion = networkClient.getProgramSource("hello_hello.aleo");
+const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
 assert.equal(programVersion, 1);
 ```
 
