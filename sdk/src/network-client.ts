@@ -890,7 +890,17 @@ class AleoNetworkClient {
     /**
      * Returns the source code of a program given a program ID.
      *
-     * @param {string} programId The program ID of a program deployed to the Aleo Network
+     * @param {string} programId The program ID of a program deployed to the Aleo Network.
+     * @param {number | undefined} edition The edition of the program to fetch. When this is undefined it will fetch the latest version.
+     * @returns {Promise<string>} The source code of the program.
+     *
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a network client.
+     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     *
+     * // Get the source code of a program.)
      * @returns {Promise<string>} Source code of the program
      *
      * @example
@@ -903,10 +913,16 @@ class AleoNetworkClient {
      * const expectedSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
      * assert.equal(program, expectedSource);
      */
-    async getProgram(programId: string): Promise<string> {
+    async getProgram(programId: string, edition?: number): Promise<string> {
         try {
-            this.ctx = { "X-ALEO-METHOD": "getProgram" };
-            return await this.fetchData<string>("/program/" + programId);
+            this.ctx = { "X-ALEO-METHOD": "getProgramVersion" };
+            if (typeof edition === "number") {
+                return await this.fetchData<string>(
+                    `/program/${programId}/${edition}`,
+                );
+            } else {
+                return await this.fetchData<string>("/program/" + programId);
+            }
         } catch (error) {
             throw new Error(`Error fetching program ${programId}: ${error}`);
         } finally {
@@ -915,10 +931,39 @@ class AleoNetworkClient {
     }
 
     /**
+     * Returns the current program edition deployed on the Aleo network.
+     *
+     * @param {string} programId The program ID of a program deployed to the Aleo Network.
+     * @returns {Promise<number>} The edition of the program.
+     *
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a network client.
+     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     *
+     * const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
+     * assert.equal(programVersion, 1);
+     */
+    async getLatestProgramEdition(programId: string): Promise<number> {
+        try {
+            this.ctx = { "X-ALEO-METHOD": "getLatestProgramEdition" };
+            return await this.fetchData<number>("/program/" + programId + "/latest_edition");
+        } catch (error) {
+            throw new Error(`Error fetching program ${programId}: ${error}`);
+        } finally {
+            this.ctx = {};
+        }
+    }
+
+
+
+    /**
      * Returns a program object from a program ID or program source code.
      *
-     * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
-     * @returns {Promise<Program>} Source code of the program
+     * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network.
+     * @param {number | undefined} edition The edition of the program to fetch. When this is undefined it will fetch the latest version.
+     * @returns {Promise<Program>} Source code of the program.
      *
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
@@ -936,20 +981,16 @@ class AleoNetworkClient {
      * // Both program objects should be equal
      * assert(programObjectFromID.to_string() === programObjectFromSource.to_string());
      */
-    async getProgramObject(inputProgram: string): Promise<Program> {
+    async getProgramObject(inputProgram: string, edition?: number): Promise<Program> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramObject" };
-            return Program.fromString(inputProgram);
+            return Program.fromString(
+                <string>await this.getProgram(inputProgram, edition),
+            );
         } catch (error) {
-            try {
-                return Program.fromString(
-                    <string>await this.getProgram(inputProgram),
-                );
-            } catch (error) {
-                throw new Error(
-                    `${inputProgram} is neither a program name or a valid program: ${error}`,
-                );
-            }
+            throw new Error(
+                `${inputProgram} is neither a program name or a valid program: ${error}`,
+            );
         } finally {
             this.ctx = {};
         }
@@ -985,40 +1026,49 @@ class AleoNetworkClient {
      * programImports = await networkClient.getProgramImports(double_test);
      * assert.deepStrictEqual(programImports, expectedImports);
      */
-    async getProgramImports(
-        inputProgram: Program | string,
-    ): Promise<ProgramImports> {
+    async getProgramImports(inputProgram: Program | string): Promise<ProgramImports> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
             const imports: ProgramImports = {};
 
-            // Get the program object or fail if the program is not valid or does not exist
-            const program =
-                inputProgram instanceof Program
-                    ? inputProgram
-                    : <Program>await this.getProgramObject(inputProgram);
+            // Normalize input to a Program object
+            let program: Program;
+            if (inputProgram instanceof Program) {
+                program = inputProgram;
+            } else {
+                try {
+                    program = Program.fromString(inputProgram);
+                } catch {
+                    try {
+                        program = await this.getProgramObject(inputProgram);
+                    } catch (error2) {
+                        throw new Error(
+                            `${inputProgram} is neither a program name nor a valid program: ${error2}`,
+                        );
+                    }
+                }
+            }
 
             // Get the list of programs that the program imports
             const importList = program.getImports();
 
-            // Recursively get any imports that the imported programs have in a depth first search order
+            // Recursively get any imports that the imported programs have in a depth-first search
             for (let i = 0; i < importList.length; i++) {
                 const import_id = importList[i];
                 if (!imports.hasOwnProperty(import_id)) {
-                    const programSource = <string>(
-                        await this.getProgram(import_id)
-                    );
-                    const nestedImports = <ProgramImports>(
-                        await this.getProgramImports(import_id)
-                    );
+                    const programSource = <string>await this.getProgram(import_id);
+                    const nestedImports = <ProgramImports>await this.getProgramImports(import_id);
+
                     for (const key in nestedImports) {
                         if (!imports.hasOwnProperty(key)) {
                             imports[key] = nestedImports[key];
                         }
                     }
+
                     imports[import_id] = programSource;
                 }
             }
+
             return imports;
         } catch (error: any) {
             logAndThrow("Error fetching program imports: " + error.message);
@@ -1026,6 +1076,7 @@ class AleoNetworkClient {
             this.ctx = {};
         }
     }
+
 
     /**
      * Get a list of the program names that a program imports.
@@ -1094,7 +1145,7 @@ class AleoNetworkClient {
             );
         } catch (error) {
             throw new Error(
-                `Error fetching mappings for program ${programId} - ensure the program exists on chain before trying again`,
+                `Error fetching mappings for program ${programId} - ensure the program exists on chain before trying again: ${error}`,
             );
         } finally {
             this.ctx = {};
@@ -1133,7 +1184,7 @@ class AleoNetworkClient {
             );
         } catch (error) {
             throw new Error(
-                `Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct`,
+                `Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct: ${error}`,
             );
         } finally {
             this.ctx = {};

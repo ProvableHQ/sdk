@@ -497,7 +497,7 @@ const latestHash = networkClient.getLatestBlockHash();
 
 ---
 
-### `getProgram(programId) ► Promise.<string>`
+### `getProgram(programId, edition) ► Promise.<string>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -505,11 +505,21 @@ Returns the source code of a program given a program ID.
 
 Parameters | Type | Description
 --- | --- | ---
-__programId__ | `string` | *The program ID of a program deployed to the Aleo Network*
+__programId__ | `string` | *The program ID of a program deployed to the Aleo Network.*
+__edition__ | `number` | *The edition of the program to fetch. When this is undefined it will fetch the latest version.*
+__*return*__ | `Promise.<string>` | *The source code of the program.*
 __*return*__ | `Promise.<string>` | *Source code of the program*
 
 #### Examples
 
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a network client.
+const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+
+// Get the source code of a program.)
+```
 ```javascript
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
@@ -523,7 +533,32 @@ assert.equal(program, expectedSource);
 
 ---
 
-### `getProgramObject(inputProgram) ► Promise.<Program>`
+### `getLatestProgramEdition(programId) ► Promise.<number>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the current program edition deployed on the Aleo network.
+
+Parameters | Type | Description
+--- | --- | ---
+__programId__ | `string` | *The program ID of a program deployed to the Aleo Network.*
+__*return*__ | `Promise.<number>` | *The edition of the program.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a network client.
+const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+
+const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
+assert.equal(programVersion, 1);
+```
+
+---
+
+### `getProgramObject(inputProgram, edition) ► Promise.<Program>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -531,8 +566,9 @@ Returns a program object from a program ID or program source code.
 
 Parameters | Type | Description
 --- | --- | ---
-__inputProgram__ | `string` | *The program ID or program source code of a program deployed to the Aleo Network*
-__*return*__ | `Promise.<Program>` | *Source code of the program*
+__inputProgram__ | `string` | *The program ID or program source code of a program deployed to the Aleo Network.*
+__edition__ | `number` | *The edition of the program to fetch. When this is undefined it will fetch the latest version.*
+__*return*__ | `Promise.<Program>` | *Source code of the program.*
 
 #### Examples
 
@@ -1497,7 +1533,7 @@ const latestHash = networkClient.getLatestBlockHash();
 
 ---
 
-### `getProgram(programId) ► Promise.<string>`
+### `getProgram(programId, edition) ► Promise.<string>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1505,11 +1541,21 @@ Returns the source code of a program given a program ID.
 
 Parameters | Type | Description
 --- | --- | ---
-__programId__ | `string` | *The program ID of a program deployed to the Aleo Network*
+__programId__ | `string` | *The program ID of a program deployed to the Aleo Network.*
+__edition__ | `number` | *The edition of the program to fetch. When this is undefined it will fetch the latest version.*
+__*return*__ | `Promise.<string>` | *The source code of the program.*
 __*return*__ | `Promise.<string>` | *Source code of the program*
 
 #### Examples
 
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a network client.
+const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+
+// Get the source code of a program.)
+```
 ```javascript
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
@@ -1523,7 +1569,32 @@ assert.equal(program, expectedSource);
 
 ---
 
-### `getProgramObject(inputProgram) ► Promise.<Program>`
+### `getLatestProgramEdition(programId) ► Promise.<number>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the current program edition deployed on the Aleo network.
+
+Parameters | Type | Description
+--- | --- | ---
+__programId__ | `string` | *The program ID of a program deployed to the Aleo Network.*
+__*return*__ | `Promise.<number>` | *The edition of the program.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a network client.
+const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+
+const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
+assert.equal(programVersion, 1);
+```
+
+---
+
+### `getProgramObject(inputProgram, edition) ► Promise.<Program>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1531,8 +1602,9 @@ Returns a program object from a program ID or program source code.
 
 Parameters | Type | Description
 --- | --- | ---
-__inputProgram__ | `string` | *The program ID or program source code of a program deployed to the Aleo Network*
-__*return*__ | `Promise.<Program>` | *Source code of the program*
+__inputProgram__ | `string` | *The program ID or program source code of a program deployed to the Aleo Network.*
+__edition__ | `number` | *The edition of the program to fetch. When this is undefined it will fetch the latest version.*
+__*return*__ | `Promise.<Program>` | *Source code of the program.*
 
 #### Examples
 
