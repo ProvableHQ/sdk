@@ -1026,40 +1026,49 @@ class AleoNetworkClient {
      * programImports = await networkClient.getProgramImports(double_test);
      * assert.deepStrictEqual(programImports, expectedImports);
      */
-    async getProgramImports(
-        inputProgram: Program | string,
-    ): Promise<ProgramImports> {
+    async getProgramImports(inputProgram: Program | string): Promise<ProgramImports> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
             const imports: ProgramImports = {};
 
-            // Get the program object or fail if the program is not valid or does not exist
-            const program =
-                inputProgram instanceof Program
-                    ? inputProgram
-                    : <Program>await this.getProgramObject(inputProgram);
+            // Normalize input to a Program object
+            let program: Program;
+            if (inputProgram instanceof Program) {
+                program = inputProgram;
+            } else {
+                try {
+                    program = Program.fromString(inputProgram);
+                } catch {
+                    try {
+                        program = await this.getProgramObject(inputProgram);
+                    } catch (error2) {
+                        throw new Error(
+                            `${inputProgram} is neither a program name nor a valid program: ${error2}`,
+                        );
+                    }
+                }
+            }
 
             // Get the list of programs that the program imports
             const importList = program.getImports();
 
-            // Recursively get any imports that the imported programs have in a depth first search order
+            // Recursively get any imports that the imported programs have in a depth-first search
             for (let i = 0; i < importList.length; i++) {
                 const import_id = importList[i];
                 if (!imports.hasOwnProperty(import_id)) {
-                    const programSource = <string>(
-                        await this.getProgram(import_id)
-                    );
-                    const nestedImports = <ProgramImports>(
-                        await this.getProgramImports(import_id)
-                    );
+                    const programSource = <string>await this.getProgram(import_id);
+                    const nestedImports = <ProgramImports>await this.getProgramImports(import_id);
+
                     for (const key in nestedImports) {
                         if (!imports.hasOwnProperty(key)) {
                             imports[key] = nestedImports[key];
                         }
                     }
+
                     imports[import_id] = programSource;
                 }
             }
+
             return imports;
         } catch (error: any) {
             logAndThrow("Error fetching program imports: " + error.message);
@@ -1067,6 +1076,7 @@ class AleoNetworkClient {
             this.ctx = {};
         }
     }
+
 
     /**
      * Get a list of the program names that a program imports.
@@ -1135,7 +1145,7 @@ class AleoNetworkClient {
             );
         } catch (error) {
             throw new Error(
-                `Error fetching mappings for program ${programId} - ensure the program exists on chain before trying again`,
+                `Error fetching mappings for program ${programId} - ensure the program exists on chain before trying again: ${error}`,
             );
         } finally {
             this.ctx = {};
@@ -1174,7 +1184,7 @@ class AleoNetworkClient {
             );
         } catch (error) {
             throw new Error(
-                `Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct`,
+                `Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct: ${error}`,
             );
         } finally {
             this.ctx = {};
