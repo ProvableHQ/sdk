@@ -42,7 +42,7 @@ assert(myRandomAccount.verify(hello_world, signature));
 
 ## Methods
 
-### `fromCiphertext(ciphertext, password) ► Account`
+### `fromCiphertext(params) ► Account`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
@@ -50,8 +50,9 @@ Attempts to create an account from a private key ciphertext
 
 Parameters | Type | Description
 --- | --- | ---
-__ciphertext__ | [PrivateKeyCiphertext](sdk-src_wasm.md) | *The encrypted private key ciphertext or its string representation*
-__password__ | `string` | *The password used to decrypt the private key ciphertext*
+__params__ | `Object` | **
+__params.ciphertext__ | [PrivateKeyCiphertext](sdk-src_wasm.md) | *The encrypted private key ciphertext or its string representation*
+__params.password__ | `string` | *The password used to decrypt the private key ciphertext*
 __*return*__ | [Account](sdk-src_account.md) | *A new Account instance created from the decrypted private key*
 
 #### Examples
@@ -60,7 +61,10 @@ __*return*__ | [Account](sdk-src_account.md) | *A new Account instance created f
 import { Account } from "@provablehq/sdk/testnet.js";
 
 // Create an account object from a previously encrypted ciphertext and password.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 ```
 
 ---
@@ -237,7 +241,10 @@ import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
-const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext!,
+    password: process.env.password!,
+});
 
 // Get the record ciphertexts from a transaction.
 const transaction = await networkClient.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
@@ -273,7 +280,10 @@ import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
-const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext!,
+    password: process.env.password!,
+});
 
 // Get the record ciphertexts from a transaction.
 const transaction = await networkClient.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
@@ -304,7 +314,10 @@ __*return*__ | [Field](sdk-src_wasm.md) | *The record view key*
 import { Account } from "@provablehq/sdk/testnet.js";
 
 // Create an account object from a previously encrypted ciphertext and password.
-const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext!,
+    password: process.env.password!,
+});
 
 // Generate a record view key from the account's view key and a record ciphertext
 const recordCiphertext = RecordCiphertext.fromString("your_record_ciphertext_here");
@@ -359,7 +372,10 @@ import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
-const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext!,
+    password: process.env.password!,
+});
 
 // Get the record ciphertexts from a transaction and check ownership of them.
 const transaction = await networkClient.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
@@ -395,7 +411,10 @@ __*return*__ | [Signature](sdk-src_wasm.md) | *Signature over the message in byt
 import { Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create an account and a message to sign.
 const account = new Account();
@@ -403,12 +422,12 @@ const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100
 const signature = account.sign(message);
 
 // Verify the signature.
-assert(account.verify(message, signature));
+assert(account.verify({ message, signature }));
 ```
 
 ---
 
-### `verify(message, signature) ► boolean`
+### `verify(params) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -416,8 +435,9 @@ Verifies the Signature on a message.
 
 Parameters | Type | Description
 --- | --- | ---
-__message__ | `Uint8Array` | *Message in bytes to be signed.*
-__signature__ | [Signature](sdk-src_wasm.md) | *Signature to be verified.*
+__params__ | `Object` | **
+__params.message__ | `Uint8Array` | *Message in bytes to be signed.*
+__params.signature__ | [Signature](sdk-src_wasm.md) | *Signature to be verified.*
 __*return*__ | `boolean` | *True if the signature is valid, false otherwise.*
 
 #### Examples
@@ -427,19 +447,22 @@ __*return*__ | `boolean` | *True if the signature is valid, false otherwise.*
 import { Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Sign a message.
 const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
 const signature = account.sign(message);
 
 // Verify the signature.
-assert(account.verify(message, signature));
+assert(account.verify({ message, signature }));
 ```
 
 ---
 
-### `fromCiphertext(ciphertext, password) ► Account`
+### `fromCiphertext(params) ► Account`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
@@ -447,8 +470,9 @@ Attempts to create an account from a private key ciphertext
 
 Parameters | Type | Description
 --- | --- | ---
-__ciphertext__ | [PrivateKeyCiphertext](sdk-src_wasm.md) | *The encrypted private key ciphertext or its string representation*
-__password__ | `string` | *The password used to decrypt the private key ciphertext*
+__params__ | `Object` | **
+__params.ciphertext__ | [PrivateKeyCiphertext](sdk-src_wasm.md) | *The encrypted private key ciphertext or its string representation*
+__params.password__ | `string` | *The password used to decrypt the private key ciphertext*
 __*return*__ | [Account](sdk-src_account.md) | *A new Account instance created from the decrypted private key*
 
 #### Examples
@@ -457,7 +481,10 @@ __*return*__ | [Account](sdk-src_account.md) | *A new Account instance created f
 import { Account } from "@provablehq/sdk/testnet.js";
 
 // Create an account object from a previously encrypted ciphertext and password.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 ```
 
 ---
@@ -621,7 +648,10 @@ import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
-const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext!,
+    password: process.env.password!,
+});
 
 // Get the record ciphertexts from a transaction.
 const transaction = await networkClient.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
@@ -657,7 +687,10 @@ import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
-const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext!,
+    password: process.env.password!,
+});
 
 // Get the record ciphertexts from a transaction.
 const transaction = await networkClient.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
@@ -688,7 +721,10 @@ __*return*__ | [Field](sdk-src_wasm.md) | *The record view key*
 import { Account } from "@provablehq/sdk/testnet.js";
 
 // Create an account object from a previously encrypted ciphertext and password.
-const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext!,
+    password: process.env.password!,
+});
 
 // Generate a record view key from the account's view key and a record ciphertext
 const recordCiphertext = RecordCiphertext.fromString("your_record_ciphertext_here");
@@ -702,7 +738,7 @@ const recordViewKey = account.generateRecordViewKey(recordCiphertext);
 ![modifier: public](images/badges/modifier-public.svg)
 
 Generates a transition view key from the account owner&#x27;s view key and the transition public key.
-This key can be used to decrypt the private inputs and outputs of a the transition without 
+This key can be used to decrypt the private inputs and outputs of a the transition without
 revealing the account&#x27;s view key.
 
 Parameters | Type | Description
@@ -743,7 +779,10 @@ import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
-const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext!,
+    password: process.env.password!,
+});
 
 // Get the record ciphertexts from a transaction and check ownership of them.
 const transaction = await networkClient.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
@@ -779,7 +818,10 @@ __*return*__ | [Signature](sdk-src_wasm.md) | *Signature over the message in byt
 import { Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create an account and a message to sign.
 const account = new Account();
@@ -787,12 +829,12 @@ const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100
 const signature = account.sign(message);
 
 // Verify the signature.
-assert(account.verify(message, signature));
+assert(account.verify({ message, signature }));
 ```
 
 ---
 
-### `verify(message, signature) ► boolean`
+### `verify(params) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -800,8 +842,9 @@ Verifies the Signature on a message.
 
 Parameters | Type | Description
 --- | --- | ---
-__message__ | `Uint8Array` | *Message in bytes to be signed.*
-__signature__ | [Signature](sdk-src_wasm.md) | *Signature to be verified.*
+__params__ | `Object` | **
+__params.message__ | `Uint8Array` | *Message in bytes to be signed.*
+__params.signature__ | [Signature](sdk-src_wasm.md) | *Signature to be verified.*
 __*return*__ | `boolean` | *True if the signature is valid, false otherwise.*
 
 #### Examples
@@ -811,14 +854,17 @@ __*return*__ | `boolean` | *True if the signature is valid, false otherwise.*
 import { Account } from "@provablehq/sdk/testnet.js";
 
 // Create a connection to the Aleo network and an account
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Sign a message.
 const message = Uint8Array.from([104, 101, 108, 108, 111 119, 111, 114, 108, 100])
 const signature = account.sign(message);
 
 // Verify the signature.
-assert(account.verify(message, signature));
+assert(account.verify({ message, signature }));
 ```
 
 ---

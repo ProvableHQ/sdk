@@ -18,7 +18,10 @@ allow users to query public information from the Aleo blockchain and submit tran
 const localNetworkClient = new AleoNetworkClient({ host: "http://0.0.0.0:3030" });
 
 // Connection to a public beacon node
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 const publicNetworkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 ```
 
@@ -185,7 +188,10 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of records belong
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Import an account from a ciphertext and password.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create a network client.
 const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
@@ -226,7 +232,10 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of unspent record
 ```javascript
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create a network client and set an account to search for records with.
 const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
@@ -286,7 +295,7 @@ const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8
 
 ---
 
-### `getBlockRange(start, end) ► Promise.<Array.<BlockJSON>>`
+### `getBlockRange(params) ► Promise.<Array.<BlockJSON>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -294,8 +303,9 @@ Returns a range of blocks between the specified block heights. A maximum of 50 b
 
 Parameters | Type | Description
 --- | --- | ---
-__start__ | `number` | *Starting block to fetch.*
-__end__ | `number` | *Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.*
+__params__ | `Object` | **
+__params.start__ | `number` | *Starting block to fetch.*
+__params.end__ | `number` | *Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.*
 __*return*__ | `Promise.<Array.<BlockJSON>>` | *An array of block objects*
 
 #### Examples
@@ -305,7 +315,7 @@ import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Fetch 50 blocks.
 const (start, end) = (2050, 2100);
-const blockRange = networkClient.getBlockRange(start, end);
+const blockRange = networkClient.getBlockRange({ start, end });
 
 let cursor = start;
 blockRange.forEach((block) => {
@@ -819,7 +829,10 @@ import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the balance of an account from either an address object or address string.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 const publicBalance = await networkClient.getPublicBalance(account.address());
 const publicBalanceFromString = await networkClient.getPublicBalance(account.address().to_string());
 assert(publicBalance === publicBalanceFromString);
@@ -1089,7 +1102,10 @@ const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provabl
 const programManager = new ProgramManager(networkClient);
 
 // Set the account for the program manager.
-programManager.setAccount(Account.fromCiphertext(process.env.ciphertext, process.env.password));
+programManager.setAccount(Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+}));
 
 // Build a transfer transaction.
 const tx = await programManager.buildTransferPublicTransaction({
@@ -1274,7 +1290,10 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of records belong
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Import an account from a ciphertext and password.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create a network client.
 const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
@@ -1315,7 +1334,10 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of unspent record
 ```javascript
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create a network client and set an account to search for records with.
 const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
@@ -1375,7 +1397,7 @@ const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8
 
 ---
 
-### `getBlockRange(start, end) ► Promise.<Array.<BlockJSON>>`
+### `getBlockRange(params) ► Promise.<Array.<BlockJSON>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1383,8 +1405,9 @@ Returns a range of blocks between the specified block heights. A maximum of 50 b
 
 Parameters | Type | Description
 --- | --- | ---
-__start__ | `number` | *Starting block to fetch.*
-__end__ | `number` | *Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.*
+__params__ | `Object` | **
+__params.start__ | `number` | *Starting block to fetch.*
+__params.end__ | `number` | *Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.*
 __*return*__ | `Promise.<Array.<BlockJSON>>` | *An array of block objects*
 
 #### Examples
@@ -1394,7 +1417,7 @@ import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Fetch 50 blocks.
 const (start, end) = (2050, 2100);
-const blockRange = networkClient.getBlockRange(start, end);
+const blockRange = networkClient.getBlockRange({ start, end });
 
 let cursor = start;
 blockRange.forEach((block) => {
@@ -1908,7 +1931,10 @@ import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the balance of an account from either an address object or address string.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 const publicBalance = await networkClient.getPublicBalance(account.address());
 const publicBalanceFromString = await networkClient.getPublicBalance(account.address().to_string());
 assert(publicBalance === publicBalanceFromString);
@@ -2178,7 +2204,10 @@ const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provabl
 const programManager = new ProgramManager(networkClient);
 
 // Set the account for the program manager.
-programManager.setAccount(Account.fromCiphertext(process.env.ciphertext, process.env.password));
+programManager.setAccount(Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+}));
 
 // Build a transfer transaction.
 const tx = await programManager.buildTransferPublicTransaction({
