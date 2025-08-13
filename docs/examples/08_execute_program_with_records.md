@@ -1,4 +1,4 @@
-The following template demonstrates how to create an execution using saved proving keys for transactions that either mint or consumer records. 
+The following template demonstrates how to create an execution using saved proving keys for transactions that either mint or consume records. 
 
 ```typescript
 import { Account, ProgramManager, ProvingKey, VerifyingKey, initThreadPool, OfflineKeyProvider} from '@provable.sdk';
