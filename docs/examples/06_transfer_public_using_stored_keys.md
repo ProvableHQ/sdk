@@ -30,11 +30,8 @@ const [transferPublicProvingKey, transferPublicVerifyingKey] = await loadFunctio
 // Create an offline Key provider
 const keyProvider = new OfflineKeyProvider();
 
-// Store it in the cache under a key name of your choice
-keyProvider.insertTransferPublicKeys(transferPublicProvingKey);
-keyProvider.insertFeePublicKeys(feeProvingKey);
 
-// Create an execution transaction
+// Store the proving keys in the offline key provider.
 offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
 offlineKeyProvider.insertFeePublicKeys(feeProvingKey);
 
