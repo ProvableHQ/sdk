@@ -1,4 +1,5 @@
-This example demonstrates how to execute transfer_private using locally saved proving and verifying keys.
+The following template demonstrates how to create an execution using saved proving keys for transactions that either mint or consumer records. 
+
 ```typescript
 import { Account, ProgramManager, ProvingKey, VerifyingKey, initThreadPool, OfflineKeyProvider} from '@provable.sdk';
 
@@ -13,26 +14,23 @@ async function loadFunctionKeyPair(proverPath, verifierPath) {
     return [provingKey, verifyingKey];
 }
 
-// Download the inclusion proving and verifying keys.
+// Load the inclusion proving and verifying keys.
 const [inclusionProver, inclusionVerifier] = await loadFunctionKeyPair(
     "./keys/inclusion.prover",
     "./keys/inclusion.verifier"
 );
 
-// Download the transfer_private proving and verifying keys.
-const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await loadFunctionKeyPair(
-    "./keys/transfer_private.prover",
-    "./keys/transfer_private.verifier"
-);
-
-// Download the fee_private proving and verifying keys.
+// Load the fee public proving and verifying keys.
 const [feeProvingKey, feeVerifyingKey] = await loadFunctionKeyPair(
-    "./keys/fee_private.prover",
-    "./keys/fee_private.verifier"
+    "./keys/fee_public.prover",
+    "./keys/fee_public.verifier"
 );
 
-// Initialize multi-threading to allow WASM execution.
-await initThreadPoool();
+// Load the proving and verifying keys associate with the transition method.
+const [transitionProvingKey, transitionVerifyingKey] = await loadFunctionKeyPair(
+    "./keys/transition.prover",
+    "./keys/transition.verifier"
+);
 
 // Create a new Account, Program Manager, NetworkClient, KeyProvider, and RecordProvider.
 const account = new Account();
@@ -41,10 +39,16 @@ const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v
 const offlineKeyProvider = new OfflineKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
-// Add the keys for fee_private, transfer_private, and the inclusion circuit to the key provider.
-offlineKeyProvider.insertFeePrivateKeys(feeProvingKey)
-offlineKeyProvider.insertTransferPrivateKeys(transferPrivateProvingKey)
+// Add the keys for fee_public and the inclusion circuit to the key provider.
+offlineKeyProvider.insertFeePublicKeys(feeProvingKey)
 offlineKeyProvider.insertInclusionKeys(inclusionProver);
+
+// Cache the proving key for the transition method.
+// Replace "program_name" and "transition_name" with the your program and transition method.
+OfflineKeyProvider.cacheKeys("program_name.aleo/transition_name", transitionProvingKey, transitionerifyingKey);
+
+// Create an offline search params object.
+const offlineSearchParams = new OfflineSearchParams("program_name.aleo/transition_name");
 
 // Create an offline query using the latest state root for the inclusion proof.
 const offlineQuery = new OfflineQuery("latestStateRoot");
@@ -55,17 +59,14 @@ programManager.setAccount(account);
 
 // Build the execution.
 const offlineExecuteTx = await programManager.buildExecutionTransaction(
-    programName: "credits.aleo",
-    functionName: "transfer_private",
+    programName: "program_name.aleo",
+    functionName: "transition_method",
     priorityFee: 0.0,
-    privateFee: true,
-    inputs: 5u32,
+    privateFee: false,
+    inputs: 5u32, // replace with whatever input(s) your transition method requires
+    offlineSearchParams,
     offlineQuery
     );
 
 // Broadcast the transaction to the network
  const txId = await networkClient.broadcastTransaction(offlineExecuteTx);
-
-
-
-
