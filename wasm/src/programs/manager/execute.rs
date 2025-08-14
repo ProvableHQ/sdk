@@ -27,6 +27,7 @@ use crate::{
     execute_program,
     log,
     process_inputs,
+    programs::SnapshotQuery,
     types::native::{
         CurrentAleo,
         CurrentNetwork,
@@ -113,7 +114,7 @@ impl ProgramManager {
             if let Some(offline_query) = offline_query {
                 trace.prepare_async(&offline_query).await.map_err(|err| err.to_string())?;
             } else {
-                let query = QueryNative::from(node_url);
+                let query = SnapshotQuery::from(node_url);
                 trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
             }
 
