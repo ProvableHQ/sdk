@@ -39,14 +39,23 @@ use crate::{
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_console::network::{ConsensusVersion, Network};
+use snarkvm_console::{
+    network::{ConsensusVersion},
+    types::Field,
+};
 use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::prelude::{InclusionVersion, cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
+use snarkvm_synthesizer::prelude::{
+    InclusionVersion,
+    cost_in_microcredits_v1,
+    execution_cost_v1,
+    execution_cost_v2,
+};
 
 use core::ops::Add;
 use js_sys::{Array, Object};
 use rand::{SeedableRng, rngs::StdRng};
 use std::str::FromStr;
+
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -112,11 +121,22 @@ impl ProgramManager {
         let mut execution_response = if prove_execution {
             log("Preparing inclusion proofs for execution");
             if let Some(offline_query) = offline_query {
-                trace.prepare_async(&offline_query).await.map_err(|err| err.to_string())?;
+                trace.prepare_async(&offline_query).await.map_err(|e| e.to_string())?;
             } else {
-                let query = SnapshotQuery::from(node_url);
-                trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+                // NEW: try snapshot query, fallback to QueryNative (TODO, for now)
+                let commitments = snapshot_helpers::collect_commitments_from_trace(&trace)?;
+                match snapshot_helpers::build_snapshot_query(node_url, &commitments).await {
+                    Ok(snapshot_query) => {
+                        trace.prepare_async(&snapshot_query).await.map_err(|e| e.to_string())?;
+                    }
+                    Err(_e) => {
+                        // TODO: remove this fallback once snapshot builder is implemented
+                        let query = QueryNative::from(node_url);
+                        trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+                    }
+                }
             }
+
 
             log("Proving execution");
             let locator = program_native.id().to_string().add("/").add(function);
@@ -203,9 +223,19 @@ impl ProgramManager {
         if let Some(offline_query) = offline_query.as_ref() {
             trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
         } else {
-            let query = QueryNative::from(node_url);
-            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+            // NEW: try snapshot query, fallback to QueryNative (TODO, for now)
+            let commitments = snapshot_helpers::collect_commitments_from_trace(&trace)?;
+            match snapshot_helpers::build_snapshot_query(node_url, &commitments).await {
+                Ok(snapshot_query) => {
+                    trace.prepare_async(&snapshot_query).await.map_err(|e| e.to_string())?;
+                }
+                Err(_e) => {
+                    let query = QueryNative::from(node_url);
+                    trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+                }
+            }
         }
+
 
         log("Proving execution");
         let locator = program_native.id().to_string().add("/").add(function);
@@ -326,11 +356,23 @@ impl ProgramManager {
             trace.prepare_async(&offline_query).await.map_err(|err| err.to_string())?;
             block_height
         } else {
-            let query = QueryNative::from(node_url);
-            let block_height = query.current_block_height_async().await.map_err(|e| e.to_string())?;
-            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-            block_height
+            // try snapshot query, fallback to QueryNative (TODO, for now)
+            let commitments = snapshot_helpers::collect_commitments_from_trace(&trace)?;
+            match snapshot_helpers::build_snapshot_query(node_url, &commitments).await {
+                Ok(snapshot_query) => {
+                    let bh = snapshot_query.current_block_height().map_err(|e| e.to_string())?;
+                    trace.prepare_async(&snapshot_query).await.map_err(|e| e.to_string())?;
+                    bh
+                }
+                Err(_e) => {
+                    let query = QueryNative::from(node_url);
+                    let bh = query.current_block_height_async().await.map_err(|e| e.to_string())?;
+                    trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+                    bh
+                }
+            }
         };
+
         let execution =
             trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
 
@@ -386,6 +428,51 @@ impl ProgramManager {
         let stack = process.get_stack(program.id()).map_err(|e| e.to_string())?;
 
         cost_in_microcredits_v2(&stack, &function_id).map_err(|e| e.to_string())
+    }
+}
+
+mod snapshot_helpers {
+    use super::*;
+    type StateRootNative = <CurrentNetwork as snarkvm_console::network::Network>::StateRoot;
+
+    pub fn collect_commitments_from_trace<T>(
+        _trace: &T,
+    ) -> Result<Vec<Field<CurrentNetwork>>, String> {
+        Ok(vec![])
+    }
+
+    pub async fn build_snapshot_query(
+        node_url: &str,
+        commitments: &[Field<CurrentNetwork>],
+    ) -> Result<SnapshotQuery, String> {
+        let (state_root, block_height) = snapshot_head(node_url).await?;
+        let mut query = SnapshotQuery::new(block_height, &state_root_to_string(state_root))?;
+
+        for c in commitments {
+            let c_str = c.to_string();
+            let sp_str = fetch_state_path_at_root(node_url, &c_str, &state_root_to_string(state_root)).await?;
+            query.add_state_path(&c_str, &sp_str)?;
+        }
+        Ok(query)
+    }
+
+    // Prefer an API that returns both in one call; otherwise fetch root then height immediately.
+    async fn snapshot_head(node_url: &str) -> Result<(StateRootNative, u32), String> {
+        // TODO: call existing client / REST: (root, height)
+        Err("snapshot_head() not implemented".into())
+    }
+
+    async fn fetch_state_path_at_root(
+        node_url: &str,
+        commitment: &str,
+        state_root: &str,
+    ) -> Result<String, String> {
+        // TODO: call endpoint that returns a StatePath string for (commitment, state_root)
+        Err("fetch_state_path_at_root() not implemented".into())
+    }
+
+    fn state_root_to_string(root: StateRootNative) -> String {
+        root.to_string()
     }
 }
 
