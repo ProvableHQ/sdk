@@ -6,7 +6,9 @@ import {
     CREDITS_PROGRAM_KEYS,
     ProvingKey,       // these are WASM-backed types
     VerifyingKey,
-} from "@provablehq/sdk
+} from "@provablehq/sdk";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 const keyProvider = new AleoKeyProvider();
 
@@ -20,7 +22,7 @@ const [incPk, incVk] = await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.i
 // For a transition method in any deployed Aleo program, use the following pattern to fetch the proving and verifying 
 // keys associated with that transition.
 const keySearchParams = { "cacheKey": "myProgram:myFunction" };
-const [transition_Pk, transition_vK] = await keyProvider.functionKeys(searchParams);
+const [transition_Pk, transition_Vk] = await keyProvider.functionKeys(keySearchParams);
 
 // You can use this method for saving the keys to disc.
 async function writeKeyToFile(key, filePath) {
@@ -43,4 +45,5 @@ await writeKeyToFile(incVk, path.join(keyDir, "inclusion.verifier"));
 
 await writeKeyToFile(transition_Pk, path.join(keyDir, "transition.prover"));
 await writeKeyToFile(transition_Vk, path.join(keyDir, "transition.verifier"));
+
 

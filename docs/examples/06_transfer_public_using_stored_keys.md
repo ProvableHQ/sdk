@@ -36,7 +36,7 @@ offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
 offlineKeyProvider.insertFeePublicKeys(feeProvingKey);
 
 // Create program manager using the OfflineKeyProvider and NetworkProvider.
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", offlineKeyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", offlineKeyProvider);
 // Set the account as the program caller.
 programManager.setAccount(account);
 
