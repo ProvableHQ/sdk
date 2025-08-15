@@ -1,31 +1,23 @@
 This example demonstrates how to execute public_transfer using locally saved proving and verifying keys.
 ```typescript
-import { Account, ProgramManager, ProvingKey, VerifyingKey, initThreadPool, OfflineKeyProvider} from '@provable.sdk';
+import { Account, ProgramManager, ProvingKey, VerifyingKey, initThreadPool, OfflineKeyProvider} from '@provablehq/sdk';
+import fs from "node:fs/promises";
+
+// Helper method to load the keys from storage.
+async function loadFunctionKeyPair(proverPath) {
+    const proverBytes = await fs.readFile(proverPath);
+
+    const provingKey = ProvingKey.fromBytes(new Uint8Array(proverBytes));
+
+    return provingKey;
+}
 
 // Initialize multi-threading to allow WASM execution.
 await initThreadPoool();
 
-// Helper method to load the keys from storage.
-async function loadFunctionKeyPair(proverPath, verifierPath) {
-    const proverBytes = await fs.readFile(proverPath);
-    const verifierBytes = await fs.readFile(verifierPath);
-
-    const provingKey = ProvingKey.fromBytes(new Uint8Array(proverBytes));
-    const verifyingKey = VerifyingKey.fromBytes(new Uint8Array(verifierBytes));
-
-    return [provingKey, verifyingKey];
-}
-
 // Load the proving and verifying keys for public_transfer and fee_public from local storage.
-const [feeProvingKey, feeVerifyingKey] = await loadFunctionKeyPair(
-    "./keys/fee_public.prover",
-    "./keys/fee_public.verifier"
-);
-
-const [transferPublicProvingKey, transferPublicVerifyingKey] = await loadFunctionKeyPair(
-    "./keys/transfer_public.prover",
-    "./keys/transfer_public.verifier"
-);
+const feeProvingKey = await loadFunctionKeyPair("./keys/fee_public.prover");
+const transferPublicProvingKey = await loadFunctionKeyPair("./keys/transfer_public.prover");
 
 // Create an offline Key provider
 const keyProvider = new OfflineKeyProvider();
@@ -37,6 +29,10 @@ offlineKeyProvider.insertFeePublicKeys(feeProvingKey);
 
 // Create program manager using the OfflineKeyProvider and NetworkProvider.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", offlineKeyProvider);
+
+// Create or import an account.
+const account = new Account();
+
 // Set the account as the program caller.
 programManager.setAccount(account);
 
