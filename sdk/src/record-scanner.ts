@@ -1,30 +1,38 @@
 import { Account } from "./account";
 import { EncryptedRecord, OwnedRecord, RecordProvider, RecordSearchParams, RecordsResponseFilter } from "./record-provider";
 import { RecordPlaintext } from "./wasm";
+import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
+import { RecordsFilter } from "./models/record-scanner/recordsFilter";
+import { OwnedFilter } from "./models/record-scanner/ownedFilter";
 
-type RegistrationRequest = {
-    viewKey: string;
-    start: number;
-}
-
-interface RecordsFilter extends RecordSearchParams {
-    start: number;
-    end?: number;
-    program?: string;
-    record?: string;
-    function?: string;
-}
-
-interface OwnedFilter extends RecordSearchParams {
-    decrypt?: boolean;
-    filter?: RecordsFilter;
-    responseFilter?: RecordsResponseFilter;
-}
-
-interface OwnedFilterWithUuid extends OwnedFilter {
-    uuid: string;
-}
-
+/**
+ * RecordScanner is a RecordProvider implementation that uses the record scanner service to find records.
+ * 
+ * @example
+ * const account = new Account({ privateKey: 'APrivateKey1...' });
+ * 
+ * const recordScanner = new RecordScanner("https://record-scanner.aleo.org");
+ * recordScanner.setAccount(account);
+ * await recordScanner.register(0);
+ * 
+ * const filter = {
+ *     start: 0,
+ *     end: 100,
+ *     program: "credits.aleo",
+ *     record: "credits",
+ * };
+ * 
+ * const responseFilter = {
+ *     program: true,
+ *     record: true,
+ *     function: true,
+ *     transition: true,
+ *     blockHeight: true,
+ *     transactionId: true,
+ * };
+ * 
+ * const records = await recordScanner.findRecords({ filter, responseFilter });
+ */
 class RecordScanner implements RecordProvider {
     readonly url: string;
     private account?: Account;
@@ -35,10 +43,21 @@ class RecordScanner implements RecordProvider {
         this.url = url;
     }
     
+    /**
+     * Set the account to use for the record scanner.
+     * 
+     * @param {Account} account The account to use for the record scanner.
+     */
     async setAccount(account: Account): Promise<void> {
+        this.uuid = undefined;
         this.account = account;
     }
 
+    /**
+     * Register the account with the record scanner service.
+     * 
+     * @param {number} startBlock The block height to start scanning from.
+     */
     async register(startBlock: number): Promise<void> {
         let request: RegistrationRequest;
         if (!this.account) {
@@ -67,7 +86,14 @@ class RecordScanner implements RecordProvider {
         }
     }
 
-    async getEncryptedRecords(recordsFilter: RecordsFilter, responseFilter: RecordsResponseFilter): Promise<EncryptedRecord[]> {
+    /**
+     * Get encrypted records from the record scanner service.
+     * 
+     * @param {RecordsFilter} recordsFilter The filter to use to find the records
+     * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response
+     * @returns {Promise<EncryptedRecord[]>} The encrypted records
+     */
+    async encryptedRecords(recordsFilter: RecordsFilter, responseFilter: RecordsResponseFilter): Promise<EncryptedRecord[]> {
         try {
             const response = await this.recordScannerServiceRequest(
                 new Request(`${this.url}/records/encrypted?${this.buildQueryString(recordsFilter, responseFilter)}`, {
@@ -84,7 +110,13 @@ class RecordScanner implements RecordProvider {
         }
     }
 
-    async serialNumbersExist(serialNumbers: string[]): Promise<Record<string, boolean>> {
+    /**
+     * Check if a list of serial numbers exist in the record scanner service.
+     * 
+     * @param {string[]} serialNumbers The serial numbers to check
+     * @returns {Promise<Record<string, boolean>>} A record of serial numbers and whether they exist
+     */
+    async checkSerialNumbers(serialNumbers: string[]): Promise<Record<string, boolean>> {
         try {
             const response = await this.recordScannerServiceRequest(
                 new Request(`${this.url}/records/sns`, {
@@ -101,7 +133,13 @@ class RecordScanner implements RecordProvider {
         }
     }
 
-    async tagsExist(tags: string[]): Promise<Record<string, boolean>> {
+    /**
+     * Check if a list of tags exist in the record scanner service.
+     * 
+     * @param {string[]} tags The tags to check
+     * @returns {Promise<Record<string, boolean>>} A record of tags and whether they exist
+     */
+    async checkTags(tags: string[]): Promise<Record<string, boolean>> {
         try {
             const response = await this.recordScannerServiceRequest(
                 new Request(`${this.url}/records/tags`, {
@@ -118,9 +156,15 @@ class RecordScanner implements RecordProvider {
         }
     }
 
-    async findRecord(searchParameters: OwnedFilter, filterFn?: (record: RecordPlaintext) => boolean): Promise<OwnedRecord> {
+    /**
+     * Find a record in the record scanner service.
+     * 
+     * @param {OwnedFilter} searchParameters The filter to use to find the record
+     * @returns {Promise<OwnedRecord>} The record
+     */
+    async findRecord(searchParameters: OwnedFilter): Promise<OwnedRecord> {
         try {
-            const records = await this.findRecords(searchParameters, filterFn);
+            const records = await this.findRecords(searchParameters);
 
             if (records.length > 0) {
                 return records[0];
@@ -133,34 +177,43 @@ class RecordScanner implements RecordProvider {
         }
     }
 
-    async findRecords(searchParameters: OwnedFilter, filterFn?: (record: RecordPlaintext) => boolean): Promise<OwnedRecord[]> {
+    /**
+     * Find records in the record scanner service.
+     * 
+     * @param {OwnedFilter} filter The filter to use to find the records
+     * @returns {Promise<OwnedRecord[]>} The records
+     */
+    async findRecords(filter: OwnedFilter): Promise<OwnedRecord[]> {
         if (!this.uuid) {
             throw new Error("Not registered");
         }
 
-        const filterWithUuid: OwnedFilterWithUuid = {
-            ...searchParameters,
-            uuid: this.uuid,
-        };
+        filter.uuid = this.uuid;
 
         try {
             const response = await this.recordScannerServiceRequest(
                 new Request(`${this.url}/records/owned`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(filterWithUuid),
+                    body: JSON.stringify(filter),
                 }),
             );
 
-            const records = await response.json();
-            return filterFn ? records.filter(filterFn) : records;
+            return await response.json();
         } catch (error) {
             console.error(`Failed to get owned records: ${error}`);
             throw error;
         }
     }
 
-    async findCreditsRecord(microcredits: number, searchParameters: OwnedFilter, nonces?: string[]): Promise<OwnedRecord> {
+    /**
+     * Find a credits record in the record scanner service.
+     * 
+     * @param {number} microcredits The amount of microcredits to find
+     * @param {OwnedFilter} searchParameters The filter to use to find the record
+     * @returns {Promise<OwnedRecord>} The record
+     */
+    async findCreditsRecord(microcredits: number, searchParameters: OwnedFilter): Promise<OwnedRecord> {
         try {
             const records = await this.findRecords({
                 ...searchParameters,
@@ -171,8 +224,9 @@ class RecordScanner implements RecordProvider {
 
             const record = records.find(record => {
                 const plaintext = RecordPlaintext.fromString(record.recordPlaintext);
-                const amount = plaintext.getMember("microcredits").toString();
-                return amount === `${microcredits}u64`;
+                const amountStr = plaintext.getMember("microcredits").toString();
+                const amount = parseInt(amountStr.replace("u64", ""));
+                return amount >= microcredits;
             });
 
             if (!record) {
@@ -186,7 +240,14 @@ class RecordScanner implements RecordProvider {
         }
     }
 
-    async findCreditsRecords(microcreditAmounts: number[], searchParameters: OwnedFilter, nonces?: string[]): Promise<OwnedRecord[]> {
+    /**
+     * Find credits records in the record scanner service.
+     * 
+     * @param {number[]} microcreditAmounts The amounts of microcredits to find
+     * @param {OwnedFilter} searchParameters The filter to use to find the records
+     * @returns {Promise<OwnedRecord[]>} The records
+     */
+    async findCreditsRecords(microcreditAmounts: number[], searchParameters: OwnedFilter): Promise<OwnedRecord[]> {
         try {
             const records = await this.findRecords({
                 ...searchParameters,
@@ -205,7 +266,12 @@ class RecordScanner implements RecordProvider {
         }
     }
 
-
+    /**
+     * Wrapper function to make a request to the record scanner service and handle any errors
+     * 
+     * @param {Request} req The request to make
+     * @returns {Promise<Response>} The response
+     */
     private async recordScannerServiceRequest(req: Request): Promise<Response> {
         try {
             const response = await fetch(req);
@@ -221,6 +287,13 @@ class RecordScanner implements RecordProvider {
         }
     }
 
+    /**
+     * Helper function to build a query string from the records filter and response filter.
+     * 
+     * @param {RecordSearchParams} recordsFilter The filter to use to find the records
+     * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response
+     * @returns {string} The query string
+     */
     private buildQueryString(recordsFilter: RecordSearchParams, responseFilter: RecordsResponseFilter): string {
         return Object.entries({ ...recordsFilter, ...responseFilter })
             .map(([key, value]) => `${key}=${value}`)
