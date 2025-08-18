@@ -1,10 +1,10 @@
-import { logAndThrow } from "./utils.js";
 import { Account } from "./account.js";
 import { AleoNetworkClient } from "./network-client.js";
-import { RecordsResponseFilter } from "./models/record-provider/recordsResponseFilter.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
+import { logAndThrow } from "./utils.js";
 import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
+import { RecordsResponseFilter } from "./models/record-provider/recordsResponseFilter.js";
 
 /**
  * Interface for a record provider. A record provider is used to find records for use in deployment and execution
@@ -14,36 +14,41 @@ import { RecordSearchParams } from "./models/record-provider/recordSearchParams.
  */
 interface RecordProvider {
     /**
-     * Find encrypted records from the chosen provider
+     * The account used to search for records.
+     */
+    account?: Account;
+
+    /**
+     * Find encrypted records from the chosen provider.
      *
-     * @param {RecordSearchParams} recordsFilter The filter to use to find the records
-     * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response
-     * @returns {Promise<EncryptedRecord[]>} The encrypted records
+     * @param {RecordSearchParams} recordsFilter The filter used to find the records.
+     * @param {RecordsResponseFilter} responseFilter The filter used to filter the response.
+     * @returns {Promise<EncryptedRecord[]>} The encrypted records.
     */
     encryptedRecords(recordsFilter: RecordSearchParams, responseFilter: RecordsResponseFilter): Promise<EncryptedRecord[]>;
 
     /**
      * Check if a list of serial numbers exist in the chosen provider
      *
-     * @param {string[]} serialNumbers The serial numbers to check
-     * @returns {Promise<Record<string, boolean>>} A record of serial numbers and whether they exist
+     * @param {string[]} serialNumbers The serial numbers to check.
+     * @returns {Promise<Record<string, boolean>>} Map of Aleo Record serial numbers and whether they appeared in any inputs on chain. If boolean corresponding to the Serial Number has a true value, that Record is considered spent by the Aleo Network.
      */
     checkSerialNumbers(serialNumbers: string[]): Promise<Record<string, boolean>>;
 
     /**
      * Check if a list of tags exist in the chosen provider
      *
-     * @param {string[]} tags The tags to check
-     * @returns {Promise<Record<string, boolean>>} A record of tags and whether they exist
+     * @param {string[]} tags The tags to check.
+     * @returns {Promise<Record<string, boolean>>} Map of Aleo Record tags and whether they appeared in any inputs on chain. If boolean corresponding to the tag has a true value, that Record is considered spent by the Aleo Network.
      */
     checkTags(tags: string[]): Promise<Record<string, boolean>>;
 
     /**
      * Find a credits.aleo record with a given number of microcredits from the chosen provider
      *
-     * @param {number} microcredits The number of microcredits to search for
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
-     * @returns {Promise<OwnedRecord>} The record if one is found
+     * @param {number} microcredits The number of microcredits to search for.
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for.
+     * @returns {Promise<OwnedRecord>} The record if one is found.
      *
      * @example
      * // A class implementing record provider can be used to find a record with a given number of microcredits
@@ -63,9 +68,9 @@ interface RecordProvider {
     /**
      * Find a list of credit.aleo records with a given number of microcredits from the chosen provider
      *
-     * @param {number[]} microcreditAmounts A list of separate microcredit amounts to search for (e.g. [5000, 100000])
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
-     * @returns {Promise<OwnedRecord[]>} A list of records with a value greater or equal to the amounts specified if such records exist, otherwise an error
+     * @param {number[]} microcreditAmounts A list of separate microcredit amounts to search for (e.g. [5000, 100000]).
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for.
+     * @returns {Promise<OwnedRecord[]>} A list of records with a value greater or equal to the amounts specified if such records exist, otherwise an error.
      *
      * @example
      * // A class implementing record provider can be used to find a record with a given number of microcredits
@@ -86,8 +91,8 @@ interface RecordProvider {
 
     /**
      * Find an arbitrary record
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
-     * @returns {Promise<OwnedRecord>} The record if found, otherwise an error
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for.
+     * @returns {Promise<OwnedRecord>} The record if found, otherwise an error.
      *
      * @example
      * // The RecordSearchParams interface can be used to create parameters for custom record searches which can then
@@ -131,8 +136,8 @@ interface RecordProvider {
     /**
      * Find multiple records from arbitrary programs
      *
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
-     * @returns {Promise<OwnedRecord[]>} The records if found, otherwise an error
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for.
+     * @returns {Promise<OwnedRecord[]>} The records if found, otherwise an error.
      *
      * @example
      * // The RecordSearchParams interface can be used to create parameters for custom record searches which can then
@@ -188,7 +193,7 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Set the account used to search for records
      *
-     * @param {Account} account The account to use for searching for records
+     * @param {Account} account The account used to use for searching for records.
      */
     setAccount(account: Account) {
         this.account = account;
@@ -197,9 +202,9 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find a list of credit records with a given number of microcredits by via the official Aleo API
      *
-     * @param {number[]} microcredits The number of microcredits to search for
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
-     * @returns {Promise<OwnedRecord[]>} The records if found, otherwise an error
+     * @param {number[]} microcredits The number of microcredits to search for.
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for.
+     * @returns {Promise<OwnedRecord[]>} The records if found, otherwise an error.
      *
      * @example
      * // Create a new NetworkRecordProvider
@@ -268,9 +273,9 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find a credit record with a given number of microcredits by via the official Aleo API
      *
-     * @param {number} microcredits The number of microcredits to search for
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
-     * @returns {Promise<OwnedRecord>} The record if found, otherwise an error
+     * @param {number} microcredits The number of microcredits to search for.
+     * @param {RecordSearchParams} searchParameters Additional parameters to search for.
+     * @returns {Promise<OwnedRecord>} The record if found, otherwise an error.
      *
      * @example
      * // Create a new NetworkRecordProvider
@@ -363,13 +368,13 @@ class NetworkRecordProvider implements RecordProvider {
             }
         }
 
-        // If the end height is not specified, use the current block height
+        // If the end height is not specified, use the current block height.
         if (endHeight == 0) {
             const end = await this.networkClient.getLatestHeight();
             endHeight = end;
         }
 
-        // If the start height is greater than the end height, throw an error
+        // If the start height is greater than the end height, throw an error.
         if (startHeight >= endHeight) {
             logAndThrow("Start height must be less than end height");
         }
@@ -425,11 +430,8 @@ class BlockHeightSearch implements RecordSearchParams {
     }
 }
 
-export { 
+export {
     BlockHeightSearch,
-    EncryptedRecord,
-    OwnedRecord,
+    NetworkRecordProvider,
     RecordProvider,
-    RecordSearchParams,
-    RecordsResponseFilter,
 };

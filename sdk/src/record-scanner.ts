@@ -1,9 +1,13 @@
 import { Account } from "./account";
-import { EncryptedRecord, OwnedRecord, RecordProvider, RecordSearchParams, RecordsResponseFilter } from "./record-provider";
-import { RecordPlaintext } from "./wasm";
-import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
-import { RecordsFilter } from "./models/record-scanner/recordsFilter";
+import { EncryptedRecord } from "./models/record-provider/encryptedRecord";
 import { OwnedFilter } from "./models/record-scanner/ownedFilter";
+import { OwnedRecord } from "./models/record-provider/ownedRecord";
+import { RecordProvider } from "./record-provider";
+import { RecordPlaintext } from "./wasm";
+import { RecordSearchParams } from "./models/record-provider/recordSearchParams";
+import { RecordsFilter } from "./models/record-scanner/recordsFilter";
+import { RecordsResponseFilter } from "./models/record-provider/recordsResponseFilter";
+import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
 
 /**
  * RecordScanner is a RecordProvider implementation that uses the record scanner service to find records.
@@ -34,8 +38,8 @@ import { OwnedFilter } from "./models/record-scanner/ownedFilter";
  * const records = await recordScanner.findRecords({ filter, responseFilter });
  */
 class RecordScanner implements RecordProvider {
+    account?: Account;
     readonly url: string;
-    private account?: Account;
     private uuid?: string;
 
     constructor(url: string, account?: Account) {
@@ -57,6 +61,7 @@ class RecordScanner implements RecordProvider {
      * Register the account with the record scanner service.
      * 
      * @param {number} startBlock The block height to start scanning from.
+     * @returns {Promise<void>} A promise that resolves when the account is registered.
      */
     async register(startBlock: number): Promise<void> {
         let request: RegistrationRequest;
@@ -70,7 +75,7 @@ class RecordScanner implements RecordProvider {
         }
 
         try {
-            const response = await this.recordScannerServiceRequest(
+            const response = await this.request(
                 new Request(`${this.url}/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -89,13 +94,13 @@ class RecordScanner implements RecordProvider {
     /**
      * Get encrypted records from the record scanner service.
      * 
-     * @param {RecordsFilter} recordsFilter The filter to use to find the records
-     * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response
-     * @returns {Promise<EncryptedRecord[]>} The encrypted records
+     * @param {RecordsFilter} recordsFilter The filter to use to find the records.
+     * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response.
+     * @returns {Promise<EncryptedRecord[]>} The encrypted records.
      */
     async encryptedRecords(recordsFilter: RecordsFilter, responseFilter: RecordsResponseFilter): Promise<EncryptedRecord[]> {
         try {
-            const response = await this.recordScannerServiceRequest(
+            const response = await this.request(
                 new Request(`${this.url}/records/encrypted?${this.buildQueryString(recordsFilter, responseFilter)}`, {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
@@ -113,12 +118,12 @@ class RecordScanner implements RecordProvider {
     /**
      * Check if a list of serial numbers exist in the record scanner service.
      * 
-     * @param {string[]} serialNumbers The serial numbers to check
-     * @returns {Promise<Record<string, boolean>>} A record of serial numbers and whether they exist
+     * @param {string[]} serialNumbers The serial numbers to check.
+     * @returns {Promise<Record<string, boolean>>} Map of Aleo Record serial numbers and whether they appeared in any inputs on chain. If boolean corresponding to the Serial Number has a true value, that Record is considered spent by the Aleo Network.
      */
     async checkSerialNumbers(serialNumbers: string[]): Promise<Record<string, boolean>> {
         try {
-            const response = await this.recordScannerServiceRequest(
+            const response = await this.request(
                 new Request(`${this.url}/records/sns`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -136,12 +141,12 @@ class RecordScanner implements RecordProvider {
     /**
      * Check if a list of tags exist in the record scanner service.
      * 
-     * @param {string[]} tags The tags to check
-     * @returns {Promise<Record<string, boolean>>} A record of tags and whether they exist
+     * @param {string[]} tags The tags to check.
+     * @returns {Promise<Record<string, boolean>>} Map of Aleo Record tags and whether they appeared in any inputs on chain. If boolean corresponding to the tag has a true value, that Record is considered spent by the Aleo Network.
      */
     async checkTags(tags: string[]): Promise<Record<string, boolean>> {
         try {
-            const response = await this.recordScannerServiceRequest(
+            const response = await this.request(
                 new Request(`${this.url}/records/tags`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -159,8 +164,8 @@ class RecordScanner implements RecordProvider {
     /**
      * Find a record in the record scanner service.
      * 
-     * @param {OwnedFilter} searchParameters The filter to use to find the record
-     * @returns {Promise<OwnedRecord>} The record
+     * @param {OwnedFilter} searchParameters The filter to use to find the record.
+     * @returns {Promise<OwnedRecord>} The record.
      */
     async findRecord(searchParameters: OwnedFilter): Promise<OwnedRecord> {
         try {
@@ -180,8 +185,8 @@ class RecordScanner implements RecordProvider {
     /**
      * Find records in the record scanner service.
      * 
-     * @param {OwnedFilter} filter The filter to use to find the records
-     * @returns {Promise<OwnedRecord[]>} The records
+     * @param {OwnedFilter} filter The filter to use to find the records.
+     * @returns {Promise<OwnedRecord[]>} The records.
      */
     async findRecords(filter: OwnedFilter): Promise<OwnedRecord[]> {
         if (!this.uuid) {
@@ -191,7 +196,7 @@ class RecordScanner implements RecordProvider {
         filter.uuid = this.uuid;
 
         try {
-            const response = await this.recordScannerServiceRequest(
+            const response = await this.request(
                 new Request(`${this.url}/records/owned`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -209,9 +214,9 @@ class RecordScanner implements RecordProvider {
     /**
      * Find a credits record in the record scanner service.
      * 
-     * @param {number} microcredits The amount of microcredits to find
-     * @param {OwnedFilter} searchParameters The filter to use to find the record
-     * @returns {Promise<OwnedRecord>} The record
+     * @param {number} microcredits The amount of microcredits to find.
+     * @param {OwnedFilter} searchParameters The filter to use to find the record.
+     * @returns {Promise<OwnedRecord>} The record.
      */
     async findCreditsRecord(microcredits: number, searchParameters: OwnedFilter): Promise<OwnedRecord> {
         try {
@@ -241,10 +246,10 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
-     * Find credits records in the record scanner service.
+     * Find credits records using a record scanning service.
      * 
-     * @param {number[]} microcreditAmounts The amounts of microcredits to find
-     * @param {OwnedFilter} searchParameters The filter to use to find the records
+     * @param {number[]} microcreditAmounts The amounts of microcredits to find.
+     * @param {OwnedFilter} searchParameters The filter to use to find the records.
      * @returns {Promise<OwnedRecord[]>} The records
      */
     async findCreditsRecords(microcreditAmounts: number[], searchParameters: OwnedFilter): Promise<OwnedRecord[]> {
@@ -267,12 +272,12 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
-     * Wrapper function to make a request to the record scanner service and handle any errors
+     * Wrapper function to make a request to the record scanner service and handle any errors.
      * 
-     * @param {Request} req The request to make
-     * @returns {Promise<Response>} The response
+     * @param {Request} req The request to make.
+     * @returns {Promise<Response>} The response.
      */
-    private async recordScannerServiceRequest(req: Request): Promise<Response> {
+    private async request(req: Request): Promise<Response> {
         try {
             const response = await fetch(req);
     
@@ -290,9 +295,9 @@ class RecordScanner implements RecordProvider {
     /**
      * Helper function to build a query string from the records filter and response filter.
      * 
-     * @param {RecordSearchParams} recordsFilter The filter to use to find the records
-     * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response
-     * @returns {string} The query string
+     * @param {RecordSearchParams} recordsFilter The filter to use to find the records.
+     * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response.
+     * @returns {string} The query string.
      */
     private buildQueryString(recordsFilter: RecordSearchParams, responseFilter: RecordsResponseFilter): string {
         return Object.entries({ ...recordsFilter, ...responseFilter })

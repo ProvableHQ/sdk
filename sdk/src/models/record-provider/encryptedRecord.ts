@@ -1,3 +1,24 @@
+/**
+ * EncryptedRecord is a type that represents information about an encrypted record.
+ * 
+ * @example
+ * const encryptedRecord: EncryptedRecord = {
+ *     commitment: "...",
+ *     checksum: "...",
+ *     blockHeight: 123456,
+ *     programName: "...",
+ *     functionName: "...",
+ *     outputIndex: 0,
+ *     owner: "...",
+ *     recordCiphertext: "...",
+ *     recordName: "...",
+ *     recordNonce: "...",
+ *     transactionId: "...",
+ *     transitionId: "...",
+ *     transactionIndex: 0,
+ *     transitionIndex: 0,
+ * }
+ */
 export type EncryptedRecord = {
     commitment: string;
     checksum?: string;
