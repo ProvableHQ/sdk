@@ -63,23 +63,23 @@ impl SnapshotQuery {
     ///
     /// Steps:
     /// 1) Parse JS inputs, detect record plaintexts (heuristic: contains "_nonce"),
-    ///    and compute their commitments via `to_commitment(program_id, record_name, view_key_field)`
+    ///    and compute their commitments via `to_commitment(program_id, record_name, view_key)`
     /// 2) Take a snapshot `(state_root, block_height)`.
     /// 3) Fetch all state paths **concurrently** for those commitments (anchored to that snapshot).
     /// 4) Return a populated `SnapshotQuery`.
     ///
     /// Notes:
     /// - `record_name` must be the concrete name expected by the function (e.g. "credits").
-    /// - `view_key_field` is the sender's record view key as a `Field<Network>`.
+    /// - `view_key` is the sender's record view key as a `Field<Network>`.
     pub async fn try_from_inputs(
         node_url: &str,
         program_id: &ProgramID<CurrentNetwork>,
         record_name: &Identifier<CurrentNetwork>,
-        view_key_field: Field<CurrentNetwork>,
+        view_key: Field<CurrentNetwork>,
         js_inputs: &[JsValue],
     ) -> Result<Self> {
         // 1) Extract commitments from inputs.
-        let commitments = collect_commitments_from_inputs(program_id, record_name, view_key_field, js_inputs)?;
+        let commitments = collect_commitments_from_inputs(program_id, record_name, view_key, js_inputs)?;
 
         // Fast path: if there are no record inputs, still pin a snapshot (height + root) for consistency.
         let (snap_root, snap_height) = snapshot_head(node_url).await?;
@@ -163,7 +163,7 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
 fn collect_commitments_from_inputs(
     program_id: &ProgramIDNative,
     record_name: &IdentifierNative,
-    view_key_field: Field<CurrentNetwork>,
+    view_key: Field<CurrentNetwork>,
     js_inputs: &[JsValue],
 ) -> anyhow::Result<Vec<Field<CurrentNetwork>>> {
     let mut out = Vec::new();
@@ -176,7 +176,7 @@ fn collect_commitments_from_inputs(
             }
             // Try parse as a plaintext record. Skip if not a record.
             if let Ok(rec) = RecordPlaintextNative::from_str(&s) {
-                let cm = rec.to_commitment(program_id, record_name, &view_key_field);
+                let cm = rec.to_commitment(program_id, record_name, &view_key);
                 out.push(cm?);
             }
         }
