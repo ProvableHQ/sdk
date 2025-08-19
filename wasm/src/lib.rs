@@ -176,9 +176,9 @@ pub use types::{Field, Group, Scalar};
 mod thread_pool;
 
 mod utilities;
-pub use utilities::EncryptionToolkit;
 #[cfg(test)]
 pub use utilities::test;
+pub use utilities::{EncryptionToolkit, get, get_network, latest_block_height};
 
 #[cfg(test)]
 mod thread_pool {

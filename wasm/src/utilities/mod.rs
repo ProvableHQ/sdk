@@ -21,3 +21,6 @@ pub mod test;
 
 pub mod encrypt;
 pub use encrypt::EncryptionToolkit;
+
+pub mod network;
+pub use network::{get, get_network, latest_block_height};
