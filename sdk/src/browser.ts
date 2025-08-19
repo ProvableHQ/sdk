@@ -45,8 +45,10 @@ import {
     BlockHeightSearch,
     NetworkRecordProvider,
     RecordProvider,
-    RecordSearchParams,
 } from "./record-provider.js";
+import {
+    RecordSearchParams,
+} from "./models/record-provider/recordSearchParams.js";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {

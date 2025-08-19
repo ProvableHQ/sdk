@@ -261,12 +261,10 @@ class NetworkRecordProvider implements RecordProvider {
 
         const recordsPts = await this.networkClient.findRecords(startHeight, endHeight, searchParameters.unspent, ["credits.aleo"], microcredits, maxAmount, searchParameters.nonces, this.account.privateKey());
         return recordsPts.map((record) => ({
-            commitment: record.commitment().toString(),
-            owner: record.owner().toString(),
-            programName: 'credits.aleo',
-            recordName: 'credits',
-            recordPlaintext: record.to_string(),
-            tag: record.tag().toString(),
+                owner: record.owner().toString(),
+                programName: 'credits.aleo',
+                recordName: 'credits',
+                recordPlaintext: record.toString(),
         }));
     }
 
@@ -381,10 +379,7 @@ class NetworkRecordProvider implements RecordProvider {
 
         const recordPts = await this.networkClient.findRecords(startHeight, endHeight, searchParameters.unspent, programs, amounts, maxAmount, searchParameters.nonces, this.account.privateKey());
         return recordPts.map((record) => ({
-            commitment: record.commitment().toString(),
-            owner: record.owner().toString(),
-            programName: record.program().toString(),
-            recordName: record.name().toString(),
+            recordPlaintext: record.toString(),
         }));
     }
 
@@ -423,10 +418,10 @@ class BlockHeightSearch implements RecordSearchParams {
     startHeight: number;
     endHeight: number;
     unspent: boolean;
-    constructor(startHeight: number, endHeight: number, unspent: boolean) {
+    constructor(startHeight: number, endHeight: number, unspent?: boolean) {
         this.startHeight = startHeight;
         this.endHeight = endHeight;
-        this.unspent = unspent;
+        this.unspent = !!unspent;
     }
 }
 

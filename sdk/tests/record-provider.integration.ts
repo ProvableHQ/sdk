@@ -18,23 +18,25 @@ describe('RecordProvider', () => {
             try {
                 // Find two records with findCreditsRecords
                 const nonces: string[] = [];
-                const records = await recordProvider.findCreditsRecords([100, 200], true, []);
+                const records = await recordProvider.findCreditsRecords([100, 200], { unspent: true, nonces });
                 if (Array.isArray(records)) {
                     expect(records.length).equal(2);
                     records.forEach((record) => {
-                       nonces.push(record.nonce());
+                       let pt = new RecordPlaintext(record.recordPlaintext);
+                       nonces.push(pt.nonce());
                     });
                 } else {
                     expect(Array.isArray(records)).equal(true);
                 }
 
                 // Get another two records with findCreditsRecords and ensure they are unique
-                const records2 = await recordProvider.findCreditsRecords([100, 200], true, nonces);
+                const records2 = await recordProvider.findCreditsRecords([100, 200], { unspent: true, nonces });
                 if (Array.isArray(records2)) {
                     expect(records2.length).equal(2);
                     records2.forEach((record) => {
-                        expect(nonces.includes(record.nonce())).equal(false);
-                        nonces.push(record.nonce());
+                        let pt = new RecordPlaintext(record.recordPlaintext);
+                        expect(nonces.includes(pt.nonce())).equal(false);
+                        nonces.push(pt.nonce());
                     });
                 } else {
                     expect(Array.isArray(records2)).equal(true);

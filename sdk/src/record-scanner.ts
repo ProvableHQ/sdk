@@ -69,7 +69,7 @@ class RecordScanner implements RecordProvider {
             throw new Error("Account not set");
         } else {
             request = {
-                viewKey: this.account.viewKey(),
+                viewKey: this.account.viewKey().toString(),
                 start: startBlock,
             };
         }
@@ -228,7 +228,7 @@ class RecordScanner implements RecordProvider {
             });
 
             const record = records.find(record => {
-                const plaintext = RecordPlaintext.fromString(record.recordPlaintext);
+                const plaintext = RecordPlaintext.fromString(record.recordPlaintext ?? '');
                 const amountStr = plaintext.getMember("microcredits").toString();
                 const amount = parseInt(amountStr.replace("u64", ""));
                 return amount >= microcredits;
@@ -261,7 +261,7 @@ class RecordScanner implements RecordProvider {
                 decrypt: true,
             });
             return records.filter(record => {
-                const plaintext = RecordPlaintext.fromString(record.recordPlaintext);
+                const plaintext = RecordPlaintext.fromString(record.recordPlaintext ?? '');
                 const amount = plaintext.getMember("microcredits").toString();
                 return microcreditAmounts.includes(parseInt(amount.replace("u64", "")));
             });

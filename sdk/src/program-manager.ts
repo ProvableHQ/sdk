@@ -1,7 +1,8 @@
 import { Account } from "./account.js";
 import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client.js";
 import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports.js";
-import { RecordProvider, RecordSearchParams } from "./record-provider.js";
+import { RecordProvider } from "./record-provider.js";
+import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
 
 import {
     AleoKeyProvider,
@@ -35,6 +36,7 @@ import {
 } from "./constants.js";
 
 import { logAndThrow } from "./utils.js";
+import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 
 /**
  * Represents the options for executing a transaction in the Aleo network.
@@ -353,14 +355,12 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters
         try {
             feeRecord = privateFee
-                ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
+                ? RecordPlaintext.fromString((await this.getCreditsRecord(
                         priorityFee,
                         [],
                         feeRecord,
                         recordSearchParams,
-                    )
-                )
+                    )).recordPlaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -583,14 +583,12 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters
         try {
             feeRecord = privateFee
-                ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
+                ? RecordPlaintext.fromString((await this.getCreditsRecord(
                         priorityFee,
                         [],
                         feeRecord,
                         recordSearchParams,
-                    )
-                )
+                    )).recordPlaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -976,14 +974,12 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters.
         try {
             feeRecord = privateFee
-                ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
+                ? RecordPlaintext.fromString((await this.getCreditsRecord(
                         priorityFee,
                         [],
                         feeRecord,
                         recordSearchParams,
-                    )
-                )
+                    )).recordPlaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -1314,14 +1310,12 @@ class ProgramManager {
         // Get the fee record from the account if it is not provided in the parameters
         try {
             feeRecord = privateFee
-                ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
+                ? RecordPlaintext.fromString((await this.getCreditsRecord(
                         priorityFee,
                         [],
                         feeRecord,
                         recordSearchParams,
-                    )
-                )
+                    )).recordPlaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -1587,27 +1581,23 @@ class ProgramManager {
             const nonces: string[] = [];
             if (requiresAmountRecord(transferType)) {
                 // If the transfer type is private and requires an amount record, get it from the record provider
-                amountRecord = <RecordPlaintext>(
-                    await this.getCreditsRecord(
+                amountRecord = RecordPlaintext.fromString((await this.getCreditsRecord(
                         priorityFee,
                         [],
                         amountRecord,
                         recordSearchParams,
-                    )
-                );
+                    )).recordPlaintext?? '');
                 nonces.push(amountRecord.nonce());
             } else {
                 amountRecord = undefined;
             }
             feeRecord = privateFee
-                ? <RecordPlaintext>(
-                    await this.getCreditsRecord(
+                ? RecordPlaintext.fromString((await this.getCreditsRecord(
                         priorityFee,
                         nonces,
                         feeRecord,
                         recordSearchParams,
-                    )
-                )
+                    )).recordPlaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -2574,21 +2564,25 @@ class ProgramManager {
         nonces: string[],
         record?: RecordPlaintext | string,
         params?: RecordSearchParams,
-    ): Promise<RecordPlaintext> {
+    ): Promise<OwnedRecord> {
         try {
-            return record instanceof RecordPlaintext
-                ? record
-                : RecordPlaintext.fromString(<string>record);
+            // return record instanceof RecordPlaintext
+            //     ? record
+            //     : RecordPlaintext.fromString(<string>record);
+            if (record && record instanceof RecordPlaintext) {
+                record = record.toString();
+            }
+            return <OwnedRecord>({
+                recordPlaintext: record,
+                programName: 'credits.aleo',
+                recordName: 'credits',
+            })
         } catch (e) {
             try {
                 const recordProvider = <RecordProvider>this.recordProvider;
-                return <RecordPlaintext>(
-                    await recordProvider.findCreditsRecord(
-                        amount,
-                        true,
-                        nonces,
-                        params,
-                    )
+                return await recordProvider.findCreditsRecord(
+                    amount,
+                    { ...params, unspent: true, nonces }
                 );
             } catch (e: any) {
                 logAndThrow(
