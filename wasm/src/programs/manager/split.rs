@@ -82,7 +82,8 @@ impl ProgramManager {
             private_key,
             split_proving_key,
             split_verifying_key,
-            rng
+            rng,
+            1
         );
 
         log("Preparing the inclusion proof for the split execution");

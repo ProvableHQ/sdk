@@ -23,8 +23,7 @@ use crate::{
 use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Uniform, Zero};
 
 use js_sys::{Array, Uint8Array};
-use once_cell::sync::OnceCell;
-use std::{ops::Deref, str::FromStr};
+use std::{ops::Deref, str::FromStr, sync::OnceLock};
 use wasm_bindgen::prelude::*;
 
 /// Scalar field element.
@@ -79,7 +78,7 @@ impl Scalar {
     /// Create a plaintext element from a scalar element.
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {
-        Plaintext::from(PlaintextNative::Literal(LiteralNative::Scalar(self.0), OnceCell::new()))
+        Plaintext::from(PlaintextNative::Literal(LiteralNative::Scalar(self.0), OnceLock::new()))
     }
 
     /// Clone the scalar element.

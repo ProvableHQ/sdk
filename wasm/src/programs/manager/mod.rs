@@ -42,7 +42,7 @@ use crate::{
     },
 };
 use snarkvm_synthesizer::process::{cost_in_microcredits_v2, deployment_cost};
-use snarkvm_synthesizer_program::StackKeys;
+use snarkvm_synthesizer_program::StackTrait;
 
 use js_sys::{Object, Reflect};
 use std::str::FromStr;
@@ -67,6 +67,7 @@ impl ProgramManager {
         function_id: &str,
         inputs: js_sys::Array,
         imports: Option<Object>,
+        edition: Option<u16>,
     ) -> Result<KeyPair, String> {
         ProgramManager::execute_function_offline(
             private_key,
@@ -80,6 +81,7 @@ impl ProgramManager {
             None,
             None,
             None,
+            edition,
         )
         .await?
         .get_keys()

@@ -43,8 +43,7 @@ mod tests {
     use snarkvm_console::algorithms::{Commit, CommitUncompressed, Hash, HashUncompressed, ToBits};
 
     use js_sys::Array;
-    use once_cell::sync::OnceCell;
-    use std::str::FromStr;
+    use std::{str::FromStr, sync::OnceLock};
     use wasm_bindgen::JsValue;
     use wasm_bindgen_test::*;
 
@@ -201,7 +200,7 @@ mod tests {
             let commit_to_group_768 = bhp768.commit_to_group(literal_bits.clone(), scalar.clone()).unwrap();
             let commit_to_group_1024 = bhp1024.commit_to_group(literal_bits.clone(), scalar.clone()).unwrap();
 
-            let native_bits = PlaintextNative::Literal(native_literals[i].clone(), OnceCell::new()).to_bits_le();
+            let native_bits = PlaintextNative::Literal(native_literals[i].clone(), OnceLock::new()).to_bits_le();
 
             let native_hash_256 = native_bhp256.hash(&native_bits).unwrap();
             let native_hash_512 = native_bhp512.hash(&native_bits).unwrap();

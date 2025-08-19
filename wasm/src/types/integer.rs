@@ -18,7 +18,6 @@ use crate::{from_js_typed_array, to_bits_array_le, types::native::*};
 // use crate::types::{U8, U16, U32};
 use crate::Plaintext;
 use js_sys::{Array, Uint8Array};
-use once_cell::sync::OnceCell;
 use snarkvm_console::prelude::{
     AbsChecked,
     AbsWrapped,
@@ -175,7 +174,7 @@ macro_rules! impl_integer {
             /// Convert to plaintext.
             #[wasm_bindgen(js_name = "toPlaintext")]
             pub fn to_plaintext(&self) -> Plaintext {
-                Plaintext::from(PlaintextNative::Literal(LiteralNative::$name(self.0), OnceCell::new()))
+                Plaintext::from(PlaintextNative::Literal(LiteralNative::$name(self.0), std::sync::OnceLock::new()))
             }
 
             /// Convert from Field.

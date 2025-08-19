@@ -24,8 +24,7 @@ use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, To
 use snarkvm_wasm::utilities::Uniform;
 
 use js_sys::{Array, Uint8Array};
-use once_cell::sync::OnceCell;
-use std::{ops::Deref, str::FromStr};
+use std::{ops::Deref, str::FromStr, sync::OnceLock};
 use wasm_bindgen::prelude::*;
 
 /// Field element.
@@ -81,7 +80,7 @@ impl Field {
     /// Create a plaintext from the field element.
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {
-        Plaintext::from(PlaintextNative::Literal(LiteralNative::Field(self.0), OnceCell::new()))
+        Plaintext::from(PlaintextNative::Literal(LiteralNative::Field(self.0), OnceLock::new()))
     }
 
     /// Clone the field element.

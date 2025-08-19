@@ -40,7 +40,7 @@ use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::prelude::{ConsensusVersion, Network};
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost_v1, execution_cost_v2};
-use snarkvm_synthesizer_program::StackKeys;
+use snarkvm_synthesizer_program::StackTrait;
 
 use rand::{SeedableRng, rngs::StdRng};
 use std::{ops::Add, str::FromStr};
@@ -173,7 +173,8 @@ impl ProgramManager {
             private_key,
             transfer_proving_key,
             transfer_verifying_key,
-            rng
+            rng,
+            1
         );
 
         log("Preparing the inclusion proof for the transfer execution");
