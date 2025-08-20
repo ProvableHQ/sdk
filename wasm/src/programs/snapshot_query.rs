@@ -15,7 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::native::CurrentNetwork;
-use crate::types::native::{ProgramIDNative, IdentifierNative, RecordPlaintextNative};
+use crate::types::native::{ProgramIDNative, IdentifierNative, RecordPlaintextNative, ViewKeyNative};
 use anyhow::{anyhow, bail, Result};
 use futures::future::join_all;
 use indexmap::IndexMap;
@@ -29,8 +29,7 @@ use snarkvm_console::{
 use snarkvm_ledger_query::QueryTrait;
 use std::str::FromStr;
 
-/// A snapshot-based query object used to pin the block height, state root,
-/// and state paths to a single ledger view during online execution.
+/// A snapshot-based query object used to pin the block height, state root, and state paths to a single ledger view during online execution.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct SnapshotQuery {
     block_height: u32,
@@ -75,47 +74,82 @@ impl SnapshotQuery {
         node_url: &str,
         program_id: &ProgramID<CurrentNetwork>,
         record_name: &Identifier<CurrentNetwork>,
-        view_key: Field<CurrentNetwork>,
+        view_key: &ViewKeyNative,
         js_inputs: &[JsValue],
     ) -> Result<Self> {
         // 1) Extract commitments from inputs.
-        let commitments = collect_commitments_from_inputs(program_id, record_name, view_key, js_inputs)?;
+        let commitments = Self::collect_commitments_from_inputs(program_id, record_name, view_key, js_inputs)?;
 
-        // Fast path: if there are no record inputs, still pin a snapshot (height + root) for consistency.
-        let (snap_root, snap_height) = snapshot_head(node_url).await?;
+        // 2) Take snapshot and build base query.
+        let (snap_root, snap_height) = Self::snapshot_head(node_url).await?;
         let mut query = SnapshotQuery::new(snap_height, &snap_root)?;
-
 
         if commitments.is_empty() {
             return Ok(query);
         }
 
-        // 2) Fetch state paths concurrently (anchored to the chosen snapshot).
-        // If your node cannot fetch-at-root, you can fetch plain paths, parse their embedded roots,
-        // and ensure they're consistent; otherwise re-snapshot and retry.
-        // Precompute owned strings to avoid borrowing temporaries into async futures.
-        let cm_strings: Vec<String> = commitments.iter().map(|c| c.to_string()).collect();
+        // 3) Fetch state paths concurrently at that root.
+        let commitment_strings: Vec<String> = commitments.iter().map(|c| c.to_string()).collect();
         let root_str = snap_root.clone();
-        let futs = cm_strings
-            .iter()
-            .map(|cm_s| fetch_state_path_at_root(node_url, cm_s.as_str(), root_str.as_str()));
+        let futs = commitment_strings.iter().map(|commitment_s| {
+            Self::fetch_state_path_at_root(node_url, commitment_s.as_str(), root_str.as_str())
+        });
         let results = join_all(futs).await;
 
-        // 3) Insert all paths; verify consistency against the pinned root.
-        for (cm, res) in commitments.iter().zip(results.into_iter()) {
-            let sp_str = res?;
-            // Optional safety: parse and ensure the path's root matches the pinned root.
-            let sp = StatePath::<CurrentNetwork>::from_str(&sp_str).map_err(|e| anyhow!(e.to_string()))?;
-            let path_root = sp.global_state_root().to_string();
+        // 4) Insert paths and sanity check.
+        for (commitment, res) in commitments.iter().zip(results.into_iter()) {
+            let state_path_str = res?;
+            let state_path = StatePath::<CurrentNetwork>::from_str(&state_path_str)
+                .map_err(|e| anyhow!(e.to_string()))?;
+            let path_root = state_path.global_state_root().to_string();
             if path_root != snap_root {
-                // Strategy: bail and let caller retry; or resnapshot + refetch here.
                 bail!("State path root mismatch: expected {}, got {}", snap_root, path_root);
             }
-            query.add_state_path(&cm.to_string(), &sp_str)?;
+            query.add_state_path(&commitment.to_string(), &state_path_str)?;
         }
 
         Ok(query)
     }
+
+    /// Detect plaintext records in `js_inputs` and compute their commitments.
+    fn collect_commitments_from_inputs(
+        program_id: &ProgramIDNative,
+        record_name: &IdentifierNative,
+        view_key: &ViewKeyNative,
+        js_inputs: &[wasm_bindgen::JsValue],
+    ) -> anyhow::Result<Vec<Field<CurrentNetwork>>> {
+        let mut out = Vec::new();
+
+        for js in js_inputs {
+            if let Some(s) = js.as_string() {
+                // Heuristic: plaintext record strings contain `_nonce`.
+                if !s.contains("_nonce") { continue; }
+
+                if let Ok(rec) = RecordPlaintextNative::from_str(&s) {
+                    let record_view_key: Field<CurrentNetwork> =
+                        (*rec.nonce() * &**view_key).to_x_coordinate();
+
+                let commitment = rec
+                    .to_commitment(program_id, record_name, &record_view_key)?;
+                out.push(commitment);
+                }
+            }
+        }
+        Ok(out)
+    }
+
+    async fn snapshot_head(_node_url: &str) -> Result<(String, u32)> {
+        Err(anyhow!("snapshot_head() not implemented"))
+    }
+
+    async fn fetch_state_path_at_root(
+        _node_url: &str,
+        _commitment: &str,
+        _state_root: &str,
+    ) -> anyhow::Result<String> {
+        Err(anyhow!("fetch_state_path_at_root() not implemented"))
+    }
+
 }
 
 #[async_trait::async_trait(?Send)]
@@ -155,48 +189,4 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
     async fn current_block_height_async(&self) -> Result<u32> {
         Ok(self.block_height)
     }
-}
-
-/* --------------------------- internal helpers --------------------------- */
-
-/// Heuristic: detect plaintext records from JS inputs and compute commitments.
-fn collect_commitments_from_inputs(
-    program_id: &ProgramIDNative,
-    record_name: &IdentifierNative,
-    view_key: Field<CurrentNetwork>,
-    js_inputs: &[JsValue],
-) -> anyhow::Result<Vec<Field<CurrentNetwork>>> {
-    let mut out = Vec::new();
-
-    for js in js_inputs {
-        if let Some(s) = js.as_string() {
-            // Quick filter: record plaintexts include a `_nonce` field.
-            if !s.contains("_nonce") {
-                continue;
-            }
-            // Try parse as a plaintext record. Skip if not a record.
-            if let Ok(rec) = RecordPlaintextNative::from_str(&s) {
-                let cm = rec.to_commitment(program_id, record_name, &view_key);
-                out.push(cm?);
-            }
-        }
-    }
-    Ok(out)
-}
-
-/// Return a single `(state_root_string, block_height)` snapshot.
-/// TODO: replace with real node client calls.
-async fn snapshot_head(_node_url: &str) -> Result<(String, u32)> {
-    // Example (pseudo):
-    // let head = client.latest_head(_node_url).await?;
-    // Ok((head.state_root, head.block_height))
-    Err(anyhow!("snapshot_head() not implemented"))
-}
-
-/// Fetch a `StatePath` (as string) for `commitment` anchored to `state_root`
-/// TODO: replace with real node client call and ensure it returns a path at the requested root
-async fn fetch_state_path_at_root(_node_url: &str, _commitment: &str, _state_root: &str) -> anyhow::Result<String> {
-    // Example (pseudo):
-    // client.state_path_at_root(_node_url, _commitment, _state_root).await
-    Err(anyhow!("fetch_state_path_at_root() not implemented"))
 }
