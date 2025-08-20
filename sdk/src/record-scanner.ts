@@ -23,7 +23,7 @@ import { RegistrationRequest } from "./models/record-scanner/registrationRequest
  *     start: 0,
  *     end: 100,
  *     program: "credits.aleo",
- *     record: "credits",
+ *     records: ["credits"],
  * };
  * 
  * const responseFilter = {
@@ -31,8 +31,8 @@ import { RegistrationRequest } from "./models/record-scanner/registrationRequest
  *     record: true,
  *     function: true,
  *     transition: true,
- *     blockHeight: true,
- *     transactionId: true,
+ *     block_height: true,
+ *     transaction_id: true,
  * };
  * 
  * const records = await recordScanner.findRecords({ filter, responseFilter });
@@ -308,7 +308,9 @@ class RecordScanner implements RecordProvider {
      */
     private buildQueryString(recordsFilter: RecordsFilter, responseFilter: RecordsResponseFilter): string {
         return Object.entries({ ...recordsFilter, ...responseFilter })
-            .map(([key, value]) => `${key}=${value}`)
+            .map(([key, value]) => {
+                return `${key}=${Array.isArray(value) ? value.join(",") : value}`
+            })
             .join("&");
     }
 }

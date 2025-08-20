@@ -1,4 +1,5 @@
 import { RecordSearchParams } from "../record-provider/recordSearchParams";
+import { RecordsResponseFilter } from "../record-provider/recordsResponseFilter";
 
 /**
  * RecordsFilter is an extension of RecordSearchParams that represents a filter for scanning encrypted or owned records.
@@ -8,13 +9,27 @@ import { RecordSearchParams } from "../record-provider/recordSearchParams";
  *     start: 0,
  *     end: 100,
  *     program: "credits.aleo",
- *     record: "credits",
+ *     records: ["credits"],
+ *     functions: ["transfer_public_to_private"],
+ *     response: {
+ *         program: true,
+ *         record: true,
+ *         function: true,
+ *         transition: true,
+ *         block_height: true,
+ *         transaction_id: true,
+ *     }
+ *     results_per_page: 100,
+ *     page: 0,
  * }
  */
 export interface RecordsFilter extends RecordSearchParams {
     start: number;
     end?: number;
     program?: string;
-    record?: string;
-    function?: string;
+    records?: string[];
+    functions?: string[];
+    results_per_page?: number;
+    page?: number;
+    response?: RecordsResponseFilter;
 }
