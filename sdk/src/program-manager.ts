@@ -360,7 +360,7 @@ class ProgramManager {
                         [],
                         feeRecord,
                         recordSearchParams,
-                    )).recordPlaintext?? '')
+                    )).record_plaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -588,7 +588,7 @@ class ProgramManager {
                         [],
                         feeRecord,
                         recordSearchParams,
-                    )).recordPlaintext?? '')
+                    )).record_plaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -979,7 +979,7 @@ class ProgramManager {
                         [],
                         feeRecord,
                         recordSearchParams,
-                    )).recordPlaintext?? '')
+                    )).record_plaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -1315,7 +1315,7 @@ class ProgramManager {
                         [],
                         feeRecord,
                         recordSearchParams,
-                    )).recordPlaintext?? '')
+                    )).record_plaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(
@@ -1586,7 +1586,7 @@ class ProgramManager {
                         [],
                         amountRecord,
                         recordSearchParams,
-                    )).recordPlaintext?? '');
+                    )).record_plaintext?? '');
                 nonces.push(amountRecord.nonce());
             } else {
                 amountRecord = undefined;
@@ -1597,7 +1597,7 @@ class ProgramManager {
                         nonces,
                         feeRecord,
                         recordSearchParams,
-                    )).recordPlaintext?? '')
+                    )).record_plaintext?? '')
                 : undefined;
         } catch (e: any) {
             logAndThrow(

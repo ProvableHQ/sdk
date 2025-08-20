@@ -7,8 +7,8 @@ import { RecordSearchParams } from "../record-provider/recordSearchParams";
  * const recordsFilter: RecordsFilter = {
  *     start: 0,
  *     end: 100,
- *     program: "...",
- *     record: "...",
+ *     program: "credits.aleo",
+ *     record: "credits",
  * }
  */
 export interface RecordsFilter extends RecordSearchParams {

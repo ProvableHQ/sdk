@@ -8,11 +8,11 @@ import { RecordsResponseFilter } from "../record-provider/recordsResponseFilter"
  * @example
  * const ownedFilter: OwnedFilter = {
  *     unspent: true,
- *     nonces: ["..."],
+ *     nonces: ["3077450429259593211617823051143573281856129402760267155982965992208217472983group"],
  *     decrypt: true,
  *     filter: {
- *         program: "...",
- *         record: "...",
+ *         program: "credits.aleo",
+ *         record: "credits",
  *     },
  * }
  */ 

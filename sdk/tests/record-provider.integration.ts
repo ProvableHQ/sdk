@@ -22,7 +22,7 @@ describe('RecordProvider', () => {
                 if (Array.isArray(records)) {
                     expect(records.length).equal(2);
                     records.forEach((record) => {
-                       let pt = new RecordPlaintext(record.recordPlaintext);
+                       let pt = new RecordPlaintext(record.record_plaintext);
                        nonces.push(pt.nonce());
                     });
                 } else {
@@ -34,7 +34,7 @@ describe('RecordProvider', () => {
                 if (Array.isArray(records2)) {
                     expect(records2.length).equal(2);
                     records2.forEach((record) => {
-                        let pt = new RecordPlaintext(record.recordPlaintext);
+                        let pt = new RecordPlaintext(record.record_plaintext);
                         expect(nonces.includes(pt.nonce())).equal(false);
                         nonces.push(pt.nonce());
                     });

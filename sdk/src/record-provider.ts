@@ -379,7 +379,7 @@ class NetworkRecordProvider implements RecordProvider {
 
         const recordPts = await this.networkClient.findRecords(startHeight, endHeight, searchParameters.unspent, programs, amounts, maxAmount, searchParameters.nonces, this.account.privateKey());
         return recordPts.map((record) => ({
-            recordPlaintext: record.toString(),
+            record_plaintext: record.toString(),
         }));
     }
 

@@ -9,8 +9,8 @@
  *     function: true,
  *     transition: true,
  *     blockHeight: true,
- *     transactionId: true,
- *     transitionId: true,
+ *     transaction_id: true,
+ *     transition_id: true,
  *     ioIndex: true,
  * }
  */
@@ -20,7 +20,7 @@ export type RecordsResponseFilter = {
     function: boolean;
     transition: boolean;
     blockHeight: boolean;
-    transactionId: boolean;
-    transitionId: boolean;
+    transaction_id: boolean;
+    transition_id: boolean;
     ioIndex: boolean;
 }

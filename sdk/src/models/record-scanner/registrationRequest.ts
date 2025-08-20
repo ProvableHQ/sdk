@@ -3,11 +3,11 @@
  * 
  * @example
  * const registrationRequest: RegistrationRequest = {
- *     viewKey: "...",
+ *     view_key: "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX",
  *     start: 123456,
  * }
  */
 export type RegistrationRequest = {
-    viewKey: string;
+    view_key: string;
     start: number;
 }

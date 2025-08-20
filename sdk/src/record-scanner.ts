@@ -69,7 +69,7 @@ class RecordScanner implements RecordProvider {
             throw new Error("Account not set");
         } else {
             request = {
-                viewKey: this.account.viewKey().toString(),
+                view_key: this.account.viewKey().to_string(),
                 start: startBlock,
             };
         }
@@ -107,8 +107,7 @@ class RecordScanner implements RecordProvider {
                 }),
             );
 
-            const data = await response.json();
-            return data.records;
+            return await response.json();
         } catch (error) {
             console.error(`Failed to get encrypted records: ${error}`);
             throw error;
@@ -221,14 +220,18 @@ class RecordScanner implements RecordProvider {
     async findCreditsRecord(microcredits: number, searchParameters: OwnedFilter): Promise<OwnedRecord> {
         try {
             const records = await this.findRecords({
-                ...searchParameters,
-                program: "credits.aleo",
-                record: "credits",
                 decrypt: true,
+                unspent: searchParameters.unspent ?? false,
+                filter: {
+                    start: searchParameters.filter?.start ?? 0,
+                    program: "credits.aleo",
+                    record: "credits",
+                },
+                uuid: this.uuid,
             });
 
             const record = records.find(record => {
-                const plaintext = RecordPlaintext.fromString(record.recordPlaintext ?? '');
+                const plaintext = RecordPlaintext.fromString(record.record_plaintext ?? '');
                 const amountStr = plaintext.getMember("microcredits").toString();
                 const amount = parseInt(amountStr.replace("u64", ""));
                 return amount >= microcredits;
@@ -255,13 +258,17 @@ class RecordScanner implements RecordProvider {
     async findCreditsRecords(microcreditAmounts: number[], searchParameters: OwnedFilter): Promise<OwnedRecord[]> {
         try {
             const records = await this.findRecords({
-                ...searchParameters,
-                program: "credits.aleo",
-                record: "credits",
                 decrypt: true,
+                unspent: searchParameters.unspent ?? false,
+                filter: {
+                    start: searchParameters.filter?.start ?? 0,
+                    program: "credits.aleo",
+                    record: "credits",
+                },
+                uuid: this.uuid,
             });
             return records.filter(record => {
-                const plaintext = RecordPlaintext.fromString(record.recordPlaintext ?? '');
+                const plaintext = RecordPlaintext.fromString(record.record_plaintext ?? '');
                 const amount = plaintext.getMember("microcredits").toString();
                 return microcreditAmounts.includes(parseInt(amount.replace("u64", "")));
             });
@@ -299,9 +306,11 @@ class RecordScanner implements RecordProvider {
      * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response.
      * @returns {string} The query string.
      */
-    private buildQueryString(recordsFilter: RecordSearchParams, responseFilter: RecordsResponseFilter): string {
+    private buildQueryString(recordsFilter: RecordsFilter, responseFilter: RecordsResponseFilter): string {
         return Object.entries({ ...recordsFilter, ...responseFilter })
             .map(([key, value]) => `${key}=${value}`)
             .join("&");
     }
 }
+
+export { RecordScanner };

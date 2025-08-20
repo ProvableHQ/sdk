@@ -6,6 +6,7 @@ import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
 import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON.js";
 import { DeploymentObject } from "./models/deployment/deploymentObject.js";
+import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { ExecutionJSON, FeeExecutionJSON } from "./models/execution/executionJSON.js";
 import { ExecutionObject, FeeExecutionObject } from "./models/execution/executionObject.js";
 import { FinalizeJSON } from "./models/finalizeJSON.js";
@@ -15,6 +16,8 @@ import { InputJSON } from "./models/input/inputJSON.js";
 import { InputObject } from "./models/input/inputObject.js";
 import { OutputJSON } from "./models/output/outputJSON.js";
 import { OutputObject } from "./models/output/outputObject.js";
+import { OwnedFilter } from "./models/record-scanner/ownedFilter.js";
+import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 import { OwnerJSON } from "./models/owner/ownerJSON.js";
 import { PlaintextArray} from "./models/plaintext/array.js";
 import { PlaintextLiteral} from "./models/plaintext/literal.js";
@@ -23,6 +26,9 @@ import { PlaintextStruct} from "./models/plaintext/struct.js";
 import { ProvingRequestJSON } from "./models/provingRequest.js";
 import { ProvingResponse } from "./models/provingResponse.js";
 import { RatificationJSON } from "./models/ratification.js";
+import { RecordsFilter } from "./models/record-scanner/recordsFilter.js";
+import { RecordsResponseFilter } from "./models/record-provider/recordsResponseFilter.js";
+import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
 import { SolutionsJSON, SolutionJSON, PartialSolutionJSON } from "./models/solution.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
 import { TransactionObject } from "./models/transaction/transactionObject.js";
@@ -46,9 +52,7 @@ import {
     NetworkRecordProvider,
     RecordProvider,
 } from "./record-provider.js";
-import {
-    RecordSearchParams,
-} from "./models/record-provider/recordSearchParams.js";
+import { RecordScanner } from "./record-scanner.js";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {
@@ -138,6 +142,7 @@ export {
     ConfirmedTransactionJSON,
     DeploymentJSON,
     DeploymentObject,
+    EncryptedRecord,
     ExecutionJSON,
     ExecutionObject,
     FeeExecutionJSON,
@@ -158,6 +163,8 @@ export {
     OfflineSearchParams,
     OutputJSON,
     OutputObject,
+    OwnedFilter,
+    OwnedRecord,
     OwnerJSON,
     PartialSolutionJSON,
     PlaintextArray,
@@ -168,7 +175,10 @@ export {
     ProvingRequestJSON,
     ProvingResponse,
     RatificationJSON,
+    RecordsFilter,
+    RecordsResponseFilter,
     RecordProvider,
+    RecordScanner,
     RecordSearchParams,
     SolutionJSON,
     SolutionsJSON,
