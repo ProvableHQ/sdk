@@ -15,12 +15,13 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Field,
     Plaintext,
     from_js_typed_array,
     to_bits_array_le,
     types::native::{LiteralNative, PlaintextNative, ScalarNative},
 };
-use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Uniform, Zero};
+use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, ToField, Uniform, Zero};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr, sync::OnceLock};
@@ -79,6 +80,12 @@ impl Scalar {
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {
         Plaintext::from(PlaintextNative::Literal(LiteralNative::Scalar(self.0), OnceLock::new()))
+    }
+
+    /// Cast the scalar element to a field element.
+    #[wasm_bindgen(js_name = "toField")]
+    pub fn to_field(&self) -> Result<Field, String> {
+        Ok(Field::from(self.0.to_field().map_err(|e| e.to_string())?))
     }
 
     /// Clone the scalar element.
