@@ -26,8 +26,7 @@ use crate::types::native::{
 use snarkvm_console::network::Network;
 use snarkvm_wasm::utilities::Uniform;
 
-use once_cell::sync::OnceCell;
-use std::str::FromStr;
+use std::{str::FromStr, sync::OnceLock};
 
 /// Tool for encrypting and decrypting Aleo key material into ciphertext
 pub struct Encryptor;
@@ -74,7 +73,7 @@ impl Encryptor {
                     PlaintextNative::from(LiteralNative::Field(nonce)),
                 ),
             ]),
-            OnceCell::new(),
+            OnceLock::new(),
         );
         plaintext.encrypt_symmetric(secret).map_err(|e| e.to_string())
     }

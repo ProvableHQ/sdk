@@ -81,6 +81,7 @@ impl ProgramManager {
         verifying_key: Option<VerifyingKey>,
         url: Option<String>,
         offline_query: Option<OfflineQuery>,
+        edition: Option<u16>,
     ) -> Result<ExecutionResponse, String> {
         log(&format!("Executing local function: {function}"));
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
@@ -93,6 +94,7 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let edition = edition.unwrap_or(1);
 
         let (response, mut trace) = execute_program!(
             process,
@@ -102,7 +104,8 @@ impl ProgramManager {
             private_key,
             proving_key,
             verifying_key,
-            rng
+            rng,
+            edition
         );
 
         let mut execution_response = if prove_execution {
@@ -150,6 +153,8 @@ impl ProgramManager {
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param offline_query An offline query object to use if building a transaction without an internet connection.
+    /// @param edition The edition of the program to execute. Defaults to the latest found on the network, or 1 if the program does not exist on the network.
     /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildExecutionTransaction)]
     #[allow(clippy::too_many_arguments)]
@@ -167,6 +172,7 @@ impl ProgramManager {
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
+        edition: Option<u16>,
     ) -> Result<Transaction, String> {
         log(&format!("Executing function: {function} on-chain"));
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -179,6 +185,7 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Executing program");
+        let edition = edition.unwrap_or(1);
         let (_, mut trace) = execute_program!(
             process,
             process_inputs!(inputs),
@@ -187,7 +194,8 @@ impl ProgramManager {
             private_key,
             proving_key,
             verifying_key,
-            rng
+            rng,
+            edition
         );
 
         log("Preparing inclusion proofs for execution");
@@ -267,6 +275,7 @@ impl ProgramManager {
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
+        edition: Option<u16>,
     ) -> Result<u64, String> {
         log(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
@@ -282,6 +291,7 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Generating execution trace");
+        let edition = edition.unwrap_or(1);
         let (_, mut trace) = execute_program!(
             process,
             process_inputs!(inputs),
@@ -290,7 +300,8 @@ impl ProgramManager {
             private_key,
             proving_key,
             verifying_key,
-            rng
+            rng,
+            edition
         );
 
         // Execute the program
@@ -399,6 +410,7 @@ mod tests {
             None,
             Some(fee_prover),
             Some(fee_verifier),
+            None,
             None,
         )
         .await

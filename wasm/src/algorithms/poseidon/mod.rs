@@ -43,8 +43,7 @@ mod tests {
         prelude::ToFields,
     };
 
-    use once_cell::sync::OnceCell;
-    use std::str::FromStr;
+    use std::{str::FromStr, sync::OnceLock};
     use wasm_bindgen::convert::TryFromJsValue;
     use wasm_bindgen_test::*;
 
@@ -178,7 +177,7 @@ mod tests {
             let hash8 = poseidon8.hash(literal_plaintext.clone().to_fields().unwrap()).unwrap();
 
             let native_fields =
-                PlaintextNative::Literal(native_literals[i].clone(), OnceCell::new()).to_fields().unwrap();
+                PlaintextNative::Literal(native_literals[i].clone(), OnceLock::new()).to_fields().unwrap();
             let native_hash2 = native_poseidon2.hash(&native_fields).unwrap();
             let native_hash4 = native_poseidon4.hash(&native_fields).unwrap();
             let native_hash8 = native_poseidon8.hash(&native_fields).unwrap();

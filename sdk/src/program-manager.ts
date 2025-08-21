@@ -70,6 +70,7 @@ interface ExecuteOptions {
     offlineQuery?: OfflineQuery;
     program?: string | Program;
     imports?: ProgramImports;
+    edition?: number,
 }
 
 /**
@@ -89,6 +90,7 @@ interface AuthorizationOptions {
     programSource?: string | Program;
     privateKey?: PrivateKey;
     programImports?: ProgramImports;
+    edition?: number,
 }
 
 /**
@@ -140,6 +142,7 @@ interface ProvingRequestOptions {
     programImports?: ProgramImports;
     broadcast?: boolean;
     unchecked?: boolean;
+    edition?: number,
 }
 
 /**
@@ -532,6 +535,7 @@ class ProgramManager {
         let verifyingKey = options.verifyingKey;
         let program = options.program;
         let imports = options.imports;
+        let edition = options.edition;
 
         // Ensure the function exists on the network
         if (program === undefined) {
@@ -546,6 +550,15 @@ class ProgramManager {
             }
         } else if (program instanceof Program) {
             program = program.toString();
+        }
+
+        if (edition == undefined) {
+            try {
+                edition = await this.networkClient.getLatestProgramEdition(programName);
+            } catch (e: any) {
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
+                edition = 1;
+            }
         }
 
         // Get the private key from the account if it is not provided in the parameters
@@ -634,6 +647,7 @@ class ProgramManager {
             feeProvingKey,
             feeVerifyingKey,
             offlineQuery,
+            edition
         );
     }
 
@@ -678,6 +692,7 @@ class ProgramManager {
         const privateKey = options.privateKey;
         let program = options.programSource;
         let imports = options.programImports;
+        let edition = options.edition;
 
         // Ensure the function exists on the network.
         if (program === undefined) {
@@ -707,6 +722,15 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
+        if (edition == undefined) {
+            try {
+                edition = await this.networkClient.getLatestProgramEdition(programName);
+            } catch (e: any) {
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
+                edition = 1;
+            }
+        }
+
         // Resolve the program imports if they exist.
         const numberOfImports = Program.fromString(program).getImports().length;
         if (numberOfImports > 0 && !imports) {
@@ -727,7 +751,8 @@ class ProgramManager {
             program,
             functionName,
             inputs,
-            imports
+            imports,
+            edition
         );
     }
 
@@ -772,6 +797,7 @@ class ProgramManager {
         const privateKey = options.privateKey;
         let program = options.programSource;
         let imports = options.programImports;
+        let edition = options.edition;
 
         // Ensure the function exists on the network.
         if (program === undefined) {
@@ -815,13 +841,23 @@ class ProgramManager {
             }
         }
 
+        if (edition == undefined) {
+            try {
+                edition = await this.networkClient.getLatestProgramEdition(programName);
+            } catch (e: any) {
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
+                edition = 1;
+            }
+        }
+
         // Build and return an `Authorization` for the desired function.
         return await WasmProgramManager.buildAuthorizationUnchecked(
             executionPrivateKey,
             program,
             functionName,
             inputs,
-            imports
+            imports,
+            edition
         );
     }
 
@@ -877,6 +913,7 @@ class ProgramManager {
         let program = options.programSource;
         let feeRecord = options.feeRecord;
         let imports = options.programImports;
+        let edition = options.edition;
 
         // Ensure the function exists on the network.
         if (program === undefined) {
@@ -891,6 +928,15 @@ class ProgramManager {
             }
         } else if (program instanceof Program) {
             program = program.toString();
+        }
+
+        if (edition == undefined) {
+            try {
+                edition = await this.networkClient.getLatestProgramEdition(programName);
+            } catch (e: any) {
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
+                edition = 1;
+            }
         }
 
         // Get the private key from the account if it is not provided in the parameters.
@@ -949,7 +995,8 @@ class ProgramManager {
             feeRecord,
             imports,
             broadcast,
-            unchecked
+            unchecked,
+            edition
         );
     }
 
@@ -1118,6 +1165,7 @@ class ProgramManager {
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
+        edition?: number
     ): Promise<ExecutionResponse> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
@@ -1161,6 +1209,7 @@ class ProgramManager {
             verifyingKey,
             this.host,
             offlineQuery,
+            edition
         );
     }
 

@@ -61,6 +61,7 @@ impl ProgramManager {
         imports: Option<Object>,
         broadcast: bool,
         unchecked: bool,
+        edition: Option<u16>,
     ) -> Result<ProvingRequest, String> {
         log(&format!("Creating proving request for {program}:{function_name}"));
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -74,10 +75,11 @@ impl ProgramManager {
         // Convert the fee to microcredits.
         let base_fee_microcredits = (base_fee_credits * 1_000_000.0) as u64;
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+        let edition = edition.unwrap_or(1);
 
         // Authorize the main program.
         let authorization =
-            authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked);
+            authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked, edition);
 
         // Authorize the fee.
         let execution_id = authorization.to_execution_id().map_err(|e| e.to_string())?;
@@ -127,6 +129,7 @@ mod tests {
             imports,
             false,
             false,
+            Some(1),
         )
         .await
         .unwrap();

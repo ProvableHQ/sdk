@@ -22,10 +22,13 @@ use crate::{
     RecordPlaintext,
     Transaction,
     execute_fee,
+    latest_block_height,
     log,
     types::native::{
+        AddressNative,
         CurrentAleo,
         CurrentNetwork,
+        PrivateKeyNative,
         ProcessNative,
         ProgramIDNative,
         ProgramNative,
@@ -34,6 +37,7 @@ use crate::{
         TransactionNative,
     },
 };
+use snarkvm_console::prelude::{ConsensusVersion, Network};
 
 use js_sys::Object;
 use rand::{SeedableRng, rngs::StdRng};
@@ -84,14 +88,27 @@ impl ProgramManager {
 
         log("Creating deployment");
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
-        let deployment = process.deploy::<CurrentAleo, _>(&program, rng).map_err(|err| err.to_string())?;
+        let mut deployment = process.deploy::<CurrentAleo, _>(&program, rng).map_err(|err| err.to_string())?;
         if deployment.program().functions().is_empty() {
             return Err("Attempted to create an empty transaction deployment".to_string());
         }
 
+        log("Setting program checksum and owner");
+        let latest_height = latest_block_height(node_url).await?;
+        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        let private_key_native = PrivateKeyNative::from(private_key);
+        if consensus_version < ConsensusVersion::V9 {
+            deployment.set_program_checksum_raw(None);
+            deployment.set_program_owner_raw(None)
+        } else {
+            deployment.set_program_checksum_raw(Some(deployment.program().to_checksum()));
+            deployment
+                .set_program_owner_raw(Some(AddressNative::try_from(private_key_native).map_err(|e| e.to_string())?));
+        }
+
         log("Ensuring the fee is sufficient to pay for the deployment");
-        let (minimum_deployment_cost, (_, _, _)) =
-            deployment_cost::<CurrentNetwork>(&deployment).map_err(|err| err.to_string())?;
+        let (minimum_deployment_cost, (_, _, _, _)) =
+            deployment_cost::<CurrentNetwork>(&process, &deployment).map_err(|err| err.to_string())?;
 
         // Check to see if the fee record has enough microcredits to pay for the deployment.
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
@@ -153,8 +170,8 @@ impl ProgramManager {
         }
 
         log("Estimate the deployment fee");
-        let (minimum_deployment_cost, (_, _, _)) =
-            deployment_cost::<CurrentNetwork>(&deployment).map_err(|err| err.to_string())?;
+        let (minimum_deployment_cost, (_, _, _, _)) =
+            deployment_cost::<CurrentNetwork>(&process, &deployment).map_err(|err| err.to_string())?;
 
         Ok(minimum_deployment_cost)
     }

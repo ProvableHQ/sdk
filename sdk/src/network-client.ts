@@ -948,15 +948,14 @@ class AleoNetworkClient {
     async getLatestProgramEdition(programId: string): Promise<number> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getLatestProgramEdition" };
-            return await this.fetchData<number>("/program/" + programId + "/latest_edition");
+            const raw = await this.fetchRaw("/program/" + programId + "/latest_edition");
+            return JSON.parse(raw);
         } catch (error) {
             throw new Error(`Error fetching program ${programId}: ${error}`);
         } finally {
             this.ctx = {};
         }
     }
-
-
 
     /**
      * Returns a program object from a program ID or program source code.

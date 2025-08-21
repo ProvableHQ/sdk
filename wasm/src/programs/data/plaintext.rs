@@ -30,8 +30,7 @@ use crate::{
 use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields};
 
 use js_sys::{Array, Uint8Array};
-use once_cell::sync::OnceCell;
-use std::{ops::Deref, str::FromStr};
+use std::{ops::Deref, str::FromStr, sync::OnceLock};
 use wasm_bindgen::{JsValue, convert::TryFromJsValue, prelude::wasm_bindgen};
 
 /// SnarkVM Plaintext object. Plaintext is a fundamental monadic type used to represent Aleo
@@ -231,7 +230,7 @@ impl From<&Plaintext> for PlaintextNative {
 
 impl From<LiteralNative> for Plaintext {
     fn from(value: LiteralNative) -> Self {
-        let native = PlaintextNative::Literal(value, OnceCell::new());
+        let native = PlaintextNative::Literal(value, OnceLock::new());
         Self(native)
     }
 }

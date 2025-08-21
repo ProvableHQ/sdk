@@ -72,6 +72,7 @@ export {
     ExecutionResponse,
     EncryptionToolkit,
     Field,
+    GraphKey,
     Group,
     I8,
     I16,

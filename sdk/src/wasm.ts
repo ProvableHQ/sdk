@@ -13,6 +13,7 @@ export {
     Execution,
     ExecutionResponse,
     Field,
+    GraphKey,
     Group,
     I8, 
     I16, 

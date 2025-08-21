@@ -39,7 +39,8 @@ macro_rules! authorize {
         $function_id_string:expr,
         $private_key:expr,
         $rng:expr,
-        $unchecked:expr
+        $unchecked:expr,
+        $edition:expr
     ) => {{
         log("Loading program");
         let program =
@@ -53,8 +54,7 @@ macro_rules! authorize {
         if program_id != "credits.aleo" {
             if !$process.contains_program(program.id()) {
                 log("Adding program to the process");
-                $process.add_program(&program).map_err(|e| e.to_string())?;
-                $process.add_program(&program).map_err(|e| e.to_string())?;
+                $process.add_program_with_edition(&program, $edition).map_err(|e| e.to_string())?;
             }
         }
 
@@ -116,7 +116,7 @@ macro_rules! authorize_fee {
 
 #[macro_export]
 macro_rules! execute_program {
-    ($process:expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $proving_key:expr, $verifying_key:expr, $rng:expr) => {{
+    ($process:expr, $inputs:expr, $program_string:expr, $function_id_string:expr, $private_key:expr, $proving_key:expr, $verifying_key:expr, $rng:expr, $edition:expr) => {{
         if (($proving_key.is_some() && $verifying_key.is_none())
             || ($proving_key.is_none() && $verifying_key.is_some()))
         {
@@ -138,8 +138,7 @@ macro_rules! execute_program {
         if program_id != "credits.aleo" {
             if !$process.contains_program(program.id()) {
                 log("Adding program to the process");
-                $process.add_program(&program).map_err(|e| e.to_string())?;
-                $process.add_program(&program).map_err(|e| e.to_string())?;
+                $process.add_program_with_edition(&program, $edition).map_err(|e| e.to_string())?;
             }
         }
 

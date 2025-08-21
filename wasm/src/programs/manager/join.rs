@@ -40,7 +40,7 @@ use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::prelude::{ConsensusVersion, Network};
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost_v1, execution_cost_v2};
-use snarkvm_synthesizer_program::StackKeys;
+use snarkvm_synthesizer_program::StackTrait;
 
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
@@ -116,7 +116,8 @@ impl ProgramManager {
             private_key,
             join_proving_key,
             join_verifying_key,
-            rng
+            rng,
+            1
         );
 
         log("Preparing inclusion proof for the join execution");
