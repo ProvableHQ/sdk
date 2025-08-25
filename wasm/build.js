@@ -40,7 +40,7 @@ async function buildWasm(network) {
                         "--no-default-features",
                         "--features", `browser,${network}`,
                     ],
-                    wasmOpt: ["-O", "--all-features"],
+                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt"],
                 },
 
                 experimental: {

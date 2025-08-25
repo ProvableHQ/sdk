@@ -18,11 +18,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-<<<<<<< HEAD
           toolchain: nightly-2025-08-28
-=======
-          toolchain: nightly-2025-08-15
->>>>>>> 3a6e8884 (Upgrading rust version)
           override: true
           components: rustfmt, rust-src
 
