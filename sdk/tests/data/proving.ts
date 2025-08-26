@@ -1,6 +1,5 @@
 const PUZZLE_SPINNER_PROGRAM_ID = "puzzle_spinner_v002.aleo";
 
-
 const PUZZLE_SPINNER_V002_INPUT_0 = `{
 owner: aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private,
 amount: 1000000u64.private,
