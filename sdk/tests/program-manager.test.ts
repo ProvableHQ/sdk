@@ -1,7 +1,10 @@
 import {
     Account,
+    AleoKeyProvider,
     Authorization,
+    CREDITS_PROGRAM_KEYS,
     ExecutionResponse,
+    initThreadPool,
     ImportedPrograms,
     ImportedVerifyingKeys,
     OfflineQuery,
@@ -17,11 +20,12 @@ import {
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import {
     beaconAddressString,
-    helloProgram,
-    recordStatePath,
-    statePathRecord,
-    statePathRecordOwnerPrivateKey,
-    stateRoot
+    helloProgram, recordCommitmentv1,
+    recordStatePathv0,
+    statePathRecordv0,
+    statePathRecordv1,
+    statePathv0RecordOwnerPrivateKey,
+    stateRootv0,
 } from "./data/account-data.js";
 import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program.js";
 import { expect } from "chai";
@@ -33,10 +37,22 @@ import {
 } from "./data/proving.js";
 import * as process from "node:process";
 
-describe('Program Manager', () => {
-    const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
-    programManager.setAccount(new Account({privateKey: statePathRecordOwnerPrivateKey}));
+function sleep(ms: number = 5000) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+describe('Program Manager', async () => {
+    const keyProvider = new AleoKeyProvider();
+    keyProvider.useCache(true);
+    const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+    programManager.setAccount(new Account({privateKey: statePathv0RecordOwnerPrivateKey}));
     const network = programManager.networkClient.network;
+
+    if (network === "testnet") {
+        await initThreadPool();
+        console.log("Initializing threadpool...");
+        await sleep(5000);
+    }
 
     describe('Instantiate with AleoNetworkClientOptions', () => {
         it('should have the specified headers when instantiated', async () => {
@@ -97,18 +113,63 @@ describe('Program Manager', () => {
 
     describe('Offline query', () => {
         it.skip('The offline query should work as expected', async () => {
-            const offlineQuery = new OfflineQuery(1, stateRoot);
-            const record_plaintext = RecordPlaintext.fromString(statePathRecord);
+            const offlineQuery = new OfflineQuery(1, stateRootv0);
+            const record_plaintext = RecordPlaintext.fromString(statePathRecordv0);
             const pk = PrivateKey.from_string("APrivateKey1zkpAZAjaJJvPS7EJ7zvk5fb3QcZDCDxMSHSN5ap7ep4FAD7");
             const vk = ViewKey.from_private_key(pk);
             const record_vk = record_plaintext.recordViewKey(vk);
             const commitment = record_plaintext.commitment("credits.aleo", "credits", record_vk.toString()).toString();
-            offlineQuery.addStatePath(commitment, recordStatePath);
+            offlineQuery.addStatePath(commitment, recordStatePathv0);
             const credits = <string>await programManager.networkClient.getProgram("credits.aleo");
 
-            const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecord, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
+            const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecordv0, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
             const verified = programManager.verifyExecution(execution_result, 9_000_000);
             expect(verified).equal(true);
+        });
+    });
+
+    describe('ProgramManager Executions', () => {
+        it('Should create a split transaction without fees', async function () {
+            this.retries(3);
+
+            if (network === "testnet") {
+                const keyPair = await programManager.keyProvider.splitKeys();
+                programManager.keyProvider.cacheKeys("credits.aleo/split", keyPair);
+                const pk = PrivateKey.from_string(<string>process.env["PUZZLE_PK"]);
+
+                const tx = <Transaction>await programManager.buildExecutionTransaction({
+                    programName: "credits.aleo",
+                    functionName: "split",
+                    priorityFee: 0.0,
+                    privateFee: false,
+                    inputs: [statePathRecordv1, "10u64"],
+                    keySearchParams: { "cacheKey": CREDITS_PROGRAM_KEYS.split.locator },
+                    privateKey: pk
+                });
+
+                expect(tx.feeAmount()).equal(BigInt(0));
+            }
+        });
+
+        it('Should create a split ProvingRequest without fees', async function () {
+            this.retries(3);
+
+            if (network === "testnet") {
+                const pk = PrivateKey.from_string(<string>process.env["PUZZLE_PK"]);
+
+                const request = <ProvingRequest>await programManager.provingRequest({
+                    programName: "credits.aleo",
+                    functionName: "split",
+                    baseFee: 0.0,
+                    priorityFee: 0.0,
+                    privateFee: false,
+                    inputs: [statePathRecordv1, "10u64"],
+                    broadcast: false,
+                    privateKey: pk
+                });
+
+                expect(request.feeAuthorization()).equal(undefined);
+            }
         });
     });
 
