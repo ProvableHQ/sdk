@@ -1595,7 +1595,7 @@ class AleoNetworkClient {
     }
 
     /**
-     * Submit a `ProvingRequest` to the Aleo network.
+     * Submit a `ProvingRequest` to a remote proving service for delegated proving. If the broadcast flag of the `ProvingRequest` is set to `true` the remote service will attempt to broadcast the result `Transaction` on behalf of the requestor.
      *
      * @param {ProvingRequest | string} provingRequest - The `ProvingRequest` to submit
      * @param {string} url - (Optional) The url of the proving service.
