@@ -88,8 +88,8 @@ impl VerifyingKey {
     ///
     /// @returns {number} The number of constraints
     #[wasm_bindgen(js_name = "numConstraints")]
-    pub fn num_constraints(&self) -> usize {
-        self.0.circuit_info.num_constraints
+    pub fn num_constraints(&self) -> u32 {
+        self.0.circuit_info.num_constraints as u32
     }
 }
 

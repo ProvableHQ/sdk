@@ -490,7 +490,7 @@ describe('WASM Objects', () => {
         it('can get the number of constraints', () => {
             const transferPublicVerifier = VerifyingKey.fromString(TRANSFER_PUBLIC_VERIFYING_KEY);
             const numConstraints = transferPublicVerifier.numConstraints();
-            expect(numConstraints).equal(12326);
+            expect(numConstraints).to.equal(12326);
         });
     });
 });
