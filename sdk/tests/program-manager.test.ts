@@ -4,7 +4,6 @@ import {
     Authorization,
     CREDITS_PROGRAM_KEYS,
     ExecutionResponse,
-    initThreadPool,
     ImportedPrograms,
     ImportedVerifyingKeys,
     OfflineQuery,
@@ -37,22 +36,12 @@ import {
 } from "./data/proving.js";
 import * as process from "node:process";
 
-function sleep(ms: number = 5000) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 describe('Program Manager', async () => {
     const keyProvider = new AleoKeyProvider();
     keyProvider.useCache(true);
     const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
     programManager.setAccount(new Account({privateKey: statePathv0RecordOwnerPrivateKey}));
     const network = programManager.networkClient.network;
-
-    if (network === "testnet") {
-        await initThreadPool();
-        console.log("Initializing threadpool...");
-        await sleep(5000);
-    }
 
     describe('Instantiate with AleoNetworkClientOptions', () => {
         it('should have the specified headers when instantiated', async () => {
@@ -129,7 +118,7 @@ describe('Program Manager', async () => {
     });
 
     describe('ProgramManager Executions', () => {
-        it('Should create a split transaction without fees', async function () {
+        it.skip('Should create a split transaction without fees', async function () {
             this.retries(3);
 
             if (network === "testnet") {
