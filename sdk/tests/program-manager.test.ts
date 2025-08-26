@@ -20,7 +20,7 @@ import {
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import {
     beaconAddressString,
-    helloProgram, recordCommitmentv1,
+    helloProgram,
     recordStatePathv0,
     statePathRecordv0,
     statePathRecordv1,
