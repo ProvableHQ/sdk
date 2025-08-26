@@ -46,19 +46,19 @@ macro_rules! impl_integer {
 
         #[wasm_bindgen]
         impl $name {
-            /// Creates from string.
+            /// Construct an integer from a string representation.
             #[wasm_bindgen(js_name = "fromString")]
             pub fn from_string(s: &str) -> Result<$name, String> {
                 Ok(Self(<$native>::from_str(s).map_err(|e| e.to_string())?))
             }
 
-            /// To string.
+            /// Get the string representation of the integer.
             #[wasm_bindgen(js_name = "toString")]
             pub fn to_string(&self) -> String {
                 self.0.to_string()
             }
 
-            /// From bytes (LE).
+            /// Get the byte array representation of the integer.
             #[wasm_bindgen(js_name = "fromBytesLe")]
             pub fn from_bytes_le(bytes: &Uint8Array) -> Result<$name, String> {
                 let bytes = bytes.to_vec();
@@ -66,14 +66,14 @@ macro_rules! impl_integer {
                 Ok(Self(val))
             }
 
-            /// To bytes (LE).
+            /// Construct an integer from a byte array representation.
             #[wasm_bindgen(js_name = "toBytesLe")]
             pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
                 let bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
                 Ok(Uint8Array::from(bytes.as_slice()))
             }
 
-            /// From bits.
+            /// Construct an integer from a boolean array representation.
             #[wasm_bindgen(js_name = "fromBitsLe")]
             pub fn from_bits_le(bits: &Array) -> Result<$name, String> {
                 let bit_vec = from_js_typed_array!(bits, as_bool, "boolean")?;
@@ -81,7 +81,7 @@ macro_rules! impl_integer {
                 Ok(Self(val))
             }
 
-            /// To bits.
+            /// Get the boolean array representation of the integer.
             #[wasm_bindgen(js_name = "toBitsLe")]
             pub fn to_bits_le(&self) -> Array {
                 to_bits_array_le!(self)
@@ -99,19 +99,19 @@ macro_rules! impl_integer {
                 Self(self.0.abs_wrapped())
             }
 
-            /// Wrapped addition.
+            /// Wrapped addition with another integer.
             #[wasm_bindgen(js_name = "addWrapped")]
             pub fn add_wrapped(&self, other: &$name) -> $name {
                 Self(self.0.add_wrapped(&other.0))
             }
 
-            /// Wrapped subtraction.
+            /// Wrapped subtraction with another integer.
             #[wasm_bindgen(js_name = "subWrapped")]
             pub fn sub_wrapped(&self, other: &$name) -> $name {
                 Self(self.0.sub_wrapped(&other.0))
             }
 
-            /// Wrapped multiplication.
+            /// Wrapped multiplication with another integer.
             #[wasm_bindgen(js_name = "mulWrapped")]
             pub fn mul_wrapped(&self, other: &$name) -> $name {
                 Self(self.0.mul_wrapped(&other.0))
@@ -123,67 +123,67 @@ macro_rules! impl_integer {
                 Self(self.0.div_wrapped(&other.0))
             }
 
-            /// Power to a u8 exponent.
+            /// Exponentiate the integer with a u8 exponent.
             #[wasm_bindgen(js_name = "powU8")]
             pub fn pow_u8(&self, exponent: &U8) -> $name {
                 Self(self.0.pow(&exponent.0))
             }
 
-            /// Power to a u16 exponent.
+            /// Exponentiate the integer with a u16 exponent.
             #[wasm_bindgen(js_name = "powU16")]
             pub fn pow_u16(&self, exponent: &U16) -> $name {
                 Self(self.0.pow(&exponent.0))
             }
 
-            /// Power to a u32 exponent.
+            /// Exponentiate the integer with a u32 exponent.
             #[wasm_bindgen(js_name = "powU32")]
             pub fn pow_u32(&self, exponent: &U32) -> $name {
                 Self(self.0.pow(&exponent.0))
             }
 
-            /// Negates the integer (e.g., 5 → -5).
+            /// Negate the integer (e.g., 5 → -5).
             #[wasm_bindgen(js_name = "neg")]
             pub fn neg(&self) -> $name {
                 Self(-self.0)
             }
 
-            /// Checks equality with another integer.
+            /// Check equality with another integer.
             #[wasm_bindgen(js_name = "equals")]
             pub fn equals(&self, other: &$name) -> bool {
                 self.0 == other.0
             }
 
-            /// Remainder.
+            /// Get the remainder from integer division.
             #[wasm_bindgen(js_name = "rem")]
             pub fn rem(&self, other: &$name) -> $name {
                 Self(self.0.rem(&other.0))
             }
 
-            /// Wrapped remainder.
+            /// Get the remainder from an integer division which wraps if there's an overflow.
             #[wasm_bindgen(js_name = "remWrapped")]
             pub fn rem_wrapped(&self, other: &$name) -> $name {
                 Self(self.0.rem_wrapped(&other.0))
             }
 
-            /// Convert to Scalar.
+            /// Convert the integer to a Scalar value.
             #[wasm_bindgen(js_name = "toScalar")]
             pub fn to_scalar(&self) -> crate::Scalar {
                 self.0.to_scalar().into()
             }
 
-            /// Convert to plaintext.
+            /// Convert the integer to the Plaintext type. This must be done before hashing an integer to ensure it matches hashes with a leo/aleo program.
             #[wasm_bindgen(js_name = "toPlaintext")]
             pub fn to_plaintext(&self) -> Plaintext {
                 Plaintext::from(PlaintextNative::Literal(LiteralNative::$name(self.0), std::sync::OnceLock::new()))
             }
 
-            /// Convert from Field.
+            /// Attempt to construct the integer from a field element.
             #[wasm_bindgen(js_name = "fromField")]
             pub fn from_field(field: &crate::Field) -> Result<$name, String> {
                 <$native>::from_field(&FieldNative::from(field)).map(Self).map_err(|e| e.to_string())
             }
 
-            /// Convert from Fields.
+            /// Atttempt to construct the integer from a list of field elements.
             #[wasm_bindgen(js_name = "fromFields")]
             pub fn from_fields(fields: js_sys::Array) -> Result<$name, String> {
                 // Collect JsValue → Field
@@ -200,7 +200,8 @@ macro_rules! impl_integer {
                 <$native>::from_fields(&rust_fields).map(Self).map_err(|e| e.to_string())
             }
 
-            /// Clone.
+            /// Clone the integer in wasm memory.
+            #[allow(clippy::should_implement_trait)]
             pub fn clone(&self) -> $name {
                 $name(self.0)
             }

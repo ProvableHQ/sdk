@@ -84,7 +84,10 @@ impl ProgramManager {
         // Authorize the fee.
         let execution_id = authorization.to_execution_id().map_err(|e| e.to_string())?;
         let fee_authorization = if program_native.id().to_string().as_str() == "credits.aleo"
-            && (function_name == "split" || function_name == "fee_public" || function_name == "fee_private")
+            && (function_name == "split"
+                || function_name == "upgrade"
+                || function_name == "fee_public"
+                || function_name == "fee_private")
         {
             None
         } else {

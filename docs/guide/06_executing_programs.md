@@ -115,7 +115,7 @@ const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v
 
 // Create a key provider that will be used to find public proving & verifying keys for Aleo programs.
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager to talk to the Aleo network with the configured key and record providers.
 const programManager = new ProgramManager(networkClient, keyProvider);
@@ -177,7 +177,7 @@ import { AleoKeyProvider, VerifyingKey, ProvingKey } from '@provablehq/sdk/mainn
 const keyProvider = new AleoKeyProvider();
 // This flag enables the cache for the key provider. If the cache is enabled, the key provider will store the keys in 
 // memory after being fetched for the first time.
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // The key provider allows specification of HTTP uris where proving keys and verifying keys can be found and a cache 
 // key for storing them.
@@ -243,7 +243,7 @@ import keys = getBindingIdentifiers.keys;
 /// Initialize the key provider and network client.
 const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
 const keyProvider = new AleoKeyProvider();
-keys.useCache = true;
+keys.useCache(true);
 
 /// Define the program.
 const program = "program helloworld.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
