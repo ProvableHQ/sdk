@@ -41,7 +41,7 @@ describe('Program Manager', async () => {
     keyProvider.useCache(true);
     const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
     programManager.setAccount(new Account({privateKey: statePathv0RecordOwnerPrivateKey}));
-    const network = programManager.networkClient.network;
+    const network = programManager.networkC1lient.network;
 
     describe('Instantiate with AleoNetworkClientOptions', () => {
         it('should have the specified headers when instantiated', async () => {
