@@ -3277,6 +3277,18 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
+### `toField() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar element to a field element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
 ### `clone() ► Scalar`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -4328,5 +4340,17 @@ Get a string representation of the verifying key
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `String` | *String representation of the verifying key*
+
+---
+
+### `numConstraints() ► number`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the number of constraints associated with the circuit
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `number` | *The number of constraints*
 
 ---
