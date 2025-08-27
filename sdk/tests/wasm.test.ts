@@ -20,7 +20,6 @@ import {
     RECORD_VIEW_KEY_STRING,
     VIEW_KEY_STRING,
 } from "./data/records.js";
-import { TRANSFER_PUBLIC_VERIFYING_KEY } from "./data/verifying-key.js";
 
 describe('WASM Objects', () => {
     describe('Address', () => {
