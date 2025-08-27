@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, AleoNetworkClient, Field, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition } from "../src/node.js";
+import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, Field, FunctionKeyPair, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, VerifyingKey, AleoKeyProvider} from "../src/node.js";
 import {
     seed,
     message,
@@ -20,7 +20,6 @@ import {
     RECORD_VIEW_KEY_STRING,
     VIEW_KEY_STRING,
 } from "./data/records.js";
-
 
 describe('WASM Objects', () => {
     describe('Address', () => {
@@ -485,4 +484,13 @@ describe('WASM Objects', () => {
             expect(decryptedRecords[0].toString()).equal(recordPlaintextCopy.toString());
         });
     });
+    describe('VerifyingKey', () => {
+        it('can get the number of constraints', async () => {
+            const keyProvider = new AleoKeyProvider();
+            const [transferPublicProver, transferPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_public);
+            const numConstraints = transferPublicVerifier.numConstraints();
+            expect(numConstraints).to.equal(12326);
+        });
+    });
 });
+

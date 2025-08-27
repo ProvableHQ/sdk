@@ -83,6 +83,14 @@ impl VerifyingKey {
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
+
+    /// Get the number of constraints associated with the circuit
+    ///
+    /// @returns {number} The number of constraints
+    #[wasm_bindgen(js_name = "numConstraints")]
+    pub fn num_constraints(&self) -> u32 {
+        self.0.circuit_info.num_constraints as u32
+    }
 }
 
 impl Deref for VerifyingKey {
@@ -237,5 +245,14 @@ mod tests {
         let checksum = "ea77f42a35b3f891e7753c7333df365f356883550c4602df11f270237bef340d";
 
         assert_eq!(transfer_public_verifying_key_checksum, checksum);
+    }
+
+    #[wasm_bindgen_test]
+    async fn test_num_constraints() {
+        let transfer_public_verifier_bytes =
+            crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
+        let transfer_public_verifier = VerifyingKey::from_bytes(&transfer_public_verifier_bytes).unwrap();
+        let num_constraints = transfer_public_verifier.num_constraints();
+        assert_eq!(num_constraints, 12326);
     }
 }
