@@ -1601,7 +1601,7 @@ class AleoNetworkClient {
      * @param {string} url - (Optional) The url of the proving service.
      * @returns {Promise<ProvingResponse>} The ProvingResponse containing the transaction result and the result of the broadcast if the `broadcast` flag was set to `true`.
      */
-    async submitProvingRequest(provingRequest: ProvingRequest | string, url?: string): Promise<ProvingResponse> {
+    async submitProvingRequest(provingRequest: ProvingRequest | string, url?: string, apiKey?: string, delegatedProvingJWT?: string): Promise<ProvingResponse> {
         const prover_uri = url ? url : this.host;
         const provingRequestString =
             provingRequest instanceof ProvingRequest
@@ -1612,6 +1612,9 @@ class AleoNetworkClient {
                 post(prover_uri + "/prove", {
                     body: provingRequestString,
                     headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD": "submitProvingRequest"}, {
+                        "authorization": "Bearer " + delegatedProvingJWT,
+                    },
+                    {
                         "Content-Type": "application/json",
                     }),
                 }),
