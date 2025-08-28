@@ -1611,6 +1611,7 @@ class AleoNetworkClient {
      * Submit a `ProvingRequest` to a remote proving service for delegated proving. If the broadcast flag of the `ProvingRequest` is set to `true` the remote service will attempt to broadcast the result `Transaction` on behalf of the requestor.
      *
      * @param {DelegatedProvingParams} options - The optional parameters required to submit a proving request.
+     * @param {DelegatedProvingParams} options - The optional parameters required to submit a proving request.
      * @returns {Promise<ProvingResponse>} The ProvingResponse containing the transaction result and the result of the broadcast if the `broadcast` flag was set to `true`.
      */
     async submitProvingRequest(options: DelegatedProvingParams): Promise<ProvingResponse> {
@@ -1633,6 +1634,17 @@ class AleoNetworkClient {
         console.log("Using headers:", headers);
         try {
             const response = await retryWithBackoff(() =>
+                post(`${proverUri}/prove`, {
+                body: provingRequestString,
+                 headers
+                })
+            );
+        
+            const responseText = await response.text();
+            return parseJSON(responseText);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            throw new Error(`Failed to submit proving request: ${errorMessage}`);
                 post(`${proverUri}/prove`, {
                 body: provingRequestString,
                  headers
