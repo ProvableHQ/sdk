@@ -38,6 +38,8 @@ use snarkvm_ledger_query::QueryTrait;
 use std::str::FromStr;
 use wasm_bindgen::JsValue;
 
+const MAX_QUERY_ATTEMPTS: usize = 3;
+
 /// A snapshot-based query object used to pin the block height, state root, and state paths to a single ledger view during online execution.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct SnapshotQuery {
@@ -146,7 +148,6 @@ impl SnapshotQuery {
         node_url: &str,
         commitments: &[FieldNative],
     ) -> Result<(u32, Vec<(FieldNative, StatePathNative)>)> {
-        let max_attempts = 3;
         let mut attempts = 0;
 
         let (latest_height, statepaths) = loop {
@@ -158,9 +159,9 @@ impl SnapshotQuery {
                 Err(e) => {
                     attempts += 1;
                     log(&format!(
-                        "Failed to fetch latest block height and statepaths, attempt {attempts}/{max_attempts}..."
+                        "Failed to fetch latest block height and statepaths, attempt {attempts}/{MAX_QUERY_ATTEMPTS}..."
                     ));
-                    if attempts >= max_attempts {
+                    if attempts > MAX_QUERY_ATTEMPTS {
                         bail!("Failed to fetch latest block height and state root: {e}");
                     }
                 }
@@ -178,14 +179,16 @@ impl SnapshotQuery {
     /// Attempt to fetch the latest block height and stateroot concurrently.
     pub async fn snapshot_stateroot(node_url: &str) -> Result<(u32, <CurrentNetwork as Network>::StateRoot)> {
         let mut attempts = 0;
-        let max_attempts = 5;
 
         loop {
             match futures::try_join!(latest_block_height(node_url), latest_stateroot(node_url),) {
                 Ok((height, state_root)) => return Ok((height, state_root)),
                 Err(e) => {
                     attempts += 1;
-                    if attempts >= max_attempts {
+                    log(&format!(
+                        "Failed to fetch latest block height and stateroot, attempt {attempts}/{MAX_QUERY_ATTEMPTS}..."
+                    ));
+                    if attempts > MAX_QUERY_ATTEMPTS {
                         bail!("Failed to fetch latest block height and state root: {}", e);
                     }
                 }
