@@ -26,14 +26,12 @@ interface AleoNetworkClientOptions {
  *
  * @property provingRequest {ProvingRequest | string} The proving request being submitted to the network.
  * @property url {string} The URL of the delegated proving service.
- * @property apiKey {string} The API key to use for authentication.  NOTE: This is not currently used but will be in a future release.
- * @property delegatedProvingJWT {string} JWT token for authentication.  NOTE: This will be deprecated in favor of apiKey in a future release.
+ * @property apiKey {string} The API key to use for authentication.
  */
 interface DelegatedProvingParams {
     provingRequest: ProvingRequest | string;
     url?: string;
     apiKey?: string;
-    delegatedProvingJWT?: string;
 }
 
 /**
@@ -1629,12 +1627,10 @@ class AleoNetworkClient {
         };
 
         // Add auth header based on what's available
-        if (options.delegatedProvingJWT) {
-          headers["Authorization"] = `Bearer ${options.delegatedProvingJWT}`;
-        } else if (options.apiKey) {
-          headers["X-API-Key"] = options.apiKey;
+        if (options.apiKey) {
+          headers["X-Provable-API-Key"] = options.apiKey;
         }
-
+        console.log("Using headers:", headers);
         try {
             const response = await retryWithBackoff(() =>
                 post(`${proverUri}/prove`, {
