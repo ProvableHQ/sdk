@@ -1630,7 +1630,7 @@ class AleoNetworkClient {
         if (options.apiKey) {
           headers["X-Provable-API-Key"] = options.apiKey;
         }
-        console.log("Using headers:", headers);
+
         try {
             const response = await retryWithBackoff(() =>
                 post(`${proverUri}/prove`, {
@@ -1638,13 +1638,12 @@ class AleoNetworkClient {
                  headers
                 })
             );
-        
             const responseText = await response.text();
             return parseJSON(responseText);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             throw new Error(`Failed to submit proving request: ${errorMessage}`);
-        } 
+        }
     }
 
     /**
