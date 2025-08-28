@@ -152,7 +152,7 @@ impl SnapshotQuery {
         let (latest_height, statepaths) = loop {
             match futures::try_join!(
                 latest_block_height(node_url),
-                get_statepaths_from_stateroot(node_url, commitments),
+                get_statepaths_for_commitments(node_url, commitments),
             ) {
                 Ok((height, statepaths)) => break (height, statepaths),
                 Err(e) => {
