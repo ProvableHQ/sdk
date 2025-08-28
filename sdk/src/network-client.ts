@@ -1611,7 +1611,6 @@ class AleoNetworkClient {
      * Submit a `ProvingRequest` to a remote proving service for delegated proving. If the broadcast flag of the `ProvingRequest` is set to `true` the remote service will attempt to broadcast the result `Transaction` on behalf of the requestor.
      *
      * @param {DelegatedProvingParams} options - The optional parameters required to submit a proving request.
-     * @param {DelegatedProvingParams} options - The optional parameters required to submit a proving request.
      * @returns {Promise<ProvingResponse>} The ProvingResponse containing the transaction result and the result of the broadcast if the `broadcast` flag was set to `true`.
      */
     async submitProvingRequest(options: DelegatedProvingParams): Promise<ProvingResponse> {
