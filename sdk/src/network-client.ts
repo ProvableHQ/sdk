@@ -39,12 +39,14 @@ class AleoNetworkClient {
     headers: { [key: string]: string };
     account: Account | undefined;
     ctx: { [key: string]: string };
+    debugMode: boolean;
     readonly network: string;
 
     constructor(host: string, options?: AleoNetworkClientOptions) {
         this.host = host + "/%%NETWORK%%";
         this.network = "%%NETWORK%%";
         this.ctx = {};
+        this.debugMode = true;
 
         if (options && options.headers) {
             this.headers = options.headers;
@@ -99,6 +101,24 @@ class AleoNetworkClient {
      */
     setHost(host: string) {
         this.host = host + "/%%NETWORK%%";
+    }
+
+    /**
+     * Set debug mode for the networkClient. When this mode is enabled, if Aleo network nodes report failures after
+     * calling the `submitTransaction` method, nodes will report debug information as to why the transaction failed.
+     *
+     * @param {boolean} debugMode Set debug mode for the networkClient.
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a networkClient
+     * const networkClient = new AleoNetworkClient();
+     *
+     * // Set debug mode to true
+     * networkClient.setDebugMode(true);
+     **/
+    setDebugMode(debugMode: boolean) {
+        this.debugMode = debugMode;
     }
 
     /**
@@ -1538,8 +1558,9 @@ class AleoNetworkClient {
                 ? transaction.toString()
                 : transaction;
         try {
+            const endpoint = this.debugMode ? "transaction/broadcast?debug=true" : "transaction/broadcast";
             const response = await retryWithBackoff(() =>
-                this._sendPost(this.host + "/transaction/broadcast", {
+                this._sendPost(`${this.host}/${endpoint}`, {
                     body: transactionString,
                     headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD" : "submitTransaction"}, {
                         "Content-Type": "application/json",
