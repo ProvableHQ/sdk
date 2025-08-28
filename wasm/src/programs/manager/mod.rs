@@ -37,7 +37,6 @@ use crate::{
         ProgramIDNative,
         ProgramNative,
         ProvingKeyNative,
-        QueryNative,
         VerifyingKeyNative,
     },
 };

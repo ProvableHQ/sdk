@@ -66,7 +66,7 @@ features = ["async", "wasm"]
 [dependencies.snarkvm-wasm]
 git = "https://github.com/ProvableHQ/snarkVM"
 rev = "fb8349c4fdbab3862915f6f44517319e5b43d981"
-features = ["console", "fields", "utilities"]
+features = ["fields", "utilities"]
 [dependencies.anyhow]
 version = "1.0"
 

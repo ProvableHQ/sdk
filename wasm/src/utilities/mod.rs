@@ -22,5 +22,5 @@ pub mod test;
 pub mod encrypt;
 pub use encrypt::EncryptionToolkit;
 
-pub mod network;
-pub use network::{get, get_network, latest_block_height};
+pub mod rest;
+pub use rest::{get, get_network, get_statepaths_for_commitments, latest_block_height, latest_stateroot};

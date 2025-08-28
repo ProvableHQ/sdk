@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::native::CurrentNetwork;
+use crate::types::native::{CurrentNetwork, FieldNative, StatePathNative};
 
+use anyhow::Result;
 use snarkvm_console::network::Network;
 
 /// Get the current network name.
@@ -28,19 +29,31 @@ pub fn get_network() -> &'static str {
     }
 }
 
+/// Get statepaths from stateroot.
+pub async fn get_statepaths_for_commitments(
+    base_url: &str,
+    commitments: &[FieldNative],
+) -> Result<Vec<StatePathNative>> {
+    let query_string = commitments.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(",");
+    get(&format!("{base_url}/{}/statePaths?={query_string}", get_network())).await
+}
+
 /// Get the latest block height.
-pub async fn latest_block_height(base_url: &str) -> Result<u32, String> {
-    let url = format!("{base_url}/{}/block/height/latest", get_network());
-    let res = get(&url).await?;
-    Ok(res)
+pub async fn latest_block_height(base_url: &str) -> Result<u32> {
+    get(&format!("{base_url}/{}/block/height/latest", get_network())).await
+}
+
+/// Get the latest block height.
+pub async fn latest_stateroot(base_url: &str) -> Result<<CurrentNetwork as Network>::StateRoot> {
+    get(&format!("{base_url}/{}/stateRoot/latest", get_network())).await
 }
 
 /// Make a GET request to the service.
-pub async fn get<T>(url: &str) -> Result<T, String>
+pub async fn get<T>(url: &str) -> Result<T>
 where
     T: serde::de::DeserializeOwned,
 {
     let client = reqwest::Client::new();
-    let res = client.get(url).send().await.map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())?;
+    let res = client.get(url).send().await?.json().await?;
     Ok(res)
 }
