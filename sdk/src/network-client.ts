@@ -1644,18 +1644,7 @@ class AleoNetworkClient {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             throw new Error(`Failed to submit proving request: ${errorMessage}`);
-                post(`${proverUri}/prove`, {
-                body: provingRequestString,
-                 headers
-                })
-            );
-        
-            const responseText = await response.text();
-            return parseJSON(responseText);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            throw new Error(`Failed to submit proving request: ${errorMessage}`);
-        }
+        } 
     }
 
     /**
