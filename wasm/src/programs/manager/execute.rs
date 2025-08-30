@@ -86,7 +86,6 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
     ) -> Result<ExecutionResponse, String> {
-        log(&format!("Executing local function: {function}"));
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let inputs = inputs.to_vec();
         let rng = &mut StdRng::from_entropy();

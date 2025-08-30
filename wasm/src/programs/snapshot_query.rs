@@ -161,7 +161,7 @@ impl SnapshotQuery {
                     log(&format!(
                         "Failed to fetch latest block height and statepaths, attempt {attempts}/{MAX_QUERY_ATTEMPTS}..."
                     ));
-                    if attempts > MAX_QUERY_ATTEMPTS {
+                    if attempts >= MAX_QUERY_ATTEMPTS {
                         bail!("Failed to fetch latest block height and state root: {e}");
                     }
                 }
@@ -188,7 +188,7 @@ impl SnapshotQuery {
                     log(&format!(
                         "Failed to fetch latest block height and stateroot, attempt {attempts}/{MAX_QUERY_ATTEMPTS}..."
                     ));
-                    if attempts > MAX_QUERY_ATTEMPTS {
+                    if attempts >= MAX_QUERY_ATTEMPTS {
                         bail!("Failed to fetch latest block height and state root: {}", e);
                     }
                 }
@@ -239,5 +239,39 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
 
     async fn current_block_height_async(&self) -> Result<u32> {
         Ok(self.block_height)
+    }
+}
+
+#[cfg(test)]
+
+mod tests {
+    use super::*;
+    use crate::{test::PROVABLE_API, utilities::rest::get_network};
+    use wasm_bindgen_test::*;
+
+    #[wasm_bindgen_test]
+    async fn test_snapshot_stateroot() {
+        let (height, stateroot) = SnapshotQuery::snapshot_stateroot(PROVABLE_API).await.unwrap();
+        console_log!("stateroot: {:?}", stateroot);
+        assert!(height > 10_000_000);
+    }
+
+    #[wasm_bindgen_test]
+    async fn test_snapshot_statepaths() {
+        if get_network() == "testnet" {
+            let commitment_0 = "3955342727272311631397274863769364826445372300002295001500327687918144964187field";
+            let commitment_1 = "360335536692650403149180907504772813391262210443170533323444515646946440826field";
+            let commitments =
+                vec![FieldNative::from_str(commitment_0).unwrap(), FieldNative::from_str(commitment_1).unwrap()];
+            let (height, state_paths) =
+                SnapshotQuery::snapshot_statepaths("http://34.168.156.3:3030", &commitments).await.unwrap();
+            assert_eq!(state_paths.len(), 2);
+            let (commitment_0_field, state_path_0) = &state_paths[0];
+            let (commitment_1_field, state_path_1) = &state_paths[1];
+            assert_eq!(commitment_0_field.to_string().as_str(), commitment_0);
+            assert_eq!(commitment_1_field.to_string().as_str(), commitment_1);
+            assert_eq!(state_path_0.global_state_root(), state_path_1.global_state_root());
+            assert!(height > 10_000_000);
+        }
     }
 }

@@ -68,7 +68,7 @@ describe('Program Manager', async () => {
         it.skip('Program manager should execute offline and verify the resulting proof correctly', async () => {
             const execution_result = <ExecutionResponse>await programManager.run(helloProgram, "hello", ["5u32", "5u32"], true, undefined, undefined, undefined, undefined, undefined, undefined)
             expect(execution_result.getOutputs()[0]).equal("10u32");
-            programManager.verifyExecution(execution_result, 9_000_000);
+            programManager.verifyExecution(execution_result, 10_300_000);
         });
     });
 
@@ -102,7 +102,7 @@ describe('Program Manager', async () => {
 
     describe('Offline query', () => {
         it.skip('The offline query should work as expected', async () => {
-            const offlineQuery = new OfflineQuery(1, stateRootv0);
+            const offlineQuery = new OfflineQuery(10_300_000, stateRootv0);
             const record_plaintext = RecordPlaintext.fromString(statePathRecordv0);
             const pk = PrivateKey.from_string("APrivateKey1zkpAZAjaJJvPS7EJ7zvk5fb3QcZDCDxMSHSN5ap7ep4FAD7");
             const vk = ViewKey.from_private_key(pk);
@@ -112,7 +112,7 @@ describe('Program Manager', async () => {
             const credits = <string>await programManager.networkClient.getProgram("credits.aleo");
 
             const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecordv0, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
-            const verified = programManager.verifyExecution(execution_result, 9_000_000);
+            const verified = programManager.verifyExecution(execution_result, 10_300_000);
             expect(verified).equal(true);
         });
     });

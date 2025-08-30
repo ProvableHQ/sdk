@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::native::{CurrentNetwork, FieldNative, StatePathNative};
+use crate::{
+    log,
+    types::native::{CurrentNetwork, FieldNative, StatePathNative},
+};
 
 use anyhow::Result;
 use snarkvm_console::network::Network;
@@ -35,7 +38,8 @@ pub async fn get_statepaths_for_commitments(
     commitments: &[FieldNative],
 ) -> Result<Vec<StatePathNative>> {
     let query_string = commitments.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(",");
-    get(&format!("{base_url}/{}/statePaths?={query_string}", get_network())).await
+    log(&format!("Sending request to: {base_url}/{}/statePaths?commitments={query_string}", get_network()));
+    get(&format!("{base_url}/{}/statePaths?commitments={query_string}", get_network())).await
 }
 
 /// Get the latest block height.
@@ -56,4 +60,45 @@ where
     let client = reqwest::Client::new();
     let res = client.get(url).send().await?.json().await?;
     Ok(res)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::test::PROVABLE_API;
+
+    use std::str::FromStr;
+    use wasm_bindgen_test::*;
+
+    #[wasm_bindgen_test]
+    async fn test_get_stateroot() {
+        let state_root = latest_stateroot(PROVABLE_API).await.unwrap();
+        console_log!("{:?}", state_root);
+    }
+
+    #[wasm_bindgen_test]
+    async fn test_get_block_height() {
+        let block_height = latest_block_height(PROVABLE_API).await.unwrap();
+        assert!(block_height > 10_000_000);
+    }
+
+    #[wasm_bindgen_test]
+    async fn test_get_statepaths() {
+        if get_network() == "testnet" {
+            let commitments = vec![
+                FieldNative::from_str(
+                    "3955342727272311631397274863769364826445372300002295001500327687918144964187field",
+                )
+                .unwrap(),
+                FieldNative::from_str(
+                    "360335536692650403149180907504772813391262210443170533323444515646946440826field",
+                )
+                .unwrap(),
+            ];
+            let state_paths = get_statepaths_for_commitments("http://34.168.156.3:3030", &commitments).await.unwrap();
+            assert_eq!(state_paths.len(), 2);
+            assert_eq!(state_paths[0].global_state_root(), state_paths[1].global_state_root());
+        }
+    }
 }
