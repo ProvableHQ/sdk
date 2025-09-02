@@ -22,7 +22,7 @@ interface AleoNetworkClientOptions {
 }
 
 /**
- * Options for executing a fee authorization.
+ * Options for submitting a proving request.
  *
  * @property provingRequest {ProvingRequest | string} The proving request being submitted to the network.
  * @property url {string} The URL of the delegated proving service.
