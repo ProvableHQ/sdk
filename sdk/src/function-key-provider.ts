@@ -16,12 +16,18 @@ import {
 
 import { get } from "./utils.js";
 
+import fs from "node:fs/promises";
+
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 type CachedKeyPair = [Uint8Array, Uint8Array];
 type AleoKeyProviderInitParams = {
     proverUri?: string;
     verifierUri?: string;
     cacheKey?: string;
+};
+type KeyBuffers = {
+  provingKey: Buffer;
+  verifyingKey: Buffer;
 };
 
 /**
@@ -608,6 +614,37 @@ class AleoKeyProvider implements FunctionKeyProvider {
 
     unBondPublicKeys(): Promise<FunctionKeyPair> {
         return this.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.unbond_public);
+    }
+
+    /**
+     * Converts the keys in a FunctionKeyPair to buffers.
+     * @param {FunctionKeyPair} The proving and verifying keys to convert.
+     * 
+     * @returns {Promise<KeyBuffers>} The buffers containing the proving and verifying keys.
+     */
+    async saveKeysToFile(keyPair: FunctionKeyPair): Promise<KeyBuffers> {
+        const [provingKey, verifyingKey] = keyPair;
+        const proverBytes = provingKey.toBytes();
+        const verifierBytes = verifyingKey.toBytes();
+        return {
+            provingKey: Buffer.from(proverBytes), 
+            verifyingKey: Buffer.from(verifierBytes)
+        };
+    }
+
+    /**
+     * Saves the keys in a FunctionKeyPair to the local disk.
+     * @param {string} path The path to save the keys to.
+     * @param {string} keyId The keyId to use for the file names.
+     * @param {KeyBuffers} keyPairBuffers The buffers containing the proving and verifying keys.
+     * 
+     * @returns {Promise<void>} A promise that resolves when the keys have been saved.
+     */
+    async saveKeysToLocalDisk(path: string, keyId: string, keyPairBuffers: KeyBuffers): Promise<void> {
+        const proverPath = `${path}/${keyId}_proving.key`;
+        const verifierPath = `${path}/${keyId}_verifying.key`;
+        await fs.writeFile(proverPath, keyPairBuffers.provingKey);
+        await fs.writeFile(verifierPath, keyPairBuffers.verifyingKey);
     }
 }
 
