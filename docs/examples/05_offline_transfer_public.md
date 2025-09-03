@@ -1,4 +1,4 @@
-// This example will demonstrate how to build an offline public transfer transaction using proving keys from local storage
+// This example demonstrates how to build an offline public transfer transaction using proving keys from local storage
 ```typescript
 import { Account, AleoKeyProvider, CREDITS_PROGRAM_KEYS, initThreadPool, OfflineKeyProvider, OfflineSearchParams, ProgramManager, ProvingKey, VerifyingKey } from '@provable.sdk';
 
