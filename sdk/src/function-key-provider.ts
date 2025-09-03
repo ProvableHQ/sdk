@@ -648,4 +648,4 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 }
 
-export {AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, CachedKeyPair, FunctionKeyPair, FunctionKeyProvider, KeySearchParams}
+export {AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, CachedKeyPair, FunctionKeyPair, FunctionKeyProvider, KeyBuffers, KeySearchParams}
