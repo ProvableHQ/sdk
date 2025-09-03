@@ -622,7 +622,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * 
      * @returns {Promise<KeyBuffers>} The buffers containing the proving and verifying keys.
      */
-    async saveKeysToFile(keyPair: FunctionKeyPair): Promise<KeyBuffers> {
+    async convertKeysToBuffer(keyPair: FunctionKeyPair): Promise<KeyBuffers> {
         const [provingKey, verifyingKey] = keyPair;
         const proverBytes = provingKey.toBytes();
         const verifierBytes = verifyingKey.toBytes();
