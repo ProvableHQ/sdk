@@ -2,7 +2,6 @@ import {
     CachedKeyPair,
     FunctionKeyPair,
     FunctionKeyProvider,
-    KeyBuffers,
     KeySearchParams,
 } from "./function-key-provider.js";
 
@@ -19,8 +18,6 @@ import {
     PUBLIC_TO_PRIVATE_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER,
 } from "./constants.js";
-
-import fs from "node:fs/promises";
 
 /**
  * Search parameters for the offline key provider. This class implements the KeySearchParams interface and includes
@@ -605,46 +602,12 @@ class OfflineKeyProvider implements FunctionKeyProvider {
     }
 
     /**
-     * Convert key buffers to a FunctionKeyPair.
-     * @param {KeyBuffers} keyBuffers The key buffers loaded from storage.
-     * @returns {FunctionKeyPair}
-     */
-    convertKeyBuffersToFunctionKeyPair(keyBuffers: KeyBuffers): FunctionKeyPair {
-        const provingKey = ProvingKey.fromBytes(new Uint8Array(keyBuffers.provingKey));
-        const verifyingKey = VerifyingKey.fromBytes(new Uint8Array(keyBuffers.verifyingKey));
-        return [provingKey, verifyingKey];
-    }
-
-    /**
      * Convert key buffer to ProvingKey.
      * @param {Buffer} buffer The key buffer for the proving key loaded from storage.
      * @returns {ProvingKey}
      */
-    convertKeyBufferToProvingKey(buffer: Buffer): ProvingKey {
-        return ProvingKey.fromBytes(new Uint8Array(buffer));
-    }
-
-    /**
-     * Load keys from disk.
-     * @param {string} provingKeyPath The file path for the proving key.
-     * @param {string} verifyingKeyPath The file path for the verifying key.
-     * @returns {Promise<FunctionKeyPair>}
-     */
-    loadKeysFromDisk(provingKeyPath: string, verifyingKeyPath: string): Promise<FunctionKeyPair> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const provingKeyBuffer = await fs.readFile(provingKeyPath);
-                const verifyingKeyBuffer = await fs.readFile(verifyingKeyPath);
-                const keyBuffers: KeyBuffers = {
-                    provingKey: provingKeyBuffer,
-                    verifyingKey: verifyingKeyBuffer,
-                };
-                const functionKeyPair = this.convertKeyBuffersToFunctionKeyPair(keyBuffers);
-                resolve(functionKeyPair);
-            } catch (error) {
-                reject(new Error(`Failed to load keys from disk: ${error}`));
-            }
-        });
+    convertKeyBytesToProvingKey(bytes: Uint8Array): ProvingKey {
+        return ProvingKey.fromBytes(bytes);
     }
 }
 
