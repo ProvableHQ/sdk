@@ -16,7 +16,7 @@ import {
 
 import { get } from "./utils.js";
 
-import fs from "node:fs/promises";
+import { KeyBytes } from "./key-manager.js";
 
 type FunctionKeyPair = [ProvingKey, VerifyingKey];
 type CachedKeyPair = [Uint8Array, Uint8Array];
@@ -24,10 +24,6 @@ type AleoKeyProviderInitParams = {
     proverUri?: string;
     verifierUri?: string;
     cacheKey?: string;
-};
-type KeyBuffers = {
-  provingKey: Buffer;
-  verifyingKey: Buffer;
 };
 
 /**
@@ -622,30 +618,15 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * 
      * @returns {Promise<KeyBuffers>} The buffers containing the proving and verifying keys.
      */
-    async convertKeysToBuffer(keyPair: FunctionKeyPair): Promise<KeyBuffers> {
+    async convertKeysToBytes(keyPair: FunctionKeyPair): Promise<KeyBytes> {
         const [provingKey, verifyingKey] = keyPair;
         const proverBytes = provingKey.toBytes();
         const verifierBytes = verifyingKey.toBytes();
         return {
-            provingKey: Buffer.from(proverBytes), 
-            verifyingKey: Buffer.from(verifierBytes)
+            provingKey: proverBytes,
+            verifyingKey: verifierBytes
         };
-    }
-
-    /**
-     * Saves the keys in a FunctionKeyPair to the local disk.
-     * @param {string} path The path to save the keys to.
-     * @param {string} keyId The keyId to use for the file names.
-     * @param {KeyBuffers} keyPairBuffers The buffers containing the proving and verifying keys.
-     * 
-     * @returns {Promise<void>} A promise that resolves when the keys have been saved.
-     */
-    async saveKeysToLocalDisk(path: string, keyId: string, keyPairBuffers: KeyBuffers): Promise<void> {
-        const proverPath = `${path}/${keyId}_proving.key`;
-        const verifierPath = `${path}/${keyId}_verifying.key`;
-        await fs.writeFile(proverPath, keyPairBuffers.provingKey);
-        await fs.writeFile(verifierPath, keyPairBuffers.verifyingKey);
     }
 }
 
-export {AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, CachedKeyPair, FunctionKeyPair, FunctionKeyProvider, KeyBuffers, KeySearchParams}
+export {AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, CachedKeyPair, FunctionKeyPair, FunctionKeyProvider, KeyBytes, KeySearchParams}
