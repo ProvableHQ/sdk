@@ -600,15 +600,6 @@ class OfflineKeyProvider implements FunctionKeyProvider {
             throw new Error("Attempted to insert invalid proving keys for unbond_public");
         }
     }
-
-    /**
-     * Convert key buffer to ProvingKey.
-     * @param {Buffer} buffer The key buffer for the proving key loaded from storage.
-     * @returns {ProvingKey}
-     */
-    convertKeyBytesToProvingKey(bytes: Uint8Array): ProvingKey {
-        return ProvingKey.fromBytes(bytes);
-    }
 }
 
 
