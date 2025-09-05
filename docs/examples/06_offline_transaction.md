@@ -21,7 +21,7 @@ program demo_program.aleo {
 
 
 ```typescript
-import { Account, AleoKeyProvider, CREDITS_PROGRAM_KEYS, initThreadPool, OfflineKeyProvider, OfflineSearchParams, ProgramManager, ProvingKey, VerifyingKey } from '@provable.sdk';
+import { Account, AleoKeyProvider, CREDITS_PROGRAM_KEYS, initThreadPool, KeyStorageManager, OfflineKeyProvider, OfflineSearchParams, ProgramManager, ProvingKey, VerifyingKey } from '@provable.sdk';
 
 // Initialize multi-threading to allow WASM execution.
 await initThreadPoool();
@@ -33,7 +33,9 @@ const account = new Account();
 const keyProvider = new OfflineKeyProvider();
 
 // Load keys from storage using the Offline Key Provider
-const basicMintKeys = keyProvider.loadKeysFromDisk("./KEY_DIR/basic_mint.prover", "./KEY_DIR/basic_mint.verifier");
+const basicMintKeyBytes = KeyStorageManager.loadKeysFromDisk("./KEY_DIR/basic_mint.prover", "./KEY_DIR/basic_mint.verifier");
+
+const basicMintKeys = [Prover.fromBytes(basicMintKeyBytes[0]), Verifier.fromBytes(basicMintKeyBytes[1])];
 
 // Store the keys in cache
 keyProvider.cacheKeys("demo_program.aleo/basic_mint", basicMintKeys);

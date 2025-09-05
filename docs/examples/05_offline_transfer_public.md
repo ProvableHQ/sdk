@@ -1,6 +1,6 @@
 // This example demonstrates how to build an offline public transfer transaction using proving keys from local storage
 ```typescript
-import { Account, AleoKeyProvider, CREDITS_PROGRAM_KEYS, initThreadPool, OfflineKeyProvider, OfflineSearchParams, ProgramManager, ProvingKey, VerifyingKey } from '@provable.sdk';
+import { Account, AleoKeyProvider, CREDITS_PROGRAM_KEYS, initThreadPool, KeyStorageManager, OfflineKeyProvider, OfflineSearchParams, ProgramManager, ProvingKey, VerifyingKey } from '@provable.sdk';
 
 // Initialize multi-threading to allow WASM execution.
 await initThreadPoool();
@@ -16,19 +16,22 @@ const feeKeyPair = await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.fee_p
 const transferPublicKeyPair = await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_public);
 
 // Save the keys to storage
-const feeKeyBuffer = keyProvider.convertKeysToBuffer(feeKeyPair);
-const transferPublicKeyBuffer = keyProvider.convertToBuffer(transferPublicKeyPair);
-await keyProvider.saveKeysToLocalDisk("/KEY_DIR", "fee_public", feeKeyBuffer);
-await keyProvider.saveKeysToLocalDisk("/KEY_DIR", "transfer_public", transferPublicKeyBuffer);
+const feeKeyBuffer = keyProvider.convertKeysToBytes(feeKeyPair);
+const transferPublicKeyBuffer = keyProvider.convertKeysToBytes(transferPublicKeyPair);
+await KeyStorageManager.saveKeyBytesToDisk("/KEY_DIR", "fee_public", feeKeyBuffer);
+await keyProvider.saveKeyBytesToDisk("/KEY_DIR", "transfer_public", transferPublicKeyBuffer);
 
 // Load keys from storage using the Offline Key Provider
 const offlineKeyProvider = new OfflineKeyProvider();
-const feeKeys = offlineKeyProvider.loadKeysFromDisk("./KEY_DIR/fee_public.prover", "./KEY_DIR/fee_public.verifier");
-const transferPublicKeys = offlineKeyProvider.loadKeysFromDisk("./KEY_DIR/transfer_public.prover", "./KEY_DIR/transfer_public.verifier")
+const localFeeKeyBytes = await KeyStorageManager.loadKeyBytesFromDisk("./KEY_DIR", "fee_public");
+const feeProvingKey = ProvingKey.fromBytes(localFeeKeyBytes.provingKeyBytes);
+
+const localTransferPublicKeyBytes = await KeyStorageManager.loadKeyBytesFromDisk("./KEY_DIR", "transfer_public");
+const transferPublicProvingKey = ProvingKey.fromBytes(localTransferPublicKeyBytes.provingKeyBytes);
 
 // Store the keys in cache
-offlineKeyProvider.insertFeePublicKeys(transferPublicKeys);
-offlineKeyProvider.insertTransferPublicKeys(transferPublicKeys);
+offlineKeyProvider.insertFeePublicKeys(feeProvingKey);
+offlineKeyProvider.insertTransferPublicKeys(transferPublicProvingKey);
 
 // Create an account.
 const account = new Account();
