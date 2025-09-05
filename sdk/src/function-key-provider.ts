@@ -616,15 +616,15 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * Converts the keys in a FunctionKeyPair to buffers.
      * @param {FunctionKeyPair} The proving and verifying keys to convert.
      * 
-     * @returns {Promise<KeyBuffers>} The buffers containing the proving and verifying keys.
+     * @returns {Promise<KeyBytes>} The buffers containing the proving and verifying keys.
      */
-    async convertKeysToBytes(keyPair: FunctionKeyPair): Promise<KeyBytes> {
+    convertKeysToBytes(keyPair: FunctionKeyPair): KeyBytes {
         const [provingKey, verifyingKey] = keyPair;
         const proverBytes = provingKey.toBytes();
         const verifierBytes = verifyingKey.toBytes();
         return {
-            provingKey: proverBytes,
-            verifyingKey: verifierBytes
+            provingKeyBytes: proverBytes,
+            verifyingKeyBytes: verifierBytes
         };
     }
 }

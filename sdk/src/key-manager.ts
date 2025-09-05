@@ -1,42 +1,45 @@
 import fs from "node:fs/promises";
 
 type KeyBytes = {
-  provingKey: Uint8Array;
-  verifyingKey: Uint8Array;
+  provingKeyBytes: Uint8Array;
+  verifyingKeyBytes: Uint8Array;
 };
 
 interface KeyStorage {
-    saveKeyToDisk(path: string, filename: string, keyBytes: KeyBytes): Promise<void>;
-    loadKeyFromDisk(provingKeyPath: string): Promise<Uint8Array>;
+    saveKeyBytesToDisk(path: string, keyID: string, keyBytes: KeyBytes): Promise<void>;
+    loadKeyBytesFromDisk(provingKeyPath: string): Promise<Uint8Array>;
 }
 
 
-class KeyStorageManager implements KeyStorage {
+class KeyStorageManager {
     /**
-    * Saves the keys in a FunctionKeyPair to the local disk.
+    * Saves the key bytes to the local disk.
     * @param {string} path The path to save the keys to.
     * @param {string} keyID The keyId to use for the file names.
-    * @param {KeyBytes} keyPairBuffers The buffers containing the proving and verifying keys.
-    * 
+    * @param {KeyBytes} keyPairBytes The bytes containing the proving and verifying keys.
+    *
     * @returns {Promise<void>} A promise that resolves when the keys have been saved.
     */
-    async saveKeyToDisk(path: string, keyID: string, keyPairBytes: KeyBytes): Promise<void> {
+    static async saveKeyBytesToDisk(path: string, keyID: string, keyPairBytes: KeyBytes): Promise<void> {
         await fs.mkdir(path, { recursive: true });
-        await fs.writeFile(`${path}/${keyID}_proving`, keyPairBytes.provingKey);
-        await fs.writeFile(`${path}/${keyID}_verifying`, keyPairBytes.verifyingKey);
+        await fs.writeFile(`${path}/${keyID}.prover`, keyPairBytes.provingKeyBytes);
+        await fs.writeFile(`${path}/${keyID}.verifier`, keyPairBytes.verifyingKeyBytes);
     }
 
     /**
     * Load keys from disk.
     * @param {string} keyPath The file path for the proving or verifying key.
     *
-    * @returns {Promise<FunctionKeyPair>}
+    * @returns {Promise<Uint8Array>}
     */
-    async loadKeyFromDisk(keyPath: string): Promise<Uint8Array> {
-        const key = await fs.readFile(keyPath);
-
-        return key;
+    static async loadKeyBytesFromDisk(path: string, keyID: string): Promise<KeyBytes> {
+        const provingKey = await fs.readFile(`${path}/${keyID}.prover`);
+        const verifyingKey = await fs.readFile(`${path}/${keyID}.verifier`);
+        return {
+          provingKeyBytes: new Uint8Array(provingKey),
+          verifyingKeyBytes: new Uint8Array(verifyingKey)
+        };
     }
 }
 
-export { KeyBytes, KeyStorageManager };
+export { KeyBytes, KeyStorage, KeyStorageManager };
