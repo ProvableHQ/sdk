@@ -2,8 +2,6 @@ import {Account, AleoKeyProvider, AleoKeyProviderParams, initThreadPool, Program
 
 import * as process from "node:process";
 
-await initThreadPool();
-
 const programName = "hello_hello.aleo"
 
 const hello_hello_program =`
@@ -79,9 +77,9 @@ async function remoteProgramExecution(programName, functionName, inputs) {
 }
 
 const start = Date.now();
-// console.log("Starting local execute!");
-// await localProgramExecution(hello_hello_program, programName, "hello", ["5u32", "5u32"]);
-// console.log("Local execute finished!", Date.now() - start);
+console.log("Starting local execute!");
+await localProgramExecution(hello_hello_program, programName, "hello", ["5u32", "5u32"]);
+console.log("Local execute finished!", Date.now() - start);
 
 console.log("Starting remote execute");
 const auctionTicket = "{\n  owner: aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private,\n  auction: {\n    starting_bid: 1000u64.private,\n    name: 35399035103896773146887283777field.private,\n    item: {\n      id: 2711777270856651361584090827715149911900945757872672230578290769243507539617field.private,\n      offchain_data: [\n        988474637487226873250021955104421895943605632761729320744454284792013483886field.private,\n        1018595503607749325560812785092303652308909717269501712857428145700763090203field.private,\n        1866354748676879328546224733327549476838379876255164483333908854380501015560field.private,\n        17649382157field.private\n      ]\n    }\n  },\n  auction_id: 4494702806735512695876583707511065751304542460719196393147692059573188109243field.private,\n  settings: {\n    auction_privacy: 1field.private,\n    bid_types_accepted: 2field.private\n  },\n  _nonce: 3369967065799891136255379173673996324404175734426175774361522329924029135340group.public,\n  _version: 0u8.public\n}";
