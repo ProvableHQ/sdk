@@ -21,10 +21,12 @@ use crate::{
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
+    SnapshotQuery,
     Transaction,
     calculate_minimum_fee,
     execute_fee,
     execute_program,
+    latest_block_height,
     log,
     process_inputs,
     types::native::{
@@ -42,6 +44,7 @@ use snarkvm_console::network::{ConsensusVersion, Network};
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::{InclusionVersion, cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
 
+use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;
 use js_sys::{Array, Object};
 use rand::{SeedableRng, rngs::StdRng};
@@ -83,7 +86,6 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
     ) -> Result<ExecutionResponse, String> {
-        log(&format!("Executing local function: {function}"));
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let inputs = inputs.to_vec();
         let rng = &mut StdRng::from_entropy();
@@ -113,10 +115,20 @@ impl ProgramManager {
             if let Some(offline_query) = offline_query {
                 trace.prepare_async(&offline_query).await.map_err(|err| err.to_string())?;
             } else {
-                let query = QueryNative::from(node_url);
-                // todo change this to new query struct and to try_from rather than from
+                let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+                let view_key =
+                    ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+                let query = SnapshotQuery::try_from_inputs(
+                    node_url,
+                    &program_native,
+                    &function_name,
+                    &view_key,
+                    &inputs.to_vec(),
+                )
+                .await
+                .map_err(|err| err.to_string())?;
                 trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-            }
+            };
 
             log("Proving execution");
             let locator = program_native.id().to_string().add("/").add(function);
@@ -200,12 +212,20 @@ impl ProgramManager {
         );
 
         log("Preparing inclusion proofs for execution");
-        if let Some(offline_query) = offline_query.as_ref() {
+        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
             trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+            offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
-            let query = QueryNative::from(node_url);
+            let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+            let view_key =
+                ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+            let query =
+                SnapshotQuery::try_from_inputs(node_url, &program_native, &function_name, &view_key, &inputs.to_vec())
+                    .await
+                    .map_err(|err| err.to_string())?;
             trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-        }
+            query.current_block_height().map_err(|e| e.to_string())?
+        };
 
         log("Proving execution");
         let locator = program_native.id().to_string().add("/").add(function);
@@ -249,8 +269,14 @@ impl ProgramManager {
         };
 
         // Verify the execution
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        let inclusion_upgrade_height =
+            <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
+        let inclusion_version =
+            if latest_height >= inclusion_upgrade_height { InclusionVersion::V1 } else { InclusionVersion::V0 };
         process
-            .verify_execution(ConsensusVersion::V8, VarunaVersion::V2, InclusionVersion::V1, &execution)
+            .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, &execution)
             .map_err(|err| err.to_string())?;
 
         log("Creating execution transaction");
@@ -321,15 +347,19 @@ impl ProgramManager {
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
         let locator = program.id().to_string().add("/").add(function);
 
-        let block_height = if let Some(offline_query) = offline_query {
-            let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
-            trace.prepare_async(&offline_query).await.map_err(|err| err.to_string())?;
-            block_height
+        let block_height = if let Some(offline_query) = offline_query.as_ref() {
+            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+            offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
-            let query = QueryNative::from(node_url);
-            let block_height = query.current_block_height_async().await.map_err(|e| e.to_string())?;
+            let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+            let view_key =
+                ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+            let query =
+                SnapshotQuery::try_from_inputs(node_url, &program_native, &function_name, &view_key, &inputs.to_vec())
+                    .await
+                    .map_err(|err| err.to_string())?;
             trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-            block_height
+            query.current_block_height().map_err(|e| e.to_string())?
         };
         let execution =
             trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
@@ -386,48 +416,5 @@ impl ProgramManager {
         let stack = process.get_stack(program.id()).map_err(|e| e.to_string())?;
 
         cost_in_microcredits_v2(&stack, &function_id).map_err(|e| e.to_string())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{
-        Metadata,
-        array,
-        utilities::test::{HELLO_PROGRAM, PROVABLE_API},
-    };
-
-    async fn test_execute_added_program() {
-        // Generate the private key.
-        let private_key = PrivateKey::new();
-
-        // Download the fee prover.
-        let fee_prover_uri = Metadata::fee_public().prover;
-        let fee_proving_key_bytes = reqwest::get(fee_prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
-        let fee_prover = ProvingKey::from_bytes(&fee_proving_key_bytes).unwrap();
-        let fee_verifier = VerifyingKey::fee_public_verifier();
-
-        // Create the execution.
-        let transaction = ProgramManager::execute(
-            &private_key,
-            HELLO_PROGRAM,
-            "main",
-            array!["5u32", "5u32"],
-            0.0,
-            None,
-            Some(PROVABLE_API.to_string()),
-            None,
-            None,
-            None,
-            Some(fee_prover),
-            Some(fee_verifier),
-            None,
-            None,
-        )
-        .await
-        .unwrap();
-
-        assert!(transaction.is_execute());
     }
 }

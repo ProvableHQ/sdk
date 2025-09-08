@@ -178,7 +178,8 @@ macro_rules! execute_program {
 
 #[macro_export]
 macro_rules! execute_fee {
-    ($process:expr, $private_key:expr, $fee_record:expr, $priority_fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $deployment_or_execution_id:expr, $rng:expr, $offline_query:expr, $minimum_execution_cost:expr) => {{
+    ($process:expr, $private_key:expr, $fee_record:expr, $priority_fee_microcredits:expr, $node_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $deployment_or_execution_id:expr, $rng:expr, $offline_query:expr, $minimum_execution_cost:expr) => {{
+        use ::snarkvm_ledger_query::QueryTrait;
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
@@ -188,29 +189,31 @@ macro_rules! execute_fee {
             );
         }
 
+        let function_name = if $fee_record.is_some() {
+            IdentifierNative::from_str("fee_private").unwrap()
+        } else {
+            IdentifierNative::from_str("fee_public").unwrap()
+        };
+
         if let Some(fee_proving_key) = $fee_proving_key {
             let credits = ProgramIDNative::from_str("credits.aleo").unwrap();
-            let fee = if $fee_record.is_some() {
-                IdentifierNative::from_str("fee_private").unwrap()
-            } else {
-                IdentifierNative::from_str("fee_public").unwrap()
-            };
-            if Self::contains_key($process, &credits, &fee) {
+
+            if Self::contains_key($process, &credits, &function_name) {
                 log("Fee proving & verifying keys were specified but a key already exists in the cache. Using cached keys");
             } else {
                 log("Inserting externally provided fee proving and verifying keys");
                 $process
-                    .insert_proving_key(&credits, &fee, ProvingKeyNative::from(fee_proving_key)).map_err(|e| e.to_string())?;
+                    .insert_proving_key(&credits, &function_name, ProvingKeyNative::from(fee_proving_key)).map_err(|e| e.to_string())?;
                 if let Some(fee_verifying_key) = $fee_verifying_key {
                     $process
-                        .insert_verifying_key(&credits, &fee, VerifyingKeyNative::from(fee_verifying_key))
+                        .insert_verifying_key(&credits, &function_name, VerifyingKeyNative::from(fee_verifying_key))
                         .map_err(|e| e.to_string())?;
                 }
             }
         };
 
         log("Authorizing Fee");
-        let fee_authorization = match $fee_record {
+        let fee_authorization = match $fee_record.clone() {
             Some(fee_record) => {
                 let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string()).unwrap();
                 $process.authorize_fee_private::<CurrentAleo, _>(
@@ -239,16 +242,52 @@ macro_rules! execute_fee {
             .map_err(|e| e.to_string())?;
 
         log("Preparing inclusion proofs for fee execution");
-        if let Some(offline_query) = $offline_query.as_ref() {
+        let latest_height = if let Some(offline_query) = $offline_query.as_ref() {
             trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+            offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
-            let query = QueryNative::from($submission_url);
+            let credits = ProgramNative::credits().unwrap();
+            let function_name = IdentifierNative::from_str("split").unwrap();
+            let view_key = ViewKeyNative::try_from(PrivateKeyNative::from($private_key)).map_err(|err| err.to_string())?;
+            let inputs = if let Some(fee_record) = $fee_record {
+                vec![
+                    ::wasm_bindgen::JsValue::from_str(&fee_record.to_string()),
+                    ::wasm_bindgen::JsValue::from_str(&format!("{}u64", $minimum_execution_cost)),
+                    ::wasm_bindgen::JsValue::from_str(&format!("{}u64", $minimum_execution_cost)),
+                    ::wasm_bindgen::JsValue::from_str(&format!("{}", $deployment_or_execution_id))
+                ]
+            } else {
+                vec![
+                    ::wasm_bindgen::JsValue::from_str(&format!("{}u64", $minimum_execution_cost)),
+                    ::wasm_bindgen::JsValue::from_str(&format!("{}u64", $minimum_execution_cost)),
+                    ::wasm_bindgen::JsValue::from_str(&format!("{}", $deployment_or_execution_id))
+                ]
+            };
+            let query = SnapshotQuery::try_from_inputs(
+                $node_url,
+                &credits,
+                &function_name,
+                &view_key,
+                &inputs,
+            )
+                .await
+                .map_err(|err| err.to_string())?;
             trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+            query.current_block_height().map_err(|e| e.to_string())?
         };
+        let consensus_version = <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        let inclusion_upgrade_height = <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
+        let inclusion_version = if latest_height >= inclusion_upgrade_height {
+            ::snarkvm_synthesizer::prelude::InclusionVersion::V1
+        } else {
+            ::snarkvm_synthesizer::prelude::InclusionVersion::V0
+        };
+
+        log("Proving fee execution");
         let fee = trace.prove_fee::<CurrentAleo, _>(::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, &mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");
-        $process.verify_fee(::snarkvm_console::prelude::ConsensusVersion::V8, ::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, ::snarkvm_synthesizer::prelude::InclusionVersion::V1, &fee, $deployment_or_execution_id).map_err(|e| e.to_string())?;
+        $process.verify_fee(consensus_version, ::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, inclusion_version, &fee, $deployment_or_execution_id).map_err(|e| e.to_string())?;
 
         fee
     }}
@@ -261,8 +300,7 @@ macro_rules! calculate_minimum_fee {
             let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
             block_height
         } else {
-            let query = QueryNative::from($node_url);
-            let block_height = query.current_block_height_async().await.map_err(|e| e.to_string())?;
+            let block_height = latest_block_height($node_url).await.map_err(|e| e.to_string())?;
             block_height
         };
         let (minimum_execution_cost, (_, _)) =

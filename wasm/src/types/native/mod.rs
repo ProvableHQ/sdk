@@ -31,14 +31,13 @@ use snarkvm_console::{
         Record,
         Request,
         Response,
+        StatePath,
         Value,
         ValueType,
     },
     types::{Boolean, Field, Group, I8, I16, I32, I64, I128, Scalar, U8, U16, U32, U64, U128},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
-use snarkvm_ledger_query::Query;
-use snarkvm_ledger_store::helpers::memory::BlockMemory;
 use snarkvm_synthesizer::{
     Authorization,
     Process,
@@ -99,21 +98,20 @@ pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
 pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 pub type ResponseNative = Response<CurrentNetwork>;
 pub type ValueNative = Value<CurrentNetwork>;
-pub type ValueTypeNative = ValueType<CurrentNetwork>;
 
 // Ledger types
-type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
 pub type ExecutionNative = Execution<CurrentNetwork>;
 pub type InputNative = Input<CurrentNetwork>;
 pub type OutputNative = Output<CurrentNetwork>;
 pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
-pub type QueryNative = Query<CurrentNetwork, CurrentBlockMemory>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
 pub type TransitionNative = Transition<CurrentNetwork>;
+pub type ValueTypeNative = ValueType<CurrentNetwork>;
 
 // Synthesizer types
 pub type AuthorizationNative = Authorization<CurrentNetwork>;
 pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
 pub type RequestNative = Request<CurrentNetwork>;
+pub type StatePathNative = StatePath<CurrentNetwork>;
 pub type VerifyingKeyNative = VerifyingKey<CurrentNetwork>;
