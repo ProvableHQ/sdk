@@ -17,6 +17,7 @@
 use crate::{
     Address,
     Credits,
+    EncryptionToolkit,
     GraphKey,
     Plaintext,
     PrivateKey,
@@ -266,6 +267,18 @@ impl RecordPlaintext {
         Group::from_string(&self.nonce()).unwrap().scalar_multiply(&view_key.to_scalar()).to_x_coordinate()
     }
 
+    /// Decrypt the sender ciphertext associated with the record.
+    ///
+    /// @param {ViewKey} view_key View key associated with the record.
+    /// @param {Field} sender_ciphertext Sender ciphertext associated with the record.
+    ///
+    /// @returns {Address} address of the sender.
+    #[wasm_bindgen(js_name = decryptSender)]
+    pub fn decrypt_sender(&self, view_key: &ViewKey, sender_ciphertext: &Field) -> Result<Address, String> {
+        let record_view_key = self.record_view_key(view_key);
+        EncryptionToolkit::decrypt_sender_with_rvk(&record_view_key, sender_ciphertext)
+    }
+
     /// Clone the RecordPlaintext WASM object.
     ///
     /// @returns {RecordPlaintext} A clone of the RecordPlaintext WASM object.
@@ -318,6 +331,11 @@ impl FromStr for RecordPlaintext {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::{
+        types::native::{PrivateKeyNative, ViewKeyNative},
+        utilities::test::{CREDITS_RECORD_V1, CREDITS_SENDER_CIPHERTEXT, CREDITS_SENDER_PLAINTEXT, get_env},
+    };
 
     use wasm_bindgen_test::*;
 
@@ -448,5 +466,20 @@ mod tests {
             Some("The record plaintext string provided was invalid".into())
         );
         assert!(RecordPlaintext::from_string(invalid_bech32).is_err());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_record_decrypt_record_sender_ciphertext() {
+        // Get the private key corresponding to the record.
+        let private_key = PrivateKeyNative::from_str(&get_env("PUZZLE_PK")).unwrap();
+        let view_key = ViewKey::from(ViewKeyNative::try_from(private_key).unwrap());
+
+        // Construct the record and the sender ciphertext.
+        let record = RecordPlaintext::from_string(CREDITS_RECORD_V1).unwrap();
+        let sender_ciphertext = Field::from_string(CREDITS_SENDER_CIPHERTEXT).unwrap();
+
+        // Decrypt the sender ciphertext and ensure it's from the expected address.
+        let sender = record.decrypt_sender(&view_key, &sender_ciphertext).unwrap();
+        assert_eq!(sender.to_string(), CREDITS_SENDER_PLAINTEXT.to_string());
     }
 }

@@ -1,3 +1,15 @@
+/// V1 credits.aleo record.
+const CREDITS_RECORD_V1 = "{ owner: aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private, microcredits: 1000000u64.private, _nonce: 3634848344765318974603121890869676775499130077229666060613233255327643175219group.public, _version: 1u8.public }";
+
+/// Record view key for the V1 credits.aleo record.
+const CREDITS_RECORD_VIEW_KEY = "5237002936265850807349726649400053591020997883662246784632368923777787639801field";
+
+/// Sender ciphertext of the credits.aleo record.
+const CREDITS_SENDER_CIPHERTEXT = "1182590395568997043375432557467567048762179115999922880321493200728848194550field";
+
+/// Sender plaintext of the credits.aleo record.
+const CREDITS_SENDER_PLAINTEXT = "aleo1j92w9mhqznj2hvufad796y8suykjppk7f6n6xmncmktfm95vggzqx4sjlh";
+
 // Ciphertext records
 const RECORD_CIPHERTEXT_STRING = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
 const RECORD_CIPHERTEXT_STRING_COPY = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
@@ -16,6 +28,10 @@ const VIEW_KEY_STRING = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
 const RECORD_VIEW_KEY_STRING = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
 
 export {
+    CREDITS_RECORD_V1,
+    CREDITS_RECORD_VIEW_KEY,
+    CREDITS_SENDER_CIPHERTEXT,
+    CREDITS_SENDER_PLAINTEXT,
     RECORD_CIPHERTEXT_STRING,
     RECORD_CIPHERTEXT_STRING_COPY,
     RECORD_CIPHERTEXT_STRING_NOT_OWNED,
