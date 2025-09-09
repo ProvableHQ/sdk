@@ -40,6 +40,7 @@ use snarkvm_console::prelude::{FromField, FromFields, Itertools, Network, One, V
 use indexmap::IndexMap;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// EncryptionToolkit provides a set of functions for encrypting, decrypting, and generating individual view keys for records, transitions, and ciphertexts.
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct EncryptionToolkit;

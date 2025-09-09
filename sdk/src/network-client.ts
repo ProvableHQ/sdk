@@ -101,7 +101,6 @@ class AleoNetworkClient {
      * Set a new host for the networkClient
      *
      * @param {string} host The address of a node hosting the Aleo API
-     * @param host
      *
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
