@@ -52,14 +52,14 @@ class AleoNetworkClient {
     headers: { [key: string]: string };
     account: Account | undefined;
     ctx: { [key: string]: string };
-    debugMode: boolean;
+    verboseErrors: boolean;
     readonly network: string;
 
     constructor(host: string, options?: AleoNetworkClientOptions) {
         this.host = host + "/%%NETWORK%%";
         this.network = "%%NETWORK%%";
         this.ctx = {};
-        this.debugMode = true;
+        this.verboseErrors = true;
 
         if (options && options.headers) {
             this.headers = options.headers;
@@ -117,10 +117,9 @@ class AleoNetworkClient {
     }
 
     /**
-     * Set debug mode for the networkClient. When this mode is enabled, if Aleo network nodes report failures after
-     * calling the `submitTransaction` method, nodes will report debug information as to why the transaction failed.
+     * Set verbose errors to true or false for the `AleoNetworkClient`. When set to true, if `submitTransaction` fails, the failure responses will report descriptive information as to why the transaction failed.
      *
-     * @param {boolean} debugMode Set debug mode for the networkClient.
+     * @param {boolean} verboseErrors Set verbose error mode to true or false for the AleoNetworkClient.
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
      *
@@ -128,10 +127,10 @@ class AleoNetworkClient {
      * const networkClient = new AleoNetworkClient();
      *
      * // Set debug mode to true
-     * networkClient.setDebugMode(true);
+     * networkClient.setVerboseTransactionErrors(true);
      **/
-    setDebugMode(debugMode: boolean) {
-        this.debugMode = debugMode;
+    setVerboseErrors(verboseErrors: boolean) {
+        this.verboseErrors = verboseErrors;
     }
 
     /**
@@ -1571,7 +1570,7 @@ class AleoNetworkClient {
                 ? transaction.toString()
                 : transaction;
         try {
-            const endpoint = this.debugMode ? "transaction/broadcast?debug=true" : "transaction/broadcast";
+            const endpoint = this.verboseErrors ? "transaction/broadcast?check_transaction=true" : "transaction/broadcast";
             const response = await retryWithBackoff(() =>
                 this._sendPost(`${this.host}/${endpoint}`, {
                     body: transactionString,
