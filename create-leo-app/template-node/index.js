@@ -2,6 +2,8 @@ import {Account, AleoKeyProvider, AleoKeyProviderParams, initThreadPool, Program
 
 import * as process from "node:process";
 
+await initThreadPool();
+
 const programName = "hello_hello.aleo"
 
 const hello_hello_program =`

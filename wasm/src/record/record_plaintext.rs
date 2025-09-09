@@ -255,7 +255,7 @@ impl RecordPlaintext {
         RecordPlaintextNative::tag(*graph_key.sk_tag(), *commitment).map_err(|e| e.to_string()).map(Field::from)
     }
 
-    /// Generate the record view key. The record view key can only decrypt record if the
+    /// Generate the record view key. The record view key can only decrypt the record if the
     /// supplied view key belongs to the record owner.
     ///
     /// @param {ViewKey} view_key View key used to generate the record view key
