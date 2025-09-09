@@ -15,6 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Address,
     Field,
     Group,
     RecordCiphertext,
@@ -22,9 +23,11 @@ use crate::{
     Transition,
     ViewKey,
     types::native::{
+        AddressNative,
         CiphertextEntryNative,
         CurrentNetwork,
         FieldNative,
+        GroupNative,
         PlaintextEntryNative,
         PlaintextNative,
         RecordPlaintextNative,
@@ -32,11 +35,12 @@ use crate::{
     },
 };
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use snarkvm_console::prelude::{FromFields, Itertools, Network, Visibility};
+use snarkvm_console::prelude::{FromField, FromFields, Itertools, Network, One, Visibility};
 
 use indexmap::IndexMap;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// EncryptionToolkit provides a set of functions for encrypting, decrypting, and generating individual view keys for records, transitions, and ciphertexts.
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct EncryptionToolkit;
@@ -253,12 +257,58 @@ impl EncryptionToolkit {
 
         Ok(owned_records)
     }
+
+    /// Decrypt the sender ciphertext associated with a record.
+    ///
+    /// @param {ViewKey} view_key View key associated with the record.
+    /// @param {RecordPlaintext} record Record plaintext associated with a sender.
+    /// @param {Field} sender_ciphertext Sender ciphertext associated with the record.
+    ///
+    /// @returns {Address} address of the sender.
+    #[wasm_bindgen(js_name = decryptSender)]
+    pub fn decrypt_sender(
+        view_key: &ViewKey,
+        record: &RecordPlaintext,
+        sender_ciphertext: &Field,
+    ) -> Result<Address, String> {
+        let record_view_key = record.record_view_key(view_key);
+        Self::decrypt_sender_with_rvk(&record_view_key, sender_ciphertext)
+    }
+
+    /// Decrypt the sender ciphertext associated with the record with the record view key.
+    ///
+    /// @param {Field} record_view_key Record view key associated with the record.
+    /// @param {Field} sender_ciphertext Sender ciphertext associated with the record.
+    ///
+    /// @return {Address} the address of the sender.
+    #[wasm_bindgen(js_name = decryptSenderWithRvk)]
+    pub fn decrypt_sender_with_rvk(record_view_key: &Field, sender_ciphertext: &Field) -> Result<Address, String> {
+        let encryption_domain = <CurrentNetwork as Network>::encryption_domain();
+        let record_view_key = FieldNative::from(record_view_key);
+        let randomizer =
+            <CurrentNetwork as Network>::hash_psd4(&[encryption_domain, record_view_key, FieldNative::one()])
+                .map_err(|e| e.to_string())?;
+        let address_x_coordinate = FieldNative::from(sender_ciphertext) - randomizer;
+        Ok(Address::from(AddressNative::new(
+            GroupNative::from_field(&address_x_coordinate).map_err(|e| e.to_string())?,
+        )))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    use crate::{
+        test::{
+            CREDITS_RECORD_V1,
+            CREDITS_RECORD_VIEW_KEY,
+            CREDITS_SENDER_CIPHERTEXT,
+            CREDITS_SENDER_PLAINTEXT,
+            get_env,
+        },
+        types::native::{PrivateKeyNative, ViewKeyNative},
+    };
     use std::str::FromStr;
     use wasm_bindgen_test::wasm_bindgen_test;
 
@@ -365,5 +415,26 @@ mod tests {
         // Verify that only the owned record is returned
         assert_eq!(owned_records.len(), 1, "Only one owned record should be returned");
         assert_eq!(owned_records[0].to_string(), OWNER_CIPHERTEXT, "Owned record should match the owner's ciphertext");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_encryption_toolkit_decrypt_record_sender_ciphertext() {
+        // Get the private key corresponding to the record.
+        let private_key = PrivateKeyNative::from_str(&get_env("PUZZLE_PK")).unwrap();
+        let view_key = ViewKey::from(ViewKeyNative::try_from(private_key).unwrap());
+
+        // Construct the record and the sender ciphertext.
+        let record = RecordPlaintext::from_string(CREDITS_RECORD_V1).unwrap();
+        let record_view_key = Field::from_string(CREDITS_RECORD_VIEW_KEY).unwrap();
+        let sender_ciphertext = Field::from_string(CREDITS_SENDER_CIPHERTEXT).unwrap();
+
+        // Decrypt the sender ciphertext using the view and record and ensure it's from the expected address.
+        let credits_sender = CREDITS_SENDER_PLAINTEXT.to_string();
+        let sender = EncryptionToolkit::decrypt_sender(&view_key, &record, &sender_ciphertext).unwrap();
+        assert_eq!(sender.to_string(), credits_sender);
+
+        // Decrypt the sender ciphertext using only the record view key and ensure it's from the expected address.
+        let sender = EncryptionToolkit::decrypt_sender_with_rvk(&record_view_key, &sender_ciphertext).unwrap();
+        assert_eq!(sender.to_string(), credits_sender);
     }
 }

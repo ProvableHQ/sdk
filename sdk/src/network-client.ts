@@ -52,12 +52,14 @@ class AleoNetworkClient {
     headers: { [key: string]: string };
     account: Account | undefined;
     ctx: { [key: string]: string };
+    verboseErrors: boolean;
     readonly network: string;
 
     constructor(host: string, options?: AleoNetworkClientOptions) {
         this.host = host + "/%%NETWORK%%";
         this.network = "%%NETWORK%%";
         this.ctx = {};
+        this.verboseErrors = true;
 
         if (options && options.headers) {
             this.headers = options.headers;
@@ -99,7 +101,6 @@ class AleoNetworkClient {
      * Set a new host for the networkClient
      *
      * @param {string} host The address of a node hosting the Aleo API
-     * @param host
      *
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
@@ -112,6 +113,23 @@ class AleoNetworkClient {
      */
     setHost(host: string) {
         this.host = host + "/%%NETWORK%%";
+    }
+
+    /**
+     * Set verbose errors to true or false for the `AleoNetworkClient`. When set to true, if `submitTransaction` fails, the failure responses will report descriptive information as to why the transaction failed.
+     *
+     * @param {boolean} verboseErrors Set verbose error mode to true or false for the AleoNetworkClient.
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a networkClient
+     * const networkClient = new AleoNetworkClient();
+     *
+     * // Set debug mode to true
+     * networkClient.setVerboseTransactionErrors(true);
+     **/
+    setVerboseErrors(verboseErrors: boolean) {
+        this.verboseErrors = verboseErrors;
     }
 
     /**
@@ -1551,8 +1569,9 @@ class AleoNetworkClient {
                 ? transaction.toString()
                 : transaction;
         try {
+            const endpoint = this.verboseErrors ? "transaction/broadcast?check_transaction=true" : "transaction/broadcast";
             const response = await retryWithBackoff(() =>
-                this._sendPost(this.host + "/transaction/broadcast", {
+                this._sendPost(`${this.host}/${endpoint}`, {
                     body: transactionString,
                     headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD" : "submitTransaction"}, {
                         "Content-Type": "application/json",

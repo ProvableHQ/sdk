@@ -178,7 +178,14 @@ mod thread_pool;
 mod utilities;
 #[cfg(test)]
 pub use utilities::test;
-pub use utilities::{EncryptionToolkit, get, get_network, latest_block_height};
+pub use utilities::{
+    EncryptionToolkit,
+    get,
+    get_network,
+    get_statepaths_for_commitments,
+    latest_block_height,
+    latest_stateroot,
+};
 
 #[cfg(test)]
 mod thread_pool {

@@ -519,7 +519,6 @@ class ProgramManager {
     ): Promise<Transaction> {
         // Destructure the options object to access the parameters
         const {
-            programName,
             functionName,
             priorityFee,
             privateFee,
@@ -534,6 +533,7 @@ class ProgramManager {
         let provingKey = options.provingKey;
         let verifyingKey = options.verifyingKey;
         let program = options.program;
+        let programName = options.programName;
         let imports = options.imports;
         let edition = options.edition;
 
@@ -552,8 +552,14 @@ class ProgramManager {
             program = program.toString();
         }
 
+        // Get the program name if it is not provided in the parameters.
+        if (programName === undefined) {
+            programName = Program.fromString(program).id();
+        }
+
         if (edition == undefined) {
             try {
+
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
                 console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
@@ -684,13 +690,13 @@ class ProgramManager {
     ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
         const {
-            programName,
             functionName,
             inputs,
         } = options;
 
         const privateKey = options.privateKey;
         let program = options.programSource;
+        let programName = options.programName;
         let imports = options.programImports;
         let edition = options.edition;
 
@@ -707,6 +713,11 @@ class ProgramManager {
             }
         } else if (program instanceof Program) {
             program = program.toString();
+        }
+
+        // Get the program name if it is not provided in the parameters.
+        if (programName === undefined) {
+            programName = Program.fromString(program).id();
         }
 
         // Get the private key from the account if it is not provided in the parameters.
@@ -789,13 +800,13 @@ class ProgramManager {
     ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
         const {
-            programName,
             functionName,
             inputs,
         } = options;
 
         const privateKey = options.privateKey;
         let program = options.programSource;
+        let programName = options.programName;
         let imports = options.programImports;
         let edition = options.edition;
 
@@ -812,6 +823,11 @@ class ProgramManager {
             }
         } else if (program instanceof Program) {
             program = program.toString();
+        }
+
+        // Get the program name if it is not provided in the parameters.
+        if (programName === undefined) {
+            programName = Program.fromString(program).id();
         }
 
         // Get the private key from the account if it is not provided in the parameters.
@@ -898,7 +914,6 @@ class ProgramManager {
     ): Promise<ProvingRequest> {
         // Destructure the options object to access the parameters.
         const {
-            programName,
             functionName,
             baseFee,
             priorityFee,
@@ -911,6 +926,7 @@ class ProgramManager {
 
         const privateKey = options.privateKey;
         let program = options.programSource;
+        let programName = options.programName;
         let feeRecord = options.feeRecord;
         let imports = options.programImports;
         let edition = options.edition;
@@ -928,6 +944,11 @@ class ProgramManager {
             }
         } else if (program instanceof Program) {
             program = program.toString();
+        }
+
+        // Get the program name if it is not provided in the parameters.
+        if (programName === undefined) {
+            programName = Program.fromString(program).id();
         }
 
         if (edition == undefined) {

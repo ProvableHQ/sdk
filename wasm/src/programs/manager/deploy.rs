@@ -20,6 +20,7 @@ use crate::{
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
+    SnapshotQuery,
     Transaction,
     execute_fee,
     latest_block_height,
@@ -30,11 +31,11 @@ use crate::{
         CurrentNetwork,
         PrivateKeyNative,
         ProcessNative,
-        ProgramIDNative,
         ProgramNative,
         ProgramOwnerNative,
         RecordPlaintextNative,
         TransactionNative,
+        ViewKeyNative,
     },
 };
 use snarkvm_console::prelude::{ConsensusVersion, Network};
@@ -94,7 +95,7 @@ impl ProgramManager {
         }
 
         log("Setting program checksum and owner");
-        let latest_height = latest_block_height(node_url).await?;
+        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
         let private_key_native = PrivateKeyNative::from(private_key);
         if consensus_version < ConsensusVersion::V9 {
@@ -107,8 +108,12 @@ impl ProgramManager {
         }
 
         log("Ensuring the fee is sufficient to pay for the deployment");
+        let block_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(block_height).map_err(|err| err.to_string())?;
         let (minimum_deployment_cost, (_, _, _, _)) =
-            deployment_cost::<CurrentNetwork>(process, &deployment).map_err(|err| err.to_string())?;
+            deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+                .map_err(|err| err.to_string())?;
 
         // Check to see if the fee record has enough microcredits to pay for the deployment.
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
@@ -169,9 +174,15 @@ impl ProgramManager {
             return Err("Attempted to create an empty transaction deployment".to_string());
         }
 
+        log("Get the latest block height and determine the consensus version");
+        let latest_height = latest_block_height(DEFAULT_URL).await.map_err(|err| err.to_string())?;
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+
         log("Estimate the deployment fee");
         let (minimum_deployment_cost, (_, _, _, _)) =
-            deployment_cost::<CurrentNetwork>(process, &deployment).map_err(|err| err.to_string())?;
+            deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+                .map_err(|err| err.to_string())?;
 
         Ok(minimum_deployment_cost)
     }

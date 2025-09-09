@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::native::CurrentNetwork;
-use snarkvm_console::{network::Network, program::StatePath, types::Field};
+use crate::types::native::{CurrentNetwork, FieldNative, StatePathNative};
+use snarkvm_console::network::Network;
 use snarkvm_ledger_query::QueryTrait;
 
-use anyhow::anyhow;
+use anyhow::{Result, anyhow, ensure};
 use async_trait::async_trait;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -32,7 +32,7 @@ use std::str::FromStr;
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct OfflineQuery {
     block_height: u32,
-    state_paths: IndexMap<Field<CurrentNetwork>, StatePath<CurrentNetwork>>,
+    state_paths: IndexMap<FieldNative, StatePathNative>,
     state_root: <CurrentNetwork as Network>::StateRoot,
 }
 
@@ -64,8 +64,8 @@ impl OfflineQuery {
     /// @param {string} state_path: The state path corresponding to the commitment.
     #[wasm_bindgen(js_name = "addStatePath")]
     pub fn add_state_path(&mut self, commitment: &str, state_path: &str) -> Result<(), String> {
-        let commitment = Field::from_str(commitment).map_err(|e| e.to_string())?;
-        let state_path = StatePath::from_str(state_path).map_err(|e| e.to_string())?;
+        let commitment = FieldNative::from_str(commitment).map_err(|e| e.to_string())?;
+        let state_path = StatePathNative::from_str(state_path).map_err(|e| e.to_string())?;
         self.state_paths.insert(commitment, state_path);
         Ok(())
     }
@@ -90,33 +90,43 @@ impl OfflineQuery {
 
 #[async_trait(?Send)]
 impl QueryTrait<CurrentNetwork> for OfflineQuery {
-    fn current_state_root(&self) -> anyhow::Result<<CurrentNetwork as Network>::StateRoot> {
+    fn current_state_root(&self) -> Result<<CurrentNetwork as Network>::StateRoot> {
         Ok(self.state_root)
     }
 
-    async fn current_state_root_async(&self) -> anyhow::Result<<CurrentNetwork as Network>::StateRoot> {
+    async fn current_state_root_async(&self) -> Result<<CurrentNetwork as Network>::StateRoot> {
         Ok(self.state_root)
     }
 
-    fn get_state_path_for_commitment(
-        &self,
-        commitment: &Field<CurrentNetwork>,
-    ) -> anyhow::Result<StatePath<CurrentNetwork>> {
+    fn get_state_path_for_commitment(&self, commitment: &FieldNative) -> Result<StatePathNative> {
         self.state_paths.get(commitment).cloned().ok_or(anyhow!("State path not found for commitment"))
     }
 
-    async fn get_state_path_for_commitment_async(
-        &self,
-        commitment: &Field<CurrentNetwork>,
-    ) -> anyhow::Result<StatePath<CurrentNetwork>> {
+    async fn get_state_path_for_commitment_async(&self, commitment: &FieldNative) -> Result<StatePathNative> {
         self.state_paths.get(commitment).cloned().ok_or(anyhow!("State path not found for commitment"))
     }
 
-    fn current_block_height(&self) -> anyhow::Result<u32> {
+    fn get_state_paths_for_commitments(&self, commitments: &[FieldNative]) -> Result<Vec<StatePathNative>> {
+        let state_paths = commitments
+            .iter()
+            .filter_map(|commitment| self.state_paths.get(commitment).cloned())
+            .collect::<Vec<StatePathNative>>();
+        ensure!(
+            state_paths.len() == commitments.len(),
+            "Not all commitments found in stored state paths, please ensure the offline query object contains all commitments and statepaths required"
+        );
+        Ok(state_paths)
+    }
+
+    async fn get_state_paths_for_commitments_async(&self, commitments: &[FieldNative]) -> Result<Vec<StatePathNative>> {
+        self.get_state_paths_for_commitments(commitments)
+    }
+
+    fn current_block_height(&self) -> Result<u32> {
         Ok(self.block_height)
     }
 
-    async fn current_block_height_async(&self) -> anyhow::Result<u32> {
+    async fn current_block_height_async(&self) -> Result<u32> {
         Ok(self.block_height)
     }
 }

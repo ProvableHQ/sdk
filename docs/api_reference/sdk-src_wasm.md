@@ -12,79 +12,15 @@ Public address of an Aleo account
 
 ## Methods
 
-### `from_private_key(private_key) ► Address`
+### `fromGroup(group) ► Address`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Derive an Aleo address from a private key
+Get an address object from a group.
 
 Parameters | Type | Description
 --- | --- | ---
-__private_key__ | [PrivateKey](sdk-src_wasm.md) | *The private key to derive the address from*
-__*return*__ | [Address](sdk-src_wasm.md) | *Address corresponding to the private key*
-
----
-
-### `from_view_key(view_key) ► Address`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Derive an Aleo address from a view key
-
-Parameters | Type | Description
---- | --- | ---
-__view_key__ | `ViewKey` | *The view key to derive the address from*
-__*return*__ | [Address](sdk-src_wasm.md) | *Address corresponding to the view key*
-
----
-
-### `from_compute_key(compute_key) ► Address`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Derive an Aleo address from a compute key.
-
-Parameters | Type | Description
---- | --- | ---
-__compute_key__ | `ComputeKey` | *The compute key to derive the address from*
-__*return*__ | [Address](sdk-src_wasm.md) | **
-
----
-
-### `fromBytesLe(bytes) ► Address`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get an address from a series of bytes.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | *A left endian byte array representing the address.*
-__*return*__ | [Address](sdk-src_wasm.md) | *The address object.*
-
----
-
-### `toBytesLe() ► Uint8Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the left endian byte array representation of the address.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Uint8Array` | **
-
----
-
-### `fromBitsLe(bits) ► Address`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get an address from a series of bits represented as a boolean array.
-
-Parameters | Type | Description
---- | --- | ---
-__bits__ | `Array` | *A left endian boolean array representing the bits of the address.*
+__group__ | [Group](sdk-src_wasm.md) | *The group object.*
 __*return*__ | [Address](sdk-src_wasm.md) | *The address object.*
 
 ---
@@ -114,43 +50,6 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | *The address object.*
 
 ---
 
-### `toFields() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the field array representation of the address.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
-### `fromGroup(group) ► Address`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get an address object from a group.
-
-Parameters | Type | Description
---- | --- | ---
-__group__ | [Group](sdk-src_wasm.md) | *The group object.*
-__*return*__ | [Address](sdk-src_wasm.md) | *The address object.*
-
----
-
-### `toGroup() ► Group`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the group representation of the address object.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Group](sdk-src_wasm.md) | **
-
----
-
 ### `from_string(address) ► Address`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -164,16 +63,28 @@ __*return*__ | [Address](sdk-src_wasm.md) | *Address*
 
 ---
 
-### `to_string(Address) ► string`
+### `toBytesLe() ► Uint8Array`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get a string representation of an Aleo address object
+Get the left endian byte array representation of the address.
 
 Parameters | Type | Description
 --- | --- | ---
-__Address__ | [Address](sdk-src_wasm.md) | **
-__*return*__ | `string` | *String representation of the address*
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBitsLe(bits) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get an address from a series of bits represented as a boolean array.
+
+Parameters | Type | Description
+--- | --- | ---
+__bits__ | `Array` | *A left endian boolean array representing the bits of the address.*
+__*return*__ | [Address](sdk-src_wasm.md) | *The address object.*
 
 ---
 
@@ -186,6 +97,58 @@ Get the plaintext representation of the address.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | [Plaintext](sdk-src_wasm.md) | **
+
+---
+
+### `fromBytesLe(bytes) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get an address from a series of bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *A left endian byte array representing the address.*
+__*return*__ | [Address](sdk-src_wasm.md) | *The address object.*
+
+---
+
+### `from_view_key(view_key) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Derive an Aleo address from a view key
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *The view key to derive the address from*
+__*return*__ | [Address](sdk-src_wasm.md) | *Address corresponding to the view key*
+
+---
+
+### `from_compute_key(compute_key) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Derive an Aleo address from a compute key.
+
+Parameters | Type | Description
+--- | --- | ---
+__compute_key__ | `ComputeKey` | *The compute key to derive the address from*
+__*return*__ | [Address](sdk-src_wasm.md) | **
+
+---
+
+### `from_private_key(private_key) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Derive an Aleo address from a private key
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | [PrivateKey](sdk-src_wasm.md) | *The private key to derive the address from*
+__*return*__ | [Address](sdk-src_wasm.md) | *Address corresponding to the private key*
 
 ---
 
@@ -202,11 +165,159 @@ __*return*__ | `boolean` | *Boolean representing whether or not the signature is
 
 ---
 
+### `toGroup() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the group representation of the address object.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the address.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `to_string(Address) ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a string representation of an Aleo address object
+
+Parameters | Type | Description
+--- | --- | ---
+__Address__ | [Address](sdk-src_wasm.md) | **
+__*return*__ | `string` | *String representation of the address*
+
+---
+
 # Class `Authorization`
 
 Authorization object containing the authorization for a transaction.
 
 ## Methods
+
+### `fromString(authorization) ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Reconstructs an Authorization object from its string representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__authorization__ | `String` | *The string representation of the Authorization.*
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the left-endian byte representation of the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `transitions() ► Array.<Transition>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the transitions in an Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<Transition>` | *Array of transition objects*
+
+---
+
+### `fromBytesLe(bytes) ► Authorization`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates an authorization object from a left-endian byte representation of an Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *Left-endian bytes representing the Authorization.*
+__*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `isFeePublic() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/fee_public&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `isFeePrivate() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/fee_private&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `toExecutionId() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the execution ID for the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | *The execution ID for the Authorization, call toString() after this result to get the string representation.*
+
+---
+
+### `insertTransition(transition) ► void`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Insert a transition into the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__transition__ | `Transition` | *The transition object to insert into the Authorization.*
+__*return*__ | `void` | **
+
+---
+
+### `len() ► number`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the number of &#x60;Request&#x60;s in the Authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `number` | **
+
+---
 
 ### `new(request) ► Authorization`
 
@@ -218,6 +329,43 @@ Parameters | Type | Description
 --- | --- | ---
 __request__ | `ExecutionRequest` | *The ExecutionRequest to build the authorization from.*
 __*return*__ | [Authorization](sdk-src_wasm.md) | **
+
+---
+
+### `equals(other) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check if an Authorization object is the same as another.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Authorization](sdk-src_wasm.md) | *The Authorization object to determine equality with.*
+__*return*__ | `boolean` | **
+
+---
+
+### `isEmpty() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Return &#x60;true&#x60; if the Authorization is empty.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `isSplit() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/split&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
 
 ---
 
@@ -245,154 +393,6 @@ __*return*__ | `string` | **
 
 ---
 
-### `fromString(authorization) ► Authorization`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Reconstructs an Authorization object from its string representation.
-
-Parameters | Type | Description
---- | --- | ---
-__authorization__ | `String` | *The string representation of the Authorization.*
-__*return*__ | [Authorization](sdk-src_wasm.md) | **
-
----
-
-### `toBytesLe() ► Uint8Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the left-endian byte representation of the Authorization.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Uint8Array` | **
-
----
-
-### `fromBytesLe(bytes) ► Authorization`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Creates an authorization object from a left-endian byte representation of an Authorization.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | *Left-endian bytes representing the Authorization.*
-__*return*__ | [Authorization](sdk-src_wasm.md) | **
-
----
-
-### `equals(other) ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Check if an Authorization object is the same as another.
-
-Parameters | Type | Description
---- | --- | ---
-__other__ | [Authorization](sdk-src_wasm.md) | *The Authorization object to determine equality with.*
-__*return*__ | `boolean` | **
-
----
-
-### `len() ► number`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the number of &#x60;Request&#x60;s in the Authorization.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `number` | **
-
----
-
-### `isEmpty() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Return &#x60;true&#x60; if the Authorization is empty.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | **
-
----
-
-### `isFeePrivate() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/fee_private&#x60;.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | **
-
----
-
-### `isFeePublic() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/fee_public&#x60;.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | **
-
----
-
-### `isSplit() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns &#x60;true&#x60; if the Authorization is for &#x60;credits.aleo/split&#x60;.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | **
-
----
-
-### `insertTransition(transition) ► void`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Insert a transition into the Authorization.
-
-Parameters | Type | Description
---- | --- | ---
-__transition__ | `Transition` | *The transition object to insert into the Authorization.*
-__*return*__ | `void` | **
-
----
-
-### `transitions() ► Array.<Transition>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the transitions in an Authorization.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<Transition>` | *Array of transition objects*
-
----
-
-### `toExecutionId() ► Field`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the execution ID for the Authorization.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Field](sdk-src_wasm.md) | *The execution ID for the Authorization, call toString() after this result to get the string representation.*
-
----
-
 # Class `Boolean`
 
 Boolean element.
@@ -412,6 +412,18 @@ __value__ | `boolean` | **
 
 ## Methods
 
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the boolean element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
 ### `fromString(boolean) ► Boolean`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -421,31 +433,6 @@ Creates a boolean object from a string representation (&quot;true&quot;/&quot;fa
 Parameters | Type | Description
 --- | --- | ---
 __boolean__ | `string` | **
-__*return*__ | [Boolean](sdk-src_wasm.md) | **
-
----
-
-### `toString() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the string representation of the boolean element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | **
-
----
-
-### `fromBytesLe(bytes) ► Boolean`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Create a boolean element from a Uint8Array of left endian bytes.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | **
 __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
@@ -475,18 +462,6 @@ __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
-### `toBitsLe() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the left endian boolean array representation of the boolean element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
 ### `toPlaintext() ► Plaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -499,38 +474,28 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
-### `clone() ► Boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Clone the boolean element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Boolean](sdk-src_wasm.md) | **
-
----
-
-### `random() ► Boolean`
+### `fromBytesLe(bytes) ► Boolean`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Generate a random boolean element.
+Create a boolean element from a Uint8Array of left endian bytes.
 
 Parameters | Type | Description
 --- | --- | ---
+__bytes__ | `Uint8Array` | **
 __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
-### `not() ► Boolean`
+### `or(other) ► Boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Logical NOT.
+Logical OR.
 
 Parameters | Type | Description
 --- | --- | ---
+__other__ | [Boolean](sdk-src_wasm.md) | **
 __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
@@ -548,15 +513,27 @@ __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
-### `or(other) ► Boolean`
+### `nor(other) ► Boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Logical OR.
+Logical NOR.
 
 Parameters | Type | Description
 --- | --- | ---
 __other__ | [Boolean](sdk-src_wasm.md) | **
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `not() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Logical NOT.
+
+Parameters | Type | Description
+--- | --- | ---
 __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
@@ -587,15 +564,14 @@ __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
-### `nor(other) ► Boolean`
+### `clone() ► Boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Logical NOR.
+Clone the boolean element.
 
 Parameters | Type | Description
 --- | --- | ---
-__other__ | [Boolean](sdk-src_wasm.md) | **
 __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
@@ -613,6 +589,30 @@ __*return*__ | `boolean` | **
 
 ---
 
+### `random() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Generate a random boolean element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the boolean element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
+
+---
+
 # Class `Ciphertext`
 
 SnarkVM Ciphertext object. A Ciphertext represents an symmetrically encrypted plaintext. This
@@ -621,16 +621,91 @@ api consumer has the proper decryption materials).
 
 ## Methods
 
-### `decrypt(viewKey, nonce) ► Plaintext`
+### `toBitsLe() ► Array.<any>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Decrypt the ciphertext using the given view key.
+Get the left endian boolean array representation of the bits of the ciphertext.
 
 Parameters | Type | Description
 --- | --- | ---
-__viewKey__ | `ViewKey` | *The view key of the account that encrypted the ciphertext.*
-__nonce__ | [Group](sdk-src_wasm.md) | *The nonce used to encrypt the ciphertext.*
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `fromFields(fields) ► Ciphertext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a ciphertext object from an array of fields.
+
+Parameters | Type | Description
+--- | --- | ---
+__fields__ | `Array` | *An array of fields.*
+__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The ciphertext object.*
+
+---
+
+### `fromString(ciphertext) ► Ciphertext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Deserialize a Ciphertext string into a Ciphertext object.
+
+Parameters | Type | Description
+--- | --- | ---
+__ciphertext__ | `string` | *A string representation of the ciphertext.*
+__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The Ciphertext object.*
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian byte array representation of the ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBitsLe(bits) ► Ciphertext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a ciphertext object from a series of bits represented as a boolean array.
+
+Parameters | Type | Description
+--- | --- | ---
+__bits__ | `Array` | *A left endian boolean array representing the bits of the ciphertext.*
+__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The ciphertext object.*
+
+---
+
+### `fromBytesLe(bytes) ► Ciphertext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Deserialize a left endian byte array into a Ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *The byte array representing the Ciphertext.*
+__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The Ciphertext object.*
+
+---
+
+### `decryptSymmetric(transition_view_key) ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Decrypts a ciphertext into plaintext using the given ciphertext view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__transition_view_key__ | [Field](sdk-src_wasm.md) | *The transition view key that was used to encrypt the ciphertext.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The decrypted plaintext.*
 
 ---
@@ -669,104 +744,17 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | *The decrypted plaintext.*
 
 ---
 
-### `decryptSymmetric(transition_view_key) ► Plaintext`
+### `decrypt(viewKey, nonce) ► Plaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Decrypts a ciphertext into plaintext using the given ciphertext view key.
+Decrypt the ciphertext using the given view key.
 
 Parameters | Type | Description
 --- | --- | ---
-__transition_view_key__ | [Field](sdk-src_wasm.md) | *The transition view key that was used to encrypt the ciphertext.*
+__viewKey__ | `ViewKey` | *The view key of the account that encrypted the ciphertext.*
+__nonce__ | [Group](sdk-src_wasm.md) | *The nonce used to encrypt the ciphertext.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The decrypted plaintext.*
-
----
-
-### `fromBytesLe(bytes) ► Ciphertext`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Deserialize a left endian byte array into a Ciphertext.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | *The byte array representing the Ciphertext.*
-__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The Ciphertext object.*
-
----
-
-### `toBytesLe() ► Uint8Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the left endian byte array representation of the ciphertext.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Uint8Array` | **
-
----
-
-### `fromBitsLe(bits) ► Ciphertext`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get a ciphertext object from a series of bits represented as a boolean array.
-
-Parameters | Type | Description
---- | --- | ---
-__bits__ | `Array` | *A left endian boolean array representing the bits of the ciphertext.*
-__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The ciphertext object.*
-
----
-
-### `toBitsLe() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the left endian boolean array representation of the bits of the ciphertext.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
-### `fromFields(fields) ► Ciphertext`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get a ciphertext object from an array of fields.
-
-Parameters | Type | Description
---- | --- | ---
-__fields__ | `Array` | *An array of fields.*
-__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The ciphertext object.*
-
----
-
-### `toFields() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the field array representation of the ciphertext.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
-### `fromString(ciphertext) ► Ciphertext`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Deserialize a Ciphertext string into a Ciphertext object.
-
-Parameters | Type | Description
---- | --- | ---
-__ciphertext__ | `string` | *A string representation of the ciphertext.*
-__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The Ciphertext object.*
 
 ---
 
@@ -782,6 +770,18 @@ __*return*__ | `Uint8Array` | *The serialized Ciphertext.*
 
 ---
 
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
 ### `toString() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -794,23 +794,103 @@ __*return*__ | `string` | *The serialized Ciphertext.*
 
 ---
 
+# Class `EncryptionToolkit`
+
+EncryptionToolkit provides a set of functions for encrypting, decrypting, and generating individual view keys for records, transitions, and ciphertexts.
+
+## Methods
+
+### `generateTvk(view_key, tpk) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Generates a transition view key from the view key and the transition public key.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *The view key of the account that generated the transition.*
+__tpk__ | [Group](sdk-src_wasm.md) | *The transition public key.*
+__*return*__ | [Field](sdk-src_wasm.md) | *The transition view key.*
+
+---
+
+### `checkOwnedRecords(view_key, records) ► Vec.<RecordCiphertext>`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Checks if a record ciphertext is owned by the given view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key of the owner of the records.*
+__records__ | `Vec.<RecordCiphertext>` | *The record ciphertexts for which to check ownership.*
+__*return*__ | `Vec.<RecordCiphertext>` | *The record ciphertexts that are owned by the view key.*
+
+---
+
+### `decryptOwnedRecords(view_key, records) ► vec.<RecordPlaintext>`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Decrypts a set of record ciphertexts in parallel and stores successful decryptions.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *The view key of the owner of the records.*
+__records__ | `Vec.<RecordCiphertext>` | *The record ciphertexts to decrypt.*
+__*return*__ | `vec.<RecordPlaintext>` | *The decrypted record plaintexts.*
+
+---
+
+### `generateRecordViewKey(view_key, record_ciphertext) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a record view key from the view key.  This can be later be used to decrypt a
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *The view key of the owner of the record.*
+__record_ciphertext__ | [RecordCiphertext](sdk-src_wasm.md) | *The record ciphertext used to derive the record view key.*
+__*return*__ | [Field](sdk-src_wasm.md) | *The record view key.*
+
+---
+
+### `decryptTransitionWithVk(transition, transition_vk) ► Transition`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Decrypts a transition using the transition view key.  The ciphertext inputs and outputs
+can only be decrypted if the transition view key was generated by the transaction signer.
+
+Parameters | Type | Description
+--- | --- | ---
+__transition__ | `Transition` | *The transition to decrypt.*
+__transition_vk__ | [Field](sdk-src_wasm.md) | *The transition view key.*
+__*return*__ | `Transition` | *The decrypted transition.*
+
+---
+
+### `decryptRecordWithRVk(record_vk, record_ciphertext) ► RecordPlaintext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Decrypts a record ciphertext using the record view key.  Decryption only succeeds
+if the record view key was generated from the view key of the record owner.
+
+Parameters | Type | Description
+--- | --- | ---
+__record_vk__ | [Field](sdk-src_wasm.md) | *The record view key.*
+__record_ciphertext__ | [RecordCiphertext](sdk-src_wasm.md) | *The record ciphertext to decrypt.*
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The decrypted record plaintext.*
+
+---
+
 # Class `Execution`
 
 Execution of an Aleo program.
 
 ## Methods
-
-### `toString() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the string representation of the execution.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | *The string representation of the execution.*
-
----
 
 ### `fromString(execution) ► Execution`
 
@@ -822,6 +902,18 @@ Parameters | Type | Description
 --- | --- | ---
 __execution__ | `string` | **
 __*return*__ | [Execution](sdk-src_wasm.md) | *The wasm representation of an execution object.*
+
+---
+
+### `transitions() ► `
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the transitions present in the execution.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `undefined` | *Array&lt;Transition&gt; the array of transitions present in the execution.*
 
 ---
 
@@ -849,15 +941,15 @@ __*return*__ | `string` | *The execution proof.*
 
 ---
 
-### `transitions() ► `
+### `toString() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the transitions present in the execution.
+Returns the string representation of the execution.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `undefined` | *Array&lt;Transition&gt; the array of transitions present in the execution.*
+__*return*__ | `string` | *The string representation of the execution.*
 
 ---
 
@@ -882,6 +974,18 @@ __*return*__ | `Array` | *Array of strings representing the outputs of the funct
 
 ---
 
+### `getProgram() ► Program`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the program
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Program](sdk-src_wasm.md) | **
+
+---
+
 ### `getExecution() ► Execution`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -894,15 +998,15 @@ __*return*__ | [Execution](sdk-src_wasm.md) | *The execution object if present, 
 
 ---
 
-### `getKeys() ► KeyPair`
+### `getFunctionId() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the program keys if present
+Returns the function identifier
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [KeyPair](sdk-src_wasm.md) | **
+__*return*__ | `string` | **
 
 ---
 
@@ -932,27 +1036,15 @@ __*return*__ | [VerifyingKey](sdk-src_wasm.md) | *The verifying key*
 
 ---
 
-### `getFunctionId() ► string`
+### `getKeys() ► KeyPair`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the function identifier
+Returns the program keys if present
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `string` | **
-
----
-
-### `getProgram() ► Program`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the program
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Program](sdk-src_wasm.md) | **
+__*return*__ | [KeyPair](sdk-src_wasm.md) | **
 
 ---
 
@@ -961,6 +1053,18 @@ __*return*__ | [Program](sdk-src_wasm.md) | **
 Field element.
 
 ## Methods
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the field element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
 
 ### `fromString(field) ► Field`
 
@@ -971,31 +1075,6 @@ Creates a field object from a string representation of a field element.
 Parameters | Type | Description
 --- | --- | ---
 __field__ | `string` | **
-__*return*__ | [Field](sdk-src_wasm.md) | **
-
----
-
-### `toString() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the string representation of the field element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | **
-
----
-
-### `fromBytesLe(bytes) ► Field`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Create a field element from a Uint8Array of left endian bytes.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | **
 __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
@@ -1025,18 +1104,6 @@ __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
-### `toBitsLe() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the left endian boolean array representation of the field element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
 ### `toPlaintext() ► Plaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1049,26 +1116,15 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
-### `clone() ► Field`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Clone the field element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Field](sdk-src_wasm.md) | **
-
----
-
-### `random() ► Field`
+### `fromBytesLe(bytes) ► Field`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Generate a random field element.
+Create a field element from a Uint8Array of left endian bytes.
 
 Parameters | Type | Description
 --- | --- | ---
+__bytes__ | `Uint8Array` | **
 __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
@@ -1086,41 +1142,14 @@ __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
-### `subtract(other) ► Field`
+### `one() ► Field`
 
-![modifier: public](images/badges/modifier-public.svg)
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Subtract two field elements.
-
-Parameters | Type | Description
---- | --- | ---
-__other__ | [Field](sdk-src_wasm.md) | **
-__*return*__ | [Field](sdk-src_wasm.md) | **
-
----
-
-### `multiply(other) ► Field`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Multiply two field elements.
+Get the multiplicative identity of the field.
 
 Parameters | Type | Description
 --- | --- | ---
-__other__ | [Field](sdk-src_wasm.md) | **
-__*return*__ | [Field](sdk-src_wasm.md) | **
-
----
-
-### `divide(other) ► Field`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Divide two field elements.
-
-Parameters | Type | Description
---- | --- | ---
-__other__ | [Field](sdk-src_wasm.md) | **
 __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
@@ -1138,18 +1167,6 @@ __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
-### `inverse() ► Field`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Invert the field element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Field](sdk-src_wasm.md) | **
-
----
-
 ### `zero() ► Field`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -1162,14 +1179,27 @@ __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
-### `one() ► Field`
+### `clone() ► Field`
 
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+![modifier: public](images/badges/modifier-public.svg)
 
-Get the multiplicative identity of the field.
+Clone the field element.
 
 Parameters | Type | Description
 --- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `divide(other) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Divide two field elements.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Field](sdk-src_wasm.md) | **
 __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
@@ -1199,11 +1229,85 @@ __*return*__ | `boolean` | **
 
 ---
 
+### `random() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Generate a random field element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `inverse() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Invert the field element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `multiply(other) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Multiply two field elements.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Field](sdk-src_wasm.md) | **
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `subtract(other) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Subtract two field elements.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Field](sdk-src_wasm.md) | **
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the field element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
+
+---
+
 # Class `Group`
 
 Elliptic curve element.
 
 ## Methods
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the group element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
 
 ### `fromString(group) ► Group`
 
@@ -1214,31 +1318,6 @@ Creates a group object from a string representation of a group element.
 Parameters | Type | Description
 --- | --- | ---
 __group__ | `string` | **
-__*return*__ | [Group](sdk-src_wasm.md) | **
-
----
-
-### `toString() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the string representation of the group element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | **
-
----
-
-### `fromBytesLe(bytes) ► Group`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Create a group element from a Uint8Array of left endian bytes.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | **
 __*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
@@ -1268,42 +1347,6 @@ __*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 
-### `toBitsLe() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the left endian boolean array representation of the group element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
-### `toFields() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the field array representation of the group.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
-### `toXCoordinate() ► Field`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the x-coordinate of the group element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Field](sdk-src_wasm.md) | **
-
----
-
 ### `toPlaintext() ► Plaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1316,52 +1359,15 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
-### `clone() ► Group`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Clone the group element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Group](sdk-src_wasm.md) | **
-
----
-
-### `random() ► Group`
+### `fromBytesLe(bytes) ► Group`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Generate a random group element.
+Create a group element from a Uint8Array of left endian bytes.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [Group](sdk-src_wasm.md) | **
-
----
-
-### `add(other) ► Group`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Add two group elements.
-
-Parameters | Type | Description
---- | --- | ---
-__other__ | [Group](sdk-src_wasm.md) | **
-__*return*__ | [Group](sdk-src_wasm.md) | **
-
----
-
-### `subtract(other) ► Group`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Subtract two group elements (equivalently: add the inverse of an element).
-
-Parameters | Type | Description
---- | --- | ---
-__other__ | [Group](sdk-src_wasm.md) | **
+__bytes__ | `Uint8Array` | **
 __*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
@@ -1379,11 +1385,36 @@ __*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 
-### `double() ► Group`
+### `toXCoordinate() ► Field`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Double the group element.
+Get the x-coordinate of the group element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `add(other) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Add two group elements.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Group](sdk-src_wasm.md) | **
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `zero() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get the group identity element under the group operation (i.e. the point at infinity.)
 
 Parameters | Type | Description
 --- | --- | ---
@@ -1391,12 +1422,23 @@ __*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 
-### `inverse() ► Group`
+### `clone() ► Group`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the inverse of the group element. This is the reflection of the point about the axis
-of symmetry i.e. (x,y) -&gt; (x, -y).
+Clone the group element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `double() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Double the group element.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -1417,14 +1459,40 @@ __*return*__ | `boolean` | **
 
 ---
 
-### `zero() ► Group`
+### `random() ► Group`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Get the group identity element under the group operation (i.e. the point at infinity.)
+Generate a random group element.
 
 Parameters | Type | Description
 --- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `inverse() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the inverse of the group element. This is the reflection of the point about the axis
+of symmetry i.e. (x,y) -&gt; (x, -y).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `subtract(other) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Subtract two group elements (equivalently: add the inverse of an element).
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Group](sdk-src_wasm.md) | **
 __*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
@@ -1438,6 +1506,30 @@ Get the generator of the group.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the group.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the group element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
 
 ---
 
@@ -1508,16 +1600,16 @@ __*return*__ | [OfflineQuery](sdk-src_wasm.md) | *The newly created offline quer
 
 ## Methods
 
-### `addBlockHeight(block_height) ► void`
+### `fromString(JSON) ► OfflineQuery`
 
-![modifier: public](images/badges/modifier-public.svg)
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Add a new block height to the offline query object.
+Create an offline query object from a json string representation.
 
 Parameters | Type | Description
 --- | --- | ---
-__block_height__ | `u32` | *The block height to add.*
-__*return*__ | `void` | **
+__JSON__ | `string` | *string representation of the offline query object.*
+__*return*__ | [OfflineQuery](sdk-src_wasm.md) | **
 
 ---
 
@@ -1535,6 +1627,19 @@ __*return*__ | `void` | **
 
 ---
 
+### `addBlockHeight(block_height) ► void`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Add a new block height to the offline query object.
+
+Parameters | Type | Description
+--- | --- | ---
+__block_height__ | `u32` | *The block height to add.*
+__*return*__ | `void` | **
+
+---
+
 ### `toString() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1544,19 +1649,6 @@ Get a json string representation of the offline query object.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `string` | *JSON string representation of the offline query object.*
-
----
-
-### `fromString(JSON) ► OfflineQuery`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Create an offline query object from a json string representation.
-
-Parameters | Type | Description
---- | --- | ---
-__JSON__ | `string` | *string representation of the offline query object.*
-__*return*__ | [OfflineQuery](sdk-src_wasm.md) | **
 
 ---
 
@@ -1586,45 +1678,28 @@ assert( JSON.stringify(bondStateObject) === JSON.stringify(expectedObject) );
 
 ## Methods
 
-### `find(name) ► Plaintext`
+### `toBitsLe() ► Array`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Find plaintext member if the plaintext is a struct. Returns &#x60;null&#x60; if the plaintext is not
-a struct or the member does not exist.
+Get the left endian boolean array representation of the bits of the plaintext.
 
 Parameters | Type | Description
 --- | --- | ---
-__name__ | `string` | *The name of the plaintext member to find.*
-__*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext member.*
+__*return*__ | `Array` | *The left endian boolean array representation of the bits of the plaintext.*
 
 ---
 
-### `encrypt(address, randomizer) ► Ciphertext`
+### `fromFields(fields) ► Plaintext`
 
-![modifier: public](images/badges/modifier-public.svg)
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Encrypt a plaintext with an address and randomizer.
-
-Parameters | Type | Description
---- | --- | ---
-__address__ | [Address](sdk-src_wasm.md) | *The address to encrypt the plaintext for.*
-__randomizer__ | [Scalar](sdk-src_wasm.md) | *The randomizer to use for encryption.*
-__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The encrypted ciphertext.*
-
----
-
-### `encryptSymmetric(transition_view_key) ► Ciphertext`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Encrypt a plaintext with a transition view key.
+Get a plaintext object from an array of fields.
 
 Parameters | Type | Description
 --- | --- | ---
-__transition_view_key__ | [Field](sdk-src_wasm.md) | *The transition view key of the transition
-associated with the plaintext.*
-__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The encrypted ciphertext.*
+__fields__ | `Array` | *An array of fields.*
+__*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
 
 ---
 
@@ -1637,19 +1712,6 @@ Creates a plaintext object from a string representation of a plaintext.
 Parameters | Type | Description
 --- | --- | ---
 __plaintext__ | `string` | *The string representation of the plaintext.*
-__*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
-
----
-
-### `fromBytesLe(bytes) ► Plaintext`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get a plaintext object from a series of bytes.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | *A left endian byte array representing the plaintext.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
 
 ---
@@ -1679,52 +1741,16 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
 
 ---
 
-### `toBitsLe() ► Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the left endian boolean array representation of the bits of the plaintext.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array` | *The left endian boolean array representation of the bits of the plaintext.*
-
----
-
-### `fromFields(fields) ► Plaintext`
+### `fromBytesLe(bytes) ► Plaintext`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Get a plaintext object from an array of fields.
+Get a plaintext object from a series of bytes.
 
 Parameters | Type | Description
 --- | --- | ---
-__fields__ | `Array` | *An array of fields.*
+__bytes__ | `Uint8Array` | *A left endian byte array representing the plaintext.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
-
----
-
-### `toFields() ► Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the field array representation of the plaintext.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array` | *The field array representation of the plaintext.*
-
----
-
-### `toString() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the string representation of the plaintext.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | *The string representation of the plaintext.*
 
 ---
 
@@ -1740,6 +1766,60 @@ __*return*__ | `string` | *The type of the plaintext.*
 
 ---
 
+### `encryptSymmetric(transition_view_key) ► Ciphertext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Encrypt a plaintext with a transition view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__transition_view_key__ | [Field](sdk-src_wasm.md) | *The transition view key of the transition
+associated with the plaintext.*
+__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The encrypted ciphertext.*
+
+---
+
+### `find(name) ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Find plaintext member if the plaintext is a struct. Returns &#x60;null&#x60; if the plaintext is not
+a struct or the member does not exist.
+
+Parameters | Type | Description
+--- | --- | ---
+__name__ | `string` | *The name of the plaintext member to find.*
+__*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext member.*
+
+---
+
+### `encrypt(address, randomizer) ► Ciphertext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Encrypt a plaintext with an address and randomizer.
+
+Parameters | Type | Description
+--- | --- | ---
+__address__ | [Address](sdk-src_wasm.md) | *The address to encrypt the plaintext for.*
+__randomizer__ | [Scalar](sdk-src_wasm.md) | *The randomizer to use for encryption.*
+__*return*__ | [Ciphertext](sdk-src_wasm.md) | *The encrypted ciphertext.*
+
+---
+
+### `toFields() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *The field array representation of the plaintext.*
+
+---
+
 ### `toObject() ► Object`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1749,6 +1829,18 @@ Attempt to convert the plaintext to a JS object.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `Object` | *The JS object representation of the plaintext.*
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *The string representation of the plaintext.*
 
 ---
 
@@ -1771,16 +1863,15 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | **
 
 ## Methods
 
-### `from_seed_unchecked(seed) ► PrivateKey`
+### `to_address() ► Address`
 
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+![modifier: public](images/badges/modifier-public.svg)
 
-Get a private key from a series of unchecked bytes
+Get the address corresponding to the private key
 
 Parameters | Type | Description
 --- | --- | ---
-__seed__ | `Uint8Array` | *Unchecked 32 byte long Uint8Array acting as the seed for the private key*
-__*return*__ | [PrivateKey](sdk-src_wasm.md) | **
+__*return*__ | [Address](sdk-src_wasm.md) | **
 
 ---
 
@@ -1797,19 +1888,6 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | **
 
 ---
 
-### `to_string() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get a string representation of the private key. This function should be used very carefully
-as it exposes the private key plaintext
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | *String representation of a private key*
-
----
-
 ### `to_view_key() ► ViewKey`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1819,31 +1897,6 @@ Get the view key corresponding to the private key
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `ViewKey` | **
-
----
-
-### `to_address() ► Address`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the address corresponding to the private key
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Address](sdk-src_wasm.md) | **
-
----
-
-### `sign(Byte) ► Signature`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Sign a message with the private key
-
-Parameters | Type | Description
---- | --- | ---
-__Byte__ | `Uint8Array` | *array representing a message signed by the address*
-__*return*__ | [Signature](sdk-src_wasm.md) | *Signature generated by signing the message with the address*
 
 ---
 
@@ -1875,6 +1928,19 @@ __*return*__ | [PrivateKeyCiphertext](sdk-src_wasm.md) | *Ciphertext representat
 
 ---
 
+### `from_seed_unchecked(seed) ► PrivateKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a private key from a series of unchecked bytes
+
+Parameters | Type | Description
+--- | --- | ---
+__seed__ | `Uint8Array` | *Unchecked 32 byte long Uint8Array acting as the seed for the private key*
+__*return*__ | [PrivateKey](sdk-src_wasm.md) | **
+
+---
+
 ### `fromPrivateKeyCiphertext(ciphertext, secret) ► PrivateKey`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -1889,11 +1955,50 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | *Private key*
 
 ---
 
+### `sign(Byte) ► Signature`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Sign a message with the private key
+
+Parameters | Type | Description
+--- | --- | ---
+__Byte__ | `Uint8Array` | *array representing a message signed by the address*
+__*return*__ | [Signature](sdk-src_wasm.md) | *Signature generated by signing the message with the address*
+
+---
+
+### `to_string() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a string representation of the private key. This function should be used very carefully
+as it exposes the private key plaintext
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *String representation of a private key*
+
+---
+
 # Class `PrivateKeyCiphertext`
 
 Private Key in ciphertext form
 
 ## Methods
+
+### `fromString(ciphertext) ► PrivateKeyCiphertext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a PrivateKeyCiphertext from a string
+
+Parameters | Type | Description
+--- | --- | ---
+__ciphertext__ | `string` | *Ciphertext string*
+__*return*__ | [PrivateKeyCiphertext](sdk-src_wasm.md) | *Private key ciphertext*
+
+---
 
 ### `encryptPrivateKey(private_key, secret) ► PrivateKeyCiphertext`
 
@@ -1936,19 +2041,6 @@ __*return*__ | `string` | *Ciphertext string*
 
 ---
 
-### `fromString(ciphertext) ► PrivateKeyCiphertext`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Creates a PrivateKeyCiphertext from a string
-
-Parameters | Type | Description
---- | --- | ---
-__ciphertext__ | `string` | *Ciphertext string*
-__*return*__ | [PrivateKeyCiphertext](sdk-src_wasm.md) | *Private key ciphertext*
-
----
-
 # Class `Program`
 
 Webassembly Representation of an Aleo program
@@ -1968,15 +2060,66 @@ __*return*__ | [Program](sdk-src_wasm.md) | *Program object*
 
 ---
 
-### `toString() ► string`
+### `getImports() ► Array`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get a string representation of the program
+Get program_imports
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `string` | *String containing the program source code*
+__*return*__ | `Array` | *The program imports*
+
+#### Examples
+
+```javascript
+const DOUBLE_TEST = "import multiply_test.aleo;
+
+program double_test.aleo;
+
+function double_it:
+    input r0 as u32.private;
+    call multiply_test.aleo/multiply 2u32 r0 into r1;
+    output r1 as u32.private;";
+
+const expected_imports = [
+   "multiply_test.aleo"
+];
+
+const program = aleo_wasm.Program.fromString(DOUBLE_TEST_PROGRAM);
+const imports = program.getImports();
+console.log(imports === expected_imports); // Output should be "true"
+```
+
+---
+
+### `getMappings() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a the list of a program&#x27;s mappings and the names/types of their keys and values.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *- An array of objects representing the mappings in the program*
+
+#### Examples
+
+```javascript
+const expected_mappings = [
+   {
+      name: "account",
+      key_name: "owner",
+      key_type: "address",
+      value_name: "microcredits",
+      value_type: "u64"
+   }
+]
+
+const credits_program = aleo_wasm.Program.getCreditsProgram();
+const credits_mappings = credits_program.getMappings();
+console.log(credits_mappings === expected_mappings); // Output should be "true"
+```
 
 ---
 
@@ -2020,84 +2163,6 @@ const expected_functions = [
 const credits_program = aleo_wasm.Program.getCreditsProgram();
 const credits_functions = credits_program.getFunctions();
 console.log(credits_functions === expected_functions); // Output should be "true"
-```
-
----
-
-### `getFunctionInputs(function_name) ► Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get a javascript object representation of the function inputs and types. This can be used
-to generate a web form to capture user inputs for an execution of a function.
-
-Parameters | Type | Description
---- | --- | ---
-__function_name__ | `string` | *Name of the function to get inputs for*
-__*return*__ | `Array` | *Array of function inputs*
-
-#### Examples
-
-```javascript
-const expected_inputs = [
-    {
-      type:"record",
-      visibility:"private",
-      record:"credits",
-      members:[
-        {
-          name:"microcredits",
-          type:"u64",
-          visibility:"private"
-        }
-      ],
-      register:"r0"
-    },
-    {
-      type:"address",
-      visibility:"private",
-      register:"r1"
-    },
-    {
-      type:"u64",
-      visibility:"private",
-      register:"r2"
-    }
-];
-
-const credits_program = aleo_wasm.Program.getCreditsProgram();
-const transfer_function_inputs = credits_program.getFunctionInputs("transfer_private");
-console.log(transfer_function_inputs === expected_inputs); // Output should be "true"
-```
-
----
-
-### `getMappings() ► Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get a the list of a program&#x27;s mappings and the names/types of their keys and values.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array` | *- An array of objects representing the mappings in the program*
-
-#### Examples
-
-```javascript
-const expected_mappings = [
-   {
-      name: "account",
-      key_name: "owner",
-      key_type: "address",
-      value_name: "microcredits",
-      value_type: "u64"
-   }
-]
-
-const credits_program = aleo_wasm.Program.getCreditsProgram();
-const credits_mappings = credits_program.getMappings();
-console.log(credits_mappings === expected_mappings); // Output should be "true"
 ```
 
 ---
@@ -2209,6 +2274,54 @@ __*return*__ | [Program](sdk-src_wasm.md) | *The credits.aleo program*
 
 ---
 
+### `getFunctionInputs(function_name) ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a javascript object representation of the function inputs and types. This can be used
+to generate a web form to capture user inputs for an execution of a function.
+
+Parameters | Type | Description
+--- | --- | ---
+__function_name__ | `string` | *Name of the function to get inputs for*
+__*return*__ | `Array` | *Array of function inputs*
+
+#### Examples
+
+```javascript
+const expected_inputs = [
+    {
+      type:"record",
+      visibility:"private",
+      record:"credits",
+      members:[
+        {
+          name:"microcredits",
+          type:"u64",
+          visibility:"private"
+        }
+      ],
+      register:"r0"
+    },
+    {
+      type:"address",
+      visibility:"private",
+      register:"r1"
+    },
+    {
+      type:"u64",
+      visibility:"private",
+      register:"r2"
+    }
+];
+
+const credits_program = aleo_wasm.Program.getCreditsProgram();
+const transfer_function_inputs = credits_program.getFunctionInputs("transfer_private");
+console.log(transfer_function_inputs === expected_inputs); // Output should be "true"
+```
+
+---
+
 ### `id() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -2246,36 +2359,15 @@ __*return*__ | `boolean` | *True if the programs are equal, false otherwise*
 
 ---
 
-### `getImports() ► Array`
+### `toString() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get program_imports
+Get a string representation of the program
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Array` | *The program imports*
-
-#### Examples
-
-```javascript
-const DOUBLE_TEST = "import multiply_test.aleo;
-
-program double_test.aleo;
-
-function double_it:
-    input r0 as u32.private;
-    call multiply_test.aleo/multiply 2u32 r0 into r1;
-    output r1 as u32.private;";
-
-const expected_imports = [
-   "multiply_test.aleo"
-];
-
-const program = aleo_wasm.Program.fromString(DOUBLE_TEST_PROGRAM);
-const imports = program.getImports();
-console.log(imports === expected_imports); // Output should be "true"
-```
+__*return*__ | `string` | *String containing the program source code*
 
 ---
 
@@ -2284,315 +2376,6 @@ console.log(imports === expected_imports); // Output should be "true"
 Proving key for a function within an Aleo program
 
 ## Methods
-
-### `isBondPublicProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the bond_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the bond_public function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("bond_public_proving_key.bin");
-provingKey.isBondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isBondValidatorProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the bond_validator function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the bond_validator function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("bond_validator_proving_key.bin");
-provingKey.isBondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isClaimUnbondPublicProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the claim_unbond function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the claim_unbond function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("claim_unbond_proving_key.bin");
-provingKey.isClaimUnbondProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isFeePrivateProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the fee_private function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the fee_private function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("fee_private_proving_key.bin");
-provingKey.isFeePrivateProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isFeePublicProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the fee_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the fee_public function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("fee_public_proving_key.bin");
-provingKey.isFeePublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isInclusionProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the inclusion function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the inclusion function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("inclusion_proving_key.bin");
-provingKey.isInclusionProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isJoinProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the join function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the join function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("join_proving_key.bin");
-provingKey.isJoinProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isSetValidatorStateProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the set_validator_state function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the set_validator_state function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("set_validator_set_proving_key.bin");
-provingKey.isSetValidatorStateProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isSplitProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the split function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the split function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("split_proving_key.bin");
-provingKey.isSplitProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isTransferPrivateProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the transfer_private function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the transfer_private function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("transfer_private_proving_key.bin");
-provingKey.isTransferPrivateProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isTransferPrivateToPublicProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the transfer_private_to_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the transfer_private_to_public function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("transfer_private_to_public_proving_key.bin");
-provingKey.isTransferPrivateToPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isTransferPublicProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the transfer_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the transfer_public function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("transfer_public_proving_key.bin");
-provingKey.isTransferPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isTransferPublicAsSignerProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the transfer_public_as_signer function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the transfer_public function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("transfer_public_as_signer_proving_key.bin");
-provingKey.isTransferPublicAsSignerProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isTransferPublicToPrivateProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the transfer_public_to_private function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the transfer_public_to_private function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("transfer_public_to_private_proving_key.bin");
-provingKey.isTransferPublicToPrivateProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `isUnbondPublicProver() ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify if the proving key is for the unbond_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `boolean` | *returns true if the proving key is for the unbond_public_prover function, false if otherwise*
-
-#### Examples
-
-```javascript
-const provingKey = ProvingKey.fromBytes("unbond_public.bin");
-provingKey.isUnbondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
-```
-
----
-
-### `checksum() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Return the checksum of the proving key
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | *Checksum of the proving key*
-
----
-
-### `copy() ► ProvingKey`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Create a copy of the proving key
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [ProvingKey](sdk-src_wasm.md) | *A copy of the proving key*
-
----
 
 ### `fromBytes(bytes) ► ProvingKey`
 
@@ -2620,6 +2403,30 @@ __*return*__ | [ProvingKey](sdk-src_wasm.md) | **
 
 ---
 
+### `copy() ► ProvingKey`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Create a copy of the proving key
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [ProvingKey](sdk-src_wasm.md) | *A copy of the proving key*
+
+---
+
+### `checksum() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Return the checksum of the proving key
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *Checksum of the proving key*
+
+---
+
 ### `toBytes() ► Uint8Array`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -2644,26 +2451,296 @@ __*return*__ | `string` | *String representation of the proving key*
 
 ---
 
+### `isJoinProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the join function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the join function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("join_proving_key.bin");
+provingKey.isJoinProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isSplitProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the split function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the split function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("split_proving_key.bin");
+provingKey.isSplitProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isInclusionProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the inclusion function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the inclusion function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("inclusion_proving_key.bin");
+provingKey.isInclusionProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isFeePublicProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the fee_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the fee_public function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("fee_public_proving_key.bin");
+provingKey.isFeePublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isBondPublicProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the bond_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the bond_public function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("bond_public_proving_key.bin");
+provingKey.isBondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isFeePrivateProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the fee_private function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the fee_private function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("fee_private_proving_key.bin");
+provingKey.isFeePrivateProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isUnbondPublicProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the unbond_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the unbond_public_prover function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("unbond_public.bin");
+provingKey.isUnbondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isBondValidatorProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the bond_validator function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the bond_validator function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("bond_validator_proving_key.bin");
+provingKey.isBondPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isTransferPublicProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the transfer_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the transfer_public function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("transfer_public_proving_key.bin");
+provingKey.isTransferPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isTransferPrivateProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the transfer_private function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the transfer_private function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("transfer_private_proving_key.bin");
+provingKey.isTransferPrivateProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isClaimUnbondPublicProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the claim_unbond function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the claim_unbond function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("claim_unbond_proving_key.bin");
+provingKey.isClaimUnbondProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isSetValidatorStateProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the set_validator_state function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the set_validator_state function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("set_validator_set_proving_key.bin");
+provingKey.isSetValidatorStateProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isTransferPublicAsSignerProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the transfer_public_as_signer function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the transfer_public function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("transfer_public_as_signer_proving_key.bin");
+provingKey.isTransferPublicAsSignerProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isTransferPrivateToPublicProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the transfer_private_to_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the transfer_private_to_public function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("transfer_private_to_public_proving_key.bin");
+provingKey.isTransferPrivateToPublicProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
+### `isTransferPublicToPrivateProver() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify if the proving key is for the transfer_public_to_private function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *returns true if the proving key is for the transfer_public_to_private function, false if otherwise*
+
+#### Examples
+
+```javascript
+const provingKey = ProvingKey.fromBytes("transfer_public_to_private_proving_key.bin");
+provingKey.isTransferPublicToPrivateProver() ? console.log("Key verified") : throw new Error("Invalid key");
+```
+
+---
+
 # Class `ProvingRequest`
 
 Represents a proving request to a prover.
 
 ## Methods
-
-### `new(authorization, fee_authorization, broadcast) ► ProvingRequest`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Creates a new ProvingRequest from a function Authorization and an optional fee Authorization.
-
-Parameters | Type | Description
---- | --- | ---
-__authorization__ | [Authorization](sdk-src_wasm.md) | *An Authorization for a function.*
-__fee_authorization__ | [Authorization](sdk-src_wasm.md) | *The authorization for the &#x60;credits.aleo/fee_public&#x60; or &#x60;credits.aleo/fee_private&#x60; function that pays the fee for the execution of the main function.*
-__broadcast__ | `boolean` | *Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller&#x27;s behalf.*
-__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
-
----
 
 ### `fromString(request) ► ProvingRequest`
 
@@ -2674,31 +2751,6 @@ Creates a ProvingRequest from a string representation.
 Parameters | Type | Description
 --- | --- | ---
 __request__ | `Uint8Array` | *String representation of the ProvingRequest.*
-__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
-
----
-
-### `toString() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Creates a string representation of the ProvingRequest.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | **
-
----
-
-### `fromBytesLe(bytes) ► ProvingRequest`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Creates a ProvingRequest from a left-endian byte representation of the ProvingRequest.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | *Left-endian bytes representing the proving request.*
 __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ---
@@ -2727,6 +2779,19 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ---
 
+### `fromBytesLe(bytes) ► ProvingRequest`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a ProvingRequest from a left-endian byte representation of the ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *Left-endian bytes representing the proving request.*
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
 ### `feeAuthorization() ► Authorization`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -2739,15 +2804,18 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ---
 
-### `broadcast() ► boolean`
+### `new(authorization, fee_authorization, broadcast) ► ProvingRequest`
 
-![modifier: public](images/badges/modifier-public.svg)
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Get the broadcast flag set in the ProvingRequest.
+Creates a new ProvingRequest from a function Authorization and an optional fee Authorization.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `boolean` | **
+__authorization__ | [Authorization](sdk-src_wasm.md) | *An Authorization for a function.*
+__fee_authorization__ | [Authorization](sdk-src_wasm.md) | *The authorization for the &#x60;credits.aleo/fee_public&#x60; or &#x60;credits.aleo/fee_private&#x60; function that pays the fee for the execution of the main function.*
+__broadcast__ | `boolean` | *Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller&#x27;s behalf.*
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ---
 
@@ -2764,11 +2832,49 @@ __*return*__ | `boolean` | **
 
 ---
 
+### `broadcast() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the broadcast flag set in the ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Creates a string representation of the ProvingRequest.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
+
+---
+
 # Class `RecordCiphertext`
 
 Encrypted Aleo record
 
 ## Methods
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the record ciphertext bits.
+
+returns {Array} Left endian boolean array representation of the bits of the record ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
 
 ### `fromString(record) ► RecordCiphertext`
 
@@ -2783,29 +2889,28 @@ __*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *Record ciphertext*
 
 ---
 
-### `toString() ► string`
+### `toBytesLe() ► Uint8Array`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Return the string representation of the record ciphertext
+Get the left endian byte array representation of the record ciphertext.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `string` | *String representation of the record ciphertext*
+__*return*__ | `Uint8Array` | *Left endian byte array representation of the record ciphertext.*
 
 ---
 
-### `decrypt(view_key) ► RecordPlaintext`
+### `fromBytesLe(bytes) ► RecordCiphertext`
 
-![modifier: public](images/badges/modifier-public.svg)
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Decrypt the record ciphertext into plaintext using the view key. The record will only
-decrypt if the record was encrypted by the account corresponding to the view key
+Get a record ciphertext object from a series of bytes.
 
 Parameters | Type | Description
 --- | --- | ---
-__view_key__ | `ViewKey` | *View key used to decrypt the ciphertext*
-__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext object*
+__bytes__ | `Uint8Array` | *A left endian byte array representing the record ciphertext.*
+__*return*__ | [RecordCiphertext](sdk-src_wasm.md) | **
 
 ---
 
@@ -2823,16 +2928,16 @@ __*return*__ | [Group](sdk-src_wasm.md) | *record view key*
 
 ---
 
-### `isOwner(view_key) ► boolean`
+### `decryptWithRecordViewKey(record_vk) ► RecordPlaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Determines if the account corresponding to the view key is the owner of the record
+Decrypt the record ciphertext into plaintext using a record view key.
 
 Parameters | Type | Description
 --- | --- | ---
-__view_key__ | `ViewKey` | *View key used to decrypt the ciphertext*
-__*return*__ | `boolean` | **
+__record_vk__ | [Field](sdk-src_wasm.md) | *Record view key used to decrypt the record.*
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | **
 
 ---
 
@@ -2850,67 +2955,15 @@ __*return*__ | [Field](sdk-src_wasm.md) | *tag of the record.*
 
 ---
 
-### `fromBytesLe(bytes) ► RecordCiphertext`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get a record ciphertext object from a series of bytes.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | *A left endian byte array representing the record ciphertext.*
-__*return*__ | [RecordCiphertext](sdk-src_wasm.md) | **
-
----
-
-### `toBytesLe() ► Uint8Array`
+### `clone() ► RecordCiphertext`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the left endian byte array representation of the record ciphertext.
+Clone the RecordCiphertext WASM object.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Uint8Array` | *Left endian byte array representation of the record ciphertext.*
-
----
-
-### `toBitsLe() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the left endian boolean array representation of the record ciphertext bits.
-
-returns {Array} Left endian boolean array representation of the bits of the record ciphertext.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
-### `toFields() ► Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the field array representation of the record ciphertext.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array` | *Field array representation of the record ciphertext.*
-
----
-
-### `decryptWithRecordViewKey(record_vk) ► RecordPlaintext`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Decrypt the record ciphertext into plaintext using a record view key.
-
-Parameters | Type | Description
---- | --- | ---
-__record_vk__ | [Field](sdk-src_wasm.md) | *Record view key used to decrypt the record.*
-__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | **
+__*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *A clone of the RecordCiphertext WASM object.*
 
 ---
 
@@ -2926,15 +2979,54 @@ __*return*__ | [Group](sdk-src_wasm.md) | *The record nonce.*
 
 ---
 
-### `clone() ► RecordCiphertext`
+### `decrypt(view_key) ► RecordPlaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Clone the RecordCiphertext WASM object.
+Decrypt the record ciphertext into plaintext using the view key. The record will only
+decrypt if the record was encrypted by the account corresponding to the view key
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *A clone of the RecordCiphertext WASM object.*
+__view_key__ | `ViewKey` | *View key used to decrypt the ciphertext*
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext object*
+
+---
+
+### `isOwner(view_key) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Determines if the account corresponding to the view key is the owner of the record
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key used to decrypt the ciphertext*
+__*return*__ | `boolean` | **
+
+---
+
+### `toFields() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the record ciphertext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *Field array representation of the record ciphertext.*
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Return the string representation of the record ciphertext
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *String representation of the record ciphertext*
 
 ---
 
@@ -2943,19 +3035,6 @@ __*return*__ | [RecordCiphertext](sdk-src_wasm.md) | *A clone of the RecordCiphe
 Plaintext representation of an Aleo record
 
 ## Methods
-
-### `fromString(record) ► RecordPlaintext`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Return a record plaintext from a string.
-
-Parameters | Type | Description
---- | --- | ---
-__record__ | `string` | *String representation of a plaintext representation of an Aleo record.*
-__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext*
-
----
 
 ### `getMember(input) ► Plaintext`
 
@@ -2970,15 +3049,52 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext value corresponding
 
 ---
 
-### `owner() ► Address`
+### `toBitsLe() ► Array`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the owner of the record.
+Returns the left endian boolean array representation of the record plaintext bits.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [Address](sdk-src_wasm.md) | *Address of the owner of the record.*
+__*return*__ | `Array` | *Boolean array representation of the record plaintext bits.*
+
+---
+
+### `fromString(record) ► RecordPlaintext`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Return a record plaintext from a string.
+
+Parameters | Type | Description
+--- | --- | ---
+__record__ | `string` | *String representation of a plaintext representation of an Aleo record.*
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext*
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the left endian byte array representation of the record plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *Byte array representation of the record plaintext.*
+
+---
+
+### `microcredits() ► u64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the amount of microcredits in the record
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `u64` | *Amount of microcredits in the record*
 
 ---
 
@@ -3043,18 +3159,6 @@ assert(JSON.stringify(record_plaintext_object) == JSON.stringify(expected_object
 
 ---
 
-### `toString() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the record plaintext string
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | *String representation of the record plaintext*
-
----
-
 ### `fromBytesLe(bytes) ► RecordPlaintext`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -3068,63 +3172,17 @@ __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The record plaintext.*
 
 ---
 
-### `toBytesLe() ► Uint8Array`
+### `recordViewKey(view_key) ► Group`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the left endian byte array representation of the record plaintext.
+Generate the record view key. The record view key can only decrypt the record if the
+supplied view key belongs to the record owner.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Uint8Array` | *Byte array representation of the record plaintext.*
-
----
-
-### `toBitsLe() ► Array`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the left endian boolean array representation of the record plaintext bits.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array` | *Boolean array representation of the record plaintext bits.*
-
----
-
-### `toFields() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the field array representation of the record plaintext.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
-### `microcredits() ► u64`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the amount of microcredits in the record
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `u64` | *Amount of microcredits in the record*
-
----
-
-### `nonce() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the nonce of the record. This can be used to uniquely identify a record.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | *Nonce of the record*
+__view_key__ | `ViewKey` | *View key used to generate the record view key*
+__*return*__ | [Group](sdk-src_wasm.md) | *record view key*
 
 ---
 
@@ -3158,20 +3216,6 @@ __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
-### `recordViewKey(view_key) ► Group`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Generate the record view key. The record view key can only decrypt record if the
-supplied view key belongs to the record owner.
-
-Parameters | Type | Description
---- | --- | ---
-__view_key__ | `ViewKey` | *View key used to generate the record view key*
-__*return*__ | [Group](sdk-src_wasm.md) | *record view key*
-
----
-
 ### `clone() ► RecordPlaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3184,11 +3228,71 @@ __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *A clone of the RecordPlaint
 
 ---
 
+### `nonce() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the nonce of the record. This can be used to uniquely identify a record.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *Nonce of the record*
+
+---
+
+### `owner() ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the owner of the record.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Address](sdk-src_wasm.md) | *Address of the owner of the record.*
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the field array representation of the record plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the record plaintext string
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *String representation of the record plaintext*
+
+---
+
 # Class `Scalar`
 
 Scalar field element.
 
 ## Methods
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the left endian boolean array representation of the scalar element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
 
 ### `fromString(group) ► Scalar`
 
@@ -3199,31 +3303,6 @@ Creates a scalar object from a string representation of a scalar element.
 Parameters | Type | Description
 --- | --- | ---
 __group__ | `string` | **
-__*return*__ | [Scalar](sdk-src_wasm.md) | **
-
----
-
-### `toString() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the string representation of the scalar element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | **
-
----
-
-### `fromBytesLe(bytes) ► Scalar`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Create a scalar element from a Uint8Array of left endian bytes.
-
-Parameters | Type | Description
---- | --- | ---
-__bytes__ | `Uint8Array` | **
 __*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
@@ -3253,18 +3332,6 @@ __*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
 
-### `toBitsLe() ► Array.<any>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the left endian boolean array representation of the scalar element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<any>` | **
-
----
-
 ### `toPlaintext() ► Plaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3277,38 +3344,15 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
-### `toField() ► Field`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Cast the scalar element to a field element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Field](sdk-src_wasm.md) | **
-
----
-
-### `clone() ► Scalar`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Clone the scalar element.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Scalar](sdk-src_wasm.md) | **
-
----
-
-### `random() ► Scalar`
+### `fromBytesLe(bytes) ► Scalar`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Generate a random scalar element.
+Create a scalar element from a Uint8Array of left endian bytes.
 
 Parameters | Type | Description
 --- | --- | ---
+__bytes__ | `Uint8Array` | **
 __*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
@@ -3326,11 +3370,23 @@ __*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
 
-### `subtract(other) ► Scalar`
+### `one() ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get the multiplicative identity of the scalar field.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
+### `pow(other) ► Scalar`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Subtract two scalar elements.
+Power of a scalar element.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -3339,15 +3395,26 @@ __*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
 
-### `multiply(other) ► Scalar`
+### `zero() ► Scalar`
 
-![modifier: public](images/badges/modifier-public.svg)
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Multiply two scalar elements.
+Get the additive identity of the scalar field.
 
 Parameters | Type | Description
 --- | --- | ---
-__other__ | [Scalar](sdk-src_wasm.md) | **
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
+### `clone() ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Clone the scalar element.
+
+Parameters | Type | Description
+--- | --- | ---
 __*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
@@ -3377,15 +3444,27 @@ __*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
 
-### `pow(other) ► Scalar`
+### `equals(other) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Power of a scalar element.
+Check if one scalar element equals another.
 
 Parameters | Type | Description
 --- | --- | ---
 __other__ | [Scalar](sdk-src_wasm.md) | **
+__*return*__ | `boolean` | **
+
+---
+
+### `random() ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Generate a random scalar element.
+
+Parameters | Type | Description
+--- | --- | ---
 __*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
@@ -3402,40 +3481,53 @@ __*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
 
-### `one() ► Scalar`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get the multiplicative identity of the scalar field.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Scalar](sdk-src_wasm.md) | **
-
----
-
-### `zero() ► Scalar`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get the additive identity of the scalar field.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Scalar](sdk-src_wasm.md) | **
-
----
-
-### `equals(other) ► boolean`
+### `multiply(other) ► Scalar`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Check if one scalar element equals another.
+Multiply two scalar elements.
 
 Parameters | Type | Description
 --- | --- | ---
 __other__ | [Scalar](sdk-src_wasm.md) | **
-__*return*__ | `boolean` | **
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
+### `subtract(other) ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Subtract two scalar elements.
+
+Parameters | Type | Description
+--- | --- | ---
+__other__ | [Scalar](sdk-src_wasm.md) | **
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
+### `toField() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar element to a field element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the scalar element.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
 
 ---
 
@@ -3444,20 +3536,6 @@ __*return*__ | `boolean` | **
 Cryptographic signature of a message signed by an Aleo account
 
 ## Methods
-
-### `sign(private_key, message) ► Signature`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Sign a message with a private key
-
-Parameters | Type | Description
---- | --- | ---
-__private_key__ | [PrivateKey](sdk-src_wasm.md) | *The private key to sign the message with*
-__message__ | `Uint8Array` | *Byte representation of the message to sign*
-__*return*__ | [Signature](sdk-src_wasm.md) | *Signature of the message*
-
----
 
 ### `to_address() ► Address`
 
@@ -3471,54 +3549,28 @@ __*return*__ | [Address](sdk-src_wasm.md) | *Address object*
 
 ---
 
-### `challenge() ► Scalar`
+### `toBitsLe() ► Array.<any>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the challenge of a signature.
+Get the left endian boolean array representation of the bits of the signature.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [Scalar](sdk-src_wasm.md) | **
+__*return*__ | `Array.<any>` | **
 
 ---
 
-### `response() ► Scalar`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the response of a signature.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Scalar](sdk-src_wasm.md) | **
-
----
-
-### `verify(address, message) ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verify a signature of a message with an address
-
-Parameters | Type | Description
---- | --- | ---
-__address__ | [Address](sdk-src_wasm.md) | *The address to verify the signature with*
-__message__ | `Uint8Array` | *Byte representation of the message to verify*
-__*return*__ | `boolean` | *True if the signature is valid, false otherwise*
-
----
-
-### `fromBytesLe(bytes) ► Signature`
+### `from_string(signature) ► Signature`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Get a signature from a series of bytes.
+Get a signature from a string representation of a signature
 
 Parameters | Type | Description
 --- | --- | ---
-__bytes__ | `Uint8Array` | *A left endian byte array representing the signature.*
-__*return*__ | [Signature](sdk-src_wasm.md) | *The signature object.*
+__signature__ | `string` | *String representation of a signature*
+__*return*__ | [Signature](sdk-src_wasm.md) | *Signature*
 
 ---
 
@@ -3547,15 +3599,80 @@ __*return*__ | [Signature](sdk-src_wasm.md) | *The signature object.*
 
 ---
 
-### `toBitsLe() ► Array.<any>`
+### `toPlaintext() ► Plaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the left endian boolean array representation of the bits of the signature.
+Get the plaintext representation of the signature.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Array.<any>` | **
+__*return*__ | [Plaintext](sdk-src_wasm.md) | **
+
+---
+
+### `fromBytesLe(bytes) ► Signature`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a signature from a series of bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *A left endian byte array representing the signature.*
+__*return*__ | [Signature](sdk-src_wasm.md) | *The signature object.*
+
+---
+
+### `sign(private_key, message) ► Signature`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Sign a message with a private key
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | [PrivateKey](sdk-src_wasm.md) | *The private key to sign the message with*
+__message__ | `Uint8Array` | *Byte representation of the message to sign*
+__*return*__ | [Signature](sdk-src_wasm.md) | *Signature of the message*
+
+---
+
+### `verify(address, message) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify a signature of a message with an address
+
+Parameters | Type | Description
+--- | --- | ---
+__address__ | [Address](sdk-src_wasm.md) | *The address to verify the signature with*
+__message__ | `Uint8Array` | *Byte representation of the message to verify*
+__*return*__ | `boolean` | *True if the signature is valid, false otherwise*
+
+---
+
+### `response() ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the response of a signature.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
+### `challenge() ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the challenge of a signature.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
 
@@ -3571,19 +3688,6 @@ __*return*__ | `Array.<any>` | **
 
 ---
 
-### `from_string(signature) ► Signature`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Get a signature from a string representation of a signature
-
-Parameters | Type | Description
---- | --- | ---
-__signature__ | `string` | *String representation of a signature*
-__*return*__ | [Signature](sdk-src_wasm.md) | *Signature*
-
----
-
 ### `to_string() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3596,18 +3700,6 @@ __*return*__ | `string` | *String representation of a signature*
 
 ---
 
-### `toPlaintext() ► Plaintext`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the plaintext representation of the signature.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Plaintext](sdk-src_wasm.md) | **
-
----
-
 # Class `Transaction`
 
 Webassembly Representation of an Aleo transaction
@@ -3617,80 +3709,27 @@ object that should be submitted to the Aleo Network in order to deploy or execut
 
 ## Methods
 
-### `fromString(transaction) ► Transaction`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Create a transaction from a string
-
-Parameters | Type | Description
---- | --- | ---
-__transaction__ | `string` | *String representation of a transaction*
-__*return*__ | [Transaction](sdk-src_wasm.md) | **
-
----
-
-### `fromBytesLe(Uint8Array) ► Transaction`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Create a transaction from a Uint8Array of left endian bytes.
-
-Parameters | Type | Description
---- | --- | ---
-__Uint8Array__ | `Uint8Array` | *of left endian bytes encoding a Transaction.*
-__*return*__ | [Transaction](sdk-src_wasm.md) | **
-
----
-
-### `toString() ► string`
+### `feeAmount() ► bigint`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the transaction as a string. If you want to submit this transaction to the Aleo Network
-this function will create the string that should be submitted in the &#x60;POST&#x60; data.
+Returns the transaction&#x27;s total fee.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `string` | *String representation of the transaction*
+__*return*__ | `bigint` | **
 
 ---
 
-### `toBytesLe() ► Uint8Array`
+### `isExecute() ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the transaction as a Uint8Array of left endian bytes.
+Returns true if the transaction is an execution transaction.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Uint8Array` | *Uint8Array representation of the transaction*
-
----
-
-### `constainsSerialNumber(True) ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns true if the transaction contains the given serial number.
-
-Parameters | Type | Description
---- | --- | ---
-__True__ | `boolean` | *if the transaction contains the given serial number.*
-__*return*__ | `boolean` | **
-
----
-
-### `constainsCommitment(True) ► boolean`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns true if the transaction contains the given commitment.
-
-Parameters | Type | Description
---- | --- | ---
-__True__ | `boolean` | *if the transaction contains the given commitment.*
-__*return*__ | `boolean` | **
+__*return*__ | `boolean` | *True if the transaction is an execution transaction*
 
 ---
 
@@ -3707,6 +3746,81 @@ __*return*__ | [RecordCiphertext](sdk-src_wasm.md) | **
 
 ---
 
+### `fromString(transaction) ► Transaction`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Create a transaction from a string
+
+Parameters | Type | Description
+--- | --- | ---
+__transaction__ | `string` | *String representation of a transaction*
+__*return*__ | [Transaction](sdk-src_wasm.md) | **
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the transaction as a Uint8Array of left endian bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *Uint8Array representation of the transaction*
+
+---
+
+### `transitions() ► Array.<Transition>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the transitions in a transaction.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<Transition>` | *Array of transition objects*
+
+---
+
+### `fromBytesLe(Uint8Array) ► Transaction`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Create a transaction from a Uint8Array of left endian bytes.
+
+Parameters | Type | Description
+--- | --- | ---
+__Uint8Array__ | `Uint8Array` | *of left endian bytes encoding a Transaction.*
+__*return*__ | [Transaction](sdk-src_wasm.md) | **
+
+---
+
+### `ownedRecords(view_key) ► Array.<RecordPlaintext>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the record plaintext present in a transaction owned by a specific view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key used to decrypt the ciphertext*
+__*return*__ | `Array.<RecordPlaintext>` | *Array of record plaintext objects*
+
+---
+
+### `verifyingKeys() ► Array.<Object>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the verifying keys in a transaction.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<Object>` | *Array of verifying keys.*
+
+---
+
 ### `baseFeeAmount() ► bigint`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3719,15 +3833,41 @@ __*return*__ | `bigint` | **
 
 ---
 
-### `feeAmount() ► bigint`
+### `deployedProgram() ► Program`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns the transaction&#x27;s total fee.
+Returns the program deployed within the transaction if the transaction is a deployment
+transaction.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `bigint` | **
+__*return*__ | [Program](sdk-src_wasm.md) | *The program deployed within the transaction.*
+
+---
+
+### `transactionType() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the type of the transaction (will return &quot;deploy&quot; or &quot;execute&quot;)
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *Transaction type*
+
+---
+
+### `constainsCommitment(True) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns true if the transaction contains the given commitment.
+
+Parameters | Type | Description
+--- | --- | ---
+__True__ | `boolean` | *if the transaction contains the given commitment.*
+__*return*__ | `boolean` | **
 
 ---
 
@@ -3745,27 +3885,32 @@ __*return*__ | `bigint` | **
 
 ---
 
-### `isDeploy() ► boolean`
+### `constainsSerialNumber(True) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns true if the transaction is a deployment transaction.
+Returns true if the transaction contains the given serial number.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `boolean` | *True if the transaction is a deployment transaction*
+__True__ | `boolean` | *if the transaction contains the given serial number.*
+__*return*__ | `boolean` | **
 
 ---
 
-### `isExecute() ► boolean`
+### `id() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Returns true if the transaction is an execution transaction.
+Get the id of the transaction. This is the merkle root of the transaction&#x27;s inclusion proof.
+
+This value can be used to query the status of the transaction on the Aleo Network to see
+if it was successful. If successful, the transaction will be included in a block and this
+value can be used to lookup the transaction data on-chain.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `boolean` | *True if the transaction is an execution transaction*
+__*return*__ | `string` | *TransactionId*
 
 ---
 
@@ -3778,44 +3923,6 @@ Returns true if the transaction is a fee transaction.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `boolean` | *True if the transaction is a fee transaction*
-
----
-
-### `deployedProgram() ► Program`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the program deployed within the transaction if the transaction is a deployment
-transaction.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Program](sdk-src_wasm.md) | *The program deployed within the transaction.*
-
----
-
-### `execution() ► Execution`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the execution within the transaction (if present).
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [Execution](sdk-src_wasm.md) | *The execution within the transaction.*
-
----
-
-### `ownedRecords(view_key) ► Array.<RecordPlaintext>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the record plaintext present in a transaction owned by a specific view key.
-
-Parameters | Type | Description
---- | --- | ---
-__view_key__ | `ViewKey` | *View key used to decrypt the ciphertext*
-__*return*__ | `Array.<RecordPlaintext>` | *Array of record plaintext objects*
 
 ---
 
@@ -3851,55 +3958,40 @@ __*return*__ | `Object` | *Transaction summary*
 
 ---
 
-### `id() ► string`
+### `execution() ► Execution`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the id of the transaction. This is the merkle root of the transaction&#x27;s inclusion proof.
-
-This value can be used to query the status of the transaction on the Aleo Network to see
-if it was successful. If successful, the transaction will be included in a block and this
-value can be used to lookup the transaction data on-chain.
+Returns the execution within the transaction (if present).
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `string` | *TransactionId*
+__*return*__ | [Execution](sdk-src_wasm.md) | *The execution within the transaction.*
 
 ---
 
-### `transactionType() ► string`
+### `isDeploy() ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the type of the transaction (will return &quot;deploy&quot; or &quot;execute&quot;)
+Returns true if the transaction is a deployment transaction.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `string` | *Transaction type*
+__*return*__ | `boolean` | *True if the transaction is a deployment transaction*
 
 ---
 
-### `transitions() ► Array.<Transition>`
+### `toString() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the transitions in a transaction.
+Get the transaction as a string. If you want to submit this transaction to the Aleo Network
+this function will create the string that should be submitted in the &#x60;POST&#x60; data.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Array.<Transition>` | *Array of transition objects*
-
----
-
-### `verifyingKeys() ► Array.<Object>`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the verifying keys in a transaction.
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `Array.<Object>` | *Array of verifying keys.*
+__*return*__ | `string` | *String representation of the transaction*
 
 ---
 
@@ -3908,390 +4000,6 @@ __*return*__ | `Array.<Object>` | *Array of verifying keys.*
 Verifying key for a function within an Aleo program
 
 ## Methods
-
-### `bondPublicVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the bond_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the bond_public function*
-
----
-
-### `bondValidatorVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the bond_validator function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the bond_validator function*
-
----
-
-### `claimUnbondPublicVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the claim_delegator function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the claim_unbond_public function*
-
----
-
-### `feePrivateVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the fee_private function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the fee_private function*
-
----
-
-### `feePublicVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the fee_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the fee_public function*
-
----
-
-### `inclusionVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the inclusion function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the inclusion function*
-
----
-
-### `joinVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the join function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the join function*
-
----
-
-### `setValidatorStateVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the set_validator_state function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the set_validator_state function*
-
----
-
-### `splitVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the split function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the split function*
-
----
-
-### `transferPrivateVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the transfer_private function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_private function*
-
----
-
-### `transferPrivateToPublicVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the transfer_private_to_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_private_to_public function*
-
----
-
-### `transferPublicVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the transfer_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_public function*
-
----
-
-### `transferPublicAsSignerVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the transfer_public_as_signer function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_public_as_signer function*
-
----
-
-### `transferPublicToPrivateVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the transfer_public_to_private function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_public_to_private function*
-
----
-
-### `unbondPublicVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
-
-Returns the verifying key for the unbond_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the unbond_public function*
-
----
-
-### `isBondPublicVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the verifying key for the bond_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the bond_public function*
-
----
-
-### `isBondValidatorVerifier() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Returns the verifying key for the bond_validator function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the bond_validator function*
-
----
-
-### `isClaimUnbondPublicVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the claim_delegator function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isFeePrivateVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the fee_private function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isFeePublicVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the fee_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isInclusionVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the inclusion function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isJoinVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the join function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isSetValidatorStateVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the set_validator_state function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isSplitVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the split function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isTransferPrivateVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the transfer_private function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isTransferPrivateToPublicVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the transfer_private_to_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isTransferPublicVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the transfer_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isTransferPublicAsSignerVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the transfer_public_as_signer function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isTransferPublicToPrivateVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the transfer_public_to_private function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `isUnbondPublicVerifier() ► bool`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Verifies the verifying key is for the unbond_public function
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `bool` | **
-
----
-
-### `checksum() ► string`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Get the checksum of the verifying key
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | `string` | *Checksum of the verifying key*
-
----
-
-### `copy() ► VerifyingKey`
-
-![modifier: public](images/badges/modifier-public.svg)
-
-Create a copy of the verifying key
-
-Parameters | Type | Description
---- | --- | ---
-__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *A copy of the verifying key*
-
----
 
 ### `fromBytes(bytes) ► VerifyingKey`
 
@@ -4319,6 +4027,42 @@ __*return*__ | [VerifyingKey](sdk-src_wasm.md) | **
 
 ---
 
+### `numConstraints() ► number`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the number of constraints associated with the circuit
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `number` | *The number of constraints*
+
+---
+
+### `copy() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Create a copy of the verifying key
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *A copy of the verifying key*
+
+---
+
+### `checksum() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the checksum of the verifying key
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *Checksum of the verifying key*
+
+---
+
 ### `toBytes() ► Uint8Array`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -4343,14 +4087,362 @@ __*return*__ | `String` | *String representation of the verifying key*
 
 ---
 
-### `numConstraints() ► number`
+### `joinVerifier() ► VerifyingKey`
 
-![modifier: public](images/badges/modifier-public.svg)
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Get the number of constraints associated with the circuit
+Returns the verifying key for the join function
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `number` | *The number of constraints*
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the join function*
+
+---
+
+### `splitVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the split function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the split function*
+
+---
+
+### `isJoinVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the join function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `isSplitVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the split function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `inclusionVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the inclusion function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the inclusion function*
+
+---
+
+### `feePublicVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the fee_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the fee_public function*
+
+---
+
+### `bondPublicVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the bond_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the bond_public function*
+
+---
+
+### `feePrivateVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the fee_private function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the fee_private function*
+
+---
+
+### `isInclusionVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the inclusion function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `isFeePublicVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the fee_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `unbondPublicVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the unbond_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the unbond_public function*
+
+---
+
+### `bondValidatorVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the bond_validator function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the bond_validator function*
+
+---
+
+### `isBondPublicVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the verifying key for the bond_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the bond_public function*
+
+---
+
+### `isFeePrivateVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the fee_private function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `transferPublicVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the transfer_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_public function*
+
+---
+
+### `isUnbondPublicVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the unbond_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `transferPrivateVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the transfer_private function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_private function*
+
+---
+
+### `isBondValidatorVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the verifying key for the bond_validator function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the bond_validator function*
+
+---
+
+### `isTransferPublicVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the transfer_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `claimUnbondPublicVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the claim_delegator function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the claim_unbond_public function*
+
+---
+
+### `isTransferPrivateVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the transfer_private function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `setValidatorStateVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the set_validator_state function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the set_validator_state function*
+
+---
+
+### `isClaimUnbondPublicVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the claim_delegator function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `isSetValidatorStateVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the set_validator_state function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `transferPublicAsSignerVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the transfer_public_as_signer function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_public_as_signer function*
+
+---
+
+### `transferPrivateToPublicVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the transfer_private_to_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_private_to_public function*
+
+---
+
+### `transferPublicToPrivateVerifier() ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Returns the verifying key for the transfer_public_to_private function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | *Verifying key for the transfer_public_to_private function*
+
+---
+
+### `isTransferPublicAsSignerVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the transfer_public_as_signer function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `isTransferPrivateToPublicVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the transfer_private_to_public function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
+
+---
+
+### `isTransferPublicToPrivateVerifier() ► bool`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verifies the verifying key is for the transfer_public_to_private function
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `bool` | **
 
 ---
