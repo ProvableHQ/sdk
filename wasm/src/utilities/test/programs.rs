@@ -18,6 +18,20 @@ use crate::{array, object};
 
 use js_sys::{Array, Object};
 
+/// V1 credits.aleo record.
+pub const CREDITS_RECORD_V1: &str = "{ owner: aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private, microcredits: 1000000u64.private, _nonce: 3634848344765318974603121890869676775499130077229666060613233255327643175219group.public, _version: 1u8.public }";
+
+/// Record view key for the V1 credits.aleo record.
+pub const CREDITS_RECORD_VIEW_KEY: &str =
+    "5237002936265850807349726649400053591020997883662246784632368923777787639801field";
+
+/// Sender ciphertext of the credits.aleo record.
+pub const CREDITS_SENDER_CIPHERTEXT: &str =
+    "1182590395568997043375432557467567048762179115999922880321493200728848194550field";
+
+/// Sender plaintext of the credits.aleo record.
+pub const CREDITS_SENDER_PLAINTEXT: &str = "aleo1j92w9mhqznj2hvufad796y8suykjppk7f6n6xmncmktfm95vggzqx4sjlh";
+
 pub const HELLO_PROGRAM: &str = r#"program hello.aleo;
 function main:
     input r0 as u32.public;

@@ -368,7 +368,7 @@ describe("NodeConnection", () => {
             }
         });
 
-        it.only("should throw for a malformed tx ID", async () => {
+        it("should throw for a malformed tx ID", async () => {
             const connection = new AleoNetworkClient(host);
             try {
                 await connection.waitForTransactionConfirmation(invalidTx);

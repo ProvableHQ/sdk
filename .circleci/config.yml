@@ -114,7 +114,6 @@ jobs:
 
   template-node-ts:
     executor: rust-node
-    resource_class: xlarge
     steps:
       - setup-sdk
       - run:
