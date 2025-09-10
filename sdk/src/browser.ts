@@ -36,11 +36,11 @@ import {
     FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./function-key-provider.js";
+} from "./keyprovider/interface/function-key-provider";
 import {
     OfflineKeyProvider,
     OfflineSearchParams
-} from "./offline-key-provider.js";
+} from "./keyprovider/offline-key-provider";
 import {
     BlockHeightSearch,
     NetworkRecordProvider,

@@ -9,7 +9,7 @@ import {
     FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./function-key-provider.js";
+} from "./keyprovider/interface/function-key-provider";
 
 import {
     Address,
