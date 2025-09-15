@@ -152,6 +152,18 @@ jobs:
             cargo clippy --features testnet
             cargo clippy --features mainnet
 
+  check-cargo-semver:
+    executor: rust-node
+    steps:
+      - checkout
+      - cargo_fetch:
+          working_directory: wasm
+      - run:
+          working_directory: wasm
+          command: |
+            cargo install cargo-semver-checks@0.43.0 --locked
+            cargo semver-checks --workspace --features testnet
+
   check-fmt:
     executor: rust-node
     steps:
@@ -170,6 +182,7 @@ workflows:
   main-workflow:
     jobs:
       - check-fmt
+      - check-cargo-semver
       - check-clippy
       - sdk
       - sdk-test:
