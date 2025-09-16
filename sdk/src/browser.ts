@@ -112,6 +112,7 @@ export {
     VerifyingKey,
     ViewKey,
     initThreadPool,
+    setConsensusVersionTestHeights,
     verifyFunctionExecution,
 } from "./wasm.js";
 
