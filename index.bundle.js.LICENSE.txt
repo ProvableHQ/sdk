@@ -67,7 +67,7 @@
  */
 
 /**
- * react-router v7.5.3
+ * react-router v7.6.3
  *
  * Copyright (c) Remix Software Inc.
  *
