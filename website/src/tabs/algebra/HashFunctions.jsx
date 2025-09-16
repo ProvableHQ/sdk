@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Card, Divider, Form, Input, Radio, Select, Button, Typography, Space, Tag } from "antd";
+import { useEffect, useState } from "react";
+import { Card, Divider, Form, Input, Radio, Select, Button, Typography, Space, Collapse } from "antd";
 import { CopyButton } from "../../components/CopyButton";
 import { useAleoWASM } from "../../aleo-wasm-hook";
 
@@ -51,6 +51,15 @@ export const HashFunctions = () => {
 
     const [result, setResult] = useState("");
     const [error, setError] = useState("");
+
+    // String -> Fields helper
+    const [stringInput, setStringInput] = useState("");
+    const [stringFieldsPreview, setStringFieldsPreview] = useState("");
+
+    // String -> Bits helper (for Pedersen)
+    const [bitsStringInput, setBitsStringInput] = useState("");
+    const [bitOrder, setBitOrder] = useState("le"); // le | be (per-byte)
+    const [bitsPreview, setBitsPreview] = useState("");
 
     const layout = {
         labelCol: { span: 6 },
@@ -211,11 +220,107 @@ export const HashFunctions = () => {
         }
     };
 
-    const onCompute = () => {
+    // Auto-compute on changes
+    useEffect(() => {
         if (!wasm) return;
-        if (family === "BHP") return computeBhp();
-        if (family === "Pedersen") return computePedersen();
-        return computePoseidon();
+        // Avoid computing with empty inputs
+        if (family === "Pedersen") {
+            if (!bitsInput || !bitsInput.trim()) {
+                setResult("");
+                setError("");
+                return;
+            }
+            computePedersen();
+            return;
+        }
+
+        // BHP / Poseidon rely on field inputs
+        if (!finiteFieldCsv || !finiteFieldCsv.trim()) {
+            setResult("");
+            setError("");
+            return;
+        }
+        if (family === "BHP") {
+            computeBhp();
+        } else {
+            computePoseidon();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        wasm,
+        family,
+        // BHP
+        bhp,
+        bhpOp,
+        // Pedersen
+        pedersen,
+        pedersenOp,
+        // Poseidon
+        poseidon,
+        poseidonOp,
+        hashManyChunkSize,
+        // Inputs
+        finiteFieldCsv,
+        bitsInput,
+        scalarInput,
+    ]);
+
+    // Convert an arbitrary UTF-8 string into an array of Fields by chunking into 31-byte limbs
+    // and padding each limb to 32 bytes before calling Field.fromBytesLe.
+    const encodeStringToFieldsFrom = (text) => {
+        try {
+            setError("");
+            const encoder = new TextEncoder();
+            const utf8 = encoder.encode(text || "");
+            const fields = [];
+            for (let i = 0; i < utf8.length || (utf8.length === 0 && i === 0); i += 31) {
+                const chunk = utf8.subarray(i, Math.min(i + 31, utf8.length));
+                const padded = new Uint8Array(32);
+                padded.set(chunk);
+                const field = wasm.Field.fromBytesLe(padded);
+                fields.push(field);
+            }
+            const asStrings = fields.map((f) => f.toString());
+            setStringFieldsPreview(`[${asStrings.join(", ")}]`);
+            setFiniteFieldCsv(asStrings.join(", "));
+        } catch (e) {
+            console.error(e);
+            setError(String(e.message || e));
+            setStringFieldsPreview("");
+        }
+    };
+
+    const encodeStringToFields = () => {
+        encodeStringToFieldsFrom(stringInput);
+    };
+
+    const bytesToBits = (bytes, order = "le") => {
+        const out = [];
+        for (let i = 0; i < bytes.length; i++) {
+            const b = bytes[i];
+            if (order === "le") {
+                for (let bit = 0; bit < 8; bit++) out.push(((b >> bit) & 1) === 1);
+            } else {
+                for (let bit = 7; bit >= 0; bit--) out.push(((b >> bit) & 1) === 1);
+            }
+        }
+        return out;
+    };
+
+    const encodeStringToBits = () => {
+        try {
+            setError("");
+            const encoder = new TextEncoder();
+            const utf8 = encoder.encode(bitsStringInput || "");
+            const bitsArr = bytesToBits(utf8, bitOrder);
+            const asCsv = bitsArr.map((v) => (v ? "1" : "0")).join(", ");
+            setBitsPreview(`[${asCsv}]`);
+            setBitsInput(asCsv);
+        } catch (e) {
+            console.error(e);
+            setError(String(e.message || e));
+            setBitsPreview("");
+        }
     };
 
     const familySpecificControls = () => {
@@ -224,6 +329,30 @@ export const HashFunctions = () => {
                 <>
                     <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Hasher</span>} colon={false} style={{ marginBottom: '24px' }}>
                         <Select value={bhp} onChange={setBhp} options={BHP_OPTIONS} size="large" />
+                    </Form.Item>
+                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>String → Fields</span>} colon={false} style={{ marginBottom: '24px' }}>
+                        <Collapse>
+                            <Collapse.Panel header="String → Fields (optional)" key="strFieldsBHP">
+                                <Space direction="vertical" style={{ width: '100%' }}>
+                                    <Text>Enter a string to convert into 31-byte field limbs. This will populate the Fields input.</Text>
+                                    <Input
+                                        size="large"
+                                        placeholder="Enter any UTF-8 string"
+                                        value={stringInput}
+                                        onChange={(e) => { setStringInput(e.target.value); encodeStringToFieldsFrom(e.target.value); }}
+                                        allowClear
+                                    />
+                                    {stringFieldsPreview ? (
+                                        <Input
+                                            size="large"
+                                            value={stringFieldsPreview}
+                                            addonAfter={<CopyButton data={stringFieldsPreview} />}
+                                            disabled
+                                        />
+                                    ) : null}
+                                </Space>
+                            </Collapse.Panel>
+                        </Collapse>
                     </Form.Item>
                     <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>} colon={false} style={{ marginBottom: '24px' }}>
                         <Radio.Group value={bhpOp} onChange={(e) => setBhpOp(e.target.value)} size="large">
@@ -264,6 +393,33 @@ export const HashFunctions = () => {
                     <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Hasher</span>} colon={false} style={{ marginBottom: '24px' }}>
                         <Select value={pedersen} onChange={setPedersen} options={PEDERSEN_OPTIONS} size="large" />
                     </Form.Item>
+                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>String → Bits</span>} colon={false} style={{ marginBottom: '24px' }}>
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                            <Text>Enter a string to convert to UTF-8 bytes and then to a bit array for Pedersen.</Text>
+                            <Input
+                                size="large"
+                                placeholder="Enter any UTF-8 string"
+                                value={bitsStringInput}
+                                onChange={(e) => setBitsStringInput(e.target.value)}
+                                allowClear
+                            />
+                            <Space>
+                                <Radio.Group value={bitOrder} onChange={(e) => setBitOrder(e.target.value)} size="large">
+                                    <Radio.Button value="le">Per-byte: Little Endian</Radio.Button>
+                                    <Radio.Button value="be">Per-byte: Big Endian</Radio.Button>
+                                </Radio.Group>
+                                <Button size="large" onClick={encodeStringToBits} disabled={!wasm}>Convert & Fill</Button>
+                            </Space>
+                            {bitsPreview ? (
+                                <Input
+                                    size="large"
+                                    value={bitsPreview}
+                                    addonAfter={<CopyButton data={bitsPreview} />}
+                                    disabled
+                                />
+                            ) : null}
+                        </Space>
+                    </Form.Item>
                     <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>} colon={false} style={{ marginBottom: '24px' }}>
                         <Radio.Group value={pedersenOp} onChange={(e) => setPedersenOp(e.target.value)} size="large">
                             <Radio.Button value="hash">Hash</Radio.Button>
@@ -301,6 +457,30 @@ export const HashFunctions = () => {
             <>
                 <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Hasher</span>} colon={false} style={{ marginBottom: '24px' }}>
                     <Select value={poseidon} onChange={setPoseidon} options={POSEIDON_OPTIONS} size="large" />
+                </Form.Item>
+                <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>String → Fields</span>} colon={false} style={{ marginBottom: '24px' }}>
+                    <Collapse>
+                        <Collapse.Panel header="String → Fields (optional)" key="strFieldsPoseidon">
+                            <Space direction="vertical" style={{ width: '100%' }}>
+                                <Text>Enter a string to convert into 31-byte field limbs. This will populate the Fields input.</Text>
+                                <Input
+                                    size="large"
+                                    placeholder="Enter any UTF-8 string"
+                                    value={stringInput}
+                                    onChange={(e) => { setStringInput(e.target.value); encodeStringToFieldsFrom(e.target.value); }}
+                                    allowClear
+                                />
+                                {stringFieldsPreview ? (
+                                    <Input
+                                        size="large"
+                                        value={stringFieldsPreview}
+                                        addonAfter={<CopyButton data={stringFieldsPreview} />}
+                                        disabled
+                                    />
+                                ) : null}
+                            </Space>
+                        </Collapse.Panel>
+                    </Collapse>
                 </Form.Item>
                 <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>} colon={false} style={{ marginBottom: '24px' }}>
                     <Radio.Group value={poseidonOp} onChange={(e) => setPoseidonOp(e.target.value)} size="large">
@@ -364,14 +544,11 @@ export const HashFunctions = () => {
                     />
                 </Form.Item>
 
-                <Form.Item colon={false} style={{ marginBottom: 0 }}>
-                    <Button type="primary" size="large" onClick={onCompute} disabled={!wasm}>
-                        Compute
-                    </Button>
-                </Form.Item>
+                {/* Auto-compute replaces manual button */}
             </Form>
         </Card>
     );
 };
 
 export default HashFunctions;
+
