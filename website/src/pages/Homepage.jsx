@@ -20,8 +20,6 @@ const Homepage = () => {
                 </p>{" "}
                 <div className="buttonRow">
                 <Link
-                    target="_blank"
-                    rel="noopener noreferrer"
                     to="/account"
                 >
                     <button className="button">
