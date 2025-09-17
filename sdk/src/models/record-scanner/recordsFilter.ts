@@ -24,12 +24,13 @@ import { RecordsResponseFilter } from "../record-provider/recordsResponseFilter"
  * }
  */
 export interface RecordsFilter extends RecordSearchParams {
-    start: number;
+    commitments?: string[];
+    response?: RecordsResponseFilter;
+    start?: number;
     end?: number;
     program?: string;
     records?: string[];
     functions?: string[];
     results_per_page?: number;
     page?: number;
-    response?: RecordsResponseFilter;
 }

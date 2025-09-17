@@ -17,25 +17,26 @@ import { RegistrationRequest } from "./models/record-scanner/registrationRequest
  * 
  * const recordScanner = new RecordScanner("https://record-scanner.aleo.org");
  * recordScanner.setAccount(account);
- * await recordScanner.register(0);
+ * const uuid = await recordScanner.register(0);
  * 
  * const filter = {
- *     start: 0,
- *     end: 100,
- *     program: "credits.aleo",
- *     records: ["credits"],
+ *     uuid,
+ *     filter: {
+ *         program: "credits.aleo",
+ *         records: ["credits"],
+ *     },
+ *     responseFilter: {
+ *         program: true,
+ *         record: true,
+ *         function: true,
+ *         transition: true,
+ *         block_height: true,
+ *         transaction_id: true,
+ *     },
+ *     unspent: true,
  * };
  * 
- * const responseFilter = {
- *     program: true,
- *     record: true,
- *     function: true,
- *     transition: true,
- *     block_height: true,
- *     transaction_id: true,
- * };
- * 
- * const records = await recordScanner.findRecords({ filter, responseFilter });
+ * const records = await recordScanner.findRecords(filter);
  */
 class RecordScanner implements RecordProvider {
     account?: Account;
@@ -94,16 +95,16 @@ class RecordScanner implements RecordProvider {
     /**
      * Get encrypted records from the record scanner service.
      * 
-     * @param {RecordsFilter} recordsFilter The filter to use to find the records.
-     * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response.
+     * @param {RecordsFilter} recordsFilter The filter to use to find the records and filter the response.
      * @returns {Promise<EncryptedRecord[]>} The encrypted records.
      */
-    async encryptedRecords(recordsFilter: RecordsFilter, responseFilter: RecordsResponseFilter): Promise<EncryptedRecord[]> {
+    async encryptedRecords(recordsFilter: RecordsFilter): Promise<EncryptedRecord[]> {
         try {
             const response = await this.request(
-                new Request(`${this.url}/records/encrypted?${this.buildQueryString(recordsFilter, responseFilter)}`, {
-                    method: "GET",
+                new Request(`${this.url}/records/encrypted`, {
+                    method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(recordsFilter),
                 }),
             );
 
