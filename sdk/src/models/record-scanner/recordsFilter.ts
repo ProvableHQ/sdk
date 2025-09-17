@@ -8,7 +8,7 @@ import { RecordsResponseFilter } from "../record-provider/recordsResponseFilter"
  * const recordsFilter: RecordsFilter = {
  *     start: 0,
  *     end: 100,
- *     program: "credits.aleo",
+ *     programs: ["credits.aleo"],
  *     records: ["credits"],
  *     functions: ["transfer_public_to_private"],
  *     response: {
@@ -28,7 +28,7 @@ export interface RecordsFilter extends RecordSearchParams {
     response?: RecordsResponseFilter;
     start?: number;
     end?: number;
-    program?: string;
+    programs?: string[];
     records?: string[];
     functions?: string[];
     results_per_page?: number;
