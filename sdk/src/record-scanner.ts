@@ -41,13 +41,13 @@ import { RegistrationRequest } from "./models/record-scanner/registrationRequest
 class RecordScanner implements RecordProvider {
     account?: Account;
     readonly url: string;
-    private apiKey?: string;
+    private apiKey?: { header: string, value: string };
     private uuid?: string;
 
-    constructor(url: string, account?: Account, apiKey?: string) {
+    constructor(url: string, account?: Account, apiKey?: string | { header: string, value: string }) {
         this.account = account;
         this.url = url;
-        this.apiKey = apiKey;
+        this.apiKey = typeof apiKey === "string" ? { header: "X-Provable-API-Key", value: apiKey } : apiKey;
     }
     
     /**
@@ -65,8 +65,8 @@ class RecordScanner implements RecordProvider {
      * 
      * @param {string} apiKey The API key to use for the record scanner.
      */
-    async setApiKey(apiKey: string): Promise<void> {
-        this.apiKey = apiKey;
+    async setApiKey(apiKey: string | { header: string, value: string }): Promise<void> {
+        this.apiKey = typeof apiKey === "string" ? { header: "X-Provable-API-Key", value: apiKey } : apiKey;
     }
 
     /**
@@ -299,7 +299,7 @@ class RecordScanner implements RecordProvider {
     private async request(req: Request): Promise<Response> {
         try {
             if (this.apiKey) {
-                req.headers.set("X-Provable-API-Key", this.apiKey);
+                req.headers.set(this.apiKey.header, this.apiKey.value);
             }
             const response = await fetch(req);
     
@@ -312,21 +312,6 @@ class RecordScanner implements RecordProvider {
             console.error(`Failed to make request to ${req.url}: ${error}`);
             throw error;
         }
-    }
-
-    /**
-     * Helper function to build a query string from the records filter and response filter.
-     * 
-     * @param {RecordSearchParams} recordsFilter The filter to use to find the records.
-     * @param {RecordsResponseFilter} responseFilter The filter to use to filter the response.
-     * @returns {string} The query string.
-     */
-    private buildQueryString(recordsFilter: RecordsFilter, responseFilter: RecordsResponseFilter): string {
-        return Object.entries({ ...recordsFilter, ...responseFilter })
-            .map(([key, value]) => {
-                return `${key}=${Array.isArray(value) ? value.join(",") : value}`
-            })
-            .join("&");
     }
 }
 
