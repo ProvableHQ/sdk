@@ -41,11 +41,13 @@ import { RegistrationRequest } from "./models/record-scanner/registrationRequest
 class RecordScanner implements RecordProvider {
     account?: Account;
     readonly url: string;
+    private apiKey?: string;
     private uuid?: string;
 
-    constructor(url: string, account?: Account) {
+    constructor(url: string, account?: Account, apiKey?: string) {
         this.account = account;
         this.url = url;
+        this.apiKey = apiKey;
     }
     
     /**
@@ -56,6 +58,15 @@ class RecordScanner implements RecordProvider {
     async setAccount(account: Account): Promise<void> {
         this.uuid = undefined;
         this.account = account;
+    }
+
+    /**
+     * Set the API key to use for the record scanner.
+     * 
+     * @param {string} apiKey The API key to use for the record scanner.
+     */
+    async setApiKey(apiKey: string): Promise<void> {
+        this.apiKey = apiKey;
     }
 
     /**
@@ -287,6 +298,9 @@ class RecordScanner implements RecordProvider {
      */
     private async request(req: Request): Promise<Response> {
         try {
+            if (this.apiKey) {
+                req.headers.set("X-Provable-API-Key", this.apiKey);
+            }
             const response = await fetch(req);
     
             if (!response.ok) {
