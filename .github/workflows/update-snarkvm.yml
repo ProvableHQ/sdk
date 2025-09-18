@@ -22,7 +22,7 @@ jobs:
       - name: Checkout SDK
         uses: actions/checkout@v5
         with:
-          ref: staging
+          ref: mainnet
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get latest snarkVM staging commit
