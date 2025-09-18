@@ -40,30 +40,7 @@ jobs:
             const latestCommit = branch.commit.sha;
             console.log('Latest snarkVM staging commit:', latestCommit);
             core.setOutput('latest_commit', latestCommit);
-            
-            // Get current commit from Cargo.toml snarkvm dependency section
-            const fs = require('fs');
-            const cargoToml = fs.readFileSync('wasm/Cargo.toml', 'utf8');
-            
-            // Find the snarkvm workspace dependency section and extract the rev
-            const snarkVmSection = cargoToml.match(/\[workspace\.dependencies\.snarkvm\]([\s\S]*?)(?=\n\[|$)/);
-            if (!snarkVmSection) {
-              throw new Error('Could not find snarkvm dependency section in Cargo.toml');
-            }
-            
-            const revMatch = snarkVmSection[1].match(/rev = "([^"]+)"/);
-            const currentCommit = revMatch ? revMatch[1] : '';
-            console.log('Current snarkVM commit:', currentCommit);
-            core.setOutput('current_commit', currentCommit);
-            
-            // Check if update is needed
-            if (latestCommit !== currentCommit) {
-              console.log('Update needed');
-              core.setOutput('update_needed', 'true');
-            } else {
-              console.log('No update needed');
-              core.setOutput('update_needed', 'false');
-            }
+            core.setOutput('update_needed', 'true');
 
       - name: Setup Git
         if: steps.snarkvm-commit.outputs.update_needed == 'true'
