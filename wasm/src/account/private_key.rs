@@ -100,6 +100,19 @@ impl PrivateKey {
         Signature::sign(self, message)
     }
 
+    /// Convert a message to field representation and sign the fields with a private key
+    ///
+    /// @param {PrivateKey} private_key The private key to sign the message with
+    /// @param {String} message The message to sign
+    /// @returns {Signature} Signature of the message
+    pub fn sign_fields(&self, message: &str) -> Return<Signature, String> {
+        let fields = ValueNative::from_str(message)
+            .to_fields()
+            .map_err(|e| e.to_string())?;
+
+        Ok(Signature::sign_fields(self, &fields)?)
+    }
+
     /// Get a new randomly generated private key ciphertext using a secret. The secret is sensitive
     /// and will be needed to decrypt the private key later, so it should be stored securely
     ///
