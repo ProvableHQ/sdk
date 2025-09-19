@@ -2,6 +2,7 @@
  * Record owned by a registered view key. This type provides the record ciphertext, record plaintext and metadata from the ledger such as the record's name, the program/function that produced it, etc.
  *
  * @property {number | undefined} block_height - Block height where the record was created.
+ * @property {number | undefined} block_timestamp - The timestamp of the block that the record was created in.
  * @property {string | undefined} commitment - Commitment of the record.
  * @property {string | undefined} function_name - Name of the function that created the record.
  * @property {number | undefined} output_index - Index of the output in the function call that created the record.
@@ -9,6 +10,7 @@
  * @property {string | undefined} program_name - Name of the program that created the record.
  * @property {string | undefined} record_ciphertext - Encrypted ciphertext of the record.
  * @property {string | undefined} record_name - Name of the record.
+ * @property {string | undefined} sender - Address of the sender.
  * @property {boolean | undefined} spent - Whether the record has been spent.
  * @property {string | undefined} tag - Tag associated with the record.
  * @property {string | undefined} transaction_id - ID of the transaction that created the record.
@@ -19,6 +21,7 @@
  * @example
  * const ownedRecord: OwnedRecord = {
  *     block_height: 123456,
+ *     block_timestamp: 1725845998,
  *     commitment: "1754131901135854615627743152473414463769543922079966020586765988138574911385field",
  *     function_name: "transfer_public_to_private",
  *     output_index: 0,
@@ -28,6 +31,7 @@
  *     record_plaintext: "{ owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private, microcredits: 1500000000000000u64.private, _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public , _version: 1u8 }",
  *     record_name: "credits",
  *     spent: true,
+ *     sender: "aleo1sf5kk4f8mcmgjasw9fannmm0h8z2nwqxu5e200cjneu28jxvtvpqulfxsa",
  *     tag: "6511661650536816422260305447175136877451468301541296257226129781611237851030field",
  *     transaction_id: "at1f8ueqxu3x49sckpc6jlg676tmxumddzer3fwe2l0dxwj4dqxygyqua4u2q",
  *     transition_id: "au17mm5v7sfwus6y40xsyc99d5rtsr4vsajdec6twdjzv0m458q85zspqdnka",
@@ -37,6 +41,7 @@
  */
 export type OwnedRecord = {
     block_height?: number;
+    block_timestamp?: number;
     commitment?: string;
     function_name?: string;
     output_index?: number;
@@ -45,6 +50,7 @@ export type OwnedRecord = {
     record_ciphertext?: string;
     record_plaintext?: string;
     record_name?: string;
+    sender?: string;
     spent?: boolean;
     tag?: string;
     transaction_id?: string;

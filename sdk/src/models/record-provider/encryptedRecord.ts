@@ -23,6 +23,7 @@
  *     commitment: "1754131901135854615627743152473414463769543922079966020586765988138574911385field",
  *     checksum: "731623304764338277682996290553427512270277231686866672455141481050283829616field",
  *     block_height: 123456,
+ *     block_timestamp: 1725845998,
  *     program_name: "credits.aleo",
  *     function_name: "transfer_private",
  *     output_index: 0,
@@ -49,6 +50,7 @@ export type EncryptedRecord = {
     record_ciphertext?: string;
     record_name?: string;
     record_nonce?: string;
+    sender_ciphertext?: string;
     transaction_id?: string;
     transition_id?: string;
     transaction_index?: number;

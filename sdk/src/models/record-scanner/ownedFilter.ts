@@ -20,5 +20,6 @@ export interface OwnedFilter extends RecordSearchParams {
     decrypt?: boolean;
     filter?: RecordsFilter;
     responseFilter?: OwnedRecordsResponseFilter;
+    unspent?: bool;
     uuid?: string;
 }
