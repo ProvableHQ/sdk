@@ -54,8 +54,9 @@ impl Signature {
     /// @param {PrivateKey} private_key The private key to sign the message with
     /// @param {String} message The message to sign
     /// @returns {Signature} Signature of the message
-    pub fn sign_fields(private_key: &PrivateKey, message: &str) -> Return<Self, String> {
+    pub fn sign_fields(private_key: &PrivateKey, message: &str) -> Result<Self, String> {
         let fields = ValueNative::from_str(message)
+            .map_err(|e| e.to_string())?
             .to_fields()
             .map_err(|e| e.to_string())?;
 
@@ -95,9 +96,10 @@ impl Signature {
     /// @returns {boolean} True if the signature is valid, false otherwise
     pub fn verify_fields(&self, address: &Address, message: &str) -> Result<bool, String> {
         let fields = ValueNative::from_str(message)
+            .map_err(|e| e.to_string())?
             .to_fields()
             .map_err(|e| e.to_string())?;
-        Ok(self.0.verify(address, &fields).map_err(|e| e.to_string())?)
+        Ok(self.0.verify(address, &fields))
     }
 
     /// Get a signature from a series of bytes.

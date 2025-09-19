@@ -105,8 +105,8 @@ impl PrivateKey {
     /// @param {PrivateKey} private_key The private key to sign the message with
     /// @param {String} message The message to sign
     /// @returns {Signature} Signature of the message
-    pub fn sign_fields(&self, message: &str) -> Return<Signature, String> {
-        Ok(Signature::sign_fields(self, &fields)?)
+    pub fn sign_fields(&self, message: &str) -> Result<Signature, String> {
+        Ok(Signature::sign_fields(self, message)?)
     }
 
     /// Get a new randomly generated private key ciphertext using a secret. The secret is sensitive
