@@ -1,6 +1,6 @@
 import { RecordSearchParams } from "../record-provider/recordSearchParams";
 import { RecordsFilter } from "./recordsFilter";
-import { RecordsResponseFilter } from "../record-provider/recordsResponseFilter";
+import { OwnedRecordsResponseFilter } from "./ownedRecordsResponseFilter";
 
 /**
  * OwnedFilter is an extension of RecordSearchParams that represents a filter for scanning owned records.
@@ -19,6 +19,6 @@ import { RecordsResponseFilter } from "../record-provider/recordsResponseFilter"
 export interface OwnedFilter extends RecordSearchParams {
     decrypt?: boolean;
     filter?: RecordsFilter;
-    responseFilter?: RecordsResponseFilter;
+    responseFilter?: OwnedRecordsResponseFilter;
     uuid?: string;
 }

@@ -1,5 +1,5 @@
 import { RecordSearchParams } from "../record-provider/recordSearchParams";
-import { RecordsResponseFilter } from "../record-provider/recordsResponseFilter";
+import { RecordsResponseFilter } from "./recordsResponseFilter";
 
 /**
  * RecordsFilter is an extension of RecordSearchParams that represents a filter for scanning encrypted or owned records.

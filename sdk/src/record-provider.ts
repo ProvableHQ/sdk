@@ -4,7 +4,7 @@ import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { logAndThrow } from "./utils.js";
 import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
-import { RecordsResponseFilter } from "./models/record-provider/recordsResponseFilter.js";
+import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter.js";
 
 /**
  * Interface for a record provider. A record provider is used to find records for use in deployment and execution
@@ -25,10 +25,10 @@ interface RecordProvider {
      * @param {RecordsResponseFilter} responseFilter The filter used to filter the response.
      * @returns {Promise<EncryptedRecord[]>} The encrypted records.
     */
-    encryptedRecords(recordsFilter: RecordSearchParams, responseFilter: RecordsResponseFilter): Promise<EncryptedRecord[]>;
+    encryptedRecords(recordsFilter: RecordSearchParams, responseFilter?: RecordsResponseFilter): Promise<EncryptedRecord[]>;
 
     /**
-     * Check if a list of serial numbers exist in the chosen provider
+     * Check if a list of serial numbers exist in the chosen provider.
      *
      * @param {string[]} serialNumbers The serial numbers to check.
      * @returns {Promise<Record<string, boolean>>} Map of Aleo Record serial numbers and whether they appeared in any inputs on chain. If boolean corresponding to the Serial Number has a true value, that Record is considered spent by the Aleo Network.
@@ -36,7 +36,7 @@ interface RecordProvider {
     checkSerialNumbers(serialNumbers: string[]): Promise<Record<string, boolean>>;
 
     /**
-     * Check if a list of tags exist in the chosen provider
+     * Check if a list of tags exist in the chosen provider.
      *
      * @param {string[]} tags The tags to check.
      * @returns {Promise<Record<string, boolean>>} Map of Aleo Record tags and whether they appeared in any inputs on chain. If boolean corresponding to the tag has a true value, that Record is considered spent by the Aleo Network.
@@ -44,7 +44,7 @@ interface RecordProvider {
     checkTags(tags: string[]): Promise<Record<string, boolean>>;
 
     /**
-     * Find a credits.aleo record with a given number of microcredits from the chosen provider
+     * Find a credits.aleo record with a given number of microcredits from the chosen provider.
      *
      * @param {number} microcredits The number of microcredits to search for.
      * @param {RecordSearchParams} searchParameters Additional parameters to search for.
@@ -383,7 +383,7 @@ class NetworkRecordProvider implements RecordProvider {
         }));
     }
 
-    async encryptedRecords(recordsFilter: RecordSearchParams, responseFilter: RecordsResponseFilter): Promise<EncryptedRecord[]> {
+    async encryptedRecords(recordsFilter: RecordSearchParams, responseFilter?: RecordsResponseFilter): Promise<EncryptedRecord[]> {
         throw new Error("Not implemented");
     }
 

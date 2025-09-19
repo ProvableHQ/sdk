@@ -1,5 +1,5 @@
 /**
- * Record owned by a registered view key. This type provides the record ciphertext, record plaintext and metadata from the ledger that such as the record's name, the program/function that produced it, etc.
+ * Record owned by a registered view key. This type provides the record ciphertext, record plaintext and metadata from the ledger such as the record's name, the program/function that produced it, etc.
  *
  * @property {number | undefined} block_height - Block height where the record was created.
  * @property {string | undefined} commitment - Commitment of the record.

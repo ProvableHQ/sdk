@@ -27,7 +27,7 @@ import { ProvingRequestJSON } from "./models/provingRequest.js";
 import { ProvingResponse } from "./models/provingResponse.js";
 import { RatificationJSON } from "./models/ratification.js";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter.js";
-import { RecordsResponseFilter } from "./models/record-provider/recordsResponseFilter.js";
+import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
 import { SolutionsJSON, SolutionJSON, PartialSolutionJSON } from "./models/solution.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
@@ -52,7 +52,6 @@ import {
     NetworkRecordProvider,
     RecordProvider,
 } from "./record-provider.js";
-import { RecordScanner } from "./record-scanner.js";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {
@@ -178,7 +177,6 @@ export {
     RecordsFilter,
     RecordsResponseFilter,
     RecordProvider,
-    RecordScanner,
     RecordSearchParams,
     SolutionJSON,
     SolutionsJSON,
