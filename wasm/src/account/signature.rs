@@ -24,8 +24,7 @@ use crate::{
     js_array_from_fields,
     native::LiteralNative,
     to_bits_array_le,
-    types::native::SignatureNative,
-    types::native::ValueNative,
+    types::native::{SignatureNative, ValueNative},
 };
 use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, ToFields};
 
@@ -55,10 +54,8 @@ impl Signature {
     /// @param {String} message The message to sign
     /// @returns {Signature} Signature of the message
     pub fn sign_fields(private_key: &PrivateKey, message: &str) -> Result<Self, String> {
-        let fields = ValueNative::from_str(message)
-            .map_err(|e| e.to_string())?
-            .to_fields()
-            .map_err(|e| e.to_string())?;
+        let fields =
+            ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
 
         Ok(Self(SignatureNative::sign(private_key, &fields, &mut StdRng::from_entropy()).map_err(|e| e.to_string())?))
     }
@@ -95,10 +92,8 @@ impl Signature {
     /// @param {String} message The message to verify
     /// @returns {boolean} True if the signature is valid, false otherwise
     pub fn verify_fields(&self, address: &Address, message: &str) -> Result<bool, String> {
-        let fields = ValueNative::from_str(message)
-            .map_err(|e| e.to_string())?
-            .to_fields()
-            .map_err(|e| e.to_string())?;
+        let fields =
+            ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
         Ok(self.0.verify(address, &fields))
     }
 
