@@ -270,4 +270,19 @@ mod tests {
             assert!(signature.verify_bytes(&private_key.to_address(), &message));
         }
     }
+
+    #[wasm_bindgen_test]
+    pub fn test_signature_over_fields() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let message: [u8; 32] = StdRng::from_entropy().gen();
+            let message_str = hex::encode(message);
+
+            // Sign the message.
+            let signature = private_key.sign_fields(&message);
+            // Check the signature is valid.
+            assert!(signature.verify_fields(&private_key.to_address(), &message));
+        }
+    }
 }
