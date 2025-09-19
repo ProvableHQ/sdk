@@ -25,6 +25,7 @@ use crate::{
     native::LiteralNative,
     to_bits_array_le,
     types::native::SignatureNative,
+    types::native::ValueNative,
 };
 use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, ToFields};
 
@@ -46,6 +47,19 @@ impl Signature {
     /// @returns {Signature} Signature of the message
     pub fn sign(private_key: &PrivateKey, message: &[u8]) -> Self {
         Self(SignatureNative::sign_bytes(private_key, message, &mut StdRng::from_entropy()).unwrap())
+    }
+
+    /// Convert a message to field representation and sign the fields with a private key
+    ///
+    /// @param {PrivateKey} private_key The private key to sign the message with
+    /// @param {String} message The message to sign
+    /// @returns {Signature} Signature of the message
+    pub fn sign_fields(private_key: &PrivateKey, message: &str) -> Return<Self, String> {
+        let fields = ValueNative::from_str(message)
+            .to_fields()
+            .map_err(|e| e.to_string())?;
+
+        Ok(Self(SignatureNative::sign(private_key, &fields, &mut StdRng::from_entropy()).map_err(|e| e.to_string())?))
     }
 
     /// Get an address from a signature.
@@ -72,6 +86,18 @@ impl Signature {
     /// @returns {boolean} True if the signature is valid, false otherwise
     pub fn verify(&self, address: &Address, message: &[u8]) -> bool {
         self.0.verify_bytes(address, message)
+    }
+
+    /// Verify a signature of a message in field representation with an address
+    ///
+    /// @param {Address} address The address to verify the signature with
+    /// @param {String} message The message to verify
+    /// @returns {boolean} True if the signature is valid, false otherwise
+    pub fn verify_fields(&self, address: &Address, message: &str) -> Result<bool, String> {
+        let fields = ValueNative::from_str(message)
+            .to_fields()
+            .map_err(|e| e.to_string())?;
+        Ok(self.0.verify(address, &fields).map_err(|e| e.to_string())?)
     }
 
     /// Get a signature from a series of bytes.
