@@ -100,12 +100,11 @@ impl PrivateKey {
         Signature::sign(self, message)
     }
 
-    /// Convert a message to field representation and sign the fields with a private key
+    /// Sign an instance of a valid Aleo data type or record.
     ///
-    /// @param {PrivateKey} private_key The private key to sign the message with
-    /// @param {String} message The message to sign
-    /// @returns {Signature} Signature of the message
-    pub fn sign_fields(&self, message: &str) -> Result<Signature, String> {
+    /// @param {String} message The string representation of the Aleo datatype or record to sign.
+    /// @returns {Signature} Signature of the message.
+    pub fn sign_value(&self, message: &str) -> Result<Signature, String> {
         Ok(Signature::sign_fields(self, message)?)
     }
 

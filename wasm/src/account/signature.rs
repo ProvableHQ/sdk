@@ -48,12 +48,12 @@ impl Signature {
         Self(SignatureNative::sign_bytes(private_key, message, &mut StdRng::from_entropy()).unwrap())
     }
 
-    /// Convert a message to field representation and sign the fields with a private key
+    /// Sign an instance of a valid Aleo data type or record.
     ///
-    /// @param {PrivateKey} private_key The private key to sign the message with
-    /// @param {String} message The message to sign
-    /// @returns {Signature} Signature of the message
-    pub fn sign_fields(private_key: &PrivateKey, message: &str) -> Result<Self, String> {
+    /// @param {PrivateKey} private_key The private key used to sign the message.
+    /// @param {String} message The string representation of the Aleo datatype or record to sign.
+    /// @returns {Signature} Signature of the message.
+    pub fn sign_value(private_key: &PrivateKey, message: &str) -> Result<Self, String> {
         let fields =
             ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
 
@@ -86,12 +86,12 @@ impl Signature {
         self.0.verify_bytes(address, message)
     }
 
-    /// Verify a signature of a message in field representation with an address
+    /// Verify a signature over an Aleo datatype or record by an address.
     ///
-    /// @param {Address} address The address to verify the signature with
-    /// @param {String} message The message to verify
-    /// @returns {boolean} True if the signature is valid, false otherwise
-    pub fn verify_fields(&self, address: &Address, message: &str) -> Result<bool, String> {
+    /// @param {Address} address The address used to verify the signature.
+    /// @param {String} message The message to verify, which must be the string representation of a valid Aleo datatype or record.
+    /// @returns {boolean} True if the signature is valid, false otherwise.
+    pub fn verify_value(&self, address: &Address, message: &str) -> Result<bool, String> {
         let fields =
             ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
         Ok(self.0.verify(address, &fields))
