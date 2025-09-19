@@ -106,10 +106,6 @@ impl PrivateKey {
     /// @param {String} message The message to sign
     /// @returns {Signature} Signature of the message
     pub fn sign_fields(&self, message: &str) -> Return<Signature, String> {
-        let fields = ValueNative::from_str(message)
-            .to_fields()
-            .map_err(|e| e.to_string())?;
-
         Ok(Signature::sign_fields(self, &fields)?)
     }
 
