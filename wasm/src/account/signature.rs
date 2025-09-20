@@ -238,4 +238,34 @@ mod tests {
             assert!(!signature.verify(&private_key.to_address(), &bad_message));
         }
     }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_fields() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_val: u64 = StdRng::from_entropy().gen();
+            let message = format!("{rand_val}field");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_val: u64 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_val}field");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    #[should_panic]
+    pub fn test_sign_value_failure() {
+        let private_key = PrivateKey::new();
+        let invalid_message = "this is not a valid Aleo value";
+
+        let sign_result = Signature::sign_value(&private_key, invalid_message).unwrap();
+    }
 }

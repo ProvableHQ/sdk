@@ -105,7 +105,7 @@ impl PrivateKey {
     /// @param {String} message The string representation of the Aleo datatype or record to sign.
     /// @returns {Signature} Signature of the message.
     pub fn sign_value(&self, message: &str) -> Result<Signature, String> {
-        Ok(Signature::sign_fields(self, message)?)
+        Ok(Signature::sign_value(self, message)?)
     }
 
     /// Get a new randomly generated private key ciphertext using a secret. The secret is sensitive
@@ -275,13 +275,13 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let message: [u8; 32] = StdRng::from_entropy().gen();
-            let message_str = hex::encode(message);
+            let rand_val: u64 = StdRng::from_entropy().gen();
+            let message = format!("{rand_val}field");
 
             // Sign the message.
-            let signature = private_key.sign_fields(&message);
+            let signature = private_key.sign_value(&message).unwrap();
             // Check the signature is valid.
-            assert!(signature.verify_fields(&private_key.to_address(), &message));
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
         }
     }
 }
