@@ -52,6 +52,7 @@ import {
     NetworkRecordProvider,
     RecordProvider,
 } from "./record-provider.js";
+import { RecordScanner } from "./record-scanner.js";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {
@@ -177,6 +178,7 @@ export {
     RecordsFilter,
     RecordsResponseFilter,
     RecordProvider,
+    RecordScanner,
     RecordSearchParams,
     SolutionJSON,
     SolutionsJSON,
