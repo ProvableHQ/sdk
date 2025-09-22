@@ -27,7 +27,12 @@ function App() {
         "    output r2 as u32.private;\n";
 
     setLoading(true);
-    const result = await aleoWorker.run(hello_hello_program,"hello", ["5u32", "5u32"], "APrivateKey1zkp778oUFSck3PZA5xppgp4trFwkkD6xnUXtxcBCfsq4URJ")
+    const result = await aleoWorker.run({
+      program: hello_hello_program,
+      functionName: "hello",
+      inputs: ["5u32", "5u32"],
+      privateKey: "APrivateKey1zkp778oUFSck3PZA5xppgp4trFwkkD6xnUXtxcBCfsq4URJ",
+    });
     setLoading(false);
 
     alert(JSON.stringify(result));

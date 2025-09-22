@@ -35,7 +35,12 @@ self.addEventListener("message", (ev) => {
 
                 // Get the proving and verifying keys for the function
                 if (lastLocalProgram !== localProgram) {
-                    const keys = await programManager.synthesizeKeys(localProgram, aleoFunction, inputs, privateKeyObject);
+                    const keys = await programManager.synthesizeKeys({
+                        program: localProgram,
+                        functionName: aleoFunction,
+                        inputs,
+                        privateKey: privateKeyObject,
+                    });
                     programManager.keyProvider.cacheKeys(cacheKey, keys);
                     lastLocalProgram = localProgram;
                 }
@@ -44,18 +49,15 @@ self.addEventListener("message", (ev) => {
                 const keyParams = new aleo.AleoKeyProviderParams({"cacheKey": cacheKey});
 
                 // Execute the function locally
-                let response = await programManager.run(
-                    localProgram,
-                    aleoFunction,
+                let response = await programManager.run({
+                    program: localProgram,
+                    functionName: aleoFunction,
                     inputs,
-                    false,
+                    proveExecution: false,
                     imports,
-                    keyParams,
-                    undefined,
-                    undefined,
-                    privateKeyObject,
-                    undefined
-                );
+                    keySearchParams: keyParams,
+                    privateKey: privateKeyObject,
+                });
 
                 // Return the outputs to the main thread
                 console.log(`Web worker: Local execution completed in ${performance.now() - startTime} ms`);
@@ -111,7 +113,12 @@ self.addEventListener("message", (ev) => {
                 const cacheKey = `${program_id}:${aleoFunction}`;
                 if (!programManager.keyProvider.containsKeys(cacheKey)) {
                     console.log(`Web worker: Synthesizing proving & verifying keys for: '${program_id}:${aleoFunction}'`);
-                    const keys = await programManager.synthesizeKeys(remoteProgram, aleoFunction, inputs, privateKeyObject);
+                    const keys = await programManager.synthesizeKeys({
+                        program: remoteProgram,
+                        functionName: aleoFunction,
+                        inputs,
+                        privateKey: privateKeyObject,
+                    });
                     programManager.keyProvider.cacheKeys(cacheKey, keys);
                 }
 
@@ -169,7 +176,12 @@ self.addEventListener("message", (ev) => {
                 // Get the proving and verifying keys for the function
                 if (!programManager.keyProvider.containsKeys(cacheKey)) {
                     console.log(`Web worker: Synthesizing proving & verifying keys for: '${program_id}:${aleoFunction}'`);
-                    const keys = await programManager.synthesizeKeys(program.toString(), aleoFunction, inputs, privateKeyObject);
+                    const keys = await programManager.synthesizeKeys({
+                        program: program.toString(),
+                        functionName: aleoFunction,
+                        inputs,
+                        privateKey: privateKeyObject,
+                    });
                     programManager.keyProvider.cacheKeys(cacheKey, keys);
                 }
 
@@ -265,18 +277,16 @@ self.addEventListener("message", (ev) => {
                 if (typeof url === "string") { programManager.setHost(url); }
 
                 // Create the transfer transaction and submit it to the network
-                const transaction = await programManager.transfer(
-                    amountCredits,
+                const transaction = await programManager.transfer({
+                    amount: amountCredits,
                     recipient,
-                    transfer_type,
-                    fee,
+                    transferType: transfer_type,
+                    priorityFee: fee,
                     privateFee,
-                    undefined,
                     amountRecord,
                     feeRecord,
-                    aleo.PrivateKey.from_string(privateKey),
-                    undefined
-                );
+                    privateKey: aleo.PrivateKey.from_string(privateKey),
+                });
 
                 // Return the transaction id to the main thread
                 console.log(`Web worker: Transfer transaction ${transaction} created in ${performance.now() - startTime} ms`);
@@ -328,14 +338,13 @@ self.addEventListener("message", (ev) => {
                 }
 
                 // Create the deployment transaction and submit it to the network
-                let transaction = await programManager.deploy(
+                let transaction = await programManager.deploy({
                     program,
-                    fee,
+                    priorityFee: fee,
                     privateFee,
-                    undefined,
                     feeRecord,
-                    aleo.PrivateKey.from_string(privateKey),
-                )
+                    privateKey: aleo.PrivateKey.from_string(privateKey),
+                });
 
                 // Return the transaction id to the main thread
                 console.log(`Web worker: Deployment transaction ${transaction} created in ${performance.now() - startTime} ms`);
@@ -365,12 +374,11 @@ self.addEventListener("message", (ev) => {
                 if (typeof url === "string") { programManager.setHost(url); }
 
                 // Create the split transaction and submit to the network
-                const transaction = await programManager.split(
+                const transaction = await programManager.split({
                     splitAmount,
-                    record,
-                    aleo.PrivateKey.from_string(privateKey),
-                    undefined
-                );
+                    amountRecord: record,
+                    privateKey: aleo.PrivateKey.from_string(privateKey),
+                });
 
                 // Return the transaction id to the main thread
                 console.log(`Web worker: Split transaction ${transaction} created in ${performance.now() - startTime} ms`);
@@ -402,16 +410,14 @@ self.addEventListener("message", (ev) => {
                 if (typeof url === "string") { programManager.setHost(url); }
 
                 // Create the join transaction and submit it to the network
-                const transaction = await programManager.join(
-                    recordOne,
-                    recordTwo,
-                    fee,
+                const transaction = await programManager.join({
+                    record1: recordOne,
+                    record2: recordTwo,
+                    priorityFee: fee,
                     privateFee,
-                    undefined,
                     feeRecord,
-                    aleo.PrivateKey.from_string(privateKey),
-                    undefined
-                );
+                    privateKey: aleo.PrivateKey.from_string(privateKey),
+                });
 
                 // Return the transaction id to the main thread
                 console.log(`Web worker: Join transaction ${transaction} created in ${performance.now() - startTime} ms`);

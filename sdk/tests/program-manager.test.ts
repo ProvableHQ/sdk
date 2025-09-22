@@ -39,13 +39,19 @@ import * as process from "node:process";
 describe('Program Manager', async () => {
     const keyProvider = new AleoKeyProvider();
     keyProvider.useCache(true);
-    const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+    const programManager = new ProgramManager({
+        host: "https://api.explorer.provable.com/v1",
+        keyProvider,
+    });
     programManager.setAccount(new Account({privateKey: statePathv0RecordOwnerPrivateKey}));
     const network = programManager.networkClient.network;
 
     describe('Instantiate with AleoNetworkClientOptions', () => {
         it('should have the specified headers when instantiated', async () => {
-            const newProgramManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined, { headers: {'X-Test-Header': 'programManager'} });
+            const newProgramManager = new ProgramManager({
+                host: "https://api.explorer.provable.com/v1",
+                headers: {'X-Test-Header': 'programManager'},
+            });
             expect(Object.keys(newProgramManager.networkClient.headers).length).equal(1);
             expect(newProgramManager.networkClient.headers['X-Test-Header']).equal('programManager');
             expect(newProgramManager.networkClient.headers['X-Aleo-SDK-Version']).undefined;
@@ -66,9 +72,17 @@ describe('Program Manager', async () => {
 
     describe('Execute offline', () => {
         it.skip('Program manager should execute offline and verify the resulting proof correctly', async () => {
-            const execution_result = <ExecutionResponse>await programManager.run(helloProgram, "hello", ["5u32", "5u32"], true, undefined, undefined, undefined, undefined, undefined, undefined)
+            const execution_result = <ExecutionResponse>await programManager.run({
+                program: helloProgram,
+                functionName: "hello",
+                inputs: ["5u32", "5u32"],
+                proveExecution: true,
+            });
             expect(execution_result.getOutputs()[0]).equal("10u32");
-            programManager.verifyExecution(execution_result, 10_300_000);
+            programManager.verifyExecution({
+                executionResponse: execution_result,
+                blockHeight: 10_300_000,
+            });
         });
     });
 
@@ -111,8 +125,17 @@ describe('Program Manager', async () => {
             offlineQuery.addStatePath(commitment, recordStatePathv0);
             const credits = <string>await programManager.networkClient.getProgram("credits.aleo");
 
-            const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecordv0, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
-            const verified = programManager.verifyExecution(execution_result, 10_300_000);
+            const execution_result = <ExecutionResponse>await programManager.run({
+                program: credits,
+                functionName: "transfer_private",
+                inputs: [statePathRecordv0, beaconAddressString, "5u64"],
+                proveExecution: true,
+                offlineQuery,
+            });
+            const verified = programManager.verifyExecution({
+                executionResponse: execution_result,
+                blockHeight: 10_300_000,
+            });
             expect(verified).equal(true);
         });
     });

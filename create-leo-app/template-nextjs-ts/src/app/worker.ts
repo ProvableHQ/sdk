@@ -23,12 +23,12 @@ async function localProgramExecution(program: string, aleoFunction: string, inpu
   const account = new Account();
   programManager.setAccount(account);
 
-  const executionResponse = await programManager.run(
+  const executionResponse = await programManager.run({
       program,
-      aleoFunction,
+      functionName: aleoFunction,
       inputs,
-      false,
-  );
+      proveExecution: false,
+  });
   return executionResponse.getOutputs();
 }
 

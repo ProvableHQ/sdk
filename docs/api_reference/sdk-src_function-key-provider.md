@@ -123,13 +123,18 @@ __*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the
 
 ```javascript
 // Create a new object which implements the KeyProvider interface
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const keyProvider = new AleoKeyProvider();
-const recordProvider = new NetworkRecordProvider(account, networkClient);
+const recordProvider = new NetworkRecordProvider({ account, networkClient });
 
 // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+programManager.transfer({
+    amount: 1,
+    recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+    transferType: "public",
+    priorityFee: 0.5,
+});
 
 // Keys can also be fetched manually using the key provider
 const keySearchParams = { "cacheKey": "myProgram:myFunction" };
@@ -138,7 +143,7 @@ const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvid
 
 ---
 
-### `fetchRemoteKeys(verifierUrl, proverUrl, cacheKey) ► Promise.<FunctionKeyPair>`
+### `fetchRemoteKeys(params) ► Promise.<FunctionKeyPair>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -146,28 +151,34 @@ Returns the proving and verifying keys for a specified program from a specified 
 
 Parameters | Type | Description
 --- | --- | ---
-__verifierUrl__ | `string` | *Url of the proving key*
-__proverUrl__ | `string` | *Url the verifying key*
-__cacheKey__ | `string` | *Key to store the keys in the cache*
+__params__ | `Object` | **
+__params.verifierUrl__ | `string` | *Url of the proving key*
+__params.proverUrl__ | `string` | *Url the verifying key*
+__params.cacheKey__ | `string` | *Key to store the keys in the cache*
 __*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the specified program*
 
 #### Examples
 
 ```javascript
 // Create a new AleoKeyProvider object
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const keyProvider = new AleoKeyProvider();
-const recordProvider = new NetworkRecordProvider(account, networkClient);
+const recordProvider = new NetworkRecordProvider({ account, networkClient });
 
 // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+programManager.transfer({
+    amount: 1,
+    recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+    transferType: "public",
+    priorityFee: 0.5,
+});
 
 // Keys can also be fetched manually
-const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchKeys(
-    CREDITS_PROGRAM_KEYS.transfer_private.prover,
-    CREDITS_PROGRAM_KEYS.transfer_private.verifier,
-);
+const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchRemoteKeys({
+    proverUrl: CREDITS_PROGRAM_KEYS.transfer_private.prover,
+    verifierUrl: CREDITS_PROGRAM_KEYS.transfer_private.verifier,
+});
 ```
 
 ---
@@ -187,13 +198,18 @@ __*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the
 
 ```javascript
 // Create a new AleoKeyProvider
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const keyProvider = new AleoKeyProvider();
-const recordProvider = new NetworkRecordProvider(account, networkClient);
+const recordProvider = new NetworkRecordProvider({ account, networkClient });
 
 // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+programManager.transfer({
+    amount: 1,
+    recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+    transferType: "public",
+    priorityFee: 0.5,
+});
 
 // Keys can also be fetched manually
 const [transferPublicProvingKey, transferPublicVerifyingKey] = await keyProvider.transferKeys("public");
@@ -349,13 +365,18 @@ __*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the
 
 ```javascript
 // Create a new object which implements the KeyProvider interface
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const keyProvider = new AleoKeyProvider();
-const recordProvider = new NetworkRecordProvider(account, networkClient);
+const recordProvider = new NetworkRecordProvider({ account, networkClient });
 
 // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+programManager.transfer({
+    amount: 1,
+    recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+    transferType: "public",
+    priorityFee: 0.5,
+});
 
 // Keys can also be fetched manually using the key provider
 const keySearchParams = { "cacheKey": "myProgram:myFunction" };
@@ -364,7 +385,7 @@ const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvid
 
 ---
 
-### `fetchRemoteKeys(verifierUrl, proverUrl, cacheKey) ► Promise.<FunctionKeyPair>`
+### `fetchRemoteKeys(params) ► Promise.<FunctionKeyPair>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -372,28 +393,34 @@ Returns the proving and verifying keys for a specified program from a specified 
 
 Parameters | Type | Description
 --- | --- | ---
-__verifierUrl__ | `string` | *Url of the proving key*
-__proverUrl__ | `string` | *Url the verifying key*
-__cacheKey__ | `string` | *Key to store the keys in the cache*
+__params__ | `Object` | **
+__params.verifierUrl__ | `string` | *Url of the proving key*
+__params.proverUrl__ | `string` | *Url the verifying key*
+__params.cacheKey__ | `string` | *Key to store the keys in the cache*
 __*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the specified program*
 
 #### Examples
 
 ```javascript
 // Create a new AleoKeyProvider object
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const keyProvider = new AleoKeyProvider();
-const recordProvider = new NetworkRecordProvider(account, networkClient);
+const recordProvider = new NetworkRecordProvider({ account, networkClient });
 
 // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+programManager.transfer({
+    amount: 1,
+    recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+    transferType: "public",
+    priorityFee: 0.5,
+});
 
 // Keys can also be fetched manually
-const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchKeys(
-    CREDITS_PROGRAM_KEYS.transfer_private.prover,
-    CREDITS_PROGRAM_KEYS.transfer_private.verifier,
-);
+const [transferPrivateProvingKey, transferPrivateVerifyingKey] = await keyProvider.fetchRemoteKeys({
+    proverUrl: CREDITS_PROGRAM_KEYS.transfer_private.prover,
+    verifierUrl: CREDITS_PROGRAM_KEYS.transfer_private.verifier,
+});
 ```
 
 ---
@@ -413,13 +440,18 @@ __*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the
 
 ```javascript
 // Create a new AleoKeyProvider
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const keyProvider = new AleoKeyProvider();
-const recordProvider = new NetworkRecordProvider(account, networkClient);
+const recordProvider = new NetworkRecordProvider({ account, networkClient });
 
 // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+programManager.transfer({
+    amount: 1,
+    recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+    transferType: "public",
+    priorityFee: 0.5,
+});
 
 // Keys can also be fetched manually
 const [transferPublicProvingKey, transferPublicVerifyingKey] = await keyProvider.transferKeys("public");

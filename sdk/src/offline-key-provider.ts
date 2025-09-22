@@ -201,7 +201,7 @@ class OfflineSearchParams implements KeySearchParams {
  * const offlineExecuteTx = <Transaction>await this.buildExecutionTransaction("hello_hello.aleo", "hello", 1, false, ["5u32", "5u32"], undefined, offlineSearchParams, undefined, undefined, undefined, undefined, offlineQuery, program);
  *
  * // Broadcast the transaction later on a machine with internet access
- * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+ * const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
  * const txId = await networkClient.broadcastTransaction(offlineExecuteTx);
  */
 class OfflineKeyProvider implements FunctionKeyProvider {
@@ -290,7 +290,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
                     const provingKey = ProvingKey.fromBytes(provingKeyBytes);
                     const verifyingKey = VerifyingKey.fromBytes(verifyingKeyBytes);
                     if (verifyCreditsKeys) {
-                        const keysMatchExpected = this.verifyCreditsKeys(keyId, provingKey, verifyingKey)
+                        const keysMatchExpected = this.verifyCreditsKeys({ locator: keyId, provingKey, verifyingKey })
                         if (!keysMatchExpected) {
                             reject (new Error(`Cached keys do not match expected keys for ${keyId}`));
                         }
@@ -306,9 +306,18 @@ class OfflineKeyProvider implements FunctionKeyProvider {
     /**
      * Determines if the keys for a given credits function match the expected keys.
      *
+     * @param {Object} params
+     * @param {ProvingKey} params.provingKey
+     * @param {VerifyingKey} params.verifyingKey
      * @returns {boolean} Whether the keys match the expected keys
      */
-    verifyCreditsKeys(locator: string, provingKey: ProvingKey, verifyingKey: VerifyingKey): boolean {
+    verifyCreditsKeys(params: {
+        locator: string,
+        provingKey: ProvingKey,
+        verifyingKey: VerifyingKey,
+    }): boolean {
+        const { locator, provingKey, verifyingKey } = params;
+
         switch (locator) {
             case CREDITS_PROGRAM_KEYS.bond_public.locator:
                 return provingKey.isBondPublicProver() && verifyingKey.isBondPublicVerifier();

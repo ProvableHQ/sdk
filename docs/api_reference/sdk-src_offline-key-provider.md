@@ -390,7 +390,7 @@ const offlineSearchParams = new OfflineSearchParams("hello_hello.aleo/hello");
 const offlineExecuteTx = <Transaction>await this.buildExecutionTransaction("hello_hello.aleo", "hello", 1, false, ["5u32", "5u32"], undefined, offlineSearchParams, undefined, undefined, undefined, undefined, offlineQuery, program);
 
 // Broadcast the transaction later on a machine with internet access
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 const txId = await networkClient.broadcastTransaction(offlineExecuteTx);
 ```
 
@@ -483,7 +483,7 @@ const [myFunctionProver, myFunctionVerifier] = await offlineKeyProvider.function
 
 ---
 
-### `verifyCreditsKeys() ► boolean`
+### `verifyCreditsKeys(params) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -491,6 +491,9 @@ Determines if the keys for a given credits function match the expected keys.
 
 Parameters | Type | Description
 --- | --- | ---
+__params__ | `Object` | **
+__params.provingKey__ | [ProvingKey](sdk-src_wasm.md) | **
+__params.verifyingKey__ | [VerifyingKey](sdk-src_wasm.md) | **
 __*return*__ | `boolean` | *Whether the keys match the expected keys*
 
 ---
@@ -832,7 +835,7 @@ const [myFunctionProver, myFunctionVerifier] = await offlineKeyProvider.function
 
 ---
 
-### `verifyCreditsKeys(locator, provingKey, verifyingKey) ► boolean`
+### `verifyCreditsKeys(params) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -840,9 +843,9 @@ Determines if the keys for a given credits function match the expected keys.
 
 Parameters | Type | Description
 --- | --- | ---
-__locator__ | `string` | **
-__provingKey__ | [ProvingKey](sdk-src_wasm.md) | **
-__verifyingKey__ | [VerifyingKey](sdk-src_wasm.md) | **
+__params__ | `Object` | **
+__params.provingKey__ | [ProvingKey](sdk-src_wasm.md) | **
+__params.verifyingKey__ | [VerifyingKey](sdk-src_wasm.md) | **
 __*return*__ | `boolean` | *Whether the keys match the expected keys*
 
 ---

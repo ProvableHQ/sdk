@@ -20,7 +20,7 @@ export const VerifyMessage = () => {
             try {
                 let messageBytes = textEncoder.encode(messageInput);
                 let signature = aleo.Signature.from_string(signatureInput);
-                let isVerified = inputAddress.verify(messageBytes, signature);
+                let isVerified = inputAddress.verify({ message: messageBytes, signature });
                 setVerified(isVerified);
             } catch (error) {
                 console.warn(error);

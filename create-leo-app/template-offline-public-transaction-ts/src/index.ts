@@ -19,7 +19,7 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     const transferPublicProvingKey = ProvingKey.fromBytes(
         await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.transfer_public.locator])
     );
-    
+
     // Create an offline key provider
     console.log("Creating offline key provider");
     const offlineKeyProvider = new OfflineKeyProvider();
@@ -53,21 +53,20 @@ try {
 
     // Build tne transfer_public transaction offline
     console.log("Building transfer transaction offline");
-    return programManager.buildTransferPublicAsSignerTransaction(
+    return programManager.buildTransferPublicAsSignerTransaction({
         amount,
-        recipientAddress.to_string(),
-        0.28,
-        undefined,
+        recipient: recipientAddress.to_string(),
+        priorityFee: 0.28,
         offlineQuery,
-    );
+    });
 }
 
 /// Build bonding and unbonding transactions without connection to the internet
 async function buildBondingTxOffline(
-    validatorAddress: Address, 
-    withdrawalAddress: Address, 
-    amount: number, 
-    latestStateRoot: string, 
+    validatorAddress: Address,
+    withdrawalAddress: Address,
+    amount: number,
+    latestStateRoot: string,
     keyPaths: {}
 ): Promise<Transaction[]> {
     // Create an offline program manager
@@ -115,12 +114,12 @@ async function buildBondingTxOffline(
     };
 
 
-    const bondTx = <Transaction>await programManager.buildBondPublicTransaction(
-        validatorAddress.to_string(),
-        withdrawalAddress.to_string(),
+    const bondTx = <Transaction>await programManager.buildBondPublicTransaction({
+        validatorAddress: validatorAddress.to_string(),
+        withdrawalAddress: withdrawalAddress.to_string(),
         amount,
-        bondPublicOptions
-    );
+        options: bondPublicOptions
+    });
 
     console.log("\nbond_public transaction built!\n");
 
@@ -129,11 +128,11 @@ async function buildBondingTxOffline(
         offlineQuery: new OfflineQuery(0, latestStateRoot)
     };
 
-    const unBondTx = <Transaction>await programManager.buildUnbondPublicTransaction(
-        stakerAddress.to_string(),
+    const unBondTx = <Transaction>await programManager.buildUnbondPublicTransaction({
+        stakerAddress: stakerAddress.to_string(),
         amount,
-        unbondPublicOptions
-    );
+        options: unbondPublicOptions,
+    });
     console.log("\nunbond_public transaction built!\n");
 
     console.log("Building a claim_unbond_public transaction offline");
@@ -142,10 +141,10 @@ async function buildBondingTxOffline(
         offlineQuery: new OfflineQuery(0, latestStateRoot)
     };
 
-    const claimUnbondTx = <Transaction>await programManager.buildClaimUnbondPublicTransaction(
-        stakerAddress.to_string(),
-        claimUnbondPublicOptions
-    );
+    const claimUnbondTx = <Transaction>await programManager.buildClaimUnbondPublicTransaction({
+        stakerAddress: stakerAddress.to_string(),
+        options: claimUnbondPublicOptions,
+    });
     console.log("\nclaim_unbond_public transaction built!\n");
     return [bondTx, unBondTx, claimUnbondTx];
 }

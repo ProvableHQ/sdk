@@ -61,7 +61,7 @@ describe('WASM Objects', () => {
             const privateKey = PrivateKey.from_string(privateKeyString);
             const signature = privateKey.sign(message);
             const address = Address.from_private_key(privateKey);
-            const result = address.verify(message, signature);
+            const result = address.verify({ message, signature });
 
             // Ensure the result is a boolean
             expect(typeof result).equal('boolean');
@@ -74,7 +74,7 @@ describe('WASM Objects', () => {
             const otherPrivateKey = new PrivateKey();
             const signature = otherPrivateKey.sign(message);
             const address = Address.from_private_key(privateKey);
-            const result = address.verify(message, signature);
+            const result = address.verify({ message, signature });
 
             // Ensure the result is a boolean
             expect(typeof result).equal('boolean');
@@ -229,7 +229,7 @@ describe('WASM Objects', () => {
         it('can verify a message signed by the correct private key', () => {
             const address = Address.from_private_key(privateKey);
             const signature = Signature.sign(privateKey, message);
-            const result = signature.verify(address, message);
+            const result = signature.verify({ address, message });
 
             // Ensure the result is a boolean
             expect(typeof result).equal('boolean');
@@ -241,7 +241,7 @@ describe('WASM Objects', () => {
             const address = Address.from_private_key(privateKey);
             const otherPrivateKey = PrivateKey.from_string(privateKeyString);
             const signature = Signature.sign(otherPrivateKey, message);
-            const result = signature.verify(address, message);
+            const result = signature.verify({ address, message });
 
             // Ensure the result is a boolean
             expect(typeof result).equal('boolean');
@@ -411,7 +411,7 @@ describe('WASM Objects', () => {
         const privateKey = PrivateKey.from_string("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH");
         const viewKey = privateKey.to_view_key();
 
-        let connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+        let connection = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
 
         if (connection.network === "testnet") {
         it('can be decrypted with a valid transition view key', () => {
@@ -463,7 +463,7 @@ describe('WASM Objects', () => {
         const recordPlaintextCopy = recordPlaintext.clone();
         const viewKey = ViewKey.from_string(VIEW_KEY_STRING);
         const recordViewKey = Field.fromString(RECORD_VIEW_KEY_STRING);
-        
+
         it('can generate a record view key from a view key and a record ciphertext', () => {
             const generatedRecordViewKey = EncryptionToolkit.generateRecordViewKey(viewKey, recordCiphertext);
             // Ensure the generated record view key is the same as the one used to decrypt
@@ -512,6 +512,7 @@ describe('WASM Objects', () => {
         })
         it('can decryption')
     });
+
     describe('VerifyingKey', () => {
         it('can get the number of constraints', async () => {
             const keyProvider = new AleoKeyProvider();
@@ -521,4 +522,3 @@ describe('WASM Objects', () => {
         });
     });
 });
-

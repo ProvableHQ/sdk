@@ -23,58 +23,87 @@ interface RecordProvider {
     /**
      * Find a credits.aleo record with a given number of microcredits from the chosen provider
      *
-     * @param {number} microcredits The number of microcredits to search for
-     * @param {boolean} unspent Whether or not the record is unspent
-     * @param {string[]} nonces Nonces of records already found so they are not found again
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
+     * @param {Object} params
+     * @param {number} params.microcredits The number of microcredits to search for
+     * @param {boolean} params.unspent Whether or not the record is unspent
+     * @param {string[]} [params.nonces] Nonces of records already found so they are not found again
+     * @param {RecordSearchParams} [params.searchParameters] Additional parameters to search for
      * @returns {Promise<RecordPlaintext>} The record if found, otherwise an error
      *
      * @example
      * // A class implementing record provider can be used to find a record with a given number of microcredits
-     * const record = await recordProvider.findCreditsRecord(5000, true, []);
+     * const record = await recordProvider.findCreditsRecord({
+     *     microcredits: 5000,
+     *     unspent: true,
+     *     nonces: [],
+     * });
      *
      * // When a record is found but not yet used, its nonce should be added to the nonces array so that it is not
      * // found again if a subsequent search is performed
-     * const record2 = await recordProvider.findCreditsRecord(5000, true, [record.nonce()]);
+     * const record2 = await recordProvider.findCreditsRecord({
+     *     microcredits: 5000,
+     *     unspent: true,
+     *     nonces: [record.nonce()],
+     * });
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
      * // fee records and amount records for value transfers so that they do not need to be specified manually
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      */
-    findCreditsRecord(microcredits: number, unspent: boolean,  nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext>;
+    findCreditsRecord(params: { microcredits: number, unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams }): Promise<RecordPlaintext>;
 
     /**
      * Find a list of credit.aleo records with a given number of microcredits from the chosen provider
      *
-     * @param {number} microcreditAmounts A list of separate microcredit amounts to search for (e.g. [5000, 100000])
-     * @param {boolean} unspent Whether or not the record is unspent
-     * @param {string[]} nonces Nonces of records already found so that they are not found again
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
+     * @param {Object} params
+     * @param {number} params.microcreditAmounts A list of separate microcredit amounts to search for (e.g. [5000, 100000])
+     * @param {boolean} params.unspent Whether or not the record is unspent
+     * @param {string[]} [params.nonces] Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} [params.searchParameters] Additional parameters to search for
      * @returns {Promise<RecordPlaintext[]>} A list of records with a value greater or equal to the amounts specified if such records exist, otherwise an error
      *
      * @example
      * // A class implementing record provider can be used to find a record with a given number of microcredits
-     * const records = await recordProvider.findCreditsRecords([5000, 5000], true, []);
+     * const records = await recordProvider.findCreditsRecords({
+     *     microcredits: [5000, 5000],
+     *     unspent: true,
+     *     nonces: [],
+     * });
      *
      * // When a record is found but not yet used, it's nonce should be added to the nonces array so that it is not
      * // found again if a subsequent search is performed
      * const nonces = [];
      * records.forEach(record => { nonces.push(record.nonce()) });
-     * const records2 = await recordProvider.findCreditsRecord(5000, true, nonces);
+     * const records2 = await recordProvider.findCreditsRecord({
+     *     microcredits: 5000,
+     *     unspent: true,
+     *     nonces,
+     * });
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
      * // fee records and amount records for value transfers so that they do not need to be specified manually
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      */
-    findCreditsRecords(microcreditAmounts: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[]>;
+    findCreditsRecords(params: { microcredits: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams }): Promise<RecordPlaintext[]>;
 
     /**
      * Find an arbitrary record
-     * @param {boolean} unspent Whether or not the record is unspent
-     * @param {string[]} nonces Nonces of records already found so that they are not found again
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
+     * @param {Object} params
+     * @param {boolean} params.unspent Whether or not the record is unspent
+     * @param {string[]} [params.nonces] Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} [params.searchParameters] Additional parameters to search for
      * @returns {Promise<RecordPlaintext>} The record if found, otherwise an error
      *
      * @example
@@ -99,16 +128,21 @@ interface RecordProvider {
      *
      * const params = new CustomRecordSearch(0, 100, 5000, "credits.aleo", "credits");
      *
-     * const record = await recordProvider.findRecord(true, [], params);
+     * const record = await recordProvider.findRecord({
+     *     unspent: true,
+     *     nonces: [],
+     *     searchParameters: params,
+     * });
      */
-    findRecord(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext>;
+    findRecord(params: { unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams }): Promise<RecordPlaintext>;
 
     /**
      * Find multiple records from arbitrary programs
      *
-     * @param {boolean} unspent Whether or not the record is unspent
-     * @param {string[]} nonces Nonces of records already found so that they are not found again
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
+     * @param {Object} params
+     * @param {boolean} params.unspent Whether or not the record is unspent
+     * @param {string[]} [params.nonces] Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} [params.searchParameters] Additional parameters to search for
      * @returns {Promise<RecordPlaintext>} The record if found, otherwise an error
      *
      * // The RecordSearchParams interface can be used to create parameters for custom record searches which can then
@@ -133,9 +167,13 @@ interface RecordProvider {
      * }
      *
      * const params = new CustomRecordSearch(0, 100, 5000, 2, "credits.aleo", "credits");
-     * const records = await recordProvider.findRecord(true, [], params);
+     * const records = await recordProvider.findRecords({
+     *     unspent: true,
+     *     nonces: [],
+     *     searchParameters: params,
+     * });
      */
-    findRecords(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[]>;
+    findRecords(params: { unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams }): Promise<RecordPlaintext[]>;
 }
 
 /**
@@ -145,9 +183,10 @@ interface RecordProvider {
 class NetworkRecordProvider implements RecordProvider {
     account: Account;
     networkClient: AleoNetworkClient;
-    constructor(account: Account, networkClient: AleoNetworkClient) {
-        this.account = account;
-        this.networkClient = networkClient;
+
+    constructor(params: { account: Account, networkClient: AleoNetworkClient }) {
+        this.account = params.account;
+        this.networkClient = params.networkClient;
     }
 
     /**
@@ -162,32 +201,53 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find a list of credit records with a given number of microcredits by via the official Aleo API
      *
-     * @param {number[]} microcredits The number of microcredits to search for
-     * @param {boolean} unspent Whether or not the record is unspent
-     * @param {string[]} nonces Nonces of records already found so that they are not found again
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
+     * @param {Object} params
+     * @param {number[]} params.microcredits The number of microcredits to search for
+     * @param {boolean} params.unspent Whether or not the record is unspent
+     * @param {string[]} [params.nonces] Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} [params.searchParameters] Additional parameters to search for
      * @returns {Promise<RecordPlaintext>} The record if found, otherwise an error
      *
      * @example
      * // Create a new NetworkRecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+     * const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
      * // The record provider can be used to find records with a given number of microcredits
-     * const record = await recordProvider.findCreditsRecord(5000, true, []);
+     * const record = await recordProvider.findCreditsRecord({
+     *     microcredits: 5000,
+     *     unspent: true,
+     *     nonces: [],
+     * });
      *
      * // When a record is found but not yet used, it's nonce should be added to the nonces parameter so that it is not
      * // found again if a subsequent search is performed
-     * const records = await recordProvider.findCreditsRecords(5000, true, [record.nonce()]);
+     * const records = await recordProvider.findCreditsRecords({
+     *     microcredits: [5000],
+     *     unspent: true,
+     *     nonces: [record.nonce()],
+     * });
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
      * // fee records and amount records for value transfers so that they do not need to be specified manually
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      *
      * */
-    async findCreditsRecords(microcredits: number[], unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[]> {
+    async findCreditsRecords(params: {
+        microcredits: number[],
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    }): Promise<RecordPlaintext[]> {
+        let { microcredits, unspent, nonces, searchParameters } = params;
+
         let startHeight = 0;
         let endHeight = 0;
         let maxAmount = undefined;
@@ -225,41 +285,76 @@ class NetworkRecordProvider implements RecordProvider {
             logAndThrow("Start height must be less than end height");
         }
 
-        return await this.networkClient.findRecords(startHeight, endHeight, unspent, ["credits.aleo"], microcredits, maxAmount, nonces, this.account.privateKey());
+        return await this.networkClient.findRecords({
+            startHeight,
+            endHeight,
+            unspent,
+            programs: ["credits.aleo"],
+            amounts: microcredits,
+            maxMicrocredits: maxAmount,
+            nonces,
+            privateKey: this.account.privateKey(),
+        });
     }
 
     /**
      * Find a credit record with a given number of microcredits by via the official Aleo API
      *
-     * @param {number} microcredits The number of microcredits to search for
-     * @param {boolean} unspent Whether or not the record is unspent
-     * @param {string[]} nonces Nonces of records already found so that they are not found again
-     * @param {RecordSearchParams} searchParameters Additional parameters to search for
+     * @param {Object} params
+     * @param {number} params.microcredits The number of microcredits to search for
+     * @param {boolean} params.unspent Whether or not the record is unspent
+     * @param {string[]} [params.nonces] Nonces of records already found so that they are not found again
+     * @param {RecordSearchParams} [params.searchParameters] Additional parameters to search for
      * @returns {Promise<RecordPlaintext>} The record if found, otherwise an error
      *
      * @example
      * // Create a new NetworkRecordProvider
-     * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+     * const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
      * const keyProvider = new AleoKeyProvider();
-     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * const recordProvider = new NetworkRecordProvider({ account, networkClient });
      *
      * // The record provider can be used to find records with a given number of microcredits
-     * const record = await recordProvider.findCreditsRecord(5000, true, []);
+     * const record = await recordProvider.findCreditsRecord({
+     *     microcredits: 5000,
+     *     unspent: true,
+     *     nonces: [],
+     * });
      *
      * // When a record is found but not yet used, it's nonce should be added to the nonces parameter so that it is not
      * // found again if a subsequent search is performed
-     * const records = await recordProvider.findCreditsRecords(5000, true, [record.nonce()]);
+     * const records = await recordProvider.findCreditsRecords({
+     *     microcredits: 5000,
+     *     unspent: true,
+     *     nonces: [record.nonce()],
+     * });
      *
      * // When the program manager is initialized with the record provider it will be used to find automatically find
      * // fee records and amount records for value transfers so that they do not need to be specified manually
-     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
-     * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
+     * const programManager = new ProgramManager({ host: "https://api.explorer.provable.com/v1", keyProvider, recordProvider });
+     * programManager.transfer({
+     *     amount: 1,
+     *     recipient: "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at",
+     *     transferType: "public",
+     *     priorityFee: 0.5,
+     * });
      */
-    async findCreditsRecord(microcredits: number, unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext> {
+    async findCreditsRecord(params: {
+        microcredits: number,
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    }): Promise<RecordPlaintext> {
+        const { microcredits, unspent, nonces, searchParameters } = params;
+
         let records = null;
 
         try {
-            records = await this.findCreditsRecords([microcredits], unspent, nonces, searchParameters);
+            records = await this.findCreditsRecords({
+                microcredits: [microcredits],
+                unspent,
+                nonces,
+                searchParameters,
+            });
         } catch (e) {
             console.log("No records found with error:", e);
         }
@@ -275,14 +370,24 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find an arbitrary record. WARNING: This function is not implemented yet and will throw an error.
      */
-    async findRecord(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext> {
+    async findRecord(params: {
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    }): Promise<RecordPlaintext> {
         throw new Error("Not implemented");
     }
 
     /**
      * Find multiple records from a specified program.
      */
-    async findRecords(unspent: boolean, nonces?: string[], searchParameters?: RecordSearchParams): Promise<RecordPlaintext[]> {
+    async findRecords(params: {
+        unspent: boolean,
+        nonces?: string[],
+        searchParameters?: RecordSearchParams,
+    }): Promise<RecordPlaintext[]> {
+        let { unspent, nonces, searchParameters } = params;
+
         let startHeight = 0;
         let endHeight = 0;
         let amounts = undefined;
@@ -334,7 +439,16 @@ class NetworkRecordProvider implements RecordProvider {
             logAndThrow("Start height must be less than end height");
         }
 
-        return await this.networkClient.findRecords(startHeight, endHeight, unspent, programs, amounts, maxAmount, nonces, this.account.privateKey());
+        return await this.networkClient.findRecords({
+            startHeight,
+            endHeight,
+            unspent,
+            programs,
+            amounts,
+            maxMicrocredits: maxAmount,
+            nonces,
+            privateKey: this.account.privateKey(),
+        });
     }
 
 }
@@ -345,24 +459,29 @@ class NetworkRecordProvider implements RecordProvider {
  *
  * @example
  * // Create a new BlockHeightSearch
- * const params = new BlockHeightSearch(89995, 99995);
+ * const params = new BlockHeightSearch({ startHeight: 89995, endHeight: 99995 });
  *
  * // Create a new NetworkRecordProvider
- * const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+ * const networkClient = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
  * const keyProvider = new AleoKeyProvider();
- * const recordProvider = new NetworkRecordProvider(account, networkClient);
+ * const recordProvider = new NetworkRecordProvider({ account, networkClient });
  *
  * // The record provider can be used to find records with a given number of microcredits and the block height search
  * // can be used to find records within a given block height range
- * const record = await recordProvider.findCreditsRecord(5000, true, [], params);
+ * const record = await recordProvider.findCreditsRecord({
+ *     microcredits: 5000,
+ *     unspent: true,
+ *     nonces: [],
+ *     searchParameters: params,
+ * });
  *
  */
 class BlockHeightSearch implements RecordSearchParams {
     startHeight: number;
     endHeight: number;
-    constructor(startHeight: number, endHeight: number) {
-        this.startHeight = startHeight;
-        this.endHeight = endHeight;
+    constructor(params: { startHeight: number, endHeight: number }) {
+        this.startHeight = params.startHeight;
+        this.endHeight = params.endHeight;
     }
 }
 

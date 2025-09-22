@@ -75,8 +75,14 @@ describe('Account', () => {
             const privateKeyCiphertextString = privateKeyCiphertext.toString();
 
             // Generate account from valid private key string
-            const accountFromString = Account.fromCiphertext(privateKeyCiphertextString, "mypassword");
-            const accountFromObject = Account.fromCiphertext(privateKeyCiphertext, "mypassword");
+            const accountFromString = Account.fromCiphertext({
+                ciphertext: privateKeyCiphertextString,
+                password: "mypassword",
+            });
+            const accountFromObject = Account.fromCiphertext({
+                ciphertext: privateKeyCiphertext,
+                password: "mypassword",
+            });
 
             for (const account of [accountFromString, accountFromObject]) {
                 // Test that expected output is generated
@@ -93,8 +99,14 @@ describe('Account', () => {
             const privateKeyCiphertextString = privateKeyCiphertext.toString();
 
             try {
-                Account.fromCiphertext(privateKeyCiphertextString, "badpassword");
-                Account.fromCiphertext(privateKeyCiphertext, "badpassword");
+                Account.fromCiphertext({
+                    ciphertext: privateKeyCiphertextString,
+                    password: "badpassword",
+                });
+                Account.fromCiphertext({
+                    ciphertext: privateKeyCiphertext,
+                    password: "badpassword",
+                });
 
                 // Should not get here
                 expect(true).equal(false);
@@ -173,11 +185,11 @@ describe('Account', () => {
             expect(sign_spy.callCount).equal(2);
 
             const verify_spy = sinon.spy(account._address, 'verify');
-            const isValid = account.verify(message, signature);
+            const isValid = account.verify({ message, signature });
             expect(verify_spy.calledWith(message, signature)).equal(true);
-            const isSigValidForWrongMessage = account.verify(other_message, signature);
+            const isSigValidForWrongMessage = account.verify({ message: other_message, signature });
             expect(verify_spy.calledWith(other_message, signature)).equal(true);
-            const isSigValidForMultipleMessages = account.verify(other_message, other_signature);
+            const isSigValidForMultipleMessages = account.verify({ message: other_message, signature: other_signature });
             expect(verify_spy.calledWith(other_message, other_signature)).equal(true);
             expect(verify_spy.callCount).equal(3);
             // Ensure the signature was valid

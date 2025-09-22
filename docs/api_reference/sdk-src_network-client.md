@@ -15,11 +15,14 @@ allow users to query public information from the Aleo blockchain and submit tran
 
 ```javascript
 // Connection to a local node.
-const localNetworkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined, account);
+const localNetworkClient = new AleoNetworkClient({ host: "http://0.0.0.0:3030" });
 
 // Connection to a public beacon node
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
-const publicNetworkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined, account);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
+const publicNetworkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 ```
 
 ## Methods
@@ -39,7 +42,7 @@ __account__ | [Account](sdk-src_account.md) | *Set an account to use for record 
 ```javascript
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const account = new Account();
 networkClient.setAccount(account);
 ```
@@ -76,7 +79,7 @@ __host__ | `string` | *The address of a node hosting the Aleo API*
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a networkClient that connects to a local node.
-const networkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://0.0.0.0:3030" });
 
 // Set the host to a public node.
 networkClient.setHost("http://api.explorer.provable.com/v1");
@@ -160,7 +163,7 @@ __url__ | `undefined` | **
 
 ---
 
-### `findRecords(startHeight, endHeight, unspent, programs, amounts, maxMicrocredits, nonces, privateKey) ► Promise.<Array.<RecordPlaintext>>`
+### `findRecords(params) ► Promise.<Array.<RecordPlaintext>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -168,14 +171,15 @@ Attempt to find records in the Aleo blockchain.
 
 Parameters | Type | Description
 --- | --- | ---
-__startHeight__ | `number` | *The height at which to start searching for unspent records*
-__endHeight__ | `number` | *The height at which to stop searching for unspent records*
-__unspent__ | `boolean` | *Whether to search for unspent records only*
-__programs__ | `Array.<string>` | *The program(s) to search for unspent records in*
-__amounts__ | `Array.<number>` | *The amounts (in microcredits) to search for (eg. [100, 200, 3000])*
-__maxMicrocredits__ | `number` | *The maximum number of microcredits to search for*
-__nonces__ | `Array.<string>` | *The nonces of already found records to exclude from the search*
-__privateKey__ | `string` | *An optional private key to use to find unspent records.*
+__params__ | `Object` | **
+__params.startHeight__ | `number` | *The height at which to start searching for unspent records*
+__params.endHeight__ | `number` | *The height at which to stop searching for unspent records*
+__params.unspent__ | `boolean` | *Whether to search for unspent records only*
+__params.programs__ | `Array.<string>` | *The program(s) to search for unspent records in*
+__params.amounts__ | `Array.<number>` | *The amounts (in microcredits) to search for (eg. [100, 200, 3000])*
+__params.maxMicrocredits__ | `number` | *The maximum number of microcredits to search for*
+__params.nonces__ | `Array.<string>` | *The nonces of already found records to exclude from the search*
+__params.privateKey__ | `string` | *An optional private key to use to find unspent records.*
 __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of records belonging to the account configured in the network client.*
 
 #### Examples
@@ -184,25 +188,28 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of records belong
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Import an account from a ciphertext and password.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 networkClient.setAccount(account);
 
 // Find specific amounts
 const startHeight = 500000;
 const amounts = [600000, 1000000];
-const records = networkClient.findRecords(startHeight, undefined, true, ["credits.aleo"] amounts);
+const records = networkClient.findRecords({ startHeight, unspent: true, programs: ["credits.aleo"], amounts });
 
 // Find specific amounts with a maximum number of cumulative microcredits
 const maxMicrocredits = 100000;
-const records = networkClient.findRecords(startHeight, undefined, true, ["credits.aleo"] undefined, maxMicrocredits);
+const records = networkClient.findRecords({ startHeight, unspent: true, programs: ["credits.aleo"], maxMicrocredits });
 ```
 
 ---
 
-### `findUnspentRecords(startHeight, endHeight, programs, amounts, maxMicrocredits, nonces, privateKey) ► Promise.<Array.<RecordPlaintext>>`
+### `findUnspentRecords(params) ► Promise.<Array.<RecordPlaintext>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -210,13 +217,14 @@ Attempts to find unspent records in the Aleo blockchain.
 
 Parameters | Type | Description
 --- | --- | ---
-__startHeight__ | `number` | *The height at which to start searching for unspent records*
-__endHeight__ | `number` | *The height at which to stop searching for unspent records*
-__programs__ | `Array.<string>` | *The program(s) to search for unspent records in*
-__amounts__ | `Array.<number>` | *The amounts (in microcredits) to search for (eg. [100, 200, 3000])*
-__maxMicrocredits__ | `number` | *The maximum number of microcredits to search for*
-__nonces__ | `Array.<string>` | *The nonces of already found records to exclude from the search*
-__privateKey__ | `string` | *An optional private key to use to find unspent records.*
+__params__ | `Object` | **
+__params.startHeight__ | `number` | *The height at which to start searching for unspent records*
+__params.endHeight__ | `number` | *The height at which to stop searching for unspent records*
+__params.programs__ | `Array.<string>` | *The program(s) to search for unspent records in*
+__params.amounts__ | `Array.<number>` | *The amounts (in microcredits) to search for (eg. [100, 200, 3000])*
+__params.maxMicrocredits__ | `number` | *The maximum number of microcredits to search for*
+__params.nonces__ | `Array.<string>` | *The nonces of already found records to exclude from the search*
+__params.privateKey__ | `string` | *An optional private key to use to find unspent records.*
 __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of unspent records belonging to the account configured in the network client.*
 
 #### Examples
@@ -224,21 +232,24 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of unspent record
 ```javascript
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create a network client and set an account to search for records with.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 networkClient.setAccount(account);
 
 // Find specific amounts
 const startHeight = 500000;
 const endHeight = 550000;
 const amounts = [600000, 1000000];
-const records = networkClient.findUnspentRecords(startHeight, endHeight, ["credits.aleo"], amounts);
+const records = networkClient.findUnspentRecords({ startHeight, endHeight, programs: ["credits.aleo"], amounts });
 
 // Find specific amounts with a maximum number of cumulative microcredits
 const maxMicrocredits = 100000;
-const records = networkClient.findUnspentRecords(startHeight, undefined, ["credits.aleo"], undefined, maxMicrocredits);
+const records = networkClient.findUnspentRecords({ startHeight, programs: ["credits.aleo"], maxMicrocredits });
 ```
 
 ---
@@ -278,13 +289,13 @@ __*return*__ | `Promise.<BlockJSON>` | *A javascript object representation of th
 ```javascript
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
 ```
 
 ---
 
-### `getBlockRange(start, end) ► Promise.<Array.<BlockJSON>>`
+### `getBlockRange(params) ► Promise.<Array.<BlockJSON>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -292,8 +303,9 @@ Returns a range of blocks between the specified block heights. A maximum of 50 b
 
 Parameters | Type | Description
 --- | --- | ---
-__start__ | `number` | *Starting block to fetch.*
-__end__ | `number` | *Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.*
+__params__ | `Object` | **
+__params.start__ | `number` | *Starting block to fetch.*
+__params.end__ | `number` | *Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.*
 __*return*__ | `Promise.<Array.<BlockJSON>>` | *An array of block objects*
 
 #### Examples
@@ -303,7 +315,7 @@ import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Fetch 50 blocks.
 const (start, end) = (2050, 2100);
-const blockRange = networkClient.getBlockRange(start, end);
+const blockRange = networkClient.getBlockRange({ start, end });
 
 let cursor = start;
 blockRange.forEach((block) => {
@@ -331,7 +343,7 @@ __*return*__ | `Promise.<string>` | *The transaction ID of the deployment transa
 import { AleoNetworkClient } from "@provablehq/sdk/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const transactionId = networkClient.getDeploymentTransactionIDForProgram("hello_hello.aleo");
 
 // Get the transaction data for the deployment transaction.
@@ -360,7 +372,7 @@ __*return*__ | `Promise.<Transaction>` | *JSON representation of the deployment 
 import { AleoNetworkClient, DeploymentJSON } from "@provablehq/sdk/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const transaction = networkClient.getDeploymentTransactionForProgram("hello_hello.aleo");
 
 // Get the verifying keys for each function in the deployment.
@@ -387,7 +399,7 @@ __*return*__ | `Promise.<Transaction>` | *Wasm object representation of the depl
 import { AleoNetworkClient } from "@provablehq/sdk/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const transactionId = networkClient.getDeploymentTransactionIDForProgram("hello_hello.aleo");
 
 // Get the transaction data for the deployment transaction.
@@ -415,7 +427,7 @@ __*return*__ | `Promise.<BlockJSON>` | *A javascript object containing the lates
 import { AleoNetworkClient } from "@provablehq/sdk/testnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const latestHeight = networkClient.getLatestBlock();
 ```
@@ -438,10 +450,10 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the latest c
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Create a network client and get the latest committee.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const latestCommittee = await networkClient.getLatestCommittee();
 ```
 
@@ -464,10 +476,10 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the committe
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Create a network client and get the committee for a specific block.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const committee = await networkClient.getCommitteeByBlockHeight(1234);
 ```
 
@@ -489,7 +501,7 @@ __*return*__ | `Promise.<number>` | *The latest block height.*
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const latestHeight = networkClient.getLatestHeight();
 ```
@@ -512,7 +524,7 @@ __*return*__ | `Promise.<string>` | *The latest block hash.*
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the latest block hash.
 const latestHash = networkClient.getLatestBlockHash();
@@ -547,7 +559,7 @@ const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const program = networkClient.getProgram("hello_hello.aleo");
 const expectedSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
@@ -599,7 +611,7 @@ __*return*__ | `Promise.<Program>` | *Source code of the program.*
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const programID = "hello_hello.aleo";
 const programSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
@@ -637,7 +649,7 @@ const expectedImports = {
 }
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Imports can be fetched using the program ID, source code, or program object
 let programImports = await networkClient.getProgramImports("double_test.aleo");
@@ -671,7 +683,7 @@ __*return*__ | `Array.<string>` | *- The list of program names that the program 
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const programImportsNames = networkClient.getProgramImports("wrapped_credits.aleo");
 const expectedImportsNames = ["credits.aleo"];
@@ -697,7 +709,7 @@ __*return*__ | `Promise.<Array.<string>>` | *- The names of the mappings of the 
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const mappings = networkClient.getProgramMappingNames("credits.aleo");
 const expectedMappings = [
@@ -714,7 +726,7 @@ assert.deepStrictEqual(mappings, expectedMappings);
 
 ---
 
-### `getProgramMappingValue(programId, mappingName, key) ► Promise.<string>`
+### `getProgramMappingValue(params) ► Promise.<string>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -722,9 +734,10 @@ Returns the value of a program&#x27;s mapping for a specific key.
 
 Parameters | Type | Description
 --- | --- | ---
-__programId__ | `string` | *The program ID to get the mapping value of (e.g. &quot;credits.aleo&quot;)*
-__mappingName__ | `string` | *The name of the mapping to get the value of (e.g. &quot;account&quot;)*
-__key__ | `string` | *The key to look up in the mapping (e.g. an address for the &quot;account&quot; mapping)*
+__params__ | `Object` | **
+__params.programId__ | `string` | *The program ID to get the mapping value of (e.g. &quot;credits.aleo&quot;)*
+__params.mappingName__ | `string` | *The name of the mapping to get the value of (e.g. &quot;account&quot;)*
+__params.key__ | `string` | *The key to look up in the mapping (e.g. an address for the &quot;account&quot; mapping)*
 __*return*__ | `Promise.<string>` | *String representation of the value of the mapping*
 
 #### Examples
@@ -733,17 +746,21 @@ __*return*__ | `Promise.<string>` | *String representation of the value of the m
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get public balance of an account
-const mappingValue = networkClient.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+const mappingValue = networkClient.getProgramMappingValue({
+    programId: "credits.aleo",
+    mappingName: "account",
+    key: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+});
 const expectedValue = "0u64";
 assert(mappingValue === expectedValue);
 ```
 
 ---
 
-### `getProgramMappingPlaintext(programId, mappingName, key) ► Promise.<Plaintext>`
+### `getProgramMappingPlaintext(params) ► Promise.<Plaintext>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -751,9 +768,10 @@ Returns the value of a mapping as a wasm Plaintext object. Returning an object i
 
 Parameters | Type | Description
 --- | --- | ---
-__programId__ | `string` | *The program ID to get the mapping value of (e.g. &quot;credits.aleo&quot;)*
-__mappingName__ | `string` | *The name of the mapping to get the value of (e.g. &quot;bonded&quot;)*
-__key__ | `string` | *The key to look up in the mapping (e.g. an address for the &quot;bonded&quot; mapping)*
+__params__ | `Object` | **
+__params.programId__ | `string` | *The program ID to get the mapping value of (e.g. &quot;credits.aleo&quot;)*
+__params.mappingName__ | `string` | *The name of the mapping to get the value of (e.g. &quot;bonded&quot;)*
+__params.key__ | `string` | *The key to look up in the mapping (e.g. an address for the &quot;bonded&quot; mapping)*
 __*return*__ | `Promise.<Plaintext>` | *String representation of the value of the mapping*
 
 #### Examples
@@ -762,10 +780,14 @@ __*return*__ | `Promise.<Plaintext>` | *String representation of the value of th
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the bond state as an account.
-const unbondedState = networkClient.getMappingPlaintext("credits.aleo", "bonded", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+const unbondedState = networkClient.getProgramMappingPlaintext({
+    programId: "credits.aleo",
+    mappingName: "bonded",
+    key: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+});
 
 // Get the two members of the object individually.
 const validator = unbondedState.getMember("validator");
@@ -804,10 +826,13 @@ __*return*__ | `Promise.<number>` | *The public balance of the address in microc
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the balance of an account from either an address object or address string.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 const publicBalance = await networkClient.getPublicBalance(account.address());
 const publicBalanceFromString = await networkClient.getPublicBalance(account.address().to_string());
 assert(publicBalance === publicBalanceFromString);
@@ -831,7 +856,7 @@ __*return*__ | `Promise.<string>` | *A string representing the latest state root
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the latest state root.
 const stateRoot = networkClient.getStateRoot();
@@ -856,7 +881,7 @@ __*return*__ | `Promise.<TransactionJSON>` | *A json representation of the trans
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
 ```
@@ -880,7 +905,7 @@ __*return*__ | `Promise.<ConfirmedTransactionJSON>` | *A json object containing 
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const transaction = networkClient.getConfirmedTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
 assert.equal(transaction.status, "confirmed");
@@ -940,7 +965,7 @@ __*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | *An array of confi
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const transactions = networkClient.getTransactions(654);
 ```
@@ -964,7 +989,7 @@ __*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | *An array of confi
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const transactions = networkClient.getTransactionsByBlockHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
 ```
@@ -987,7 +1012,7 @@ __*return*__ | `Promise.<Array.<TransactionJSON>>` | *An array of transactions (
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the current transactions in the mempool.
 const transactions = networkClient.getTransactionsInMempool();
@@ -1053,7 +1078,7 @@ __*return*__ | `Promise.<ProvingResponse>` | *The ProvingResponse containing the
 
 ---
 
-### `waitForTransactionConfirmation(transactionId, checkInterval, timeout) ► Promise.<Transaction>`
+### `waitForTransactionConfirmation(params) ► Promise.<Transaction>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1061,9 +1086,10 @@ Await a submitted transaction to be confirmed or rejected on the Aleo network.
 
 Parameters | Type | Description
 --- | --- | ---
-__transactionId__ | `string` | *The transaction ID to wait for confirmation*
-__checkInterval__ | `number` | *The interval in milliseconds to check for confirmation (default: 2000)*
-__timeout__ | `number` | *The maximum time in milliseconds to wait for confirmation (default: 45000)*
+__params__ | `Object` | **
+__params.transactionId__ | `string` | *The transaction ID to wait for confirmation*
+__params.checkInterval__ | `number` | *The interval in milliseconds to check for confirmation (default: 2000)*
+__params.timeout__ | `number` | *The maximum time in milliseconds to wait for confirmation (default: 45000)*
 __*return*__ | `Promise.<Transaction>` | *The confirmed transaction object that returns if the transaction is confirmed.*
 
 #### Examples
@@ -1072,20 +1098,27 @@ __*return*__ | `Promise.<Transaction>` | *The confirmed transaction object that 
 import { AleoNetworkClient, Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client and program manager.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const programManager = new ProgramManager(networkClient);
 
 // Set the account for the program manager.
-programManager.setAccount(Account.fromCiphertext(process.env.ciphertext, process.env.password));
+programManager.setAccount(Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+}));
 
 // Build a transfer transaction.
-const tx = await programManager.buildTransferPublicTransaction(100, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 0);
+const tx = await programManager.buildTransferPublicTransaction({
+    amount: 100,
+    recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+    priorityFee: 0,
+});
 
 // Submit the transaction to the network.
 const transactionId = await networkClient.submitTransaction(tx);
 
 // Wait for the transaction to be confirmed.
-const transaction = await networkClient.waitForTransactionConfirmation(transactionId);
+const transaction = await networkClient.waitForTransactionConfirmation({ transactionId });
 ```
 
 ---
@@ -1105,7 +1138,7 @@ __account__ | [Account](sdk-src_account.md) | *Set an account to use for record 
 ```javascript
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const account = new Account();
 networkClient.setAccount(account);
 ```
@@ -1146,7 +1179,7 @@ __host__ | `string` | *The address of a node hosting the Aleo API*
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a networkClient that connects to a local node.
-const networkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://0.0.0.0:3030" });
 
 // Set the host to a public node.
 networkClient.setHost("http://api.explorer.provable.com/v1");
@@ -1232,7 +1265,7 @@ __*return*__ | `Promise.<string>` | **
 
 ---
 
-### `findRecords(startHeight, endHeight, unspent, programs, amounts, maxMicrocredits, nonces, privateKey) ► Promise.<Array.<RecordPlaintext>>`
+### `findRecords(params) ► Promise.<Array.<RecordPlaintext>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1240,14 +1273,15 @@ Attempt to find records in the Aleo blockchain.
 
 Parameters | Type | Description
 --- | --- | ---
-__startHeight__ | `number` | *The height at which to start searching for unspent records*
-__endHeight__ | `number` | *The height at which to stop searching for unspent records*
-__unspent__ | `boolean` | *Whether to search for unspent records only*
-__programs__ | `Array.<string>` | *The program(s) to search for unspent records in*
-__amounts__ | `Array.<number>` | *The amounts (in microcredits) to search for (eg. [100, 200, 3000])*
-__maxMicrocredits__ | `number` | *The maximum number of microcredits to search for*
-__nonces__ | `Array.<string>` | *The nonces of already found records to exclude from the search*
-__privateKey__ | `string` | *An optional private key to use to find unspent records.*
+__params__ | `Object` | **
+__params.startHeight__ | `number` | *The height at which to start searching for unspent records*
+__params.endHeight__ | `number` | *The height at which to stop searching for unspent records*
+__params.unspent__ | `boolean` | *Whether to search for unspent records only*
+__params.programs__ | `Array.<string>` | *The program(s) to search for unspent records in*
+__params.amounts__ | `Array.<number>` | *The amounts (in microcredits) to search for (eg. [100, 200, 3000])*
+__params.maxMicrocredits__ | `number` | *The maximum number of microcredits to search for*
+__params.nonces__ | `Array.<string>` | *The nonces of already found records to exclude from the search*
+__params.privateKey__ | `string` | *An optional private key to use to find unspent records.*
 __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of records belonging to the account configured in the network client.*
 
 #### Examples
@@ -1256,25 +1290,28 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of records belong
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Import an account from a ciphertext and password.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 networkClient.setAccount(account);
 
 // Find specific amounts
 const startHeight = 500000;
 const amounts = [600000, 1000000];
-const records = networkClient.findRecords(startHeight, undefined, true, ["credits.aleo"] amounts);
+const records = networkClient.findRecords({ startHeight, unspent: true, programs: ["credits.aleo"], amounts });
 
 // Find specific amounts with a maximum number of cumulative microcredits
 const maxMicrocredits = 100000;
-const records = networkClient.findRecords(startHeight, undefined, true, ["credits.aleo"] undefined, maxMicrocredits);
+const records = networkClient.findRecords({ startHeight, unspent: true, programs: ["credits.aleo"], maxMicrocredits });
 ```
 
 ---
 
-### `findUnspentRecords(startHeight, endHeight, programs, amounts, maxMicrocredits, nonces, privateKey) ► Promise.<Array.<RecordPlaintext>>`
+### `findUnspentRecords(params) ► Promise.<Array.<RecordPlaintext>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1282,13 +1319,14 @@ Attempts to find unspent records in the Aleo blockchain.
 
 Parameters | Type | Description
 --- | --- | ---
-__startHeight__ | `number` | *The height at which to start searching for unspent records*
-__endHeight__ | `number` | *The height at which to stop searching for unspent records*
-__programs__ | `Array.<string>` | *The program(s) to search for unspent records in*
-__amounts__ | `Array.<number>` | *The amounts (in microcredits) to search for (eg. [100, 200, 3000])*
-__maxMicrocredits__ | `number` | *The maximum number of microcredits to search for*
-__nonces__ | `Array.<string>` | *The nonces of already found records to exclude from the search*
-__privateKey__ | `string` | *An optional private key to use to find unspent records.*
+__params__ | `Object` | **
+__params.startHeight__ | `number` | *The height at which to start searching for unspent records*
+__params.endHeight__ | `number` | *The height at which to stop searching for unspent records*
+__params.programs__ | `Array.<string>` | *The program(s) to search for unspent records in*
+__params.amounts__ | `Array.<number>` | *The amounts (in microcredits) to search for (eg. [100, 200, 3000])*
+__params.maxMicrocredits__ | `number` | *The maximum number of microcredits to search for*
+__params.nonces__ | `Array.<string>` | *The nonces of already found records to exclude from the search*
+__params.privateKey__ | `string` | *An optional private key to use to find unspent records.*
 __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of unspent records belonging to the account configured in the network client.*
 
 #### Examples
@@ -1296,21 +1334,24 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of unspent record
 ```javascript
 import { Account, AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 
 // Create a network client and set an account to search for records with.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 networkClient.setAccount(account);
 
 // Find specific amounts
 const startHeight = 500000;
 const endHeight = 550000;
 const amounts = [600000, 1000000];
-const records = networkClient.findUnspentRecords(startHeight, endHeight, ["credits.aleo"], amounts);
+const records = networkClient.findUnspentRecords({ startHeight, endHeight, programs: ["credits.aleo"], amounts });
 
 // Find specific amounts with a maximum number of cumulative microcredits
 const maxMicrocredits = 100000;
-const records = networkClient.findUnspentRecords(startHeight, undefined, ["credits.aleo"], undefined, maxMicrocredits);
+const records = networkClient.findUnspentRecords({ startHeight, programs: ["credits.aleo"], maxMicrocredits });
 ```
 
 ---
@@ -1350,13 +1391,13 @@ __*return*__ | `Promise.<BlockJSON>` | *A javascript object representation of th
 ```javascript
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
 ```
 
 ---
 
-### `getBlockRange(start, end) ► Promise.<Array.<BlockJSON>>`
+### `getBlockRange(params) ► Promise.<Array.<BlockJSON>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1364,8 +1405,9 @@ Returns a range of blocks between the specified block heights. A maximum of 50 b
 
 Parameters | Type | Description
 --- | --- | ---
-__start__ | `number` | *Starting block to fetch.*
-__end__ | `number` | *Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.*
+__params__ | `Object` | **
+__params.start__ | `number` | *Starting block to fetch.*
+__params.end__ | `number` | *Ending block to fetch. This cannot be more than 50 blocks ahead of the start block.*
 __*return*__ | `Promise.<Array.<BlockJSON>>` | *An array of block objects*
 
 #### Examples
@@ -1375,7 +1417,7 @@ import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Fetch 50 blocks.
 const (start, end) = (2050, 2100);
-const blockRange = networkClient.getBlockRange(start, end);
+const blockRange = networkClient.getBlockRange({ start, end });
 
 let cursor = start;
 blockRange.forEach((block) => {
@@ -1403,7 +1445,7 @@ __*return*__ | `Promise.<string>` | *The transaction ID of the deployment transa
 import { AleoNetworkClient } from "@provablehq/sdk/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const transactionId = networkClient.getDeploymentTransactionIDForProgram("hello_hello.aleo");
 
 // Get the transaction data for the deployment transaction.
@@ -1432,7 +1474,7 @@ __*return*__ | `Promise.<Transaction>` | *JSON representation of the deployment 
 import { AleoNetworkClient, DeploymentJSON } from "@provablehq/sdk/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const transaction = networkClient.getDeploymentTransactionForProgram("hello_hello.aleo");
 
 // Get the verifying keys for each function in the deployment.
@@ -1459,7 +1501,7 @@ __*return*__ | `Promise.<Transaction>` | *Wasm object representation of the depl
 import { AleoNetworkClient } from "@provablehq/sdk/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const transactionId = networkClient.getDeploymentTransactionIDForProgram("hello_hello.aleo");
 
 // Get the transaction data for the deployment transaction.
@@ -1487,7 +1529,7 @@ __*return*__ | `Promise.<BlockJSON>` | *A javascript object containing the lates
 import { AleoNetworkClient } from "@provablehq/sdk/testnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const latestHeight = networkClient.getLatestBlock();
 ```
@@ -1510,10 +1552,10 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the latest c
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Create a network client and get the latest committee.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const latestCommittee = await networkClient.getLatestCommittee();
 ```
 
@@ -1536,10 +1578,10 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the committe
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Create a network client and get the committee for a specific block.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const committee = await networkClient.getCommitteeByBlockHeight(1234);
 ```
 
@@ -1561,7 +1603,7 @@ __*return*__ | `Promise.<number>` | *The latest block height.*
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const latestHeight = networkClient.getLatestHeight();
 ```
@@ -1584,7 +1626,7 @@ __*return*__ | `Promise.<string>` | *The latest block hash.*
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the latest block hash.
 const latestHash = networkClient.getLatestBlockHash();
@@ -1619,7 +1661,7 @@ const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const program = networkClient.getProgram("hello_hello.aleo");
 const expectedSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
@@ -1671,7 +1713,7 @@ __*return*__ | `Promise.<Program>` | *Source code of the program.*
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const programID = "hello_hello.aleo";
 const programSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
@@ -1709,7 +1751,7 @@ const expectedImports = {
 }
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Imports can be fetched using the program ID, source code, or program object
 let programImports = await networkClient.getProgramImports("double_test.aleo");
@@ -1743,7 +1785,7 @@ __*return*__ | `Array.<string>` | *- The list of program names that the program 
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const programImportsNames = networkClient.getProgramImports("wrapped_credits.aleo");
 const expectedImportsNames = ["credits.aleo"];
@@ -1769,7 +1811,7 @@ __*return*__ | `Promise.<Array.<string>>` | *- The names of the mappings of the 
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const mappings = networkClient.getProgramMappingNames("credits.aleo");
 const expectedMappings = [
@@ -1786,7 +1828,7 @@ assert.deepStrictEqual(mappings, expectedMappings);
 
 ---
 
-### `getProgramMappingValue(programId, mappingName, key) ► Promise.<string>`
+### `getProgramMappingValue(params) ► Promise.<string>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1794,9 +1836,10 @@ Returns the value of a program&#x27;s mapping for a specific key.
 
 Parameters | Type | Description
 --- | --- | ---
-__programId__ | `string` | *The program ID to get the mapping value of (e.g. &quot;credits.aleo&quot;)*
-__mappingName__ | `string` | *The name of the mapping to get the value of (e.g. &quot;account&quot;)*
-__key__ | `string` | *The key to look up in the mapping (e.g. an address for the &quot;account&quot; mapping)*
+__params__ | `Object` | **
+__params.programId__ | `string` | *The program ID to get the mapping value of (e.g. &quot;credits.aleo&quot;)*
+__params.mappingName__ | `string` | *The name of the mapping to get the value of (e.g. &quot;account&quot;)*
+__params.key__ | `string` | *The key to look up in the mapping (e.g. an address for the &quot;account&quot; mapping)*
 __*return*__ | `Promise.<string>` | *String representation of the value of the mapping*
 
 #### Examples
@@ -1805,17 +1848,21 @@ __*return*__ | `Promise.<string>` | *String representation of the value of the m
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get public balance of an account
-const mappingValue = networkClient.getMappingValue("credits.aleo", "account", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+const mappingValue = networkClient.getProgramMappingValue({
+    programId: "credits.aleo",
+    mappingName: "account",
+    key: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+});
 const expectedValue = "0u64";
 assert(mappingValue === expectedValue);
 ```
 
 ---
 
-### `getProgramMappingPlaintext(programId, mappingName, key) ► Promise.<Plaintext>`
+### `getProgramMappingPlaintext(params) ► Promise.<Plaintext>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1823,9 +1870,10 @@ Returns the value of a mapping as a wasm Plaintext object. Returning an object i
 
 Parameters | Type | Description
 --- | --- | ---
-__programId__ | `string` | *The program ID to get the mapping value of (e.g. &quot;credits.aleo&quot;)*
-__mappingName__ | `string` | *The name of the mapping to get the value of (e.g. &quot;bonded&quot;)*
-__key__ | `string` | *The key to look up in the mapping (e.g. an address for the &quot;bonded&quot; mapping)*
+__params__ | `Object` | **
+__params.programId__ | `string` | *The program ID to get the mapping value of (e.g. &quot;credits.aleo&quot;)*
+__params.mappingName__ | `string` | *The name of the mapping to get the value of (e.g. &quot;bonded&quot;)*
+__params.key__ | `string` | *The key to look up in the mapping (e.g. an address for the &quot;bonded&quot; mapping)*
 __*return*__ | `Promise.<Plaintext>` | *String representation of the value of the mapping*
 
 #### Examples
@@ -1834,10 +1882,14 @@ __*return*__ | `Promise.<Plaintext>` | *String representation of the value of th
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the bond state as an account.
-const unbondedState = networkClient.getMappingPlaintext("credits.aleo", "bonded", "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+const unbondedState = networkClient.getProgramMappingPlaintext({
+    programId: "credits.aleo",
+    mappingName: "bonded",
+    key: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+});
 
 // Get the two members of the object individually.
 const validator = unbondedState.getMember("validator");
@@ -1876,10 +1928,13 @@ __*return*__ | `Promise.<number>` | *The public balance of the address in microc
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the balance of an account from either an address object or address string.
-const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const account = Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+});
 const publicBalance = await networkClient.getPublicBalance(account.address());
 const publicBalanceFromString = await networkClient.getPublicBalance(account.address().to_string());
 assert(publicBalance === publicBalanceFromString);
@@ -1903,7 +1958,7 @@ __*return*__ | `Promise.<string>` | *A string representing the latest state root
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the latest state root.
 const stateRoot = networkClient.getStateRoot();
@@ -1928,7 +1983,7 @@ __*return*__ | `Promise.<TransactionJSON>` | *A json representation of the trans
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const transaction = networkClient.getTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
 ```
@@ -1952,7 +2007,7 @@ __*return*__ | `Promise.<ConfirmedTransactionJSON>` | *A json object containing 
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const transaction = networkClient.getConfirmedTransaction("at1handz9xjrqeynjrr0xay4pcsgtnczdksz3e584vfsgaz0dh0lyxq43a4wj");
 assert.equal(transaction.status, "confirmed");
@@ -2012,7 +2067,7 @@ __*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | *An array of confi
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const transactions = networkClient.getTransactions(654);
 ```
@@ -2036,7 +2091,7 @@ __*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | *An array of confi
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 const transactions = networkClient.getTransactionsByBlockHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
 ```
@@ -2059,7 +2114,7 @@ __*return*__ | `Promise.<Array.<TransactionJSON>>` | *An array of transactions (
 import { AleoNetworkClient, Account } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 
 // Get the current transactions in the mempool.
 const transactions = networkClient.getTransactionsInMempool();
@@ -2125,7 +2180,7 @@ __*return*__ | `Promise.<ProvingResponse>` | *The ProvingResponse containing the
 
 ---
 
-### `waitForTransactionConfirmation(transactionId, checkInterval, timeout) ► Promise.<Transaction>`
+### `waitForTransactionConfirmation(params) ► Promise.<Transaction>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -2133,9 +2188,10 @@ Await a submitted transaction to be confirmed or rejected on the Aleo network.
 
 Parameters | Type | Description
 --- | --- | ---
-__transactionId__ | `string` | *The transaction ID to wait for confirmation*
-__checkInterval__ | `number` | *The interval in milliseconds to check for confirmation (default: 2000)*
-__timeout__ | `number` | *The maximum time in milliseconds to wait for confirmation (default: 45000)*
+__params__ | `Object` | **
+__params.transactionId__ | `string` | *The transaction ID to wait for confirmation*
+__params.checkInterval__ | `number` | *The interval in milliseconds to check for confirmation (default: 2000)*
+__params.timeout__ | `number` | *The maximum time in milliseconds to wait for confirmation (default: 45000)*
 __*return*__ | `Promise.<Transaction>` | *The confirmed transaction object that returns if the transaction is confirmed.*
 
 #### Examples
@@ -2144,20 +2200,27 @@ __*return*__ | `Promise.<Transaction>` | *The confirmed transaction object that 
 import { AleoNetworkClient, Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a network client and program manager.
-const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+const networkClient = new AleoNetworkClient({ host: "http://api.explorer.provable.com/v1" });
 const programManager = new ProgramManager(networkClient);
 
 // Set the account for the program manager.
-programManager.setAccount(Account.fromCiphertext(process.env.ciphertext, process.env.password));
+programManager.setAccount(Account.fromCiphertext({
+    ciphertext: process.env.ciphertext,
+    password: process.env.password,
+}));
 
 // Build a transfer transaction.
-const tx = await programManager.buildTransferPublicTransaction(100, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", 0);
+const tx = await programManager.buildTransferPublicTransaction({
+    amount: 100,
+    recipient: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+    priorityFee: 0,
+});
 
 // Submit the transaction to the network.
 const transactionId = await networkClient.submitTransaction(tx);
 
 // Wait for the transaction to be confirmed.
-const transaction = await networkClient.waitForTransactionConfirmation(transactionId);
+const transaction = await networkClient.waitForTransactionConfirmation({ transactionId });
 ```
 
 ---

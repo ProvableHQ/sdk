@@ -40,7 +40,7 @@ describe("NodeConnection", () => {
     let windowFetchSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-        connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+        connection = new AleoNetworkClient({ host: "https://api.explorer.provable.com/v1" });
         windowFetchSpy = sinon.spy(globalThis, 'fetch');
     });
 
@@ -72,7 +72,7 @@ describe("NodeConnection", () => {
 
     describe("getBlockRange", () => {
         it.skip("should return an array of Block objects", async () => {
-            const blockRange = await connection.getBlockRange(1, 3);
+            const blockRange = await connection.getBlockRange({ start: 1, end: 3 });
             expect(Array.isArray(blockRange)).equal(true);
             expect((blockRange as BlockJSON[]).length).equal(3);
             expect(
@@ -209,7 +209,7 @@ describe("NodeConnection", () => {
 
     describe("retryWithBackoff", () => {
         it("should retry failed network requests and eventually give up", async () => {
-            const client = new AleoNetworkClient("http://localhost:1234");
+            const client = new AleoNetworkClient({ host: "http://localhost:1234" });
 
             let attemptCount = 0;
 
@@ -233,7 +233,7 @@ describe("NodeConnection", () => {
         });
 
         it("should retry failed transaction submissions and eventually give up", async () => {
-            const client = new AleoNetworkClient("http://localhost:1234");
+            const client = new AleoNetworkClient({ host: "http://localhost:1234" });
 
             let attemptCount = 0;
 
@@ -263,7 +263,7 @@ describe("NodeConnection", () => {
         });
 
         it("should retry solution submission and eventually throw", async () => {
-            const client = new AleoNetworkClient("http://localhost:1234");
+            const client = new AleoNetworkClient({ host: "http://localhost:1234" });
 
             let attemptCount = 0;
 
@@ -343,20 +343,24 @@ describe("NodeConnection", () => {
 
         it("should return confirmed transaction data for an accepted tx ID", async () => {
             if (connection.network === "mainnet") {
-                const connection = new AleoNetworkClient(host);
+                const connection = new AleoNetworkClient({ host });
                 const txId = getTxId(connection, "accepted");
-                const data = await connection.waitForTransactionConfirmation(txId);
+                const data = await connection.waitForTransactionConfirmation({
+                    transactionId: txId,
+                });
                 expect(data.status).to.equal("accepted");
                 expect(data.type).to.be.a("string");
             }
         });
 
         it("should throw for a rejected tx ID", async () => {
-            const connection = new AleoNetworkClient(host);
+            const connection = new AleoNetworkClient({ host });
             const txId = getTxId(connection, "rejected");
             try {
                 console.log(txId);
-                await connection.waitForTransactionConfirmation(txId);
+                await connection.waitForTransactionConfirmation({
+                    transactionId: txId,
+                });
                 throw new Error(
                     "Expected waitForTransactionConfirmation to throw for rejected tx",
                 );
@@ -369,9 +373,11 @@ describe("NodeConnection", () => {
         });
 
         it("should throw for a malformed tx ID", async () => {
-            const connection = new AleoNetworkClient(host);
+            const connection = new AleoNetworkClient({ host });
             try {
-                await connection.waitForTransactionConfirmation(invalidTx);
+                await connection.waitForTransactionConfirmation({
+                    transactionId: invalidTx,
+                });
                 throw new Error(
                     "Expected waitForTransactionConfirmation to throw",
                 );
@@ -387,63 +393,52 @@ describe("NodeConnection", () => {
     describe("findUnspentRecords", () => {
         it("should fail if block heights or private keys are incorrectly specified", async () => {
             await expectThrows(() =>
-                connection.findUnspentRecords(
-                    5,
-                    0,
-                    [],
-                    undefined,
-                    undefined,
-                    [],
-                    beaconPrivateKeyString,
-                ),
+                connection.findUnspentRecords({
+                    startHeight: 5,
+                    endHeight: 0,
+                    programs: [],
+                    nonces: [],
+                    privateKey: beaconPrivateKeyString,
+                }),
             );
 
             await expectThrows(() =>
-                connection.findUnspentRecords(
-                    -5,
-                    5,
-                    [],
-                    undefined,
-                    undefined,
-                    [],
-                    beaconPrivateKeyString,
-                ),
+                connection.findUnspentRecords({
+                    startHeight: -5,
+                    endHeight: 5,
+                    programs: [],
+                    nonces: [],
+                    privateKey: beaconPrivateKeyString,
+                }),
             );
 
             await expectThrows(() =>
-                connection.findUnspentRecords(
-                    0,
-                    5,
-                    [],
-                    undefined,
-                    undefined,
-                    [],
-                    "definitelynotaprivatekey",
-                ),
+                connection.findUnspentRecords({
+                    startHeight: 0,
+                    endHeight: 5,
+                    programs: [],
+                    nonces: [],
+                    privateKey: "definitelynotaprivatekey",
+                }),
             );
 
             await expectThrows(() =>
-                connection.findUnspentRecords(
-                    0,
-                    5,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [],
-                ),
+                connection.findUnspentRecords({
+                    startHeight: 0,
+                    endHeight: 5,
+                    nonces: [],
+                }),
             );
         });
 
         it.skip("should search a range correctly and not find records where none exist", async () => {
-            const records = await connection.findUnspentRecords(
-                0,
-                204,
-                [],
-                undefined,
-                undefined,
-                [],
-                beaconPrivateKeyString,
-            );
+            const records = await connection.findUnspentRecords({
+                startHeight: 0,
+                endHeight: 204,
+                programs: [],
+                nonces: [],
+                privateKey: beaconPrivateKeyString,
+            });
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).equal(0);
@@ -491,11 +486,11 @@ describe("NodeConnection", () => {
         it('Plaintext returned from the API should have expected properties', async () => {
             if (connection.network === "testnet") {
                 // Check a struct variant of a plaintext object.
-                let plaintext = await connection.getProgramMappingPlaintext(
-                    "credits.aleo",
-                    "committee",
-                    "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal",
-                );
+                let plaintext = await connection.getProgramMappingPlaintext({
+                    programId: "credits.aleo",
+                    mappingName: "committee",
+                    key: "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal",
+                });
                 expect(plaintext.plaintextType()).equal("struct");
 
                 // Ensure the JS object representation matches the wasm representation.
@@ -508,11 +503,11 @@ describe("NodeConnection", () => {
                 expect(plaintextObject.commission).equal(commission);
 
                 // Check a literal variant of a plaintext object.
-                plaintext = await connection.getProgramMappingPlaintext(
-                    "credits.aleo",
-                    "account",
-                    "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal",
-                );
+                plaintext = await connection.getProgramMappingPlaintext({
+                    programId: "credits.aleo",
+                    mappingName: "account",
+                    key: "aleo17m3l8a4hmf3wypzkf5lsausfdwq9etzyujd0vmqh35ledn2sgvqqzqkqal",
+                });
                 expect(plaintext.plaintextType()).equal("u64");
                 expect(plaintext.toObject()).a("bigint");
             }

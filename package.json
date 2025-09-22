@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "workspaces": [
     "sdk",
+    "sdk/e2e/*",
     "wasm",
     "website",
     "create-leo-app",
@@ -34,7 +35,11 @@
     "glob": "^11.0.1"
   },
   "devDependencies": {
+    "jsdoc": "^4.0.4",
     "prettier": "3.4.2",
     "wasm-pack": "^0.13.1"
+  },
+  "resolutions": {
+    "binary-install": "1.1.0"
   }
 }
