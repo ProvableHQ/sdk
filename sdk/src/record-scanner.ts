@@ -8,6 +8,7 @@ import { RecordSearchParams } from "./models/record-provider/recordSearchParams"
 import { RecordsFilter } from "./models/record-scanner/recordsFilter";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
+import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
 
 type RecordScannerOptions = {
     url: string;

@@ -8,7 +8,7 @@
  *     status: "pending",
  * }
  */
-interface RegistrationResponse {
+export interface RegistrationResponse {
     uuid: string,
     job_id?: string,
     status?: string 
