@@ -218,13 +218,15 @@ impl FromStr for Signature {
 mod tests {
     use super::*;
 
+    use crate::utilities::test::{
+        plaintext::{INVALID_NESTED_STRUCT, NESTED_STRUCT},
+        records::{CREDITS_RECORD, INVALID_CREDITS_RECORD},
+    };
     use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;
-    use crate::utilities::test::records::{CREDITS_RECORD, INVALID_CREDITS_RECORD};
-    use crate::utilities::test::plaintext::{NESTED_STRUCT, INVALID_NESTED_STRUCT};
 
     const ITERATIONS: u64 = 1_000;
-    
+
     #[wasm_bindgen_test]
     pub fn test_sign_and_verify() {
         for _ in 0..ITERATIONS {

@@ -34,7 +34,6 @@ pub const TEST_STRUCT: &str = "{
 pub const NESTED_STRUCT: &str = "{ player: aleo13nnjqa7h2u4mpl95guz97nhzkhlde750zsjnw59tkgdwc85lyurs295lxc, health: 100u8, inventory: { coins: 5u32, snacks: { candies: 5u64, vegetals: 6u64 } }, secret: 2group, cipher: 2scalar, is_alive: true }";
 pub const INVALID_NESTED_STRUCT: &str = "{ player: aleo13nnjqa7h2u4mpl95guz97nhzkhlde750zsjnw59tkgdwc85lyurs295lxc, health: 100u8, inventory: { coins: 5u32, snacks: { candies: 5u64, vegetals: 6u64 } }, secret: 2group, cipher: 2scalar, is_alive: false }";
 
-
 /// Create a field element and a scalar element.
 pub fn create_native_field_vector(num_fields: Option<u16>) -> Vec<FieldNative> {
     // Create a field element generator.
