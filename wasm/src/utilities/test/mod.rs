@@ -23,5 +23,8 @@ pub use plaintext::*;
 pub mod programs;
 pub use programs::*;
 
+pub mod record;
+pub use record::*;
+
 pub mod uri;
 pub use uri::*;
