@@ -52,6 +52,6 @@ mod tests {
     #[wasm_bindgen_test]
     #[should_panic]
     fn test_set_genesis_block_non_zero_fails() {
-        set_consensus_version_test_heights(Some("9,8,7,6,5,4,3,2,1,0".to_string()));
+        set_consensus_version_test_heights_js(Some("9,8,7,6,5,4,3,2,1,0".to_string()));
     }
 }
