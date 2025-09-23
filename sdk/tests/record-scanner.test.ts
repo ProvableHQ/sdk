@@ -232,6 +232,41 @@ describe("RecordScanner", () => {
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
+    it("should return OwnedRecord after successfully getting owned record", async () => {
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        const mockRegisterResponse = {
+            ok: true,
+            status: 201,
+            text: () => Promise.resolve('{"uuid": "test-uuid"}'),
+            json: () => Promise.resolve({ uuid: "test-uuid" })
+        };
+        fetchStub.resolves(mockRegisterResponse);
+        await recordScanner.register(0);
+
+        fetchStub.resetHistory();
+
+        const mockResponse = {
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve(JSON.stringify(OWNED_RECORDS)),
+            json: () => Promise.resolve(OWNED_RECORDS),
+        };
+        fetchStub.resolves(mockResponse);
+        const ownedRecord = await recordScanner.findRecord({
+            uuid: "test-uuid",
+        });
+        expect(ownedRecord).to.deep.equal(OWNED_RECORDS[0]);
+
+        const request = fetchStub.firstCall.args[0] as Request;
+        const body = await request.text();
+        const expectedBody = JSON.stringify({
+            uuid: "test-uuid",
+        });
+        expect(body).to.equal(expectedBody);
+        expect(request.method).to.equal("POST");
+        expect(request.headers.get("Content-Type")).to.equal("application/json");
+    });
+
     it("should throw an error if the uuid is not registered", async () => {
         recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
         let failed = false;
