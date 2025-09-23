@@ -1,5 +1,5 @@
 /**
- * RegistrationResponse is a type that represents a response from a record scanning service.
+ * RegistrationResponse is a type that represents a response from a record scanning service's registration endpoint.
  * 
  * @example
  * const registrationResponse: RegistrationResponse = {

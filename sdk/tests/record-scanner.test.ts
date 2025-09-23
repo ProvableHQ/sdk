@@ -347,6 +347,26 @@ describe("RecordScanner", () => {
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
+    it("should return StatusResponse after successfully checking status", async () => {
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        const mockResponse = {
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve(JSON.stringify({ synced: true, percentage: 100 })),
+            json: () => Promise.resolve({ synced: true, percentage: 100 }),
+        };
+        fetchStub.resolves(mockResponse);
+        const statusResponse = await recordScanner.checkStatus("test-job-id");
+        expect(statusResponse).to.deep.equal({ synced: true, percentage: 100 });
+
+        const request = fetchStub.firstCall.args[0] as Request;
+        const body = await request.text();
+        const expectedBody = JSON.stringify("test-job-id");
+        expect(body).to.equal(expectedBody);
+        expect(request.method).to.equal("POST");
+        expect(request.headers.get("Content-Type")).to.equal("application/json");
+    });
+
     it("should handle HTTP errors", async () => {
         recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
         let mockResponse = {
