@@ -218,23 +218,11 @@ mod tests {
 
     use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;
+    use crate::utilities::test::records::{CREDITS_RECORD, INVALID_CREDITS_RECORD};
+    use crate::utilities::test::plaintext::{NESTED_STRUCT, INVALID_NESTED_STRUCT};
 
     const ITERATIONS: u64 = 1_000;
-    const CREDITS_RECORD: &str = r"{
-  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
-  microcredits: 1500000000000000u64.private,
-  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,
-  _version: 0u8.public
-}";
-    const INVALID_CREDITS_RECORD: &str = r"{
-  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
-  microcredits: 1400000000000000u64.private,
-  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,
-  _version: 0u8.public
-}";
-    const NESTED_STRUCT: &str = "{ player: aleo13nnjqa7h2u4mpl95guz97nhzkhlde750zsjnw59tkgdwc85lyurs295lxc, health: 100u8, inventory: { coins: 5u32, snacks: { candies: 5u64, vegetals: 6u64 } }, secret: 2group, cipher: 2scalar, is_alive: true }";
-    const INVALID_NESTED_STRUCT: &str = "{ player: aleo13nnjqa7h2u4mpl95guz97nhzkhlde750zsjnw59tkgdwc85lyurs295lxc, health: 100u8, inventory: { coins: 5u32, snacks: { candies: 5u64, vegetals: 6u64 } }, secret: 2group, cipher: 2scalar, is_alive: false }";
-
+    
     #[wasm_bindgen_test]
     pub fn test_sign_and_verify() {
         for _ in 0..ITERATIONS {

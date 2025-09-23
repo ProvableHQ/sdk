@@ -13,18 +13,16 @@
 
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
-
-pub mod env;
-pub use env::get_env;
-
-pub mod plaintext;
-pub use plaintext::*;
-
-pub mod programs;
-pub use programs::*;
-
-pub mod records;
-pub use records::*;
-
-pub mod uri;
-pub use uri::*;
+ 
+pub const CREDITS_RECORD: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 1500000000000000u64.private,
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,
+  _version: 0u8.public
+}";
+pub const INVALID_CREDITS_RECORD: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 1400000000000000u64.private,
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,
+  _version: 0u8.public
+}";
