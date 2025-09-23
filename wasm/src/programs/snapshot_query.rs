@@ -113,7 +113,7 @@ impl SnapshotQuery {
             .enumerate()
             .filter_map(|(index, js_value)| {
                 if let Some(s) = js_value.as_string() {
-                    // Detect if the string contains a nonce to indicate it's a plaintext record.
+                    // Detect if the string contains a nonce to indicate the input is a plaintext record.
                     if !s.contains("_nonce") {
                         return None;
                     };
@@ -125,13 +125,15 @@ impl SnapshotQuery {
                         let program_id = program.id();
                         let function = program.get_function(function_id).ok()?;
                         let input = function.inputs().get_index(index)?;
-                        let record_name = match input.value_type() {
-                            &ValueTypeNative::Record(record_name) => record_name,
-                            _ => return None,
-                        };
-
-                        // Compute the commitment.
-                        record.to_commitment(program_id, &record_name, &record_view_key).ok()
+                        match input.value_type() {
+                            &ValueTypeNative::Record(record_name) => {
+                                record.to_commitment(program_id, &record_name, &record_view_key).ok()
+                            }
+                            &ValueTypeNative::ExternalRecord(locator) => {
+                                record.to_commitment(locator.program_id(), locator.resource(), &record_view_key).ok()
+                            }
+                            _ => None,
+                        }
                     } else {
                         None
                     }
@@ -246,7 +248,12 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
 
 mod tests {
     use super::*;
-    use crate::{test::PROVABLE_API, utilities::rest::get_network};
+    use crate::{
+        test::{PROVABLE_API, TOKEN_REGISTRY_RECORD_OWNER_VIEW_KEY, TOKEN_REGISTRY_RECORD_V1},
+        types::native::ProgramIDNative,
+        utilities::{rest::get_network, test::programs::EXTERNAL_RECORDS_DEMO},
+    };
+    use snarkvm_synthesizer_program::Program;
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
@@ -273,5 +280,26 @@ mod tests {
             assert_eq!(state_path_0.global_state_root(), state_path_1.global_state_root());
             assert!(height > 10_000_000);
         }
+    }
+
+    #[wasm_bindgen_test]
+    fn test_correct_commitment_computation() {
+        let record = RecordPlaintextNative::from_str(TOKEN_REGISTRY_RECORD_V1).unwrap();
+        let view_key = ViewKeyNative::from_str(TOKEN_REGISTRY_RECORD_OWNER_VIEW_KEY).unwrap();
+        let program_id = ProgramIDNative::from_str("token_registry.aleo").unwrap();
+        let record_name = IdentifierNative::from_str("Token").unwrap();
+        let rvk = (*record.nonce() * *view_key).to_x_coordinate();
+        let commitment = record.to_commitment(&program_id, &record_name, &rvk).unwrap();
+        let program = Program::from_str(EXTERNAL_RECORDS_DEMO).unwrap();
+        let function_id = IdentifierNative::from_str("deposit_private_token").unwrap();
+
+        let input_1 = JsValue::from_str("aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t");
+        let input_2 = JsValue::from_str("5u128");
+        let input_3 = JsValue::from_str(TOKEN_REGISTRY_RECORD_V1);
+        let inputs = vec![input_1, input_2, input_3];
+
+        let commitments =
+            SnapshotQuery::collect_commitments_from_inputs(&program, &function_id, &view_key, &inputs).unwrap();
+        assert_eq!(commitments[0], commitment);
     }
 }
