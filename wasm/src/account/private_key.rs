@@ -104,6 +104,7 @@ impl PrivateKey {
     ///
     /// @param {String} message The string representation of the Aleo datatype or record to sign.
     /// @returns {Signature} Signature of the message.
+    #[wasm_bindgen(js_name = "signValue")]
     pub fn sign_value(&self, message: &str) -> Result<Signature, String> {
         Ok(Signature::sign_value(self, message)?)
     }

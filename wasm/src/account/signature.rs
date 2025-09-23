@@ -54,6 +54,7 @@ impl Signature {
     /// @param {PrivateKey} private_key The private key used to sign the message.
     /// @param {String} message The string representation of the Aleo datatype or record to sign.
     /// @returns {Signature} Signature of the message.
+    #[wasm_bindgen(js_name = "signValue")]
     pub fn sign_value(private_key: &PrivateKey, message: &str) -> Result<Self, String> {
         let fields =
             ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
@@ -92,6 +93,7 @@ impl Signature {
     /// @param {Address} address The address used to verify the signature.
     /// @param {String} message The message to verify, which must be the string representation of a valid Aleo datatype or record.
     /// @returns {boolean} True if the signature is valid, false otherwise.
+    #[wasm_bindgen(js_name = "verifyValue")]
     pub fn verify_value(&self, address: &Address, message: &str) -> Result<bool, String> {
         let fields =
             ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
