@@ -9,6 +9,7 @@ import { RecordsFilter } from "./models/record-scanner/recordsFilter";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
+import { StatusResponse } from "./models/record-scanner/statusResponse";
 
 type RecordScannerOptions = {
     url: string;
@@ -188,6 +189,29 @@ class RecordScanner implements RecordProvider {
             return await response.json();
         } catch (error) {
             console.error(`Failed to check if tags exist: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Check the status of a record scanner indexing job.
+     * 
+     * @param {string} jobId The job id to check.
+     * @returns {Promise<StatusResponse>} The status of the job.
+     */
+    async checkStatus(jobId: string): Promise<StatusResponse> {
+        try {
+            const response = await this.request(
+                new Request(`${this.url}/status/${jobId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(jobId),
+                }),
+            );
+
+            return await response.json();
+        } catch (error) {
+            console.error(`Failed to check status of job: ${error}`);
             throw error;
         }
     }
