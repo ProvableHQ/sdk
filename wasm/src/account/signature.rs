@@ -220,6 +220,20 @@ mod tests {
     use wasm_bindgen_test::*;
 
     const ITERATIONS: u64 = 1_000;
+    const CREDITS_RECORD: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 1500000000000000u64.private,
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,
+  _version: 0u8.public
+}";
+    const INVALID_CREDITS_RECORD: &str = r"{
+  owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
+  microcredits: 1400000000000000u64.private,
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,
+  _version: 0u8.public
+}";
+    const NESTED_STRUCT: &str = "{ player: aleo13nnjqa7h2u4mpl95guz97nhzkhlde750zsjnw59tkgdwc85lyurs295lxc, health: 100u8, inventory: { coins: 5u32, snacks: { candies: 5u64, vegetals: 6u64 } }, secret: 2group, cipher: 2scalar, is_alive: true }";
+    const INVALID_NESTED_STRUCT: &str = "{ player: aleo13nnjqa7h2u4mpl95guz97nhzkhlde750zsjnw59tkgdwc85lyurs295lxc, health: 100u8, inventory: { coins: 5u32, snacks: { candies: 5u64, vegetals: 6u64 } }, secret: 2group, cipher: 2scalar, is_alive: false }";
 
     #[wasm_bindgen_test]
     pub fn test_sign_and_verify() {
@@ -317,7 +331,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_u8: u8 = StdRng::from_entropy().gen();
+            let rand_u8: u8 = rand_u8.wrapping_add(1);
             let bad_message = format!("{rand_u8}u8");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -422,7 +436,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_i8_new: i8 = StdRng::from_entropy().gen();
+            let rand_i8_new: i8 = rand_i8.wrapping_add(1);
             let bad_message = format!("{rand_i8_new}i8");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -511,6 +525,29 @@ mod tests {
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
         }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_record_and_verify() {
+        let signature = Signature::sign_value(&PrivateKey::new(), CREDITS_RECORD).unwrap();
+        assert!(signature.verify_value(&signature.to_address(), CREDITS_RECORD).unwrap());
+        assert!(!signature.verify_value(&signature.to_address(), INVALID_CREDITS_RECORD).unwrap());
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_nested_struct_and_verify() {
+        let signature = Signature::sign_value(&PrivateKey::new(), NESTED_STRUCT).unwrap();
+        assert!(signature.verify_value(&signature.to_address(), NESTED_STRUCT).unwrap());
+        assert!(!signature.verify_value(&signature.to_address(), INVALID_NESTED_STRUCT).unwrap());
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_array_and_verify() {
+        const VALID_ARRAY: &str = "[1u8, 2u8, 3u8, 4u8, 5u8]";
+        const INVALID_ARRAY: &str = "[1u8, 2u8, 3u8, 4u8, 6u8]";
+        let signature = Signature::sign_value(&PrivateKey::new(), INVALID_ARRAY).unwrap();
+        assert!(signature.verify_value(&signature.to_address(), INVALID_ARRAY).unwrap());
+        assert!(!signature.verify_value(&signature.to_address(), VALID_ARRAY).unwrap());
     }
 
     #[wasm_bindgen_test]
