@@ -328,7 +328,7 @@ self.addEventListener("message", (ev) => {
                 }
 
                 // Create the deployment transaction and submit it to the network
-                let transaction = await programManager.deploy(
+                let transaction = await programManager.buildDeploymentTransaction(
                     program,
                     fee,
                     privateFee,
@@ -336,9 +336,11 @@ self.addEventListener("message", (ev) => {
                     feeRecord,
                     aleo.PrivateKey.from_string(privateKey),
                 )
+                await programManager.networkClient.submitTransaction(transaction);
+                const transaction_id = transaction.id();
 
                 // Return the transaction id to the main thread
-                console.log(`Web worker: Deployment transaction ${transaction} created in ${performance.now() - startTime} ms`);
+                console.log(`Web worker: Deployment transaction ${transaction_id} created in ${performance.now() - startTime} ms`);
                 self.postMessage({
                     type: "DEPLOY_TRANSACTION_COMPLETED",
                     deployTransaction: transaction,

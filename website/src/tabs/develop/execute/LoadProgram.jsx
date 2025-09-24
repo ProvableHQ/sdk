@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Form, Input } from "antd";
 import axios from "axios";
+import { useAleoWASM } from "../../../aleo-wasm-hook.js";
 
 export const LoadProgram = ({ onResponse }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const form = Form.useFormInstance();
+    const [wasm] = useAleoWASM();
 
     const onProgramSearch = (value) => {
         if (!value || value.trim() === "") {
@@ -27,12 +29,13 @@ export const LoadProgram = ({ onResponse }) => {
             .get(url)
             .then((response) => {
                 setIsLoading(false);
+                wasm.Program.fromString(response.data);
                 setError(null);
                 onResponse(response.data);
             })
             .catch((error) => {
                 setIsLoading(false);
-                setError(error.response?.data || error.message);
+                setError(`Error finding ${value} on Aleo Testnet.`);
                 onResponse("");
             });
     };
