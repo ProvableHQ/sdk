@@ -40,7 +40,7 @@ pub const TOKEN_REGISTRY_RECORD_V1: &str = r#"{
     }"#;
 
 /// Valid credits.aleo record for testing.
-pub const CREDITS_RECORD: &str = r"{
+pub const VALID_CREDITS_RECORD: &str = r"{
   owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
   microcredits: 1500000000000000u64.private,
   _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,

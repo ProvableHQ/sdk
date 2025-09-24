@@ -301,7 +301,7 @@ mod tests {
     use crate::{
         test::get_env,
         types::native::{PrivateKeyNative, ViewKeyNative},
-        utilities::test::record::{
+        utilities::test::records::{
             CREDITS_RECORD_V1,
             CREDITS_RECORD_VIEW_KEY,
             CREDITS_SENDER_CIPHERTEXT,

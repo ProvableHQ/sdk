@@ -337,7 +337,7 @@ mod tests {
         utilities::test::get_env,
     };
 
-    use crate::utilities::test::record::{CREDITS_RECORD_V1, CREDITS_SENDER_CIPHERTEXT, CREDITS_SENDER_PLAINTEXT};
+    use crate::utilities::test::records::{CREDITS_RECORD_V1, CREDITS_SENDER_CIPHERTEXT, CREDITS_SENDER_PLAINTEXT};
     use wasm_bindgen_test::*;
 
     const CREDITS_RECORD: &str = r"{
