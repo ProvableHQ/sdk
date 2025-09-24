@@ -814,6 +814,21 @@ __*return*__ | [Field](sdk-src_wasm.md) | *The transition view key.*
 
 ---
 
+### `decryptSender(view_key, record, sender_ciphertext) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Decrypt the sender ciphertext associated with a record.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key associated with the record.*
+__record__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext associated with a sender.*
+__sender_ciphertext__ | [Field](sdk-src_wasm.md) | *Sender ciphertext associated with the record.*
+__*return*__ | [Address](sdk-src_wasm.md) | *address of the sender.*
+
+---
+
 ### `checkOwnedRecords(view_key, records) ► Vec.<RecordCiphertext>`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -839,6 +854,20 @@ Parameters | Type | Description
 __view_key__ | `ViewKey` | *The view key of the owner of the records.*
 __records__ | `Vec.<RecordCiphertext>` | *The record ciphertexts to decrypt.*
 __*return*__ | `vec.<RecordPlaintext>` | *The decrypted record plaintexts.*
+
+---
+
+### `decryptSenderWithRvk(record_view_key, sender_ciphertext) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Decrypt the sender ciphertext associated with the record with the record view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__record_view_key__ | [Field](sdk-src_wasm.md) | *Record view key associated with the record.*
+__sender_ciphertext__ | [Field](sdk-src_wasm.md) | *Sender ciphertext associated with the record.*
+__*return*__ | [Address](sdk-src_wasm.md) | *the address of the sender.*
 
 ---
 
@@ -1862,6 +1891,19 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | **
 ---
 
 ## Methods
+
+### `sign_value(message) ► Signature`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Sign an instance of a valid Aleo data type or record.
+
+Parameters | Type | Description
+--- | --- | ---
+__message__ | `String` | *The string representation of the Aleo datatype or record to sign.*
+__*return*__ | [Signature](sdk-src_wasm.md) | *Signature of the message.*
+
+---
 
 ### `to_address() ► Address`
 
@@ -3172,6 +3214,20 @@ __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The record plaintext.*
 
 ---
 
+### `decryptSender(view_key, sender_ciphertext) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Decrypt the sender ciphertext associated with the record.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key associated with the record.*
+__sender_ciphertext__ | [Field](sdk-src_wasm.md) | *Sender ciphertext associated with the record.*
+__*return*__ | [Address](sdk-src_wasm.md) | *address of the sender.*
+
+---
+
 ### `recordViewKey(view_key) ► Group`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3537,6 +3593,20 @@ Cryptographic signature of a message signed by an Aleo account
 
 ## Methods
 
+### `signValue(private_key, message) ► Signature`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Sign an instance of a valid Aleo data type or record.
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | [PrivateKey](sdk-src_wasm.md) | *The private key used to sign the message.*
+__message__ | `String` | *The string representation of the Aleo datatype or record to sign.*
+__*return*__ | [Signature](sdk-src_wasm.md) | *Signature of the message.*
+
+---
+
 ### `to_address() ► Address`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3608,6 +3678,20 @@ Get the plaintext representation of the signature.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | [Plaintext](sdk-src_wasm.md) | **
+
+---
+
+### `verifyValue(address, message) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify a signature over an Aleo datatype or record by an address.
+
+Parameters | Type | Description
+--- | --- | ---
+__address__ | [Address](sdk-src_wasm.md) | *The address used to verify the signature.*
+__message__ | `String` | *The message to verify, which must be the string representation of a valid Aleo datatype or record.*
+__*return*__ | `boolean` | *True if the signature is valid, false otherwise.*
 
 ---
 

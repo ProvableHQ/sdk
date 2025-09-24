@@ -17,6 +17,7 @@
 use crate::{
     Address,
     Field,
+    Group,
     Plaintext,
     PrivateKey,
     Scalar,
@@ -24,7 +25,7 @@ use crate::{
     js_array_from_fields,
     native::LiteralNative,
     to_bits_array_le,
-    types::native::SignatureNative,
+    types::native::{SignatureNative, ValueNative},
 };
 use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, ToFields};
 
@@ -46,6 +47,19 @@ impl Signature {
     /// @returns {Signature} Signature of the message
     pub fn sign(private_key: &PrivateKey, message: &[u8]) -> Self {
         Self(SignatureNative::sign_bytes(private_key, message, &mut StdRng::from_entropy()).unwrap())
+    }
+
+    /// Sign an instance of a valid Aleo data type or record.
+    ///
+    /// @param {PrivateKey} private_key The private key used to sign the message.
+    /// @param {String} message The string representation of the Aleo datatype or record to sign.
+    /// @returns {Signature} Signature of the message.
+    #[wasm_bindgen(js_name = "signValue")]
+    pub fn sign_value(private_key: &PrivateKey, message: &str) -> Result<Self, String> {
+        let fields =
+            ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
+
+        Ok(Self(SignatureNative::sign(private_key, &fields, &mut StdRng::from_entropy()).map_err(|e| e.to_string())?))
     }
 
     /// Get an address from a signature.
@@ -72,6 +86,18 @@ impl Signature {
     /// @returns {boolean} True if the signature is valid, false otherwise
     pub fn verify(&self, address: &Address, message: &[u8]) -> bool {
         self.0.verify_bytes(address, message)
+    }
+
+    /// Verify a signature over an Aleo datatype or record by an address.
+    ///
+    /// @param {Address} address The address used to verify the signature.
+    /// @param {String} message The message to verify, which must be the string representation of a valid Aleo datatype or record.
+    /// @returns {boolean} True if the signature is valid, false otherwise.
+    #[wasm_bindgen(js_name = "verifyValue")]
+    pub fn verify_value(&self, address: &Address, message: &str) -> Result<bool, String> {
+        let fields =
+            ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
+        Ok(self.0.verify(address, &fields))
     }
 
     /// Get a signature from a series of bytes.
@@ -192,6 +218,10 @@ impl FromStr for Signature {
 mod tests {
     use super::*;
 
+    use crate::utilities::test::{
+        plaintext::{INVALID_NESTED_STRUCT, NESTED_STRUCT},
+        records::{CREDITS_RECORD, INVALID_CREDITS_RECORD},
+    };
     use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;
 
@@ -214,5 +244,310 @@ mod tests {
             // Check the signature is invalid.
             assert!(!signature.verify(&private_key.to_address(), &bad_message));
         }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_fields() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_val: u64 = StdRng::from_entropy().gen();
+            let message = format!("{rand_val}field");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_val: u64 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_val}field");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_groups() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_group: Group = Group::random();
+            let message = rand_group.to_string();
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_group: Group = Group::random();
+            let bad_message = rand_group.to_string();
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_scalars() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_scalar: Scalar = Scalar::random();
+            let message = rand_scalar.to_string();
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_scalar: Scalar = Scalar::random();
+            let bad_message = rand_scalar.to_string();
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_u8() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_u8: u8 = StdRng::from_entropy().gen();
+            let message = format!("{rand_u8}u8");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_u8: u8 = rand_u8.wrapping_add(1);
+            let bad_message = format!("{rand_u8}u8");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_u16() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_u16: u16 = StdRng::from_entropy().gen();
+            let message = format!("{rand_u16}u16");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_u16_new: u16 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_u16_new}u16");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_u32() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_u32: u32 = StdRng::from_entropy().gen();
+            let message = format!("{rand_u32}u32");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_u32: u32 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_u32}u32");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_u64() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_u64: u64 = StdRng::from_entropy().gen();
+            let message = format!("{rand_u64}u64");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_u64: u64 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_u64}u64");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_u128() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_u128: u128 = StdRng::from_entropy().gen();
+            let message = format!("{rand_u128}u128");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_u128: u128 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_u128}u128");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_i8() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_i8: i8 = StdRng::from_entropy().gen();
+            let message = format!("{rand_i8}i8");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_i8_new: i8 = rand_i8.wrapping_add(1);
+            let bad_message = format!("{rand_i8_new}i8");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_i16() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_i16: i16 = StdRng::from_entropy().gen();
+            let message = format!("{rand_i16}i16");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_i16_new: i16 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_i16_new}i16");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_i32() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_i32: i32 = StdRng::from_entropy().gen();
+            let message = format!("{rand_i32}i32");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_i32_new: i32 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_i32_new}i32");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_i64() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_i64: i64 = StdRng::from_entropy().gen();
+            let message = format!("{rand_i64}i64");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_i64_new: i64 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_i64_new}i64");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_and_verify_i128() {
+        for _ in 0..ITERATIONS {
+            // Sample a new private key and message.
+            let private_key = PrivateKey::new();
+            let rand_i128: i128 = StdRng::from_entropy().gen();
+            let message = format!("{rand_i128}i128");
+
+            // Sign the message.
+            let signature = Signature::sign_value(&private_key, &message).unwrap();
+            // Check the signature is valid.
+            assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
+
+            // Sample a different message.
+            let rand_i128_new: i128 = StdRng::from_entropy().gen();
+            let bad_message = format!("{rand_i128_new}i128");
+            // Check the signature is invalid.
+            assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_record_and_verify() {
+        let signature = Signature::sign_value(&PrivateKey::new(), CREDITS_RECORD).unwrap();
+        assert!(signature.verify_value(&signature.to_address(), CREDITS_RECORD).unwrap());
+        assert!(!signature.verify_value(&signature.to_address(), INVALID_CREDITS_RECORD).unwrap());
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_nested_struct_and_verify() {
+        let signature = Signature::sign_value(&PrivateKey::new(), NESTED_STRUCT).unwrap();
+        assert!(signature.verify_value(&signature.to_address(), NESTED_STRUCT).unwrap());
+        assert!(!signature.verify_value(&signature.to_address(), INVALID_NESTED_STRUCT).unwrap());
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_sign_array_and_verify() {
+        const VALID_ARRAY: &str = "[1u8, 2u8, 3u8, 4u8, 5u8]";
+        const INVALID_ARRAY: &str = "[1u8, 2u8, 3u8, 4u8, 6u8]";
+        let signature = Signature::sign_value(&PrivateKey::new(), INVALID_ARRAY).unwrap();
+        assert!(signature.verify_value(&signature.to_address(), INVALID_ARRAY).unwrap());
+        assert!(!signature.verify_value(&signature.to_address(), VALID_ARRAY).unwrap());
+    }
+
+    #[wasm_bindgen_test]
+    #[should_panic]
+    pub fn test_sign_value_failure() {
+        let private_key = PrivateKey::new();
+        let invalid_message = "this is not a valid Aleo value";
+
+        let _sign_result = Signature::sign_value(&private_key, invalid_message).unwrap();
     }
 }
