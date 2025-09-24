@@ -220,7 +220,7 @@ mod tests {
 
     use crate::utilities::test::{
         plaintext::{INVALID_NESTED_STRUCT, NESTED_STRUCT},
-        records::{VALID_CREDITS_RECORD, INVALID_CREDITS_RECORD},
+        records::{INVALID_CREDITS_RECORD, VALID_CREDITS_RECORD},
     };
     use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;
