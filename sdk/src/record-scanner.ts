@@ -202,7 +202,7 @@ class RecordScanner implements RecordProvider {
     async checkStatus(jobId: string): Promise<StatusResponse> {
         try {
             const response = await this.request(
-                new Request(`${this.url}/status/${jobId}`, {
+                new Request(`${this.url}/status`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(jobId),
