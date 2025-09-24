@@ -172,6 +172,7 @@ describe("RecordScanner", () => {
         const body = await request.text();
         const expectedBody = JSON.stringify(filter);
         expect(body).to.equal(expectedBody);
+        expect(request.url).to.equal("https://record-scanner.aleo.org/records/encrypted");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
@@ -228,6 +229,7 @@ describe("RecordScanner", () => {
         const body = await request.text();
         const expectedBody = JSON.stringify(filter);
         expect(body).to.equal(expectedBody);
+        expect(request.url).to.equal("https://record-scanner.aleo.org/records/owned");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
@@ -263,6 +265,7 @@ describe("RecordScanner", () => {
             uuid: "test-uuid",
         });
         expect(body).to.equal(expectedBody);
+        expect(request.url).to.equal("https://record-scanner.aleo.org/records/owned");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
@@ -315,6 +318,7 @@ describe("RecordScanner", () => {
             "5684626152578699086223993752521225507576791345254401210560771329591763880242field",
         ]);
         expect(body).to.equal(expectedBody);
+        expect(request.url).to.equal("https://record-scanner.aleo.org/records/sns");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
@@ -343,6 +347,7 @@ describe("RecordScanner", () => {
             "5941252181432651644402279701137165256963073258332916685063623109173576520831field",
         ]);
         expect(body).to.equal(expectedBody);
+        expect(request.url).to.equal("https://record-scanner.aleo.org/records/tags");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
@@ -363,6 +368,7 @@ describe("RecordScanner", () => {
         const body = await request.text();
         const expectedBody = JSON.stringify("test-job-id");
         expect(body).to.equal(expectedBody);
+        expect(request.url).to.equal("https://record-scanner.aleo.org/status");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
