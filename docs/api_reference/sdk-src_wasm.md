@@ -3593,7 +3593,7 @@ Cryptographic signature of a message signed by an Aleo account
 
 ## Methods
 
-### `sign_value(private_key, message) ► Signature`
+### `signValue(private_key, message) ► Signature`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
@@ -3681,7 +3681,7 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
-### `verify_value(address, message) ► boolean`
+### `verifyValue(address, message) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
