@@ -93,7 +93,6 @@ dependencies = [
  "hex",
  "indexmap",
  "js-sys",
- "log",
  "rand",
  "rayon",
  "reqwest 0.11.27",

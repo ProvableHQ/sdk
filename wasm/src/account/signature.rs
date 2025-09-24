@@ -220,7 +220,7 @@ mod tests {
 
     use crate::utilities::test::{
         plaintext::{INVALID_NESTED_STRUCT, NESTED_STRUCT},
-        records::{CREDITS_RECORD, INVALID_CREDITS_RECORD},
+        records::{INVALID_CREDITS_RECORD, VALID_CREDITS_RECORD},
     };
     use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;
@@ -521,8 +521,8 @@ mod tests {
 
     #[wasm_bindgen_test]
     pub fn test_sign_record_and_verify() {
-        let signature = Signature::sign_value(&PrivateKey::new(), CREDITS_RECORD).unwrap();
-        assert!(signature.verify_value(&signature.to_address(), CREDITS_RECORD).unwrap());
+        let signature = Signature::sign_value(&PrivateKey::new(), VALID_CREDITS_RECORD).unwrap();
+        assert!(signature.verify_value(&signature.to_address(), VALID_CREDITS_RECORD).unwrap());
         assert!(!signature.verify_value(&signature.to_address(), INVALID_CREDITS_RECORD).unwrap());
     }
 
