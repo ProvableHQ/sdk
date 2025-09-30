@@ -116,6 +116,7 @@ impl Field {
     }
 
     /// Initializes a new field as a domain separator.
+    #[wasm_bindgen(js_name = "newDomainSeparator")]
     pub fn new_domain_separator(&self, domain: &str) -> Field {
         let domain_native =
             FieldNative::new(<CurrentNetwork as Environment>::Field::from_bytes_le_mod_order(domain.as_bytes()));
