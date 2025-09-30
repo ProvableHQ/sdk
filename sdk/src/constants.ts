@@ -111,3 +111,5 @@ export const PUBLIC_TO_PRIVATE_TRANSFER = new Set([
     "transfer_public_to_private",
     "transferPublicToPrivate",
 ]);
+
+export const RECORD_DOMAIN = "RecordScannerV0";
