@@ -1,12 +1,12 @@
-import { expect } from "chai";
-import sinon from "sinon";
-import { RecordScanner } from "../src/record-scanner";
 import { Account } from "../src/account";
 import { CHECK_SNS_RESPONSE, CHECK_TAGS_RESPONSE, ENCRYPTED_RECORDS, OWNED_RECORDS } from "./data/records";
-import { RecordsResponseFilter } from "../src/models/record-scanner/recordsResponseFilter";
-import { RecordsFilter } from "../src/models/record-scanner/recordsFilter";
+import { expect } from "chai";
 import { OwnedFilter } from "../src/models/record-scanner/ownedFilter";
 import { OwnedRecordsResponseFilter } from "../src/models/record-scanner/ownedRecordsResponseFilter";
+import { RecordScanner } from "../src/record-scanner";
+import { RecordsFilter } from "../src/models/record-scanner/recordsFilter";
+import { RecordsResponseFilter } from "../src/models/record-scanner/recordsResponseFilter";
+import sinon from "sinon";
 
 describe("RecordScanner", () => {
     const defaultAccount = new Account({ privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH" });

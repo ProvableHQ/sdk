@@ -3,13 +3,14 @@ import { EncryptedRecord } from "./models/record-provider/encryptedRecord";
 import { OwnedFilter } from "./models/record-scanner/ownedFilter";
 import { OwnedRecord } from "./models/record-provider/ownedRecord";
 import { RecordProvider } from "./record-provider";
-import { RecordPlaintext } from "./wasm";
+import { Field, Poseidon4, RecordPlaintext, ViewKey } from "./wasm";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
 import { StatusResponse } from "./models/record-scanner/statusResponse";
+import { RECORD_DOMAIN } from "./constants";
 
 type RecordScannerOptions = {
     url: string;
@@ -68,6 +69,9 @@ class RecordScanner implements RecordProvider {
         this.url = options.url;
         this.account = options.account;
         this.apiKey = typeof options.apiKey === "string" ? { header: "X-Provable-API-Key", value: options.apiKey } : options.apiKey;
+        if (this.account) {
+            this.uuid = this.computeUUID(this.account.viewKey());
+        }
     }
     
     /**
@@ -76,8 +80,8 @@ class RecordScanner implements RecordProvider {
      * @param {Account} account The account to use for the record scanner.
      */
     async setAccount(account: Account): Promise<void> {
-        this.uuid = undefined;
         this.account = account;
+        this.uuid = this.computeUUID(account.viewKey());
     }
 
     /**
@@ -245,7 +249,7 @@ class RecordScanner implements RecordProvider {
      */
     async findRecords(filter: OwnedFilter): Promise<OwnedRecord[]> {
         if (!this.uuid) {
-            throw new Error("Not registered");
+            throw new Error("You are using the RecordScanner implementation of the RecordProvider. No account has been registered with the RecordScanner which is required to use the findRecords method. Please set an with the setAccount method before calling the findRecords method again.");
         }
 
         filter.uuid = this.uuid;
@@ -277,7 +281,7 @@ class RecordScanner implements RecordProvider {
         try {
             const records = await this.findRecords({
                 decrypt: true,
-                unspent: searchParameters.unspent ?? false,
+                unspent: searchParameters.unspent,
                 filter: {
                     start: searchParameters.filter?.start ?? 0,
                     program: "credits.aleo",
@@ -294,7 +298,7 @@ class RecordScanner implements RecordProvider {
             });
 
             if (!record) {
-                throw new Error("Record not found");
+                throw new Error(`No records found matching the supplied search filter:\n${JSON.stringify(searchParameters, null, 2)}`);
             }
 
             return record;
@@ -315,7 +319,7 @@ class RecordScanner implements RecordProvider {
         try {
             const records = await this.findRecords({
                 decrypt: true,
-                unspent: searchParameters.unspent ?? false,
+                unspent: searchParameters.unspent,
                 filter: {
                     start: searchParameters.filter?.start ?? 0,
                     program: "credits.aleo",
@@ -356,6 +360,14 @@ class RecordScanner implements RecordProvider {
             console.error(`Failed to make request to ${req.url}: ${error}`);
             throw error;
         }
+    }
+
+    private computeUUID(vk: ViewKey): Field {
+        // Construct the material needed for the Poseidon oracle.
+        const inputs = [Field.newDomainSeparator(RECORD_DOMAIN), vk().toField(), Field.one()]
+        // Calculate the uuid.
+        const hasher = new Poseidon4();
+        return hasher.hash(inputs);
     }
 }
 
