@@ -18,10 +18,10 @@ use crate::{
     Plaintext,
     from_js_typed_array,
     to_bits_array_le,
-    types::native::{FieldNative, LiteralNative, PlaintextNative},
+    types::native::{CurrentNetwork, FieldNative, LiteralNative, PlaintextNative},
 };
-use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Zero};
-use snarkvm_wasm::utilities::Uniform;
+use snarkvm_console::prelude::{Double, Environment, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Zero};
+use snarkvm_wasm::{fields::PrimeField, utilities::Uniform};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr, sync::OnceLock};
@@ -113,6 +113,13 @@ impl Field {
     /// Divide two field elements.
     pub fn divide(&self, other: &Field) -> Field {
         Field(self.0 / other.0)
+    }
+
+    /// Initializes a new field as a domain separator.
+    pub fn new_domain_separator(&self, domain: &str) -> Field {
+        let domain_native =
+            FieldNative::new(<CurrentNetwork as Environment>::Field::from_bytes_le_mod_order(domain.as_bytes()));
+        Field::from(domain_native)
     }
 
     /// Power of a field element.
