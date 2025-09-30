@@ -26,13 +26,8 @@ describe("RecordScanner", () => {
         expect(recordScanner.url).equal("https://record-scanner.aleo.org");
     });
 
-    it("should intialize with the correct account", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
-        expect(recordScanner.account).equal(defaultAccount);
-    });
-
     it("should intialize with the correct api key as a string", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount, apiKey: "1234567890" });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", apiKey: "1234567890" });
         
         const mockResponse = {
             ok: true,
@@ -42,14 +37,14 @@ describe("RecordScanner", () => {
         };
         
         fetchStub.resolves(mockResponse);
-        await recordScanner.register(0);
+        await recordScanner.register(defaultAccount.viewKey(), 0);
         
         const request = fetchStub.firstCall.args[0] as Request;
         expect(request.headers.get("X-Provable-API-Key")).to.equal("1234567890");
     });
 
     it("should intialize with the correct api key as an object", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount, apiKey: { header: "Some-API-Key", value: "1234567890" } });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", apiKey: { header: "Some-API-Key", value: "1234567890" } });
         
         const mockResponse = {
             ok: true,
@@ -59,14 +54,14 @@ describe("RecordScanner", () => {
         };
         
         fetchStub.resolves(mockResponse);
-        await recordScanner.register(0);
+        await recordScanner.register(defaultAccount.viewKey(), 0);
         
         const request = fetchStub.firstCall.args[0] as Request;
         expect(request.headers.get("Some-API-Key")).to.equal("1234567890");
     });
 
     it("should return RegistrationResponse after successfully registering the account", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
         
         const mockResponse = {
             ok: true,
@@ -76,7 +71,7 @@ describe("RecordScanner", () => {
         };
         
         fetchStub.resolves(mockResponse);
-        const registrationResponse = await recordScanner.register(0);
+        const registrationResponse = await recordScanner.register(defaultAccount.viewKey(), 0);
         
         expect(fetchStub.calledOnce).to.be.true;
         const request = fetchStub.firstCall.args[0] as Request;
@@ -92,7 +87,7 @@ describe("RecordScanner", () => {
     });
 
     it("should return the optional fields of RegistrationResponse if present after successfully registering the account", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
         
         const mockResponse = {
             ok: true,
@@ -102,7 +97,7 @@ describe("RecordScanner", () => {
         };
         
         fetchStub.resolves(mockResponse);
-        const registrationResponse = await recordScanner.register(0);
+        const registrationResponse = await recordScanner.register(defaultAccount.viewKey(), 0);
 
         expect(fetchStub.calledOnce).to.be.true;
         const request = fetchStub.firstCall.args[0] as Request;
@@ -119,22 +114,9 @@ describe("RecordScanner", () => {
         expect(registrationResponse.status).equal("pending");
     });
 
-    it("should throw an error if the account is not set", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
-        let failed = false;
-        try {
-            await recordScanner.register(0);
-        } catch (err: any) {
-            expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.equal("Account not set");
-            failed = true;
-        }
-        expect(failed).to.be.true;
-    });
-
     
     it("should return EncryptedRecord[] after successfully getting encrypted records", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -178,17 +160,8 @@ describe("RecordScanner", () => {
     });
 
     it("should return OwnedRecord[] after successfully getting owned records", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
-        const mockRegisterResponse = {
-            ok: true,
-            status: 201,
-            text: () => Promise.resolve('{"uuid": "test-uuid"}'),
-            json: () => Promise.resolve({ uuid: "test-uuid" })
-        };
-        fetchStub.resolves(mockRegisterResponse);
-        await recordScanner.register(0);
-
-        fetchStub.resetHistory();
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner.setUuid(defaultAccount.viewKey());
 
         const mockResponse = {
             ok: true,
@@ -235,17 +208,8 @@ describe("RecordScanner", () => {
     });
 
     it("should return OwnedRecord after successfully getting owned record", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
-        const mockRegisterResponse = {
-            ok: true,
-            status: 201,
-            text: () => Promise.resolve('{"uuid": "test-uuid"}'),
-            json: () => Promise.resolve({ uuid: "test-uuid" })
-        };
-        fetchStub.resolves(mockRegisterResponse);
-        await recordScanner.register(0);
-
-        fetchStub.resetHistory();
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner.setUuid(defaultAccount.viewKey());
 
         const mockResponse = {
             ok: true,
@@ -262,7 +226,7 @@ describe("RecordScanner", () => {
         const request = fetchStub.firstCall.args[0] as Request;
         const body = await request.text();
         const expectedBody = JSON.stringify({
-            uuid: "test-uuid",
+            uuid: "7884164224800444110633570141944665301008802280502652120359195870264061098703field",
         });
         expect(body).to.equal(expectedBody);
         expect(request.url).to.equal("https://record-scanner.aleo.org/records/owned");
@@ -271,7 +235,7 @@ describe("RecordScanner", () => {
     });
 
     it("should throw an error if the uuid is not registered", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
         let failed = false;
         try {
             await recordScanner.findRecords({
@@ -290,14 +254,14 @@ describe("RecordScanner", () => {
             });
         } catch (err: any) {
             expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.equal("Not registered");
+            expect(err.message).to.equal("You are using the RecordScanner implementation of the RecordProvider. No account has been registered with the RecordScanner which is required to use the findRecords method. Please set an with the setAccount method before calling the findRecords method again.");
             failed = true;
         }
         expect(failed).to.be.true;
     });
 
     it("should return record of string->boolean after successfully checking serial numbers", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -324,7 +288,7 @@ describe("RecordScanner", () => {
     });
 
     it("should return record of string->boolean after successfully checking tags", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -353,7 +317,7 @@ describe("RecordScanner", () => {
     });
 
     it("should return StatusResponse after successfully checking status", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -374,7 +338,7 @@ describe("RecordScanner", () => {
     });
 
     it("should handle HTTP errors", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", account: defaultAccount });
+        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
         let mockResponse = {
             ok: false,
             status: 500,
@@ -384,7 +348,7 @@ describe("RecordScanner", () => {
         fetchStub.resolves(mockResponse);
         let failed = false;
         try {
-            await recordScanner.register(0);
+            await recordScanner.register(defaultAccount.viewKey(), 0);
         } catch (err: any) {
             expect(err).to.be.instanceOf(Error);
             expect(err.message).to.equal('{"error": "Internal server error"}');
@@ -401,7 +365,7 @@ describe("RecordScanner", () => {
         fetchStub.resolves(mockResponse);
         failed = false;
         try {
-            await recordScanner.register(0);
+            await recordScanner.register(defaultAccount.viewKey(), 0);
         } catch (err: any) {
             expect(err).to.be.instanceOf(Error);
             expect(err.message).to.equal('{"error": "Invalid view key"}');
@@ -412,7 +376,7 @@ describe("RecordScanner", () => {
         fetchStub.rejects(new Error("Unknown error"));
         failed = false;
         try {
-            await recordScanner.register(0);
+            await recordScanner.register(defaultAccount.viewKey(), 0);
         } catch (err: any) {
             expect(err).to.be.instanceOf(Error);
             expect(err.message).to.equal("Unknown error");

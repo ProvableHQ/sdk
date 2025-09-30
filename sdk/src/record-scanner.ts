@@ -1,12 +1,9 @@
-import { Account } from "./account";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord";
 import { OwnedFilter } from "./models/record-scanner/ownedFilter";
 import { OwnedRecord } from "./models/record-provider/ownedRecord";
 import { RecordProvider } from "./record-provider";
 import { Field, Poseidon4, RecordPlaintext, ViewKey } from "./wasm";
-import { RecordSearchParams } from "./models/record-provider/recordSearchParams";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter";
-import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
 import { StatusResponse } from "./models/record-scanner/statusResponse";
@@ -14,7 +11,6 @@ import { RECORD_DOMAIN } from "./constants";
 
 type RecordScannerOptions = {
     url: string;
-    account?: Account;
     apiKey?: string | { header: string, value: string };
 }
 
@@ -60,28 +56,13 @@ type RecordScannerOptions = {
  * const records = await recordScanner.findRecords(filter);
  */
 class RecordScanner implements RecordProvider {
-    account?: Account;
     readonly url: string;
     private apiKey?: { header: string, value: string };
-    private uuid?: string;
+    private uuid?: Field;
 
     constructor(options: RecordScannerOptions) {
         this.url = options.url;
-        this.account = options.account;
         this.apiKey = typeof options.apiKey === "string" ? { header: "X-Provable-API-Key", value: options.apiKey } : options.apiKey;
-        if (this.account) {
-            this.uuid = this.computeUUID(this.account.viewKey());
-        }
-    }
-    
-    /**
-     * Set the account to use for the record scanner.
-     * 
-     * @param {Account} account The account to use for the record scanner.
-     */
-    async setAccount(account: Account): Promise<void> {
-        this.account = account;
-        this.uuid = this.computeUUID(account.viewKey());
     }
 
     /**
@@ -94,23 +75,27 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
+     * Set the UUID to use for the record scanner.
+     * 
+     * @param {Field} uuid The UUID to use for the record scanner.
+     */
+    async setUuid(uuidOrViewKey: Field | ViewKey): Promise<void> {
+        this.uuid = uuidOrViewKey instanceof ViewKey ? this.computeUUID(uuidOrViewKey) : uuidOrViewKey;
+    }
+
+    /**
      * Register the account with the record scanner service.
      * 
      * @param {number} startBlock The block height to start scanning from.
      * @returns {Promise<RegistrationResponse>} The response from the record scanner service.
      */
-    async register(startBlock: number): Promise<RegistrationResponse> {
-        let request: RegistrationRequest;
-        if (!this.account) {
-            throw new Error("Account not set");
-        } else {
-            request = {
-                view_key: this.account.viewKey().to_string(),
+    async register(viewKey: ViewKey, startBlock: number): Promise<RegistrationResponse> {
+        try {
+            let request: RegistrationRequest = {
+                view_key: viewKey.to_string(),
                 start: startBlock,
             };
-        }
 
-        try {
             const response = await this.request(
                 new Request(`${this.url}/register`, {
                     method: "POST",
@@ -252,7 +237,7 @@ class RecordScanner implements RecordProvider {
             throw new Error("You are using the RecordScanner implementation of the RecordProvider. No account has been registered with the RecordScanner which is required to use the findRecords method. Please set an with the setAccount method before calling the findRecords method again.");
         }
 
-        filter.uuid = this.uuid;
+        filter.uuid = this.uuid?.toString();
 
         try {
             const response = await this.request(
@@ -287,7 +272,7 @@ class RecordScanner implements RecordProvider {
                     program: "credits.aleo",
                     record: "credits",
                 },
-                uuid: this.uuid,
+                uuid: this.uuid?.toString(),
             });
 
             const record = records.find(record => {
@@ -325,7 +310,7 @@ class RecordScanner implements RecordProvider {
                     program: "credits.aleo",
                     record: "credits",
                 },
-                uuid: this.uuid,
+                uuid: this.uuid?.toString(),
             });
             return records.filter(record => {
                 const plaintext = RecordPlaintext.fromString(record.record_plaintext ?? '');
@@ -364,7 +349,7 @@ class RecordScanner implements RecordProvider {
 
     private computeUUID(vk: ViewKey): Field {
         // Construct the material needed for the Poseidon oracle.
-        const inputs = [Field.newDomainSeparator(RECORD_DOMAIN), vk().toField(), Field.one()]
+        const inputs = [Field.newDomainSeparator(RECORD_DOMAIN), vk.toField(), Field.one()]
         // Calculate the uuid.
         const hasher = new Poseidon4();
         return hasher.hash(inputs);
