@@ -188,13 +188,13 @@ class RecordScanner implements RecordProvider {
      * @param {string} jobId The job id to check.
      * @returns {Promise<StatusResponse>} The status of the job.
      */
-    async checkStatus(jobId: string): Promise<StatusResponse> {
+    async checkStatus(): Promise<StatusResponse> {
         try {
             const response = await this.request(
                 new Request(`${this.url}/status`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(jobId),
+                    body: JSON.stringify(this.uuid?.toString()),
                 }),
             );
 
@@ -347,7 +347,7 @@ class RecordScanner implements RecordProvider {
         }
     }
 
-    private computeUUID(vk: ViewKey): Field {
+    computeUUID(vk: ViewKey): Field {
         // Construct the material needed for the Poseidon oracle.
         const inputs = [Field.newDomainSeparator(RECORD_DOMAIN), vk.toField(), Field.one()]
         // Calculate the uuid.

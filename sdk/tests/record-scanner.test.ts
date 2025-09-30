@@ -324,13 +324,14 @@ describe("RecordScanner", () => {
             text: () => Promise.resolve(JSON.stringify({ synced: true, percentage: 100 })),
             json: () => Promise.resolve({ synced: true, percentage: 100 }),
         };
+        recordScanner.setUuid(defaultAccount.viewKey());
         fetchStub.resolves(mockResponse);
-        const statusResponse = await recordScanner.checkStatus("test-job-id");
+        const statusResponse = await recordScanner.checkStatus();
         expect(statusResponse).to.deep.equal({ synced: true, percentage: 100 });
 
         const request = fetchStub.firstCall.args[0] as Request;
         const body = await request.text();
-        const expectedBody = JSON.stringify("test-job-id");
+        const expectedBody = JSON.stringify(recordScanner.computeUUID(defaultAccount.viewKey()).toString());
         expect(body).to.equal(expectedBody);
         expect(request.url).to.equal("https://record-scanner.aleo.org/status");
         expect(request.method).to.equal("POST");
