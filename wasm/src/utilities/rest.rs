@@ -96,7 +96,7 @@ mod tests {
                 )
                 .unwrap(),
             ];
-            let state_paths = get_statepaths_for_commitments("http://34.168.156.3:3030", &commitments).await.unwrap();
+            let state_paths = get_statepaths_for_commitments("http://34.169.215.4:3030", &commitments).await.unwrap();
             assert_eq!(state_paths.len(), 2);
             assert_eq!(state_paths[0].global_state_root(), state_paths[1].global_state_root());
         }
