@@ -5,6 +5,7 @@
  * @example
  * const recordsResponseFilter: RecordsResponseFilter = {
  *     block_height: true,
+ *     block_timestamp: true,
  *     checksum: true,
  *     commitment: true,
  *     record_ciphertext: true,
@@ -14,6 +15,7 @@
  *     owner: true,
  *     program_name: true,
  *     record_name: true,
+ *     sender_ciphertext: true,
  *     transaction_id: true,
  *     transition_id: true,
  *     transaction_index: true,
@@ -21,10 +23,12 @@
  * }
  */
 export type RecordsResponseFilter = {
-    blockHeight?: boolean;
+    block_height?: boolean;
+    block_timestamp?: boolean;
     checksum?: boolean;
     commitment?: boolean;
     record_ciphertext?: boolean;
+    sender_ciphertext?: boolean;
     function_name?: boolean;
     nonce?: boolean;
     output_index?: boolean;

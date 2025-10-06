@@ -52,6 +52,7 @@ import {
     NetworkRecordProvider,
     RecordProvider,
 } from "./record-provider.js";
+import { RecordScanner } from "./record-scanner.js";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {
@@ -126,6 +127,7 @@ export {
     PUBLIC_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER,
     PUBLIC_TO_PRIVATE_TRANSFER,
+    RECORD_DOMAIN,
     VALID_TRANSFER_TYPES,
 } from "./constants.js";
 
@@ -177,6 +179,7 @@ export {
     RecordsFilter,
     RecordsResponseFilter,
     RecordProvider,
+    RecordScanner,
     RecordSearchParams,
     SolutionJSON,
     SolutionsJSON,
