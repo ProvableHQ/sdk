@@ -271,7 +271,7 @@ mod tests {
             let commitments =
                 vec![FieldNative::from_str(commitment_0).unwrap(), FieldNative::from_str(commitment_1).unwrap()];
             let (height, state_paths) =
-                SnapshotQuery::snapshot_statepaths("http://34.168.156.3:3030", &commitments).await.unwrap();
+                SnapshotQuery::snapshot_statepaths("http://34.169.215.4:3030", &commitments).await.unwrap();
             assert_eq!(state_paths.len(), 2);
             let (commitment_0_field, state_path_0) = &state_paths[0];
             let (commitment_1_field, state_path_1) = &state_paths[1];
