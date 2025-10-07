@@ -99,11 +99,13 @@ jobs:
           Previous commit: ${{ steps.snarkvm-commit.outputs.current_commit }}
           Latest commit: ${{ steps.snarkvm-commit.outputs.latest_commit }}
           
-          # Fetch the remote branch so force-with-lease works correctly
-          git fetch origin update-snarkvm-staging:update-snarkvm-staging || true
-          
           This update was performed automatically by the snarkVM update workflow."
-          git push --force-with-lease origin update-snarkvm-staging
+
+          # Make sure the remote branch exists and is up to date
+          git fetch origin update-snarkvm-staging || true
+
+          # Push forcefully (safe because only CI touches this branch)
+          git push --force origin update-snarkvm-staging
 
       - name: Create or update PR
         if: steps.snarkvm-commit.outputs.update_needed == 'true'
