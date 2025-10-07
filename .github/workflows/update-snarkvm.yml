@@ -93,6 +93,7 @@ jobs:
       - name: Commit and push changes
         if: steps.snarkvm-commit.outputs.update_needed == 'true'
         run: |
+          #
           git add wasm/Cargo.toml wasm/Cargo.lock
           git commit --no-verify -m "Update snarkVM to latest staging commit ${{ steps.snarkvm-commit.outputs.latest_commit }}
 
