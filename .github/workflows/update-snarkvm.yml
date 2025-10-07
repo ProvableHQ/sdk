@@ -2,8 +2,8 @@ name: Update snarkVM dependency
 
 on:
   schedule:
-    # Run every hour to check for new commits in snarkVM staging
-    - cron: '0 * * * *'
+    # Run once every day at midnight (UTC)
+    - cron: '0 0 * * *'
   push:
     branches:
       - 'ci/snarkvm-update'
