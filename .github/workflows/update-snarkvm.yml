@@ -51,10 +51,9 @@ jobs:
       - name: Create new update-snarkvm-staging branch from staging
         if: steps.snarkvm-commit.outputs.update_needed == 'true'
         run: |
-          git fetch --all
           # Always create a fresh branch from staging
           echo "Creating new update-snarkvm-staging branch from staging"
-          git checkout -B update-snarkvm-staging staging
+          git checkout -B update-snarkvm-staging origin/staging
           echo "Created fresh update-snarkvm-staging branch from staging"
 
       - name: Update snarkVM dependency
