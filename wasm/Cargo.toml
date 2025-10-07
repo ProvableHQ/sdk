@@ -21,53 +21,59 @@ edition = "2021"
 crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
-[dependencies.snarkvm-algorithms]
-version = "4.2.0"
+[dependencies]
+snarkvm-algorithms= { git = "https://github.com/ProvableHQ/snarkVM", rev = "619464c8edf75636809d0bfb8e8404de78a62c97", version = "4.2.1" }
+snarkvm-ledger-store= { git = "https://github.com/ProvableHQ/snarkVM", rev = "619464c8edf75636809d0bfb8e8404de78a62c97", version = "4.2.1" }
 
 [dependencies.snarkvm-circuit-network]
-version = "4.2.0"
+version = "4.2.1"
 features = ["wasm"]
+git = "https://github.com/ProvableHQ/snarkVM"
+rev = "619464c8edf75636809d0bfb8e8404de78a62c97"
 
 [dependencies.snarkvm-console]
-version = "4.2.0"
+version = "4.2.1"
 default-features = false
-features = [
-    "account",
-    "algorithms",
-    "collections",
-    "network",
-    "program",
-    "types",
-    "wasm"
-]
+features = ["account", "algorithms", "collections", "network", "program", "types", "wasm"]
+git = "https://github.com/ProvableHQ/snarkVM"
+rev = "619464c8edf75636809d0bfb8e8404de78a62c97"
 
 [dependencies.snarkvm-ledger-block]
-version = "4.2.0"
+version = "4.2.1"
 features = ["wasm"]
+git = "https://github.com/ProvableHQ/snarkVM"
+rev = "619464c8edf75636809d0bfb8e8404de78a62c97"
 
 [dependencies.snarkvm-ledger-query]
-version = "4.2.0"
+version = "4.2.1"
 features = ["async", "wasm"]
-
-[dependencies.snarkvm-ledger-store]
-version = "4.2.0"
+git = "https://github.com/ProvableHQ/snarkVM"
+rev = "619464c8edf75636809d0bfb8e8404de78a62c97"
 
 [dependencies.snarkvm-parameters]
-version = "4.2.0"
+version = "4.2.1"
 default-features = false
 features = ["wasm"]
+git = "https://github.com/ProvableHQ/snarkVM"
+rev = "619464c8edf75636809d0bfb8e8404de78a62c97"
 
 [dependencies.snarkvm-synthesizer-program]
-version = "4.2.0"
+version = "4.2.1"
 features = ["wasm"]
+git = "https://github.com/ProvableHQ/snarkVM"
+rev = "619464c8edf75636809d0bfb8e8404de78a62c97"
 
 [dependencies.snarkvm-synthesizer]
-version = "4.2.0"
+version = "4.2.1"
 features = ["async", "wasm"]
+git = "https://github.com/ProvableHQ/snarkVM"
+rev = "619464c8edf75636809d0bfb8e8404de78a62c97"
 
 [dependencies.snarkvm-wasm]
-version = "4.2.0"
+version = "4.2.1"
 features = ["fields", "utilities"]
+git = "https://github.com/ProvableHQ/snarkVM"
+rev = "619464c8edf75636809d0bfb8e8404de78a62c97"
 
 [dependencies.anyhow]
 version = "1.0"
