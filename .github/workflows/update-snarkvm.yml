@@ -99,6 +99,9 @@ jobs:
           Previous commit: ${{ steps.snarkvm-commit.outputs.current_commit }}
           Latest commit: ${{ steps.snarkvm-commit.outputs.latest_commit }}
           
+          # Fetch the remote branch so force-with-lease works correctly
+          git fetch origin update-snarkvm-staging:update-snarkvm-staging || true
+          
           This update was performed automatically by the snarkVM update workflow."
           git push --force-with-lease origin update-snarkvm-staging
 
