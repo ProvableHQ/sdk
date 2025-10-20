@@ -17,7 +17,6 @@
 use crate::{
     Address,
     Field,
-    Group,
     Plaintext,
     PrivateKey,
     Scalar,
@@ -218,9 +217,12 @@ impl FromStr for Signature {
 mod tests {
     use super::*;
 
-    use crate::utilities::test::{
-        plaintext::{INVALID_NESTED_STRUCT, NESTED_STRUCT},
-        records::{INVALID_CREDITS_RECORD, VALID_CREDITS_RECORD},
+    use crate::{
+        Group,
+        utilities::test::{
+            plaintext::{INVALID_NESTED_STRUCT, NESTED_STRUCT},
+            records::{INVALID_CREDITS_RECORD, VALID_CREDITS_RECORD},
+        },
     };
     use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;

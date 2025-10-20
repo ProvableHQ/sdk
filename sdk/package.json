@@ -47,11 +47,7 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-<<<<<<< HEAD
     "@provablehq/wasm": "^0.9.9",
-=======
-    "@provablehq/wasm": "0.9.4-offline-rc",
->>>>>>> c30afff8 (Update versions to use release tags)
     "comlink": "^4.4.2",
     "core-js": "^3.40.0",
     "mime": "^4.0.6",
