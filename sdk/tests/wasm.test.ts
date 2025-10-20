@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, Field, FunctionKeyPair, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, VerifyingKey, AleoKeyProvider, setConsensusVersionTestHeights} from "../src/node.js";
+import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, Field, FunctionKeyPair, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
 import {
     seed,
     message,
@@ -518,6 +518,15 @@ describe('WASM Objects', () => {
             const [transferPublicProver, transferPublicVerifier] = <FunctionKeyPair>await keyProvider.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.transfer_public);
             const numConstraints = transferPublicVerifier.numConstraints();
             expect(numConstraints).to.equal(12326);
+        });
+    });
+    describe('Set development consensus version heights', () => {
+        it('Consensus version heights can be set externally', async () => {
+            if (process.env["RUN_SKIPPED"]) {
+                const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10");
+                console.log(heights);
+                expect(heights).to.deep.equal([0,1,2,3,4,5,6,7,8,9,10]);
+            }
         });
     });
 });
