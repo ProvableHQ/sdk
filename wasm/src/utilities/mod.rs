@@ -31,14 +31,14 @@ pub mod test;
 /// @params {string | undefined} heights The block heights at which each consensus version applies. This input should be a simple csv list of block heights and there should be one number for each consensus version. If left undefined, the default test heights will be applied.
 ///
 /// @example
-/// import { setConsensusVersionHeights } from @provablehq/sdk;
+/// import { getOrInitConsensusVersionHeights } from @provablehq/sdk;
 ///
 /// Set the consensus version heights.
-/// setConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9");
-#[wasm_bindgen::prelude::wasm_bindgen(js_name = setConsensusVersionTestHeights)]
-pub fn set_consensus_version_test_heights_js(heights: Option<String>) -> js_sys::Array {
+/// getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9");
+#[wasm_bindgen::prelude::wasm_bindgen(js_name = getOrInitConsensusVersionTestHeights)]
+pub fn get_or_init_consensus_version_heights(heights: Option<String>) -> js_sys::Array {
     // Call the underlying Rust function that returns [(ConsensusVersion, u32); N]
-    let pairs = snarkvm_console::network::set_consensus_version_test_heights(heights);
+    let pairs = snarkvm_console::network::get_or_init_consensus_version_heights(heights);
 
     // Map to just the heights (u32) and convert to JS array
     pairs.iter().map(|(_, height)| wasm_bindgen::JsValue::from_f64(*height as f64)).collect::<js_sys::Array>()
@@ -52,6 +52,6 @@ mod tests {
     #[wasm_bindgen_test]
     #[should_panic]
     fn test_set_genesis_block_non_zero_fails() {
-        set_consensus_version_test_heights_js(Some("9,8,7,6,5,4,3,2,1,0".to_string()));
+        get_or_init_consensus_version_heights(Some("9,8,7,6,5,4,3,2,1,0".to_string()));
     }
 }

@@ -48,6 +48,6 @@ export {
     VerifyingKey,
     ViewKey,
     initThreadPool,
-    setConsensusVersionTestHeights,
+    getOrInitConsensusVersionTestHeights,
     verifyFunctionExecution,
 } from "@provablehq/wasm/%%NETWORK%%.js";
