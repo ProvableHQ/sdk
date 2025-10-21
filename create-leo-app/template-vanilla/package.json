@@ -9,7 +9,7 @@
         "preview": "vite preview"
     },
     "devDependencies": {
-        "@provablehq/sdk": "^0.9.9",
+        "@provablehq/sdk": "^0.9.10-testnet-rc",
         "tslib": "^2.8.1",
         "vite": "^6.3.6"
     }

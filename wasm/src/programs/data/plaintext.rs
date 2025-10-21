@@ -22,12 +22,12 @@ use crate::{
     from_js_typed_array,
     from_wasm_object_array,
     js_array_from_fields,
-    native::{FieldNative, LiteralNative},
+    native::{FieldNative, LiteralNative, U8Native},
     plaintext_to_js_value,
     to_bits_array_le,
     types::native::{IdentifierNative, PlaintextNative},
 };
-use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields};
+use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBitsRaw, ToBytes, ToFields, ToFieldsRaw};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr, sync::OnceLock};
@@ -105,7 +105,7 @@ impl Plaintext {
 
     /// Get a plaintext object from a series of bytes.
     ///
-    /// @param {Uint8Array} bytes A left endian byte array representing the plaintext.
+    /// @param {Uint8Array} bytes A little endian byte array representing the plaintext.
     ///
     /// @returns {Plaintext} The plaintext object.
     #[wasm_bindgen(js_name = "fromBytesLe")]
@@ -115,18 +115,55 @@ impl Plaintext {
         Ok(Self(native))
     }
 
-    /// Get the left endian byte array representation of the plaintext.
+    /// Get the little endian byte array representation of the plaintext.
     ///
-    /// @returns {Uint8Array} The left endian byte array representation of the plaintext.
+    /// @returns {Uint8Array} The little endian byte array representation of the plaintext.
     #[wasm_bindgen(js_name = "toBytesLe")]
     pub fn to_bytes_le(&self) -> Result<Uint8Array, String> {
         let rust_bytes = self.0.to_bytes_le().map_err(|e| e.to_string())?;
         Ok(Uint8Array::from(rust_bytes.as_slice()))
     }
 
+    /// Get the raw little endian byte array representation of the plaintext.
+    ///
+    /// @returns {Uint8Array} The raw little endian byte array representation of the plaintext.
+    #[wasm_bindgen(js_name = "toBytesRawLe")]
+    pub fn to_bytes_raw_le(&self) -> Result<Uint8Array, String> {
+        let bits_le = self.0.to_bits_raw_le();
+        // Pack the little endian bits into u8 elements and transform them into bytes.
+        let rust_bytes = bits_le
+            .chunks(8)
+            .map(|chunk| U8Native::from_bits_le(chunk).map_err(|e| e.to_string()))
+            .collect::<Result<Vec<U8Native>, String>>()?
+            .into_iter()
+            .map(|u8| u8.to_bytes_le().unwrap())
+            .flatten()
+            .collect::<Vec<u8>>();
+        Ok(Uint8Array::from(rust_bytes.as_slice()))
+    }
+
+    /// Get the raw big endian byte array representation of the plaintext.
+    ///
+    /// @returns {Uint8Array} The raw big endian byte array representation of the plaintext.
+    #[wasm_bindgen(js_name = "toBytesRawBe")]
+    pub fn to_bytes_raw_be(&self) -> Result<Uint8Array, String> {
+        let bits_be = self.0.to_bits_raw_be();
+        // Pack the big endian bits into u8 elements and transform them into bytes.
+        let mut rust_bytes = bits_be
+            .chunks(8)
+            .map(|chunk| U8Native::from_bits_be(chunk).map_err(|e| e.to_string()))
+            .collect::<Result<Vec<U8Native>, String>>()?
+            .into_iter()
+            .map(|u8| u8.to_bytes_le().unwrap())
+            .flatten()
+            .collect::<Vec<u8>>();
+        rust_bytes.reverse();
+        Ok(Uint8Array::from(rust_bytes.as_slice()))
+    }
+
     /// Get a plaintext object from a series of bits represented as a boolean array.
     ///
-    /// @param {Array} bits A left endian boolean array representing the bits plaintext.
+    /// @param {Array} bits A little endian boolean array representing the bits plaintext.
     ///
     /// @returns {Plaintext} The plaintext object.
     #[wasm_bindgen(js_name = "fromBitsLe")]
@@ -136,12 +173,28 @@ impl Plaintext {
         Ok(Self(native))
     }
 
-    /// Get the left endian boolean array representation of the bits of the plaintext.
+    /// Get the little endian boolean array representation of the bits of the plaintext.
     ///
-    /// @returns {Array} The left endian boolean array representation of the bits of the plaintext.
+    /// @returns {Array} The little endian boolean array representation of the bits of the plaintext.
     #[wasm_bindgen(js_name = "toBitsLe")]
     pub fn to_bits_le(&self) -> Array {
         to_bits_array_le!(self)
+    }
+
+    /// Get the raw little endian boolean array representation of the bits of the plaintext.
+    ///
+    /// @returns {Array} The raw little endian boolean array representation of the bits of the plaintext.
+    #[wasm_bindgen(js_name = "toBitsRawLe")]
+    pub fn to_bits_raw_le(&self) -> Array {
+        self.0.to_bits_raw_le().iter().map(|x| wasm_bindgen::JsValue::from_bool(*x)).collect::<js_sys::Array>()
+    }
+
+    /// Get the raw big endian boolean array representation of the bits of the plaintext.
+    ///
+    /// @returns {Array} The raw big endian boolean array representation of the bits of the plaintext.
+    #[wasm_bindgen(js_name = "toBitsRawBe")]
+    pub fn to_bits_raw_be(&self) -> Array {
+        self.0.to_bits_raw_be().iter().map(|x| wasm_bindgen::JsValue::from_bool(*x)).collect::<js_sys::Array>()
     }
 
     /// Get a plaintext object from an array of fields.
@@ -164,6 +217,16 @@ impl Plaintext {
         let native = self.0.clone();
         let native_fields = native.to_fields().map_err(|e| e.to_string())?;
         Ok(js_array_from_fields!(&native_fields))
+    }
+
+    /// Get the raw field array representation of the plaintext.
+    ///
+    /// @returns {Array} The raw field array representation of the plaintext.
+    #[wasm_bindgen(js_name = "toFieldsRaw")]
+    pub fn to_fields_raw(&self) -> Result<Array, String> {
+        let native = self.0.clone();
+        let native_fields_raw = native.to_fields_raw().map_err(|e| e.to_string())?;
+        Ok(js_array_from_fields!(&native_fields_raw))
     }
 
     /// Returns the string representation of the plaintext.
