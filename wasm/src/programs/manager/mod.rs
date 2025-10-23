@@ -25,13 +25,17 @@ mod transfer;
 const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
 
 use crate::{
+    Authorization,
     KeyPair,
+    OfflineQuery,
     PrivateKey,
     ProvingKey,
     RecordPlaintext,
     VerifyingKey,
+    latest_block_height,
     log,
     types::native::{
+        AuthorizationNative,
         CurrentNetwork,
         IdentifierNative,
         ProcessNative,
@@ -41,7 +45,7 @@ use crate::{
         VerifyingKeyNative,
     },
 };
-use snarkvm_console::{network::Network, prelude::ToBytes};
+use snarkvm_console::{network::{Network, ConsensusVersion}, prelude::ToBytes};
 use snarkvm_synthesizer::process::{cost_in_microcredits_v2, deployment_cost};
 use snarkvm_synthesizer_program::StackTrait;
 use std::panic::{AssertUnwindSafe, catch_unwind};
@@ -106,6 +110,51 @@ impl ProgramManager {
             };
             log(msg.as_str());
         }
+    }
+
+    /// Estimate the execution cost for an authorization in microcredits.
+    /// This function calculates the cost of executing a function based on its authorization,
+    /// which is useful for fee estimation before executing a transaction.
+    ///
+    /// @param {Authorization} authorization The authorization object for the function execution
+    /// @param {string | undefined} url Optional URL of the Aleo network node to query block height
+    /// @param {OfflineQuery | undefined} offline_query Optional offline query object for block height
+    /// @returns {Promise<u64>} The estimated execution cost in microcredits
+    #[wasm_bindgen(js_name = "executionCostForAuthorization")]
+    pub async fn execution_cost_for_authorization(
+        authorization: &Authorization,
+        url: Option<String>,
+        offline_query: Option<OfflineQuery>,
+    ) -> Result<u64, String> {
+        use snarkvm_ledger_query::QueryTrait;
+        use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
+        
+        log("Calculating execution cost for authorization");
+        
+        // Load the process
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+        
+        // Get the block height to determine which version of cost calculation to use
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
+        let block_height = if let Some(ref offline_query) = offline_query {
+            offline_query.current_block_height().map_err(|e| e.to_string())?
+        } else {
+            latest_block_height(node_url).await.map_err(|e| e.to_string())?
+        };
+        
+        // Convert to native authorization
+        let authorization_native = AuthorizationNative::from(authorization);
+        
+        // Calculate the execution cost using the appropriate version
+        let (execution_cost, (_, _)) = if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
+            execution_cost_v2(process, &authorization_native).map_err(|err| err.to_string())?
+        } else {
+            execution_cost_v1(process, &authorization_native).map_err(|err| err.to_string())?
+        };
+        
+        log(&format!("Execution cost for authorization: {} microcredits", execution_cost));
+        Ok(execution_cost)
     }
 
     /// Check if a process contains a keypair for a specific function
