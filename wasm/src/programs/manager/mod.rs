@@ -308,4 +308,33 @@ function add_and_double:
         let key = ProvingKey::from_bytes(&bytes).unwrap();
         ProgramManager::load_inclusion_prover(key);
     }
+
+    #[wasm_bindgen_test]
+    async fn test_execution_cost_for_authorization() {
+        use crate::utilities::test::{PUZZLE_SPINNER_V002, generate_puzzle_imports, generate_puzzle_inputs, get_env};
+        
+        // Create the private key, function name, inputs, and imports.
+        let private_key = PrivateKey::from_string(&get_env("PUZZLE_PK")).unwrap();
+        let function_name = "spin";
+        let inputs = generate_puzzle_inputs();
+        let imports = Some(generate_puzzle_imports());
+
+        // Create the authorization.
+        let authorization =
+            ProgramManager::authorize(&private_key, PUZZLE_SPINNER_V002, function_name, inputs, imports, None)
+                .await
+                .unwrap();
+
+        // Test execution cost calculation.
+        let cost = ProgramManager::execution_cost_for_authorization(&authorization, None, None).await;
+        
+        // The cost should be a valid u64 value
+        assert!(cost.is_ok(), "Execution cost calculation should succeed");
+        
+        let cost_value = cost.unwrap();
+        console_log!("Execution cost for authorization: {} microcredits", cost_value);
+        
+        // The cost should be greater than zero for a non-trivial function
+        assert!(cost_value > 0, "Execution cost should be greater than zero");
+    }
 }
