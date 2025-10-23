@@ -1097,6 +1097,46 @@ class ProgramManager {
     }
 
     /**
+     * Estimates the execution cost for an authorization in microcredits.
+     * This function calculates the cost of executing a function based on its authorization,
+     * which is useful for fee estimation before executing a transaction.
+     *
+     * @param {Authorization} authorization - The authorization object for the function execution.
+     * @param {string} [url] - Optional URL of the Aleo network node to query block height. If not provided, uses the network client's host.
+     * @param {OfflineQuery} [offlineQuery] - Optional offline query object for block height when operating in offline mode.
+     * @returns {Promise<bigint>} - The estimated execution cost in microcredits.
+     *
+     * @example
+     * import { ProgramManager, Authorization } from "@provablehq/sdk";
+     *
+     * // Create a program manager
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
+     *
+     * // Get an authorization (from buildAuthorization or other methods)
+     * const authorization = await programManager.buildAuthorization({
+     *   programName: "hello.aleo",
+     *   functionName: "main",
+     *   inputs: ["1u32", "2u32"],
+     * });
+     *
+     * // Estimate the execution cost
+     * const cost = await programManager.estimateExecutionCost(authorization);
+     * console.log(`Execution cost: ${cost} microcredits`);
+     */
+    async estimateExecutionCost(
+        authorization: Authorization,
+        url?: string,
+        offlineQuery?: OfflineQuery,
+    ): Promise<bigint> {
+        const networkUrl = url || this.networkClient.host;
+        return await WasmProgramManager.executionCostForAuthorization(
+            authorization,
+            networkUrl,
+            offlineQuery,
+        );
+    }
+
+    /**
      * Builds an execution transaction for submission to the Aleo network.
      *
      * @param {ExecuteOptions} options - The options for the execution transaction.
