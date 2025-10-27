@@ -40,9 +40,11 @@ use crate::{
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_console::network::{ConsensusVersion, Network};
+use snarkvm_console::{network::{ConsensusVersion, Network}, program::Value};
 use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::prelude::{InclusionVersion, cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
+use snarkvm_synthesizer::{
+    prelude::{InclusionVersion, execution_cost, execution_cost_for_authorization},
+};
 
 use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;
@@ -298,8 +300,8 @@ impl ProgramManager {
     /// @param imports (optional) Provide a list of imports to use for the fee estimation in the
     /// form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
-    /// @param proving_key (optional) Provide a verifying key to use for the fee estimation
-    /// @param verifying_key (optional) Provide a verifying key to use for the fee estimation
+    /// @param offline_query The offline query object used to insert the global state root and state paths needed to create
+    /// a valid inclusion proof offline.
     /// @returns {u64} Fee in microcredits
     #[wasm_bindgen(js_name = estimateExecutionFee)]
     #[allow(clippy::too_many_arguments)]
@@ -310,8 +312,6 @@ impl ProgramManager {
         inputs: Array,
         url: Option<String>,
         imports: Option<Object>,
-        proving_key: Option<ProvingKey>,
-        verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
     ) -> Result<u64, String> {
@@ -325,30 +325,26 @@ impl ProgramManager {
 
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+
+        let program_id = program_native.id();
+        let edition = edition.unwrap_or(1);
+
+        if program_id.to_string() != "credits.aleo" {
+            if !process.contains_program(program_id) {
+                log("Adding program to the process");
+                process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            }
+        }
+
         ProgramManager::resolve_imports(process, &program_native, imports)?;
         let rng = &mut StdRng::from_entropy();
 
-        log("Generating execution trace");
-        let edition = edition.unwrap_or(1);
-        let (_, mut trace) = execute_program!(
-            process,
-            process_inputs!(inputs),
-            program,
-            function,
-            private_key,
-            proving_key,
-            verifying_key,
-            rng,
-            edition
-        );
+        let authorization =
+            process.authorize::<CurrentAleo, StdRng>(private_key, program_id, function, inputs.iter().map(|v| Value::from_str(&v.as_string().unwrap_or_default())), rng).map_err(|e| e.to_string())?;
 
-        // Execute the program
+        
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
-        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
-        let locator = program.id().to_string().add("/").add(function);
-
-        let block_height = if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
             offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
             let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
@@ -358,38 +354,16 @@ impl ProgramManager {
                 SnapshotQuery::try_from_inputs(node_url, &program_native, &function_name, &view_key, &inputs.to_vec())
                     .await
                     .map_err(|err| err.to_string())?;
-            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
             query.current_block_height().map_err(|e| e.to_string())?
         };
-        let execution =
-            trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
 
-        // Get the storage cost in bytes for the program execution
-        log("Estimating cost");
-        let storage_cost = execution.size_in_bytes().map_err(|e| e.to_string())?;
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
 
-        // Compute the finalize cost in microcredits.
-        let mut finalize_cost = 0u64;
-        // Iterate over the transitions to accumulate the finalize cost.
-        for transition in execution.transitions() {
-            // Retrieve the function name, program id, and program.
-            let function_name = transition.function_name();
-            let program_id = transition.program_id();
-            let stack = process.get_stack(program_id).map_err(|e| e.to_string())?;
+        let (minimum_cost, _) =
+            execution_cost_for_authorization(&process, &authorization, consensus_version).map_err(|e| e.to_string())?;
 
-            // Calculate the finalize cost for the function identified in the transition
-            let cost = if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
-                cost_in_microcredits_v2(&stack, function_name).map_err(|e| e.to_string())?
-            } else {
-                cost_in_microcredits_v1(&stack, function_name).map_err(|e| e.to_string())?
-            };
-
-            // Accumulate the finalize cost.
-            finalize_cost = finalize_cost
-                .checked_add(cost)
-                .ok_or("The finalize cost computation overflowed for an execution".to_string())?;
-        }
-        Ok(storage_cost + finalize_cost)
+        Ok(minimum_cost)
     }
 
     /// Estimate the finalize fee component for executing a function. This fee is additional to the

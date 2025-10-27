@@ -305,9 +305,9 @@ macro_rules! calculate_minimum_fee {
         };
         let (minimum_execution_cost, (_, _)) =
             if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
-                execution_cost_v2($process, $execution_ref).map_err(|err| err.to_string())?
+                execution_cost($process, $execution_ref, ConsensusVersion::V2).map_err(|err| err.to_string())?
             } else {
-                execution_cost_v1($process, $execution_ref).map_err(|err| err.to_string())?
+                execution_cost($process, $execution_ref, ConsensusVersion::V1).map_err(|err| err.to_string())?
             };
 
         minimum_execution_cost
