@@ -40,11 +40,12 @@ use crate::{
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_console::{network::{ConsensusVersion, Network}, program::Value};
-use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::{
-    prelude::{InclusionVersion, execution_cost, execution_cost_for_authorization},
+use snarkvm_console::{
+    network::{ConsensusVersion, Network},
+    program::Value,
 };
+use snarkvm_ledger_query::QueryTrait;
+use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost, execution_cost_for_authorization};
 
 use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;
@@ -339,10 +340,16 @@ impl ProgramManager {
         ProgramManager::resolve_imports(process, &program_native, imports)?;
         let rng = &mut StdRng::from_entropy();
 
-        let authorization =
-            process.authorize::<CurrentAleo, StdRng>(private_key, program_id, function, inputs.iter().map(|v| Value::from_str(&v.as_string().unwrap_or_default())), rng).map_err(|e| e.to_string())?;
+        let authorization = process
+            .authorize::<CurrentAleo, StdRng>(
+                private_key,
+                program_id,
+                function,
+                inputs.iter().map(|v| Value::from_str(&v.as_string().unwrap_or_default())),
+                rng,
+            )
+            .map_err(|e| e.to_string())?;
 
-        
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let latest_height = if let Some(offline_query) = offline_query.as_ref() {
             offline_query.current_block_height().map_err(|e| e.to_string())?
