@@ -182,10 +182,8 @@ self.addEventListener("message", (ev) => {
 
                 // Estimate the execution fee
                 let executeFee = await aleo.ProgramManagerBase.estimateExecutionFee(
-                    privateKeyObject,
                     remoteProgram,
                     aleoFunction,
-                    inputs,
                     url,
                     imports,
                     undefined,
