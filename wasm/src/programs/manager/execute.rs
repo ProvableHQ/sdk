@@ -416,3 +416,66 @@ impl ProgramManager {
         cost_in_microcredits_v2(&stack, &function_id).map_err(|e| e.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use js_sys::Array;
+    use snarkvm_console::prelude::ConsensusVersion;
+    use snarkvm_synthesizer::process::execution_cost;
+    use wasm_bindgen::JsValue;
+    use wasm_bindgen_test::wasm_bindgen_test;
+
+    use crate::{
+        PrivateKey,
+        ProgramManager,
+        types::native::{ProcessNative, ProgramNative},
+    };
+
+    #[wasm_bindgen_test]
+    pub async fn test_estimate_execution_fee() {
+        for (function, inputs) in [
+            ("transfer_public", vec![
+                JsValue::from_str("aleo1q8zc0asncaw9d83ft2dynyqz08fcpq3p40depmrj4wjda28rdvrsvegg45"),
+                JsValue::from_str("1u64"),
+            ]),
+            ("bond_public", vec![
+                JsValue::from_str("aleo1q8zc0asncaw9d83ft2dynyqz08fcpq3p40depmrj4wjda28rdvrsvegg45"),
+                JsValue::from_str("aleo1q8zc0asncaw9d83ft2dynyqz08fcpq3p40depmrj4wjda28rdvrsvegg45"),
+                JsValue::from_str("1u64"),
+            ]),
+        ] {
+            let private_key = PrivateKey::new();
+
+            let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string()).unwrap();
+            let process = &mut process_native;
+
+            let program = ProgramNative::credits().unwrap();
+
+            let resp = ProgramManager::execute_function_offline(
+                &private_key,
+                &program.to_string(),
+                function,
+                Array::from_iter(inputs.iter()),
+                false,
+                true,
+                None,
+                None,
+                None,
+                None,
+                None,
+                Some(1),
+            )
+            .await
+            .unwrap();
+
+            let (execution_estimate, _) =
+                execution_cost(&process, &resp.get_execution().unwrap(), ConsensusVersion::V3).unwrap();
+            let authorization_estimate =
+                ProgramManager::estimate_execution_fee(&program.to_string(), function, None, None, None, Some(1))
+                    .await
+                    .unwrap();
+
+            assert_eq!(execution_estimate, authorization_estimate);
+        }
+    }
+}
