@@ -17,8 +17,10 @@
 use super::*;
 
 use crate::{
+    Address,
     ExecutionResponse,
     OfflineQuery,
+    Plaintext,
     PrivateKey,
     RecordPlaintext,
     SnapshotQuery,
@@ -42,10 +44,12 @@ use crate::{
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::{
     network::{ConsensusVersion, Network},
-    program::Value,
+    program::{ArrayType, PlaintextType, Value, ValueType},
 };
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost, execution_cost_for_authorization};
+use snarkvm_synthesizer_program::FunctionCore;
+use wasm_bindgen::JsValue;
 
 use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;
@@ -307,10 +311,8 @@ impl ProgramManager {
     #[wasm_bindgen(js_name = estimateExecutionFee)]
     #[allow(clippy::too_many_arguments)]
     pub async fn estimate_execution_fee(
-        private_key: &PrivateKey,
         program: &str,
         function: &str,
-        inputs: Array,
         url: Option<String>,
         imports: Option<Object>,
         offline_query: Option<OfflineQuery>,
@@ -327,6 +329,35 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
 
+        let rng = &mut StdRng::from_entropy();
+        // Initialize a burner private key.
+        let burner_private_key = PrivateKey::new();
+        // Compute the burner address.
+        let burner_address = Address::from_private_key(&burner_private_key);
+
+        let function_native = program_native
+            .get_function(&IdentifierNative::from_str(function).map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
+
+        let mut inputs: Vec<Value<CurrentNetwork>> = vec![];
+        for input_type in function_native.input_types() {
+            match input_type {
+                ValueType::ExternalRecord(locator) => {
+                    let stack = process.get_stack(locator.program_id()).map_err(|e| e.to_string())?;
+                    inputs.push(
+                        stack
+                            .sample_value(&burner_address, &ValueType::Record(*locator.resource()).into(), rng)
+                            .map_err(|e| e.to_string())?,
+                    );
+                }
+                _ => {
+                    let stack = process.get_stack(program_native.id()).map_err(|e| e.to_string())?;
+                    inputs
+                        .push(stack.sample_value(&burner_address, &input_type.into(), rng).map_err(|e| e.to_string())?);
+                }
+            }
+        }
+
         let program_id = program_native.id();
         let edition = edition.unwrap_or(1);
 
@@ -338,30 +369,16 @@ impl ProgramManager {
         }
 
         ProgramManager::resolve_imports(process, &program_native, imports)?;
-        let rng = &mut StdRng::from_entropy();
 
         let authorization = process
-            .authorize::<CurrentAleo, StdRng>(
-                private_key,
-                program_id,
-                function,
-                inputs.iter().map(|v| Value::from_str(&v.as_string().unwrap_or_default())),
-                rng,
-            )
+            .authorize::<CurrentAleo, StdRng>(&burner_private_key, program_id, function, inputs.iter(), rng)
             .map_err(|e| e.to_string())?;
 
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let latest_height = if let Some(offline_query) = offline_query.as_ref() {
             offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
-            let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
-            let view_key =
-                ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
-            let query =
-                SnapshotQuery::try_from_inputs(node_url, &program_native, &function_name, &view_key, &inputs.to_vec())
-                    .await
-                    .map_err(|err| err.to_string())?;
-            query.current_block_height().map_err(|e| e.to_string())?
+            latest_block_height(node_url).await.map_err(|err| err.to_string())?
         };
 
         let consensus_version =
