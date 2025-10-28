@@ -6,7 +6,7 @@ import { bech32m } from "@scure/base";
  * Corresponds to field element 0
  * Used as padding in Merkle trees and as a sentinel value
  */
-const ZERO_ADDRESS = "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc";
+export const ZERO_ADDRESS = "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc";
 
 /**
  * Converts an Aleo blockchain address to a field element.
