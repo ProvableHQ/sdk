@@ -21,6 +21,10 @@
     "./mainnet.js": {
       "node": "./dist/mainnet/node.js",
       "default": "./dist/mainnet/browser.js"
+    },
+    "./dynamic.js": {
+      "node": "./dist/dynamic/node.js",
+      "default": "./dist/dynamic/browser.js"
     }
   },
   "files": [
