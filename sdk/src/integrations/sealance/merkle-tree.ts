@@ -1,4 +1,4 @@
-import { Field, Plaintext, Poseidon4 } from "@provablehq/sdk";
+import { Field, Plaintext, Poseidon4 } from "../../wasm.js";
 import { bech32m } from "@scure/base";
 import { ZERO_ADDRESS } from "../../constants.js";
 
