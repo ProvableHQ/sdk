@@ -1,8 +1,8 @@
-import { Sealance } from "../src/integrations/sealance/merkle-tree.js";
+import { SealanceMerkleTree } from "../src/integrations/sealance/merkle-tree.js";
 import {ZERO_ADDRESS} from "../src/constants.js";
 import { expect } from "chai";
 
-const sealance = new Sealance();
+const sealance = new SealanceMerkleTree();
 describe("merkle_tree lib, buildTree", () => {
   it("should build a valid tree with 2 leaves", async () => {
     const leaves = ["1field", "2field"];
