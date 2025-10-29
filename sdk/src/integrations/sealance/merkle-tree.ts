@@ -1,6 +1,6 @@
-import { Field, Plaintext, Poseidon4 } from "../wasm.js";
+import { Field, Plaintext, Poseidon4 } from "@provablehq/sdk";
 import { bech32m } from "@scure/base";
-import { ZERO_ADDRESS } from "../constants.js";
+import { ZERO_ADDRESS } from "../../constants.js";
 
 /**
  * Client library that encapsulates methods for constructing Merkle exclusion proofs for compliant stablecoin programs following the Sealance architecture.
@@ -10,7 +10,7 @@ import { ZERO_ADDRESS } from "../constants.js";
  * // Construct a Merkle exclusion proof.
 
  */
-class Sealance {
+class SealanceMerkleTree {
     private static hasher = new Poseidon4();
   
     /**
@@ -21,8 +21,8 @@ class Sealance {
     * starting with the prefix "aleo1" followed by encoded data.
     *
     * @param address - The Aleo blockchain address (e.g., "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
-    * @returns A BigInt representing the field element
-    * @throws Error if the address is invalid or cannot be decoded
+    * @returns A BigInt representing the field element.
+    * @throws Error if the address is invalid or cannot be decoded.
     *
     * @example
     * ```typescript
@@ -59,16 +59,15 @@ class Sealance {
         const fields = [Field.fromString(prefix), Field.fromString(el1), Field.fromString(el2)];
         const arrayPlaintext = Plaintext.fromString(`[${fields.map(f => f.toString()).join(",")}]`);
 
-        return Sealance.hasher.hash(arrayPlaintext.toFields());
+        return SealanceMerkleTree.hasher.hash(arrayPlaintext.toFields());
     }
 
     /**
-    * Builds a Merkle tree from given leaves
-    * The tree is built bottom-up, hashing pairs of elements at each level
+    * Builds a Merkle tree from given leaves. The tree is built bottom-up, hashing pairs of elements at each level.
     *
-    * @param leaves - Array of leaf elements (must have even number of elements)
-    * @returns Array representing the complete Merkle tree as BigInts
-    * @throws {Error} If leaves array is empty or has odd number of elements
+    * @param leaves - Array of leaf elements (must have even number of elements).
+    * @returns Array representing the complete Merkle tree as BigInts.
+    * @throws {Error} If leaves array is empty or has odd number of elements.
     *
     * @example
     * ```typescript
@@ -105,13 +104,12 @@ class Sealance {
     }
 
     /**
-    * Converts Leo addresses to field elements, sorts them, pads with zero fields, and returns an array
-    * This prepares addresses for Merkle tree construction
+    * Converts Aleo addresses to field elements, sorts them, pads with zero fields, and returns an array. This prepares addresses for Merkle tree construction.
     *
-    * @param addresses - Array of Aleo addresses
-    * @param maxTreeDepth - Maximum depth of the Merkle tree (default: 15)
-    * @returns Array of field elements ready for Merkle tree construction
-    * @throws {Error} If the number of addresses exceeds the maximum capacity
+    * @param addresses - Array of Aleo addresses.
+    * @param maxTreeDepth - Maximum depth of the Merkle tree (default: 15).
+    * @returns Array of field elements ready for Merkle tree construction.
+    * @throws {Error} If the number of addresses exceeds the maximum capacity.
     *
     * @example
     * ```typescript
@@ -160,12 +158,11 @@ class Sealance {
 
 
     /**
-    * Finds the leaf indices for non-inclusion proof of an address
-    * Returns the indices of the two adjacent leaves that surround the target address
+    * Finds the leaf indices for non-inclusion proof of an address and returns the indices of the two adjacent leaves that surround the target address.
     *
-    * @param merkleTree - The complete Merkle tree as array of BigInts
-    * @param address - The Aleo address to find indices for
-    * @returns Tuple of [leftLeafIndex, rightLeafIndex]
+    * @param merkleTree - The complete Merkle tree as array of BigInts.
+    * @param address - The Aleo address for which to find indices.
+    * @returns Tuple of [leftLeafIndex, rightLeafIndex].
     *
     * @example
     * ```typescript
@@ -192,10 +189,10 @@ class Sealance {
     /**
     * Generates the sibling path (Merkle proof) for a given leaf index
     *
-    * @param tree - The complete Merkle tree
-    * @param leafIndex - Index of the leaf to generate proof for
-    * @param depth - Maximum depth of the tree
-    * @returns Object containing siblings array and leaf_index
+    * @param tree - The complete Merkle tree.
+    * @param leafIndex - Index of the leaf for which to generate the proof.
+    * @param depth - Maximum depth of the tree.
+    * @returns Object containing siblings array and leaf_index.
     *
     * @example
     * ```typescript
@@ -234,4 +231,4 @@ class Sealance {
     }
 }
 
-export { Sealance };
+export { SealanceMerkleTree };

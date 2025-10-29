@@ -1,4 +1,4 @@
-import { Sealance } from "../src/sealance/merkletree-support.js";
+import { Sealance } from "../src/integrations/sealance/merkle-tree.js";
 import {ZERO_ADDRESS} from "../src/constants.js";
 import { expect } from "chai";
 
