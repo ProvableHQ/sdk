@@ -42,7 +42,7 @@ use crate::{
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::{
-    network::{ConsensusVersion, Network},
+    network::Network,
     program::{Value, ValueType},
 };
 use snarkvm_ledger_query::QueryTrait;

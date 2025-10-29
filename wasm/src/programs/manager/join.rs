@@ -41,7 +41,7 @@ use crate::{
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_console::prelude::{ConsensusVersion, Network};
+use snarkvm_console::prelude::Network;
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost};
 use snarkvm_synthesizer_program::StackTrait;

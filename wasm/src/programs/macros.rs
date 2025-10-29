@@ -296,6 +296,7 @@ macro_rules! execute_fee {
 #[macro_export]
 macro_rules! calculate_minimum_fee {
     ($offline_query:expr, $node_url: expr, $process:expr, $execution_ref:expr) => {{
+        // Get the block height.
         let block_height = if let Some(ref offline_query) = $offline_query {
             let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
             block_height
@@ -303,13 +304,12 @@ macro_rules! calculate_minimum_fee {
             let block_height = latest_block_height($node_url).await.map_err(|e| e.to_string())?;
             block_height
         };
-        let (minimum_execution_cost, (_, _)) =
-            if block_height >= CurrentNetwork::CONSENSUS_HEIGHT(ConsensusVersion::V2).unwrap() {
-                execution_cost($process, $execution_ref, ConsensusVersion::V2).map_err(|err| err.to_string())?
-            } else {
-                execution_cost($process, $execution_ref, ConsensusVersion::V1).map_err(|err| err.to_string())?
-            };
 
+        // Calculate the execution cost based on the consensus version.
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(block_height).map_err(|e| e.to_string())?;
+        let (minimum_execution_cost, (_, _)) =
+            execution_cost($process, $execution_ref, consensus_version).map_err(|err| err.to_string())?;
         minimum_execution_cost
     }};
 }
