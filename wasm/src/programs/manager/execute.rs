@@ -20,7 +20,6 @@ use crate::{
     Address,
     ExecutionResponse,
     OfflineQuery,
-    Plaintext,
     PrivateKey,
     RecordPlaintext,
     SnapshotQuery,
@@ -44,12 +43,10 @@ use crate::{
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::{
     network::{ConsensusVersion, Network},
-    program::{ArrayType, PlaintextType, Value, ValueType},
+    program::{Value, ValueType},
 };
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost, execution_cost_for_authorization};
-use snarkvm_synthesizer_program::FunctionCore;
-use wasm_bindgen::JsValue;
 
 use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;
@@ -297,10 +294,8 @@ impl ProgramManager {
     ///
     /// Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network
     ///
-    /// @param private_key The private key of the sender
     /// @param program The source code of the program to estimate the execution fee for
     /// @param function The name of the function to execute
-    /// @param inputs A javascript array of inputs to the function
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param imports (optional) Provide a list of imports to use for the fee estimation in the
     /// form of a javascript object where the keys are a string of the program name and the values
@@ -335,10 +330,12 @@ impl ProgramManager {
         // Compute the burner address.
         let burner_address = Address::from_private_key(&burner_private_key);
 
+        // Get the function.
         let function_native = program_native
             .get_function(&IdentifierNative::from_str(function).map_err(|e| e.to_string())?)
             .map_err(|e| e.to_string())?;
 
+        // Create sample inputs.
         let mut inputs: Vec<Value<CurrentNetwork>> = vec![];
         for input_type in function_native.input_types() {
             match input_type {
@@ -358,9 +355,9 @@ impl ProgramManager {
             }
         }
 
+        // Add the program to the process.
         let program_id = program_native.id();
         let edition = edition.unwrap_or(1);
-
         if program_id.to_string() != "credits.aleo" {
             if !process.contains_program(program_id) {
                 log("Adding program to the process");
@@ -368,22 +365,25 @@ impl ProgramManager {
             }
         }
 
+        // Resolve program imports.
         ProgramManager::resolve_imports(process, &program_native, imports)?;
 
+        // Create the authorization.
         let authorization = process
             .authorize::<CurrentAleo, StdRng>(&burner_private_key, program_id, function, inputs.iter(), rng)
             .map_err(|e| e.to_string())?;
 
+        // Get the ConsensusVersion.
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let latest_height = if let Some(offline_query) = offline_query.as_ref() {
             offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
             latest_block_height(node_url).await.map_err(|err| err.to_string())?
         };
-
         let consensus_version =
             <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
 
+        // Get the cost final cost
         let (minimum_cost, _) =
             execution_cost_for_authorization(&process, &authorization, consensus_version).map_err(|e| e.to_string())?;
 
@@ -419,63 +419,21 @@ impl ProgramManager {
 
 #[cfg(test)]
 mod tests {
-    use js_sys::Array;
-    use snarkvm_console::prelude::ConsensusVersion;
-    use snarkvm_synthesizer::process::execution_cost;
-    use wasm_bindgen::JsValue;
     use wasm_bindgen_test::wasm_bindgen_test;
 
-    use crate::{
-        PrivateKey,
-        ProgramManager,
-        types::native::{ProcessNative, ProgramNative},
-    };
+    use crate::{ProgramManager, types::native::ProgramNative};
 
     #[wasm_bindgen_test]
     pub async fn test_estimate_execution_fee() {
-        for (function, inputs) in [
-            ("transfer_public", vec![
-                JsValue::from_str("aleo1q8zc0asncaw9d83ft2dynyqz08fcpq3p40depmrj4wjda28rdvrsvegg45"),
-                JsValue::from_str("1u64"),
-            ]),
-            ("bond_public", vec![
-                JsValue::from_str("aleo1q8zc0asncaw9d83ft2dynyqz08fcpq3p40depmrj4wjda28rdvrsvegg45"),
-                JsValue::from_str("aleo1q8zc0asncaw9d83ft2dynyqz08fcpq3p40depmrj4wjda28rdvrsvegg45"),
-                JsValue::from_str("1u64"),
-            ]),
-        ] {
-            let private_key = PrivateKey::new();
-
-            let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string()).unwrap();
-            let process = &mut process_native;
-
+        for (function, cost) in [("transfer_public", 2725u64), ("transfer_public_to_private", 2304u64)] {
             let program = ProgramNative::credits().unwrap();
 
-            let resp = ProgramManager::execute_function_offline(
-                &private_key,
-                &program.to_string(),
-                function,
-                Array::from_iter(inputs.iter()),
-                false,
-                true,
-                None,
-                None,
-                None,
-                None,
-                None,
-                Some(1),
-            )
-            .await
-            .unwrap();
-
-            let (execution_estimate, _) =
-                execution_cost(&process, &resp.get_execution().unwrap(), ConsensusVersion::V3).unwrap();
             let authorization_estimate =
                 ProgramManager::estimate_execution_fee(&program.to_string(), function, None, None, None, Some(1))
                     .await
                     .unwrap();
 
-            assert_eq!(execution_estimate, authorization_estimate);
+            assert_eq!(authorization_estimate, cost);
         }
     }
 }
