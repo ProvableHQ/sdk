@@ -1253,15 +1253,23 @@ assert(isValid);
 
 ---
 
-### `createProgramFromSource(program) ► Program`
+### `createProgramFromSource(executionResponse, imports, importedVerifyingKeys, program) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Create a program object from a program&#x27;s source code
+Set the inclusion key bytes.
 
 Parameters | Type | Description
 --- | --- | ---
+__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
+__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __program__ | `string` | *Program source code*
+__*return*__ | `boolean` | *True if the proof is valid, false otherwise
+
+
+    /**
+Create a program object from a program&#x27;s source code*
 __*return*__ | [Program](sdk-src_wasm.md) | *The program object*
 
 ---
@@ -2521,15 +2529,23 @@ assert(isValid);
 
 ---
 
-### `createProgramFromSource(program) ► Program`
+### `createProgramFromSource(executionResponse, imports, importedVerifyingKeys, program) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Create a program object from a program&#x27;s source code
+Set the inclusion key bytes.
 
 Parameters | Type | Description
 --- | --- | ---
+__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
+__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __program__ | `string` | *Program source code*
+__*return*__ | `boolean` | *True if the proof is valid, false otherwise
+
+
+    /**
+Create a program object from a program&#x27;s source code*
 __*return*__ | [Program](sdk-src_wasm.md) | *The program object*
 
 ---

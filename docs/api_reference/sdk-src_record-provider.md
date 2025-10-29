@@ -21,11 +21,11 @@ Set the account used to search for records
 
 Parameters | Type | Description
 --- | --- | ---
-__account__ | [Account](sdk-src_account.md) | *The account to use for searching for records*
+__account__ | [Account](sdk-src_account.md) | *The account used to use for searching for records.*
 
 ---
 
-### `findCreditsRecords(microcredits, unspent, nonces, searchParameters) ► Promise.<RecordPlaintext>`
+### `findCreditsRecords(microcredits, searchParameters) ► Promise.<Array.<OwnedRecord>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -33,11 +33,9 @@ Find a list of credit records with a given number of microcredits by via the off
 
 Parameters | Type | Description
 --- | --- | ---
-__microcredits__ | `Array.<number>` | *The number of microcredits to search for*
-__unspent__ | `boolean` | *Whether or not the record is unspent*
-__nonces__ | `Array.<string>` | *Nonces of records already found so that they are not found again*
-__searchParameters__ | `RecordSearchParams` | *Additional parameters to search for*
-__*return*__ | `Promise.<RecordPlaintext>` | *The record if found, otherwise an error*
+__microcredits__ | `Array.<number>` | *The number of microcredits to search for.*
+__searchParameters__ | `RecordSearchParams` | *Additional parameters to search for.*
+__*return*__ | `Promise.<Array.<OwnedRecord>>` | *The records if found, otherwise an error.*
 
 #### Examples
 
@@ -48,11 +46,11 @@ const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // The record provider can be used to find records with a given number of microcredits
-const record = await recordProvider.findCreditsRecord(5000, true, []);
+const record = await recordProvider.findCreditsRecord(5000, { unspent: true, nonces: [] });
 
 // When a record is found but not yet used, it's nonce should be added to the nonces parameter so that it is not
 // found again if a subsequent search is performed
-const records = await recordProvider.findCreditsRecords(5000, true, [record.nonce()]);
+const records = await recordProvider.findCreditsRecords(5000, { unspent: true, nonces: [record.nonce()] });
 
 // When the program manager is initialized with the record provider it will be used to find automatically find
 // fee records and amount records for value transfers so that they do not need to be specified manually
@@ -62,7 +60,7 @@ programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwn
 
 ---
 
-### `findCreditsRecord(microcredits, unspent, nonces, searchParameters) ► Promise.<RecordPlaintext>`
+### `findCreditsRecord(microcredits, searchParameters) ► Promise.<OwnedRecord>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -70,11 +68,9 @@ Find a credit record with a given number of microcredits by via the official Ale
 
 Parameters | Type | Description
 --- | --- | ---
-__microcredits__ | `number` | *The number of microcredits to search for*
-__unspent__ | `boolean` | *Whether or not the record is unspent*
-__nonces__ | `Array.<string>` | *Nonces of records already found so that they are not found again*
-__searchParameters__ | `RecordSearchParams` | *Additional parameters to search for*
-__*return*__ | `Promise.<RecordPlaintext>` | *The record if found, otherwise an error*
+__microcredits__ | `number` | *The number of microcredits to search for.*
+__searchParameters__ | `RecordSearchParams` | *Additional parameters to search for.*
+__*return*__ | `Promise.<OwnedRecord>` | *The record if found, otherwise an error.*
 
 #### Examples
 
@@ -85,11 +81,11 @@ const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // The record provider can be used to find records with a given number of microcredits
-const record = await recordProvider.findCreditsRecord(5000, true, []);
+const record = await recordProvider.findCreditsRecord(5000, { unspent: true, nonces: [] });
 
 // When a record is found but not yet used, it's nonce should be added to the nonces parameter so that it is not
 // found again if a subsequent search is performed
-const records = await recordProvider.findCreditsRecords(5000, true, [record.nonce()]);
+const records = await recordProvider.findCreditsRecords(5000, { unspent: true, nonces: [record.nonce()] });
 
 // When the program manager is initialized with the record provider it will be used to find automatically find
 // fee records and amount records for value transfers so that they do not need to be specified manually
@@ -123,11 +119,11 @@ Set the account used to search for records
 
 Parameters | Type | Description
 --- | --- | ---
-__account__ | [Account](sdk-src_account.md) | *The account to use for searching for records*
+__account__ | [Account](sdk-src_account.md) | *The account used to use for searching for records.*
 
 ---
 
-### `findCreditsRecords(microcredits, unspent, nonces, searchParameters) ► Promise.<RecordPlaintext>`
+### `findCreditsRecords(microcredits, searchParameters) ► Promise.<Array.<OwnedRecord>>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -135,11 +131,9 @@ Find a list of credit records with a given number of microcredits by via the off
 
 Parameters | Type | Description
 --- | --- | ---
-__microcredits__ | `Array.<number>` | *The number of microcredits to search for*
-__unspent__ | `boolean` | *Whether or not the record is unspent*
-__nonces__ | `Array.<string>` | *Nonces of records already found so that they are not found again*
-__searchParameters__ | `RecordSearchParams` | *Additional parameters to search for*
-__*return*__ | `Promise.<RecordPlaintext>` | *The record if found, otherwise an error*
+__microcredits__ | `Array.<number>` | *The number of microcredits to search for.*
+__searchParameters__ | `RecordSearchParams` | *Additional parameters to search for.*
+__*return*__ | `Promise.<Array.<OwnedRecord>>` | *The records if found, otherwise an error.*
 
 #### Examples
 
@@ -150,11 +144,11 @@ const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // The record provider can be used to find records with a given number of microcredits
-const record = await recordProvider.findCreditsRecord(5000, true, []);
+const record = await recordProvider.findCreditsRecord(5000, { unspent: true, nonces: [] });
 
 // When a record is found but not yet used, it's nonce should be added to the nonces parameter so that it is not
 // found again if a subsequent search is performed
-const records = await recordProvider.findCreditsRecords(5000, true, [record.nonce()]);
+const records = await recordProvider.findCreditsRecords(5000, { unspent: true, nonces: [record.nonce()] });
 
 // When the program manager is initialized with the record provider it will be used to find automatically find
 // fee records and amount records for value transfers so that they do not need to be specified manually
@@ -164,7 +158,7 @@ programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwn
 
 ---
 
-### `findCreditsRecord(microcredits, unspent, nonces, searchParameters) ► Promise.<RecordPlaintext>`
+### `findCreditsRecord(microcredits, searchParameters) ► Promise.<OwnedRecord>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -172,11 +166,9 @@ Find a credit record with a given number of microcredits by via the official Ale
 
 Parameters | Type | Description
 --- | --- | ---
-__microcredits__ | `number` | *The number of microcredits to search for*
-__unspent__ | `boolean` | *Whether or not the record is unspent*
-__nonces__ | `Array.<string>` | *Nonces of records already found so that they are not found again*
-__searchParameters__ | `RecordSearchParams` | *Additional parameters to search for*
-__*return*__ | `Promise.<RecordPlaintext>` | *The record if found, otherwise an error*
+__microcredits__ | `number` | *The number of microcredits to search for.*
+__searchParameters__ | `RecordSearchParams` | *Additional parameters to search for.*
+__*return*__ | `Promise.<OwnedRecord>` | *The record if found, otherwise an error.*
 
 #### Examples
 
@@ -187,11 +179,11 @@ const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // The record provider can be used to find records with a given number of microcredits
-const record = await recordProvider.findCreditsRecord(5000, true, []);
+const record = await recordProvider.findCreditsRecord(5000, { unspent: true, nonces: [] });
 
 // When a record is found but not yet used, it's nonce should be added to the nonces parameter so that it is not
 // found again if a subsequent search is performed
-const records = await recordProvider.findCreditsRecords(5000, true, [record.nonce()]);
+const records = await recordProvider.findCreditsRecords(5000, { unspent: true, nonces: [record.nonce()] });
 
 // When the program manager is initialized with the record provider it will be used to find automatically find
 // fee records and amount records for value transfers so that they do not need to be specified manually
@@ -201,7 +193,7 @@ programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwn
 
 ---
 
-### `findRecord(unspent, nonces, searchParameters) ► Promise.<RecordPlaintext>`
+### `findRecord(searchParameters) ► Promise.<OwnedRecord>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -209,14 +201,12 @@ Find an arbitrary record. WARNING: This function is not implemented yet and will
 
 Parameters | Type | Description
 --- | --- | ---
-__unspent__ | `boolean` | **
-__nonces__ | `Array` | **
 __searchParameters__ | `RecordSearchParams` | **
-__*return*__ | `Promise.<RecordPlaintext>` | **
+__*return*__ | `Promise.<OwnedRecord>` | **
 
 ---
 
-### `findRecords(unspent, nonces, searchParameters) ► Promise.<Array>`
+### `findRecords(searchParameters) ► Promise.<Array>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -224,8 +214,6 @@ Find multiple records from a specified program.
 
 Parameters | Type | Description
 --- | --- | ---
-__unspent__ | `boolean` | **
-__nonces__ | `Array` | **
 __searchParameters__ | `RecordSearchParams` | **
 __*return*__ | `Promise.<Array>` | **
 
@@ -249,5 +237,5 @@ const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // The record provider can be used to find records with a given number of microcredits and the block height search
 // can be used to find records within a given block height range
-const record = await recordProvider.findCreditsRecord(5000, true, [], params);
+const record = await recordProvider.findCreditsRecord(5000, { unspent: true, nonces: [], ...params });
 ```

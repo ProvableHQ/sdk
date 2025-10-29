@@ -53,6 +53,7 @@ import {
     RecordProvider,
 } from "./record-provider.js";
 import { RecordScanner } from "./record-scanner.js";
+import { SealanceMerkleTree } from "./integrations/sealance/merkle-tree.js";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {
@@ -182,6 +183,7 @@ export {
     RecordProvider,
     RecordScanner,
     RecordSearchParams,
+    SealanceMerkleTree,
     SolutionJSON,
     SolutionsJSON,
     TransactionJSON,
