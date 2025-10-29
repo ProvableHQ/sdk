@@ -201,6 +201,30 @@ const [transferPublicProvingKey, transferPublicVerifyingKey] = await keyProvider
 
 ---
 
+### `transferPublicKeys() ► Promise.<FunctionKeyPair>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the proving and verifying keys for the transfer_public function.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the transfer_public function*
+
+---
+
+### `inclusionKeys() ► Promise.<FunctionKeyPair>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the proving and verifying keys for the inclusion proof.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the inclusion proof.*
+
+---
+
 ### `joinKeys() ► Promise.<FunctionKeyPair>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -424,6 +448,30 @@ programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwn
 // Keys can also be fetched manually
 const [transferPublicProvingKey, transferPublicVerifyingKey] = await keyProvider.transferKeys("public");
 ```
+
+---
+
+### `transferPublicKeys() ► Promise.<FunctionKeyPair>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the proving and verifying keys for the transfer_public function.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the transfer_public function*
+
+---
+
+### `inclusionKeys() ► Promise.<FunctionKeyPair>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the proving and verifying keys for the inclusion proof.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the inclusion proof.*
 
 ---
 

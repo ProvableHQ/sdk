@@ -20,27 +20,31 @@ use crate::{
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
+    SnapshotQuery,
     Transaction,
     calculate_minimum_fee,
     execute_fee,
     execute_program,
+    latest_block_height,
     log,
     process_inputs,
     types::native::{
         CurrentAleo,
         CurrentNetwork,
         IdentifierNative,
+        PrivateKeyNative,
         ProcessNative,
         ProgramNative,
         RecordPlaintextNative,
         TransactionNative,
+        ViewKeyNative,
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::prelude::{ConsensusVersion, Network};
 use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::prelude::{execution_cost_v1, execution_cost_v2};
-use snarkvm_synthesizer_program::StackKeys;
+use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost_v1, execution_cost_v2};
+use snarkvm_synthesizer_program::StackTrait;
 
 use js_sys::Array;
 use rand::{SeedableRng, rngs::StdRng};
@@ -116,16 +120,25 @@ impl ProgramManager {
             private_key,
             join_proving_key,
             join_verifying_key,
-            rng
+            rng,
+            1
         );
 
         log("Preparing inclusion proof for the join execution");
-        if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query.clone()).await.map_err(|err| err.to_string())?;
+        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
+            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+            offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
-            let query = QueryNative::from(node_url);
-            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-        }
+            let credits = ProgramNative::credits().unwrap();
+            let function_name = IdentifierNative::from_str("join").unwrap();
+            let view_key =
+                ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+            let query = SnapshotQuery::try_from_inputs(node_url, &credits, &function_name, &view_key, &inputs.to_vec())
+                .await
+                .map_err(|err| err.to_string())?;
+            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+            query.current_block_height().map_err(|e| e.to_string())?
+        };
 
         log("Proving the join execution");
         let execution = trace
@@ -134,7 +147,15 @@ impl ProgramManager {
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the join execution");
-        process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        let inclusion_upgrade_height =
+            <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
+        let inclusion_version =
+            if latest_height >= inclusion_upgrade_height { InclusionVersion::V1 } else { InclusionVersion::V0 };
+        process
+            .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, &execution)
+            .map_err(|err| err.to_string())?;
 
         // Calculate the minimum execution fee.
         log("Calculating the minimum execution fee");

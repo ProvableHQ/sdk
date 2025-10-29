@@ -35,7 +35,7 @@ impl BHP256 {
     pub fn setup(domain_separator: &str) -> Result<Self, String> {
         BHP256Native::setup(domain_separator)
             .map(Self)
-            .map_err(|e| format!("Failed to set up BHP256 with domain separator {}: {}", domain_separator, e))
+            .map_err(|e| format!("Failed to set up BHP256 with domain separator {domain_separator}: {e}"))
     }
 
     /// Returns the BHP hash with an input hasher of 256 bits.

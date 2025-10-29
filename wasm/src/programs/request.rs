@@ -154,6 +154,7 @@ impl ExecutionRequest {
     /// @param {string[]} input_types The input types of the function.
     /// @param {Field | undefined} root_tvk The tvk of the function at the top of the call graph. This is undefined if this request is built for the top-level call or if there is only one function in the call graph.
     /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
+    #[allow(clippy::too_many_arguments)]
     pub fn sign(
         private_key: PrivateKey,
         program_id: String,
@@ -161,6 +162,7 @@ impl ExecutionRequest {
         inputs: Array,
         input_types: Array,
         root_tvk: Option<Field>,
+        program_checksum: Option<Field>,
         is_root: bool,
     ) -> Result<ExecutionRequest, String> {
         // Convert the ProgramID and function name to their native objects.
@@ -181,6 +183,7 @@ impl ExecutionRequest {
 
         // Get the root tvk if it was specified.
         let root_tvk = root_tvk.map(FieldNative::from);
+        let program_checksum = program_checksum.map(FieldNative::from);
 
         // Generate an RNG for the function fro system entropy.
         let mut rng = StdRng::from_entropy();
@@ -194,6 +197,7 @@ impl ExecutionRequest {
             &input_types,
             root_tvk,
             is_root,
+            program_checksum,
             &mut rng,
         )
         .map_err(|e| e.to_string())?;
@@ -206,13 +210,14 @@ impl ExecutionRequest {
     ///
     /// @param {string[]} The input_types within the request.
     /// @param {boolean} Flag to indicate whether this request is the first function in the call graph.
-    pub fn verify(&self, input_types: Array, is_root: bool) -> bool {
+    pub fn verify(&self, input_types: Array, is_root: bool, program_checksum: Option<Field>) -> bool {
         let input_types = input_types
             .iter()
             .map(|input_type| ValueTypeNative::from_str(&input_type.as_string().unwrap()).unwrap())
             .collect::<Vec<ValueTypeNative>>();
 
-        self.0.verify(&input_types, is_root)
+        let program_checksum = program_checksum.map(FieldNative::from);
+        self.0.verify(&input_types, is_root, program_checksum)
     }
 }
 

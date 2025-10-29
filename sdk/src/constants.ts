@@ -111,3 +111,10 @@ export const PUBLIC_TO_PRIVATE_TRANSFER = new Set([
     "transfer_public_to_private",
     "transferPublicToPrivate",
 ]);
+
+export const RECORD_DOMAIN = "RecordScannerV0";
+
+/**
+ * Zero address on Aleo blockchain that corresponds to field element 0. Used as padding in Merkle trees and as a sentinel value.
+ */
+export const ZERO_ADDRESS = "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc";

@@ -176,9 +176,16 @@ pub use types::{Field, Group, Scalar};
 mod thread_pool;
 
 mod utilities;
-pub use utilities::EncryptionToolkit;
 #[cfg(test)]
 pub use utilities::test;
+pub use utilities::{
+    EncryptionToolkit,
+    get,
+    get_network,
+    get_statepaths_for_commitments,
+    latest_block_height,
+    latest_stateroot,
+};
 
 #[cfg(test)]
 mod thread_pool {

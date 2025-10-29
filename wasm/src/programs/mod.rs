@@ -45,5 +45,8 @@ pub use request::*;
 pub mod response;
 pub use response::*;
 
+pub mod snapshot_query;
+pub use snapshot_query::*;
+
 pub mod verifying_key;
 pub use verifying_key::*;

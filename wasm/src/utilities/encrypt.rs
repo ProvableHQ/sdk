@@ -15,6 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Address,
     Field,
     Group,
     RecordCiphertext,
@@ -22,19 +23,24 @@ use crate::{
     Transition,
     ViewKey,
     types::native::{
+        AddressNative,
         CiphertextEntryNative,
         CurrentNetwork,
         FieldNative,
+        GroupNative,
         PlaintextEntryNative,
         PlaintextNative,
         RecordPlaintextNative,
+        U8Native,
     },
 };
-use snarkvm_console::prelude::{FromFields, Itertools, Network, Visibility};
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use snarkvm_console::prelude::{FromField, FromFields, Itertools, Network, One, Visibility};
 
 use indexmap::IndexMap;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// EncryptionToolkit provides a set of functions for encrypting, decrypting, and generating individual view keys for records, transitions, and ciphertexts.
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct EncryptionToolkit;
@@ -130,15 +136,24 @@ impl EncryptionToolkit {
             };
             // Insert the decrypted entry.
             if decrypted_data.insert(*id, entry).is_some() {
-                return Err(format!("Duplicate identifier in record: {}", id));
+                return Err(format!("Duplicate identifier in record: {id}"));
             }
             // Increment the index.
             index += num_randomizers;
         }
 
         // Return the decrypted record.
-        let decrypted_record = RecordPlaintextNative::from_plaintext(owner, decrypted_data, *record_native.nonce())
-            .map_err(|e| e.to_string())?;
+        let decrypted_record = if let Ok(record) = RecordPlaintextNative::from_plaintext(
+            owner.clone(),
+            decrypted_data.clone(),
+            *record_native.nonce(),
+            U8Native::new(0u8),
+        ) {
+            record
+        } else {
+            RecordPlaintextNative::from_plaintext(owner, decrypted_data, *record_native.nonce(), U8Native::new(1u8))
+                .map_err(|e| e.to_string())?
+        };
 
         Ok(RecordPlaintext::from(decrypted_record))
     }
@@ -200,25 +215,114 @@ impl EncryptionToolkit {
     pub fn decrypt_transition_with_vk(transition: &Transition, transition_vk: &Field) -> Result<Transition, String> {
         transition.decrypt_transition(transition_vk)
     }
+
+    /// Decrypts a set of record ciphertexts in parallel and stores successful decryptions.
+    ///
+    /// @param {ViewKey} view_key The view key of the owner of the records.
+    /// @param {Vec<RecordCiphertext>} records The record ciphertexts to decrypt.
+    ///
+    /// @returns {vec<RecordPlaintext>} The decrypted record plaintexts.
+    #[wasm_bindgen(js_name = "decryptOwnedRecords")]
+    pub fn decrypt_owned_records(
+        view_key: &ViewKey,
+        records: Vec<RecordCiphertext>,
+    ) -> Result<Vec<RecordPlaintext>, String> {
+        // Use Rayon to parallelize the decryption process and store successful decryptions.
+        let decrypted_records: Vec<RecordPlaintext> = records
+            .par_iter()
+            .filter_map(|record| {
+                let record_vk = Self::generate_record_view_key(view_key, record).ok()?;
+                let decrypted_record = Self::decrypt_record_symmetric_unchecked(&record_vk, record).ok()?;
+                Some(decrypted_record)
+            })
+            .collect();
+
+        Ok(decrypted_records)
+    }
+
+    /// Checks if a record ciphertext is owned by the given view key.
+    ///
+    /// @param {ViewKey} view_key View key of the owner of the records.
+    /// @param {Vec<RecordCiphertext>} records The record ciphertexts for which to check ownership.
+    ///
+    /// @returns {Vec<RecordCiphertext>} The record ciphertexts that are owned by the view key.
+    #[wasm_bindgen(js_name = "checkOwnedRecords")]
+    pub fn check_owned_records(
+        view_key: &ViewKey,
+        records: Vec<RecordCiphertext>,
+    ) -> Result<Vec<RecordCiphertext>, String> {
+        // Use Rayon to parallelize the ownership check.
+        let owned_records: Vec<RecordCiphertext> =
+            records.into_par_iter().filter(|record| record.is_owner(view_key)).collect();
+
+        Ok(owned_records)
+    }
+
+    /// Decrypt the sender ciphertext associated with a record.
+    ///
+    /// @param {ViewKey} view_key View key associated with the record.
+    /// @param {RecordPlaintext} record Record plaintext associated with a sender.
+    /// @param {Field} sender_ciphertext Sender ciphertext associated with the record.
+    ///
+    /// @returns {Address} address of the sender.
+    #[wasm_bindgen(js_name = decryptSender)]
+    pub fn decrypt_sender(
+        view_key: &ViewKey,
+        record: &RecordPlaintext,
+        sender_ciphertext: &Field,
+    ) -> Result<Address, String> {
+        let record_view_key = record.record_view_key(view_key);
+        Self::decrypt_sender_with_rvk(&record_view_key, sender_ciphertext)
+    }
+
+    /// Decrypt the sender ciphertext associated with the record with the record view key.
+    ///
+    /// @param {Field} record_view_key Record view key associated with the record.
+    /// @param {Field} sender_ciphertext Sender ciphertext associated with the record.
+    ///
+    /// @return {Address} the address of the sender.
+    #[wasm_bindgen(js_name = decryptSenderWithRvk)]
+    pub fn decrypt_sender_with_rvk(record_view_key: &Field, sender_ciphertext: &Field) -> Result<Address, String> {
+        let encryption_domain = <CurrentNetwork as Network>::encryption_domain();
+        let record_view_key = FieldNative::from(record_view_key);
+        let randomizer =
+            <CurrentNetwork as Network>::hash_psd4(&[encryption_domain, record_view_key, FieldNative::one()])
+                .map_err(|e| e.to_string())?;
+        let address_x_coordinate = FieldNative::from(sender_ciphertext) - randomizer;
+        Ok(Address::from(AddressNative::new(
+            GroupNative::from_field(&address_x_coordinate).map_err(|e| e.to_string())?,
+        )))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use crate::{
+        test::get_env,
+        types::native::{PrivateKeyNative, ViewKeyNative},
+        utilities::test::records::{
+            CREDITS_RECORD_V1,
+            CREDITS_RECORD_VIEW_KEY,
+            CREDITS_SENDER_CIPHERTEXT,
+            CREDITS_SENDER_PLAINTEXT,
+        },
+    };
     use std::str::FromStr;
     use wasm_bindgen_test::wasm_bindgen_test;
 
     const NON_OWNER_VIEW_KEY: &str = "AViewKey1e2WyreaH5H4RBcioLL2GnxvHk5Ud46EtwycnhTdXLmXp";
     const OWNER_CIPHERTEXT: &str = "record1qyqsqpe2szk2wwwq56akkwx586hkndl3r8vzdwve32lm7elvphh37rsyqyxx66trwfhkxun9v35hguerqqpqzqrtjzeu6vah9x2me2exkgege824sd8x2379scspmrmtvczs0d93qttl7y92ga0k0rsexu409hu3vlehe3yxjhmey3frh2z5pxm5cmxsv4un97q";
+    const NON_OWNED_CIPHERTEXT_1: &str = "RECORD1QVQSQ5H8YT5682E73ZT7PYNJGPL29MWTSETRVS9VHCKFHJRNX9RX94CFQYXX66TRWFHKXUN9V35HGUERQQPQZQZ6KMY7S5HPKKF02L6R46QM8RQCW9X0K4RQ6GT234AMJ2UG3LMTQT5NY4UG8SXJY3U8D05K4Q3E9F54VX67ZMD3G6JYQQ7KXRWS0R0SWM6P833";
+    const NON_OWNED_CIPHERTEXT_2: &str = "RECORD1QVQSP37HJE4CEU8EFZE8XMAHE5TDTXCZ0K534WQPKVN6C9R629X3C4Q8QYRXZMT0W4H8GGCQQGQSPVUJYCN0K7HYFHENXA40HXTFSX68092WMVJ4E3XSEXR2DY0FMCCXT0DS42W5MAASZFJV930QVQRKATQJ900AKU4K777UMH2K54ZHLUGQC2AFJD";
     const OWNER_PLAINTEXT: &str = r"{
   owner: aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3.private,
   microcredits: 1500000000000000u64.private,
-  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public
+  _nonce: 3077450429259593211617823051143573281856129402760267155982965992208217472983group.public,
+  _version: 0u8.public
 }";
     const OWNER_VIEW_KEY: &str = "AViewKey1ccEt8A2Ryva5rxnKcAbn7wgTaTsb79tzkKHFpeKsm9NX";
     const RECORD_VIEW_KEY: &str = "4445718830394614891114647247073357094867447866913203502139893824059966201724field";
-    const RECORD_TAG: &str = "1796466189545157638691489609907096471289658804813960182690905095269699169603field";
     const TRANSITION_PUBLIC_KEY: &str =
         "7532444547840484531569841377269810017844130178606467837628364672670182422388group";
     const TRANSITION_VIEW_KEY: &str =
@@ -273,5 +377,63 @@ mod tests {
         // Attempt to decrypt with the non-owner's view key
         let result = EncryptionToolkit::decrypt_record_symmetric_unchecked(&record_vk, &owner_ciphertext);
         assert!(result.is_err(), "Decryption should fail with a non-owner's view key");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_bulk_record_decryption() {
+        let owned_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
+        //Need to add these two non-owned ciphertexts for testing
+        let nonowned_ciphertext_1 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_1).unwrap();
+        let nonowned_ciphertext_2 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_2).unwrap();
+
+        let records: Vec<RecordCiphertext> = vec![owned_ciphertext, nonowned_ciphertext_1, nonowned_ciphertext_2];
+        let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
+
+        // Decrypt the owned records
+        let decrypted_records = EncryptionToolkit::decrypt_owned_records(&owner_view_key, records).unwrap();
+        // Verify that only the owned record was decrypted
+        assert_eq!(decrypted_records.len(), 1, "Only one record should be decrypted");
+        assert_eq!(
+            decrypted_records[0].to_string(),
+            OWNER_PLAINTEXT,
+            "Decrypted record should match the owner's plaintext"
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn test_check_owned_records() {
+        let owned_ciphertext = RecordCiphertext::from_str(OWNER_CIPHERTEXT).unwrap();
+        // Need to add these two non-owned ciphertexts for testing
+        let nonowned_ciphertext_1 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_1).unwrap();
+        let nonowned_ciphertext_2 = RecordCiphertext::from_str(NON_OWNED_CIPHERTEXT_2).unwrap();
+        let records: Vec<RecordCiphertext> = vec![owned_ciphertext, nonowned_ciphertext_1, nonowned_ciphertext_2];
+        let owner_view_key = ViewKey::from_str(OWNER_VIEW_KEY).unwrap();
+
+        // Check owned records
+        let owned_records = EncryptionToolkit::check_owned_records(&owner_view_key, records).unwrap();
+        // Verify that only the owned record is returned
+        assert_eq!(owned_records.len(), 1, "Only one owned record should be returned");
+        assert_eq!(owned_records[0].to_string(), OWNER_CIPHERTEXT, "Owned record should match the owner's ciphertext");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_encryption_toolkit_decrypt_record_sender_ciphertext() {
+        // Get the private key corresponding to the record.
+        let private_key = PrivateKeyNative::from_str(&get_env("PUZZLE_PK")).unwrap();
+        let view_key = ViewKey::from(ViewKeyNative::try_from(private_key).unwrap());
+
+        // Construct the record and the sender ciphertext.
+        let record = RecordPlaintext::from_string(CREDITS_RECORD_V1).unwrap();
+        let record_view_key = Field::from_string(CREDITS_RECORD_VIEW_KEY).unwrap();
+        let sender_ciphertext = Field::from_string(CREDITS_SENDER_CIPHERTEXT).unwrap();
+
+        // Decrypt the sender ciphertext using the view and record and ensure it's from the expected address.
+        let credits_sender = CREDITS_SENDER_PLAINTEXT.to_string();
+        let sender = EncryptionToolkit::decrypt_sender(&view_key, &record, &sender_ciphertext).unwrap();
+        assert_eq!(sender.to_string(), credits_sender);
+
+        // Decrypt the sender ciphertext using only the record view key and ensure it's from the expected address.
+        let sender = EncryptionToolkit::decrypt_sender_with_rvk(&record_view_key, &sender_ciphertext).unwrap();
+        assert_eq!(sender.to_string(), credits_sender);
     }
 }

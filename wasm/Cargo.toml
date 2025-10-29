@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.9.3"
+version = "0.9.10-testnet-rc"
 authors = [ "The Provable Team" ]
 description = "WebAssembly based toolkit for developing zero-knowledge applications with Aleo"
 homepage = "https://provable.com"
@@ -22,41 +22,62 @@ crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
 [dependencies.snarkvm-algorithms]
-version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
 
 [dependencies.snarkvm-circuit-network]
-version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
+features = ["wasm"]
 
 [dependencies.snarkvm-console]
-version = "3.8.0"
-features = [ "wasm" ]
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
+default-features = false
+features = [
+    "account",
+    "algorithms",
+    "collections",
+    "network",
+    "program",
+    "types",
+    "wasm"
+]
 
 [dependencies.snarkvm-ledger-block]
-version = "3.8.0"
-features = [ "wasm" ]
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
+features = ["wasm"]
 
 [dependencies.snarkvm-ledger-query]
-version = "3.8.0"
-features = [ "async", "wasm" ]
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
+features = ["async", "wasm"]
 
 [dependencies.snarkvm-ledger-store]
-version = "3.8.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
 
 [dependencies.snarkvm-parameters]
-version = "3.8.0"
-features = [ "wasm" ]
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
+default-features = false
+features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer-program]
-version = "3.8.0"
-features = [ "wasm" ]
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
+features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer]
-version = "3.8.0"
-features = [ "async", "wasm" ]
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
+features = ["async", "wasm"]
 
 [dependencies.snarkvm-wasm]
-version = "3.8.0"
-features = [ "console", "fields", "utilities" ]
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "eb44d39"
+features = ["fields", "utilities"]
 
 [dependencies.anyhow]
 version = "1.0"
@@ -67,10 +88,6 @@ version = "0.1.68"
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
 
-[dependencies.getrandom]
-version = "0.2"
-features = [ "js" ]
-
 [dependencies.indexmap]
 version = "2.0.0"
 
@@ -80,9 +97,6 @@ version = "0.4.3"
 [dependencies.js-sys]
 version = "0.3"
 
-[dependencies.once_cell]
-version = "1.18.0"
-
 [dependencies.rand]
 version = "0.8"
 
@@ -91,6 +105,7 @@ version = "1.8"
 
 [dependencies.reqwest]
 version = "0.11.18"
+features = [ "json" ]
 
 [dependencies.serde]
 version = "1.0.183"

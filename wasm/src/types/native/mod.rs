@@ -31,20 +31,22 @@ use snarkvm_console::{
         Record,
         Request,
         Response,
+        StatePath,
         Value,
         ValueType,
     },
-    types::{Boolean, Field, Group, Scalar, U16, U64},
+    types::{Boolean, Field, Group, I8, I16, I32, I64, I128, Scalar, U8, U16, U32, U64, U128},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
-use snarkvm_ledger_query::Query;
-use snarkvm_ledger_store::helpers::memory::BlockMemory;
 use snarkvm_synthesizer::{
     Authorization,
     Process,
     Program,
     snark::{ProvingKey, VerifyingKey},
 };
+
+mod request;
+pub(crate) use request::ProvingRequestNative;
 
 // Account types
 pub type AddressNative = Address<CurrentNetwork>;
@@ -59,8 +61,16 @@ pub type BooleanNative = Boolean<CurrentNetwork>;
 pub type FieldNative = Field<CurrentNetwork>;
 pub type GroupNative = Group<CurrentNetwork>;
 pub type ScalarNative = Scalar<CurrentNetwork>;
+pub type I8Native = I8<CurrentNetwork>;
+pub type I16Native = I16<CurrentNetwork>;
+pub type I32Native = I32<CurrentNetwork>;
+pub type I64Native = I64<CurrentNetwork>;
+pub type I128Native = I128<CurrentNetwork>;
+pub type U8Native = U8<CurrentNetwork>;
 pub type U16Native = U16<CurrentNetwork>;
+pub type U32Native = U32<CurrentNetwork>;
 pub type U64Native = U64<CurrentNetwork>;
+pub type U128Native = U128<CurrentNetwork>;
 
 // Algorithms
 pub type BHP256Native = BHP256<CurrentNetwork>;
@@ -88,21 +98,20 @@ pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
 pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 pub type ResponseNative = Response<CurrentNetwork>;
 pub type ValueNative = Value<CurrentNetwork>;
-pub type ValueTypeNative = ValueType<CurrentNetwork>;
 
 // Ledger types
-type CurrentBlockMemory = BlockMemory<CurrentNetwork>;
 pub type ExecutionNative = Execution<CurrentNetwork>;
 pub type InputNative = Input<CurrentNetwork>;
 pub type OutputNative = Output<CurrentNetwork>;
 pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
-pub type QueryNative = Query<CurrentNetwork, CurrentBlockMemory>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
 pub type TransitionNative = Transition<CurrentNetwork>;
+pub type ValueTypeNative = ValueType<CurrentNetwork>;
 
 // Synthesizer types
 pub type AuthorizationNative = Authorization<CurrentNetwork>;
 pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
 pub type RequestNative = Request<CurrentNetwork>;
+pub type StatePathNative = StatePath<CurrentNetwork>;
 pub type VerifyingKeyNative = VerifyingKey<CurrentNetwork>;

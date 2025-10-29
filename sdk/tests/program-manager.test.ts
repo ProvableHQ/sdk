@@ -1,6 +1,8 @@
 import {
     Account,
+    AleoKeyProvider,
     Authorization,
+    CREDITS_PROGRAM_KEYS,
     ExecutionResponse,
     ImportedPrograms,
     ImportedVerifyingKeys,
@@ -8,18 +10,21 @@ import {
     PrivateKey,
     Program,
     ProgramManager,
+    ProvingRequest,
     RecordPlaintext,
     Transaction,
     verifyFunctionExecution,
-    VerifyingKey
+    VerifyingKey,
+    ViewKey
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import {
     beaconAddressString,
     helloProgram,
-    recordStatePath,
-    statePathRecord,
-    statePathRecordOwnerPrivateKey,
-    stateRoot
+    recordStatePathv0,
+    statePathRecordv0,
+    statePathRecordv1,
+    statePathv0RecordOwnerPrivateKey,
+    stateRootv0,
 } from "./data/account-data.js";
 import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program.js";
 import { expect } from "chai";
@@ -28,12 +33,14 @@ import {
     PUZZLE_SPINNER_V002_INPUT_0,
     PUZZLE_SPINNER_V002_INPUT_1,
     PUZZLE_SPINNER_V002_INPUT_2
-} from "./data/proving";
+} from "./data/proving.js";
 import * as process from "node:process";
 
-describe('Program Manager', () => {
-    const programManager = new ProgramManager("https://api.explorer.provable.com/v1");
-    programManager.setAccount(new Account({privateKey: statePathRecordOwnerPrivateKey}));
+describe('Program Manager', async () => {
+    const keyProvider = new AleoKeyProvider();
+    keyProvider.useCache(true);
+    const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+    programManager.setAccount(new Account({privateKey: statePathv0RecordOwnerPrivateKey}));
     const network = programManager.networkClient.network;
 
     describe('Instantiate with AleoNetworkClientOptions', () => {
@@ -61,7 +68,7 @@ describe('Program Manager', () => {
         it.skip('Program manager should execute offline and verify the resulting proof correctly', async () => {
             const execution_result = <ExecutionResponse>await programManager.run(helloProgram, "hello", ["5u32", "5u32"], true, undefined, undefined, undefined, undefined, undefined, undefined)
             expect(execution_result.getOutputs()[0]).equal("10u32");
-            programManager.verifyExecution(execution_result);
+            programManager.verifyExecution(execution_result, 10_300_000);
         });
     });
 
@@ -86,7 +93,7 @@ describe('Program Manager', () => {
                 if (!execution) {
                     throw new Error("Execution is undefined");
                 } else {
-                    const verified = verifyFunctionExecution(execution, verifyingKey, program, "spin", imports, importedVerifyingKeys);
+                    const verified = verifyFunctionExecution(execution, verifyingKey, program, "spin", imports, importedVerifyingKeys, 6291400);
                     expect(verified).equal(true);
                 }
             }
@@ -95,19 +102,104 @@ describe('Program Manager', () => {
 
     describe('Offline query', () => {
         it.skip('The offline query should work as expected', async () => {
-            const offlineQuery = new OfflineQuery(1, stateRoot);
-            const record_plaintext = RecordPlaintext.fromString(statePathRecord);
-            const commitment = record_plaintext.commitment("credits.aleo", "credits").toString();
-            offlineQuery.addStatePath(commitment, recordStatePath);
+            const offlineQuery = new OfflineQuery(10_300_000, stateRootv0);
+            const record_plaintext = RecordPlaintext.fromString(statePathRecordv0);
+            const pk = PrivateKey.from_string("APrivateKey1zkpAZAjaJJvPS7EJ7zvk5fb3QcZDCDxMSHSN5ap7ep4FAD7");
+            const vk = ViewKey.from_private_key(pk);
+            const record_vk = record_plaintext.recordViewKey(vk);
+            const commitment = record_plaintext.commitment("credits.aleo", "credits", record_vk.toString()).toString();
+            offlineQuery.addStatePath(commitment, recordStatePathv0);
             const credits = <string>await programManager.networkClient.getProgram("credits.aleo");
 
-            const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecord, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
-            const verified = programManager.verifyExecution(execution_result);
+            const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecordv0, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
+            const verified = programManager.verifyExecution(execution_result, 10_300_000);
             expect(verified).equal(true);
         });
     });
 
+    describe('ProgramManager Executions', () => {
+        it.skip('Should create a split transaction without fees', async function () {
+            this.retries(3);
+
+            if (network === "testnet") {
+                const keyPair = await programManager.keyProvider.splitKeys();
+                programManager.keyProvider.cacheKeys("credits.aleo/split", keyPair);
+                const pk = PrivateKey.from_string(<string>process.env["PUZZLE_PK"]);
+
+                const tx = <Transaction>await programManager.buildExecutionTransaction({
+                    programName: "credits.aleo",
+                    functionName: "split",
+                    priorityFee: 0.0,
+                    privateFee: false,
+                    inputs: [statePathRecordv1, "10u64"],
+                    keySearchParams: { "cacheKey": CREDITS_PROGRAM_KEYS.split.locator },
+                    privateKey: pk
+                });
+
+                expect(tx.feeAmount()).equal(BigInt(0));
+            }
+        });
+
+        it('Should create a split ProvingRequest without fees', async function () {
+            this.retries(3);
+
+            if (network === "testnet") {
+                const pk = PrivateKey.from_string(<string>process.env["PUZZLE_PK"]);
+
+                const request = <ProvingRequest>await programManager.provingRequest({
+                    programName: "credits.aleo",
+                    functionName: "split",
+                    baseFee: 0.0,
+                    priorityFee: 0.0,
+                    privateFee: false,
+                    inputs: [statePathRecordv1, "10u64"],
+                    broadcast: false,
+                    privateKey: pk
+                });
+
+                expect(request.feeAuthorization()).equal(undefined);
+            }
+        });
+    });
+
     describe('Proving Requests and Authorizations', () => {
+        it('Should build correct authorizations from Proving Request', async () => {
+            // Build a proving request for the "spin" function of "puzzle_spinner_v002.aleo".
+            const provingRequest = await programManager.provingRequest({
+                programName: PUZZLE_SPINNER_PROGRAM_ID,
+                functionName: "spin",
+                baseFee: 1000000,
+                priorityFee: 0,
+                privateFee: false,
+                inputs: [
+                    PUZZLE_SPINNER_V002_INPUT_0,
+                    PUZZLE_SPINNER_V002_INPUT_1,
+                    PUZZLE_SPINNER_V002_INPUT_2,
+                ],
+                broadcast: false,
+                privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
+            });
+
+            // Ensure serialization methods lead to the expected.
+            const provingRequestFromString = ProvingRequest.fromString(provingRequest.toString());
+            const provingRequestFromBytes = ProvingRequest.fromBytesLe(provingRequest.toBytesLe());
+
+            // Ensure all authorizations are equal.
+            expect(provingRequestFromString.equals(provingRequestFromBytes));
+            expect(provingRequestFromString.equals(provingRequest));
+
+            // Ensure the broadcast flag is set to false.
+            expect(provingRequest.broadcast()).equal(false);
+
+            // Get the authorizations.
+            const authorization = provingRequest.authorization();
+            const feeAuthorization = <Authorization>provingRequest.feeAuthorization();
+
+            // Ensure the authorizations have the correct number of transitions.
+            expect(authorization.transitions().length).equal(3);
+            expect(feeAuthorization.transitions().length).equal(1);
+        })
+
         it('Should build correct authorizations', async () => {
             // Build an authorization for the spin function of "puzzle_spinner_v002.aleo".
             const authorization = await programManager.buildAuthorization({
@@ -139,6 +231,42 @@ describe('Program Manager', () => {
             // Ensure the authorizations have the correct number of transitions.
             expect(authorization.transitions().length).equal(3);
             expect(feeAuthorization.transitions().length).equal(1);
+        });
+
+        it('Should build correct authorizations when using the unchecked version', async () => {
+            // Build an authorization for the spin function of "puzzle_spinner_v002.aleo".
+            if (network === "mainnet") {
+                const authorization = await programManager.buildAuthorizationUnchecked({
+                    programName: PUZZLE_SPINNER_PROGRAM_ID,
+                    functionName: "spin",
+                    inputs: [
+                        PUZZLE_SPINNER_V002_INPUT_0,
+                        PUZZLE_SPINNER_V002_INPUT_1,
+                        PUZZLE_SPINNER_V002_INPUT_2,
+                    ],
+                    privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
+                });
+
+                // Ensure serialization methods lead to the expected.
+                const authorizationFromString = Authorization.fromString(authorization.toString());
+                const authorizationFromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+
+                // Ensure all authorizations are equal.
+                expect(authorizationFromString.equals(authorizationFromBytes));
+                expect(authorizationFromString.equals(authorization));
+
+                // Get execution ID from previous authorization.
+                const executionId = authorization.toExecutionId().toString();
+                const feeAuthorization = await programManager.buildFeeAuthorization({
+                    deploymentOrExecutionId: executionId,
+                    baseFeeCredits: 0.1,
+                });
+
+                // Ensure the authorizations have the correct number of transitions.
+                expect(authorization.transitions().length).equal(3);
+                expect(feeAuthorization.transitions().length).equal(1);
+            }
+
         });
     });
 });

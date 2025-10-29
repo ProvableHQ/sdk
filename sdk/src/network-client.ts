@@ -7,16 +7,31 @@ import {
     Plaintext,
     RecordCiphertext,
     Program,
+    ProvingRequest,
     RecordPlaintext,
     PrivateKey,
     Transaction,
 } from "./wasm.js";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
+import { ProvingResponse } from "./models/provingResponse.js";
 
 type ProgramImports = { [key: string]: string | Program };
 
 interface AleoNetworkClientOptions {
     headers?: { [key: string]: string };
+}
+
+/**
+ * Options for submitting a proving request.
+ *
+ * @property provingRequest {ProvingRequest | string} The proving request being submitted to the network.
+ * @property url {string} The URL of the delegated proving service.
+ * @property apiKey {string} The API key to use for authentication.
+ */
+interface DelegatedProvingParams {
+    provingRequest: ProvingRequest | string;
+    url?: string;
+    apiKey?: string;
 }
 
 /**
@@ -37,12 +52,14 @@ class AleoNetworkClient {
     headers: { [key: string]: string };
     account: Account | undefined;
     ctx: { [key: string]: string };
+    verboseErrors: boolean;
     readonly network: string;
 
     constructor(host: string, options?: AleoNetworkClientOptions) {
         this.host = host + "/%%NETWORK%%";
         this.network = "%%NETWORK%%";
         this.ctx = {};
+        this.verboseErrors = true;
 
         if (options && options.headers) {
             this.headers = options.headers;
@@ -84,7 +101,6 @@ class AleoNetworkClient {
      * Set a new host for the networkClient
      *
      * @param {string} host The address of a node hosting the Aleo API
-     * @param host
      *
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
@@ -97,6 +113,23 @@ class AleoNetworkClient {
      */
     setHost(host: string) {
         this.host = host + "/%%NETWORK%%";
+    }
+
+    /**
+     * Set verbose errors to true or false for the `AleoNetworkClient`. When set to true, if `submitTransaction` fails, the failure responses will report descriptive information as to why the transaction failed.
+     *
+     * @param {boolean} verboseErrors Set verbose error mode to true or false for the AleoNetworkClient.
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a networkClient
+     * const networkClient = new AleoNetworkClient();
+     *
+     * // Set debug mode to true
+     * networkClient.setVerboseTransactionErrors(true);
+     **/
+    setVerboseErrors(verboseErrors: boolean) {
+        this.verboseErrors = verboseErrors;
     }
 
     /**
@@ -373,12 +406,14 @@ class AleoNetworkClient {
                                                             }
 
                                                             if (unspent) {
+                                                                const recordViewKey = recordPlaintext.recordViewKey(viewKey).toString();
                                                                 // Otherwise record the nonce that has been found
                                                                 const serialNumber =
                                                                     recordPlaintext.serialNumberString(
                                                                         resolvedPrivateKey,
                                                                         "credits.aleo",
                                                                         "credits",
+                                                                        recordViewKey
                                                                     );
                                                                 // Attempt to see if the serial number is spent
                                                                 try {
@@ -888,7 +923,17 @@ class AleoNetworkClient {
     /**
      * Returns the source code of a program given a program ID.
      *
-     * @param {string} programId The program ID of a program deployed to the Aleo Network
+     * @param {string} programId The program ID of a program deployed to the Aleo Network.
+     * @param {number | undefined} edition The edition of the program to fetch. When this is undefined it will fetch the latest version.
+     * @returns {Promise<string>} The source code of the program.
+     *
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a network client.
+     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     *
+     * // Get the source code of a program.)
      * @returns {Promise<string>} Source code of the program
      *
      * @example
@@ -901,10 +946,43 @@ class AleoNetworkClient {
      * const expectedSource = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n"
      * assert.equal(program, expectedSource);
      */
-    async getProgram(programId: string): Promise<string> {
+    async getProgram(programId: string, edition?: number): Promise<string> {
         try {
-            this.ctx = { "X-ALEO-METHOD": "getProgram" };
-            return await this.fetchData<string>("/program/" + programId);
+            this.ctx = { "X-ALEO-METHOD": "getProgramVersion" };
+            if (typeof edition === "number") {
+                return await this.fetchData<string>(
+                    `/program/${programId}/${edition}`,
+                );
+            } else {
+                return await this.fetchData<string>("/program/" + programId);
+            }
+        } catch (error) {
+            throw new Error(`Error fetching program ${programId}: ${error}`);
+        } finally {
+            this.ctx = {};
+        }
+    }
+
+    /**
+     * Returns the current program edition deployed on the Aleo network.
+     *
+     * @param {string} programId The program ID of a program deployed to the Aleo Network.
+     * @returns {Promise<number>} The edition of the program.
+     *
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a network client.
+     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     *
+     * const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
+     * assert.equal(programVersion, 1);
+     */
+    async getLatestProgramEdition(programId: string): Promise<number> {
+        try {
+            this.ctx = { "X-ALEO-METHOD": "getLatestProgramEdition" };
+            const raw = await this.fetchRaw("/program/" + programId + "/latest_edition");
+            return JSON.parse(raw);
         } catch (error) {
             throw new Error(`Error fetching program ${programId}: ${error}`);
         } finally {
@@ -915,8 +993,9 @@ class AleoNetworkClient {
     /**
      * Returns a program object from a program ID or program source code.
      *
-     * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
-     * @returns {Promise<Program>} Source code of the program
+     * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network.
+     * @param {number | undefined} edition The edition of the program to fetch. When this is undefined it will fetch the latest version.
+     * @returns {Promise<Program>} Source code of the program.
      *
      * @example
      * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
@@ -934,20 +1013,16 @@ class AleoNetworkClient {
      * // Both program objects should be equal
      * assert(programObjectFromID.to_string() === programObjectFromSource.to_string());
      */
-    async getProgramObject(inputProgram: string): Promise<Program> {
+    async getProgramObject(inputProgram: string, edition?: number): Promise<Program> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramObject" };
-            return Program.fromString(inputProgram);
+            return Program.fromString(
+                <string>await this.getProgram(inputProgram, edition),
+            );
         } catch (error) {
-            try {
-                return Program.fromString(
-                    <string>await this.getProgram(inputProgram),
-                );
-            } catch (error) {
-                throw new Error(
-                    `${inputProgram} is neither a program name or a valid program: ${error}`,
-                );
-            }
+            throw new Error(
+                `${inputProgram} is neither a program name or a valid program: ${error}`,
+            );
         } finally {
             this.ctx = {};
         }
@@ -983,40 +1058,49 @@ class AleoNetworkClient {
      * programImports = await networkClient.getProgramImports(double_test);
      * assert.deepStrictEqual(programImports, expectedImports);
      */
-    async getProgramImports(
-        inputProgram: Program | string,
-    ): Promise<ProgramImports> {
+    async getProgramImports(inputProgram: Program | string): Promise<ProgramImports> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
             const imports: ProgramImports = {};
 
-            // Get the program object or fail if the program is not valid or does not exist
-            const program =
-                inputProgram instanceof Program
-                    ? inputProgram
-                    : <Program>await this.getProgramObject(inputProgram);
+            // Normalize input to a Program object
+            let program: Program;
+            if (inputProgram instanceof Program) {
+                program = inputProgram;
+            } else {
+                try {
+                    program = Program.fromString(inputProgram);
+                } catch {
+                    try {
+                        program = await this.getProgramObject(inputProgram);
+                    } catch (error2) {
+                        throw new Error(
+                            `${inputProgram} is neither a program name nor a valid program: ${error2}`,
+                        );
+                    }
+                }
+            }
 
             // Get the list of programs that the program imports
             const importList = program.getImports();
 
-            // Recursively get any imports that the imported programs have in a depth first search order
+            // Recursively get any imports that the imported programs have in a depth-first search
             for (let i = 0; i < importList.length; i++) {
                 const import_id = importList[i];
                 if (!imports.hasOwnProperty(import_id)) {
-                    const programSource = <string>(
-                        await this.getProgram(import_id)
-                    );
-                    const nestedImports = <ProgramImports>(
-                        await this.getProgramImports(import_id)
-                    );
+                    const programSource = <string>await this.getProgram(import_id);
+                    const nestedImports = <ProgramImports>await this.getProgramImports(import_id);
+
                     for (const key in nestedImports) {
                         if (!imports.hasOwnProperty(key)) {
                             imports[key] = nestedImports[key];
                         }
                     }
+
                     imports[import_id] = programSource;
                 }
             }
+
             return imports;
         } catch (error: any) {
             logAndThrow("Error fetching program imports: " + error.message);
@@ -1024,6 +1108,7 @@ class AleoNetworkClient {
             this.ctx = {};
         }
     }
+
 
     /**
      * Get a list of the program names that a program imports.
@@ -1092,7 +1177,7 @@ class AleoNetworkClient {
             );
         } catch (error) {
             throw new Error(
-                `Error fetching mappings for program ${programId} - ensure the program exists on chain before trying again`,
+                `Error fetching mappings for program ${programId} - ensure the program exists on chain before trying again: ${error}`,
             );
         } finally {
             this.ctx = {};
@@ -1131,7 +1216,7 @@ class AleoNetworkClient {
             );
         } catch (error) {
             throw new Error(
-                `Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct`,
+                `Error fetching value for key '${key}' in mapping '${mappingName}' in program '${programId}' - ensure the mapping exists and the key is correct: ${error}`,
             );
         } finally {
             this.ctx = {};
@@ -1484,8 +1569,9 @@ class AleoNetworkClient {
                 ? transaction.toString()
                 : transaction;
         try {
+            const endpoint = this.verboseErrors ? "transaction/broadcast?check_transaction=true" : "transaction/broadcast";
             const response = await retryWithBackoff(() =>
-                this._sendPost(this.host + "/transaction/broadcast", {
+                this._sendPost(`${this.host}/${endpoint}`, {
                     body: transactionString,
                     headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD" : "submitTransaction"}, {
                         "Content-Type": "application/json",
@@ -1537,6 +1623,45 @@ class AleoNetworkClient {
             throw new Error(
                 `Error posting solution: No response received: ${error.message}`,
             );
+        }
+    }
+
+    /**
+     * Submit a `ProvingRequest` to a remote proving service for delegated proving. If the broadcast flag of the `ProvingRequest` is set to `true` the remote service will attempt to broadcast the result `Transaction` on behalf of the requestor.
+     *
+     * @param {DelegatedProvingParams} options - The optional parameters required to submit a proving request.
+     * @returns {Promise<ProvingResponse>} The ProvingResponse containing the transaction result and the result of the broadcast if the `broadcast` flag was set to `true`.
+     */
+    async submitProvingRequest(options: DelegatedProvingParams): Promise<ProvingResponse> {
+        const proverUri = options.url ?? this.host;
+        const provingRequestString = options.provingRequest instanceof ProvingRequest
+            ? options.provingRequest.toString()
+            : options.provingRequest;
+
+        // Build headers with proper auth fallback
+        const headers: Record<string, string> = {
+          ...this.headers,
+          "X-ALEO-METHOD": "submitProvingRequest",
+          "Content-Type": "application/json"
+        };
+
+        // Add auth header based on what's available
+        if (options.apiKey) {
+          headers["X-Provable-API-Key"] = options.apiKey;
+        }
+
+        try {
+            const response = await retryWithBackoff(() =>
+                post(`${proverUri}/prove`, {
+                body: provingRequestString,
+                 headers
+                })
+            );
+            const responseText = await response.text();
+            return parseJSON(responseText);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            throw new Error(`Failed to submit proving request: ${errorMessage}`);
         }
     }
 

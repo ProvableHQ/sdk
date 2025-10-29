@@ -21,10 +21,12 @@ use crate::{
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
+    SnapshotQuery,
     Transaction,
     calculate_minimum_fee,
     execute_fee,
     execute_program,
+    latest_block_height,
     log,
     process_inputs,
     types::native::{
@@ -40,8 +42,9 @@ use crate::{
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::network::{ConsensusVersion, Network};
 use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::prelude::{cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
+use snarkvm_synthesizer::prelude::{InclusionVersion, cost_in_microcredits_v1, execution_cost_v1, execution_cost_v2};
 
+use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;
 use js_sys::{Array, Object};
 use rand::{SeedableRng, rngs::StdRng};
@@ -81,8 +84,8 @@ impl ProgramManager {
         verifying_key: Option<VerifyingKey>,
         url: Option<String>,
         offline_query: Option<OfflineQuery>,
+        edition: Option<u16>,
     ) -> Result<ExecutionResponse, String> {
-        log(&format!("Executing local function: {function}"));
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let inputs = inputs.to_vec();
         let rng = &mut StdRng::from_entropy();
@@ -93,6 +96,7 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let edition = edition.unwrap_or(1);
 
         let (response, mut trace) = execute_program!(
             process,
@@ -102,17 +106,29 @@ impl ProgramManager {
             private_key,
             proving_key,
             verifying_key,
-            rng
+            rng,
+            edition
         );
 
         let mut execution_response = if prove_execution {
             log("Preparing inclusion proofs for execution");
             if let Some(offline_query) = offline_query {
-                trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+                trace.prepare_async(&offline_query).await.map_err(|err| err.to_string())?;
             } else {
-                let query = QueryNative::from(node_url);
-                trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-            }
+                let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+                let view_key =
+                    ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+                let query = SnapshotQuery::try_from_inputs(
+                    node_url,
+                    &program_native,
+                    &function_name,
+                    &view_key,
+                    &inputs.to_vec(),
+                )
+                .await
+                .map_err(|err| err.to_string())?;
+                trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+            };
 
             log("Proving execution");
             let locator = program_native.id().to_string().add("/").add(function);
@@ -150,6 +166,8 @@ impl ProgramManager {
     /// @param verifying_key (optional) Provide a verifying key to use for the function execution
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param offline_query An offline query object to use if building a transaction without an internet connection.
+    /// @param edition The edition of the program to execute. Defaults to the latest found on the network, or 1 if the program does not exist on the network.
     /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildExecutionTransaction)]
     #[allow(clippy::too_many_arguments)]
@@ -167,18 +185,20 @@ impl ProgramManager {
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
+        edition: Option<u16>,
     ) -> Result<Transaction, String> {
-        log(&format!("Executing function: {function} on-chain"));
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
 
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+        let program_id = program_native.id().to_string();
         ProgramManager::resolve_imports(process, &program_native, imports)?;
         let rng = &mut StdRng::from_entropy();
 
-        log("Executing program");
+        log(&format!("Executing function: {program_id}/{function} on-chain"));
+        let edition = edition.unwrap_or(1);
         let (_, mut trace) = execute_program!(
             process,
             process_inputs!(inputs),
@@ -187,52 +207,80 @@ impl ProgramManager {
             private_key,
             proving_key,
             verifying_key,
-            rng
+            rng,
+            edition
         );
 
         log("Preparing inclusion proofs for execution");
-        if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query.clone()).await.map_err(|err| err.to_string())?;
+        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
+            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+            offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
-            let query = QueryNative::from(node_url);
-            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-        }
+            let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+            let view_key =
+                ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+            let query =
+                SnapshotQuery::try_from_inputs(node_url, &program_native, &function_name, &view_key, &inputs.to_vec())
+                    .await
+                    .map_err(|err| err.to_string())?;
+            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+            query.current_block_height().map_err(|e| e.to_string())?
+        };
 
         log("Proving execution");
-        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
-        let locator = program.id().to_string().add("/").add(function);
+        let locator = program_native.id().to_string().add("/").add(function);
         let execution = trace
             .prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, &mut StdRng::from_entropy())
             .map_err(|e| e.to_string())?;
-        let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
-        log("Calculating the minimum execution fee");
-        let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
+        // If the function is anything other than credits.aleo/split or credits.aleo/upgrade, execute a fee.
+        let fee = match (program_id.as_str(), function) {
+            ("credits.aleo", "split")
+            | ("credits.aleo", "upgrade")
+            | ("credits.aleo", "fee_private")
+            | ("credits.aleo", "fee_public") => None,
+            _ => {
+                log("Calculating the minimum execution fee");
+                let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
 
-        // Check to see if the fee record has enough microcredits to pay for the deployment.
-        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
-        Self::validate_fee_record(&fee_record, minimum_execution_cost, priority_fee_microcredits)?;
+                // Check to see if the fee record has enough microcredits to pay for the deployment.
+                let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+                Self::validate_fee_record(&fee_record, minimum_execution_cost, priority_fee_microcredits)?;
 
-        log("Executing fee");
-        let fee = execute_fee!(
-            process,
-            private_key,
-            fee_record,
-            priority_fee_microcredits,
-            node_url,
-            fee_proving_key,
-            fee_verifying_key,
-            execution_id,
-            rng,
-            offline_query,
-            minimum_execution_cost
-        );
+                // Calculate the execution id.
+                let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
+
+                log("Executing fee");
+                let fee = execute_fee!(
+                    process,
+                    private_key,
+                    fee_record,
+                    priority_fee_microcredits,
+                    node_url,
+                    fee_proving_key,
+                    fee_verifying_key,
+                    execution_id,
+                    rng,
+                    offline_query,
+                    minimum_execution_cost
+                );
+                Some(fee)
+            }
+        };
 
         // Verify the execution
-        process.verify_execution(VarunaVersion::V2, &execution).map_err(|err| err.to_string())?;
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        let inclusion_upgrade_height =
+            <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
+        let inclusion_version =
+            if latest_height >= inclusion_upgrade_height { InclusionVersion::V1 } else { InclusionVersion::V0 };
+        process
+            .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, &execution)
+            .map_err(|err| err.to_string())?;
 
         log("Creating execution transaction");
-        let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
+        let transaction = TransactionNative::from_execution(execution, fee).map_err(|err| err.to_string())?;
         Ok(Transaction::from(transaction))
     }
 
@@ -265,6 +313,7 @@ impl ProgramManager {
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
+        edition: Option<u16>,
     ) -> Result<u64, String> {
         log(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
@@ -280,6 +329,7 @@ impl ProgramManager {
         let rng = &mut StdRng::from_entropy();
 
         log("Generating execution trace");
+        let edition = edition.unwrap_or(1);
         let (_, mut trace) = execute_program!(
             process,
             process_inputs!(inputs),
@@ -288,7 +338,8 @@ impl ProgramManager {
             private_key,
             proving_key,
             verifying_key,
-            rng
+            rng,
+            edition
         );
 
         // Execute the program
@@ -296,15 +347,19 @@ impl ProgramManager {
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
         let locator = program.id().to_string().add("/").add(function);
 
-        let block_height = if let Some(offline_query) = offline_query {
-            let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
+        let block_height = if let Some(offline_query) = offline_query.as_ref() {
             trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
-            block_height
+            offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
-            let query = QueryNative::from(node_url);
-            let block_height = query.current_block_height_async().await.map_err(|e| e.to_string())?;
-            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-            block_height
+            let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+            let view_key =
+                ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+            let query =
+                SnapshotQuery::try_from_inputs(node_url, &program_native, &function_name, &view_key, &inputs.to_vec())
+                    .await
+                    .map_err(|err| err.to_string())?;
+            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+            query.current_block_height().map_err(|e| e.to_string())?
         };
         let execution =
             trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;

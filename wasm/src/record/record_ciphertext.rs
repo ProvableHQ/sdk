@@ -156,6 +156,14 @@ impl RecordCiphertext {
     pub fn nonce(&self) -> Group {
         Group::from(self.0.nonce())
     }
+
+    /// Clone the RecordCiphertext WASM object.
+    ///
+    /// @returns {RecordCiphertext} A clone of the RecordCiphertext WASM object.
+    #[allow(clippy::should_implement_trait)]
+    pub fn clone(&self) -> RecordCiphertext {
+        RecordCiphertext(self.0.clone())
+    }
 }
 
 impl Deref for RecordCiphertext {
@@ -236,6 +244,13 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
+    fn test_clone() {
+        let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
+        let cloned_record = record.clone();
+        assert_eq!(record.to_string(), cloned_record.to_string());
+    }
+
+    #[wasm_bindgen_test]
     fn test_decrypt_and_tag_computation() {
         let record = RecordCiphertext::from_string(OWNER_CIPHERTEXT).unwrap();
         let view_key = ViewKey::from_string(OWNER_VIEW_KEY);
@@ -245,8 +260,9 @@ mod tests {
         assert_eq!(plaintext.to_string(), owner_plaintext.to_string());
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         assert!(record.decrypt(&incorrect_view_key).is_err());
+        let rvk = record.record_view_key(&view_key);
 
-        let commitment = plaintext.commitment("credits.aleo", "credits").unwrap();
+        let commitment = plaintext.commitment("credits.aleo", "credits", &rvk.to_string()).unwrap();
         let tag = RecordCiphertext::tag(&graph_key, commitment).unwrap();
         let expected_tag = Field::from_str(RECORD_TAG).unwrap();
         assert_eq!(tag, expected_tag);

@@ -157,7 +157,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for deployments
 const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -205,7 +205,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for deployments
 const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -246,7 +246,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -293,7 +293,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a ProgramManager with the key and record providers.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -306,6 +306,86 @@ const authorization = await programManager.buildAuthorization({
     "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
     "10000000u64",
   ],
+});
+```
+
+---
+
+### `buildAuthorizationUnchecked(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM &#x60;Authorization&#x60; for a specific function without building a circuit first. This should be used when fast authorization generation is needed and the invoker is confident inputs are coorect.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `AuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the unchecked `Authorization`.
+const authorization = await programManager.buildAuthorizationUnchecked({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+});
+```
+
+---
+
+### `provingRequest(options) ► Promise.<ProvingRequest>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a &#x60;ProvingRequest&#x60; for submission to a prover for execution.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `ProvingRequestOptions` | *The options for building the proving request*
+__*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the transaction or an error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the proving request.
+const provingRequest = await programManager.provingRequest({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  baseFee: 100000,
+  priorityFee: 0,
+  privateFee: false,
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+  broadcast: false,
 });
 ```
 
@@ -331,7 +411,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a ProgramManager with the key and record providers.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -373,7 +453,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -466,7 +546,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -506,7 +586,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -567,7 +647,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -607,7 +687,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -647,7 +727,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -692,7 +772,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -729,7 +809,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -772,7 +852,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -812,7 +892,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -856,7 +936,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -895,7 +975,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management.
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to unbond credits.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -939,7 +1019,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -977,7 +1057,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to claim unbonded credits.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -1018,7 +1098,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -1064,7 +1144,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -1112,7 +1192,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -1129,7 +1209,7 @@ setTimeout(async () => {
 
 ---
 
-### `verifyExecution(executionResponse, imports, importedVerifyingKeys) ► boolean`
+### `verifyExecution(executionResponse, blockHeight, imports, importedVerifyingKeys) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1138,6 +1218,7 @@ Verify a proof from an offline execution. This is useful when it is desired to d
 Parameters | Type | Description
 --- | --- | ---
 __executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__blockHeight__ | `blockHeight` | *The ledger height when the execution was generated.*
 __imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
 __importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __*return*__ | `boolean` | *True if the proof is valid, false otherwise*
@@ -1165,21 +1246,30 @@ const imports = { "add_it_up.aleo": program_import };
 const importedVerifyingKeys = { "add_it_up.aleo": [["add_it", "verifyingKey1..."]] };
 
 /// Verify the execution.
-const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
+const blockHeight = 9000000;
+const isValid = programManager.verifyExecution(executionResponse, blockHeight, imports, importedVerifyingKeys);
 assert(isValid);
 ```
 
 ---
 
-### `createProgramFromSource(program) ► Program`
+### `createProgramFromSource(executionResponse, imports, importedVerifyingKeys, program) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Create a program object from a program&#x27;s source code
+Set the inclusion key bytes.
 
 Parameters | Type | Description
 --- | --- | ---
+__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
+__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __program__ | `string` | *Program source code*
+__*return*__ | `boolean` | *True if the proof is valid, false otherwise
+
+
+    /**
+Create a program object from a program&#x27;s source code*
 __*return*__ | [Program](sdk-src_wasm.md) | *The program object*
 
 ---
@@ -1343,7 +1433,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for deployments
 const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -1391,7 +1481,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for deployments
 const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -1432,7 +1522,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1479,7 +1569,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a ProgramManager with the key and record providers.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1492,6 +1582,86 @@ const authorization = await programManager.buildAuthorization({
     "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
     "10000000u64",
   ],
+});
+```
+
+---
+
+### `buildAuthorizationUnchecked(options) ► Promise.<Authorization>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a SnarkVM &#x60;Authorization&#x60; for a specific function without building a circuit first. This should be used when fast authorization generation is needed and the invoker is confident inputs are coorect.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `AuthorizationOptions` | *The options for building the &#x60;Authorization&#x60;*
+__*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x60;Authorization&#x60; or throws an Error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the unchecked `Authorization`.
+const authorization = await programManager.buildAuthorizationUnchecked({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+});
+```
+
+---
+
+### `provingRequest(options) ► Promise.<ProvingRequest>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a &#x60;ProvingRequest&#x60; for submission to a prover for execution.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `ProvingRequestOptions` | *The options for building the proving request*
+__*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the transaction or an error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider.
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a ProgramManager with the key and record providers.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+
+// Build the proving request.
+const provingRequest = await programManager.provingRequest({
+  programName: "credits.aleo",
+  functionName: "transfer_public",
+  baseFee: 100000,
+  priorityFee: 0,
+  privateFee: false,
+  inputs: [
+    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+    "10000000u64",
+  ],
+  broadcast: false,
 });
 ```
 
@@ -1517,7 +1687,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a ProgramManager with the key and record providers.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1559,7 +1729,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1652,7 +1822,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1692,7 +1862,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1753,7 +1923,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1793,7 +1963,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1833,7 +2003,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1878,7 +2048,7 @@ import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provabl
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
@@ -1915,7 +2085,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -1958,7 +2128,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -1998,7 +2168,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -2042,7 +2212,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -2081,7 +2251,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management.
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to unbond credits.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -2125,7 +2295,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -2163,7 +2333,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to claim unbonded credits.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -2204,7 +2374,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -2250,7 +2420,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -2298,7 +2468,7 @@ import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache = true;
+keyProvider.useCache(true);
 
 // Create a new ProgramManager with the key that will be used to bond credits
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, undefined);
@@ -2315,7 +2485,7 @@ setTimeout(async () => {
 
 ---
 
-### `verifyExecution(executionResponse, imports, importedVerifyingKeys) ► boolean`
+### `verifyExecution(executionResponse, blockHeight, imports, importedVerifyingKeys) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -2324,6 +2494,7 @@ Verify a proof from an offline execution. This is useful when it is desired to d
 Parameters | Type | Description
 --- | --- | ---
 __executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__blockHeight__ | `blockHeight` | *The ledger height when the execution was generated.*
 __imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
 __importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __*return*__ | `boolean` | *True if the proof is valid, false otherwise*
@@ -2351,21 +2522,30 @@ const imports = { "add_it_up.aleo": program_import };
 const importedVerifyingKeys = { "add_it_up.aleo": [["add_it", "verifyingKey1..."]] };
 
 /// Verify the execution.
-const isValid = programManager.verifyExecution(executionResponse, imports, importedVerifyingKeys);
+const blockHeight = 9000000;
+const isValid = programManager.verifyExecution(executionResponse, blockHeight, imports, importedVerifyingKeys);
 assert(isValid);
 ```
 
 ---
 
-### `createProgramFromSource(program) ► Program`
+### `createProgramFromSource(executionResponse, imports, importedVerifyingKeys, program) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Create a program object from a program&#x27;s source code
+Set the inclusion key bytes.
 
 Parameters | Type | Description
 --- | --- | ---
+__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
+__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
+__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __program__ | `string` | *Program source code*
+__*return*__ | `boolean` | *True if the proof is valid, false otherwise
+
+
+    /**
+Create a program object from a program&#x27;s source code*
 __*return*__ | [Program](sdk-src_wasm.md) | *The program object*
 
 ---

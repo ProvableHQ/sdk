@@ -60,7 +60,7 @@ const account = networkClient.getAccount();
 
 ---
 
-### `setHost(host, host)`
+### `setHost(host)`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -69,7 +69,6 @@ Set a new host for the networkClient
 Parameters | Type | Description
 --- | --- | ---
 __host__ | `string` | *The address of a node hosting the Aleo API*
-__host__ | `undefined` | **
 
 #### Examples
 
@@ -81,6 +80,30 @@ const networkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined);
 
 // Set the host to a public node.
 networkClient.setHost("http://api.explorer.provable.com/v1");
+```
+
+---
+
+### `setVerboseErrors(verboseErrors)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set verbose errors to true or false for the &#x60;AleoNetworkClient&#x60;. When set to true, if &#x60;submitTransaction&#x60; fails, the failure responses will report descriptive information as to why the transaction failed.
+
+Parameters | Type | Description
+--- | --- | ---
+__verboseErrors__ | `boolean` | *Set verbose error mode to true or false for the AleoNetworkClient.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a networkClient
+const networkClient = new AleoNetworkClient();
+
+// Set debug mode to true
+networkClient.setVerboseTransactionErrors(true);
 ```
 
 ---
@@ -497,7 +520,7 @@ const latestHash = networkClient.getLatestBlockHash();
 
 ---
 
-### `getProgram(programId) ► Promise.<string>`
+### `getProgram(programId, edition) ► Promise.<string>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -505,11 +528,21 @@ Returns the source code of a program given a program ID.
 
 Parameters | Type | Description
 --- | --- | ---
-__programId__ | `string` | *The program ID of a program deployed to the Aleo Network*
+__programId__ | `string` | *The program ID of a program deployed to the Aleo Network.*
+__edition__ | `number` | *The edition of the program to fetch. When this is undefined it will fetch the latest version.*
+__*return*__ | `Promise.<string>` | *The source code of the program.*
 __*return*__ | `Promise.<string>` | *Source code of the program*
 
 #### Examples
 
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a network client.
+const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+
+// Get the source code of a program.)
+```
 ```javascript
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
@@ -523,7 +556,32 @@ assert.equal(program, expectedSource);
 
 ---
 
-### `getProgramObject(inputProgram) ► Promise.<Program>`
+### `getLatestProgramEdition(programId) ► Promise.<number>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the current program edition deployed on the Aleo network.
+
+Parameters | Type | Description
+--- | --- | ---
+__programId__ | `string` | *The program ID of a program deployed to the Aleo Network.*
+__*return*__ | `Promise.<number>` | *The edition of the program.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a network client.
+const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+
+const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
+assert.equal(programVersion, 1);
+```
+
+---
+
+### `getProgramObject(inputProgram, edition) ► Promise.<Program>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -531,8 +589,9 @@ Returns a program object from a program ID or program source code.
 
 Parameters | Type | Description
 --- | --- | ---
-__inputProgram__ | `string` | *The program ID or program source code of a program deployed to the Aleo Network*
-__*return*__ | `Promise.<Program>` | *Source code of the program*
+__inputProgram__ | `string` | *The program ID or program source code of a program deployed to the Aleo Network.*
+__edition__ | `number` | *The edition of the program to fetch. When this is undefined it will fetch the latest version.*
+__*return*__ | `Promise.<Program>` | *Source code of the program.*
 
 #### Examples
 
@@ -981,6 +1040,19 @@ __*return*__ | `Promise.<string>` | *The solution id of the submitted solution o
 
 ---
 
+### `submitProvingRequest(options) ► Promise.<ProvingResponse>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Submit a &#x60;ProvingRequest&#x60; to a remote proving service for delegated proving. If the broadcast flag of the &#x60;ProvingRequest&#x60; is set to &#x60;true&#x60; the remote service will attempt to broadcast the result &#x60;Transaction&#x60; on behalf of the requestor.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DelegatedProvingParams` | *The optional parameters required to submit a proving request.*
+__*return*__ | `Promise.<ProvingResponse>` | *The ProvingResponse containing the transaction result and the result of the broadcast if the &#x60;broadcast&#x60; flag was set to &#x60;true&#x60;.*
+
+---
+
 ### `waitForTransactionConfirmation(transactionId, checkInterval, timeout) ► Promise.<Transaction>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1058,7 +1130,7 @@ const account = networkClient.getAccount();
 
 ---
 
-### `setHost(host, host)`
+### `setHost(host)`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1067,7 +1139,6 @@ Set a new host for the networkClient
 Parameters | Type | Description
 --- | --- | ---
 __host__ | `string` | *The address of a node hosting the Aleo API*
-__host__ | `undefined` | **
 
 #### Examples
 
@@ -1079,6 +1150,30 @@ const networkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined);
 
 // Set the host to a public node.
 networkClient.setHost("http://api.explorer.provable.com/v1");
+```
+
+---
+
+### `setVerboseErrors(verboseErrors)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set verbose errors to true or false for the &#x60;AleoNetworkClient&#x60;. When set to true, if &#x60;submitTransaction&#x60; fails, the failure responses will report descriptive information as to why the transaction failed.
+
+Parameters | Type | Description
+--- | --- | ---
+__verboseErrors__ | `boolean` | *Set verbose error mode to true or false for the AleoNetworkClient.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a networkClient
+const networkClient = new AleoNetworkClient();
+
+// Set debug mode to true
+networkClient.setVerboseTransactionErrors(true);
 ```
 
 ---
@@ -1497,7 +1592,7 @@ const latestHash = networkClient.getLatestBlockHash();
 
 ---
 
-### `getProgram(programId) ► Promise.<string>`
+### `getProgram(programId, edition) ► Promise.<string>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1505,11 +1600,21 @@ Returns the source code of a program given a program ID.
 
 Parameters | Type | Description
 --- | --- | ---
-__programId__ | `string` | *The program ID of a program deployed to the Aleo Network*
+__programId__ | `string` | *The program ID of a program deployed to the Aleo Network.*
+__edition__ | `number` | *The edition of the program to fetch. When this is undefined it will fetch the latest version.*
+__*return*__ | `Promise.<string>` | *The source code of the program.*
 __*return*__ | `Promise.<string>` | *Source code of the program*
 
 #### Examples
 
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a network client.
+const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+
+// Get the source code of a program.)
+```
 ```javascript
 import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
 
@@ -1523,7 +1628,32 @@ assert.equal(program, expectedSource);
 
 ---
 
-### `getProgramObject(inputProgram) ► Promise.<Program>`
+### `getLatestProgramEdition(programId) ► Promise.<number>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the current program edition deployed on the Aleo network.
+
+Parameters | Type | Description
+--- | --- | ---
+__programId__ | `string` | *The program ID of a program deployed to the Aleo Network.*
+__*return*__ | `Promise.<number>` | *The edition of the program.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a network client.
+const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+
+const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
+assert.equal(programVersion, 1);
+```
+
+---
+
+### `getProgramObject(inputProgram, edition) ► Promise.<Program>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1531,8 +1661,9 @@ Returns a program object from a program ID or program source code.
 
 Parameters | Type | Description
 --- | --- | ---
-__inputProgram__ | `string` | *The program ID or program source code of a program deployed to the Aleo Network*
-__*return*__ | `Promise.<Program>` | *Source code of the program*
+__inputProgram__ | `string` | *The program ID or program source code of a program deployed to the Aleo Network.*
+__edition__ | `number` | *The edition of the program to fetch. When this is undefined it will fetch the latest version.*
+__*return*__ | `Promise.<Program>` | *Source code of the program.*
 
 #### Examples
 
@@ -1978,6 +2109,19 @@ Parameters | Type | Description
 --- | --- | ---
 __solution__ | `string` | *The string representation of the solution to submit*
 __*return*__ | `Promise.<string>` | *The solution id of the submitted solution or the resulting error.*
+
+---
+
+### `submitProvingRequest(options) ► Promise.<ProvingResponse>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Submit a &#x60;ProvingRequest&#x60; to a remote proving service for delegated proving. If the broadcast flag of the &#x60;ProvingRequest&#x60; is set to &#x60;true&#x60; the remote service will attempt to broadcast the result &#x60;Transaction&#x60; on behalf of the requestor.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DelegatedProvingParams` | *The optional parameters required to submit a proving request.*
+__*return*__ | `Promise.<ProvingResponse>` | *The ProvingResponse containing the transaction result and the result of the broadcast if the &#x60;broadcast&#x60; flag was set to &#x60;true&#x60;.*
 
 ---
 
