@@ -22,19 +22,13 @@ crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
 [dependencies.snarkvm-algorithms]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 
 [dependencies.snarkvm-circuit-network]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 features = ["wasm"]
 
 [dependencies.snarkvm-console]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 default-features = false
 features = [
@@ -48,44 +42,30 @@ features = [
 ]
 
 [dependencies.snarkvm-ledger-block]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 features = ["wasm"]
 
 [dependencies.snarkvm-ledger-query]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-ledger-store]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 
 [dependencies.snarkvm-parameters]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer-program]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-wasm]
-# git = "https://github.com/ProvableHQ/snarkVM.git"
-# rev = "93635d0"
 version = "4.3.1"
 features = ["fields", "utilities"]
 
