@@ -38,7 +38,7 @@ use crate::{
         ProgramNative,
         RecordPlaintextNative,
         TransactionNative,
-    },
+    }
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::{
@@ -286,6 +286,52 @@ impl ProgramManager {
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, fee).map_err(|err| err.to_string())?;
         Ok(Transaction::from(transaction))
+    }
+
+    #[wasm_bindgen]
+    pub async fn execute_authorization(
+        private_key: &PrivateKey,
+        authorization: Authorization,
+        program: &str,
+        function: &str,
+        imports: Option<Object>,
+        url: Option<String>,
+    ) -> Result<Transaction, String> {
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+        let program_id = program_native.id().to_string();
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let rng = &mut StdRng::from_entropy();
+
+        if program_id != "credits.aleo" && !process.contains_program(program_id) {
+            process.add_program(program_native).map_err(|e| e.to_string())?;
+        }
+
+        let (_, trace) = process.execute(authorization, rng).map_err(|e| e.to_string())?;
+
+        log("Preparing inclusion proofs for execution");
+        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
+            trace.prepare_async(offline_query).await.map_err(|e| e.to_string())?;
+            offline_query.current_block_height().map_err(|e| e.to_string())?
+        } else {
+            let function_name = IdentifierNative::from_str(function).map_err(|e| e.to_string())?;
+            let view_key = 
+                ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|e| e.to_string())?;
+            let query =
+                SnapshotQuery::try_from_inputs(node_url, &program_native, &function_name, &view_key, &inputs)
+                    .await
+                    .map_err(|e| e.to_string())?;
+        };
+
+        log("Proving execution");
+        let locator = program_native.id().to_string().add("/").add(function);
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, &mut StdRng::from_entropy())
+            .map_err(|e| e.to_string())?;
     }
 
     /// Estimate Fee for Aleo function execution. Note if "cache" is set to true, the proving and
