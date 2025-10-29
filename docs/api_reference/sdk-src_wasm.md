@@ -1158,6 +1158,19 @@ __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
+### `newDomainSeparator(domain) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Initializes a new field as a domain separator.
+
+Parameters | Type | Description
+--- | --- | ---
+__domain__ | `string` | **
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
 ### `add(other) ► Field`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1711,11 +1724,11 @@ assert( JSON.stringify(bondStateObject) === JSON.stringify(expectedObject) );
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the left endian boolean array representation of the bits of the plaintext.
+Get the little endian boolean array representation of the bits of the plaintext.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Array` | *The left endian boolean array representation of the bits of the plaintext.*
+__*return*__ | `Array` | *The little endian boolean array representation of the bits of the plaintext.*
 
 ---
 
@@ -1749,11 +1762,11 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the left endian byte array representation of the plaintext.
+Get the little endian byte array representation of the plaintext.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Uint8Array` | *The left endian byte array representation of the plaintext.*
+__*return*__ | `Uint8Array` | *The little endian byte array representation of the plaintext.*
 
 ---
 
@@ -1765,7 +1778,7 @@ Get a plaintext object from a series of bits represented as a boolean array.
 
 Parameters | Type | Description
 --- | --- | ---
-__bits__ | `Array` | *A left endian boolean array representing the bits plaintext.*
+__bits__ | `Array` | *A little endian boolean array representing the bits plaintext.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
 
 ---
@@ -1778,8 +1791,20 @@ Get a plaintext object from a series of bytes.
 
 Parameters | Type | Description
 --- | --- | ---
-__bytes__ | `Uint8Array` | *A left endian byte array representing the plaintext.*
+__bytes__ | `Uint8Array` | *A little endian byte array representing the plaintext.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
+
+---
+
+### `toFieldsRaw() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw field array representation of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *The raw field array representation of the plaintext.*
 
 ---
 
@@ -1792,6 +1817,54 @@ Gives the type of the plaintext.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `string` | *The type of the plaintext.*
+
+---
+
+### `toBitsRawBe() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw big endian boolean array representation of the bits of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *The raw big endian boolean array representation of the bits of the plaintext.*
+
+---
+
+### `toBitsRawLe() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw little endian boolean array representation of the bits of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *The raw little endian boolean array representation of the bits of the plaintext.*
+
+---
+
+### `toBytesRawBe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw big endian byte array representation of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *The raw big endian byte array representation of the plaintext.*
+
+---
+
+### `toBytesRawLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw little endian byte array representation of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *The raw little endian byte array representation of the plaintext.*
 
 ---
 
@@ -1892,7 +1965,7 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | **
 
 ## Methods
 
-### `sign_value(message) ► Signature`
+### `signValue(message) ► Signature`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
