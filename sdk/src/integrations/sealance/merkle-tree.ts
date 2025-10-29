@@ -7,8 +7,21 @@ import { ZERO_ADDRESS } from "../../constants.js";
  *
 
  * @example
- * // Construct a Merkle exclusion proof.
-
+ * Construct a Merkle exclusion proof.
+ *  ```typescript
+ * const sealance = new SealanceMerkleTree();
+ * const leaves = [
+ *      "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+ *      "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+ *      "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+ *    ];
+ * const result = sealance.generateLeaves(leaves); 
+ * const tree = sealance.buildTree(result);
+ * const [leftIdx, rightIdx] = sealance.getLeafIndices(tree, "aleo1kypwp5m7qtk9mwazgcpg0tq8aal23mnrvwfvug65qgcg9xvsrqgspyjm6n");
+ * const proof_left = sealance.getSiblingPath(tree, leftIdx, 15);
+ * const proof_right = sealance.getSiblingPath(tree, rightIdx, 15);
+ * const exclusion_proof = [proof_left, proof_right];
+ * ```
  */
 class SealanceMerkleTree {
     private static hasher = new Poseidon4();
