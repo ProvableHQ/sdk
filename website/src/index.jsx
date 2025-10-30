@@ -7,23 +7,23 @@ import WorkerProvider from "./workers/WorkerProvider.jsx";
 import { init } from '@amplitude/analytics-browser';
 import { autocapturePlugin } from '@amplitude/plugin-autocapture-browser';
 
-// Initialize Amplitude with your API key
-const AMPLITUDE_API_KEY = process.env.VITE_AMPLITUDE_API_KEY;
-
-if (AMPLITUDE_API_KEY) {
-  init(AMPLITUDE_API_KEY, {
-    serverZone: "US",
-    defaultTracking: { 
-      sessions: true,
-      pageViews: true,
-      formInteractions: true,
-      fileDownloads: true,
-    },
-    plugins: [
-      autocapturePlugin()
-    ]
-  });
-}
+// // Initialize Amplitude with your API key
+// const AMPLITUDE_API_KEY = process.env.VITE_AMPLITUDE_API_KEY;
+//
+// if (AMPLITUDE_API_KEY) {
+//   init(AMPLITUDE_API_KEY, {
+//     serverZone: "US",
+//     defaultTracking: {
+//       sessions: true,
+//       pageViews: true,
+//       formInteractions: true,
+//       fileDownloads: true,
+//     },
+//     plugins: [
+//       autocapturePlugin()
+//     ]
+//   });
+// }
 
 const container = document.getElementById("root");
 const root = createRoot(container);
