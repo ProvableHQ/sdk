@@ -33,10 +33,20 @@ pub fn get_network() -> &'static str {
 }
 
 /// Get statepaths from stateroot.
+pub async fn get_statepath_for_commitment(base_url: &str, commitment: &FieldNative) -> Result<StatePathNative> {
+    let commitment = commitment.to_string();
+    log(&format!("Sending request to: {base_url}/{}/statePath/{commitment}", get_network()));
+    get(&format!("{base_url}/{}/statePaths?commitment/{commitment}", get_network())).await
+}
+
+/// Get statepaths from stateroot.
 pub async fn get_statepaths_for_commitments(
     base_url: &str,
     commitments: &[FieldNative],
 ) -> Result<Vec<StatePathNative>> {
+    if commitments.is_empty() {
+        return Ok(Default::default());
+    }
     let query_string = commitments.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(",");
     log(&format!("Sending request to: {base_url}/{}/statePaths?commitments={query_string}", get_network()));
     get(&format!("{base_url}/{}/statePaths?commitments={query_string}", get_network())).await

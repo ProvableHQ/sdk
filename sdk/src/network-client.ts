@@ -1589,7 +1589,7 @@ class AleoNetworkClient {
             }
         } catch (error: any) {
             throw new Error(
-                `Error posting transaction: No response received: ${error.message}`,
+                `Error posting transaction: ${error}`,
             );
         }
     }

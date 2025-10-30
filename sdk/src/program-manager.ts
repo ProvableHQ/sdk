@@ -700,53 +700,66 @@ class ProgramManager {
      * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error.
      *
      * @example
-     * /// Import the mainnet version of the sdk.
-     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     * /// Import the of the sdk.
+     * import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
      *
-     * // Create a new NetworkClient, KeyProvider, and RecordProvider.
+     * await initThreadPool();
+     *
+     * // Create a new KeyProvider.
      * const keyProvider = new AleoKeyProvider();
      * keyProvider.useCache(true);
      *
-     * // Initialize a program manager with the key provider to automatically fetch keys for executions
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions.
      * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
      *
      * // Build the `Authorization`.
+     * const privateKey = new PrivateKey(); // Change this to a private key that has an aleo credit balance.
      * const authorization = await programManager.buildAuthorization({
-     *   programName: "credits.aleo",
-     *   functionName: "transfer_public",
-     *   inputs: [
-     *     "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
-     *     "10000000u64",
-     *   ],
+     *     programName: "credits.aleo",
+     *     functionName: "transfer_public",
+     *     privateKey,
+     *     inputs: [
+     *         "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+     *         "10000000u64",
+     *     ],
      * });
+     *
+     * console.log("Getting execution id");
      *
      * // Derive the execution ID and base fee.
      * const executionId = authorization.toExecutionId().toString();
      *
+     * console.log("Estimating fee");
+     *
      * // Get the base fee in microcredits.
-     * const baseFeeMicrocredits = ProgramManager.estimateFeeForAuthorization(authorization, "credits.aleo");
-     * const baseFeeCredits = baseFeeMicrocredits/1000000;
+     * const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization(authorization, "credits.aleo");
+     * const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+     *
+     * console.log("Building fee authorization");
      *
      * // Build a credits.aleo/fee_public `Authorization`.
      * const feeAuthorization = await programManager.buildFeeAuthorization({
-     *   deploymentOrExecutionId: executionId,
-     *   baseFeeCredits,
+     *     deploymentOrExecutionId: executionId,
+     *     baseFeeCredits,
+     *     privateKey
      * });
      *
-     * // Build and execute the transaction
+     * console.log("Executing authorizations");
+     *
+     * // Build and execute the transaction.
      * const tx = await programManager.buildTransactionFromAuthorization({
-     *   programName: "hello_hello.aleo",
-     *   authorization,
-     *   feeAuthorization,
+     *     programName: "credits.aleo",
+     *     authorization,
+     *     feeAuthorization,
      * });
      *
-     * // Submit the transaction to the network
+     * // Submit the transaction to the network.
      * await programManager.networkClient.submitTransaction(tx.toString());
      *
-     * // Verify the transaction was successful
+     * // Verify the transaction was successful.
      * setTimeout(async () => {
-     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
-     *  assert(transaction.id() === tx.id());
+     *     const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *     console.log(transaction);
      * }, 10000);
      */
     async buildTransactionFromAuthorization(
@@ -809,6 +822,7 @@ class ProgramManager {
         }
 
         // Resolve the program imports if they exist.
+        console.log("Resolving program imports");
         const numberOfImports = Program.fromString(program).getImports().length;
         if (numberOfImports > 0 && !imports) {
             try {
@@ -824,6 +838,7 @@ class ProgramManager {
 
         // If the offline query exists, add the inclusion key.
         if (offlineQuery && !this.inclusionKeysLoaded) {
+            console.log("Loading inclusion keys for offline proving.");
             try {
                 const inclusionKeys = await this.keyProvider.inclusionKeys();
                 WasmProgramManager.loadInclusionProver(inclusionKeys[0])
@@ -835,6 +850,7 @@ class ProgramManager {
         }
 
         // Build an execution transaction from the authorization.
+        console.log("Executing authorizations")
         return await WasmProgramManager.executeAuthorization(
             authorization,
             feeAuthorization,
@@ -2764,15 +2780,6 @@ class ProgramManager {
     }
 
     /**
-     * Set the inclusion key bytes.
-     *
-     * @param {executionResponse} executionResponse The response from an offline function execution (via the `programManager.run` method)
-     * @param {ImportedPrograms} imports The imported programs used in the execution. Specified as { "programName": "programSourceCode", ... }
-     * @param {ImportedVerifyingKeys} importedVerifyingKeys The verifying keys in the execution. Specified as { "programName": [["functionName", "verifyingKey"], ...], ... }
-     * @returns {boolean} True if the proof is valid, false otherwise
-     *
-
-    /**
      * Create a program object from a program's source code
      *
      * @param {string} program Program source code
@@ -2803,6 +2810,36 @@ class ProgramManager {
         } catch (e) {
             return false;
         }
+    }
+
+    /**
+     * Estimate fee for authorization.
+     *
+     * @param {Authorization} authorization A program authorization.
+     * @param {string} program The name of the program the authorization is for.
+     * @param {ProgramImports | undefined} imports The programs imported by the main program.
+     * @param {number | undefined} edition The edition of the program (default: 1).
+     */
+    async estimateFeeForAuthorization(
+        authorization: Authorization,
+        programName: string,
+        program?: string,
+        imports?: ProgramImports,
+        edition?: number,
+    ): Promise<bigint> {
+        const programSource = program ? program : await this.networkClient.getProgram(programName, edition);
+        return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, imports, edition);
+    }
+
+    async estimateExecutionFee(
+        programName: string,
+        functionName: string,
+        program?: string,
+        imports?: ProgramImports,
+        edition?: number,
+    ): Promise<bigint> {
+        const programSource = program ? program : await this.networkClient.getProgram(programName, edition);
+        return WasmProgramManager.estimateExecutionFee(programSource, functionName, imports, edition);
     }
 
     // Internal utility function for getting a credits.aleo record

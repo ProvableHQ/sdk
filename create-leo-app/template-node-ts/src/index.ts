@@ -1,4 +1,4 @@
-import {Account, initThreadPool, ProgramManager, AleoKeyProvider, AleoKeyProviderParams} from "@provablehq/sdk";
+import {Account, initThreadPool, ProgramManager, AleoKeyProvider, AleoKeyProviderParams} from "@provablehq/sdk/mainnet.js";
 
 await initThreadPool();
 
