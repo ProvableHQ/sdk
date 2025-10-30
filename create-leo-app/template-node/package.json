@@ -7,6 +7,6 @@
     "dev": "node index.js"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.9.10"
+    "@provablehq/sdk": "^0.9.11"
   }
 }

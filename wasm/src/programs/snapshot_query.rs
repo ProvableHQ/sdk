@@ -15,6 +15,8 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    DEFAULT_URL,
+    get_statepath_for_commitment,
     get_statepaths_for_commitments,
     latest_block_height,
     latest_stateroot,
@@ -40,10 +42,17 @@ use wasm_bindgen::JsValue;
 
 const MAX_QUERY_ATTEMPTS: usize = 3;
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub enum Mode {
+    REST,
+    Local,
+}
+
 /// A snapshot-based query object used to pin the block height, state root, and state paths to a single ledger view during online execution.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct SnapshotQuery {
     block_height: u32,
+    mode: Mode,
     state_paths: IndexMap<FieldNative, StatePathNative>,
     state_root: <CurrentNetwork as Network>::StateRoot,
 }
@@ -51,7 +60,17 @@ pub struct SnapshotQuery {
 impl SnapshotQuery {
     /// Construct an empty snapshot query with a chosen `(block_height, state_root)`
     pub fn new(block_height: u32, state_root: <CurrentNetwork as Network>::StateRoot) -> Self {
-        Self { block_height, state_paths: IndexMap::new(), state_root }
+        Self { block_height, mode: Mode::Local, state_paths: IndexMap::new(), state_root }
+    }
+
+    /// Construct the snapshot query in REST mode.
+    pub fn rest() -> Self {
+        Self {
+            block_height: 0,
+            mode: Mode::REST,
+            state_paths: IndexMap::new(),
+            state_root: <CurrentNetwork as Network>::StateRoot::default(),
+        }
     }
 
     /// Add or update the fixed block height
@@ -206,7 +225,10 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
     }
 
     async fn current_state_root_async(&self) -> Result<<CurrentNetwork as Network>::StateRoot> {
-        Ok(self.state_root)
+        match self.mode {
+            Mode::REST => latest_stateroot(DEFAULT_URL).await,
+            Mode::Local => Ok(self.state_root),
+        }
     }
 
     fn get_state_path_for_commitment(&self, commitment: &FieldNative) -> Result<StatePathNative> {
@@ -214,7 +236,12 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
     }
 
     async fn get_state_path_for_commitment_async(&self, commitment: &FieldNative) -> Result<StatePathNative> {
-        self.state_paths.get(commitment).cloned().ok_or_else(|| anyhow!("State path not found for commitment"))
+        match self.mode {
+            Mode::REST => get_statepath_for_commitment(DEFAULT_URL, commitment).await,
+            Mode::Local => {
+                self.state_paths.get(commitment).cloned().ok_or_else(|| anyhow!("State path not found for commitment"))
+            }
+        }
     }
 
     /// Returns a list of state paths for the given list of `commitments`.
@@ -232,7 +259,10 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
 
     /// Returns a list of state paths for the given list of `commitments`.
     async fn get_state_paths_for_commitments_async(&self, commitments: &[FieldNative]) -> Result<Vec<StatePathNative>> {
-        self.get_state_paths_for_commitments(commitments)
+        match self.mode {
+            Mode::REST => get_statepaths_for_commitments(DEFAULT_URL, commitments).await,
+            Mode::Local => self.get_state_paths_for_commitments(commitments),
+        }
     }
 
     fn current_block_height(&self) -> Result<u32> {
@@ -240,7 +270,10 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
     }
 
     async fn current_block_height_async(&self) -> Result<u32> {
-        Ok(self.block_height)
+        match self.mode {
+            Mode::REST => latest_block_height(DEFAULT_URL).await,
+            Mode::Local => Ok(self.block_height),
+        }
     }
 }
 

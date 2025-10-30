@@ -22,7 +22,7 @@ mod proving_request;
 mod split;
 mod transfer;
 
-const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
+pub const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
 
 use crate::{
     KeyPair,
@@ -141,8 +141,7 @@ impl ProgramManager {
                         Self::resolve_imports(process, &import, Some(imports.clone()))?;
                         // If the process does not already contain the program, add it
                         if !process.contains_program(import.id()) {
-                            process.add_program(&import).map_err(|err| err.to_string())?;
-                            process.add_program(&import).map_err(|err| err.to_string())?;
+                            process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
                         }
                     }
                 }

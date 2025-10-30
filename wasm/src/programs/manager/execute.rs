@@ -39,7 +39,6 @@ use crate::{
         LocatorNative,
         ProcessNative,
         ProgramNative,
-        QueryNative,
         RecordPlaintextNative,
         TransactionNative,
     },
@@ -315,22 +314,24 @@ impl ProgramManager {
         offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         // Create a process and insert the program and its imports.
+        log("Loading the SnarkVM process");
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
 
         // Get the latest height.
+        log("Checking the latest block height");
         let latest_height = if let Some(offline_query) = offline_query.as_ref() {
             offline_query.current_block_height().map_err(|e| e.to_string())?
         } else {
-            let query = QueryNative::try_from(node_url).map_err(|e| e.to_string())?;
-            query.current_block_height().map_err(|e| e.to_string())?
+            latest_block_height(node_url).await.map_err(|e| e.to_string())?
         };
 
         // Get the function name.
+        log("Checking the function name is valid.");
         let function_name = IdentifierNative::from_str(&authorization.function_name()?).map_err(|e| e.to_string())?;
-        log("Check program imports are valid and add them to the process");
 
+        log("Check program imports are valid and add them to the process");
         // Construct the program to ensure it's valid.
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let program_id = program_native.id().to_string();
@@ -426,7 +427,7 @@ impl ProgramManager {
         if let Some(offline_query) = offline_query.as_ref() {
             trace.prepare_async(offline_query).await.map_err(|e| e.to_string())?;
         } else {
-            let query = QueryNative::try_from(node_url).map_err(|e| e.to_string())?;
+            let query = SnapshotQuery::rest();
             trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
         };
 
@@ -450,7 +451,7 @@ impl ProgramManager {
             if let Some(offline_query) = offline_query.as_ref() {
                 fee_trace.prepare_async(offline_query).await.map_err(|e| e.to_string())?;
             } else {
-                let query = QueryNative::try_from(node_url).map_err(|e| e.to_string())?;
+                let query = SnapshotQuery::rest();
                 fee_trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
             };
 
@@ -474,7 +475,7 @@ impl ProgramManager {
     /// @returns {u64} Fee in microcredits
     #[wasm_bindgen(js_name = estimateExecutionFee)]
     #[allow(clippy::too_many_arguments)]
-    pub async fn estimate_execution_fee(
+    pub fn estimate_execution_fee(
         program: &str,
         function: &str,
         imports: Option<Object>,
@@ -558,7 +559,7 @@ impl ProgramManager {
     /// @returns {u64} Fee in microcredits
     #[wasm_bindgen(js_name = estimateFeeForAuthorization)]
     #[allow(clippy::too_many_arguments)]
-    pub async fn estimate_fee_for_authorization(
+    pub fn estimate_fee_for_authorization(
         authorization: &Authorization,
         program: &str,
         imports: Option<Object>,
@@ -632,7 +633,7 @@ mod tests {
             let program = ProgramNative::credits().unwrap();
 
             let authorization_estimate =
-                ProgramManager::estimate_execution_fee(&program.to_string(), function, None, None).await.unwrap();
+                ProgramManager::estimate_execution_fee(&program.to_string(), function, None, None).unwrap();
 
             assert_eq!(authorization_estimate, cost);
         }

@@ -60,7 +60,12 @@ export async function post(url: URL | string, options: RequestInit) {
     const response = await fetch(url, options);
 
     if (!response.ok) {
-        throw new Error(response.status + " could not post URL " + url);
+        const error = await response.text();
+        let message = `${response.status} error received from ${url}`;
+        if (error) {
+            message = `${error}`
+        }
+        throw new Error(message);
     }
 
     return response;
