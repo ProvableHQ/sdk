@@ -86,6 +86,14 @@ impl Authorization {
     pub fn equals(&self, other: &Authorization) -> bool {
         self == other
     }
+
+    /// Get the function name.
+    ///
+    /// @returns {string} The function name.
+    #[wasm_bindgen(js_name = "functionName")]
+    pub fn function_name(&self) -> Result<String, String> {
+        Ok(self.get(0).map_err(|e| e.to_string())?.function_name().to_string())
+    }
 }
 
 #[wasm_bindgen]
