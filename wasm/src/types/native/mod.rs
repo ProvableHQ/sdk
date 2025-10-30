@@ -25,6 +25,7 @@ use snarkvm_console::{
         Future,
         Identifier,
         Literal,
+        Locator,
         Plaintext,
         ProgramID,
         ProgramOwner,
@@ -38,6 +39,8 @@ use snarkvm_console::{
     types::{Boolean, Field, Group, I8, I16, I32, I64, I128, Scalar, U8, U16, U32, U64, U128},
 };
 use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
+use snarkvm_ledger_query::Query;
+use snarkvm_ledger_store::helpers::memory::BlockMemory;
 use snarkvm_synthesizer::{
     Authorization,
     Process,
@@ -90,6 +93,7 @@ pub type CiphertextEntryNative = Entry<CurrentNetwork, CiphertextNative>;
 pub type FutureNative = Future<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
 pub type LiteralNative = Literal<CurrentNetwork>;
+pub type LocatorNative = Locator<CurrentNetwork>;
 pub type PlaintextNative = Plaintext<CurrentNetwork>;
 pub type PlaintextEntryNative = Entry<CurrentNetwork, PlaintextNative>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;
@@ -103,6 +107,7 @@ pub type ValueNative = Value<CurrentNetwork>;
 pub type ExecutionNative = Execution<CurrentNetwork>;
 pub type InputNative = Input<CurrentNetwork>;
 pub type OutputNative = Output<CurrentNetwork>;
+pub type QueryNative = Query<CurrentNetwork, BlockMemory<CurrentNetwork>>;
 pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
 pub type TransitionNative = Transition<CurrentNetwork>;

@@ -258,6 +258,18 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ---
 
+### `functionName() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the function name.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *The function name.*
+
+---
+
 ### `isFeePublic() ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)

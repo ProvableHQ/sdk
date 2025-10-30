@@ -28,7 +28,7 @@ pub mod test;
 
 /// Set test consensus version heights for testing.
 ///
-/// @params {string | undefined} heights The block heights at which each consensus version applies. This input should be a simple csv list of block heights and there should be one number for each consensus version. If left undefined, the default test heights will be applied.
+/// @param {string | undefined} heights The block heights at which each consensus version applies. This input should be a simple csv list of block heights and there should be one number for each consensus version. If left undefined, the default test heights will be applied.
 ///
 /// @example
 /// import { getOrInitConsensusVersionHeights } from @provablehq/sdk;
