@@ -69,17 +69,25 @@ impl ProgramManager {
 
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
         let rng = &mut StdRng::from_entropy();
 
         // Convert the fee to microcredits.
-        let base_fee_microcredits = (base_fee_credits * 1_000_000.0) as u64;
+        let _base_fee_microcredits = (base_fee_credits * 1_000_000.0) as u64;
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
         let edition = edition.unwrap_or(1);
 
         // Authorize the main program.
         let authorization =
             authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked, edition);
+
+        // Add
+        let base_fee_microcredits = ProgramManager::estimate_fee_for_authorization(
+            &crate::Authorization::from(&authorization),
+            program,
+            imports,
+            Some(edition),
+        )?;
 
         // Authorize the fee.
         let execution_id = authorization.to_execution_id().map_err(|e| e.to_string())?;
@@ -126,7 +134,7 @@ mod tests {
             PUZZLE_SPINNER_V002,
             function_name,
             inputs,
-            1.0,
+            0.0,
             0.0,
             None,
             imports,

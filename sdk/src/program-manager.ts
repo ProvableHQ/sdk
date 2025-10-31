@@ -157,10 +157,10 @@ interface ExecuteAuthorizationOptions {
 interface ProvingRequestOptions {
     programName: string;
     functionName: string;
-    baseFee: number,
     priorityFee: number;
     privateFee: boolean;
     inputs: string[];
+    baseFee?: number,
     recordSearchParams?: RecordSearchParams;
     feeRecord?: string | RecordPlaintext;
     privateKey?: PrivateKey;
@@ -169,6 +169,25 @@ interface ProvingRequestOptions {
     broadcast?: boolean;
     unchecked?: boolean;
     edition?: number,
+}
+
+/**
+ * Fee estimate options.
+ *
+ * @property {string} programName - The name of the program containing the function to estimate the fee for.
+ * @property {string} functionName - The name of the function to execute within the program to estimate the fee for.
+ * @property {string} [program] - Program source code to use for the fee estimate.
+ * @property {ProgramImports} [imports] - Programs that the program imports.
+ * @property {number} [edition] - Edition of the program to estimate the fee for.
+ * @property {Authorization} authorization - An authorization to estimate the fee for.
+ */
+interface FeeEstimateOptions {
+    programName: string;
+    functionName?: string;
+    program?: string | Program;
+    imports?: ProgramImports;
+    edition?: number,
+    authorization?: Authorization;
 }
 
 /**
@@ -700,7 +719,6 @@ class ProgramManager {
      * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error.
      *
      * @example
-     * /// Import the of the sdk.
      * import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
      *
      * await initThreadPool();
@@ -1107,7 +1125,6 @@ class ProgramManager {
      * const provingRequest = await programManager.provingRequest({
      *   programName: "credits.aleo",
      *   functionName: "transfer_public",
-     *   baseFee: 100000,
      *   priorityFee: 0,
      *   privateFee: false,
      *   inputs: [
@@ -1123,7 +1140,6 @@ class ProgramManager {
         // Destructure the options object to access the parameters.
         const {
             functionName,
-            baseFee,
             priorityFee,
             privateFee,
             inputs,
@@ -1133,6 +1149,7 @@ class ProgramManager {
         } = options;
 
         const privateKey = options.privateKey;
+        const baseFee = options.baseFee ? options.baseFee : 0;
         let program = options.programSource;
         let programName = options.programName;
         let feeRecord = options.feeRecord;
@@ -2813,32 +2830,123 @@ class ProgramManager {
     }
 
     /**
-     * Estimate fee for authorization.
+     * Estimate the execution fee for an authorization.
      *
-     * @param {Authorization} authorization A program authorization.
-     * @param {string} program The name of the program the authorization is for.
-     * @param {ProgramImports | undefined} imports The programs imported by the main program.
-     * @param {number | undefined} edition The edition of the program (default: 1).
+     * @param {FeeEstimateOptions} options Options for fee estimate.
+     *
+     * @example
+     * import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+     *
+     * await initThreadPool();
+     *
+     * // Create a new KeyProvider.
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache(true);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions.
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+     *
+     * // Build the `Authorization`.
+     * const privateKey = new PrivateKey(); // Change this to a private key that has an aleo credit balance.
+     * const authorization = await programManager.buildAuthorization({
+     *     programName: "credits.aleo",
+     *     functionName: "transfer_public",
+     *     privateKey,
+     *     inputs: [
+     *         "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+     *         "10000000u64",
+     *     ],
+     * });
+     *
+     * console.log("Getting execution id");
+     *
+     * // Derive the execution ID and base fee.
+     * const executionId = authorization.toExecutionId().toString();
+     *
+     * console.log("Estimating fee");
+     *
+     * // Get the base fee in microcredits.
+     * const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
+     *      authorization,
+     *      programName: "credits.aleo"
+     * });
+     * const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+     *
+     * console.log("Building fee authorization");
+     *
+     * // Build a credits.aleo/fee_public `Authorization`.
+     * const feeAuthorization = await programManager.buildFeeAuthorization({
+     *     deploymentOrExecutionId: executionId,
+     *     baseFeeCredits,
+     *     privateKey
+     * });
      */
     async estimateFeeForAuthorization(
-        authorization: Authorization,
-        programName: string,
-        program?: string,
-        imports?: ProgramImports,
-        edition?: number,
+        options: FeeEstimateOptions
     ): Promise<bigint> {
-        const programSource = program ? program : await this.networkClient.getProgram(programName, edition);
+        const {
+            authorization,
+            programName,
+            program,
+            imports,
+            edition
+        } = options;
+        if (!authorization) {
+            throw new Error("Authorization must be provided if estimating fee for Authorization.")
+        }
+        const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
+        const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
+        console.log(JSON.stringify(programImports));
+        if (Object.keys(programImports)) {
+            return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition);
+        }
         return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, imports, edition);
     }
 
+    /**
+     * Estimate the execution fee for an Aleo function.
+     *
+     * @param {FeeEstimateOptions} options Options for the fee estimate.
+     *
+     * @returns {Promise<bigint>} Execution fee in microcredits for the authorization.
+     *
+     * @example
+     * import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for executions.
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+     *
+     * // Get the base fee in microcredits.
+     * const baseFeeMicrocredits = await programManager.estimateExecutionFee({programName: "credits.aleo"});
+     * const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+     *
+     * console.log("Building fee authorization");
+     *
+     * // Build a credits.aleo/fee_public `Authorization`.
+     * const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
+     *      programName: "credits.aleo",
+     *      functionName: "transfer_public",
+     * });
+     * const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+     */
     async estimateExecutionFee(
-        programName: string,
-        functionName: string,
-        program?: string,
-        imports?: ProgramImports,
-        edition?: number,
+        options: FeeEstimateOptions,
     ): Promise<bigint> {
-        const programSource = program ? program : await this.networkClient.getProgram(programName, edition);
+        const {
+            functionName,
+            programName,
+            program,
+            imports,
+            edition
+        } = options;
+        if (!functionName) {
+            throw new Error("Function name must be specified when estimating fee.");
+        }
+        const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
+        const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
+        if (Object.keys(programImports)) {
+            return WasmProgramManager.estimateExecutionFee(programSource, functionName, programImports, edition);
+        }
         return WasmProgramManager.estimateExecutionFee(programSource, functionName, imports, edition);
     }
 

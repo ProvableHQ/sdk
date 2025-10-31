@@ -579,7 +579,7 @@ impl ProgramManager {
         let edition = edition.unwrap_or(1);
         if program_id.to_string() != "credits.aleo" {
             if !process.contains_program(program_id) {
-                log("Adding program to the process");
+                log(&format!("Adding program {program_id} to the process"));
                 process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
             }
         }

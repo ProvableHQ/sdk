@@ -137,10 +137,11 @@ impl ProgramManager {
                     if &program_id != "credits.aleo" {
                         log(&format!("Importing program: {program_id}"));
                         let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
-                        // If the program has imports, add them
+                        // If the program has imports, add them.
                         Self::resolve_imports(process, &import, Some(imports.clone()))?;
-                        // If the process does not already contain the program, add it
+                        // If the process does not already contain the program, add it.
                         if !process.contains_program(import.id()) {
+                            log(&format!("Adding {program_id} to the process"));
                             process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
                         }
                     }
