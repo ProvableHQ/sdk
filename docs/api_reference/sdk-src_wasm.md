@@ -258,6 +258,18 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ---
 
+### `functionName() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the function name.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *The function name.*
+
+---
+
 ### `isFeePublic() ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -814,6 +826,21 @@ __*return*__ | [Field](sdk-src_wasm.md) | *The transition view key.*
 
 ---
 
+### `decryptSender(view_key, record, sender_ciphertext) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Decrypt the sender ciphertext associated with a record.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key associated with the record.*
+__record__ | [RecordPlaintext](sdk-src_wasm.md) | *Record plaintext associated with a sender.*
+__sender_ciphertext__ | [Field](sdk-src_wasm.md) | *Sender ciphertext associated with the record.*
+__*return*__ | [Address](sdk-src_wasm.md) | *address of the sender.*
+
+---
+
 ### `checkOwnedRecords(view_key, records) ► Vec.<RecordCiphertext>`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -839,6 +866,20 @@ Parameters | Type | Description
 __view_key__ | `ViewKey` | *The view key of the owner of the records.*
 __records__ | `Vec.<RecordCiphertext>` | *The record ciphertexts to decrypt.*
 __*return*__ | `vec.<RecordPlaintext>` | *The decrypted record plaintexts.*
+
+---
+
+### `decryptSenderWithRvk(record_view_key, sender_ciphertext) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Decrypt the sender ciphertext associated with the record with the record view key.
+
+Parameters | Type | Description
+--- | --- | ---
+__record_view_key__ | [Field](sdk-src_wasm.md) | *Record view key associated with the record.*
+__sender_ciphertext__ | [Field](sdk-src_wasm.md) | *Sender ciphertext associated with the record.*
+__*return*__ | [Address](sdk-src_wasm.md) | *the address of the sender.*
 
 ---
 
@@ -1125,6 +1166,19 @@ Create a field element from a Uint8Array of left endian bytes.
 Parameters | Type | Description
 --- | --- | ---
 __bytes__ | `Uint8Array` | **
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `newDomainSeparator(domain) ► Field`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Initializes a new field as a domain separator.
+
+Parameters | Type | Description
+--- | --- | ---
+__domain__ | `string` | **
 __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
@@ -1682,11 +1736,11 @@ assert( JSON.stringify(bondStateObject) === JSON.stringify(expectedObject) );
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the left endian boolean array representation of the bits of the plaintext.
+Get the little endian boolean array representation of the bits of the plaintext.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Array` | *The left endian boolean array representation of the bits of the plaintext.*
+__*return*__ | `Array` | *The little endian boolean array representation of the bits of the plaintext.*
 
 ---
 
@@ -1720,11 +1774,11 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the left endian byte array representation of the plaintext.
+Get the little endian byte array representation of the plaintext.
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | `Uint8Array` | *The left endian byte array representation of the plaintext.*
+__*return*__ | `Uint8Array` | *The little endian byte array representation of the plaintext.*
 
 ---
 
@@ -1736,7 +1790,7 @@ Get a plaintext object from a series of bits represented as a boolean array.
 
 Parameters | Type | Description
 --- | --- | ---
-__bits__ | `Array` | *A left endian boolean array representing the bits plaintext.*
+__bits__ | `Array` | *A little endian boolean array representing the bits plaintext.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
 
 ---
@@ -1749,8 +1803,20 @@ Get a plaintext object from a series of bytes.
 
 Parameters | Type | Description
 --- | --- | ---
-__bytes__ | `Uint8Array` | *A left endian byte array representing the plaintext.*
+__bytes__ | `Uint8Array` | *A little endian byte array representing the plaintext.*
 __*return*__ | [Plaintext](sdk-src_wasm.md) | *The plaintext object.*
+
+---
+
+### `toFieldsRaw() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw field array representation of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *The raw field array representation of the plaintext.*
 
 ---
 
@@ -1763,6 +1829,54 @@ Gives the type of the plaintext.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `string` | *The type of the plaintext.*
+
+---
+
+### `toBitsRawBe() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw big endian boolean array representation of the bits of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *The raw big endian boolean array representation of the bits of the plaintext.*
+
+---
+
+### `toBitsRawLe() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw little endian boolean array representation of the bits of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *The raw little endian boolean array representation of the bits of the plaintext.*
+
+---
+
+### `toBytesRawBe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw big endian byte array representation of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *The raw big endian byte array representation of the plaintext.*
+
+---
+
+### `toBytesRawLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the raw little endian byte array representation of the plaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *The raw little endian byte array representation of the plaintext.*
 
 ---
 
@@ -1862,6 +1976,19 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | **
 ---
 
 ## Methods
+
+### `signValue(message) ► Signature`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Sign an instance of a valid Aleo data type or record.
+
+Parameters | Type | Description
+--- | --- | ---
+__message__ | `String` | *The string representation of the Aleo datatype or record to sign.*
+__*return*__ | [Signature](sdk-src_wasm.md) | *Signature of the message.*
+
+---
 
 ### `to_address() ► Address`
 
@@ -3172,6 +3299,20 @@ __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The record plaintext.*
 
 ---
 
+### `decryptSender(view_key, sender_ciphertext) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Decrypt the sender ciphertext associated with the record.
+
+Parameters | Type | Description
+--- | --- | ---
+__view_key__ | `ViewKey` | *View key associated with the record.*
+__sender_ciphertext__ | [Field](sdk-src_wasm.md) | *Sender ciphertext associated with the record.*
+__*return*__ | [Address](sdk-src_wasm.md) | *address of the sender.*
+
+---
+
 ### `recordViewKey(view_key) ► Group`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3537,6 +3678,20 @@ Cryptographic signature of a message signed by an Aleo account
 
 ## Methods
 
+### `signValue(private_key, message) ► Signature`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Sign an instance of a valid Aleo data type or record.
+
+Parameters | Type | Description
+--- | --- | ---
+__private_key__ | [PrivateKey](sdk-src_wasm.md) | *The private key used to sign the message.*
+__message__ | `String` | *The string representation of the Aleo datatype or record to sign.*
+__*return*__ | [Signature](sdk-src_wasm.md) | *Signature of the message.*
+
+---
+
 ### `to_address() ► Address`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3608,6 +3763,20 @@ Get the plaintext representation of the signature.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | [Plaintext](sdk-src_wasm.md) | **
+
+---
+
+### `verifyValue(address, message) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify a signature over an Aleo datatype or record by an address.
+
+Parameters | Type | Description
+--- | --- | ---
+__address__ | [Address](sdk-src_wasm.md) | *The address used to verify the signature.*
+__message__ | `String` | *The message to verify, which must be the string representation of a valid Aleo datatype or record.*
+__*return*__ | `boolean` | *True if the signature is valid, false otherwise.*
 
 ---
 

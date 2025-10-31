@@ -370,17 +370,7 @@ describe("NodeConnection", () => {
 
         it("should throw for a malformed tx ID", async () => {
             const connection = new AleoNetworkClient(host);
-            try {
-                await connection.waitForTransactionConfirmation(invalidTx);
-                throw new Error(
-                    "Expected waitForTransactionConfirmation to throw",
-                );
-            } catch (err: any) {
-                console.log(err.message);
-                if (connection.network === "mainnet") {
-                    expect(err.message).to.include("Malformed transaction ID");
-                }
-            }
+            expectThrows(() => connection.waitForTransactionConfirmation(invalidTx));
         });
     });
 

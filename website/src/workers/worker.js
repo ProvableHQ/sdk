@@ -181,17 +181,10 @@ self.addEventListener("message", (ev) => {
                 }
 
                 // Estimate the execution fee
-                const [provingKey, verifyingKey] = programManager.keyProvider.getKeys(cacheKey);
                 let executeFee = await aleo.ProgramManagerBase.estimateExecutionFee(
-                    privateKeyObject,
                     remoteProgram,
                     aleoFunction,
-                    inputs,
-                    url,
                     imports,
-                    provingKey,
-                    verifyingKey,
-                    undefined,
                     edition
                 );
 

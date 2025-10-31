@@ -298,16 +298,15 @@ impl EncryptionToolkit {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     use crate::{
-        test::{
+        test::get_env,
+        types::native::{PrivateKeyNative, ViewKeyNative},
+        utilities::test::records::{
             CREDITS_RECORD_V1,
             CREDITS_RECORD_VIEW_KEY,
             CREDITS_SENDER_CIPHERTEXT,
             CREDITS_SENDER_PLAINTEXT,
-            get_env,
         },
-        types::native::{PrivateKeyNative, ViewKeyNative},
     };
     use std::str::FromStr;
     use wasm_bindgen_test::wasm_bindgen_test;

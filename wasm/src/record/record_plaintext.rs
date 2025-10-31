@@ -334,9 +334,10 @@ mod tests {
 
     use crate::{
         types::native::{PrivateKeyNative, ViewKeyNative},
-        utilities::test::{CREDITS_RECORD_V1, CREDITS_SENDER_CIPHERTEXT, CREDITS_SENDER_PLAINTEXT, get_env},
+        utilities::test::get_env,
     };
 
+    use crate::utilities::test::records::{CREDITS_RECORD_V1, CREDITS_SENDER_CIPHERTEXT, CREDITS_SENDER_PLAINTEXT};
     use wasm_bindgen_test::*;
 
     const CREDITS_RECORD: &str = r"{

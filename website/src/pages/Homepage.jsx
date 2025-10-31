@@ -59,7 +59,7 @@ const Homepage = () => {
                 <Link
                     target="_blank"
                     rel="noopener noreferrer"
-                    to="https://docs.leo-lang.org/sdk/create-leo-app/tutorial/"
+                    to="https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app"
                 >
                     <button className="button">
                         Try now <span className="arrow">&rarr;</span>

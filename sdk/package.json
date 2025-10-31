@@ -1,6 +1,6 @@
 {
   "name": "@provablehq/sdk",
-  "version": "0.9.8",
+  "version": "0.9.11",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
     "The Provable Team"
@@ -21,6 +21,10 @@
     "./mainnet.js": {
       "node": "./dist/mainnet/node.js",
       "default": "./dist/mainnet/browser.js"
+    },
+    "./dynamic.js": {
+      "node": "./dist/dynamic/node.js",
+      "default": "./dist/dynamic/browser.js"
     }
   },
   "files": [
@@ -30,7 +34,7 @@
   ],
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js",
-    "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --timeout 60000"
+    "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --timeout 60000 && RUN_SKIPPED=true mocha tmp/**/wasm.test.js --timeout 60000 --grep Consensus"
   },
   "repository": {
     "type": "git",
@@ -47,7 +51,8 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@provablehq/wasm": "^0.9.8",
+    "@provablehq/wasm": "^0.9.11",
+    "@scure/base": "^2.0.0",
     "comlink": "^4.4.2",
     "core-js": "^3.40.0",
     "mime": "^4.0.6",

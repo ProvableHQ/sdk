@@ -25,6 +25,7 @@ use snarkvm_console::{
         Future,
         Identifier,
         Literal,
+        Locator,
         Plaintext,
         ProgramID,
         ProgramOwner,
@@ -90,6 +91,7 @@ pub type CiphertextEntryNative = Entry<CurrentNetwork, CiphertextNative>;
 pub type FutureNative = Future<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
 pub type LiteralNative = Literal<CurrentNetwork>;
+pub type LocatorNative = Locator<CurrentNetwork>;
 pub type PlaintextNative = Plaintext<CurrentNetwork>;
 pub type PlaintextEntryNative = Entry<CurrentNetwork, PlaintextNative>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;

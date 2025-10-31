@@ -63,7 +63,7 @@ async function remoteProgramExecution(programName, functionName, inputs) {
     const keyProvider = new AleoKeyProvider();
     keyProvider.useCache(true);
 
-    const programManager = new ProgramManager("http://34.168.156.3:3030", keyProvider);
+    const programManager = new ProgramManager("http://34.169.215.4:3030", keyProvider);
 
     const tx = await programManager.buildExecutionTransaction(
         {

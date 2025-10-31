@@ -22,7 +22,7 @@ mod proving_request;
 mod split;
 mod transfer;
 
-const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
+pub const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
 
 use crate::{
     KeyPair,
@@ -32,6 +32,7 @@ use crate::{
     VerifyingKey,
     log,
     types::native::{
+        CurrentNetwork,
         IdentifierNative,
         ProcessNative,
         ProgramIDNative,
@@ -40,8 +41,10 @@ use crate::{
         VerifyingKeyNative,
     },
 };
+use snarkvm_console::{network::Network, prelude::ToBytes};
 use snarkvm_synthesizer::process::{cost_in_microcredits_v2, deployment_cost};
 use snarkvm_synthesizer_program::StackTrait;
+use std::panic::{AssertUnwindSafe, catch_unwind};
 
 use js_sys::{Object, Reflect};
 use std::str::FromStr;
@@ -55,10 +58,10 @@ pub struct ProgramManager;
 impl ProgramManager {
     /// Synthesize proving and verifying keys for a program
     ///
-    /// @param program {string} The program source code of the program to synthesize keys for
-    /// @param function_id {string} The function to synthesize keys for
-    /// @param inputs {Array} The inputs to the function
-    /// @param imports {Object | undefined} The imports for the program
+    /// @param {string} program The program source code of the program to synthesize keys for
+    /// @param {string} function_id The function to synthesize keys for
+    /// @param {Array} inputs The inputs to the function
+    /// @param {Object | undefined} imports The imports for the program
     #[wasm_bindgen(js_name = "synthesizeKeyPair")]
     pub async fn synthesize_keypair(
         private_key: &PrivateKey,
@@ -84,6 +87,25 @@ impl ProgramManager {
         )
         .await?
         .get_keys()
+    }
+
+    #[wasm_bindgen(js_name = "loadInclusionProver")]
+    pub fn load_inclusion_prover(proving_key: ProvingKey) {
+        let result = catch_unwind(AssertUnwindSafe(|| {
+            let bytes = ProvingKeyNative::from(proving_key).to_bytes_le().expect("failed to convert to bytes");
+            <CurrentNetwork as Network>::inclusion_proving_key(Some(bytes));
+        }));
+
+        if let Err(err) = result {
+            let msg = if let Some(s) = err.downcast_ref::<&str>() {
+                format!("loadInclusionProver panicked: {}", s)
+            } else if let Some(s) = err.downcast_ref::<String>() {
+                format!("loadInclusionProver panicked: {}", s)
+            } else {
+                "loadInclusionProver panicked with unknown payload".to_string()
+            };
+            log(msg.as_str());
+        }
     }
 
     /// Check if a process contains a keypair for a specific function
@@ -115,12 +137,12 @@ impl ProgramManager {
                     if &program_id != "credits.aleo" {
                         log(&format!("Importing program: {program_id}"));
                         let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
-                        // If the program has imports, add them
+                        // If the program has imports, add them.
                         Self::resolve_imports(process, &import, Some(imports.clone()))?;
-                        // If the process does not already contain the program, add it
+                        // If the process does not already contain the program, add it.
                         if !process.contains_program(import.id()) {
-                            process.add_program(&import).map_err(|err| err.to_string())?;
-                            process.add_program(&import).map_err(|err| err.to_string())?;
+                            log(&format!("Adding {program_id} to the process"));
+                            process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
                         }
                     }
                 }
@@ -156,6 +178,7 @@ impl ProgramManager {
 mod tests {
     use super::*;
 
+    use crate::Metadata;
     use js_sys::{Object, Reflect};
     use wasm_bindgen::JsValue;
     use wasm_bindgen_test::*;
@@ -225,5 +248,15 @@ function add_and_double:
         assert!(process.contains_program(add_program.id()));
         assert!(process.contains_program(multiply_program.id()));
         assert!(process.contains_program(double_program.id()));
+    }
+
+    #[wasm_bindgen_test]
+    async fn test_load_inclusion_prover() {
+        let inclusion_prover_url = Metadata::inclusion().prover;
+        console_log!("inclusion prover url: {}", inclusion_prover_url);
+
+        let bytes = reqwest::get(inclusion_prover_url).await.unwrap().bytes().await.unwrap().to_vec();
+        let key = ProvingKey::from_bytes(&bytes).unwrap();
+        ProgramManager::load_inclusion_prover(key);
     }
 }

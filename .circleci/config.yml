@@ -93,6 +93,15 @@ jobs:
           command: |
             yarn start
 
+  e2e-dynamic:
+    executor: rust-node
+    steps:
+      - setup-sdk
+      - run:
+          working_directory: e2e/dynamic
+          command: |
+            yarn start
+
   create-leo-app-cli:
     executor: rust-node
     steps:
@@ -179,6 +188,9 @@ workflows:
           requires:
             - sdk
       - e2e-mainnet:
+          requires:
+            - sdk
+      - e2e-dynamic:
           requires:
             - sdk
       - create-leo-app-cli:

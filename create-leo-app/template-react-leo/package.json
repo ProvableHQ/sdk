@@ -12,7 +12,7 @@
     "install-leo": "./install.sh"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.9.8",
+    "@provablehq/sdk": "^0.9.11",
     "comlink": "^4.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -36,7 +36,7 @@
     "raw-loader": "^4.0.2",
     "style-loader": "^4.0.0",
     "svg-url-loader": "^8.0.0",
-    "vite": "^6.1.2",
+    "vite": "^6.3.6",
     "webpack": "^5.97.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.0"

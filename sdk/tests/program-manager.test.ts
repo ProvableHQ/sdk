@@ -149,7 +149,6 @@ describe('Program Manager', async () => {
                 const request = <ProvingRequest>await programManager.provingRequest({
                     programName: "credits.aleo",
                     functionName: "split",
-                    baseFee: 0.0,
                     priorityFee: 0.0,
                     privateFee: false,
                     inputs: [statePathRecordv1, "10u64"],
@@ -168,7 +167,6 @@ describe('Program Manager', async () => {
             const provingRequest = await programManager.provingRequest({
                 programName: PUZZLE_SPINNER_PROGRAM_ID,
                 functionName: "spin",
-                baseFee: 1000000,
                 priorityFee: 0,
                 privateFee: false,
                 inputs: [
@@ -221,11 +219,17 @@ describe('Program Manager', async () => {
             expect(authorizationFromString.equals(authorizationFromBytes));
             expect(authorizationFromString.equals(authorization));
 
+            const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
+                authorization,
+                programName: PUZZLE_SPINNER_PROGRAM_ID,
+            });
+            const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+
             // Get execution ID from previous authorization.
             const executionId = authorization.toExecutionId().toString();
             const feeAuthorization = await programManager.buildFeeAuthorization({
                 deploymentOrExecutionId: executionId,
-                baseFeeCredits: 0.1,
+                baseFeeCredits,
             });
 
             // Ensure the authorizations have the correct number of transitions.
@@ -255,17 +259,38 @@ describe('Program Manager', async () => {
                 expect(authorizationFromString.equals(authorizationFromBytes));
                 expect(authorizationFromString.equals(authorization));
 
+                const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
+                    authorization,
+                    programName: PUZZLE_SPINNER_PROGRAM_ID,
+                });
+                const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+
                 // Get execution ID from previous authorization.
                 const executionId = authorization.toExecutionId().toString();
                 const feeAuthorization = await programManager.buildFeeAuthorization({
                     deploymentOrExecutionId: executionId,
-                    baseFeeCredits: 0.1,
+                    baseFeeCredits,
                 });
 
                 // Ensure the authorizations have the correct number of transitions.
                 expect(authorization.transitions().length).equal(3);
                 expect(feeAuthorization.transitions().length).equal(1);
             }
+
+        });
+
+        it('Should estimate the fee correctly for credits.aleo functions', async () => {
+            const transferFeeMicrocredits = await programManager.estimateExecutionFee({
+                programName: "credits.aleo",
+                functionName: "transfer_public"
+            });
+
+            const bondFeeMicrocredits = await programManager.estimateExecutionFee({
+                programName: "credits.aleo",
+                functionName: "transfer_public_to_private"
+            });
+            expect(transferFeeMicrocredits).equal(BigInt(2725));
+            expect(bondFeeMicrocredits).equal(BigInt(2304));
 
         });
     });

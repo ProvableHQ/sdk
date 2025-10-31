@@ -521,6 +521,18 @@ __*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the
 
 ---
 
+### `inclusionKeys() ► Promise.<FunctionKeyPair>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the inclusion prover keys from. The keys must be cached prior to calling this method for it to work.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the inclusion prover*
+
+---
+
 ### `joinKeys() ► Promise.<FunctionKeyPair>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -639,6 +651,20 @@ __provingKey__ | `undefined` | **
 Insert the proving and verifying keys for the fee_public function into the cache. Only the proving key needs
 to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
 that the keys match the expected checksum for fee_public before inserting them into the cache.
+
+Parameters | Type | Description
+--- | --- | ---
+__provingKey__ | `undefined` | **
+
+---
+
+### `insertInclusionKeys(provingKey)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Insert the proving and verifying keys for the inclusion prover into the cache. Only the proving key needs
+to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+that the keys match the expected checksum for the inclusion prover.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -873,6 +899,18 @@ __*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the
 
 ---
 
+### `inclusionKeys() ► Promise.<FunctionKeyPair>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the inclusion prover keys from. The keys must be cached prior to calling this method for it to work.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Promise.<FunctionKeyPair>` | *Proving and verifying keys for the inclusion prover*
+
+---
+
 ### `joinKeys() ► Promise.<FunctionKeyPair>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -991,6 +1029,20 @@ __provingKey__ | `undefined` | **
 Insert the proving and verifying keys for the fee_public function into the cache. Only the proving key needs
 to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
 that the keys match the expected checksum for fee_public before inserting them into the cache.
+
+Parameters | Type | Description
+--- | --- | ---
+__provingKey__ | `undefined` | **
+
+---
+
+### `insertInclusionKeys(provingKey)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Insert the proving and verifying keys for the inclusion prover into the cache. Only the proving key needs
+to be inserted, the verifying key is automatically inserted by the SDK. This function will automatically check
+that the keys match the expected checksum for the inclusion prover.
 
 Parameters | Type | Description
 --- | --- | ---

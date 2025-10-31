@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.9.8",
-    "next": "15.2.3",
+    "@provablehq/sdk": "^0.9.11",
+    "next": "15.4.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "terser-webpack-plugin": "^5.3.11"
