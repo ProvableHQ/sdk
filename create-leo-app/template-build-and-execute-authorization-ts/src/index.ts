@@ -1,4 +1,3 @@
-/// Import the of the sdk.
 import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
 
 await initThreadPool();
@@ -30,7 +29,10 @@ const executionId = authorization.toExecutionId().toString();
 console.log("Estimating fee");
 
 // Get the base fee in microcredits.
-const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization(authorization, "credits.aleo");
+const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
+    programName: "credits.aleo",
+    authorization,
+});
 const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
 
 console.log("Building fee authorization");
