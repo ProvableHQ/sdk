@@ -289,53 +289,65 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 #### Examples
 
 ```javascript
-/// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
 
-// Create a new NetworkClient, KeyProvider, and RecordProvider.
+await initThreadPool();
+
+// Create a new KeyProvider.
 const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
 
-// Initialize a program manager with the key provider to automatically fetch keys for executions
+// Initialize a program manager with the key provider to automatically fetch keys for executions.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
 
 // Build the `Authorization`.
+const privateKey = new PrivateKey(); // Change this to a private key that has an aleo credit balance.
 const authorization = await programManager.buildAuthorization({
-  programName: "credits.aleo",
-  functionName: "transfer_public",
-  inputs: [
-    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
-    "10000000u64",
-  ],
+    programName: "credits.aleo",
+    functionName: "transfer_public",
+    privateKey,
+    inputs: [
+        "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+        "10000000u64",
+    ],
 });
+
+console.log("Getting execution id");
 
 // Derive the execution ID and base fee.
 const executionId = authorization.toExecutionId().toString();
 
+console.log("Estimating fee");
+
 // Get the base fee in microcredits.
-const baseFeeMicrocredits = ProgramManager.estimateFeeForAuthorization(authorization, "credits.aleo");
-const baseFeeCredits = baseFeeMicrocredits/1000000;
+const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization(authorization, "credits.aleo");
+const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+
+console.log("Building fee authorization");
 
 // Build a credits.aleo/fee_public `Authorization`.
 const feeAuthorization = await programManager.buildFeeAuthorization({
-  deploymentOrExecutionId: executionId,
-  baseFeeCredits,
+    deploymentOrExecutionId: executionId,
+    baseFeeCredits,
+    privateKey
 });
 
-// Build and execute the transaction
+console.log("Executing authorizations");
+
+// Build and execute the transaction.
 const tx = await programManager.buildTransactionFromAuthorization({
-  programName: "hello_hello.aleo",
-  authorization,
-  feeAuthorization,
+    programName: "credits.aleo",
+    authorization,
+    feeAuthorization,
 });
 
-// Submit the transaction to the network
+// Submit the transaction to the network.
 await programManager.networkClient.submitTransaction(tx.toString());
 
-// Verify the transaction was successful
+// Verify the transaction was successful.
 setTimeout(async () => {
- const transaction = await programManager.networkClient.getTransaction(tx.id());
- assert(transaction.id() === tx.id());
+    const transaction = await programManager.networkClient.getTransaction(tx.id());
+    console.log(transaction);
 }, 10000);
 ```
 
@@ -446,7 +458,6 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 const provingRequest = await programManager.provingRequest({
   programName: "credits.aleo",
   functionName: "transfer_public",
-  baseFee: 100000,
   priorityFee: 0,
   privateFee: false,
   inputs: [
@@ -1321,23 +1332,15 @@ assert(isValid);
 
 ---
 
-### `createProgramFromSource(executionResponse, imports, importedVerifyingKeys, program) ► boolean`
+### `createProgramFromSource(program) ► Program`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Set the inclusion key bytes.
+Create a program object from a program&#x27;s source code
 
 Parameters | Type | Description
 --- | --- | ---
-__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
-__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
-__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __program__ | `string` | *Program source code*
-__*return*__ | `boolean` | *True if the proof is valid, false otherwise
-
-
-    /**
-Create a program object from a program&#x27;s source code*
 __*return*__ | [Program](sdk-src_wasm.md) | *The program object*
 
 ---
@@ -1363,6 +1366,103 @@ Verify a program is valid
 Parameters | Type | Description
 --- | --- | ---
 __program__ | `string` | *The program source code*
+
+---
+
+### `estimateFeeForAuthorization(options)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Estimate the execution fee for an authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `FeeEstimateOptions` | *Options for fee estimate.*
+
+#### Examples
+
+```javascript
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+
+await initThreadPool();
+
+// Create a new KeyProvider.
+const keyProvider = new AleoKeyProvider();
+keyProvider.useCache(true);
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+
+// Build the `Authorization`.
+const privateKey = new PrivateKey(); // Change this to a private key that has an aleo credit balance.
+const authorization = await programManager.buildAuthorization({
+    programName: "credits.aleo",
+    functionName: "transfer_public",
+    privateKey,
+    inputs: [
+        "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+        "10000000u64",
+    ],
+});
+
+console.log("Getting execution id");
+
+// Derive the execution ID and base fee.
+const executionId = authorization.toExecutionId().toString();
+
+console.log("Estimating fee");
+
+// Get the base fee in microcredits.
+const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
+     authorization,
+     programName: "credits.aleo"
+});
+const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+
+console.log("Building fee authorization");
+
+// Build a credits.aleo/fee_public `Authorization`.
+const feeAuthorization = await programManager.buildFeeAuthorization({
+    deploymentOrExecutionId: executionId,
+    baseFeeCredits,
+    privateKey
+});
+```
+
+---
+
+### `estimateExecutionFee(options) ► Promise.<bigint>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Estimate the execution fee for an Aleo function.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `FeeEstimateOptions` | *Options for the fee estimate.*
+__*return*__ | `Promise.<bigint>` | *Execution fee in microcredits for the authorization.*
+
+#### Examples
+
+```javascript
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+
+// Get the base fee in microcredits.
+const baseFeeMicrocredits = await programManager.estimateExecutionFee({programName: "credits.aleo"});
+const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+
+console.log("Building fee authorization");
+
+// Build a credits.aleo/fee_public `Authorization`.
+const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
+     programName: "credits.aleo",
+     functionName: "transfer_public",
+});
+const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+```
 
 ---
 
@@ -1633,53 +1733,65 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 #### Examples
 
 ```javascript
-/// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
 
-// Create a new NetworkClient, KeyProvider, and RecordProvider.
+await initThreadPool();
+
+// Create a new KeyProvider.
 const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
 
-// Initialize a program manager with the key provider to automatically fetch keys for executions
+// Initialize a program manager with the key provider to automatically fetch keys for executions.
 const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
 
 // Build the `Authorization`.
+const privateKey = new PrivateKey(); // Change this to a private key that has an aleo credit balance.
 const authorization = await programManager.buildAuthorization({
-  programName: "credits.aleo",
-  functionName: "transfer_public",
-  inputs: [
-    "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
-    "10000000u64",
-  ],
+    programName: "credits.aleo",
+    functionName: "transfer_public",
+    privateKey,
+    inputs: [
+        "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+        "10000000u64",
+    ],
 });
+
+console.log("Getting execution id");
 
 // Derive the execution ID and base fee.
 const executionId = authorization.toExecutionId().toString();
 
+console.log("Estimating fee");
+
 // Get the base fee in microcredits.
-const baseFeeMicrocredits = ProgramManager.estimateFeeForAuthorization(authorization, "credits.aleo");
-const baseFeeCredits = baseFeeMicrocredits/1000000;
+const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization(authorization, "credits.aleo");
+const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+
+console.log("Building fee authorization");
 
 // Build a credits.aleo/fee_public `Authorization`.
 const feeAuthorization = await programManager.buildFeeAuthorization({
-  deploymentOrExecutionId: executionId,
-  baseFeeCredits,
+    deploymentOrExecutionId: executionId,
+    baseFeeCredits,
+    privateKey
 });
 
-// Build and execute the transaction
+console.log("Executing authorizations");
+
+// Build and execute the transaction.
 const tx = await programManager.buildTransactionFromAuthorization({
-  programName: "hello_hello.aleo",
-  authorization,
-  feeAuthorization,
+    programName: "credits.aleo",
+    authorization,
+    feeAuthorization,
 });
 
-// Submit the transaction to the network
+// Submit the transaction to the network.
 await programManager.networkClient.submitTransaction(tx.toString());
 
-// Verify the transaction was successful
+// Verify the transaction was successful.
 setTimeout(async () => {
- const transaction = await programManager.networkClient.getTransaction(tx.id());
- assert(transaction.id() === tx.id());
+    const transaction = await programManager.networkClient.getTransaction(tx.id());
+    console.log(transaction);
 }, 10000);
 ```
 
@@ -1790,7 +1902,6 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 const provingRequest = await programManager.provingRequest({
   programName: "credits.aleo",
   functionName: "transfer_public",
-  baseFee: 100000,
   priorityFee: 0,
   privateFee: false,
   inputs: [
@@ -2665,23 +2776,15 @@ assert(isValid);
 
 ---
 
-### `createProgramFromSource(executionResponse, imports, importedVerifyingKeys, program) ► boolean`
+### `createProgramFromSource(program) ► Program`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Set the inclusion key bytes.
+Create a program object from a program&#x27;s source code
 
 Parameters | Type | Description
 --- | --- | ---
-__executionResponse__ | `executionResponse` | *The response from an offline function execution (via the &#x60;programManager.run&#x60; method)*
-__imports__ | `ImportedPrograms` | *The imported programs used in the execution. Specified as { &quot;programName&quot;: &quot;programSourceCode&quot;, ... }*
-__importedVerifyingKeys__ | `ImportedVerifyingKeys` | *The verifying keys in the execution. Specified as { &quot;programName&quot;: [[&quot;functionName&quot;, &quot;verifyingKey&quot;], ...], ... }*
 __program__ | `string` | *Program source code*
-__*return*__ | `boolean` | *True if the proof is valid, false otherwise
-
-
-    /**
-Create a program object from a program&#x27;s source code*
 __*return*__ | [Program](sdk-src_wasm.md) | *The program object*
 
 ---
@@ -2708,5 +2811,103 @@ Parameters | Type | Description
 --- | --- | ---
 __program__ | `string` | *The program source code*
 __*return*__ | `boolean` | **
+
+---
+
+### `estimateFeeForAuthorization(options) ► Promise.<bigint>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Estimate the execution fee for an authorization.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `FeeEstimateOptions` | *Options for fee estimate.*
+__*return*__ | `Promise.<bigint>` | **
+
+#### Examples
+
+```javascript
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+
+await initThreadPool();
+
+// Create a new KeyProvider.
+const keyProvider = new AleoKeyProvider();
+keyProvider.useCache(true);
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+
+// Build the `Authorization`.
+const privateKey = new PrivateKey(); // Change this to a private key that has an aleo credit balance.
+const authorization = await programManager.buildAuthorization({
+    programName: "credits.aleo",
+    functionName: "transfer_public",
+    privateKey,
+    inputs: [
+        "aleo1vwls2ete8dk8uu2kmkmzumd7q38fvshrht8hlc0a5362uq8ftgyqnm3w08",
+        "10000000u64",
+    ],
+});
+
+console.log("Getting execution id");
+
+// Derive the execution ID and base fee.
+const executionId = authorization.toExecutionId().toString();
+
+console.log("Estimating fee");
+
+// Get the base fee in microcredits.
+const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
+     authorization,
+     programName: "credits.aleo"
+});
+const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+
+console.log("Building fee authorization");
+
+// Build a credits.aleo/fee_public `Authorization`.
+const feeAuthorization = await programManager.buildFeeAuthorization({
+    deploymentOrExecutionId: executionId,
+    baseFeeCredits,
+    privateKey
+});
+```
+
+---
+
+### `estimateExecutionFee(options) ► Promise.<bigint>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Estimate the execution fee for an Aleo function.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `FeeEstimateOptions` | *Options for the fee estimate.*
+__*return*__ | `Promise.<bigint>` | *Execution fee in microcredits for the authorization.*
+
+#### Examples
+
+```javascript
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+
+// Initialize a program manager with the key provider to automatically fetch keys for executions.
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+
+// Get the base fee in microcredits.
+const baseFeeMicrocredits = await programManager.estimateExecutionFee({programName: "credits.aleo"});
+const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+
+console.log("Building fee authorization");
+
+// Build a credits.aleo/fee_public `Authorization`.
+const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
+     programName: "credits.aleo",
+     functionName: "transfer_public",
+});
+const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+```
 
 ---
