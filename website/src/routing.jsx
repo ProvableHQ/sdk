@@ -24,6 +24,7 @@ import { GetMappingNames } from "./tabs/rest/GetMappingNames.jsx";
 import { GetMappingValue } from "./tabs/rest/GetMappingValue.jsx";
 import { FieldArithmetic } from "./tabs/algebra/FieldArithmetic.jsx";
 import { GroupArithmetic } from "./tabs/algebra/GroupArithmetic.jsx";
+import { HashFunctions } from "./tabs/algebra/HashFunctions.jsx";
 import Homepage from "./pages/Homepage"; 
 import TermsOfUse from "./pages/TermsOfUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy"
@@ -124,6 +125,8 @@ export const router = createBrowserRouter([
                         <FieldArithmetic />
                         <br />
                         <GroupArithmetic />
+                        <br />
+                        <HashFunctions />
                     </>
                 ),
             },
