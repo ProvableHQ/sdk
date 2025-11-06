@@ -518,6 +518,15 @@ impl ProgramManager {
         let edition = edition.unwrap_or(1);
 
         let inputs = process_inputs!(inputs);
+        
+        // Add the program to the process.
+        // process.add_program_with_edition(&program, edition).map_err(|e| e.to_string())?;
+        if program_id != "credits.aleo" {
+            if !process.contains_program(program_native.id()) {
+                log("Adding program to the process");
+                process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            }
+        }
 
         // Mimic the Leo execute logic for --skip-proving block.
         let authorization = process.authorize::<CurrentAleo, _>(
