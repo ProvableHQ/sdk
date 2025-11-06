@@ -660,8 +660,23 @@ class ProgramManager {
                 );
             }
         }
-
-        if (skipProof === false) {
+        if (skipProof === true) {
+            console.log("program is: {}", program);
+            // console.warn("Skipping proof generation as requested. The resulting transaction will only be valid for the devnode.");
+            // Build a transaction without a proof
+            return await WasmProgramManager.buildDevnodeExecutionTransaction(
+                executionPrivateKey,
+                program,
+                functionName,
+                inputs,
+                priorityFee,
+                feeRecord,
+                this.host,
+                imports,
+                offlineQuery,
+                edition
+            );
+        } else  {
         // Get the fee proving and verifying keys from the key provider
         let feeKeys;
         try {
@@ -716,21 +731,7 @@ class ProgramManager {
             offlineQuery,
             edition
         );
-    } else {
-        // Build a transaction without a proof
-        return await WasmProgramManager.buildDevnodeExecutionTransaction(
-            executionPrivateKey,
-            program,
-            functionName,
-            inputs,
-            priorityFee,
-            feeRecord,
-            this.host,
-            imports,
-            offlineQuery,
-            edition
-        );
-    }
+    }  
     }
 
     /**
