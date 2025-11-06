@@ -73,6 +73,7 @@ interface ExecuteOptions {
     program?: string | Program;
     imports?: ProgramImports;
     edition?: number,
+    skipProof?: boolean,
 }
 
 /**
@@ -580,6 +581,12 @@ class ProgramManager {
         let programName = options.programName;
         let imports = options.imports;
         let edition = options.edition;
+        let skipProof = options.skipProof;
+
+        // Skip proof defaults to false.
+        if (typeof skipProof === "undefined") {
+            skipProof = false;
+        }
 
         // Ensure the function exists on the network
         if (program === undefined) {
@@ -640,6 +647,21 @@ class ProgramManager {
             );
         }
 
+        // Resolve the program imports if they exist
+        const numberOfImports = Program.fromString(program).getImports().length;
+        if (numberOfImports > 0 && !imports) {
+            try {
+                imports = <ProgramImports>(
+                    await this.networkClient.getProgramImports(programName)
+                );
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+                );
+            }
+        }
+
+        if (skipProof === false) {
         // Get the fee proving and verifying keys from the key provider
         let feeKeys;
         try {
@@ -662,20 +684,6 @@ class ProgramManager {
             } catch (e) {
                 console.log(
                     `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
-                );
-            }
-        }
-
-        // Resolve the program imports if they exist
-        const numberOfImports = Program.fromString(program).getImports().length;
-        if (numberOfImports > 0 && !imports) {
-            try {
-                imports = <ProgramImports>(
-                    await this.networkClient.getProgramImports(programName)
-                );
-            } catch (e: any) {
-                logAndThrow(
-                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
                 );
             }
         }
@@ -708,6 +716,21 @@ class ProgramManager {
             offlineQuery,
             edition
         );
+    } else {
+        // Build a transaction without a proof
+        return await WasmProgramManager.buildDevnodeExecutionTransaction(
+            executionPrivateKey,
+            program,
+            functionName,
+            inputs,
+            priorityFee,
+            feeRecord,
+            this.host,
+            imports,
+            offlineQuery,
+            edition
+        );
+    }
     }
 
     /**

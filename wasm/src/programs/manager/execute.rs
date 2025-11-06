@@ -489,17 +489,17 @@ impl ProgramManager {
     /// @param offline_query An offline query object to use if building a transaction without an internet connection.
     /// @param edition The edition of the program to execute. Defaults to the latest found on the network, or 1 if the program does not exist on the network.
     /// @returns {Transaction}
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = buildDevnodeExecutionTransaction)]
+    #[allow(clippy::too_many_arguments)]
     pub async fn devnode_execute(
         private_key: &PrivateKey,
         program: &str,
         function: &str,
-        imports: Option<Object>,
         inputs: Array,
-        base_fee: Option<u64>,
-        priority_fee: Option<u64>,
+        priority_fee_credits: f64,
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
+        imports: Option<Object>,
         offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
     ) -> Result<Transaction, String> {
@@ -552,6 +552,9 @@ impl ProgramManager {
         // Generate the fee authorization.
         let id = authorization.to_execution_id().map_err(|e| e.to_string())?;
 
+        // Convert the priority fee to microcredits.
+        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+
         let fee_authorization = match fee_record {
             Some(fee_record) => {
                 log("Authorizing credits.aleo/fee_private");
@@ -561,8 +564,8 @@ impl ProgramManager {
                     .authorize_fee_private::<CurrentAleo, _>(
                         &private_key,
                         fee_record_native,
-                        base_fee.unwrap_or(cost),
-                        priority_fee.unwrap_or(0),
+                        cost,
+                        priority_fee_microcredits,
                         id,
                         rng,
                     )
@@ -573,8 +576,8 @@ impl ProgramManager {
                 process
                     .authorize_fee_public::<CurrentAleo, _>(
                         &private_key,
-                        base_fee.unwrap_or(cost),
-                        priority_fee.unwrap_or(0),
+                        cost,
+                        priority_fee_microcredits,
                         id,
                         rng,
                     )
