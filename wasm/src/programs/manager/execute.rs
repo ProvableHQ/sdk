@@ -598,6 +598,9 @@ impl ProgramManager {
         let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
             .map_err(|e| e.to_string())?;
 
+        // Evaluate the process to ensure validity.
+        let response = process.evaluate::<CurrentAleo>(authorization).map_err(|e| e.to_string())?;
+        
         // Create the transaction.
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|e| e.to_string())?;
         Ok(Transaction::from(transaction))
