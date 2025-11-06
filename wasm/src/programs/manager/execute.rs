@@ -475,7 +475,7 @@ impl ProgramManager {
         inputs: Array,
         base_fee: Option<u64>,
         priority_fee: Option<u64>,
-        record: Option<&RecordPlaintext>,
+        fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
@@ -494,10 +494,10 @@ impl ProgramManager {
         ProgramManager::resolve_imports(process, &program_native, imports)?;
         let edition = edition.unwrap_or(1);
 
+        let inputs = process_inputs!(inputs);
 
-        
         // mimic the Leo execute logic for --skip-proving block
-        let authorization = process.authorize(
+        let authorization = process.authorize::<CurrentAleo, _>(
             &private_key,
             &program_id,
             function,
@@ -514,7 +514,7 @@ impl ProgramManager {
         
         // Execute without proving.
         let execution = ExecutionNative::from(
-            authorization.transitions(),
+            authorization.transitions().values().cloned(),
             state_root,
             None,
         ).map_err(|e| e.to_string())?;
@@ -528,19 +528,35 @@ impl ProgramManager {
 
         // Generate the fee authorization.
         let id = authorization.to_execution_id().map_err(|e| e.to_string())?;
-        
-        let fee_authorization = match record {
-            None => {
-                process.authorize_fee_public(&private_key, base_fee.unwrap_or(cost), priority_fee.unwrap_or(0), id, rng).map_err(|e| e.to_string())?
+
+        let fee_authorization = match fee_record {
+            Some(fee_record) => {
+                log("Authorizing credits.aleo/fee_private");
+                let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string())
+                    .map_err(|e| format!("Invalid fee record: {}", e))?;
+                process
+                    .authorize_fee_private::<CurrentAleo, _>(
+                        &private_key,
+                        fee_record_native,
+                        base_fee.unwrap_or(cost),
+                        priority_fee.unwrap_or(0),
+                        id,
+                        rng,
+                    )
+                    .map_err(|e| e.to_string())?
             }
-            Some(record) => process.authorize_fee_private(
-                &private_key,
-                record.into(),
-                base_fee.unwrap_or(cost),
-                priority_fee.unwrap_or(0),
-                id,
-                rng,
-            ).map_err(|e| e.to_string())?,
+            None => {
+                log("Authorizing credits.aleo/fee_public");
+                process
+                    .authorize_fee_public::<CurrentAleo, _>(
+                        &private_key,
+                        base_fee.unwrap_or(cost),
+                        priority_fee.unwrap_or(0),
+                        id,
+                        rng,
+                    )
+                    .map_err(|e| e.to_string())?
+            }
         };
 
         // Create a fee transition without a proof.
