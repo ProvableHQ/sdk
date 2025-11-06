@@ -23,6 +23,7 @@ mod split;
 mod transfer;
 
 pub const DEFAULT_URL: &str = "https://api.explorer.provable.com/v1";
+pub const LOCAL_URL: &str = "http://localhost:3030";
 
 use crate::{
     KeyPair,

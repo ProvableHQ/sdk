@@ -29,12 +29,15 @@ use crate::{
     execute_fee,
     execute_program,
     latest_block_height,
+    latest_stateroot,
     log,
     process_inputs,
     types::native::{
         AuthorizationNative,
         CurrentAleo,
         CurrentNetwork,
+        ExecutionNative,
+        FeeNative,
         IdentifierNative,
         LocatorNative,
         ProcessNative,
@@ -460,6 +463,93 @@ impl ProgramManager {
             None
         };
         Ok(Transaction::from(TransactionNative::from_execution(execution, fee).map_err(|e| e.to_string())?))
+    }
+
+    /// Create an execution transaction without a proof.  Intended for use with Leo devnode.
+    #[wasm_bindgen]
+    pub async fn devnode_execute(
+        private_key: &PrivateKey,
+        program: &str,
+        function: &str,
+        imports: Option<Object>,
+        inputs: Array,
+        base_fee: Option<u64>,
+        priority_fee: Option<u64>,
+        record: Option<&RecordPlaintext>,
+        url: Option<String>,
+        offline_query: Option<OfflineQuery>,
+        edition: Option<u16>,
+    ) -> Result<Transaction, String> {
+        log("Loading the SnarkVM process");
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+        let node_url = url.as_deref().unwrap_or(LOCAL_URL);
+
+        // Initialize the rng.
+        let rng = &mut StdRng::from_entropy();
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+        let program_id = program_native.id().to_string();
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let edition = edition.unwrap_or(1);
+
+
+        
+        // mimic the Leo execute logic for --skip-proving block
+        let authorization = process.authorize(
+            &private_key,
+            &program_id,
+            function,
+            inputs.iter(),
+            rng,
+        ).map_err(|e| e.to_string())?;
+
+        // Get the state root.
+        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
+
+        // Get the consensus version.
+        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
+        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        
+        // Execute without proving.
+        let execution = ExecutionNative::from(
+            authorization.transitions(),
+            state_root,
+            None,
+        ).map_err(|e| e.to_string())?;
+        
+        // Calculate the cost
+        let (cost, _) = execution_cost(
+            &process,
+            &execution,
+            consensus_version,
+        ).map_err(|e| e.to_string())?;
+
+        // Generate the fee authorization.
+        let id = authorization.to_execution_id().map_err(|e| e.to_string())?;
+        
+        let fee_authorization = match record {
+            None => {
+                process.authorize_fee_public(&private_key, base_fee.unwrap_or(cost), priority_fee.unwrap_or(0), id, rng).map_err(|e| e.to_string())?
+            }
+            Some(record) => process.authorize_fee_private(
+                &private_key,
+                record.into(),
+                base_fee.unwrap_or(cost),
+                priority_fee.unwrap_or(0),
+                id,
+                rng,
+            ).map_err(|e| e.to_string())?,
+        };
+
+        // Create a fee transition without a proof.
+        let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
+            .map_err(|e| e.to_string())?;
+
+        // Create the transaction.
+        let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|e| e.to_string())?;
+        Ok(Transaction::from(transaction))
     }
 
     /// Estimate Fee for Aleo function execution. Note if "cache" is set to true, the proving and

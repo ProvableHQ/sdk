@@ -38,7 +38,7 @@ use snarkvm_console::{
     },
     types::{Boolean, Field, Group, I8, I16, I32, I64, I128, Scalar, U8, U16, U32, U64, U128},
 };
-use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
+use snarkvm_ledger_block::{Execution, Fee, Input, Output, Transaction, Transition};
 use snarkvm_synthesizer::{
     Authorization,
     Process,
@@ -103,6 +103,7 @@ pub type ValueNative = Value<CurrentNetwork>;
 
 // Ledger types
 pub type ExecutionNative = Execution<CurrentNetwork>;
+pub type FeeNative = Fee<CurrentNetwork>;
 pub type InputNative = Input<CurrentNetwork>;
 pub type OutputNative = Output<CurrentNetwork>;
 pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
