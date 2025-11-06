@@ -465,7 +465,30 @@ impl ProgramManager {
         Ok(Transaction::from(TransactionNative::from_execution(execution, fee).map_err(|e| e.to_string())?))
     }
 
-    /// Create an execution transaction without a proof.  Intended for use with Leo devnode.
+    /// Execute Aleo function and create an Aleo execution transaction without a proof.
+    /// Intended for use with Leo devnode.
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being executed
+    /// @param function The name of the function to execute
+    /// @param inputs A javascript array of inputs to the function
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
+    /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
+    /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
+    /// keys will be deallocated from memory after the transaction is executed.
+    /// @param imports (optional) Provide a list of imports to use for the function execution in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+    /// @param proving_key (optional) Provide a verifying key to use for the function execution
+    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param offline_query An offline query object to use if building a transaction without an internet connection.
+    /// @param edition The edition of the program to execute. Defaults to the latest found on the network, or 1 if the program does not exist on the network.
+    /// @returns {Transaction}
     #[wasm_bindgen]
     pub async fn devnode_execute(
         private_key: &PrivateKey,
@@ -496,7 +519,7 @@ impl ProgramManager {
 
         let inputs = process_inputs!(inputs);
 
-        // mimic the Leo execute logic for --skip-proving block
+        // Mimic the Leo execute logic for --skip-proving block.
         let authorization = process.authorize::<CurrentAleo, _>(
             &private_key,
             &program_id,
@@ -519,7 +542,7 @@ impl ProgramManager {
             None,
         ).map_err(|e| e.to_string())?;
         
-        // Calculate the cost
+        // Calculate the cost.
         let (cost, _) = execution_cost(
             &process,
             &execution,
