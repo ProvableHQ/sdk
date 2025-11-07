@@ -662,7 +662,6 @@ class ProgramManager {
         }
         if (skipProof === true) {
             console.log("program is: {}", program);
-            // console.warn("Skipping proof generation as requested. The resulting transaction will only be valid for the devnode.");
             // Build a transaction without a proof
             return await WasmProgramManager.buildDevnodeExecutionTransaction(
                 executionPrivateKey,
@@ -676,62 +675,62 @@ class ProgramManager {
                 offlineQuery,
                 edition
             );
-        } else  {
-        // Get the fee proving and verifying keys from the key provider
-        let feeKeys;
-        try {
-            feeKeys = privateFee
-                ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys()
-                : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
-        } catch (e: any) {
-            logAndThrow(
-                `Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`,
+            } else  {
+            // Get the fee proving and verifying keys from the key provider
+            let feeKeys;
+            try {
+                feeKeys = privateFee
+                    ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys()
+                    : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`,
+                );
+            }
+            const [feeProvingKey, feeVerifyingKey] = feeKeys;
+
+            // If the function proving and verifying keys are not provided, attempt to find them using the key provider
+            if (!provingKey || !verifyingKey) {
+                try {
+                    [provingKey, verifyingKey] = <FunctionKeyPair>(
+                        await this.keyProvider.functionKeys(keySearchParams)
+                    );
+                } catch (e) {
+                    console.log(
+                        `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
+                    );
+                }
+            }
+
+            if (offlineQuery && !this.inclusionKeysLoaded) {
+                try {
+                    const inclusionKeys = await this.keyProvider.inclusionKeys();
+                    WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                    this.inclusionKeysLoaded = true;
+                    console.log("Successfully loaded inclusion key");
+                } catch {
+                    logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+                }
+            }
+
+            // Build an execution transaction
+            return await WasmProgramManager.buildExecutionTransaction(
+                executionPrivateKey,
+                program,
+                functionName,
+                inputs,
+                priorityFee,
+                feeRecord,
+                this.host,
+                imports,
+                provingKey,
+                verifyingKey,
+                feeProvingKey,
+                feeVerifyingKey,
+                offlineQuery,
+                edition
             );
-        }
-        const [feeProvingKey, feeVerifyingKey] = feeKeys;
-
-        // If the function proving and verifying keys are not provided, attempt to find them using the key provider
-        if (!provingKey || !verifyingKey) {
-            try {
-                [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
-                );
-            } catch (e) {
-                console.log(
-                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
-                );
-            }
-        }
-
-        if (offlineQuery && !this.inclusionKeysLoaded) {
-            try {
-                const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
-                this.inclusionKeysLoaded = true;
-                console.log("Successfully loaded inclusion key");
-            } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
-            }
-        }
-
-        // Build an execution transaction
-        return await WasmProgramManager.buildExecutionTransaction(
-            executionPrivateKey,
-            program,
-            functionName,
-            inputs,
-            priorityFee,
-            feeRecord,
-            this.host,
-            imports,
-            provingKey,
-            verifyingKey,
-            feeProvingKey,
-            feeVerifyingKey,
-            offlineQuery,
-            edition
-        );
-    }  
+        }  
     }
 
     /**
