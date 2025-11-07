@@ -465,8 +465,8 @@ impl ProgramManager {
         Ok(Transaction::from(TransactionNative::from_execution(execution, fee).map_err(|e| e.to_string())?))
     }
 
-    /// Execute Aleo function and create an Aleo execution transaction without a proof.
-    /// Intended for use with Leo devnode.
+    /// Generate an execution transaction without a proof.
+    /// Intended for use with the Leo devnode tool.
     ///
     /// @param private_key The private key of the sender
     /// @param program The source code of the program being executed
@@ -518,9 +518,8 @@ impl ProgramManager {
         let edition = edition.unwrap_or(1);
 
         let inputs = process_inputs!(inputs);
-        
+
         // Add the program to the process.
-        // process.add_program_with_edition(&program, edition).map_err(|e| e.to_string())?;
         if program_id != "credits.aleo" {
             if !process.contains_program(program_native.id()) {
                 log("Adding program to the process");
@@ -528,14 +527,10 @@ impl ProgramManager {
             }
         }
 
-        // Mimic the Leo execute logic for --skip-proving block.
-        let authorization = process.authorize::<CurrentAleo, _>(
-            &private_key,
-            &program_id,
-            function,
-            inputs.iter(),
-            rng,
-        ).map_err(|e| e.to_string())?;
+        // Generate the authorization.
+        let authorization = process
+            .authorize::<CurrentAleo, _>(&private_key, &program_id, function, inputs.iter(), rng)
+            .map_err(|e| e.to_string())?;
 
         // Get the state root.
         let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
@@ -543,20 +538,13 @@ impl ProgramManager {
         // Get the consensus version.
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
-        
+
         // Execute without proving.
-        let execution = ExecutionNative::from(
-            authorization.transitions().values().cloned(),
-            state_root,
-            None,
-        ).map_err(|e| e.to_string())?;
-        
+        let execution = ExecutionNative::from(authorization.transitions().values().cloned(), state_root, None)
+            .map_err(|e| e.to_string())?;
+
         // Calculate the cost.
-        let (cost, _) = execution_cost(
-            &process,
-            &execution,
-            consensus_version,
-        ).map_err(|e| e.to_string())?;
+        let (cost, _) = execution_cost(&process, &execution, consensus_version).map_err(|e| e.to_string())?;
 
         // Generate the fee authorization.
         let id = authorization.to_execution_id().map_err(|e| e.to_string())?;
@@ -583,13 +571,7 @@ impl ProgramManager {
             None => {
                 log("Authorizing credits.aleo/fee_public");
                 process
-                    .authorize_fee_public::<CurrentAleo, _>(
-                        &private_key,
-                        cost,
-                        priority_fee_microcredits,
-                        id,
-                        rng,
-                    )
+                    .authorize_fee_public::<CurrentAleo, _>(&private_key, cost, priority_fee_microcredits, id, rng)
                     .map_err(|e| e.to_string())?
             }
         };
@@ -600,7 +582,7 @@ impl ProgramManager {
 
         // Evaluate the process to ensure validity.
         let response = process.evaluate::<CurrentAleo>(authorization).map_err(|e| e.to_string())?;
-        
+
         // Create the transaction.
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|e| e.to_string())?;
         Ok(Transaction::from(transaction))
