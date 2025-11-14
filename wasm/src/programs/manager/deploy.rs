@@ -231,7 +231,7 @@ impl ProgramManager {
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     /// @returns {Transaction}
-    #[wasm_bindgen(js_name = buildDeploymentTransaction)]
+    #[wasm_bindgen(js_name = buildDevnodeDeploymentTransaction)]
     #[allow(clippy::too_many_arguments)]
     pub async fn devnode_deploy(
         private_key: &PrivateKey,
@@ -259,7 +259,7 @@ impl ProgramManager {
         // Create deployment without synthesizing keys and generating certificates.
         assert!(!program.functions().is_empty(), "Program must have at least one function");
         let mut verifying_keys = Vec::with_capacity(program.functions().len());
-        for function in program.functions().keys() {
+        for function_name in program.functions().keys() {
             let (verifying_key, certificate) = {
             // Sample a dummy verifying key for each function.
                 let verifying_key = VerifyingKeyNative::from_str(
@@ -272,9 +272,14 @@ impl ProgramManager {
                 ).map_err(|err| err.to_string())?;
                 (verifying_key, certificate)
             };
-            verifying_keys.push((function.clone(), verifying_key, certificate));
+            verifying_keys.push((*function_name, (verifying_key, certificate)));
         }
-        let mut deployment = DeploymentNative::new(edition.unwrap_or(0),program.clone(), verifying_keys, None, None)
+        // let program_id = process.program_id(&program).map_err(|err| err.to_string())?;
+        // let edition = *process.get_stack(program_id).map_err(|err| err.to_string())?.program_edition();
+
+
+
+        let mut deployment = DeploymentNative::new(0, program.clone(), verifying_keys, None, None)
             .map_err(|err| err.to_string())?;
 
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
@@ -305,21 +310,21 @@ impl ProgramManager {
         Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits).map_err(|e| e.to_string())?;
             
         let fee_authorization = match fee_record {
-            Some(record) => process.authorize_fee_private::<A, _>(
+            Some(record) => process.authorize_fee_private::<CurrentAleo, _>(
                 &private_key,
-                record,
+                record.into(),
                 minimum_deployment_cost,
                 priority_fee_microcredits,
                 deployment_id,
                 rng,
-            )?,
-            None => process.authorize_fee_public::<A ,_>(
+            ).map_err(|e| e.to_string())?,
+            None => process.authorize_fee_public::<CurrentAleo, _>(
                 &private_key,
                 minimum_deployment_cost,
                 priority_fee_microcredits,
                 deployment_id,
                 rng,
-            )?,
+            ).map_err(|e| e.to_string())?,
         };
 
         // Get the state root.

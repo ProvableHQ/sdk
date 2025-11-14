@@ -17,7 +17,7 @@
 pub use super::networks::*;
 use snarkvm_console::{
     account::{Address, ComputeKey, GraphKey, PrivateKey, Signature, ViewKey},
-    algorithms::{BHP256, BHP512, BHP768, BHP1024, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8, snark::varuna::Certificate},
+    algorithms::{BHP256, BHP512, BHP768, BHP1024, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8},
     program::{
         Argument,
         Ciphertext,
@@ -43,7 +43,7 @@ use snarkvm_synthesizer::{
     Authorization,
     Process,
     Program,
-    snark::{ProvingKey, VerifyingKey},
+    snark::{Certificate, ProvingKey, VerifyingKey},
 };
 
 mod request;
