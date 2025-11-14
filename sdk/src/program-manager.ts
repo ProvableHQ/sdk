@@ -675,7 +675,8 @@ class ProgramManager {
                 offlineQuery,
                 edition
             );
-            } else  {
+            } 
+              
             // Get the fee proving and verifying keys from the key provider
             let feeKeys;
             try {
@@ -730,7 +731,7 @@ class ProgramManager {
                 offlineQuery,
                 edition
             );
-        }  
+        
     }
 
     /**
