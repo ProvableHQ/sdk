@@ -31,7 +31,7 @@
     "pretty": "prettier . --write"
   },
   "optionalDependencies": {
-    "glob": "^11.0.1"
+    "glob": "^11.1.0"
   },
   "devDependencies": {
     "prettier": "3.4.2",
