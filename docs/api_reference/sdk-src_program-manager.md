@@ -108,6 +108,34 @@ programManager.setHeader('Accept-Language', 'en-US');
 
 ---
 
+### `setInclusionProver(provingKey)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set the inclusion prover into the wasm memory. This should be done prior to any execution of a function with a
+private record.
+
+Parameters | Type | Description
+--- | --- | ---
+__provingKey__ | [ProvingKey](sdk-src_wasm.md) | **
+
+#### Examples
+
+```javascript
+import { ProgramManager, AleoKeyProvider } from "@provablehq/sdk/mainnet.js";
+
+const keyProvider = new AleoKeyProvider();
+keyProvider.useCache(true);
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+
+// Set the inclusion keys.
+programManager.setInclusionProver();
+```
+
+---
+
 ### `removeHeader(headerName)`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1548,6 +1576,34 @@ const programManager = new ProgramManager("https://api.explorer.provable.com/v1"
 
 // Set the value of the `Accept-Language` header to `en-US`
 programManager.setHeader('Accept-Language', 'en-US');
+```
+
+---
+
+### `setInclusionProver(provingKey)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set the inclusion prover into the wasm memory. This should be done prior to any execution of a function with a
+private record.
+
+Parameters | Type | Description
+--- | --- | ---
+__provingKey__ | [ProvingKey](sdk-src_wasm.md) | **
+
+#### Examples
+
+```javascript
+import { ProgramManager, AleoKeyProvider } from "@provablehq/sdk/mainnet.js";
+
+const keyProvider = new AleoKeyProvider();
+keyProvider.useCache(true);
+
+// Create a ProgramManager
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+
+// Set the inclusion keys.
+programManager.setInclusionProver();
 ```
 
 ---

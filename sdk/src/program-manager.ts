@@ -1,6 +1,7 @@
 import { Account } from "./account.js";
 import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client.js";
 import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports.js";
+import { FunctionInput } from "./models/functionInput";
 import { RecordProvider } from "./record-provider.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
 
@@ -290,6 +291,43 @@ class ProgramManager {
     }
 
     /**
+     * Set the inclusion prover into the wasm memory. This should be done prior to any execution of a function with a
+     * private record.
+     *
+     * @param {ProvingKey} [provingKey]
+     *
+     * @example
+     * import { ProgramManager, AleoKeyProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * const keyProvider = new AleoKeyProvider();
+     * keyProvider.useCache(true);
+     *
+     * // Create a ProgramManager
+     * const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+     *
+     * // Set the inclusion keys.
+     * programManager.setInclusionProver();
+     */
+    async setInclusionProver(provingKey?: ProvingKey) {
+        if (this.inclusionKeysLoaded) {
+            return
+        }
+        try {
+            if (provingKey) {
+                WasmProgramManager.loadInclusionProver(provingKey)
+                this.inclusionKeysLoaded = true;
+            } else {
+                const inclusionKeys = await this.keyProvider.inclusionKeys();
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                this.inclusionKeysLoaded = true;
+            }
+            return;
+        } catch {
+            console.log("Setting the inclusion prover requires either a key provider to be configured for the ProgramManager OR to pass the inclusion prover directly");
+        }
+    }
+
+    /**
      * Remove a header from the `AleoNetworkClient`s header map
      *
      * @param {string} headerName The name of the header to be removed
@@ -398,14 +436,28 @@ class ProgramManager {
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            feeRecord = privateFee
-                ? RecordPlaintext.fromString((await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )).record_plaintext?? '')
-                : undefined;
+            if (privateFee) {
+                let fee = priorityFee;
+                // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
+                if (!feeRecord) {
+                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    const programString = programObject.toString();
+                    const imports = await this.networkClient.getProgramImports(programString);
+                    const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
+                    fee = baseFee + priorityFee;
+                }
+
+                // Get a credits.aleo record for the fee.
+                feeRecord = await this.getCreditsRecord(
+                    fee,
+                    [],
+                    feeRecord,
+                    recordSearchParams
+                )
+            } else {
+                // If it's specified NOT to use a privateFee, use a public fee.
+                feeRecord = undefined
+            }
         } catch (e: any) {
             logAndThrow(
                 `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
@@ -581,29 +633,39 @@ class ProgramManager {
         let imports = options.imports;
         let edition = options.edition;
 
+        let programObject;
         // Ensure the function exists on the network
         if (program === undefined) {
             try {
-                program = <string>(
-                    await this.networkClient.getProgram(programName)
-                );
+                programObject = await this.networkClient.getProgramObject(programName);
+                program = <string>programObject.toString();
             } catch (e: any) {
                 logAndThrow(
                     `Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`,
                 );
             }
+        } else if (typeof program == "string") {
+            try {
+                programObject = Program.fromString(program);
+            } catch (e: any) {
+                logAndThrow(`Program sources passed for ${programName} were invalid: ${e}`);
+            }
         } else if (program instanceof Program) {
+            programObject = program;
             program = program.toString();
+        }
+
+        if (!(programObject instanceof Program)) {
+            logAndThrow(`Failed to validate program ${programName}`);
         }
 
         // Get the program name if it is not provided in the parameters.
         if (programName === undefined) {
-            programName = Program.fromString(program).id();
+            programName = programObject.id();
         }
 
         if (edition == undefined) {
             try {
-
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
                 console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
@@ -622,22 +684,6 @@ class ProgramManager {
 
         if (typeof executionPrivateKey === "undefined") {
             throw "No private key provided and no private key set in the ProgramManager";
-        }
-
-        // Get the fee record from the account if it is not provided in the parameters
-        try {
-            feeRecord = privateFee
-                ? RecordPlaintext.fromString((await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )).record_plaintext?? '')
-                : undefined;
-        } catch (e: any) {
-            logAndThrow(
-                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
-            );
         }
 
         // Get the fee proving and verifying keys from the key provider
@@ -667,7 +713,7 @@ class ProgramManager {
         }
 
         // Resolve the program imports if they exist
-        const numberOfImports = Program.fromString(program).getImports().length;
+        const numberOfImports = programObject.getImports().length;
         if (numberOfImports > 0 && !imports) {
             try {
                 imports = <ProgramImports>(
@@ -678,6 +724,33 @@ class ProgramManager {
                     `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
                 );
             }
+        }
+
+        // Get the fee record from the account if it is not provided in the parameters
+        try {
+            if (privateFee) {
+                let fee = priorityFee;
+                // If a fee record wasn't provided, estimate the fee that needs to be paid.
+                if (!feeRecord) {
+                    const baseFee = Number(await this.estimateExecutionFee({programName, functionName, program, imports}));
+                    fee = baseFee + priorityFee;
+                }
+
+                // Get a credits.aleo record for the fee.
+                feeRecord = await this.getCreditsRecord(
+                    fee,
+                    [],
+                    feeRecord,
+                    recordSearchParams
+                )
+            } else {
+                // If it's specified NOT to use a privateFee, use a public fee.
+                feeRecord = undefined
+            }
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+            );
         }
 
         if (offlineQuery && !this.inclusionKeysLoaded) {
@@ -1198,22 +1271,6 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        // Get the fee record from the account if it is not provided in the parameters.
-        try {
-            feeRecord = privateFee
-                ? RecordPlaintext.fromString((await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )).record_plaintext?? '')
-                : undefined;
-        } catch (e: any) {
-            logAndThrow(
-                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
-            );
-        }
-
         // Resolve the program imports if they exist.
         const numberOfImports = Program.fromString(program).getImports().length;
         if (numberOfImports > 0 && !imports) {
@@ -1226,6 +1283,33 @@ class ProgramManager {
                     `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
                 );
             }
+        }
+
+        // Get the fee record from the account if it is not provided in the parameters
+        try {
+            if (privateFee) {
+                let fee = priorityFee;
+                // If a fee record wasn't provided, estimate the fee that needs to be paid.
+                if (!feeRecord) {
+                    const baseFee = Number(await this.estimateExecutionFee({programName, functionName, program: program.toString(), imports}));
+                    fee = baseFee + priorityFee;
+                }
+
+                // Get a credits.aleo record for the fee.
+                feeRecord = await this.getCreditsRecord(
+                    fee,
+                    [],
+                    feeRecord,
+                    recordSearchParams
+                )
+            } else {
+                // If it's specified NOT to use a privateFee, use a public fee.
+                feeRecord = undefined
+            }
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+            );
         }
 
         // Build and return the `ProvingRequest`.
@@ -1536,14 +1620,25 @@ class ProgramManager {
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            feeRecord = privateFee
-                ? RecordPlaintext.fromString((await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )).record_plaintext?? '')
-                : undefined;
+            if (privateFee) {
+                let fee = priorityFee;
+                // If a fee record wasn't provided, estimate the fee that needs to be paid.
+                if (!feeRecord) {
+                    const baseFee = Number(await this.estimateExecutionFee({programName: "credits.aleo", functionName: "join"}));
+                    fee = baseFee + priorityFee;
+                }
+
+                // Get a credits.aleo record for the fee.
+                feeRecord = await this.getCreditsRecord(
+                    fee,
+                    [],
+                    feeRecord,
+                    recordSearchParams
+                )
+            } else {
+                // If it's specified NOT to use a privateFee, use a public fee.
+                feeRecord = undefined
+            }
         } catch (e: any) {
             logAndThrow(
                 `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
@@ -1832,24 +1927,28 @@ class ProgramManager {
             const nonces: string[] = [];
             if (requiresAmountRecord(transferType)) {
                 // If the transfer type is private and requires an amount record, get it from the record provider
-                amountRecord = RecordPlaintext.fromString((await this.getCreditsRecord(
+                amountRecord = await this.getCreditsRecord(
                         priorityFee,
                         [],
                         amountRecord,
                         recordSearchParams,
-                    )).record_plaintext?? '');
+                    );
                 nonces.push(amountRecord.nonce());
             } else {
                 amountRecord = undefined;
             }
-            feeRecord = privateFee
-                ? RecordPlaintext.fromString((await this.getCreditsRecord(
-                        priorityFee,
-                        nonces,
-                        feeRecord,
-                        recordSearchParams,
-                    )).record_plaintext?? '')
-                : undefined;
+            if (privateFee) {
+                // Get a credits.aleo record for the fee.
+                feeRecord = await this.getCreditsRecord(
+                    priorityFee,
+                    [],
+                    feeRecord,
+                    recordSearchParams
+                )
+            } else {
+                // If it's specified NOT to use a privateFee, use a public fee.
+                feeRecord = undefined
+            }
         } catch (e: any) {
             logAndThrow(
                 `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
@@ -2956,29 +3055,30 @@ class ProgramManager {
         nonces: string[],
         record?: RecordPlaintext | string,
         params?: RecordSearchParams,
-    ): Promise<OwnedRecord> {
-        try {
-            // return record instanceof RecordPlaintext
-            //     ? record
-            //     : RecordPlaintext.fromString(<string>record);
-            if (record && record instanceof RecordPlaintext) {
-                record = record.toString();
+    ): Promise<RecordPlaintext> {
+        if (record) {
+            try {
+                return record instanceof RecordPlaintext
+                    ? record : RecordPlaintext.fromString(<string>record);
+            } catch {
+                logAndThrow(`Record '${record}' could not be parsed, please ensure a valid credits.aleo record 
+                is passed prior to trying again`)
             }
-            return <OwnedRecord>({
-                recordPlaintext: record,
-                programName: 'credits.aleo',
-                recordName: 'credits',
-            })
-        } catch (e) {
+        } else {
             try {
                 const recordProvider = <RecordProvider>this.recordProvider;
-                return await recordProvider.findCreditsRecord(
+                const record = await recordProvider.findCreditsRecord(
                     amount,
                     { ...params, unspent: true, nonces }
                 );
+                if (record.record_plaintext) {
+                    return RecordPlaintext.fromString(record.record_plaintext);
+                } else {
+                    logAndThrow("Failed to deserialize record returned from record provider");
+                }
             } catch (e: any) {
                 logAndThrow(
-                    `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+                    `Error finding fee record. Record finder response: '${e}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
                 );
             }
         }
