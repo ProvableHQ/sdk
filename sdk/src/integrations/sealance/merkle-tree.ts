@@ -242,6 +242,15 @@ class SealanceMerkleTree {
 
         return { siblings: siblingPath, leaf_index: leafIndex };
     }
+
+    formatMerkleProof(proof: { siblings: bigint[]; leaf_index: number }[]): string {
+        const formatted = proof.map(item => {
+            const siblings = item.siblings.map(s => `${s}field`).join(", ");
+            return `{ siblings: [${siblings}], leaf_index: ${item.leaf_index}u32 }`;
+        }).join(", ");
+  
+        return `[${formatted}]`;
+    }
 }
 
 export { SealanceMerkleTree };

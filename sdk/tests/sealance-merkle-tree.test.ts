@@ -141,12 +141,14 @@ describe("merkle_tree lib, getSiblingPath", () => {
     // Get sibling path for leaf index 1 (odd index)
     // This will test the "index - 1" branch of the sibling index calculation
     const proof = sealance.getSiblingPath(tree, 1, 15);
+    const formattedProof = sealance.formatMerkleProof([proof, proof]);
 
-    expect(proof).to.not.be.undefined;
+  expect(proof).to.not.be.undefined;
   expect(proof.leaf_index).to.equal(1);
   expect(proof.siblings).to.not.be.undefined;
   expect(proof.siblings).to.have.lengthOf(15); // Depth 15
   expect(proof.siblings[0]).to.equal(2n); // The leaf itself (index 1 = "2field")
   expect(proof.siblings[1]).to.equal(1n); // Its sibling (index 0 = "1field")
+  expect(formattedProof).to.equal("[{ siblings: [2field, 1field, 4560646903308595113151029585344265575242682454899063992850623350939538444867field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field], leaf_index: 1u32 }, { siblings: [2field, 1field, 4560646903308595113151029585344265575242682454899063992850623350939538444867field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field], leaf_index: 1u32 }]");
   });
 });
