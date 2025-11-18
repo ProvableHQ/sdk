@@ -20,7 +20,7 @@ import {
     RECORD_CIPHERTEXT_STRING_COPY,
     RECORD_CIPHERTEXT_STRING_NOT_OWNED,
     RECORD_CIPHERTEXT_STRING_NOT_OWNED2,
-    RECORD_PLAINTEXT_STRING,
+    RECORD_PLAINTEXT_V0_STRING,
     RECORD_VIEW_KEY_STRING,
     VIEW_KEY_STRING,
 } from "./data/records.js";
@@ -459,7 +459,7 @@ describe('WASM Objects', () => {
         const recordCiphertextNotOwned2 = RecordCiphertext.fromString(RECORD_CIPHERTEXT_STRING_NOT_OWNED2);
         const recordCiphertextArray = [recordCiphertext, recordCiphertextNotOwned, recordCiphertextNotOwned2];
         const recordCiphertextArrayCopy = recordCiphertextArray.map(record => record.clone());
-        const recordPlaintext = RecordPlaintext.fromString(RECORD_PLAINTEXT_STRING);
+        const recordPlaintext = RecordPlaintext.fromString(RECORD_PLAINTEXT_V0_STRING);
         const recordPlaintextCopy = recordPlaintext.clone();
         const viewKey = ViewKey.from_string(VIEW_KEY_STRING);
         const recordViewKey = Field.fromString(RECORD_VIEW_KEY_STRING);

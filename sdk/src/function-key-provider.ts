@@ -464,7 +464,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 const verifying_key = key.verifyingKey()
                 const proving_key = <ProvingKey>await this.fetchProvingKey(key.prover, key.locator);
                 if (this.cacheOption) {
-                    this.cache.set(CREDITS_PROGRAM_KEYS.bond_public.locator, [proving_key.toBytes(), verifying_key.toBytes()]);
+                    this.cache.set(CREDITS_PROGRAM_KEYS.getKey(key.name).locator, [proving_key.toBytes(), verifying_key.toBytes()]);
                 }
                 return [proving_key, verifying_key];
             } else {

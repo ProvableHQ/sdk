@@ -27,6 +27,7 @@ import {
     stateRootv0,
 } from "./data/account-data.js";
 import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program.js";
+import { RECORD_PLAINTEXT_V1_STRING } from "./data/records";
 import { expect } from "chai";
 import {
     PUZZLE_SPINNER_PROGRAM_ID,
@@ -40,12 +41,12 @@ describe('Program Manager', async () => {
     const keyProvider = new AleoKeyProvider();
     keyProvider.useCache(true);
     const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
-    programManager.setAccount(new Account({privateKey: statePathv0RecordOwnerPrivateKey}));
+    programManager.setAccount(new Account({ privateKey: statePathv0RecordOwnerPrivateKey }));
     const network = programManager.networkClient.network;
 
     describe('Instantiate with AleoNetworkClientOptions', () => {
         it('should have the specified headers when instantiated', async () => {
-            const newProgramManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined, { headers: {'X-Test-Header': 'programManager'} });
+            const newProgramManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined, { headers: { 'X-Test-Header': 'programManager' } });
             expect(Object.keys(newProgramManager.networkClient.headers).length).equal(1);
             expect(newProgramManager.networkClient.headers['X-Test-Header']).equal('programManager');
             expect(newProgramManager.networkClient.headers['X-Aleo-SDK-Version']).undefined;
@@ -118,7 +119,7 @@ describe('Program Manager', async () => {
     });
 
     describe('ProgramManager Executions', () => {
-        it.skip('Should create a split transaction without fees', async function () {
+        it.skip('Should create a split transaction without fees', async function() {
             this.retries(3);
 
             if (network === "testnet") {
@@ -140,7 +141,7 @@ describe('Program Manager', async () => {
             }
         });
 
-        it('Should create a split ProvingRequest without fees', async function () {
+        it('Should create a split ProvingRequest without fees', async function() {
             this.retries(3);
 
             if (network === "testnet") {
@@ -223,7 +224,7 @@ describe('Program Manager', async () => {
                 authorization,
                 programName: PUZZLE_SPINNER_PROGRAM_ID,
             });
-            const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+            const baseFeeCredits = Number(baseFeeMicrocredits) / 1000000;
 
             // Get execution ID from previous authorization.
             const executionId = authorization.toExecutionId().toString();
@@ -263,7 +264,7 @@ describe('Program Manager', async () => {
                     authorization,
                     programName: PUZZLE_SPINNER_PROGRAM_ID,
                 });
-                const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+                const baseFeeCredits = Number(baseFeeMicrocredits) / 1000000;
 
                 // Get execution ID from previous authorization.
                 const executionId = authorization.toExecutionId().toString();
@@ -292,6 +293,35 @@ describe('Program Manager', async () => {
             expect(transferFeeMicrocredits).equal(BigInt(2725));
             expect(bondFeeMicrocredits).equal(BigInt(2304));
 
+        });
+    });
+
+    describe('Program Manager record retrieval', () => {
+        it('Should return records without searching for them if records are passed', async () => {
+            const retrievedRecord1 = await programManager.getCreditsRecord(
+                50000,
+                [],
+                RECORD_PLAINTEXT_V1_STRING,
+            );
+            expect(RECORD_PLAINTEXT_V1_STRING).equal(retrievedRecord1.toString())
+
+            const retrievedRecord2 = await programManager.getCreditsRecord(
+                50000,
+                [],
+                RecordPlaintext.fromString(RECORD_PLAINTEXT_V1_STRING)
+            );
+            expect(RECORD_PLAINTEXT_V1_STRING).equal(retrievedRecord2.toString());
+        });
+
+        it('Should search for a record if none is specified', async () => {
+            try {
+                await programManager.getCreditsRecord(
+                    50000,
+                    [],
+                );
+            } catch (e) {
+                expect(`${e}`).contain("findCreditsRecord");
+            }
         });
     });
 });
