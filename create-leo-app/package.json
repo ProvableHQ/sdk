@@ -15,6 +15,7 @@
     "template-build-and-execute-authorization-ts",
     "template-node",
     "template-offline-public-transaction-ts",
+    "template-private-transaction-ts",
     "template-react-leo",
     "template-react-managed-worker",
     "template-react-ts",
