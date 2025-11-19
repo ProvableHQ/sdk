@@ -317,6 +317,7 @@ class ProgramManager {
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {boolean | undefined} skipCertificate Whether to skip proof generation and key sysnthesis in the deployment transaction
      * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
@@ -353,6 +354,7 @@ class ProgramManager {
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
+        skipCertificate?: boolean,
     ): Promise<Transaction> {
         // Ensure the program is valid.
         let programObject;
@@ -413,6 +415,28 @@ class ProgramManager {
             );
         }
 
+        // Resolve the program imports if they exist
+        let imports;
+        try {
+            imports = await this.networkClient.getProgramImports(program);
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+            );
+        }
+        if (skipCertificate === undefined) {
+            skipCertificate = false;
+        }
+        if (skipCertificate === true) {
+            return await WasmProgramManager.buildDevnodeDeploymentTransaction(
+                deploymentPrivateKey,
+                program,
+                priorityFee,
+                feeRecord,
+                this.host,
+                imports,
+            );
+        }
         // Get the proving and verifying keys from the key provider
         let feeKeys;
         try {
@@ -425,16 +449,6 @@ class ProgramManager {
             );
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
-
-        // Resolve the program imports if they exist
-        let imports;
-        try {
-            imports = await this.networkClient.getProgramImports(program);
-        } catch (e: any) {
-            logAndThrow(
-                `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
-            );
-        }
 
         // Build a deployment transaction
         return await WasmProgramManager.buildDeploymentTransaction(
