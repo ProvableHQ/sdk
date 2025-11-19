@@ -242,6 +242,30 @@ class SealanceMerkleTree {
 
         return { siblings: siblingPath, leaf_index: leafIndex };
     }
+
+    /**
+    * Generates a formatted exclusion proof suitable for Aleo transactions.
+    *
+    * @param proof - An array of two {sibling path, leafindex} objects.
+    * @returns String representation of the exclusion proof.
+    *
+    * @example
+    * ```typescript
+    * const tree = buildTree(leaves);
+    * const proof = getSiblingPath(tree, 0, 15);
+    * const proof2 = getSiblingPath(tree, 1, 15);
+    * const formattedProof = formatMerkleProof([proof, proof2]);
+    * // formattedProof = "[{ siblings: [0field, 1field, ...], leaf_index: 0u32 }, { siblings: [0field, 2field, ...], leaf_index: 1u32 }]"
+    * ```
+    */
+    formatMerkleProof(proof: { siblings: bigint[]; leaf_index: number }[]): string {
+        const formatted = proof.map(item => {
+            const siblings = item.siblings.map(s => `${s}field`).join(", ");
+            return `{ siblings: [${siblings}], leaf_index: ${item.leaf_index}u32 }`;
+        }).join(", ");
+  
+        return `[${formatted}]`;
+    }
 }
 
 export { SealanceMerkleTree };
