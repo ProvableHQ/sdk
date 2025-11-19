@@ -27,6 +27,7 @@ pub use rest::{
     get_statepath_for_commitment,
     get_statepaths_for_commitments,
     latest_block_height,
+    latest_program_edition,
     latest_stateroot,
 };
 

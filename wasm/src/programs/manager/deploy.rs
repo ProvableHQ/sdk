@@ -24,6 +24,7 @@ use crate::{
     Transaction,
     execute_fee,
     latest_block_height,
+    latest_program_edition,
     latest_stateroot,
     log,
     types::native::{
@@ -248,6 +249,7 @@ impl ProgramManager {
 
         log("Checking program has a valid name");
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
+        let program_id = program.id();
 
         log("Checking program imports are valid and add them to the process");
         ProgramManager::resolve_imports(process, &program, imports)?;
@@ -274,12 +276,14 @@ impl ProgramManager {
             };
             verifying_keys.push((*function_name, (verifying_key, certificate)));
         }
-        // let program_id = process.program_id(&program).map_err(|err| err.to_string())?;
-        // let edition = *process.get_stack(program_id).map_err(|err| err.to_string())?.program_edition();
 
+        let edition_response = latest_program_edition(node_url, &program_id.to_string()).await;
+        let edition = match edition_response {
+            Ok(edition) => edition + 1,
+            Err(_) => 0,
+        };
 
-
-        let mut deployment = DeploymentNative::new(0, program.clone(), verifying_keys, None, None)
+        let mut deployment = DeploymentNative::new(edition, program.clone(), verifying_keys, None, None)
             .map_err(|err| err.to_string())?;
 
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
