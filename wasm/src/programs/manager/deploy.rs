@@ -263,7 +263,7 @@ impl ProgramManager {
         let mut verifying_keys = Vec::with_capacity(program.functions().len());
         for function_name in program.functions().keys() {
             let (verifying_key, certificate) = {
-            // Sample a dummy verifying key for each function.
+                // Sample a dummy verifying key for each function.
                 let verifying_key = VerifyingKeyNative::from_str(
                     "verifier1qygqqqqqqqqqqqyvxgqqqqqqqqq87vsqqqqqqqqqhe7sqqqqqqqqqma4qqqqqqqqqq65yqqqqqqqqqqvqqqqqqqqqqqgtlaj49fmrk2d8slmselaj9tpucgxv6awu6yu4pfcn5xa0yy0tpxpc8wemasjvvxr9248vt3509vpk3u60ejyfd9xtvjmudpp7ljq2csk4yqz70ug3x8xp3xn3ul0yrrw0mvd2g8ju7rts50u3smue03gp99j88f0ky8h6fjlpvh58rmxv53mldmgrxa3fq6spsh8gt5whvsyu2rk4a2wmeyrgvvdf29pwp02srktxnvht3k6ff094usjtllggva2ym75xc4lzuqu9xx8ylfkm3qc7lf7ktk9uu9du5raukh828dzgq26hrarq5ajjl7pz7zk924kekjrp92r6jh9dpp05mxtuffwlmvew84dvnqrkre7lw29mkdzgdxwe7q8z0vnkv2vwwdraekw2va3plu7rkxhtnkuxvce0qkgxcxn5mtg9q2c3vxdf2r7jjse2g68dgvyh85q4mzfnvn07lletrpty3vypus00gfu9m47rzay4mh5w9f03z9zgzgzhkv0mupdqsk8naljqm9tc2qqzhf6yp3mnv2ey89xk7sw9pslzzlkndfd2upzmew4e4vnrkr556kexs9qrykkuhsr260mnrgh7uv0sp2meky0keeukaxgjdsnmy77kl48g3swcvqdjm50ejzr7x04vy7hn7anhd0xeetclxunnl7pd6e52qxdlr3nmutz4zr8f2xqa57a2zkl59a28w842cj4783zpy9hxw03k6vz4a3uu7sm072uqknpxjk8fyq4vxtqd08kd93c2mt40lj9ag35nm4rwcfjayejk57m9qqu83qnkrj3sz90pw808srmf705n2yu6gvqazpvu2mwm8x6mgtlsntxfhr0qas43rqxnccft36z4ygty86390t7vrt08derz8368z8ekn3yywxgp4uq24gm6e58tpp0lcvtpsm3nkwpnmzztx4qvkaf6vk38wg787h8mfpqqqqqqqqqqt49m8x",
                     ).map_err(|err| err.to_string())?;
@@ -288,8 +288,7 @@ impl ProgramManager {
 
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
-        
-        
+
         let private_key_native = PrivateKeyNative::from(private_key);
         if consensus_version < ConsensusVersion::V9 {
             deployment.set_program_checksum_raw(None);
@@ -303,32 +302,36 @@ impl ProgramManager {
         let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
 
         let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
-        
-        // Construct the fee authorization for the deployment
-        let (minimum_deployment_cost, _) = 
-            deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
-                .map_err(|err| err.to_string())?;
 
-         // Check to see if the fee record has enough microcredits to pay for the deployment.
+        // Construct the fee authorization for the deployment
+        let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+            .map_err(|err| err.to_string())?;
+
+        // Check to see if the fee record has enough microcredits to pay for the deployment.
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
-        Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits).map_err(|e| e.to_string())?;
-            
+        Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits)
+            .map_err(|e| e.to_string())?;
+
         let fee_authorization = match fee_record {
-            Some(record) => process.authorize_fee_private::<CurrentAleo, _>(
-                &private_key,
-                record.into(),
-                minimum_deployment_cost,
-                priority_fee_microcredits,
-                deployment_id,
-                rng,
-            ).map_err(|e| e.to_string())?,
-            None => process.authorize_fee_public::<CurrentAleo, _>(
-                &private_key,
-                minimum_deployment_cost,
-                priority_fee_microcredits,
-                deployment_id,
-                rng,
-            ).map_err(|e| e.to_string())?,
+            Some(record) => process
+                .authorize_fee_private::<CurrentAleo, _>(
+                    &private_key,
+                    record.into(),
+                    minimum_deployment_cost,
+                    priority_fee_microcredits,
+                    deployment_id,
+                    rng,
+                )
+                .map_err(|e| e.to_string())?,
+            None => process
+                .authorize_fee_public::<CurrentAleo, _>(
+                    &private_key,
+                    minimum_deployment_cost,
+                    priority_fee_microcredits,
+                    deployment_id,
+                    rng,
+                )
+                .map_err(|e| e.to_string())?,
         };
 
         // Get the state root.
@@ -339,7 +342,9 @@ impl ProgramManager {
 
         log("Creating deployment transaction");
         Ok(Transaction::from(
-            TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string()).map_err(|e| e.to_string())?,
+            TransactionNative::from_deployment(owner, deployment, fee)
+                .map_err(|err| err.to_string())
+                .map_err(|e| e.to_string())?,
         ))
     }
 }
