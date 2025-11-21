@@ -40,6 +40,28 @@ import { logAndThrow } from "./utils.js";
 import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 
 /**
+ * Represents the options for deploying and upgrading a transaction in the Aleo network.
+ * This interface is used to specify the parameters required for building and submitting an deployment transaction.
+ *
+ * @property {string} program - The program source code to be deployed.
+ * @property {number} priorityFee - The optional priority fee to be paid for the transaction.
+ * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
+ * @property {RecordSearchParams | undefined} [recordSearchParams] - Optional parameters for searching for a record to pay the execution transaction fee.
+ * @property {KeySearchParams} [keySearchParams] - Optional parameters for finding the matching proving & verifying keys for the function.
+ * @property {string | RecordPlaintext | undefined} [feeRecord] - Optional fee record to use for the transaction.
+ * @property {PrivateKey} [privateKey] - Optional private key to use for the transaction.
+ */
+interface DeployOptions {
+    program: string;
+    priorityFee: number;
+    privateFee: boolean;
+    recordSearchParams?: RecordSearchParams;
+    keySearchParams?: KeySearchParams;
+    feeRecord?: string | RecordPlaintext;
+    privateKey?: PrivateKey;
+}
+
+/**
  * Represents the options for executing a transaction in the Aleo network.
  * This interface is used to specify the parameters required for building and submitting an execution transaction.
  *
@@ -348,12 +370,7 @@ class ProgramManager {
     /**
      * Builds a deployment transaction for submission to the Aleo network.
      *
-     * @param {string} program Program source code
-     * @param {number} priorityFee The optional priority fee to be paid for that transaction.
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
-     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {DeployOptions} options - The options for a deployment transaction.
      * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
@@ -374,7 +391,7 @@ class ProgramManager {
      * const priorityFee = 0.0;
      *
      * // Create the deployment transaction.
-     * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
+     * const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
      * await programManager.networkClient.submitTransaction(tx);
      *
      * // Verify the transaction was successful
@@ -384,14 +401,16 @@ class ProgramManager {
      * }, 20000);
      */
     async buildDeploymentTransaction(
-        program: string,
-        priorityFee: number,
-        privateFee: boolean,
-        recordSearchParams?: RecordSearchParams,
-        feeRecord?: string | RecordPlaintext,
-        privateKey?: PrivateKey,
-    ): Promise<Transaction> {
-        // Ensure the program is valid.
+        options: DeployOptions): Promise<Transaction> {
+        const {
+        program,
+        priorityFee,
+        privateFee,
+        recordSearchParams,
+        privateKey, 
+    } =  options;
+        let feeRecord = options.feeRecord;
+            // Ensure the program is valid.
         let programObject;
         try {
             programObject = Program.fromString(program);
@@ -503,13 +522,7 @@ class ProgramManager {
     /**
      * Builds a deployment transaction for submission to the Aleo network.
      *
-     * @param {string} program Program source code
-     * @param {number} priorityFee The optional priority fee to be paid for that transaction.
-     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
-     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
-     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
-     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
-     * @returns {string} The transaction id of the deployed program or a failure message from the network
+     * @param {DeployOptions} options The deployment options.
      *
      * @example
      * /// Import the mainnet version of the sdk.
@@ -529,7 +542,7 @@ class ProgramManager {
      * const priorityFee = 0.0;
      *
      * // Create the deployment transaction.
-     * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
+     * const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
      * await programManager.networkClient.submitTransaction(tx);
      *
      * // Verify the transaction was successful
@@ -539,13 +552,12 @@ class ProgramManager {
      * }, 20000);
      */
     async buildUpgradeTransaction(
-        program: string,
-        priorityFee: number,
-        privateFee: boolean,
-        recordSearchParams?: RecordSearchParams,
-        feeRecord?: string | RecordPlaintext,
-        privateKey?: PrivateKey,
+        options: DeployOptions
     ): Promise<Transaction> {
+        const { program, priorityFee, privateFee, recordSearchParams } = options;
+        let feeRecord = options.feeRecord;
+        let privateKey = options.privateKey;
+
         // Ensure the program is valid.
         let programObject;
         try {
@@ -697,14 +709,14 @@ class ProgramManager {
         privateKey?: PrivateKey,
     ): Promise<string> {
         const tx = <Transaction>(
-            await this.buildDeploymentTransaction(
+            await this.buildDeploymentTransaction({
                 program,
                 priorityFee,
                 privateFee,
                 recordSearchParams,
                 feeRecord,
                 privateKey,
-            )
+    })
         );
 
         let feeAddress;
