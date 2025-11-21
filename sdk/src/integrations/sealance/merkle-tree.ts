@@ -121,7 +121,7 @@ class SealanceMerkleTree {
     * @param tree - Array of decimal string representations of U256 numbers.
     * @returns Array of BigInts.
     */
-    convertTreeToU256(tree: string[]): bigint[] {
+    convertTreeToBigInt(tree: string[]): bigint[] {
         return tree.map((element) => {
             try {
                 // decimal string → native bigint
@@ -277,7 +277,7 @@ class SealanceMerkleTree {
     formatMerkleProof(proof: { siblings: bigint[]; leaf_index: number }[]): string {
         const formatted = proof.map(item => {
             const siblings = item.siblings.map(s => `${s}field`).join(", ");
-            return `{ siblings: [${siblings}], leaf_index: ${item.leaf_index}u32 }`;
+            return `{siblings: [${siblings}], leaf_index: ${item.leaf_index}u32}`;
         }).join(", ");
   
         return `[${formatted}]`;
