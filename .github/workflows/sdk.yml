@@ -72,8 +72,11 @@ jobs:
   create-leo-app-cli:
     name: "create-leo-app CLI"
     runs-on: ubuntu-latest-m
+    needs: build
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
 
       - working-directory: create-leo-app
         run: |
