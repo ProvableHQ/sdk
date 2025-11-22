@@ -3,6 +3,7 @@ on: [pull_request]
 
 env:
   CARGO_TERM_COLOR: always
+  PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
 
 
 jobs:
