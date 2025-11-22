@@ -160,7 +160,7 @@ programManager.removeHeader('X-Aleo-SDK-Version');
 
 ---
 
-### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
+### `buildDeploymentTransaction(options) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -168,12 +168,7 @@ Builds a deployment transaction for submission to the Aleo network.
 
 Parameters | Type | Description
 --- | --- | ---
-__program__ | `string` | *Program source code*
-__priorityFee__ | `number` | *The optional priority fee to be paid for that transaction.*
-__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
-__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for searching for a record to use pay the deployment fee*
-__feeRecord__ | `string` | *Optional Fee record to use for the transaction*
-__privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transaction*
+__options__ | `DeployOptions` | *The options for a deployment transaction.*
 __*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
 
 #### Examples
@@ -196,7 +191,49 @@ programManager.setAccount(Account);
 const priorityFee = 0.0;
 
 // Create the deployment transaction.
-const tx = await programManager.buildDeploymentTransaction(program, fee, false);
+const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
+await programManager.networkClient.submitTransaction(tx);
+
+// Verify the transaction was successful
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 20000);
+```
+
+---
+
+### `buildUpgradeTransaction(options)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a deployment transaction for submission to the Aleo network that upgrades an existing program.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DeployOptions` | *The deployment options.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a program manager with the key provider to automatically fetch keys for deployments
+const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+programManager.setAccount(Account);
+
+// Define a fee in credits
+const priorityFee = 0.0;
+
+// Create the deployment transaction.
+const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
 await programManager.networkClient.submitTransaction(tx);
 
 // Verify the transaction was successful
@@ -1632,7 +1669,7 @@ programManager.removeHeader('X-Aleo-SDK-Version');
 
 ---
 
-### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
+### `buildDeploymentTransaction(options) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1640,12 +1677,7 @@ Builds a deployment transaction for submission to the Aleo network.
 
 Parameters | Type | Description
 --- | --- | ---
-__program__ | `string` | *Program source code*
-__priorityFee__ | `number` | *The optional priority fee to be paid for that transaction.*
-__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
-__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for searching for a record to use pay the deployment fee*
-__feeRecord__ | `string` | *Optional Fee record to use for the transaction*
-__privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transaction*
+__options__ | `DeployOptions` | *The options for a deployment transaction.*
 __*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
 
 #### Examples
@@ -1668,7 +1700,50 @@ programManager.setAccount(Account);
 const priorityFee = 0.0;
 
 // Create the deployment transaction.
-const tx = await programManager.buildDeploymentTransaction(program, fee, false);
+const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
+await programManager.networkClient.submitTransaction(tx);
+
+// Verify the transaction was successful
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 20000);
+```
+
+---
+
+### `buildUpgradeTransaction(options) ► Promise.<Transaction>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a deployment transaction for submission to the Aleo network that upgrades an existing program.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DeployOptions` | *The deployment options.*
+__*return*__ | `Promise.<Transaction>` | **
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, KeyProvider, and RecordProvider
+const keyProvider = new AleoKeyProvider();
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a program manager with the key provider to automatically fetch keys for deployments
+const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+programManager.setAccount(Account);
+
+// Define a fee in credits
+const priorityFee = 0.0;
+
+// Create the deployment transaction.
+const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
 await programManager.networkClient.submitTransaction(tx);
 
 // Verify the transaction was successful
