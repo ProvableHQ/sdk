@@ -401,16 +401,14 @@ class ProgramManager {
      * }, 20000);
      */
     async buildDeploymentTransaction(
-        options: DeployOptions): Promise<Transaction> {
-        const {
-        program,
-        priorityFee,
-        privateFee,
-        recordSearchParams,
-        privateKey, 
-    } =  options;
-        let feeRecord = options.feeRecord;
-            // Ensure the program is valid.
+        program: string,
+        priorityFee: number,
+        privateFee: boolean,
+        recordSearchParams?: RecordSearchParams,
+        feeRecord?: string | RecordPlaintext,
+        privateKey?: PrivateKey,
+    ): Promise<Transaction> {
+        // Ensure the program is valid.
         let programObject;
         try {
             programObject = Program.fromString(program);
@@ -709,14 +707,14 @@ class ProgramManager {
         privateKey?: PrivateKey,
     ): Promise<string> {
         const tx = <Transaction>(
-            await this.buildDeploymentTransaction({
+            await this.buildDeploymentTransaction(
                 program,
                 priorityFee,
                 privateFee,
                 recordSearchParams,
                 feeRecord,
                 privateKey,
-    })
+    )
         );
 
         let feeAddress;
