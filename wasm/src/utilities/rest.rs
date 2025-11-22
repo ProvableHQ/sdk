@@ -57,11 +57,6 @@ pub async fn latest_block_height(base_url: &str) -> Result<u32> {
     get(&format!("{base_url}/{}/block/height/latest", get_network())).await
 }
 
-/// Get current consensus version.
-pub async fn get_current_consensus_version(base_url: &str) -> Result<u16> {
-    get(&format!("{base_url}/{}/consensus_version", get_network())).await
-}
-
 /// Get latest program edition.
 pub async fn latest_program_edition(base_url: &str, program_id: &str) -> Result<u16> {
     get(&format!("{base_url}/{}/program/{}/latest_edition", get_network(), program_id)).await

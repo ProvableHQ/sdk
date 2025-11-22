@@ -181,7 +181,6 @@ pub use utilities::test;
 pub use utilities::{
     EncryptionToolkit,
     get,
-    get_current_consensus_version,
     get_network,
     get_program_from_network,
     get_statepath_for_commitment,

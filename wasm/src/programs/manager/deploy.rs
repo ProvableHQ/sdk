@@ -23,7 +23,6 @@ use crate::{
     SnapshotQuery,
     Transaction,
     execute_fee,
-    get_current_consensus_version,
     get_program_from_network,
     latest_block_height,
     latest_program_edition,
@@ -41,7 +40,7 @@ use crate::{
         ViewKeyNative,
     },
 };
-use snarkvm_console::prelude::{ConsensusVersion, FromBytes, Network};
+use snarkvm_console::prelude::{ConsensusVersion, Network};
 
 use js_sys::Object;
 use rand::{SeedableRng, rngs::StdRng};

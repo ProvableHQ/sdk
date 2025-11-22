@@ -23,7 +23,6 @@ pub use encrypt::EncryptionToolkit;
 pub mod rest;
 pub use rest::{
     get,
-    get_current_consensus_version,
     get_network,
     get_program_from_network,
     get_statepath_for_commitment,
