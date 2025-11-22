@@ -58,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        network: [testnet, mainnet, nodenext]
+        network: [testnet, mainnet, dynamic, nodenext]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn
