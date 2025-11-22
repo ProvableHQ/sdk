@@ -57,9 +57,20 @@ pub async fn latest_block_height(base_url: &str) -> Result<u32> {
     get(&format!("{base_url}/{}/block/height/latest", get_network())).await
 }
 
+/// Get latest program edition.
+pub async fn latest_program_edition(base_url: &str, program_id: &str) -> Result<u16> {
+    get(&format!("{base_url}/{}/program/{}/latest_edition", get_network(), program_id)).await
+}
+
 /// Get the latest block height.
 pub async fn latest_stateroot(base_url: &str) -> Result<<CurrentNetwork as Network>::StateRoot> {
     get(&format!("{base_url}/{}/stateRoot/latest", get_network())).await
+}
+
+/// Get the program from the network.
+pub async fn get_program_from_network(base_url: &str, program_id: &str) -> Result<String> {
+    log(&format!("Fetching program {} from network at {}", program_id, base_url));
+    get(&format!("{base_url}/{}/program/{}", get_network(), program_id)).await
 }
 
 /// Make a GET request to the service.
