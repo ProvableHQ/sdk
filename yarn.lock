@@ -5013,6 +5013,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"binaryen@npm:^125.0.0":
+  version: 125.0.0
+  resolution: "binaryen@npm:125.0.0"
+  bin:
+    wasm-as: bin/wasm-as
+    wasm-ctor-eval: bin/wasm-ctor-eval
+    wasm-dis: bin/wasm-dis
+    wasm-merge: bin/wasm-merge
+    wasm-metadce: bin/wasm-metadce
+    wasm-opt: bin/wasm-opt
+    wasm-reduce: bin/wasm-reduce
+    wasm-shell: bin/wasm-shell
+    wasm2js: bin/wasm2js
+  checksum: 10c0/94421aa83b7fe2848baded8fd18df8fd5de375ba9707b24d309941ce05e48c3b5dabbb9914f66ed19f9e13c646cc25a7fb691973fb727250126dfea1a1a0c7df
+  languageName: node
+  linkType: hard
+
 "bluebird@npm:^3.7.2":
   version: 3.7.2
   resolution: "bluebird@npm:3.7.2"
@@ -12516,6 +12533,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sdk-root@workspace:."
   dependencies:
+    binaryen: "npm:^125.0.0"
     glob: "npm:^11.0.1"
     prettier: "npm:3.4.2"
     wasm-pack: "npm:^0.13.1"

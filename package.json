@@ -34,6 +34,7 @@
     "glob": "^11.0.1"
   },
   "devDependencies": {
+    "binaryen": "^125.0.0",
     "prettier": "3.4.2",
     "wasm-pack": "^0.13.1"
   }
