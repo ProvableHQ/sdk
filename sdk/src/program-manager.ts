@@ -543,7 +543,7 @@ class ProgramManager {
      * const priorityFee = 0.0;
      *
      * // Create the deployment transaction.
-     * const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
+     * const tx = await programManager.buildUpgradeTransaction({program: program, priorityFee: fee, privateFee: false});
      * await programManager.networkClient.submitTransaction(tx);
      *
      * // Verify the transaction was successful
