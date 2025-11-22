@@ -31,8 +31,6 @@ jobs:
   test-wasm:
     name: test wasm
     runs-on: ubuntu-latest-m
-    env:
-      PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn
@@ -45,8 +43,6 @@ jobs:
     name: test sdk
     runs-on: ubuntu-latest-m
     needs: build
-    env:
-      PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn
