@@ -99,9 +99,7 @@ impl ProgramManager {
 
         log("Setting program checksum and owner");
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
-        let consensus_version_u16 = get_current_consensus_version(node_url).await.map_err(|err| err.to_string())?;
-        let consensus_version =
-            ConsensusVersion::from_bytes_le(&consensus_version_u16.to_le_bytes()).map_err(|err| err.to_string())?;
+        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
         let private_key_native = PrivateKeyNative::from(private_key);
         if consensus_version < ConsensusVersion::V9 {
             deployment.set_program_checksum_raw(None);
@@ -265,9 +263,8 @@ impl ProgramManager {
         }
 
         log("Setting program checksum and owner");
-        let consensus_version_u16 = get_current_consensus_version(node_url).await.map_err(|err| err.to_string())?;
-        let consensus_version =
-            ConsensusVersion::from_bytes_le(&consensus_version_u16.to_le_bytes()).map_err(|err| err.to_string())?;
+        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
+        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
         let private_key_native = PrivateKeyNative::from(private_key);
         if consensus_version < ConsensusVersion::V9 {
             deployment.set_program_checksum_raw(None);
