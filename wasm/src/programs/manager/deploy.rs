@@ -209,20 +209,18 @@ impl ProgramManager {
         Ok(namespace_cost)
     }
 
-    /// Deploy an Aleo program
+    /// Upgrade an Aleo program
     ///
     /// @param private_key The private key of the sender
-    /// @param program The source code of the program being deployed
-    /// @param imports A javascript object holding the source code of any imported programs in the
-    /// form \{"program_name1": "program_source_code", "program_name2": "program_source_code", ..\}.
-    /// Note that all imported programs must be deployed on chain before the main program in order
-    /// for the deployment to succeed
+    /// @param program The source code of the program being upgraded
     /// @param priority_fee_credits The optional priority fee to be paid for the transaction
     /// @param fee_record The record to spend the fee from
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param imports (optional) Provide a list of imports to use for the program deployment in the
     /// form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+    /// Note that all imported programs must be deployed on chain before the main program in order
+    /// for the deployment to succeed
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     /// @returns {Transaction}
