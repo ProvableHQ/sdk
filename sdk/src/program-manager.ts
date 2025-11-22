@@ -47,7 +47,6 @@ import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
  * @property {number} priorityFee - The optional priority fee to be paid for the transaction.
  * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
  * @property {RecordSearchParams | undefined} [recordSearchParams] - Optional parameters for searching for a record to pay the execution transaction fee.
- * @property {KeySearchParams} [keySearchParams] - Optional parameters for finding the matching proving & verifying keys for the function.
  * @property {string | RecordPlaintext | undefined} [feeRecord] - Optional fee record to use for the transaction.
  * @property {PrivateKey} [privateKey] - Optional private key to use for the transaction.
  */
@@ -56,7 +55,6 @@ interface DeployOptions {
     priorityFee: number;
     privateFee: boolean;
     recordSearchParams?: RecordSearchParams;
-    keySearchParams?: KeySearchParams;
     feeRecord?: string | RecordPlaintext;
     privateKey?: PrivateKey;
 }
@@ -518,7 +516,7 @@ class ProgramManager {
     }
 
     /**
-     * Builds a deployment transaction for submission to the Aleo network.
+     * Builds a deployment transaction for submission to the Aleo network that upgrades an existing program.
      *
      * @param {DeployOptions} options The deployment options.
      *
