@@ -368,7 +368,12 @@ class ProgramManager {
     /**
      * Builds a deployment transaction for submission to the Aleo network.
      *
-     * @param {DeployOptions} options - The options for a deployment transaction.
+     * @param {string} program Program source code
+     * @param {number} priorityFee The optional priority fee to be paid for that transaction.
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
@@ -389,7 +394,7 @@ class ProgramManager {
      * const priorityFee = 0.0;
      *
      * // Create the deployment transaction.
-     * const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
+     * const tx = await programManager.buildDeploymentTransaction(program, fee, false);
      * await programManager.networkClient.submitTransaction(tx);
      *
      * // Verify the transaction was successful

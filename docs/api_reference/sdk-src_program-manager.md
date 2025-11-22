@@ -160,7 +160,7 @@ programManager.removeHeader('X-Aleo-SDK-Version');
 
 ---
 
-### `buildDeploymentTransaction(options) ► string`
+### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -168,7 +168,12 @@ Builds a deployment transaction for submission to the Aleo network.
 
 Parameters | Type | Description
 --- | --- | ---
-__options__ | `DeployOptions` | *The options for a deployment transaction.*
+__program__ | `string` | *Program source code*
+__priorityFee__ | `number` | *The optional priority fee to be paid for that transaction.*
+__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
+__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for searching for a record to use pay the deployment fee*
+__feeRecord__ | `string` | *Optional Fee record to use for the transaction*
+__privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transaction*
 __*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
 
 #### Examples
@@ -191,7 +196,7 @@ programManager.setAccount(Account);
 const priorityFee = 0.0;
 
 // Create the deployment transaction.
-const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
+const tx = await programManager.buildDeploymentTransaction(program, fee, false);
 await programManager.networkClient.submitTransaction(tx);
 
 // Verify the transaction was successful
@@ -1669,7 +1674,7 @@ programManager.removeHeader('X-Aleo-SDK-Version');
 
 ---
 
-### `buildDeploymentTransaction(options) ► string`
+### `buildDeploymentTransaction(program, priorityFee, privateFee, recordSearchParams, feeRecord, privateKey) ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1677,7 +1682,12 @@ Builds a deployment transaction for submission to the Aleo network.
 
 Parameters | Type | Description
 --- | --- | ---
-__options__ | `DeployOptions` | *The options for a deployment transaction.*
+__program__ | `string` | *Program source code*
+__priorityFee__ | `number` | *The optional priority fee to be paid for that transaction.*
+__privateFee__ | `boolean` | *Use a private record to pay the fee. If false this will use the account&#x27;s public credit balance*
+__recordSearchParams__ | `RecordSearchParams` | *Optional parameters for searching for a record to use pay the deployment fee*
+__feeRecord__ | `string` | *Optional Fee record to use for the transaction*
+__privateKey__ | [PrivateKey](sdk-src_wasm.md) | *Optional private key to use for the transaction*
 __*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
 
 #### Examples
@@ -1700,7 +1710,7 @@ programManager.setAccount(Account);
 const priorityFee = 0.0;
 
 // Create the deployment transaction.
-const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
+const tx = await programManager.buildDeploymentTransaction(program, fee, false);
 await programManager.networkClient.submitTransaction(tx);
 
 // Verify the transaction was successful
