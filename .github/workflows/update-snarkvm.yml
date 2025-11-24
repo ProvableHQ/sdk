@@ -20,7 +20,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout SDK
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: mainnet
           token: ${{ secrets.GITHUB_TOKEN }}
