@@ -16,7 +16,6 @@
 
 use super::*;
 
-
 use crate::{
     OfflineQuery,
     PrivateKey,
@@ -215,7 +214,7 @@ impl ProgramManager {
         Ok(namespace_cost)
     }
 
-        /// Upgrade an Aleo program
+    /// Upgrade an Aleo program
     ///
     /// @param private_key The private key of the sender
     /// @param program The source code of the program being upgraded
