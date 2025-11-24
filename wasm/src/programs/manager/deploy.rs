@@ -263,7 +263,9 @@ impl ProgramManager {
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
 
         // Create deployment without synthesizing keys and generating certificates.
-        assert!(!program.functions().is_empty(), "Program must have at least one function");
+        if program.functions().is_empty() {
+            Err("Program must have at least one function".to_string())?;
+        }
         let mut verifying_keys = Vec::with_capacity(program.functions().len());
         for function_name in program.functions().keys() {
             let (verifying_key, certificate) = {
