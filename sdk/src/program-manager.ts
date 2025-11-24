@@ -3547,6 +3547,45 @@ class ProgramManager {
             imports,
         );
     }
+
+    /**
+     * Builds a deployment transaction with dummy certificates and verifier keys for upgrading programs deployed on a local devnode.
+     * This method is only intended for use with a local devnode.
+     *
+     * @param {DeployOptions} options - The options for the deployment transaction.
+     * @returns {string} The transaction id of the deployed program or a failure message from the network
+     *
+     * @example
+     * /// Import the mainnet version of the sdk.
+     * import { ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a new NetworkClient, and RecordProvider
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache(true);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for deployments
+     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager("http://localhost:3030", recordProvider);
+     * programManager.setAccount(Account);
+     *
+     * // Define a fee in credits
+     * const priorityFee = 0.0;
+     *
+     * // Create the deployment transaction.
+     * const tx = await programManager.buildDevnodeUpgradeTransaction({program: program, fee: priorityFee, privateFee: false});
+     * await programManager.networkClient.submitTransaction(tx);
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 20000);
+     */
+    async buildDevnodeUpgradeTransaction(
+        options: DeployOptions
+    ): Promise<Transaction> {
+        return this.buildDevnodeDeploymentTransaction(options);
+    }
 }
 
 // Ensure the transfer type requires an amount record
