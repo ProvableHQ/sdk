@@ -3584,7 +3584,97 @@ class ProgramManager {
     async buildDevnodeUpgradeTransaction(
         options: DeployOptions
     ): Promise<Transaction> {
-        return this.buildDevnodeDeploymentTransaction(options);
+        const { program, priorityFee, privateFee, recordSearchParams } = options;
+        let feeRecord = options.feeRecord;
+        let privateKey = options.privateKey;
+
+        // Ensure the program is valid.
+        let programObject;
+        try {
+            programObject = Program.fromString(program);
+        } catch (e: any) {
+            logAndThrow(
+                `Error parsing program: '${e.message}'. Please ensure the program is valid.`,
+            );
+        }
+
+        // Ensure the program is valid and does not exist on the network.
+        try {
+            let programSource;
+            try {
+                programSource = await this.networkClient.getProgram(
+                    programObject.id(),
+                );
+            } catch (e) {
+                // Program does not exist on the network.
+                logAndThrow(
+                    `Program ${programObject.id()} does not exist on the network...`,
+                );
+            }
+        } catch (e: any) {
+            logAndThrow(`Error validating program: ${e.message}`);
+        }
+
+        // Get the private key from the account if it is not provided in the parameters
+        let deploymentPrivateKey = privateKey;
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
+            deploymentPrivateKey = this.account.privateKey();
+        }
+
+        if (typeof deploymentPrivateKey === "undefined") {
+            throw "No private key provided and no private key set in the ProgramManager";
+        }
+
+        // Get the fee record from the account if it is not provided in the parameters
+        try {
+            if (privateFee) {
+                let fee = priorityFee;
+                // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
+                if (!feeRecord) {
+                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    const programString = programObject.toString();
+                    const imports = await this.networkClient.getProgramImports(programString);
+                    const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
+                    fee = baseFee + priorityFee;
+                }
+
+                // Get a credits.aleo record for the fee.
+                feeRecord = await this.getCreditsRecord(
+                    fee,
+                    [],
+                    feeRecord,
+                    recordSearchParams
+                )
+            } else {
+                // If it's specified NOT to use a privateFee, use a public fee.
+                feeRecord = undefined
+            }
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+            );
+        }
+
+        // Resolve the program imports if they exist
+        let imports;
+        try {
+            imports = await this.networkClient.getProgramImports(program);
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+            );
+        }
+        return WasmProgramManager.buildDevnodeUpgradeTransaction(
+            deploymentPrivateKey,
+            program,
+            priorityFee,
+            feeRecord,
+            this.host,
+            imports,
+        );
     }
 }
 
