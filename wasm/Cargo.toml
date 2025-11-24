@@ -38,8 +38,6 @@ features = [
     "account",
     "algorithms",
     "collections",
-    "dev_skip_checks",
-    "test_consensus_heights",
     "network",
     "program",
     "types",
@@ -74,7 +72,7 @@ features = ["wasm"]
 [dependencies.snarkvm-synthesizer]
 git = "https://github.com/ProvableHQ/snarkVM.git"
 rev = "f9adcf4"
-features = ["async", "wasm", "dev_skip_checks"]
+features = ["async", "wasm"]
 
 [dependencies.snarkvm-wasm]
 git = "https://github.com/ProvableHQ/snarkVM.git"
