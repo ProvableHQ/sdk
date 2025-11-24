@@ -1,6 +1,6 @@
 {
   "name": "create-leo-app",
-  "version": "0.9.11",
+  "version": "0.9.12",
   "type": "module",
   "license": "GPL-3.0",
   "collaborators": [
@@ -15,6 +15,7 @@
     "template-build-and-execute-authorization-ts",
     "template-node",
     "template-offline-public-transaction-ts",
+    "template-private-transaction-ts",
     "template-react-leo",
     "template-react-managed-worker",
     "template-react-ts",

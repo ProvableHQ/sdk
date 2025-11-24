@@ -500,7 +500,6 @@ impl ProgramManager {
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         imports: Option<Object>,
-        offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
     ) -> Result<Transaction, String> {
         log("Loading the SnarkVM process");
@@ -581,7 +580,7 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
 
         // Evaluate the process to ensure validity.
-        let response = process.evaluate::<CurrentAleo>(authorization).map_err(|e| e.to_string())?;
+        let _response = process.evaluate::<CurrentAleo>(authorization).map_err(|e| e.to_string())?;
 
         // Create the transaction.
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|e| e.to_string())?;

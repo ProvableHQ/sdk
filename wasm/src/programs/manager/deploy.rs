@@ -114,9 +114,6 @@ impl ProgramManager {
         }
 
         log("Ensuring the fee is sufficient to pay for the deployment");
-        let block_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
-        let consensus_version =
-            <CurrentNetwork as Network>::CONSENSUS_VERSION(block_height).map_err(|err| err.to_string())?;
         let (minimum_deployment_cost, (_, _, _, _)) =
             deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
                 .map_err(|err| err.to_string())?;
@@ -184,7 +181,6 @@ impl ProgramManager {
         let latest_height = latest_block_height(DEFAULT_URL).await.map_err(|err| err.to_string())?;
         let consensus_version =
             <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
-
         log("Estimate the deployment fee");
         let (minimum_deployment_cost, (_, _, _, _)) =
             deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
@@ -343,7 +339,6 @@ impl ProgramManager {
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         imports: Option<Object>,
-        offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -477,7 +472,6 @@ impl ProgramManager {
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         imports: Option<Object>,
-        offline_query: Option<OfflineQuery>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;

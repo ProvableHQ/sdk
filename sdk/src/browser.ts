@@ -10,6 +10,7 @@ import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { ExecutionJSON, FeeExecutionJSON } from "./models/execution/executionJSON.js";
 import { ExecutionObject, FeeExecutionObject } from "./models/execution/executionObject.js";
 import { FinalizeJSON } from "./models/finalizeJSON.js";
+import { FunctionInput } from "./models/functionInput";
 import { FunctionObject } from "./models/functionObject.js";
 import { ImportedVerifyingKeys, ImportedPrograms } from "./models/imports.js";
 import { InputJSON } from "./models/input/inputJSON.js";
@@ -151,6 +152,7 @@ export {
     FeeExecutionJSON,
     FeeExecutionObject,
     FinalizeJSON,
+    FunctionInput,
     FunctionObject,
     FunctionKeyPair,
     FunctionKeyProvider,

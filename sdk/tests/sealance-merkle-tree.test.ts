@@ -141,12 +141,27 @@ describe("merkle_tree lib, getSiblingPath", () => {
     // Get sibling path for leaf index 1 (odd index)
     // This will test the "index - 1" branch of the sibling index calculation
     const proof = sealance.getSiblingPath(tree, 1, 15);
+    const formattedProof = sealance.formatMerkleProof([proof, proof]);
 
-    expect(proof).to.not.be.undefined;
+  expect(proof).to.not.be.undefined;
   expect(proof.leaf_index).to.equal(1);
   expect(proof.siblings).to.not.be.undefined;
   expect(proof.siblings).to.have.lengthOf(15); // Depth 15
   expect(proof.siblings[0]).to.equal(2n); // The leaf itself (index 1 = "2field")
   expect(proof.siblings[1]).to.equal(1n); // Its sibling (index 0 = "1field")
+  expect(formattedProof).to.equal("[{siblings: [2field, 1field, 4560646903308595113151029585344265575242682454899063992850623350939538444867field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field], leaf_index: 1u32}, {siblings: [2field, 1field, 4560646903308595113151029585344265575242682454899063992850623350939538444867field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field], leaf_index: 1u32}]");
+  });
+});
+
+describe("merkle_tree lib, formatMerkleProof", () => {
+  it("should format merkle proof correctly", () => {
+    const tree_string = ["0","3501665755452795161867664882580888971213780722176652848275908626939553697821","4539470720491009302557179633742244202521723448302096289013203539461297095738","7426353931016374702593127301815460123689343416970811802742952620156952318730","7052697765310872540032307615262912043079143561812812402660738198777516992718","7162588494104628985065247846816902886874444240334527780589295712502521092900","7179654795269183001911849426990084952297107287660910339902947270666145459461"];
+    const tree = sealance.convertTreeToBigInt(tree_string);
+    const indices = sealance.getLeafIndices(tree, "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+    const proof1 = sealance.getSiblingPath(tree, indices[0], 15);
+    const proof2 = sealance.getSiblingPath(tree, indices[1], 15);
+    const formattedProof = sealance.formatMerkleProof([proof1, proof2]);
+
+    expect(formattedProof).to.equal("[{siblings: [0field, 3501665755452795161867664882580888971213780722176652848275908626939553697821field, 7162588494104628985065247846816902886874444240334527780589295712502521092900field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field], leaf_index: 0u32}, {siblings: [3501665755452795161867664882580888971213780722176652848275908626939553697821field, 0field, 7162588494104628985065247846816902886874444240334527780589295712502521092900field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field, 0field], leaf_index: 1u32}]");
   });
 });
