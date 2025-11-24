@@ -24,6 +24,7 @@ pub mod rest;
 pub use rest::{
     get,
     get_network,
+    get_program_from_network,
     get_statepath_for_commitment,
     get_statepaths_for_commitments,
     latest_block_height,
@@ -42,7 +43,7 @@ pub mod test;
 /// import { getOrInitConsensusVersionHeights } from @provablehq/sdk;
 ///
 /// Set the consensus version heights.
-/// getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9");
+/// getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10");
 #[wasm_bindgen::prelude::wasm_bindgen(js_name = getOrInitConsensusVersionTestHeights)]
 pub fn get_or_init_consensus_version_heights(heights: Option<String>) -> js_sys::Array {
     // Call the underlying Rust function that returns [(ConsensusVersion, u32); N]
@@ -60,6 +61,6 @@ mod tests {
     #[wasm_bindgen_test]
     #[should_panic]
     fn test_set_genesis_block_non_zero_fails() {
-        get_or_init_consensus_version_heights(Some("9,8,7,6,5,4,3,2,1,0".to_string()));
+        get_or_init_consensus_version_heights(Some("10,9,8,7,6,5,4,3,2,1,0".to_string()));
     }
 }
