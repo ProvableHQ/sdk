@@ -39,6 +39,26 @@ import { logAndThrow } from "./utils.js";
 import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 
 /**
+ * Represents the options for deploying and upgrading a transaction in the Aleo network.
+ * This interface is used to specify the parameters required for building and submitting an deployment transaction.
+ *
+ * @property {string} program - The program source code to be deployed.
+ * @property {number} priorityFee - The optional priority fee to be paid for the transaction.
+ * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
+ * @property {RecordSearchParams | undefined} [recordSearchParams] - Optional parameters for searching for a record to pay the execution transaction fee.
+ * @property {string | RecordPlaintext | undefined} [feeRecord] - Optional fee record to use for the transaction.
+ * @property {PrivateKey} [privateKey] - Optional private key to use for the transaction.
+ */
+interface DeployOptions {
+    program: string;
+    priorityFee: number;
+    privateFee: boolean;
+    recordSearchParams?: RecordSearchParams;
+    feeRecord?: string | RecordPlaintext;
+    privateKey?: PrivateKey;
+}
+
+/**
  * Represents the options for executing a transaction in the Aleo network.
  * This interface is used to specify the parameters required for building and submitting an execution transaction.
  *
@@ -73,7 +93,6 @@ interface ExecuteOptions {
     program?: string | Program;
     imports?: ProgramImports;
     edition?: number,
-    skipProof?: boolean,
 }
 
 /**
@@ -317,7 +336,6 @@ class ProgramManager {
      * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
      * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
-     * @param {boolean | undefined} skipCertificate Whether to skip proof generation and key sysnthesis in the deployment transaction
      * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
@@ -354,7 +372,6 @@ class ProgramManager {
         recordSearchParams?: RecordSearchParams,
         feeRecord?: string | RecordPlaintext,
         privateKey?: PrivateKey,
-        skipCertificate?: boolean,
     ): Promise<Transaction> {
         // Ensure the program is valid.
         let programObject;
@@ -401,42 +418,34 @@ class ProgramManager {
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            feeRecord = privateFee
-                ? RecordPlaintext.fromString((await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )).record_plaintext?? '')
-                : undefined;
+            if (privateFee) {
+                let fee = priorityFee;
+                // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
+                if (!feeRecord) {
+                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    const programString = programObject.toString();
+                    const imports = await this.networkClient.getProgramImports(programString);
+                    const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
+                    fee = baseFee + priorityFee;
+                }
+
+                // Get a credits.aleo record for the fee.
+                feeRecord = await this.getCreditsRecord(
+                    fee,
+                    [],
+                    feeRecord,
+                    recordSearchParams
+                )
+            } else {
+                // If it's specified NOT to use a privateFee, use a public fee.
+                feeRecord = undefined
+            }
         } catch (e: any) {
             logAndThrow(
                 `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
             );
         }
 
-        // Resolve the program imports if they exist
-        let imports;
-        try {
-            imports = await this.networkClient.getProgramImports(program);
-        } catch (e: any) {
-            logAndThrow(
-                `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
-            );
-        }
-        if (skipCertificate === undefined) {
-            skipCertificate = false;
-        }
-        if (skipCertificate === true) {
-            return await WasmProgramManager.buildDevnodeDeploymentTransaction(
-                deploymentPrivateKey,
-                program,
-                priorityFee,
-                feeRecord,
-                this.host,
-                imports,
-            );
-        }
         // Get the proving and verifying keys from the key provider
         let feeKeys;
         try {
@@ -449,6 +458,16 @@ class ProgramManager {
             );
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
+
+        // Resolve the program imports if they exist
+        let imports;
+        try {
+            imports = await this.networkClient.getProgramImports(program);
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+            );
+        }
 
         // Build a deployment transaction
         return await WasmProgramManager.buildDeploymentTransaction(
@@ -595,36 +614,40 @@ class ProgramManager {
         let programName = options.programName;
         let imports = options.imports;
         let edition = options.edition;
-        let skipProof = options.skipProof;
 
-        // Skip proof defaults to false.
-        if (typeof skipProof === "undefined") {
-            skipProof = false;
-        }
-
+        let programObject;
         // Ensure the function exists on the network
         if (program === undefined) {
             try {
-                program = <string>(
-                    await this.networkClient.getProgram(programName)
-                );
+                programObject = await this.networkClient.getProgramObject(programName);
+                program = <string>programObject.toString();
             } catch (e: any) {
                 logAndThrow(
                     `Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`,
                 );
             }
+        } else if (typeof program == "string") {
+            try {
+                programObject = Program.fromString(program);
+            } catch (e: any) {
+                logAndThrow(`Program sources passed for ${programName} were invalid: ${e}`);
+            }
         } else if (program instanceof Program) {
+            programObject = program;
             program = program.toString();
+        }
+
+        if (!(programObject instanceof Program)) {
+            logAndThrow(`Failed to validate program ${programName}`);
         }
 
         // Get the program name if it is not provided in the parameters.
         if (programName === undefined) {
-            programName = Program.fromString(program).id();
+            programName = programObject.id();
         }
 
         if (edition == undefined) {
             try {
-
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
                 console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
@@ -645,24 +668,34 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        // Get the fee record from the account if it is not provided in the parameters
+        // Get the fee proving and verifying keys from the key provider
+        let feeKeys;
         try {
-            feeRecord = privateFee
-                ? RecordPlaintext.fromString((await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        feeRecord,
-                        recordSearchParams,
-                    )).record_plaintext?? '')
-                : undefined;
+            feeKeys = privateFee
+                ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys()
+                : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
         } catch (e: any) {
             logAndThrow(
-                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+                `Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`,
             );
+        }
+        const [feeProvingKey, feeVerifyingKey] = feeKeys;
+
+        // If the function proving and verifying keys are not provided, attempt to find them using the key provider
+        if (!provingKey || !verifyingKey) {
+            try {
+                [provingKey, verifyingKey] = <FunctionKeyPair>(
+                    await this.keyProvider.functionKeys(keySearchParams)
+                );
+            } catch (e) {
+                console.log(
+                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
+                );
+            }
         }
 
         // Resolve the program imports if they exist
-        const numberOfImports = Program.fromString(program).getImports().length;
+        const numberOfImports = programObject.getImports().length;
         if (numberOfImports > 0 && !imports) {
             try {
                 imports = <ProgramImports>(
@@ -674,78 +707,62 @@ class ProgramManager {
                 );
             }
         }
-        if (skipProof === true) {
-            console.log("program is: {}", program);
-            // Build a transaction without a proof
-            return await WasmProgramManager.buildDevnodeExecutionTransaction(
-                executionPrivateKey,
-                program,
-                functionName,
-                inputs,
-                priorityFee,
-                feeRecord,
-                this.host,
-                imports,
-                offlineQuery,
-                edition
+
+        // Get the fee record from the account if it is not provided in the parameters
+        try {
+            if (privateFee) {
+                let fee = priorityFee;
+                // If a fee record wasn't provided, estimate the fee that needs to be paid.
+                if (!feeRecord) {
+                    const baseFee = Number(await this.estimateExecutionFee({programName, functionName, program, imports}));
+                    fee = baseFee + priorityFee;
+                }
+
+                // Get a credits.aleo record for the fee.
+                feeRecord = await this.getCreditsRecord(
+                    fee,
+                    [],
+                    feeRecord,
+                    recordSearchParams
+                )
+            } else {
+                // If it's specified NOT to use a privateFee, use a public fee.
+                feeRecord = undefined
+            }
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
             );
-            } 
-              
-            // Get the fee proving and verifying keys from the key provider
-            let feeKeys;
+        }
+
+        if (offlineQuery && !this.inclusionKeysLoaded) {
             try {
-                feeKeys = privateFee
-                    ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys()
-                    : <FunctionKeyPair>await this.keyProvider.feePublicKeys();
-            } catch (e: any) {
-                logAndThrow(
-                    `Error finding fee keys. Key finder response: '${e.message}'. Please ensure your key provider is configured correctly.`,
-                );
+                const inclusionKeys = await this.keyProvider.inclusionKeys();
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                this.inclusionKeysLoaded = true;
+                console.log("Successfully loaded inclusion key");
+            } catch {
+                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
             }
-            const [feeProvingKey, feeVerifyingKey] = feeKeys;
+        }
 
-            // If the function proving and verifying keys are not provided, attempt to find them using the key provider
-            if (!provingKey || !verifyingKey) {
-                try {
-                    [provingKey, verifyingKey] = <FunctionKeyPair>(
-                        await this.keyProvider.functionKeys(keySearchParams)
-                    );
-                } catch (e) {
-                    console.log(
-                        `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
-                    );
-                }
-            }
-
-            if (offlineQuery && !this.inclusionKeysLoaded) {
-                try {
-                    const inclusionKeys = await this.keyProvider.inclusionKeys();
-                    WasmProgramManager.loadInclusionProver(inclusionKeys[0])
-                    this.inclusionKeysLoaded = true;
-                    console.log("Successfully loaded inclusion key");
-                } catch {
-                    logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
-                }
-            }
-
-            // Build an execution transaction
-            return await WasmProgramManager.buildExecutionTransaction(
-                executionPrivateKey,
-                program,
-                functionName,
-                inputs,
-                priorityFee,
-                feeRecord,
-                this.host,
-                imports,
-                provingKey,
-                verifyingKey,
-                feeProvingKey,
-                feeVerifyingKey,
-                offlineQuery,
-                edition
-            );
-        
+        // Build an execution transaction
+        return await WasmProgramManager.buildExecutionTransaction(
+            executionPrivateKey,
+            program,
+            functionName,
+            inputs,
+            priorityFee,
+            feeRecord,
+            this.host,
+            imports,
+            provingKey,
+            verifyingKey,
+            feeProvingKey,
+            feeVerifyingKey,
+            offlineQuery,
+            edition
+        );
     }
 
     /**
@@ -3020,6 +3037,285 @@ class ProgramManager {
                 );
             }
         }
+    }
+
+    /**
+     * Builds an execution transaction for submission to the a local devnode.
+     * This method skips proof generation and is not meant for use with the mainnet or testnet Aleo networks.
+     *
+     * @param {ExecuteOptions} options - The options for the execution transaction.
+     * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error.
+     *
+     * @example
+     * /// Import the mainnet version of the sdk.
+     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a new NetworkClient and RecordProvider.
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache(true);
+     *
+     * // Initialize a program manager.
+     * const programManager = new ProgramManager("http://localhost:3030", recordProvider);
+     *
+     * // Build and execute the transaction
+     * const tx = await programManager.buildDevnodeExecutionTransaction({
+     *   programName: "hello_hello.aleo",
+     *   functionName: "hello_hello",
+     *   priorityFee: 0.0,
+     *   privateFee: false,
+     *   inputs: ["5u32", "5u32"],
+     * });
+     *
+     * // Submit the transaction to the network
+     * await programManager.networkClient.submitTransaction(tx.toString());
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 10000);
+     */
+    async buildDevnodeExecutionTransaction(
+        options: ExecuteOptions,
+    ): Promise<Transaction> {
+        // Destructure the options object to access the parameters
+        const {
+            functionName,
+            priorityFee,
+            privateFee,
+            inputs,
+            recordSearchParams,
+            privateKey,
+            offlineQuery,
+        } = options;
+
+        let feeRecord = options.feeRecord;
+        let program = options.program;
+        let programName = options.programName;
+        let imports = options.imports;
+        let edition = options.edition;
+
+        // Ensure the function exists on the network
+        if (program === undefined) {
+            try {
+                program = <string>(
+                    await this.networkClient.getProgram(programName)
+                );
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`,
+                );
+            }
+        } else if (program instanceof Program) {
+            program = program.toString();
+        }
+
+        // Get the program name if it is not provided in the parameters.
+        if (programName === undefined) {
+            programName = Program.fromString(program).id();
+        }
+
+        if (edition == undefined) {
+            try {
+
+                edition = await this.networkClient.getLatestProgramEdition(programName);
+            } catch (e: any) {
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
+                edition = 0;
+            }
+        }
+
+        // Get the private key from the account if it is not provided in the parameters
+        let executionPrivateKey = privateKey;
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
+            executionPrivateKey = this.account.privateKey();
+        }
+
+        if (typeof executionPrivateKey === "undefined") {
+            throw "No private key provided and no private key set in the ProgramManager";
+        }
+
+        // Get the fee record from the account if it is not provided in the parameters
+        try {
+            feeRecord = privateFee
+                ? RecordPlaintext.fromString((await this.getCreditsRecord(
+                        priorityFee,
+                        [],
+                        feeRecord,
+                        recordSearchParams,
+                    )).record_plaintext?? '')
+                : undefined;
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+            );
+        }
+
+        // Resolve the program imports if they exist
+        const numberOfImports = Program.fromString(program).getImports().length;
+        if (numberOfImports > 0 && !imports) {
+            try {
+                imports = <ProgramImports>(
+                    await this.networkClient.getProgramImports(programName)
+                );
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+                );
+            }
+        }
+
+        if (offlineQuery && !this.inclusionKeysLoaded) {
+            try {
+                const inclusionKeys = await this.keyProvider.inclusionKeys();
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                this.inclusionKeysLoaded = true;
+                console.log("Successfully loaded inclusion key");
+            } catch {
+                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+            }
+        }
+        
+        // Build a transaction without a proof
+        return await WasmProgramManager.buildDevnodeExecutionTransaction(
+            executionPrivateKey,
+            program,
+            functionName,
+            inputs,
+            priorityFee,
+            feeRecord,
+            this.host,
+            imports,
+            offlineQuery,
+            edition
+        );
+    }
+    
+    /**
+     * Builds a deployment transaction for submission to the Aleo network.
+     *
+     * @param {string} program Program source code
+     * @param {number} priorityFee The optional priority fee to be paid for that transaction.
+     * @param {boolean} privateFee Use a private record to pay the fee. If false this will use the account's public credit balance
+     * @param {RecordSearchParams | undefined} recordSearchParams Optional parameters for searching for a record to use pay the deployment fee
+     * @param {string | RecordPlaintext | undefined} feeRecord Optional Fee record to use for the transaction
+     * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
+     * @param {boolean | undefined} skipCertificate Whether to skip proof generation and key sysnthesis in the deployment transaction
+     * @returns {string} The transaction id of the deployed program or a failure message from the network
+     *
+     * @example
+     * /// Import the mainnet version of the sdk.
+     * import { ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a new NetworkClient, and RecordProvider
+     * const recordProvider = new NetworkRecordProvider(account, networkClient);
+     * keyProvider.useCache(true);
+     *
+     * // Initialize a program manager with the key provider to automatically fetch keys for deployments
+     * const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+     * const programManager = new ProgramManager("http://localhost:3030", recordProvider);
+     * programManager.setAccount(Account);
+     *
+     * // Define a fee in credits
+     * const priorityFee = 0.0;
+     *
+     * // Create the deployment transaction.
+     * const tx = await programManager.buildDevnodeDeploymentTransaction(program, fee, false);
+     * await programManager.networkClient.submitTransaction(tx);
+     *
+     * // Verify the transaction was successful
+     * setTimeout(async () => {
+     *  const transaction = await programManager.networkClient.getTransaction(tx.id());
+     *  assert(transaction.id() === tx.id());
+     * }, 20000);
+     */
+    async buildDevnodeDeploymentTransaction(
+        options: DeployOptions
+    ): Promise<Transaction> {
+        const { program, priorityFee, privateFee, recordSearchParams } = options;
+        let feeRecord = options.feeRecord;
+        let privateKey = options.privateKey;
+
+        // Ensure the program is valid.
+        let programObject;
+        try {
+            programObject = Program.fromString(program);
+        } catch (e: any) {
+            logAndThrow(
+                `Error parsing program: '${e.message}'. Please ensure the program is valid.`,
+            );
+        }
+
+        // Ensure the program is valid and does not exist on the network
+        try {
+            let programSource;
+            try {
+                programSource = await this.networkClient.getProgram(
+                    programObject.id(),
+                );
+            } catch (e) {
+                // Program does not exist on the network, deployment can proceed
+                console.log(
+                    `Program ${programObject.id()} does not exist on the network, deploying...`,
+                );
+            }
+            if (typeof programSource === "string") {
+                throw Error(`Program ${programObject.id()} already exists on the network, please rename your program`);
+            }
+        } catch (e: any) {
+            logAndThrow(`Error validating program: ${e.message}`);
+        }
+
+        // Get the private key from the account if it is not provided in the parameters
+        let deploymentPrivateKey = privateKey;
+        if (
+            typeof privateKey === "undefined" &&
+            typeof this.account !== "undefined"
+        ) {
+            deploymentPrivateKey = this.account.privateKey();
+        }
+
+        if (typeof deploymentPrivateKey === "undefined") {
+            throw "No private key provided and no private key set in the ProgramManager";
+        }
+
+        // Get the fee record from the account if it is not provided in the parameters
+        try {
+            feeRecord = privateFee
+                ? RecordPlaintext.fromString((await this.getCreditsRecord(
+                        priorityFee,
+                        [],
+                        feeRecord,
+                        recordSearchParams,
+                    )).record_plaintext?? '')
+                : undefined;
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
+            );
+        }
+
+        // Resolve the program imports if they exist
+        let imports;
+        try {
+            imports = await this.networkClient.getProgramImports(program);
+        } catch (e: any) {
+            logAndThrow(
+                `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+            );
+        }
+        
+        return await WasmProgramManager.buildDevnodeDeploymentTransaction(
+            deploymentPrivateKey,
+            program,
+            priorityFee,
+            feeRecord,
+            this.host,
+            imports,
+        );
     }
 }
 
