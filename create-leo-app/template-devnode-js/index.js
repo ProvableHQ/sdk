@@ -46,7 +46,7 @@ constructor:
     console.log("Program deployed - response:", tx_1.toString());
     await programManager.networkClient.submitTransaction(tx_1);
 
-    const tx_2 = await programManager.buildDevnodeUpgradeTransaction({program: updated_program, priorityFee: 0, privateFee: false});
+    const tx_2 = await programManager.buildDevnodeUpgradeTransaction({program: upgraded_program, priorityFee: 0, privateFee: false});
     await programManager.networkClient.submitTransaction(tx_2);
     console.log("Program deployed - response:", tx_2);
 
