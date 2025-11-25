@@ -1542,6 +1542,7 @@ const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
 
 Builds an execution transaction for submission to the a local devnode.
 This method skips proof generation and is not meant for use with the mainnet or testnet Aleo networks.
+Note: getOrInitConsensusVersionTestHeights must be called prior to using this method for this method to work properly.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -1552,7 +1553,10 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Initialize the development consensus heights in order to work with devnode.
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
 
 // Create a new NetworkClient and RecordProvider.
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -1561,7 +1565,7 @@ keyProvider.useCache(true);
 // Initialize a program manager.
 const programManager = new ProgramManager("http://localhost:3030", recordProvider);
 
-// Build and execute the transaction
+// Build and execute the transaction.
 const tx = await programManager.buildDevnodeExecutionTransaction({
   programName: "hello_hello.aleo",
   functionName: "hello_hello",
@@ -1586,8 +1590,9 @@ setTimeout(async () => {
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Builds a deployment transaction with dummy certificates and verifier keys.
+Builds a deployment transaction with placeholder certificates and verifying keys for each function in the program.
 Intended for use with a local devnode.
+&#x60;getOrInitConsensusVersionTestHeights&#x60; must be called with development heights prior to invoking this method for it to work properly.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -1598,7 +1603,10 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
+
+// Initialize the development consensus heights in order to work with a local devnode.
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -1629,7 +1637,7 @@ setTimeout(async () => {
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Builds a deployment transaction with dummy certificates and verifier keys for upgrading programs deployed on a local devnode.
+Builds an upgrade transaction on a local devnodewith placeholder certificates and verifying keys for each function in the program.
 This method is only intended for use with a local devnode.
 
 Parameters | Type | Description
@@ -3191,6 +3199,7 @@ const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
 
 Builds an execution transaction for submission to the a local devnode.
 This method skips proof generation and is not meant for use with the mainnet or testnet Aleo networks.
+Note: getOrInitConsensusVersionTestHeights must be called prior to using this method for this method to work properly.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -3201,7 +3210,10 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Initialize the development consensus heights in order to work with devnode.
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
 
 // Create a new NetworkClient and RecordProvider.
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3210,7 +3222,7 @@ keyProvider.useCache(true);
 // Initialize a program manager.
 const programManager = new ProgramManager("http://localhost:3030", recordProvider);
 
-// Build and execute the transaction
+// Build and execute the transaction.
 const tx = await programManager.buildDevnodeExecutionTransaction({
   programName: "hello_hello.aleo",
   functionName: "hello_hello",
@@ -3235,8 +3247,9 @@ setTimeout(async () => {
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Builds a deployment transaction with dummy certificates and verifier keys.
+Builds a deployment transaction with placeholder certificates and verifying keys for each function in the program.
 Intended for use with a local devnode.
+&#x60;getOrInitConsensusVersionTestHeights&#x60; must be called with development heights prior to invoking this method for it to work properly.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -3247,7 +3260,10 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
+
+// Initialize the development consensus heights in order to work with a local devnode.
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3278,7 +3294,7 @@ setTimeout(async () => {
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Builds a deployment transaction with dummy certificates and verifier keys for upgrading programs deployed on a local devnode.
+Builds an upgrade transaction on a local devnodewith placeholder certificates and verifying keys for each function in the program.
 This method is only intended for use with a local devnode.
 
 Parameters | Type | Description
