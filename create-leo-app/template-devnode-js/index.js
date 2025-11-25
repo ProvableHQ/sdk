@@ -1,11 +1,7 @@
 #!/usr/bin/env ts-node
 import { Account, ProgramManager, initThreadPool, NetworkRecordProvider, AleoNetworkClient, getOrInitConsensusVersionTestHeights } from '@provablehq/sdk';
 
-async function main() {
-    // Initialize multi-threading to allow WASM execution.
-    await initThreadPool();
-    const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
-    const program = `program test_program.aleo;
+const program = `program test_program.aleo;
 
 function main:
     input r0 as u32.public;
@@ -32,6 +28,11 @@ function new_transition:
 
 constructor:
     assert.eq program_owner aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px;`;
+
+async function main() {
+    // Initialize multi-threading to allow WASM execution.
+    await initThreadPool();
+    const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
 
     const privateKey = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
     const account = new Account({privateKey});
